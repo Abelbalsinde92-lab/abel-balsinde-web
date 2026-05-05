@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="Entrenador personal en Belgrado. Condición física con base de lucha." />
+<meta name="description" content="Entrenador personal en Belgrado. Fuerza, pérdida de grasa y preparación física con método basado en lucha cubana. Clases en español, serbio e inglés." />
+<meta name="keywords" content="personal trainer Belgrade, entrenador personal Belgrado, entrenador español Serbia, lucha cubana Belgrado, strength conditioning Belgrade, fat loss coach Belgrade" />
 <title>Abel Balsinde · Entrenador Personal en Belgrado</title>
+<meta property="og:title" content="Abel Balsinde · Personal Trainer in Belgrade" />
+<meta property="og:description" content="Strength, fat loss and conditioning with a Cuban wrestling-based method. Training in Spanish, Serbian and English." />
+<meta property="og:type" content="website" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -190,6 +194,13 @@ section{position:relative;padding:110px 0}
 .testi-who{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
 .testi-who strong{font-family:'Barlow Condensed';font-size:18px;font-weight:800;text-transform:uppercase;letter-spacing:1px;display:block}
 .testi-who span{font-size:12px;color:var(--muted);margin-top:3px;display:block}
+.result-icon{width:46px;height:46px;border:1px solid var(--line);border-radius:14px;display:grid;place-items:center;margin-bottom:18px;background:rgba(94,197,240,.08);font-size:22px}
+.result-title{font-family:'Barlow Condensed';font-size:26px;font-weight:900;text-transform:uppercase;letter-spacing:1.2px;color:var(--white);margin-bottom:12px}
+.instagram-card{margin:48px auto 0;max-width:880px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(226,6,19,.12),rgba(94,197,240,.08));padding:34px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.instagram-title{font-family:'Barlow Condensed';font-size:34px;font-weight:900;text-transform:uppercase;letter-spacing:1.4px;color:var(--white);line-height:1}
+.instagram-text{color:rgba(200,220,238,.86);font-size:15px;line-height:1.7;margin-top:10px;max-width:560px}
+.instagram-btn{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border:1px solid var(--line);padding:14px 22px;border-radius:14px;font-family:'Barlow Condensed';font-weight:900;text-transform:uppercase;letter-spacing:1.4px;color:var(--white);transition:.3s}
+.instagram-btn:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-2px)}
 
 /* FINAL */
 .final{padding:130px 0;position:relative;overflow:hidden;text-align:center}
@@ -501,17 +512,24 @@ footer{background:#010810;border-top:1px solid var(--line);padding:38px 0}
   </div>
 </section>
 
-<section class="testi-bg">
+<section class="testi-bg" id="results">
   <div class="container">
     <div class="center">
-      <div class="label reveal" data-i18n="testi.label">Resultados · Iskustva</div>
-      <h2 class="section-title reveal"><span data-i18n="testi.title1">Lo que dicen</span> <span class="accent" data-i18n="testi.title2">Clientes</span></h2>
-      <p class="lead reveal" style="font-size:14px;color:rgba(122,148,176,.6)" data-i18n="testi.note">Testimonios de ejemplo — reemplazar por clientes reales autorizados.</p>
+      <div class="label reveal" data-i18n="testi.label">Resultados reales</div>
+      <h2 class="section-title reveal"><span data-i18n="testi.title1">Lo que vamos a</span> <span class="accent" data-i18n="testi.title2">Construir</span></h2>
+      <p class="lead reveal" data-i18n="testi.note">Sin testimonios inventados. Los resultados reales se publicarán solo con autorización de cada cliente.</p>
     </div>
     <div class="testi-grid">
-      <div class="testi-card reveal"><div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div><span class="quote-mark">"</span><p data-i18n="t1.text">Llegué sin condición y con miedo a entrenar fuerte. Ahora tengo rutina, más fuerza y mejor confianza. El método de Abel es diferente a cualquier gimnasio normal.</p><div class="testi-who"><strong data-i18n="t1.who">Cliente fitness</strong><span data-i18n="t1.where">Belgrado · Entrenamiento 1 a 1</span></div></div>
-      <div class="testi-card reveal"><div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div><span class="quote-mark">"</span><p data-i18n="t2.text">El entrenamiento es duro pero claro. Cada semana tiene un objetivo y se siente el progreso. Abel sabe lo que hace y siempre controla los resultados.</p><div class="testi-who"><strong data-i18n="t2.who">Cliente recreativo</strong><span data-i18n="t2.where">Grupo pequeño · Condición</span></div></div>
-      <div class="testi-card reveal"><div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div><span class="quote-mark">"</span><p data-i18n="t3.text">This is not regular gym training. It feels athletic, focused and real. Lost 8kg and gained serious conditioning in 3 months.</p><div class="testi-who"><strong data-i18n="t3.who">Online client</strong><span data-i18n="t3.where">Sistema Atleta · 3 meses</span></div></div>
+      <div class="testi-card reveal"><div class="result-icon">🔥</div><div class="result-title" data-i18n="t1.who">Fuerza y condición</div><p data-i18n="t1.text">Entrenamientos para ganar fuerza útil, resistencia y control corporal con una base real de lucha.</p><div class="testi-who"><span data-i18n="t1.where">Para principiantes, adultos y atletas</span></div></div>
+      <div class="testi-card reveal"><div class="result-icon">⚡</div><div class="result-title" data-i18n="t2.who">Menos grasa</div><p data-i18n="t2.text">Sesiones intensas, progresivas y adaptadas para mejorar composición corporal sin entrenamiento genérico.</p><div class="testi-who"><span data-i18n="t2.where">Trabajo serio, medible y sostenible</span></div></div>
+      <div class="testi-card reveal"><div class="result-icon">🤼</div><div class="result-title" data-i18n="t3.who">Disciplina de lucha</div><p data-i18n="t3.text">No necesitas competir. Usamos la mentalidad, la técnica y la estructura del luchador para transformar tu físico.</p><div class="testi-who"><span data-i18n="t3.where">Método cubano adaptado a tu nivel</span></div></div>
+    </div>
+    <div class="instagram-card reveal">
+      <div>
+        <div class="instagram-title" data-i18n="insta.title">Entrena. Graba. Progresa.</div>
+        <div class="instagram-text" data-i18n="insta.text">Mira entrenamientos reales, lucha olímpica y trabajo físico diario en Instagram.</div>
+      </div>
+      <a class="instagram-btn" href="https://www.instagram.com/abel.balsinde/" target="_blank" rel="noopener" data-i18n="insta.cta">Ver Instagram @abel.balsinde</a>
     </div>
   </div>
 </section>
@@ -528,7 +546,7 @@ footer{background:#010810;border-top:1px solid var(--line);padding:38px 0}
       <a class="btn-outline" href="mailto:abel.balsinde92@gmail.com" data-i18n="contact.cta2">Enviar email</a>
     </div>
     <div class="chips reveal">
-      <div class="chip">📸 @abel.balsinde</div>
+      <a class="chip" href="https://www.instagram.com/abel.balsinde/" target="_blank" rel="noopener">📸 @abel.balsinde</a>
       <a class="chip" href="mailto:abel.balsinde92@gmail.com">✉️ abel.balsinde92@gmail.com</a>
       <div class="chip">📍 Belgrado, Serbia</div>
       <div class="chip" data-i18n="contact.langs">🗣️ Español · Srpski · English</div>
@@ -549,9 +567,9 @@ footer{background:#010810;border-top:1px solid var(--line);padding:38px 0}
 <script>
 const T = {
   es: {
-    "nav.tagline":"Entrenador · Base de Lucha","nav.method":"Método","nav.services":"Servicios","nav.pricing":"Precios","nav.about":"Abel","nav.contact":"Contacto","nav.cta":"Reservar prueba →","nav.call":"Llamar",
-    "hero.eyebrow":"Entrenador Personal · Belgrado","hero.h1_1":"ENTRENA","hero.h1_2":"COMO","hero.h1_3":"LUCHADOR","hero.sub":"Sin ser luchador.","hero.desc":"Pierde grasa, gana fuerza y desarrolla disciplina real con un método basado en la lucha cubana. Clases en español y srpski. Belgrado.","hero.cta1":"Prueba gratis → WhatsApp","hero.cta2":"Ver precios","hero.panel_title":"Abel Performance · Belgrado","hero.stat1_label":"Años en lucha","hero.stat1_sub":"Atleta y entrenador cubano","hero.stat2_label":"Atención total","hero.stat2_sub":"Personal y grupos pequeños","hero.stat3_label":"Idiomas","hero.stat3_sub":"Español · Srpski","hero.badge1":"Principiantes ok","hero.badge2":"Niños y adultos","hero.badge3":"Online coaching",
-    "trust.t1_label":"Origen y método","trust.t1_sub":"Cultura cubana de lucha y disciplina","trust.t2_label":"Años en lucha","trust.t2_sub":"Base real como atleta y coach","trust.t3_label":"Dos idiomas","trust.t3_sub":"Español y srpski en cada sesión","trust.t4_label":"Belgrado, Serbia","trust.t4_sub":"Varios gimnasios. Online disponible.",
+    "nav.tagline":"Entrenador · Base de Lucha","nav.method":"Método","nav.services":"Servicios","nav.pricing":"Precios","nav.about":"Abel","nav.contact":"Contacto","nav.cta":"Reservar entrenamiento →","nav.call":"Llamar",
+    "hero.eyebrow":"Entrenador Personal · Belgrado","hero.h1_1":"ENTRENA","hero.h1_2":"COMO","hero.h1_3":"LUCHADOR","hero.sub":"Sin ser luchador.","hero.desc":"Pierde grasa, gana fuerza y desarrolla disciplina real con un método basado en la lucha cubana. Clases en español y srpski. Belgrado.","hero.cta1":"Reserva por WhatsApp","hero.cta2":"Ver precios","hero.panel_title":"Abel Performance · Belgrado","hero.stat1_label":"Años en lucha","hero.stat1_sub":"Atleta y entrenador cubano","hero.stat2_label":"Atención total","hero.stat2_sub":"Personal y grupos pequeños","hero.stat3_label":"Idiomas","hero.stat3_sub":"Español · Srpski","hero.badge1":"Principiantes ok","hero.badge2":"Niños y adultos","hero.badge3":"Online coaching",
+    "trust.t1_label":"Origen y método","trust.t1_sub":"Cultura cubana de lucha y disciplina","trust.t2_label":"Años en lucha","trust.t2_sub":"Base real como atleta y coach","trust.t3_label":"Dos idiomas","trust.t3_sub":"Español y srpski en cada sesión","trust.t4_label":"Belgrado, Serbia","trust.t4_sub":"Gimnasio, sala, exterior o espacio acordado. Online disponible.",
     "method.label":"Método","method.title1":"El","method.title2":"Método","method.lead":"Entrenamiento con base de lucha adaptado para personas que no son luchadores. Intensidad real, técnica sólida, progreso visible.",
     "slide1.label":"01 — Principio","slide1.title":"Entrena como <span>Luchador.</span>","slide1.text":"Sprawls, circuitos, fuerza explosiva, control corporal. El método de los luchadores cubanos adaptado para cualquier persona.",
     "slide2.label":"02 — Acceso","slide2.title":"¿Sin experiencia? <span>No hay problema.</span>","slide2.text":"El programa se adapta desde cero. Principiantes, mujeres, hombres, niños, atletas. El nivel no importa: el trabajo sí.",
@@ -576,15 +594,15 @@ const T = {
     "step4.title":"Entrenamos","step4.text":"Sesiones serias, con método y estructura. No es el gimnasio de siempre.",
     "step5.title":"Seguimiento mensual","step5.text":"Control de asistencia, rendimiento, fatiga y progreso. Ajustes según resultados reales.",
     "step6.title":"Progreso real","step6.text":"Más fuerza, menos grasa, mejor condición, más confianza. Disciplina sostenida.",
-    "testi.label":"Resultados","testi.title1":"Lo que dicen","testi.title2":"Clientes","testi.note":"Testimonios de ejemplo — reemplazar por clientes reales autorizados.",
-    "t1.text":"Llegué sin condición y con miedo a entrenar fuerte. Ahora tengo rutina, más fuerza y mejor confianza. El método de Abel es diferente a cualquier gimnasio normal.","t1.who":"Cliente fitness","t1.where":"Belgrado · Entrenamiento 1 a 1",
-    "t2.text":"El entrenamiento es duro pero claro. Cada semana tiene un objetivo y se siente el progreso. Abel sabe lo que hace y siempre controla los resultados.","t2.who":"Cliente recreativo","t2.where":"Grupo pequeño · Condición",
-    "t3.text":"This is not regular gym training. It feels athletic, focused and real. Lost 8kg and gained serious conditioning in 3 months.","t3.who":"Online client","t3.where":"Sistema Atleta · 3 meses",
-    "contact.label":"Contacto","contact.h1":"Tu cuerpo","contact.h2":"cambia","contact.h3":"hoy.","contact.sub":"Clases en español y serbio. Información en inglés disponible. Belgrado, Serbia.","contact.cta1":"WhatsApp: +381 63 8112348 →","contact.cta2":"Enviar email","contact.langs":"🗣️ Español · Srpski · English"
+    "testi.label":"Resultados","testi.title1":"Lo que vamos a","testi.title2":"Construir","testi.note":"Sin testimonios inventados. Los resultados reales se publicarán solo con autorización de cada cliente.",
+    "t1.text":"Entrenamientos para ganar fuerza útil, resistencia y control corporal con una base real de lucha.","t1.who":"Fuerza y condición","t1.where":"Para principiantes, adultos y atletas",
+    "t2.text":"Sesiones intensas, progresivas y adaptadas para mejorar composición corporal sin entrenamiento genérico.","t2.who":"Menos grasa","t2.where":"Trabajo serio, medible y sostenible",
+    "t3.text":"No necesitas competir. Usamos la mentalidad, la técnica y la estructura del luchador para transformar tu físico.","t3.who":"Disciplina de lucha","t3.where":"Método cubano adaptado a tu nivel",
+    "contact.label":"Contacto","contact.h1":"Tu cuerpo","contact.h2":"cambia","contact.h3":"hoy.","contact.sub":"Clases en español, serbio e inglés. Belgrado, Serbia.","contact.cta1":"WhatsApp: +381 63 8112348 →","contact.cta2":"Enviar email","contact.langs":"🗣️ Español · Srpski · English"
   },
   sr: {
     "nav.tagline":"Lični trener · Rvanje","nav.method":"Metod","nav.services":"Usluge","nav.pricing":"Cene","nav.about":"Abel","nav.contact":"Kontakt","nav.cta":"Rezerviši trening →","nav.call":"Pozovi",
-    "hero.eyebrow":"Lični trener · Beograd · Kuba","hero.h1_1":"TRENIRAJ","hero.h1_2":"KAO","hero.h1_3":"RVAČ","hero.sub":"A da ne budeš rvač.","hero.desc":"Izgubi mast, dobij snagu i razvij pravu disciplinu metodom zasnovanim na rvanju. Treninzi na srpskom i španskom. Beograd.","hero.cta1":"Besplatni trening → WhatsApp","hero.cta2":"Pogledaj cene","hero.panel_title":"Abel Performance · Beograd","hero.stat1_label":"Godina u rvanju","hero.stat1_sub":"Kubansko poreklo, profesionalni trener","hero.stat2_label":"Puna pažnja","hero.stat2_sub":"Individualno i male grupe","hero.stat3_label":"Jezika","hero.stat3_sub":"Srpski · Španski","hero.badge1":"Početnici dobrodošli","hero.badge2":"Deca i odrasli","hero.badge3":"Online koučing",
+    "hero.eyebrow":"Lični trener · Beograd","hero.h1_1":"TRENIRAJ","hero.h1_2":"KAO","hero.h1_3":"RVAČ","hero.sub":"A da ne budeš rvač.","hero.desc":"Izgubi mast, dobij snagu i razvij pravu disciplinu metodom zasnovanim na rvanju. Treninzi na srpskom i španskom. Beograd.","hero.cta1":"Besplatni trening → WhatsApp","hero.cta2":"Pogledaj cene","hero.panel_title":"Abel Performance · Beograd","hero.stat1_label":"Godina u rvanju","hero.stat1_sub":"Kubansko poreklo, profesionalni trener","hero.stat2_label":"Puna pažnja","hero.stat2_sub":"Individualno i male grupe","hero.stat3_label":"Jezika","hero.stat3_sub":"Srpski · Španski","hero.badge1":"Početnici dobrodošli","hero.badge2":"Deca i odrasli","hero.badge3":"Online koučing",
     "trust.t1_label":"Poreklo i metod","trust.t1_sub":"Kubanska kultura rvanja i discipline","trust.t2_label":"Godina u rvanju","trust.t2_sub":"Iskustvo kao sportista i trener","trust.t3_label":"Dva jezika","trust.t3_sub":"Srpski i španski na svakom treningu","trust.t4_label":"Beograd, Srbija","trust.t4_sub":"Više teretana. Online dostupno.",
     "method.label":"Metod","method.title1":"","method.title2":"Metod","method.lead":"Trening zasnovan na rvanju prilagođen osobama koje nisu rvači. Prava intenzivnost, solidna tehnika, vidljiv napredak.",
     "slide1.label":"01 — Princip","slide1.title":"Treniraj kao <span>Rvač.</span>","slide1.text":"Sprawlovi, kružni treninzi, eksplozivna snaga, kontrola tela. Metod kubanskih rvača prilagođen svima.",
@@ -610,16 +628,17 @@ const T = {
     "step4.title":"Treniramo","step4.text":"Ozbiljni treninzi, sa metodom i strukturom. Nije obična teretana.",
     "step5.title":"Mesečno praćenje","step5.text":"Kontrola prisustva, učinka, zamora i napretka. Prilagođavanja prema stvarnim rezultatima.",
     "step6.title":"Pravi napredak","step6.text":"Više snage, manje masti, bolja kondicija, više samopouzdanja. Trajna disciplina.",
-    "testi.label":"Iskustva","testi.title1":"Šta kažu","testi.title2":"Klijenti","testi.note":"Primeri iskustava — zameniti stvarnim ovlašćenim klijentima.",
-    "t1.text":"Došao sam bez kondicije i sa strahom od jakog treninga. Sada imam rutinu, više snage i bolje samopouzdanje. Abelov metod je drugačiji od svake obične teretane.","t1.who":"Fitnes klijent","t1.where":"Beograd · Individualni trening",
-    "t2.text":"Trening je težak, ali jasan. Svake nedelje ima cilj i oseća se napredak. Abel zna šta radi i uvek prati rezultate.","t2.who":"Rekreativac","t2.where":"Mala grupa · Kondicija",
-    "t3.text":"Ovo nije običan trening u teretani. Oseća se atletski, fokusirano i pravo. Izgubio sam 8kg i stekao ozbiljnu kondiciju za 3 meseca.","t3.who":"Online klijent","t3.where":"Atletski sistem · 3 meseca",
-    "contact.label":"Kontakt","contact.h1":"Tvoje telo","contact.h2":"menja se","contact.h3":"danas.","contact.sub":"Treninzi na srpskom i španskom. Informacije dostupne i na engleskom. Beograd, Srbija.","contact.cta1":"WhatsApp: +381 63 8112348 →","contact.cta2":"Pošalji email","contact.langs":"🗣️ Srpski · Španski · Engleski"
+    "testi.label":"Realni rezultati","testi.title1":"Šta gradimo","testi.title2":"zajedno","testi.note":"Bez izmišljenih iskustava. Pravi rezultati biće objavljeni samo uz dozvolu klijenta.",
+    "t1.text":"Treninzi za korisnu snagu, izdržljivost i kontrolu tela kroz stvarnu rvačku osnovu.","t1.who":"Snaga i kondicija","t1.where":"Za početnike, odrasle i sportiste",
+    "t2.text":"Intenzivne, progresivne i prilagođene sesije za bolju telesnu kompoziciju bez generičkog treninga.","t2.who":"Manje masti","t2.where":"Ozbiljan, merljiv i održiv rad",
+    "t3.text":"Ne moraš da se takmičiš. Koristimo mentalitet, tehniku i strukturu rvača da promenimo tvoje telo.","t3.who":"Rvačka disciplina","t3.where":"Kubanski metod prilagođen tvom nivou",
+    "insta.title":"Treniraj. Snimaj. Napreduj.","insta.text":"Pogledaj realne treninge, olimpijsko rvanje i svakodnevni fizički rad na Instagramu.","insta.cta":"Instagram @abel.balsinde",
+    "contact.label":"Kontakt","contact.h1":"Tvoje telo","contact.h2":"menja se","contact.h3":"danas.","contact.sub":"Treninzi na španskom, srpskom i engleskom. Beograd, Srbija.","contact.cta1":"WhatsApp: +381 63 8112348 →","contact.cta2":"Pošalji email","contact.langs":"🗣️ Srpski · Španski · Engleski"
   },
   en: {
-    "nav.tagline":"Personal Trainer · Wrestling Base","nav.method":"Method","nav.services":"Services","nav.pricing":"Pricing","nav.about":"Abel","nav.contact":"Contact","nav.cta":"Book free trial →","nav.call":"Call",
-    "hero.eyebrow":"Personal Trainer · Belgrade","hero.h1_1":"TRAIN","hero.h1_2":"LIKE A","hero.h1_3":"FIGHTER","hero.sub":"Without being one.","hero.desc":"Lose fat, build strength and develop real discipline with a method rooted in Cuban wrestling. Classes in Spanish and Serbian. Belgrade.","hero.cta1":"Free trial → WhatsApp","hero.cta2":"See pricing","hero.panel_title":"Abel Performance · Belgrade","hero.stat1_label":"Years in wrestling","hero.stat1_sub":"Cuban athlete and coach","hero.stat2_label":"Full attention","hero.stat2_sub":"Personal and small groups","hero.stat3_label":"Languages","hero.stat3_sub":"Spanish · Serbian","hero.badge1":"Beginners welcome","hero.badge2":"Kids and adults","hero.badge3":"Online coaching",
-    "trust.t1_label":"Origin and method","trust.t1_sub":"Cuban wrestling culture and discipline","trust.t2_label":"Years in wrestling","trust.t2_sub":"Real experience as athlete and coach","trust.t3_label":"Two languages","trust.t3_sub":"Spanish and Serbian every session","trust.t4_label":"Belgrade, Serbia","trust.t4_sub":"Multiple gyms. Online available.",
+    "nav.tagline":"Personal Trainer · Wrestling Base","nav.method":"Method","nav.services":"Services","nav.pricing":"Pricing","nav.about":"Abel","nav.contact":"Contact","nav.cta":"Book training →","nav.call":"Call",
+    "hero.eyebrow":"Personal Trainer · Belgrade","hero.h1_1":"TRAIN","hero.h1_2":"LIKE A","hero.h1_3":"FIGHTER","hero.sub":"Without being one.","hero.desc":"Lose fat, build strength and develop real discipline with a method rooted in Cuban wrestling. Classes in Spanish and Serbian. Belgrade.","hero.cta1":"Book on WhatsApp","hero.cta2":"See pricing","hero.panel_title":"Abel Performance · Belgrade","hero.stat1_label":"Years in wrestling","hero.stat1_sub":"Cuban athlete and coach","hero.stat2_label":"Full attention","hero.stat2_sub":"Personal and small groups","hero.stat3_label":"Languages","hero.stat3_sub":"Spanish · Serbian","hero.badge1":"Beginners welcome","hero.badge2":"Kids and adults","hero.badge3":"Online coaching",
+    "trust.t1_label":"Origin and method","trust.t1_sub":"Cuban wrestling culture and discipline","trust.t2_label":"Years in wrestling","trust.t2_sub":"Real experience as athlete and coach","trust.t3_label":"Two languages","trust.t3_sub":"Spanish and Serbian every session","trust.t4_label":"Belgrade, Serbia","trust.t4_sub":"Gym, private room, outdoor or agreed space. Online available.",
     "method.label":"Method","method.title1":"The","method.title2":"Balsinde","method.lead":"Wrestling-based training adapted for people who are not wrestlers. Real intensity, solid technique, visible progress.",
     "slide1.label":"01 — Principle","slide1.title":"Train Like a <span>Fighter.</span>","slide1.text":"Sprawls, circuits, explosive strength, body control. The Cuban wrestling method adapted for anyone.",
     "slide2.label":"02 — Access","slide2.title":"No experience? <span>No problem.</span>","slide2.text":"The program adapts from scratch. Beginners, women, men, kids, athletes. Level doesn't matter — effort does.",
@@ -644,11 +663,12 @@ const T = {
     "step4.title":"We train","step4.text":"Serious sessions, with method and structure. Not your regular gym.",
     "step5.title":"Monthly follow-up","step5.text":"Attendance, performance, fatigue and progress tracking. Adjustments based on real results.",
     "step6.title":"Real progress","step6.text":"More strength, less fat, better conditioning, more confidence. Sustained discipline.",
-    "testi.label":"Results","testi.title1":"What","testi.title2":"Clients Say","testi.note":"Sample testimonials — replace with real authorized clients.",
-    "t1.text":"I arrived out of shape and afraid of hard training. Now I have a routine, more strength and better confidence. Abel\'s method is different from any regular gym.","t1.who":"Fitness client","t1.where":"Belgrade · 1-on-1 training",
-    "t2.text":"Training is hard but clear. Every week has a goal and you can feel the progress. Abel knows what he\'s doing and always tracks results.","t2.who":"Recreational client","t2.where":"Small group · Conditioning",
-    "t3.text":"This is not regular gym training. It feels athletic, focused and real. Lost 8kg and gained serious conditioning in 3 months.","t3.who":"Online client","t3.where":"Athlete System · 3 months",
-    "contact.label":"Contact","contact.h1":"Your body","contact.h2":"changes","contact.h3":"today.","contact.sub":"Classes in Spanish and Serbian. Information available in English. Belgrade, Serbia.","contact.cta1":"WhatsApp: +381 63 8112348 →","contact.cta2":"Send email","contact.langs":"🗣️ Spanish · Serbian · English"
+    "testi.label":"Real Results","testi.title1":"What We","testi.title2":"Build","testi.note":"No fake testimonials. Real client results will be published only with permission.",
+    "t1.text":"Training to build useful strength, endurance and body control through a real wrestling base.","t1.who":"Strength and conditioning","t1.where":"For beginners, adults and athletes",
+    "t2.text":"Intense, progressive and adapted sessions to improve body composition without generic gym training.","t2.who":"Fat loss","t2.where":"Serious, measurable and sustainable work",
+    "t3.text":"You do not need to compete. We use the mindset, technique and structure of wrestling to transform your body.","t3.who":"Wrestling discipline","t3.where":"Cuban method adapted to your level",
+    "insta.title":"Train. Record. Progress.","insta.text":"See real training, Olympic wrestling and daily physical work on Instagram.","insta.cta":"View Instagram @abel.balsinde",
+    "contact.label":"Contact","contact.h1":"Your body","contact.h2":"changes","contact.h3":"today.","contact.sub":"Training in Spanish, Serbian and English. Belgrade, Serbia.","contact.cta1":"WhatsApp: +381 63 8112348 →","contact.cta2":"Send email","contact.langs":"🗣️ Spanish · Serbian · English"
   }
 };
 
