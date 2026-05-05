@@ -152,7 +152,7 @@ section{position:relative;padding:110px 0}
 
 /* PRICING */
 .pricing-bg{background:radial-gradient(ellipse at 50% 100%,rgba(226,6,19,.07),transparent 50%),var(--navy2)}
-.price-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:60px;align-items:start;max-width:860px;margin-left:auto;margin-right:auto}
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:60px;align-items:start;max-width:1120px;margin-left:auto;margin-right:auto}
 .price-card{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:20px;padding:38px 32px;transition:.4s;position:relative;overflow:hidden}
 .price-card:hover{transform:translateY(-4px)}
 .price-card.featured{border-color:rgba(226,6,19,.45);background:rgba(226,6,19,.06);transform:scale(1.02)}
@@ -163,7 +163,7 @@ section{position:relative;padding:110px 0}
 .price-desc{color:var(--muted);font-size:13px;line-height:1.65;margin-bottom:24px;min-height:40px}
 .price-amount{font-family:'Bebas Neue';font-size:38px;color:var(--white);line-height:1;margin-bottom:4px}
 .price-amount small{font-family:'DM Sans';font-size:13px;color:var(--muted);font-weight:400}
-.price-note{font-size:12px;color:rgba(122,148,176,.7);margin-top:2px}
+.price-note{font-size:12px;color:rgba(122,148,176,.7);margin-top:2px}.price-note-box{max-width:920px;margin:28px auto 0;padding:18px 22px;border:1px solid var(--line);border-radius:16px;background:rgba(94,197,240,.06);color:rgba(221,238,255,.82);font-size:14px;line-height:1.7}
 .pdivider{height:1px;background:var(--line);margin:22px 0}
 .features{list-style:none;display:grid;gap:11px;margin-bottom:28px}
 .features li{display:flex;gap:10px;font-size:14px;color:rgba(200,218,235,.9);line-height:1.5;align-items:flex-start}
@@ -425,44 +425,61 @@ footer{background:#010810;border-top:1px solid var(--line);padding:38px 0}
   <div class="container">
     <div class="center">
       <div class="label reveal" data-i18n="pricing.label">Precios · Cene · Pricing</div>
-      <h2 class="section-title reveal"><span data-i18n="pricing.title1">Servicios y</span> <span class="accent" data-i18n="pricing.title2">Precios</span></h2>
-      <p class="lead reveal" data-i18n="pricing.lead">Oferta inicial en Belgrado: entrenamiento individual, grupos pequeños y sistema mensual con seguimiento real.</p>
+      <h2 class="section-title reveal"><span data-i18n="pricing.title1">Planes de</span> <span class="accent" data-i18n="pricing.title2">Entrenamiento</span></h2>
+      <p class="lead reveal" data-i18n="pricing.lead">Entrenamiento flexible en Belgrado: sesiones 1 a 1, grupos pequeños, preparación física y lucha según tu objetivo.</p>
     </div>
     <div class="price-grid">
       <div class="price-card reveal">
-        <div class="pbadge blue" data-i18n="p1.badge">Nivel 1 · Entrada</div>
-        <div class="price-name" data-i18n="p1.name">Fitness General</div>
-        <div class="price-desc" data-i18n="p1.desc">Para empezar, bajar grasa y mejorar condición con estructura.</div>
-        <div class="price-amount">3.000–4.000 RSD <small data-i18n="p1.per">/ sesión 1 a 1</small></div>
-        <div class="price-note" data-i18n="p1.note">1.200–1.800 RSD por persona en grupo</div>
+        <div class="pbadge blue" data-i18n="p1.badge">Entrada · Evaluación</div>
+        <div class="price-name" data-i18n="p1.name">Evaluación Inicial</div>
+        <div class="price-desc" data-i18n="p1.desc">Revisión física, objetivos, movilidad y plan recomendado.</div>
+        <div class="price-amount">20 € <small data-i18n="p1.per">/ 45–60 min</small></div>
+        <div class="price-note" data-i18n="p1.note">Ideal para empezar sin compromiso mensual</div>
         <div class="pdivider"></div>
         <ul class="features">
-          <li data-i18n="p1.f1">Sesión individual personalizada</li>
-          <li data-i18n="p1.f2">Grupos pequeños (máx. 6 personas)</li>
-          <li data-i18n="p1.f3">Fuerza, movilidad y cardio estilo luchador</li>
-          <li data-i18n="p1.f4">Seguimiento básico de progreso</li>
-          <li data-i18n="p1.f5">Clases en español o srpski</li>
+          <li data-i18n="p1.f1">Objetivo, nivel y experiencia</li>
+          <li data-i18n="p1.f2">Movilidad y condición física base</li>
+          <li data-i18n="p1.f3">Recomendación de plan</li>
+          <li data-i18n="p1.f4">Sesión en español o srpski</li>
+          <li data-i18n="p1.f5">Espacio confirmado antes de reservar</li>
         </ul>
         <a class="btn-outline" href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20informaci%C3%B3n%20para%20entrenar%20en%20Belgrado." target="_blank" style="width:100%;justify-content:center" data-i18n="p1.cta">Consultar por WhatsApp</a>
       </div>
       <div class="price-card featured reveal">
-        <div class="pbadge red" data-i18n="p2.badge">⭐ Nivel 2 · Recomendado</div>
-        <div class="price-name" data-i18n="p2.name">Sistema Atleta</div>
-        <div class="price-desc" data-i18n="p2.desc">Evaluación, plan estructurado y seguimiento mensual completo.</div>
-        <div class="price-amount">20.000–32.000 RSD <small data-i18n="p2.per">/ mes</small></div>
-        <div class="price-note" data-i18n="p2.note">2x/semana: 20–24k · 3x/semana: 26–32k RSD</div>
+        <div class="pbadge red" data-i18n="p2.badge">⭐ Más recomendado</div>
+        <div class="price-name" data-i18n="p2.name">Entrenamiento 1 a 1</div>
+        <div class="price-desc" data-i18n="p2.desc">Entrenamiento personal adaptado a tu objetivo: fuerza, movilidad, lucha, pérdida de grasa o condición general.</div>
+        <div class="price-amount">35 € <small data-i18n="p2.per">/ sesión 60 min</small></div>
+        <div class="price-note" data-i18n="p2.note">Plan 4 sesiones: 120 € · Plan 8 sesiones: 220 €</div>
         <div class="pdivider"></div>
         <ul class="features">
-          <li data-i18n="p2.f1">Evaluación inicial física y técnica</li>
-          <li data-i18n="p2.f2">Plan estructurado de 4 semanas</li>
-          <li data-i18n="p2.f3">Control de asistencia y rendimiento</li>
-          <li data-i18n="p2.f4">Ajuste mensual de carga y objetivos</li>
-          <li data-i18n="p2.f5">Acceso por WhatsApp entre sesiones</li>
-          <li data-i18n="p2.f6">Ideal para transformación seria</li>
+          <li data-i18n="p2.f1">Atención completa 1 a 1</li>
+          <li data-i18n="p2.f2">Plan según objetivo y nivel</li>
+          <li data-i18n="p2.f3">Fuerza, movilidad y acondicionamiento</li>
+          <li data-i18n="p2.f4">Base de lucha si el cliente lo desea</li>
+          <li data-i18n="p2.f5">Seguimiento por WhatsApp</li>
+          <li data-i18n="p2.f6">Sesiones en gimnasio, sala, exterior o espacio acordado</li>
         </ul>
-        <a class="btn-primary" href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20informaci%C3%B3n%20para%20entrenar%20en%20Belgrado." target="_blank" style="width:100%;justify-content:center" data-i18n="p2.cta">Reservar prueba gratis →</a>
+        <a class="btn-primary" href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20informaci%C3%B3n%20para%20entrenar%20en%20Belgrado." target="_blank" style="width:100%;justify-content:center" data-i18n="p2.cta">Reservar por WhatsApp →</a>
       </div>
-      
+      <div class="price-card reveal">
+        <div class="pbadge blue" data-i18n="p3.badge">Flexible · Grupos y atletas</div>
+        <div class="price-name" data-i18n="p3.name">Grupos / Atleta</div>
+        <div class="price-desc" data-i18n="p3.desc">Opciones para grupos pequeños, atletas y preparación física avanzada.</div>
+        <div class="price-amount">15 € <small data-i18n="p3.per">/ persona en grupo</small></div>
+        <div class="price-note" data-i18n="p3.note">Plan atleta desde 280 € · 60–90 min según objetivo</div>
+        <div class="pdivider"></div>
+        <ul class="features">
+          <li data-i18n="p3.f1">Grupos pequeños de 2 a 4 personas</li>
+          <li data-i18n="p3.f2">Preparación física para atletas</li>
+          <li data-i18n="p3.f3">Sesiones de 60–90 min si aplica</li>
+          <li data-i18n="p3.f4">Lucha, fuerza específica y acondicionamiento</li>
+          <li data-i18n="p3.f5">Plan online disponible bajo consulta</li>
+        </ul>
+        <a class="btn-outline" href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20informaci%C3%B3n%20para%20entrenar%20en%20Belgrado." target="_blank" style="width:100%;justify-content:center" data-i18n="p3.cta">Consultar disponibilidad</a>
+      </div>
+    </div>
+    <div class="price-note-box reveal" data-i18n="pricing.space">Los precios indicados corresponden a la tarifa del entrenamiento. El costo del gimnasio, sala privada o espacio de trabajo se paga aparte cuando aplique y siempre se confirma antes de reservar.</div>
   </div>
 </section>
 
@@ -548,10 +565,10 @@ const T = {
     "s5.title":"Grupos Pequeños","s5.text":"Máximo 4–6 personas por sesión. Intensidad real, precio accesible, energía de equipo sin perder seguimiento.","s5.tag":"Económico",
     "s6.title":"Lucha Competitiva","s6.text":"Lucha grecorromana y libre. Para niños, adultos y atletas que quieren competir o aprender la base técnica.","s6.tag":"Técnica · Competición",
     "about.label":"Por qué Abel","about.title1":"Coach Real.","about.title2":"Método","about.title3":"Real.","about.lead":"Abel Balsinde trae la cultura de la lucha cubana, la experiencia internacional y un estilo de coaching directo a Belgrado. Sin promesas falsas. Trabajo serio, progresión clara, disciplina real y seguimiento.","about.badge":"Años en lucha","about.m1":"Base cubana de lucha","about.m2":"Basado en Belgrado","about.m3":"Coaching en español","about.m4":"Trening na srpskom","about.cta":"Hablar con Abel →",
-    "pricing.label":"Precios","pricing.title1":"Servicios y","pricing.title2":"Precios","pricing.lead":"Oferta inicial en Belgrado: entrenamiento individual, grupos pequeños y sistema mensual con seguimiento real.",
-    "p1.badge":"Nivel 1 · Entrada","p1.name":"Fitness General","p1.desc":"Para empezar, bajar grasa y mejorar condición con estructura.","p1.per":"/ sesión 1 a 1","p1.note":"1.200–1.800 RSD por persona en grupo","p1.f1":"Sesión individual personalizada","p1.f2":"Grupos pequeños (máx. 6 personas)","p1.f3":"Fuerza, movilidad y cardio estilo luchador","p1.f4":"Seguimiento básico de progreso","p1.f5":"Clases en español o srpski","p1.cta":"Consultar por WhatsApp",
-    "p2.badge":"⭐ Nivel 2 · Recomendado","p2.name":"Sistema Atleta","p2.desc":"Evaluación, plan estructurado y seguimiento mensual completo.","p2.per":"/ mes","p2.note":"2x/semana: 20–24k · 3x/semana: 26–32k RSD","p2.f1":"Evaluación inicial física y técnica","p2.f2":"Plan estructurado de 4 semanas","p2.f3":"Control de asistencia y rendimiento","p2.f4":"Ajuste mensual de carga y objetivos","p2.f5":"Acceso por WhatsApp entre sesiones","p2.f6":"Ideal para transformación seria","p2.cta":"Reservar prueba gratis →",
-    "p3.badge":"Nivel 3 · Premium","p3.name":"Premium · Fase 2","p3.desc":"Sistema avanzado cuando la base de clientes esté establecida.","p3.amount":"A definir","p3.per":"/ 3 meses","p3.note":"Para atletas o clientes serios","p3.f1":"Plan completamente personalizado","p3.f2":"Seguimiento semanal detallado","p3.f3":"Ajuste de carga según resultados reales","p3.f4":"Evaluación con médico deportivo (opcional)","p3.f5":"No se vende como promesa médica","p3.cta":"Consultar disponibilidad",
+    "pricing.label":"Precios","pricing.title1":"Planes de","pricing.title2":"Entrenamiento","pricing.lead":"Entrenamiento flexible en Belgrado: sesiones 1 a 1, grupos pequeños, preparación física y lucha según tu objetivo.","pricing.space":"Los precios indicados corresponden a la tarifa del entrenamiento. El costo del gimnasio, sala privada o espacio de trabajo se paga aparte cuando aplique y siempre se confirma antes de reservar.",
+    "p1.badge":"Entrada · Evaluación","p1.name":"Evaluación Inicial","p1.desc":"Revisión física, objetivos, movilidad y plan recomendado.","p1.per":"/ 45–60 min","p1.note":"Ideal para empezar sin compromiso mensual","p1.f1":"Objetivo, nivel y experiencia","p1.f2":"Movilidad y condición física base","p1.f3":"Recomendación de plan","p1.f4":"Sesión en español o srpski","p1.f5":"Espacio confirmado antes de reservar","p1.cta":"Consultar por WhatsApp",
+    "p2.badge":"⭐ Más recomendado","p2.name":"Entrenamiento 1 a 1","p2.desc":"Entrenamiento personal adaptado a tu objetivo: fuerza, movilidad, lucha, pérdida de grasa o condición general.","p2.per":"/ sesión 60 min","p2.note":"Plan 4 sesiones: 120 € · Plan 8 sesiones: 220 €","p2.f1":"Atención completa 1 a 1","p2.f2":"Plan según objetivo y nivel","p2.f3":"Fuerza, movilidad y acondicionamiento","p2.f4":"Base de lucha si el cliente lo desea","p2.f5":"Seguimiento por WhatsApp","p2.f6":"Sesiones en gimnasio, sala, exterior o espacio acordado","p2.cta":"Reservar por WhatsApp →",
+    "p3.badge":"Flexible · Grupos y atletas","p3.name":"Grupos / Atleta","p3.desc":"Opciones para grupos pequeños, atletas y preparación física avanzada.","p3.per":"/ persona en grupo","p3.note":"Plan atleta desde 280 € · 60–90 min según objetivo","p3.f1":"Grupos pequeños de 2 a 4 personas","p3.f2":"Preparación física para atletas","p3.f3":"Sesiones de 60–90 min si aplica","p3.f4":"Lucha, fuerza específica y acondicionamiento","p3.f5":"Plan online disponible bajo consulta","p3.cta":"Consultar disponibilidad",
     "process.label":"Forma de trabajo","process.title1":"Sistema Simple.","process.title2":"Resultados Claros.","process.lead":"Primero entrenamos, medimos lo básico y creamos constancia. El sistema crece con el cliente.",
     "step1.title":"Contacto inicial","step1.text":"Hablamos por WhatsApp. Definimos objetivo, nivel, disponibilidad y lesiones previas.",
     "step2.title":"Evaluación","step2.text":"Peso, movilidad, condición, control corporal y técnica básica. Punto de partida real.",
@@ -567,7 +584,7 @@ const T = {
   },
   sr: {
     "nav.tagline":"Lični trener · Rvanje","nav.method":"Metod","nav.services":"Usluge","nav.pricing":"Cene","nav.about":"Abel","nav.contact":"Kontakt","nav.cta":"Rezerviši trening →","nav.call":"Pozovi",
-    "hero.eyebrow":"Lični trener · Beograd","hero.h1_1":"TRENIRAJ","hero.h1_2":"KAO","hero.h1_3":"RVAČ","hero.sub":"A da ne budeš rvač.","hero.desc":"Izgubi mast, dobij snagu i razvij pravu disciplinu metodom zasnovanim na rvanju. Treninzi na srpskom i španskom. Beograd.","hero.cta1":"Besplatni trening → WhatsApp","hero.cta2":"Pogledaj cene","hero.panel_title":"Abel Performance · Beograd","hero.stat1_label":"Godina u rvanju","hero.stat1_sub":"Kubansko poreklo, profesionalni trener","hero.stat2_label":"Puna pažnja","hero.stat2_sub":"Individualno i male grupe","hero.stat3_label":"Jezika","hero.stat3_sub":"Srpski · Španski","hero.badge1":"Početnici dobrodošli","hero.badge2":"Deca i odrasli","hero.badge3":"Online koučing",
+    "hero.eyebrow":"Lični trener · Beograd · Kuba","hero.h1_1":"TRENIRAJ","hero.h1_2":"KAO","hero.h1_3":"RVAČ","hero.sub":"A da ne budeš rvač.","hero.desc":"Izgubi mast, dobij snagu i razvij pravu disciplinu metodom zasnovanim na rvanju. Treninzi na srpskom i španskom. Beograd.","hero.cta1":"Besplatni trening → WhatsApp","hero.cta2":"Pogledaj cene","hero.panel_title":"Abel Performance · Beograd","hero.stat1_label":"Godina u rvanju","hero.stat1_sub":"Kubansko poreklo, profesionalni trener","hero.stat2_label":"Puna pažnja","hero.stat2_sub":"Individualno i male grupe","hero.stat3_label":"Jezika","hero.stat3_sub":"Srpski · Španski","hero.badge1":"Početnici dobrodošli","hero.badge2":"Deca i odrasli","hero.badge3":"Online koučing",
     "trust.t1_label":"Poreklo i metod","trust.t1_sub":"Kubanska kultura rvanja i discipline","trust.t2_label":"Godina u rvanju","trust.t2_sub":"Iskustvo kao sportista i trener","trust.t3_label":"Dva jezika","trust.t3_sub":"Srpski i španski na svakom treningu","trust.t4_label":"Beograd, Srbija","trust.t4_sub":"Više teretana. Online dostupno.",
     "method.label":"Metod","method.title1":"","method.title2":"Metod","method.lead":"Trening zasnovan na rvanju prilagođen osobama koje nisu rvači. Prava intenzivnost, solidna tehnika, vidljiv napredak.",
     "slide1.label":"01 — Princip","slide1.title":"Treniraj kao <span>Rvač.</span>","slide1.text":"Sprawlovi, kružni treninzi, eksplozivna snaga, kontrola tela. Metod kubanskih rvača prilagođen svima.",
@@ -582,10 +599,10 @@ const T = {
     "s5.title":"Male grupe","s5.text":"Najviše 4–6 osoba po treningu. Prava intenzivnost, pristupačna cena, timska energija bez gubitka praćenja.","s5.tag":"Povoljno",
     "s6.title":"Takmičarsko rvanje","s6.text":"Grčko-rimsko i slobodno rvanje. Za decu, odrasle i sportiste koji žele da se takmiče ili nauče tehničku osnovu.","s6.tag":"Tehnika · Takmičenje",
     "about.label":"Zašto Abel","about.title1":"Pravi trener.","about.title2":"Pravi","about.title3":"Metod.","about.lead":"Abel Balsinde donosi kubansku kulturu rvanja, međunarodno iskustvo i direktan stil koučinga u Beograd. Bez lažnih obećanja. Ozbiljan rad, jasan napredak, prava disciplina i praćenje.","about.badge":"Godina u rvanju","about.m1":"Kubanska osnova rvanja","about.m2":"U Beogradu","about.m3":"Koučing na španskom","about.m4":"Trening na srpskom","about.cta":"Razgovaraj sa Abelom →",
-    "pricing.label":"Cene","pricing.title1":"Usluge i","pricing.title2":"Cene","pricing.lead":"Početna ponuda u Beogradu: individualni trening, male grupe i mesečni sistem sa pravim praćenjem.",
-    "p1.badge":"Nivo 1 · Početak","p1.name":"Opšti fitnes","p1.desc":"Za početak, gubitak masti i poboljšanje kondicije uz strukturu.","p1.per":"/ individualni trening","p1.note":"1.200–1.800 RSD po osobi u grupi","p1.f1":"Individualni personalizovani trening","p1.f2":"Male grupe (maks. 6 osoba)","p1.f3":"Snaga, mobilnost i kardio u rvačkom stilu","p1.f4":"Osnovno praćenje napretka","p1.f5":"Treninzi na srpskom ili španskom","p1.cta":"Pitaj nas na WhatsApp-u",
-    "p2.badge":"⭐ Nivo 2 · Preporučeno","p2.name":"Atletski sistem","p2.desc":"Procena, strukturisan plan i kompletno mesečno praćenje.","p2.per":"/ mesec","p2.note":"2x/nedelja: 20–24k · 3x/nedelja: 26–32k RSD","p2.f1":"Početna fizička i tehnička procena","p2.f2":"Strukturisan plan od 4 nedelje","p2.f3":"Kontrola prisustva i učinka","p2.f4":"Mesečno usklađivanje opterećenja i ciljeva","p2.f5":"WhatsApp pristup između treninga","p2.f6":"Idealno za ozbiljnu transformaciju","p2.cta":"Rezerviši besplatni trening →",
-    "p3.badge":"Nivo 3 · Premium","p3.name":"Premium · Faza 2","p3.desc":"Napredni sistem kada se izgradi baza klijenata.","p3.amount":"Po dogovoru","p3.per":"/ 3 meseca","p3.note":"Za ozbiljne sportiste ili klijente","p3.f1":"Potpuno personalizovan plan","p3.f2":"Detaljno nedeljno praćenje","p3.f3":"Korekcija opterećenja prema rezultatima","p3.f4":"Procena sa sportskim lekarom (opciono)","p3.f5":"Ne prodaje se kao medicinska obećanja","p3.cta":"Pitaj o dostupnosti",
+    "pricing.label":"Cene","pricing.title1":"Planovi","pricing.title2":"Treninga","pricing.lead":"Fleksibilni treninzi u Beogradu: individualno, male grupe, fizička priprema i rvanje prema tvom cilju.","pricing.space":"Navedene cene su tarifa za trening. Trošak teretane, privatne sale ili prostora plaća se posebno kada je potrebno i uvek se potvrđuje pre rezervacije.",
+    "p1.badge":"Ulaz · Procena","p1.name":"Početna procena","p1.desc":"Fizička procena, ciljevi, mobilnost i preporučen plan.","p1.per":"/ 45–60 min","p1.note":"Idealno za početak bez mesečne obaveze","p1.f1":"Cilj, nivo i iskustvo","p1.f2":"Mobilnost i osnovna kondicija","p1.f3":"Preporuka plana","p1.f4":"Trening na španskom ili srpskom","p1.f5":"Prostor se potvrđuje pre rezervacije","p1.cta":"Pitaj preko WhatsApp-a",
+    "p2.badge":"⭐ Najpreporučenije","p2.name":"Individualni trening","p2.desc":"Personalni trening prilagođen cilju: snaga, mobilnost, rvanje, gubitak masti ili opšta kondicija.","p2.per":"/ trening 60 min","p2.note":"Plan 4 treninga: 120 € · Plan 8 treninga: 220 €","p2.f1":"Potpuna pažnja 1 na 1","p2.f2":"Plan prema cilju i nivou","p2.f3":"Snaga, mobilnost i kondicija","p2.f4":"Baza rvanja ako klijent želi","p2.f5":"Praćenje preko WhatsApp-a","p2.f6":"Treninzi u teretani, sali, napolju ili dogovorenom prostoru","p2.cta":"Rezerviši preko WhatsApp-a →",
+    "p3.badge":"Fleksibilno · Grupe i sportisti","p3.name":"Grupe / Sportista","p3.desc":"Opcije za male grupe, sportiste i naprednu fizičku pripremu.","p3.per":"/ osoba u grupi","p3.note":"Plan za sportiste od 280 € · 60–90 min prema cilju","p3.f1":"Male grupe od 2 do 4 osobe","p3.f2":"Fizička priprema za sportiste","p3.f3":"Treninzi od 60–90 min kada je potrebno","p3.f4":"Rvanje, specifična snaga i kondicija","p3.f5":"Online plan dostupan na upit","p3.cta":"Pitaj o dostupnosti",
     "process.label":"Način rada","process.title1":"Jednostavan sistem.","process.title2":"Jasni rezultati.","process.lead":"Prvo treniramo, merimo osnove i stvaramo konstantnost. Sistem raste sa klijentom.",
     "step1.title":"Početni kontakt","step1.text":"Razgovaramo na WhatsApp-u. Definišemo cilj, nivo, dostupnost i prethodne povrede.",
     "step2.title":"Procena","step2.text":"Težina, mobilnost, kondicija, kontrola tela i osnovna tehnika. Pravi polazni tačka.",
@@ -616,10 +633,10 @@ const T = {
     "s5.title":"Small Groups","s5.text":"Maximum 4–6 people per session. Real intensity, accessible price, team energy without losing follow-up.","s5.tag":"Affordable",
     "s6.title":"Competitive Wrestling","s6.text":"Greco-Roman and freestyle wrestling. For kids, adults and athletes who want to compete or learn the technical foundation.","s6.tag":"Technique · Competition",
     "about.label":"Why Abel","about.title1":"Real Coach.","about.title2":"Real","about.title3":"Method.","about.lead":"Abel Balsinde brings Cuban wrestling culture, international experience and a direct coaching style to Belgrade. No fake promises. Serious work, clear progression, real discipline and follow-up.","about.badge":"Years in wrestling","about.m1":"Cuban wrestling base","about.m2":"Based in Belgrade","about.m3":"Spanish coaching","about.m4":"Serbian coaching","about.cta":"Talk to Abel →",
-    "pricing.label":"Pricing","pricing.title1":"Services and","pricing.title2":"Pricing","pricing.lead":"Initial offer in Belgrade: individual training, small groups and monthly system with real follow-up.",
-    "p1.badge":"Level 1 · Entry","p1.name":"General Fitness","p1.desc":"To start, lose fat and improve conditioning with structure.","p1.per":"/ 1-on-1 session","p1.note":"1,200–1,800 RSD per person in group","p1.f1":"Personalized individual session","p1.f2":"Small groups (max. 6 people)","p1.f3":"Strength, mobility and fighter-style cardio","p1.f4":"Basic progress tracking","p1.f5":"Classes in Spanish or Serbian","p1.cta":"Ask us on WhatsApp",
-    "p2.badge":"⭐ Level 2 · Recommended","p2.name":"Athlete System","p2.desc":"Assessment, structured plan and complete monthly follow-up.","p2.per":"/ month","p2.note":"2x/week: 20–24k · 3x/week: 26–32k RSD","p2.f1":"Initial physical and technical assessment","p2.f2":"Structured 4-week plan","p2.f3":"Attendance and performance tracking","p2.f4":"Monthly load and goal adjustment","p2.f5":"WhatsApp access between sessions","p2.f6":"Ideal for serious transformation","p2.cta":"Book free trial →",
-    "p3.badge":"Level 3 · Premium","p3.name":"Premium · Phase 2","p3.desc":"Advanced system once client base is established.","p3.amount":"To be defined","p3.per":"/ 3 months","p3.note":"For serious athletes or clients","p3.f1":"Fully personalized plan","p3.f2":"Detailed weekly follow-up","p3.f3":"Load adjustment based on real results","p3.f4":"Sports medicine assessment (optional)","p3.f5":"Not sold as medical promises","p3.cta":"Ask about availability",
+    "pricing.label":"Pricing","pricing.title1":"Training","pricing.title2":"Plans","pricing.lead":"Flexible training in Belgrade: 1-on-1, small groups, physical preparation and wrestling based on your goal.","pricing.space":"Listed prices are for coaching. Gym, private room or training space costs are paid separately when required and always confirmed before booking.",
+    "p1.badge":"Entry · Assessment","p1.name":"Initial Assessment","p1.desc":"Physical review, goals, mobility and recommended plan.","p1.per":"/ 45–60 min","p1.note":"Best way to start without a monthly commitment","p1.f1":"Goal, level and experience","p1.f2":"Mobility and base conditioning","p1.f3":"Plan recommendation","p1.f4":"Session in Spanish or Serbian","p1.f5":"Space confirmed before booking","p1.cta":"Ask on WhatsApp",
+    "p2.badge":"⭐ Most recommended","p2.name":"1-on-1 Training","p2.desc":"Personal training adapted to your goal: strength, mobility, wrestling, fat loss or general conditioning.","p2.per":"/ 60 min session","p2.note":"4-session plan: 120 € · 8-session plan: 220 €","p2.f1":"Full 1-on-1 attention","p2.f2":"Plan based on goal and level","p2.f3":"Strength, mobility and conditioning","p2.f4":"Wrestling base if desired","p2.f5":"WhatsApp follow-up","p2.f6":"Sessions in gym, room, outdoors or agreed space","p2.cta":"Book on WhatsApp →",
+    "p3.badge":"Flexible · Groups and athletes","p3.name":"Groups / Athlete","p3.desc":"Options for small groups, athletes and advanced physical preparation.","p3.per":"/ person in group","p3.note":"Athlete plan from 280 € · 60–90 min depending on goal","p3.f1":"Small groups of 2 to 4 people","p3.f2":"Physical preparation for athletes","p3.f3":"60–90 min sessions when needed","p3.f4":"Wrestling, specific strength and conditioning","p3.f5":"Online plan available on request","p3.cta":"Ask about availability",
     "process.label":"How it works","process.title1":"Simple system.","process.title2":"Clear results.","process.lead":"First we train, measure the basics and build consistency. The system grows with the client.",
     "step1.title":"First contact","step1.text":"We talk on WhatsApp. We define goal, level, availability and previous injuries.",
     "step2.title":"Assessment","step2.text":"Weight, mobility, conditioning, body control and basic technique. Real starting point.",
