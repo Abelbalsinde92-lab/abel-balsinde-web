@@ -466,7 +466,6 @@
     font-size: 12px;
   }
 }
-</style>
   </style>
 </head>
 <body>
@@ -976,45 +975,6 @@ function renderQuickMetrics() {
 
 /** Sección Mi Plan */
 function renderProgram() {
-  // Programa: primero el activo, si no el más reciente
-  const prog = clientPrograms.find(p => (p.status||'').toLowerCase() === 'activo') || clientPrograms[0] || null;
-  const el   = document.getElementById('sectionPlan');
-  const badge = document.getElementById('planBadgeStatus');
-
-  badge.textContent = clientData.status || '—';
-
-  const items = [];
-
-  if (clientData.plan)               items.push({ label: 'Plan contratado',    value: clientData.plan });
-  if (clientData.objective)          items.push({ label: 'Objetivo',           value: clientData.objective });
-  if (clientData.nutrition_objective)items.push({ label: 'Objetivo nutricional',value: clientData.nutrition_objective });
-
-  if (prog) {
-    items.push({ label: 'Programa',   value: prog.name || '—' });
-    items.push({ label: 'Tipo',       value: prog.type || '—' });
-    items.push({ label: 'Nivel',      value: prog.level || '—' });
-    items.push({ label: 'Duración',   value: prog.duration || '—' });
-    if (prog.description) items.push({ label: 'Descripción', value: prog.description });
-  }
-
-  if (!items.length && !prog) {
-    el.innerHTML = '<p class="empty-state">Todavía no hay programa asignado.</p>';
-    return;
-  }
-
-  el.innerHTML = `
-    <div class="plan-grid">
-      ${items.map(i => `
-        <div class="plan-item">
-          <div class="pi-label">${i.label}</div>
-          <div class="pi-value">${i.value}</div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
-
-function renderProgram() {
   const el = document.getElementById('sectionPlan');
   const badge = document.getElementById('planBadgeStatus');
 
@@ -1022,7 +982,9 @@ function renderProgram() {
 
   const prog = clientPrograms.find(p => (p.status || '').toLowerCase() === 'activo') || clientPrograms[0] || null;
 
-  badge.textContent = clientData.status || '—';
+  if (badge) {
+    badge.textContent = clientData.status || '—';
+  }
 
   const items = [];
 
@@ -1092,11 +1054,13 @@ function renderProgram() {
 
 function renderClientData() {
   const el = document.getElementById('sectionClientData');
-  const badge = document.getElementById('clientStatusBadge');
+  const badge = document.getElementById('clientDataBadge');
 
   if (!el || !clientData) return;
 
-  badge.textContent = clientData.status || '—';
+  if (badge) {
+    badge.textContent = clientData.status || 'Perfil';
+  }
 
   const totalReservations = clientReservations.length;
   const completedReservations = clientReservations.filter(r =>
