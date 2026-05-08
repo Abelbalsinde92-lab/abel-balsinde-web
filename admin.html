@@ -1195,10 +1195,10 @@ async function saveSettings(){
     });
 
     const { error } = await db
-      .from('settings')
-      .upsert(payload)
-      .select()
-      .single();
+  .from('settings')
+  .upsert(payload, { onConflict: 'id' })
+  .select()
+  .single();
 
     if (error) throw error;
 
