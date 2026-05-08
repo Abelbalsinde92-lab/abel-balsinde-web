@@ -465,7 +465,162 @@
     padding: 11px 16px;
     font-size: 12px;
   }
+  /* ─── CLIENT NAV / SIDEBAR ─────────────────────────────── */
+
+.client-layout {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 18px;
+  align-items: start;
 }
+
+.client-nav {
+  position: sticky;
+  top: 78px;
+  background: var(--navy2);
+  border: 1px solid #1a2e44;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.client-nav-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+.client-nav button {
+  width: 100%;
+  background: transparent;
+  color: var(--gray);
+  border: 1px solid transparent;
+  border-radius: 9px;
+  padding: 10px 10px;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  transition: .15s;
+}
+
+.client-nav button:hover,
+.client-nav button.active {
+  color: var(--blue);
+  border-color: #244762;
+  background: rgba(94,197,240,.06);
+}
+
+.client-content {
+  min-width: 0;
+}
+
+/* ─── PROGRESS CIRCLES ─────────────────────────────────── */
+
+.progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 12px;
+}
+
+.progress-circle-card {
+  background: var(--navy3);
+  border: 1px solid #1e3450;
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+}
+
+.progress-ring {
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background:
+    conic-gradient(var(--blue) calc(var(--p) * 1%), #17283b 0);
+  position: relative;
+}
+
+.progress-ring::before {
+  content: '';
+  position: absolute;
+  width: 68px;
+  height: 68px;
+  background: var(--navy3);
+  border-radius: 50%;
+}
+
+.progress-ring span {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-title);
+  font-size: 24px;
+  color: var(--white);
+  letter-spacing: 1px;
+}
+
+.progress-circle-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+
+.progress-circle-value {
+  font-size: 13px;
+  color: var(--white);
+  font-weight: 700;
+}
+
+.progress-circle-note {
+  font-size: 11px;
+  color: var(--gray);
+  margin-top: 4px;
+}
+
+/* ─── RESPONSIVE CLIENT NAV ─────────────────────────────── */
+
+@media (max-width: 760px) {
+  .client-layout {
+    display: block;
+  }
+
+  .client-nav {
+    position: sticky;
+    top: 60px;
+    z-index: 80;
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    border-radius: 0;
+    margin: -18px -12px 18px;
+    padding: 10px 12px;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .client-nav-title {
+    display: none;
+  }
+
+  .client-nav button {
+    width: auto;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    margin-bottom: 0;
+    padding: 9px 12px;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -580,26 +735,51 @@
       </div>
     </div>
 
-    <!-- ── Mis datos ── -->
-<div class="section">
-  <div class="section-header">
-    <h2>MIS DATOS</h2>
-    <span class="sec-badge" id="clientDataBadge">Perfil</span>
-  </div>
-  <div class="section-body" id="sectionClientData"></div>
-</div>
+   <div class="client-layout">
 
-<!-- ── Mi plan ── -->
-<div class="section">
-  <div class="section-header">
-    <h2>MI PLAN</h2>
-    <span class="sec-badge" id="planBadgeStatus">—</span>
-  </div>
-  <div class="section-body" id="sectionPlan"></div>
-</div>
+  <aside class="client-nav" id="clientNav">
+    <div class="client-nav-title">Área cliente</div>
+    <button onclick="goClientSection('section-client-data')">Mis datos</button>
+    <button onclick="goClientSection('section-plan')">Mi plan</button>
+    <button onclick="goClientSection('section-progress-circles')">Progreso visual</button>
+    <button onclick="goClientSection('section-reservations')">Reservas</button>
+    <button onclick="goClientSection('section-payments')">Pagos</button>
+    <button onclick="goClientSection('section-metrics')">Métricas</button>
+    <button onclick="goClientSection('section-health')">Salud</button>
+    <button onclick="goClientSection('section-notes')">Notas</button>
+  </aside>
+
+  <div class="client-content">
+
+    <!-- ── Mis datos ── -->
+    <div class="section" id="section-client-data">
+      <div class="section-header">
+        <h2>MIS DATOS</h2>
+        <span class="sec-badge" id="clientDataBadge">Perfil</span>
+      </div>
+      <div class="section-body" id="sectionClientData"></div>
+    </div>
+
+    <!-- ── Mi plan ── -->
+    <div class="section" id="section-plan">
+      <div class="section-header">
+        <h2>MI PLAN</h2>
+        <span class="sec-badge" id="planBadgeStatus">—</span>
+      </div>
+      <div class="section-body" id="sectionPlan"></div>
+    </div>
+
+    <!-- ── Progreso visual ── -->
+    <div class="section" id="section-progress-circles">
+      <div class="section-header">
+        <h2>PROGRESO VISUAL</h2>
+        <span class="sec-badge" id="progressCircleBadge">0</span>
+      </div>
+      <div class="section-body" id="sectionProgressCircles"></div>
+    </div>
 
     <!-- ── Próximas reservas ── -->
-    <div class="section">
+    <div class="section" id="section-reservations">
       <div class="section-header">
         <h2>PRÓXIMAS RESERVAS</h2>
         <span class="sec-badge" id="reservationsBadge">0</span>
@@ -608,7 +788,7 @@
     </div>
 
     <!-- ── Pagos ── -->
-    <div class="section">
+    <div class="section" id="section-payments">
       <div class="section-header">
         <h2>PAGOS</h2>
         <span class="sec-badge" id="paymentsBadge">0</span>
@@ -617,16 +797,16 @@
     </div>
 
     <!-- ── Progreso / Métricas ── -->
-    <div class="section">
+    <div class="section" id="section-metrics">
       <div class="section-header">
-        <h2>PROGRESO</h2>
+        <h2>MÉTRICAS</h2>
         <span class="sec-badge" id="metricsBadge">0</span>
       </div>
       <div class="section-body" id="sectionMetrics"></div>
     </div>
 
     <!-- ── Salud / indicaciones ── -->
-    <div class="section">
+    <div class="section" id="section-health">
       <div class="section-header">
         <h2>SALUD / INDICACIONES</h2>
         <span class="sec-badge" id="alertsBadge">0</span>
@@ -635,23 +815,15 @@
     </div>
 
     <!-- ── Notas del coach ── -->
-    <div class="section">
+    <div class="section" id="section-notes">
       <div class="section-header">
         <h2>NOTAS DEL COACH</h2>
       </div>
       <div class="section-body" id="sectionNotes"></div>
     </div>
 
-  </main>
-
-  <!-- Fixed WhatsApp FAB -->
-  <button class="wa-fab" id="btnFabWA">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/>
-    </svg>
-    Hablar con Abel
-  </button>
+  </div>
+</div>
 
 </div><!-- /dashboardScreen -->
 
@@ -905,8 +1077,9 @@ async function loadClientDashboard(clientId) {
 function renderDashboard() {
   renderWelcome();
   renderQuickMetrics();
-  renderProgram();
   renderClientData();
+  renderProgram();
+  renderProgressCircles();
   renderReservations();
   renderPayments();
   renderMetrics();
@@ -915,6 +1088,7 @@ function renderDashboard() {
 
   const name = clientData.name || 'cliente';
   const msg  = `Hola Abel, soy ${name}. Tengo una duda sobre mi plan.`;
+
   document.getElementById('btnHeaderWA').onclick = () => openWA(msg);
   document.getElementById('btnFabWA').onclick    = () => openWA(msg);
 }
@@ -1052,17 +1226,121 @@ function renderProgram() {
   `;
 }
 
+function renderProgressCircles() {
+  const el = document.getElementById('sectionProgressCircles');
+  const badge = document.getElementById('progressCircleBadge');
+
+  if (!el) return;
+
+  if (!clientMetrics.length) {
+    if (badge) badge.textContent = '0';
+    el.innerHTML = '<p class="empty-state">Todavía no hay métricas suficientes para mostrar progreso visual.</p>';
+    return;
+  }
+
+  const grouped = {};
+
+  clientMetrics.forEach(m => {
+    const key = String(m.type || 'Métrica').trim();
+
+    if (!grouped[key]) grouped[key] = [];
+
+    grouped[key].push({
+      ...m,
+      numericValue: Number(m.value || 0),
+      dateKey: String(m.date || '').slice(0, 10)
+    });
+  });
+
+  const circles = Object.entries(grouped).map(([type, list]) => {
+    list.sort((a, b) => String(b.dateKey).localeCompare(String(a.dateKey)));
+
+    const latest = list[0];
+    const first = list[list.length - 1];
+    const current = Number(latest.numericValue || 0);
+    const start = Number(first.numericValue || 0);
+
+    let percent = 0;
+    let note = '';
+
+    const t = type.toLowerCase();
+
+    if (t.includes('peso')) {
+      const diff = start - current;
+      const baseGoal = Math.max(Math.abs(start * 0.05), 1);
+      percent = Math.round(Math.min(100, Math.max(0, (diff / baseGoal) * 100)));
+
+      if (diff > 0) note = `Bajó ${Math.abs(diff).toFixed(1)} ${latest.unit || 'kg'}`;
+      else if (diff < 0) note = `Subió ${Math.abs(diff).toFixed(1)} ${latest.unit || 'kg'}`;
+      else note = 'Sin cambio todavía';
+
+    } else if (
+      t.includes('asistencia') ||
+      t.includes('adherencia') ||
+      t.includes('%')
+    ) {
+      percent = Math.round(Math.min(100, Math.max(0, current)));
+      note = `${percent}% registrado`;
+
+    } else if (
+      t.includes('fuerza') ||
+      t.includes('movilidad') ||
+      t.includes('resistencia') ||
+      t.includes('energía') ||
+      t.includes('dolor') ||
+      t.includes('sueño')
+    ) {
+      percent = Math.round(Math.min(100, Math.max(0, (current / 10) * 100)));
+      note = `${current}/10`;
+
+    } else {
+      if (start > 0) {
+        const diff = current - start;
+        percent = Math.round(Math.min(100, Math.max(0, ((current / start) * 100))));
+        note = diff >= 0 ? `+${diff.toFixed(1)} desde inicio` : `${diff.toFixed(1)} desde inicio`;
+      } else {
+        percent = Math.round(Math.min(100, Math.max(0, current)));
+        note = 'Último registro';
+      }
+    }
+
+    return {
+      type,
+      current,
+      unit: latest.unit || '',
+      percent,
+      note
+    };
+  });
+
+  if (badge) badge.textContent = circles.length;
+
+  el.innerHTML = `
+    <div class="progress-grid">
+      ${circles.map(c => `
+        <div class="progress-circle-card">
+          <div class="progress-ring" style="--p:${c.percent}">
+            <span>${c.percent}%</span>
+          </div>
+          <div class="progress-circle-label">${c.type}</div>
+          <div class="progress-circle-value">${c.current}${c.unit ? ' ' + c.unit : ''}</div>
+          <div class="progress-circle-note">${c.note}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
 function renderClientData() {
   const el = document.getElementById('sectionClientData');
   const badge = document.getElementById('clientDataBadge');
 
   if (!el || !clientData) return;
 
-  if (badge) {
-    badge.textContent = clientData.status || 'Perfil';
-  }
+  if (badge) badge.textContent = clientData.status || 'Perfil';
 
   const totalReservations = clientReservations.length;
+
   const completedReservations = clientReservations.filter(r =>
     ['realizada', 'completada', 'confirmada'].includes((r.status || '').toLowerCase())
   ).length;
@@ -1280,6 +1558,26 @@ function renderNotes() {
   }
 
   el.innerHTML = notes.map(n => `<div class="note-item">${n}</div>`).join('');
+}
+
+function goClientSection(sectionId) {
+  const target = document.getElementById(sectionId);
+  if (!target) return;
+
+  document.querySelectorAll('.client-nav button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+
+  const btn = Array.from(document.querySelectorAll('.client-nav button')).find(b =>
+    b.getAttribute('onclick')?.includes(sectionId)
+  );
+
+  if (btn) btn.classList.add('active');
+
+  target.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
 }
 
 /* ════════════════════════════════════════════════════════════
