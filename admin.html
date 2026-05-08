@@ -532,6 +532,17 @@ async function seedTemplates(){
 function esc(v){ return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
 function money(n){ return `${Number(n||0).toLocaleString('es-ES')}€`; }
 function todayISO(){ return new Date().toISOString().slice(0,10); }
+function formatDate(dateStr){
+  if(!dateStr) return '—';
+  const [y,m,d] = String(dateStr).split('-');
+  if(!y || !m || !d) return dateStr;
+  return `${d}/${m}/${y}`;
+}
+
+function formatTime(timeStr){
+  if(!timeStr) return '—';
+  return String(timeStr).slice(0,5);
+}
 function clientById(id){ return state.clients.find(c => c.id === id); }
 function initials(name){ return (name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase() || '?'; }
 function emptyRow(cols, msg){ return `<tr><td colspan="${cols}"><div class="empty"><strong>Sistema limpio</strong>${msg}</div></td></tr>`; }
@@ -608,7 +619,7 @@ function renderDashboard(){
   const agenda = state.reservations.filter(r => r.date === today);
   document.getElementById('agendaToday').innerHTML = agenda.length ? agenda.map(r => {
     const c = clientById(r.clientId);
-    return `<div class="data-row"><span><strong>${esc(r.time)}</strong> · ${esc(c?.name || 'Cliente eliminado')}</span><span class="badge badge-${r.status}">${esc(r.status)}</span></div>`;
+    return `<div class="data-row"><span><strong>${formatTime(r.time)}</strong> · ${esc(c?.name || 'Cliente eliminado')}</span><span class="badge badge-${r.status}">${esc(r.status)}</span></div>`;
   }).join('') : emptyBlock('No hay reservas registradas para hoy.');
 
   const alertList = state.healthAlerts.filter(h => h.status !== 'revisado');
@@ -674,13 +685,13 @@ function renderReservations(){
     const c = clientById(r.clientId);
     return `<tr>
       <td><div class="td-name"><div class="avatar">${initials(c?.name)}</div><div><div class="name-text">${esc(c?.name || 'Cliente eliminado')}</div></div></div></td>
-      <td>${esc(r.date)}</td><td class="font-mono" style="font-size:.75rem;color:var(--blue)">${esc(String(r.time).slice(0,5))}</td>
+      <td>${formatDate(r.date)}</td><td class="font-mono" style="font-size:.75rem;color:var(--blue)">${esc(String(r.time).slice(0,5))}</td>
       <td>${esc(r.type)}</td><td>${esc(r.place)}</td><td><span class="badge badge-${r.status}">${esc(r.status)}</span></td>
       <td><div class="td-actions">
         ${r.status==='reservada'?`<button class="btn btn-secondary btn-sm" onclick="updateReservationStatus('${r.id}','confirmada')">Confirmar</button>`:''}
         ${r.status!=='realizada'?`<button class="btn btn-primary btn-sm" onclick="updateReservationStatus('${r.id}','realizada')">Marcar realizada</button>`:''}
         ${r.status!=='cancelada'?`<button class="btn btn-secondary btn-sm" onclick="updateReservationStatus('${r.id}','cancelada')">Cancelar</button>`:''}
-        <button class="btn btn-wa btn-sm" onclick="openWA('${esc(c?.phone || state.settings.coachPhone)}','Hola ${esc((c?.name||'').split(' ')[0]||'')}, te recuerdo tu sesión el ${esc(r.date)} a las ${esc(r.time)}.')">WA</button>
+        <button class="btn btn-wa btn-sm" onclick="openWA('${esc(c?.phone || state.settings.coachPhone)}','Hola ${esc((c?.name||'').split(' ')[0]||'')}, te recuerdo tu sesión el ${formatDate(r.date)} a las ${formatTime(r.time)}.')">WA</button>
       </div></td>
     </tr>`;
   }).join('') : emptyRow(7,'No hay reservas registradas todavía.');
@@ -845,7 +856,7 @@ function renderProfile(){
       <div class="card"><div class="card-title">Estado</div><div class="data-row"><span class="data-key">Plan</span><span class="data-val">${esc(c.plan || '—')}</span></div><div class="data-row"><span class="data-key">Estado</span><span class="badge badge-${esc(c.status)}">${esc(c.status)}</span></div><div class="data-row"><span class="data-key">Pagos</span><span class="data-val">${clientPayments.length}</span></div></div>
       <div class="card"><div class="card-title">Actividad</div><div class="data-row"><span class="data-key">Reservas</span><span class="data-val">${clientReservations.length}</span></div><div class="data-row"><span class="data-key">Métricas</span><span class="data-val">${clientMetrics.length}</span></div><div class="data-row"><span class="data-key">Alertas</span><span class="data-val">${clientAlerts.length}</span></div></div>
     </div></div>
-    <div id="pf-reservas" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Estado</th></tr></thead><tbody>${clientReservations.length?clientReservations.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.time)}</td><td>${esc(r.type)}</td><td><span class="badge badge-${r.status}">${esc(r.status)}</span></td></tr>`).join(''):emptyRow(4,'No hay reservas registradas para este cliente.')}</tbody></table></div></div>
+    <div id="pf-reservas" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Estado</th></tr></thead><tbody>${clientReservations.length?clientReservations.map(r=>`<tr><td>${formatDate(r.date)}</td><td>${formatTime(r.time)}</td><td>${esc(r.type)}</td><td><span class="badge badge-${r.status}">${esc(r.status)}</span></td></tr>`).join(''):emptyRow(4,'No hay reservas registradas para este cliente.')}</tbody></table></div></div>
     <div id="pf-pagos" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Concepto</th><th>Importe</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${clientPayments.length?clientPayments.map(p=>`<tr><td>${esc(p.concept)}</td><td>${money(p.amount)}</td><td><span class="badge badge-${p.status}">${esc(p.status)}</span></td><td>${p.status!=='pagado'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Marcar pagado</button>`:''}</td></tr>`).join(''):emptyRow(4,'No hay pagos registrados para este cliente.')}</tbody></table></div></div>
     <div id="pf-progreso" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Métrica</th><th>Valor</th><th>Fecha</th><th>Nota</th></tr></thead><tbody>${clientMetrics.length?clientMetrics.map(m=>`<tr><td>${esc(m.type)}</td><td>${esc(m.value)}</td><td>${esc(m.date)}</td><td>${esc(m.note||'—')}</td></tr>`).join(''):emptyRow(4,'No hay métricas registradas para este cliente.')}</tbody></table></div></div>
     <div id="pf-salud" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Estado</th><th>Detalle</th><th>Fecha</th></tr></thead><tbody>${clientAlerts.length?clientAlerts.map(h=>`<tr><td>${esc(h.status)}</td><td>${esc(h.detail)}</td><td>${esc(h.date)}</td></tr>`).join(''):emptyRow(3,'No hay chequeos registrados para este cliente.')}</tbody></table></div></div>
