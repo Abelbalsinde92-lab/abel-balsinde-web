@@ -97,14 +97,26 @@ button{font-family:inherit;cursor:pointer} input,select,textarea{font-family:inh
 .filter-pill.active{background:rgba(94,197,240,.1);color:var(--blue);border-color:rgba(94,197,240,.3)}
 table{width:100%;border-collapse:collapse}
 th{padding:10px 16px;text-align:left;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray2);border-bottom:1px solid var(--border2);white-space:nowrap}
-td{padding:12px 16px;border-bottom:1px solid var(--border2);vertical-align:middle;font-size:.82rem}
+td{
+  padding:12px 16px;
+  border-bottom:1px solid var(--border2);
+  vertical-align:middle;
+  font-size:.82rem;
+  white-space:nowrap;
+}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:rgba(255,255,255,.02)}
 .td-name{display:flex;align-items:center;gap:10px}
 .avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:.9rem;background:rgba(94,197,240,.1);color:var(--blue);border:1px solid rgba(94,197,240,.2)}
 .name-text{font-weight:500;color:var(--white)}
 .name-sub{font-size:.72rem;color:var(--gray)}
-.td-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.td-actions{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  flex-wrap:nowrap;
+  min-width:max-content;
+}
 
 .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:2px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
 .badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
