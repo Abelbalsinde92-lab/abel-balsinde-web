@@ -389,6 +389,43 @@
       color: var(--blue);
       margin-bottom: 8px;
     }
+    
+    .action-box {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.client-action-btn {
+  width: 100%;
+  background: rgba(94,197,240,.07);
+  border: 1px solid rgba(94,197,240,.35);
+  color: var(--blue);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.client-action-btn:hover {
+  background: rgba(94,197,240,.12);
+}
+
+.client-action-btn.wa {
+  border-color: var(--wa);
+  color: var(--wa);
+  background: rgba(37,211,102,.07);
+}
+
+.client-action-btn.wa:hover {
+  background: rgba(37,211,102,.14);
+}
 
     /* Badges */
     .badge {
@@ -767,6 +804,11 @@ function openWA(message) {
   window.open(buildWAUrl(WA_NUMBER, message), '_blank');
 }
 
+function clientWA(text) {
+  const name = clientData?.name || 'cliente';
+  openWA(`Hola Abel, soy ${name}. ${text}`);
+}
+
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -1049,7 +1091,16 @@ function renderProgram() {
   }
 
   html += '</div>';
-  el.innerHTML = html;
+
+html += `
+  <div class="action-box">
+    <button class="client-action-btn wa" onclick="clientWA('Quiero consultar un ajuste o nuevo plan de entrenamiento.')">
+      Consultar ajuste de plan
+    </button>
+  </div>
+`;
+
+el.innerHTML = html;
 }
 
 /* ── Reservas ────────────────────────────────────────────── */
@@ -1060,8 +1111,15 @@ function renderReservations() {
   if (badge) badge.textContent = clientReservations.length;
 
   if (!clientReservations.length) {
-    el.innerHTML = '<p class="empty-state">Todavía no tienes reservas registradas.</p>';
-    return;
+   el.innerHTML = `
+  <p class="empty-state">Todavía no tienes reservas registradas.</p>
+  <div class="action-box">
+    <button class="client-action-btn wa" onclick="clientWA('Quiero solicitar una nueva reserva de entrenamiento.')">
+      Solicitar nueva reserva
+    </button>
+  </div>
+`;
+return;
   }
 
   const today = todayISO();
@@ -1103,7 +1161,15 @@ function renderReservations() {
     past.forEach(r => { html += reservationCard(r); });
   }
 
-  el.innerHTML = html;
+  html += `
+  <div class="action-box">
+    <button class="client-action-btn wa" onclick="clientWA('Quiero solicitar una nueva reserva de entrenamiento.')">
+      Solicitar nueva reserva
+    </button>
+  </div>
+`;
+
+el.innerHTML = html;
 }
 
 function reservationCard(r) {
