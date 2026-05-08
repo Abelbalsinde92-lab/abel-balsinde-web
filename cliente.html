@@ -646,10 +646,12 @@
 <script>
 
 /* ── CONFIG ──────────────────────────────────────────────── */
-const SUPABASE_URL  = 'https://icjuuptbcnkpwgsoyiuj.supabase.co';
-const SUPABASE_KEY  = 'AQUÍ PEGARÉ MI ANON KEY'; // ← Pega tu anon key aquí
-const WA_NUMBER     = '381638112348';             // Número de Abel (sin +)
-const LS_CLIENT_ID         = 'abCoachClientId';
+constconst SUPABASE_URL  = 'https://icjuuptbcnkpwgsoyiuj.supabase.co';
+const SUPABASE_KEY  = 'PEGA_AQUI_TU_ANON_KEY_REAL';
+const WA_NUMBER     = '381638112348';
+
+const LS_CLIENT_ID    = 'abCoachClientId';
+const LS_CLIENT_PHONE = 'abCoachClientPhone';
 
 /* ── INIT SUPABASE ───────────────────────────────────────── */
 const { createClient } = supabase;
@@ -774,16 +776,16 @@ async function loginClient() {
       return;
     }
 
-    // Guardar sesión local
+   // Guardar sesión local
 localStorage.setItem(LS_CLIENT_ID, found.id);
-localStorage.setItem(LS_CLIENT_PHONE, normalizePhone(found.phone));
+localStorage.setItem(LS_CLIENT_PHONE, normalizePhone(found.phone || phone));
 
 await loadClientDashboard(found.id);
 
   } catch (err) {
     showLoading(false);
-    showError('Error de conexión. Inténtalo de nuevo.');
-    console.error('Login error:', err);
+    showError('Error: ' + (err.message || JSON.stringify(err)));
+console.error('Login error:', err);
   }
 }
 
