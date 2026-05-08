@@ -19,7 +19,6 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);co
 button{font-family:inherit;cursor:pointer} input,select,textarea{font-family:inherit} a{text-decoration:none;color:inherit}
 .font-mono{font-family:'Space Mono',monospace}
 
-/* Layout */
 .app{display:flex;height:100vh;overflow:hidden}
 .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;position:relative;z-index:10}
 .sidebar-brand{padding:20px 18px 16px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:8px}
@@ -56,7 +55,6 @@ button{font-family:inherit;cursor:pointer} input,select,textarea{font-family:inh
 .page-title{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:.03em;line-height:1;color:var(--white)}
 .page-actions{display:flex;gap:8px;flex-wrap:wrap}
 
-/* Buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:8px 16px;font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;border:none;cursor:pointer;transition:all .15s;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
 .btn-primary{background:var(--red);color:var(--white)}
 .btn-primary:hover{background:var(--red2)}
@@ -66,10 +64,12 @@ button{font-family:inherit;cursor:pointer} input,select,textarea{font-family:inh
 .btn-blue:hover{background:rgba(94,197,240,.18)}
 .btn-wa{background:#25D366;color:var(--white)}
 .btn-wa:hover{background:#1cb956}
+.btn-danger{background:rgba(226,6,19,.15);color:#f87171;border:1px solid rgba(226,6,19,.25)}
+.btn-danger:hover{background:rgba(226,6,19,.25)}
 .btn-sm{padding:6px 12px;font-size:.6rem}
+.btn-xs{padding:4px 9px;font-size:.56rem}
 .btn-icon{padding:7px;min-width:32px}
 
-/* Cards and tables */
 .metrics-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
 .metric-card{background:var(--navy2);border:1px solid var(--border2);padding:16px 18px;position:relative;overflow:hidden}
 .metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
@@ -78,14 +78,14 @@ button{font-family:inherit;cursor:pointer} input,select,textarea{font-family:inh
 .metric-label{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);display:block;margin-top:3px}
 .metric-sub{font-size:.75rem;color:var(--gray);margin-top:6px}
 
-.table-wrap{background:var(--navy2);border:1px solid var(--border2);overflow:hidden;margin-bottom:24px}
+.table-wrap{background:var(--navy2);border:1px solid var(--border2);overflow:hidden;margin-bottom:24px;overflow-x:auto}
 .table-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border2);gap:12px;flex-wrap:wrap}
 .table-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.04em;color:var(--white)}
 .table-filters{display:flex;gap:8px;flex-wrap:wrap}
 .filter-pill{padding:4px 12px;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;background:var(--navy3);border:1px solid var(--border2);color:var(--gray);cursor:pointer;transition:all .15s;border-radius:2px}
 .filter-pill:hover{color:var(--white);border-color:rgba(255,255,255,.15)}
 .filter-pill.active{background:rgba(94,197,240,.1);color:var(--blue);border-color:rgba(94,197,240,.3)}
-table{width:100%;border-collapse:collapse}
+table{width:100%;border-collapse:collapse;min-width:640px}
 th{padding:10px 16px;text-align:left;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray2);border-bottom:1px solid var(--border2);white-space:nowrap}
 td{padding:12px 16px;border-bottom:1px solid var(--border2);vertical-align:middle;font-size:.82rem}
 tr:last-child td{border-bottom:none}
@@ -93,8 +93,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .td-name{display:flex;align-items:center;gap:10px}
 .avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:.9rem;background:rgba(94,197,240,.1);color:var(--blue);border:1px solid rgba(94,197,240,.2)}
 .name-text{font-weight:500;color:var(--white)}
+.name-link{font-weight:500;color:var(--white);cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-decoration-color:rgba(94,197,240,.4)}
+.name-link:hover{color:var(--blue)}
 .name-sub{font-size:.72rem;color:var(--gray)}
-.td-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.td-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
 
 .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:2px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
 .badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
@@ -143,7 +145,38 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .tab.active{color:var(--blue);border-bottom-color:var(--blue)}
 .profile-tab-content{display:none}.profile-tab-content.active{display:block}
 
-/* Modals */
+/* ── METRIC CARD ─────────────────────────────── */
+.metric-item-card{background:var(--navy3);border:1px solid var(--border2);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.metric-item-info{flex:1;min-width:180px}
+.metric-item-type{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:3px}
+.metric-item-value{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--white);line-height:1}
+.metric-item-meta{font-size:.72rem;color:var(--gray);margin-top:2px}
+.metric-item-actions{display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
+
+/* ── CLIENT CARDS (mobile) ───────────────────── */
+.client-cards{display:none}
+.client-card{background:var(--navy2);border:1px solid var(--border2);padding:16px;margin-bottom:12px}
+.client-card-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.client-card-body{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;font-size:.78rem}
+.client-card-key{color:var(--gray)}
+.client-card-val{color:var(--white);font-weight:500;text-align:right}
+.client-card-actions{display:flex;gap:6px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--border2)}
+
+/* ── PROGRESS CHART ──────────────────────────── */
+.chart-wrap{background:var(--navy3);border:1px solid var(--border2);padding:16px;margin-bottom:20px}
+.chart-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.chart-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.04em;color:var(--white)}
+.chart-select{background:var(--navy2);border:1px solid var(--border2);color:var(--white);padding:5px 10px;font-size:.75rem;outline:none}
+.chart-svg{width:100%;overflow:visible}
+.chart-empty{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--gray);text-align:center;padding:28px 0;letter-spacing:.04em}
+
+/* ── CONFIRM MODAL ───────────────────────────── */
+.confirm-box{background:var(--navy2);border:1px solid rgba(226,6,19,.3);padding:24px;text-align:center;max-width:380px;margin:20px auto}
+.confirm-box h4{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--white);margin-bottom:8px;letter-spacing:.04em}
+.confirm-box p{font-size:.82rem;color:var(--gray);margin-bottom:20px;line-height:1.6}
+.confirm-actions{display:flex;gap:8px;justify-content:center}
+
+/* ── MODALS ──────────────────────────────────── */
 .overlay{display:none;position:fixed;inset:0;background:rgba(2,11,24,.85);z-index:200;align-items:center;justify-content:center}
 .overlay.open{display:flex}
 .modal{background:var(--navy2);border:1px solid var(--border);padding:28px;width:100%;max-width:560px;margin:20px;position:relative;max-height:92vh;overflow:auto}
@@ -156,6 +189,12 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--navy2);border:1px solid rgba(94,197,240,.25);color:var(--white);padding:12px 16px;z-index:300;font-size:.85rem;box-shadow:0 20px 60px rgba(0,0,0,.35);transform:translateY(80px);opacity:0;transition:.25s}
 .toast.show{transform:translateY(0);opacity:1}
 
+/* ── DETAIL MODAL ────────────────────────────── */
+.detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border2);font-size:.82rem}
+.detail-row:last-child{border-bottom:none}
+.detail-key{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gray)}
+.detail-val{color:var(--white);font-weight:500;text-align:right}
+
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(94,197,240,.2);border-radius:2px}
 
 @media(max-width:900px){
@@ -163,11 +202,15 @@ tr:hover td{background:rgba(255,255,255,.02)}
   .sidebar.open{left:0}
   .two-col,.three-col,.settings-grid{grid-template-columns:1fr}
   .content{padding:22px 18px 34px}
+  .table-desktop{display:none}
+  .client-cards{display:block}
 }
 @media(max-width:640px){
   .form-row-2{grid-template-columns:1fr}
   .page-title{font-size:1.8rem}
   th,td{padding:10px 12px}
+  .client-card-body{grid-template-columns:1fr}
+  .client-card-val{text-align:left}
 }
 </style>
 </head>
@@ -209,6 +252,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
     </div>
 
     <div class="content">
+
+      <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
         <div class="page-header">
           <div><div class="page-eyebrow">Panel de control</div><div class="page-title">Hola, Abel</div></div>
@@ -229,24 +274,38 @@ tr:hover td{background:rgba(255,255,255,.02)}
         </div>
       </div>
 
+      <!-- CLIENTES -->
       <div class="page" id="page-clientes">
         <div class="page-header"><div><div class="page-eyebrow">Gestión</div><div class="page-title">Clientes</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('client')">+ Nuevo cliente</button></div></div>
         <div class="search-bar"><span style="color:var(--gray2)">⌕</span><input id="clientSearch" type="text" placeholder="Buscar por nombre, teléfono, email, estado o plan…" oninput="renderClients()"></div>
         <div class="table-filters" style="margin-bottom:16px" id="clientFilters"></div>
-        <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Estado</th><th>Plan</th><th>Última sesión</th><th>Próxima reserva</th><th>Pago</th><th>Acciones</th></tr></thead><tbody id="clientsTable"></tbody></table></div>
+        <!-- TABLE (desktop) -->
+        <div class="table-wrap table-desktop">
+          <table><thead><tr>
+            <th>Cliente</th><th>Estado</th><th>Plan</th><th>Última sesión</th><th>Próxima reserva</th><th>Pago</th><th>Acciones</th>
+          </tr></thead><tbody id="clientsTable"></tbody></table>
+        </div>
+        <!-- CARDS (mobile) -->
+        <div class="client-cards" id="clientCards"></div>
       </div>
 
+      <!-- PERFIL CLIENTE -->
       <div class="page" id="page-perfil">
-        <div class="page-header"><div><div class="page-eyebrow" style="cursor:pointer" onclick="showPage('clientes')">← Clientes</div><div class="page-title" id="profileTitle">Perfil cliente</div></div><div class="page-actions" id="profileActions"></div></div>
+        <div class="page-header">
+          <div><div class="page-eyebrow" style="cursor:pointer" onclick="showPage('clientes')">← Clientes</div><div class="page-title" id="profileTitle">Perfil cliente</div></div>
+          <div class="page-actions" id="profileActions"></div>
+        </div>
         <div id="profileContent"></div>
       </div>
 
+      <!-- RESERVAS -->
       <div class="page" id="page-reservas">
         <div class="page-header"><div><div class="page-eyebrow">Gestión</div><div class="page-title">Reservas</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('reservation')">+ Nueva reserva</button></div></div>
         <div class="table-filters" style="margin-bottom:16px" id="reservationFilters"></div>
         <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Lugar</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="reservationsTable"></tbody></table></div>
       </div>
 
+      <!-- PAGOS -->
       <div class="page" id="page-pagos">
         <div class="page-header"><div><div class="page-eyebrow">Gestión</div><div class="page-title">Pagos</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('payment')">+ Registrar pago</button></div></div>
         <div class="metrics-row" id="paymentsMetrics"></div>
@@ -254,38 +313,46 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Concepto</th><th>Importe</th><th>Fecha límite</th><th>Estado</th><th>Método</th><th>Acciones</th></tr></thead><tbody id="paymentsTable"></tbody></table></div>
       </div>
 
+      <!-- PROGRESO -->
       <div class="page" id="page-progreso">
         <div class="page-header"><div><div class="page-eyebrow">Seguimiento</div><div class="page-title">Progreso</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('metric')">+ Registrar métrica</button></div></div>
         <div class="metrics-row" id="progressMetrics"></div>
-        <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Métrica</th><th>Valor</th><th>Fecha</th><th>Nota</th><th>Acciones</th></tr></thead><tbody id="metricsTable"></tbody></table></div>
+        <div id="progressChartSection"></div>
+        <div id="progressCards"></div>
       </div>
 
+      <!-- NUTRICIÓN -->
       <div class="page" id="page-nutricion">
         <div class="page-header"><div><div class="page-eyebrow">Clínico</div><div class="page-title">Nutrición</div></div><div class="page-actions"><button class="btn btn-blue" onclick="openModal('nutrition')">Actualizar objetivo</button></div></div>
         <div id="nutritionContent"></div>
       </div>
 
+      <!-- SALUD -->
       <div class="page" id="page-salud">
         <div class="page-header"><div><div class="page-eyebrow">Clínico</div><div class="page-title">Salud / Chequeos</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('health')">+ Nueva alerta</button></div></div>
         <div class="metrics-row" id="healthMetrics"></div>
         <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Estado</th><th>Detalle</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody id="healthTable"></tbody></table></div>
       </div>
 
+      <!-- WHATSAPP -->
       <div class="page" id="page-whatsapp">
         <div class="page-header"><div><div class="page-eyebrow">Comunicación</div><div class="page-title">WhatsApp · Plantillas</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('template')">+ Nueva plantilla</button></div></div>
         <div id="whatsappContent"></div>
       </div>
 
+      <!-- PARTNERS -->
       <div class="page" id="page-partners">
         <div class="page-header"><div><div class="page-eyebrow">Comunicación</div><div class="page-title">Partners</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('partner')">+ Agregar partner</button></div></div>
         <div id="partnersContent"></div>
       </div>
 
+      <!-- PLANES -->
       <div class="page" id="page-planes">
         <div class="page-header"><div><div class="page-eyebrow">Gestión</div><div class="page-title">Programas / Planes</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('program')">+ Crear plan</button></div></div>
         <div id="programsContent"></div>
       </div>
 
+      <!-- AJUSTES -->
       <div class="page" id="page-ajustes">
         <div class="page-header"><div><div class="page-eyebrow">Sistema</div><div class="page-title">Ajustes</div></div><div class="page-actions"><button class="btn btn-primary" onclick="saveSettings()">Guardar cambios</button></div></div>
         <div class="settings-section">Perfil del coach</div>
@@ -316,10 +383,12 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="settings-field"><label class="settings-label">Aviso nutricional</label><textarea class="settings-input" id="nutritionDisclaimer" rows="2">Orientación deportiva general. No sustituye consejo médico ni nutricional profesional.</textarea></div>
         <div class="settings-field"><label class="settings-label">Texto de responsabilidad</label><textarea class="settings-input" id="legalDisclaimer" rows="3">El cliente declara estar en condiciones de realizar actividad física. El coach no se hace responsable de lesiones derivadas de información médica no declarada previamente.</textarea></div>
       </div>
-    </div>
-  </div>
-</div>
 
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL OVERLAY -->
 <div class="overlay" id="modalOverlay">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
@@ -334,72 +403,74 @@ tr:hover td{background:rgba(255,255,255,.02)}
 const COACH_DEFAULT_PHONE = '381638112348';
 
 let state = loadState() || {
-  clients: [],
-  reservations: [],
-  payments: [],
-  metrics: [],
-  healthAlerts: [],
-  programs: [],
-  partners: [],
-  templates: [
-    {id: uid(), name:'Recordatorio de sesión', msg:'Hola, [nombre]. Te recuerdo tu sesión de hoy a las [hora]. Nos vemos.'},
-    {id: uid(), name:'Recordatorio de pago', msg:'Hola, [nombre]. Te recuerdo que tienes pendiente el pago de [concepto]. Gracias.'},
-    {id: uid(), name:'Solicitar resultado médico', msg:'Hola, [nombre]. Antes de avanzar con el plan necesito que me envíes el resultado médico o chequeo pendiente.'},
-    {id: uid(), name:'Solicitar medidas', msg:'Hola, [nombre]. Cuando puedas, envíame tu peso actualizado y las medidas acordadas para revisar el progreso.'},
-    {id: uid(), name:'Indicación del plan', msg:'Hola, [nombre]. Te dejo la indicación del plan de esta semana. Revísalo y dime si tienes alguna duda.'}
+  clients:[],reservations:[],payments:[],metrics:[],healthAlerts:[],programs:[],partners:[],
+  templates:[
+    {id:uid(),name:'Recordatorio de sesión',msg:'Hola, [nombre]. Te recuerdo tu sesión de hoy a las [hora]. Nos vemos.'},
+    {id:uid(),name:'Recordatorio de pago',msg:'Hola, [nombre]. Te recuerdo que tienes pendiente el pago de [concepto]. Gracias.'},
+    {id:uid(),name:'Solicitar resultado médico',msg:'Hola, [nombre]. Antes de avanzar con el plan necesito que me envíes el resultado médico o chequeo pendiente.'},
+    {id:uid(),name:'Solicitar medidas',msg:'Hola, [nombre]. Cuando puedas, envíame tu peso actualizado y las medidas acordadas para revisar el progreso.'},
+    {id:uid(),name:'Indicación del plan',msg:'Hola, [nombre]. Te dejo la indicación del plan de esta semana. Revísalo y dime si tienes alguna duda.'}
   ],
-  settings: {
-    coachName:'Abel Balsinde',
-    coachEmail:'abel@email.com',
-    coachPhone: COACH_DEFAULT_PHONE,
-    coachCity:'Belgrado',
-    coachWeb:'abeltrainer.vercel.app',
-    coachDesc:'Entrenador personal con bases de lucha. UWW Level 2.',
-    currency:'EUR — Euro',
-    timezone:'Europe/Belgrade (CET)',
-    language:'Español',
+  settings:{
+    coachName:'Abel Balsinde',coachEmail:'abel@email.com',coachPhone:COACH_DEFAULT_PHONE,
+    coachCity:'Belgrado',coachWeb:'abeltrainer.vercel.app',coachDesc:'Entrenador personal con bases de lucha. UWW Level 2.',
+    currency:'EUR — Euro',timezone:'Europe/Belgrade (CET)',language:'Español',
     defaultWa:'Hola, [nombre]. Te recuerdo tu sesión de hoy a las [hora]. Nos vemos.',
     nutritionDisclaimer:'Orientación deportiva general. No sustituye consejo médico ni nutricional profesional.',
     legalDisclaimer:'El cliente declara estar en condiciones de realizar actividad física. El coach no se hace responsable de lesiones derivadas de información médica no declarada previamente.'
   },
-  selectedClientId: null
+  selectedClientId:null
 };
 
-let currentPage = 'dashboard';
-let activeClientFilter = 'todos';
-let activeReservationFilter = 'todas';
-let activePaymentFilter = 'todos';
-let activeModal = null;
+let currentPage='dashboard';
+let activeClientFilter='todos';
+let activeReservationFilter='todas';
+let activePaymentFilter='todos';
+let activeProgressClient='todos';
+let activeModal=null;
+let progressChartMetric='Peso (kg)';
 
-function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
-function saveState(){ localStorage.setItem('abCoachAdminState', JSON.stringify(state)); }
-function loadState(){ try { return JSON.parse(localStorage.getItem('abCoachAdminState')); } catch(e){ return null; } }
-function esc(v){ return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
-function money(n){ return `${Number(n||0).toLocaleString('es-ES')}€`; }
-function todayISO(){ return new Date().toISOString().slice(0,10); }
-function clientById(id){ return state.clients.find(c => c.id === id); }
-function initials(name){ return (name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase() || '?'; }
-function emptyRow(cols, msg){ return `<tr><td colspan="${cols}"><div class="empty"><strong>Sistema limpio</strong>${msg}</div></td></tr>`; }
-function emptyBlock(msg){ return `<div class="empty"><strong>Sistema limpio</strong>${msg}</div>`; }
-function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+/* ── UTILS ───────────────────────────────────── */
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function saveState(){localStorage.setItem('abCoachAdminState',JSON.stringify(state))}
+function loadState(){try{return JSON.parse(localStorage.getItem('abCoachAdminState'))}catch(e){return null}}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function money(n){return`${Number(n||0).toLocaleString('es-ES')}€`}
+function todayISO(){return new Date().toISOString().slice(0,10)}
+function clientById(id){return state.clients.find(c=>c.id===id)}
+function initials(name){return(name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'?'}
+function emptyRow(cols,msg){return`<tr><td colspan="${cols}"><div class="empty"><strong>Sin datos</strong>${msg}</div></td></tr>`}
+function emptyBlock(msg){return`<div class="empty"><strong>Sin datos</strong>${msg}</div>`}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 
 function buildWAUrl(phone,msg){
-  const clean = String(phone || state.settings.coachPhone || COACH_DEFAULT_PHONE).replace(/[\s+\-()]/g,'');
-  return 'https://wa.me/' + clean + '?text=' + encodeURIComponent(msg || 'Hola Abel.');
+  const clean=String(phone||state.settings.coachPhone||COACH_DEFAULT_PHONE).replace(/[\s+\-()]/g,'');
+  return'https://wa.me/'+clean+'?text='+encodeURIComponent(msg||'Hola Abel.');
 }
-function openWA(phone,msg){ window.open(buildWAUrl(phone,msg), '_blank'); }
-function openCoachWA(){ openWA(state.settings.coachPhone || COACH_DEFAULT_PHONE, 'Hola Abel.'); }
+function openWA(phone,msg){window.open(buildWAUrl(phone,msg),'_blank')}
+function openCoachWA(){openWA(state.settings.coachPhone||COACH_DEFAULT_PHONE,'Hola Abel.')}
 
+/* ── NAVIGATION ──────────────────────────────── */
 function showPage(id){
-  currentPage = id;
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const el = document.getElementById('page-' + id);
-  if (el) el.classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === id));
+  currentPage=id;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const el=document.getElementById('page-'+id);
+  if(el)el.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===id));
   document.getElementById('sidebar').classList.remove('open');
   renderAll();
 }
 
+/* ── OPEN CLIENT PROFILE ─────────────────────── */
+function openClientProfile(clientId){
+  const c=clientById(clientId);
+  if(!c){showToast('Cliente no encontrado');return}
+  state.selectedClientId=clientId;
+  saveState();
+  showPage('perfil');
+}
+
+/* ── RENDER ALL ──────────────────────────────── */
 function renderAll(){
   renderBadges();
   renderDashboard();
@@ -416,286 +487,566 @@ function renderAll(){
   renderSettings();
 }
 
+/* ── BADGES ──────────────────────────────────── */
 function renderBadges(){
-  const set = (id, n) => {
-    const el = document.getElementById(id);
-    if(!el) return;
-    el.textContent = n;
-    el.classList.toggle('show', Number(n) > 0);
-  };
-  set('badge-clientes', state.clients.length);
-  set('badge-reservas', state.reservations.length);
-  set('badge-pagos', state.payments.filter(p => p.status !== 'pagado').length);
-  set('badge-progreso', state.metrics.length);
-  set('badge-salud', state.healthAlerts.filter(h => h.status !== 'revisado').length);
-  set('badge-planes', state.programs.length);
-  set('badge-partners', state.partners.length);
+  const set=(id,n)=>{const el=document.getElementById(id);if(!el)return;el.textContent=n;el.classList.toggle('show',Number(n)>0)};
+  set('badge-clientes',state.clients.length);
+  set('badge-reservas',state.reservations.length);
+  set('badge-pagos',state.payments.filter(p=>p.status!=='pagado').length);
+  set('badge-progreso',state.metrics.length);
+  set('badge-salud',state.healthAlerts.filter(h=>h.status!=='revisado').length);
+  set('badge-planes',state.programs.length);
+  set('badge-partners',state.partners.length);
 }
 
+/* ── DASHBOARD ───────────────────────────────── */
 function renderDashboard(){
-  const today = todayISO();
-  const activeClients = state.clients.filter(c => c.status === 'activo').length;
-  const todaySessions = state.reservations.filter(r => r.date === today).length;
-  const pendingPayments = state.payments.filter(p => p.status !== 'pagado').length;
-  const income = state.payments.filter(p => p.status === 'pagado').reduce((s,p)=>s+Number(p.amount||0),0);
-  const upcoming = state.reservations.filter(r => r.date >= today).length;
-  const alerts = state.healthAlerts.filter(h => h.status !== 'revisado').length;
+  const today=todayISO();
+  const activeClients=state.clients.filter(c=>c.status==='activo').length;
+  const todaySessions=state.reservations.filter(r=>r.date===today).length;
+  const pendingPayments=state.payments.filter(p=>p.status!=='pagado').length;
+  const income=state.payments.filter(p=>p.status==='pagado').reduce((s,p)=>s+Number(p.amount||0),0);
+  const upcoming=state.reservations.filter(r=>r.date>=today).length;
+  const alerts=state.healthAlerts.filter(h=>h.status!=='revisado').length;
 
-  document.getElementById('dashboardMetrics').innerHTML = `
-    <div class="metric-card blue"><span class="metric-num">${activeClients}</span><span class="metric-label">Clientes activos</span><div class="metric-sub">Sistema limpio para datos reales</div></div>
-    <div class="metric-card red"><span class="metric-num">${todaySessions}</span><span class="metric-label">Sesiones hoy</span><div class="metric-sub">${todaySessions ? 'Revisar reservas' : 'Sin sesiones hoy'}</div></div>
-    <div class="metric-card yellow"><span class="metric-num">${pendingPayments}</span><span class="metric-label">Pagos pendientes</span><div class="metric-sub">${pendingPayments ? 'Revisar cobros' : 'Sin pagos pendientes'}</div></div>
+  document.getElementById('dashboardMetrics').innerHTML=`
+    <div class="metric-card blue"><span class="metric-num">${activeClients}</span><span class="metric-label">Clientes activos</span><div class="metric-sub">${state.clients.length} total registrados</div></div>
+    <div class="metric-card red"><span class="metric-num">${todaySessions}</span><span class="metric-label">Sesiones hoy</span><div class="metric-sub">${todaySessions?'Revisar reservas':'Sin sesiones hoy'}</div></div>
+    <div class="metric-card yellow"><span class="metric-num">${pendingPayments}</span><span class="metric-label">Pagos pendientes</span><div class="metric-sub">${pendingPayments?'Revisar cobros':'Sin pagos pendientes'}</div></div>
     <div class="metric-card green"><span class="metric-num">${money(income)}</span><span class="metric-label">Ingresos del mes</span><div class="metric-sub">Pagos marcados como pagados</div></div>
-    <div class="metric-card blue"><span class="metric-num">${upcoming}</span><span class="metric-label">Reservas próximos 7d</span></div>
-    <div class="metric-card red"><span class="metric-num">${alerts}</span><span class="metric-label">Alertas salud</span></div>
-  `;
+    <div class="metric-card blue"><span class="metric-num">${upcoming}</span><span class="metric-label">Reservas próximas</span></div>
+    <div class="metric-card red"><span class="metric-num">${alerts}</span><span class="metric-label">Alertas salud</span></div>`;
 
-  const agenda = state.reservations.filter(r => r.date === today);
-  document.getElementById('agendaToday').innerHTML = agenda.length ? agenda.map(r => {
-    const c = clientById(r.clientId);
-    return `<div class="data-row"><span><strong>${esc(r.time)}</strong> · ${esc(c?.name || 'Cliente eliminado')}</span><span class="badge badge-${r.status}">${esc(r.status)}</span></div>`;
-  }).join('') : emptyBlock('No hay reservas registradas para hoy.');
+  const agenda=state.reservations.filter(r=>r.date===today);
+  document.getElementById('agendaToday').innerHTML=agenda.length?agenda.map(r=>{
+    const c=clientById(r.clientId);
+    return`<div class="data-row"><span style="cursor:pointer" onclick="openClientProfile('${r.clientId}')"><strong>${esc(r.time)}</strong> · ${esc(c?.name||'Cliente eliminado')}</span><span class="badge badge-${r.status}">${esc(r.status)}</span></div>`;
+  }).join(''):emptyBlock('No hay reservas registradas para hoy.');
 
-  const alertList = state.healthAlerts.filter(h => h.status !== 'revisado');
-  document.getElementById('dashboardAlerts').innerHTML = alertList.length ? alertList.slice(0,4).map(h => {
-    const c = clientById(h.clientId);
-    return `<div class="data-row"><span>${esc(c?.name || 'Sin cliente')} · ${esc(h.detail)}</span><button class="btn btn-secondary btn-sm" onclick="markHealthReviewed('${h.id}')">Revisado</button></div>`;
-  }).join('') : emptyBlock('No hay alertas de salud registradas.');
+  const alertList=state.healthAlerts.filter(h=>h.status!=='revisado');
+  document.getElementById('dashboardAlerts').innerHTML=alertList.length?alertList.slice(0,4).map(h=>{
+    const c=clientById(h.clientId);
+    return`<div class="data-row"><span>${esc(c?.name||'Sin cliente')} · ${esc(h.detail)}</span><button class="btn btn-secondary btn-sm" onclick="markHealthReviewed('${h.id}')">Revisado</button></div>`;
+  }).join(''):emptyBlock('No hay alertas de salud registradas.');
 
-  const payList = state.payments.filter(p => p.status !== 'pagado');
-  document.getElementById('dashboardPayments').innerHTML = payList.length ? payList.slice(0,4).map(p => {
-    const c = clientById(p.clientId);
-    return `<div class="data-row"><span>${esc(c?.name || 'Sin cliente')} · ${esc(p.concept)}</span><span style="color:var(--yellow)">${money(p.amount)}</span></div>`;
-  }).join('') : emptyBlock('No hay pagos pendientes registrados.');
+  const payList=state.payments.filter(p=>p.status!=='pagado');
+  document.getElementById('dashboardPayments').innerHTML=payList.length?payList.slice(0,4).map(p=>{
+    const c=clientById(p.clientId);
+    return`<div class="data-row"><span style="cursor:pointer" onclick="openClientProfile('${p.clientId}')">${esc(c?.name||'Sin cliente')} · ${esc(p.concept)}</span><span style="color:var(--yellow)">${money(p.amount)}</span></div>`;
+  }).join(''):emptyBlock('No hay pagos pendientes registrados.');
 }
 
+/* ── CLIENTS ─────────────────────────────────── */
 function renderClients(){
-  const filters = [
-    ['todos','Todos'],['activo','Activos'],['prospecto','Prospectos'],['pausado','Pausados'],['alerta','Alertas'],['pago','Pagos pendientes']
-  ];
-  document.getElementById('clientFilters').innerHTML = filters.map(([key,label]) => `<button class="filter-pill ${activeClientFilter===key?'active':''}" onclick="activeClientFilter='${key}';renderClients()">${label}</button>`).join('');
+  const filters=[['todos','Todos'],['activo','Activos'],['prospecto','Prospectos'],['pausado','Pausados'],['alerta','Alertas'],['pago','Pagos pendientes']];
+  document.getElementById('clientFilters').innerHTML=filters.map(([key,label])=>`<button class="filter-pill ${activeClientFilter===key?'active':''}" onclick="activeClientFilter='${key}';renderClients()">${label}</button>`).join('');
 
-  const q = (document.getElementById('clientSearch')?.value || '').toLowerCase();
-  let rows = [...state.clients];
-  if(activeClientFilter !== 'todos'){
-    if(activeClientFilter === 'pago'){
-      const ids = new Set(state.payments.filter(p=>p.status !== 'pagado').map(p=>p.clientId));
-      rows = rows.filter(c=>ids.has(c.id));
-    } else if(activeClientFilter === 'alerta'){
-      const ids = new Set(state.healthAlerts.filter(h=>h.status !== 'revisado').map(h=>h.clientId));
-      rows = rows.filter(c=>ids.has(c.id));
-    } else rows = rows.filter(c=>c.status === activeClientFilter);
+  const q=(document.getElementById('clientSearch')?.value||'').toLowerCase();
+  let rows=[...state.clients];
+  if(activeClientFilter!=='todos'){
+    if(activeClientFilter==='pago'){const ids=new Set(state.payments.filter(p=>p.status!=='pagado').map(p=>p.clientId));rows=rows.filter(c=>ids.has(c.id));}
+    else if(activeClientFilter==='alerta'){const ids=new Set(state.healthAlerts.filter(h=>h.status!=='revisado').map(h=>h.clientId));rows=rows.filter(c=>ids.has(c.id));}
+    else rows=rows.filter(c=>c.status===activeClientFilter);
   }
-  if(q) rows = rows.filter(c => [c.name,c.phone,c.email,c.status,c.plan].join(' ').toLowerCase().includes(q));
+  if(q)rows=rows.filter(c=>[c.name,c.phone,c.email,c.status,c.plan].join(' ').toLowerCase().includes(q));
 
-  document.getElementById('clientsTable').innerHTML = rows.length ? rows.map(c => {
-    const next = state.reservations.filter(r=>r.clientId===c.id && r.date >= todayISO()).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
-    const last = state.reservations.filter(r=>r.clientId===c.id && r.date < todayISO()).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))[0];
-    const paymentStatus = state.payments.some(p=>p.clientId===c.id && p.status !== 'pagado') ? 'pendiente' : 'pagado';
-    return `<tr>
-      <td><div class="td-name"><div class="avatar">${initials(c.name)}</div><div><div class="name-text">${esc(c.name)}</div><div class="name-sub">${esc(c.phone || 'Sin teléfono')}</div></div></div></td>
+  const payStatus=c=>state.payments.some(p=>p.clientId===c.id&&p.status!=='pagado')?'pendiente':'pagado';
+  const nextRes=c=>state.reservations.filter(r=>r.clientId===c.id&&r.date>=todayISO()).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
+  const lastRes=c=>state.reservations.filter(r=>r.clientId===c.id&&r.date<todayISO()).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))[0];
+
+  // ── TABLE (desktop) ──
+  document.getElementById('clientsTable').innerHTML=rows.length?rows.map(c=>{
+    const next=nextRes(c);const last=lastRes(c);const ps=payStatus(c);
+    return`<tr>
+      <td><div class="td-name"><div class="avatar">${initials(c.name)}</div><div>
+        <div class="name-link" onclick="openClientProfile('${c.id}')">${esc(c.name)}</div>
+        <div class="name-sub">${esc(c.phone||'Sin teléfono')}</div>
+      </div></div></td>
       <td><span class="badge badge-${esc(c.status)}">${esc(c.status)}</span></td>
-      <td style="font-size:.78rem;color:var(--blue)">${esc(c.plan || 'Sin plan')}</td>
-      <td style="color:var(--gray);font-size:.78rem">${last ? `${esc(last.date)} ${esc(last.time)}` : '—'}</td>
-      <td style="color:var(--white);font-size:.78rem">${next ? `${esc(next.date)} ${esc(next.time)}` : '—'}</td>
-      <td><span class="badge badge-${paymentStatus}">${paymentStatus}</span></td>
+      <td style="font-size:.78rem;color:var(--blue)">${esc(c.plan||'Sin plan')}</td>
+      <td style="color:var(--gray);font-size:.78rem">${last?`${esc(last.date)} ${esc(last.time)}`:'—'}</td>
+      <td style="color:var(--white);font-size:.78rem">${next?`${esc(next.date)} ${esc(next.time)}`:'—'}</td>
+      <td><span class="badge badge-${ps}">${ps}</span></td>
       <td><div class="td-actions">
-        <button class="btn btn-blue btn-sm" onclick="openProfile('${c.id}')">Ver perfil</button>
-        <button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(c.name.split(' ')[0]||c.name)}.')">WA</button>
-        <button class="btn btn-secondary btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
+        <button class="btn btn-blue btn-xs" onclick="openClientProfile('${c.id}')">Ver perfil</button>
+        <button class="btn btn-secondary btn-xs" onclick="openModal('client','${c.id}')">Editar</button>
+        <button class="btn btn-wa btn-xs" onclick="openWA('${esc(c.phone||'')}','Hola ${esc(c.name.split(' ')[0]||c.name)}.')">WA</button>
+        <button class="btn btn-secondary btn-xs" onclick="openModalFor('reservation','${c.id}')">Reserva</button>
+        <button class="btn btn-secondary btn-xs" onclick="openModalFor('payment','${c.id}')">Pago</button>
+        <button class="btn btn-secondary btn-xs" onclick="openModalFor('metric','${c.id}')">Métrica</button>
+        <button class="btn btn-danger btn-xs" onclick="confirmDelete('clients','${c.id}','${esc(c.name)}')">Eliminar</button>
       </div></td>
     </tr>`;
-  }).join('') : emptyRow(7,'No hay clientes registrados todavía.');
+  }).join(''):emptyRow(7,'No hay clientes registrados todavía.');
+
+  // ── CARDS (mobile) ──
+  document.getElementById('clientCards').innerHTML=rows.length?rows.map(c=>{
+    const next=nextRes(c);const ps=payStatus(c);
+    return`<div class="client-card">
+      <div class="client-card-top">
+        <div class="avatar">${initials(c.name)}</div>
+        <div style="flex:1">
+          <div class="name-link" onclick="openClientProfile('${c.id}')">${esc(c.name)}</div>
+          <div class="name-sub">${esc(c.phone||'Sin teléfono')}</div>
+        </div>
+        <span class="badge badge-${esc(c.status)}">${esc(c.status)}</span>
+      </div>
+      <div class="client-card-body">
+        <span class="client-card-key">Plan</span><span class="client-card-val">${esc(c.plan||'Sin plan')}</span>
+        <span class="client-card-key">Pago</span><span class="client-card-val"><span class="badge badge-${ps}">${ps}</span></span>
+        <span class="client-card-key">Próxima sesión</span><span class="client-card-val">${next?`${esc(next.date)} ${esc(next.time)}`:'—'}</span>
+      </div>
+      <div class="client-card-actions">
+        <button class="btn btn-blue btn-sm" onclick="openClientProfile('${c.id}')">Ver perfil</button>
+        <button class="btn btn-secondary btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
+        <button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone||'')}','Hola ${esc(c.name.split(' ')[0]||c.name)}.')">WA</button>
+        <button class="btn btn-secondary btn-sm" onclick="openModalFor('reservation','${c.id}')">+ Reserva</button>
+        <button class="btn btn-secondary btn-sm" onclick="openModalFor('payment','${c.id}')">+ Pago</button>
+        <button class="btn btn-secondary btn-sm" onclick="openModalFor('metric','${c.id}')">+ Métrica</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete('clients','${c.id}','${esc(c.name)}')">Eliminar</button>
+      </div>
+    </div>`;
+  }).join(''):`<div class="empty"><strong>Sin datos</strong>No hay clientes registrados todavía.</div>`;
 }
 
+/* ── RESERVATIONS ────────────────────────────── */
 function renderReservations(){
-  const filters = [['todas','Todas'],['hoy','Hoy'],['confirmada','Confirmadas'],['reservada','Reservadas'],['realizada','Realizadas'],['cancelada','Canceladas']];
-  document.getElementById('reservationFilters').innerHTML = filters.map(([key,label]) => `<button class="filter-pill ${activeReservationFilter===key?'active':''}" onclick="activeReservationFilter='${key}';renderReservations()">${label}</button>`).join('');
-  let rows = [...state.reservations].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-  if(activeReservationFilter === 'hoy') rows = rows.filter(r=>r.date===todayISO());
-  else if(activeReservationFilter !== 'todas') rows = rows.filter(r=>r.status===activeReservationFilter);
+  const filters=[['todas','Todas'],['hoy','Hoy'],['confirmada','Confirmadas'],['reservada','Reservadas'],['realizada','Realizadas'],['cancelada','Canceladas']];
+  document.getElementById('reservationFilters').innerHTML=filters.map(([key,label])=>`<button class="filter-pill ${activeReservationFilter===key?'active':''}" onclick="activeReservationFilter='${key}';renderReservations()">${label}</button>`).join('');
+  let rows=[...state.reservations].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  if(activeReservationFilter==='hoy')rows=rows.filter(r=>r.date===todayISO());
+  else if(activeReservationFilter!=='todas')rows=rows.filter(r=>r.status===activeReservationFilter);
 
-  document.getElementById('reservationsTable').innerHTML = rows.length ? rows.map(r => {
-    const c = clientById(r.clientId);
-    return `<tr>
-      <td><div class="td-name"><div class="avatar">${initials(c?.name)}</div><div><div class="name-text">${esc(c?.name || 'Cliente eliminado')}</div></div></div></td>
+  document.getElementById('reservationsTable').innerHTML=rows.length?rows.map(r=>{
+    const c=clientById(r.clientId);
+    return`<tr>
+      <td><div class="td-name"><div class="avatar">${initials(c?.name)}</div><div>
+        <div class="name-link" onclick="openClientProfile('${r.clientId}')">${esc(c?.name||'Cliente eliminado')}</div>
+      </div></div></td>
       <td>${esc(r.date)}</td><td class="font-mono" style="font-size:.75rem;color:var(--blue)">${esc(r.time)}</td>
       <td>${esc(r.type)}</td><td>${esc(r.place)}</td><td><span class="badge badge-${r.status}">${esc(r.status)}</span></td>
       <td><div class="td-actions">
-        ${r.status==='reservada'?`<button class="btn btn-secondary btn-sm" onclick="updateReservationStatus('${r.id}','confirmada')">Confirmar</button>`:''}
-        ${r.status!=='realizada'?`<button class="btn btn-primary btn-sm" onclick="updateReservationStatus('${r.id}','realizada')">Marcar realizada</button>`:''}
-        ${r.status!=='cancelada'?`<button class="btn btn-secondary btn-sm" onclick="updateReservationStatus('${r.id}','cancelada')">Cancelar</button>`:''}
-        <button class="btn btn-wa btn-sm" onclick="openWA('${esc(c?.phone || state.settings.coachPhone)}','Hola ${esc((c?.name||'').split(' ')[0]||'')}, te recuerdo tu sesión el ${esc(r.date)} a las ${esc(r.time)}.')">WA</button>
+        ${r.status==='reservada'?`<button class="btn btn-secondary btn-xs" onclick="updateReservationStatus('${r.id}','confirmada')">Confirmar</button>`:''}
+        ${r.status!=='realizada'?`<button class="btn btn-primary btn-xs" onclick="updateReservationStatus('${r.id}','realizada')">Realizada</button>`:''}
+        ${r.status!=='cancelada'?`<button class="btn btn-secondary btn-xs" onclick="updateReservationStatus('${r.id}','cancelada')">Cancelar</button>`:''}
+        <button class="btn btn-wa btn-xs" onclick="openWA('${esc(c?.phone||state.settings.coachPhone)}','Hola ${esc((c?.name||'').split(' ')[0]||'')}, te recuerdo tu sesión el ${esc(r.date)} a las ${esc(r.time)}.')">WA</button>
+        <button class="btn btn-danger btn-xs" onclick="confirmDelete('reservations','${r.id}','reserva del ${esc(r.date)}')">Eliminar</button>
       </div></td>
     </tr>`;
-  }).join('') : emptyRow(7,'No hay reservas registradas todavía.');
+  }).join(''):emptyRow(7,'No hay reservas registradas todavía.');
 }
 
+/* ── PAYMENTS ────────────────────────────────── */
 function renderPayments(){
-  const pending = state.payments.filter(p=>p.status !== 'pagado').reduce((s,p)=>s+Number(p.amount||0),0);
-  const overdue = state.payments.filter(p=>p.status === 'vencido').reduce((s,p)=>s+Number(p.amount||0),0);
-  const paid = state.payments.filter(p=>p.status === 'pagado').reduce((s,p)=>s+Number(p.amount||0),0);
-  const debtClients = new Set(state.payments.filter(p=>p.status !== 'pagado').map(p=>p.clientId)).size;
-  document.getElementById('paymentsMetrics').innerHTML = `
+  const pending=state.payments.filter(p=>p.status!=='pagado').reduce((s,p)=>s+Number(p.amount||0),0);
+  const overdue=state.payments.filter(p=>p.status==='vencido').reduce((s,p)=>s+Number(p.amount||0),0);
+  const paid=state.payments.filter(p=>p.status==='pagado').reduce((s,p)=>s+Number(p.amount||0),0);
+  const debtClients=new Set(state.payments.filter(p=>p.status!=='pagado').map(p=>p.clientId)).size;
+  document.getElementById('paymentsMetrics').innerHTML=`
     <div class="metric-card green"><span class="metric-num">${money(paid)}</span><span class="metric-label">Ingresos del mes</span></div>
     <div class="metric-card yellow"><span class="metric-num">${money(pending)}</span><span class="metric-label">Pendientes</span></div>
     <div class="metric-card red"><span class="metric-num">${money(overdue)}</span><span class="metric-label">Vencidos</span></div>
-    <div class="metric-card blue"><span class="metric-num">${debtClients}</span><span class="metric-label">Clientes con deuda</span></div>
-  `;
-  const filters = [['todos','Todos'],['pendiente','Pendientes'],['vencido','Vencidos'],['pagado','Pagados']];
-  document.getElementById('paymentFilters').innerHTML = filters.map(([key,label]) => `<button class="filter-pill ${activePaymentFilter===key?'active':''}" onclick="activePaymentFilter='${key}';renderPayments()">${label}</button>`).join('');
-  let rows = [...state.payments].sort((a,b)=>(b.dueDate||'').localeCompare(a.dueDate||''));
-  if(activePaymentFilter !== 'todos') rows = rows.filter(p=>p.status === activePaymentFilter);
-  document.getElementById('paymentsTable').innerHTML = rows.length ? rows.map(p => {
-    const c = clientById(p.clientId);
-    return `<tr>
-      <td><div class="td-name"><div class="avatar">${initials(c?.name)}</div><div><div class="name-text">${esc(c?.name || 'Cliente eliminado')}</div></div></div></td>
-      <td>${esc(p.concept)}</td><td class="font-mono">${money(p.amount)}</td><td>${esc(p.dueDate || '—')}</td>
-      <td><span class="badge badge-${p.status}">${esc(p.status)}</span></td><td>${esc(p.method || '—')}</td>
+    <div class="metric-card blue"><span class="metric-num">${debtClients}</span><span class="metric-label">Clientes con deuda</span></div>`;
+  const filters=[['todos','Todos'],['pendiente','Pendientes'],['vencido','Vencidos'],['pagado','Pagados']];
+  document.getElementById('paymentFilters').innerHTML=filters.map(([key,label])=>`<button class="filter-pill ${activePaymentFilter===key?'active':''}" onclick="activePaymentFilter='${key}';renderPayments()">${label}</button>`).join('');
+  let rows=[...state.payments].sort((a,b)=>(b.dueDate||'').localeCompare(a.dueDate||''));
+  if(activePaymentFilter!=='todos')rows=rows.filter(p=>p.status===activePaymentFilter);
+  document.getElementById('paymentsTable').innerHTML=rows.length?rows.map(p=>{
+    const c=clientById(p.clientId);
+    return`<tr>
+      <td><div class="td-name"><div class="avatar">${initials(c?.name)}</div><div>
+        <div class="name-link" onclick="openClientProfile('${p.clientId}')">${esc(c?.name||'Cliente eliminado')}</div>
+      </div></div></td>
+      <td>${esc(p.concept)}</td><td class="font-mono">${money(p.amount)}</td><td>${esc(p.dueDate||'—')}</td>
+      <td><span class="badge badge-${p.status}">${esc(p.status)}</span></td><td>${esc(p.method||'—')}</td>
       <td><div class="td-actions">
-        ${p.status!=='pagado'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Marcar pagado</button>`:''}
-        <button class="btn btn-wa btn-sm" onclick="openWA('${esc(c?.phone || state.settings.coachPhone)}','Hola ${esc((c?.name||'').split(' ')[0]||'')}, te recuerdo que tienes pendiente el pago de ${esc(p.concept)} (${money(p.amount)}). Gracias.')">WA</button>
+        ${p.status!=='pagado'?`<button class="btn btn-primary btn-xs" onclick="markPaid('${p.id}')">Pagado</button>`:''}
+        <button class="btn btn-wa btn-xs" onclick="openWA('${esc(c?.phone||state.settings.coachPhone)}','Hola ${esc((c?.name||'').split(' ')[0]||'')}, te recuerdo que tienes pendiente el pago de ${esc(p.concept)} (${money(p.amount)}). Gracias.')">WA</button>
+        <button class="btn btn-danger btn-xs" onclick="confirmDelete('payments','${p.id}','pago de ${esc(p.concept)}')">Eliminar</button>
       </div></td>
     </tr>`;
-  }).join('') : emptyRow(7,'No hay pagos registrados todavía.');
+  }).join(''):emptyRow(7,'No hay pagos registrados todavía.');
 }
 
+/* ── PROGRESS ────────────────────────────────── */
 function renderProgress(){
-  document.getElementById('progressMetrics').innerHTML = `
+  document.getElementById('progressMetrics').innerHTML=`
     <div class="metric-card blue"><span class="metric-num">${state.clients.length}</span><span class="metric-label">Clientes en seguimiento</span></div>
     <div class="metric-card green"><span class="metric-num">${state.metrics.length}</span><span class="metric-label">Métricas registradas</span></div>
-    <div class="metric-card yellow"><span class="metric-num">0</span><span class="metric-label">Check-ins pendientes</span></div>
-    <div class="metric-card red"><span class="metric-num">0</span><span class="metric-label">Alertas progreso</span></div>
-  `;
-  const rows = [...state.metrics].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  document.getElementById('metricsTable').innerHTML = rows.length ? rows.map(m => {
-    const c = clientById(m.clientId);
-    return `<tr><td>${esc(c?.name || 'Cliente eliminado')}</td><td>${esc(m.type)}</td><td>${esc(m.value)}</td><td>${esc(m.date)}</td><td>${esc(m.note || '—')}</td><td><button class="btn btn-secondary btn-sm" onclick="deleteItem('metrics','${m.id}')">Eliminar</button></td></tr>`;
-  }).join('') : emptyRow(6,'No hay métricas registradas todavía.');
+    <div class="metric-card yellow"><span class="metric-num">0</span><span class="metric-label">Check-ins pendientes</span></div>`;
+
+  // Chart section
+  const clientOpts=`<option value="todos">Todos los clientes</option>${state.clients.map(c=>`<option value="${c.id}" ${activeProgressClient===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}`;
+  const metricTypes=[...new Set(state.metrics.map(m=>m.type))];
+  const metricOpts=metricTypes.length?metricTypes.map(t=>`<option value="${esc(t)}" ${progressChartMetric===t?'selected':''}>${esc(t)}</option>`).join(''):'<option>Sin métricas</option>';
+
+  let chartClientId=activeProgressClient==='todos'&&state.clients.length?state.clients[0].id:activeProgressClient;
+  const chartMetrics=state.metrics.filter(m=>m.clientId===chartClientId&&m.type===progressChartMetric).sort((a,b)=>a.date.localeCompare(b.date));
+
+  document.getElementById('progressChartSection').innerHTML=`
+    <div class="chart-wrap">
+      <div class="chart-top">
+        <span class="chart-title">Evolución</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select class="chart-select" onchange="activeProgressClient=this.value;renderProgress()">${clientOpts}</select>
+          <select class="chart-select" onchange="progressChartMetric=this.value;renderProgress()">${metricOpts}</select>
+        </div>
+      </div>
+      ${chartMetrics.length>=2?buildSVGChart(chartMetrics):`<div class="chart-empty">Necesitas al menos 2 registros de esta métrica para ver la evolución.</div>`}
+    </div>`;
+
+  // Metric cards
+  let rows=[...state.metrics].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(activeProgressClient!=='todos')rows=rows.filter(m=>m.clientId===activeProgressClient);
+
+  document.getElementById('progressCards').innerHTML=rows.length?rows.map(m=>{
+    const c=clientById(m.clientId);
+    return`<div class="metric-item-card">
+      <div class="metric-item-info">
+        <div class="metric-item-type">${esc(m.type)}</div>
+        <div class="metric-item-value">${esc(m.value)}</div>
+        <div class="metric-item-meta">${esc(c?.name||'Sin cliente')} · ${esc(m.date)}${m.note?` · ${esc(m.note)}`:''}</div>
+      </div>
+      <div class="metric-item-actions">
+        <button class="btn btn-blue btn-xs" onclick="openMetricDetail('${m.id}')">Detalle</button>
+        <button class="btn btn-secondary btn-xs" onclick="openModal('metric','${m.id}')">Editar</button>
+        <button class="btn btn-danger btn-xs" onclick="confirmDelete('metrics','${m.id}','métrica de ${esc(m.type)}')">Eliminar</button>
+      </div>
+    </div>`;
+  }).join(''):emptyBlock('No hay métricas registradas. Usa "+ Registrar métrica" para empezar.');
 }
 
+/* ── SVG CHART ───────────────────────────────── */
+function buildSVGChart(metrics){
+  const values=metrics.map(m=>parseFloat(m.value)||0);
+  const min=Math.min(...values);const max=Math.max(...values);const range=max-min||1;
+  const W=600;const H=140;const PAD_X=40;const PAD_Y=24;
+  const iW=W-PAD_X*2;const iH=H-PAD_Y*2;
+  const x=i=>PAD_X+(i/(metrics.length-1))*iW;
+  const y=v=>PAD_Y+iH-((v-min)/range)*iH;
+  const pts=metrics.map((m,i)=>`${x(i).toFixed(1)},${y(parseFloat(m.value)||0).toFixed(1)}`).join(' ');
+  const area=`${x(0).toFixed(1)},${(PAD_Y+iH).toFixed(1)} ${pts} ${x(metrics.length-1).toFixed(1)},${(PAD_Y+iH).toFixed(1)}`;
+  return`<svg viewBox="0 0 ${W} ${H}" class="chart-svg">
+    <defs><linearGradient id="cg" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#5EC5F0" stop-opacity=".25"/><stop offset="100%" stop-color="#5EC5F0" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="${area}" fill="url(#cg)"/>
+    <polyline points="${pts}" fill="none" stroke="#5EC5F0" stroke-width="2"/>
+    ${metrics.map((m,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(parseFloat(m.value)||0).toFixed(1)}" r="4" fill="#5EC5F0" stroke="var(--navy3)" stroke-width="2"/>`).join('')}
+    ${metrics.map((m,i)=>`<text x="${x(i).toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="9" fill="#8A9BB0" font-family="Space Mono,monospace">${m.date.slice(5)}</text>`).join('')}
+    ${metrics.map((m,i)=>`<text x="${x(i).toFixed(1)}" y="${(y(parseFloat(m.value)||0)-8).toFixed(1)}" text-anchor="middle" font-size="10" fill="#F5F9FF" font-family="Bebas Neue,sans-serif" letter-spacing=".04em">${m.value}</text>`).join('')}
+  </svg>`;
+}
+
+/* ── METRIC DETAIL MODAL ─────────────────────── */
+function openMetricDetail(id){
+  const m=state.metrics.find(x=>x.id===id);if(!m)return;
+  const c=clientById(m.clientId);
+  const title=document.getElementById('modalTitle');
+  const form=document.getElementById('modalForm');
+  title.textContent='Detalle de métrica';
+  form.innerHTML=`
+    <div class="detail-row"><span class="detail-key">Cliente</span><span class="detail-val">${esc(c?.name||'Sin cliente')}</span></div>
+    <div class="detail-row"><span class="detail-key">Tipo</span><span class="detail-val">${esc(m.type)}</span></div>
+    <div class="detail-row"><span class="detail-key">Valor</span><span class="detail-val" style="font-family:'Bebas Neue';font-size:1.3rem;color:var(--blue)">${esc(m.value)}</span></div>
+    <div class="detail-row"><span class="detail-key">Fecha</span><span class="detail-val">${esc(m.date)}</span></div>
+    <div class="detail-row"><span class="detail-key">Nota</span><span class="detail-val">${esc(m.note||'—')}</span></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+      <button type="button" class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+      <button type="button" class="btn btn-primary" onclick="closeModal();openModal('metric','${m.id}')">Editar</button>
+    </div>`;
+  form.onsubmit=e=>e.preventDefault();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+/* ── CONFIRM DELETE ──────────────────────────── */
+function confirmDelete(arr,id,label){
+  const title=document.getElementById('modalTitle');
+  const form=document.getElementById('modalForm');
+  title.textContent='Confirmar eliminación';
+  form.innerHTML=`
+    <div class="confirm-box">
+      <h4>¿Eliminar este elemento?</h4>
+      <p>Vas a eliminar: <strong style="color:var(--white)">${esc(label)}</strong><br>Esta acción no se puede deshacer.</p>
+      <div class="confirm-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button type="button" class="btn btn-danger" onclick="doDelete('${arr}','${id}')">Sí, eliminar</button>
+      </div>
+    </div>`;
+  form.onsubmit=e=>e.preventDefault();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function doDelete(arr,id){
+  if(arr==='clients'){
+    // also clean related data
+    state.reservations=state.reservations.filter(r=>r.clientId!==id);
+    state.payments=state.payments.filter(p=>p.clientId!==id);
+    state.metrics=state.metrics.filter(m=>m.clientId!==id);
+    state.healthAlerts=state.healthAlerts.filter(h=>h.clientId!==id);
+    if(state.selectedClientId===id)state.selectedClientId=null;
+  }
+  state[arr]=state[arr].filter(x=>x.id!==id);
+  saveState();closeModal();renderAll();
+  showToast('Elemento eliminado correctamente');
+}
+
+/* ── HEALTH ──────────────────────────────────── */
 function renderHealth(){
-  const active = state.healthAlerts.filter(h=>h.status !== 'revisado').length;
-  const pending = state.healthAlerts.filter(h=>h.status === 'pendiente').length;
-  document.getElementById('healthMetrics').innerHTML = `
+  const active=state.healthAlerts.filter(h=>h.status!=='revisado').length;
+  const pending=state.healthAlerts.filter(h=>h.status==='pendiente').length;
+  document.getElementById('healthMetrics').innerHTML=`
     <div class="metric-card red"><span class="metric-num">${active}</span><span class="metric-label">Alertas activas</span></div>
     <div class="metric-card yellow"><span class="metric-num">${pending}</span><span class="metric-label">Resultados pendientes</span></div>
     <div class="metric-card blue"><span class="metric-num">0</span><span class="metric-label">Lesiones activas</span></div>
-    <div class="metric-card green"><span class="metric-num">${Math.max(0,state.clients.length-active)}</span><span class="metric-label">Aptos sin restricciones</span></div>
-  `;
-  document.getElementById('healthTable').innerHTML = state.healthAlerts.length ? state.healthAlerts.map(h => {
-    const c = clientById(h.clientId);
-    return `<tr><td>${esc(c?.name || 'Sin cliente')}</td><td><span class="badge badge-${h.status==='revisado'?'pagado':'alerta'}">${esc(h.status)}</span></td><td>${esc(h.detail)}</td><td>${esc(h.date)}</td><td><div class="td-actions"><button class="btn btn-wa btn-sm" onclick="openWA('${esc(c?.phone || state.settings.coachPhone)}','Hola ${esc((c?.name||'').split(' ')[0]||'')}, antes de avanzar necesito que me envíes el resultado médico o chequeo pendiente.')">Solicitar WA</button><button class="btn btn-secondary btn-sm" onclick="markHealthReviewed('${h.id}')">Marcar revisado</button></div></td></tr>`;
-  }).join('') : emptyRow(5,'No hay chequeos registrados todavía.');
+    <div class="metric-card green"><span class="metric-num">${Math.max(0,state.clients.length-active)}</span><span class="metric-label">Aptos sin restricciones</span></div>`;
+  document.getElementById('healthTable').innerHTML=state.healthAlerts.length?state.healthAlerts.map(h=>{
+    const c=clientById(h.clientId);
+    return`<tr><td><div class="name-link" onclick="openClientProfile('${h.clientId}')">${esc(c?.name||'Sin cliente')}</div></td>
+      <td><span class="badge badge-${h.status==='revisado'?'pagado':'alerta'}">${esc(h.status)}</span></td>
+      <td>${esc(h.detail)}</td><td>${esc(h.date)}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-wa btn-xs" onclick="openWA('${esc(c?.phone||state.settings.coachPhone)}','Hola ${esc((c?.name||'').split(' ')[0]||'')}, antes de avanzar necesito que me envíes el resultado médico o chequeo pendiente.')">WA</button>
+        <button class="btn btn-secondary btn-xs" onclick="markHealthReviewed('${h.id}')">Revisado</button>
+        <button class="btn btn-danger btn-xs" onclick="confirmDelete('healthAlerts','${h.id}','alerta de ${esc(c?.name||'')}')">Eliminar</button>
+      </div></td>
+    </tr>`;
+  }).join(''):emptyRow(5,'No hay chequeos registrados todavía.');
 }
 
+/* ── NUTRITION ───────────────────────────────── */
 function renderNutrition(){
-  if(!state.clients.length){
-    document.getElementById('nutritionContent').innerHTML = emptyBlock('No hay cliente seleccionado todavía.');
-    return;
-  }
-  const c = clientById(state.selectedClientId) || state.clients[0];
-  document.getElementById('nutritionContent').innerHTML = `
+  if(!state.clients.length){document.getElementById('nutritionContent').innerHTML=emptyBlock('No hay clientes registrados todavía.');return;}
+  const c=clientById(state.selectedClientId)||state.clients[0];
+  document.getElementById('nutritionContent').innerHTML=`
     <div class="two-col">
       <div class="card"><div class="card-title">Cliente seleccionado</div>
         <div class="data-row"><span class="data-key">Nombre</span><span class="data-val">${esc(c.name)}</span></div>
-        <div class="data-row"><span class="data-key">Objetivo</span><span class="data-val">${esc(c.objective || 'Sin objetivo')}</span></div>
-        <div class="data-row"><span class="data-key">Plan</span><span class="data-val">${esc(c.plan || 'Sin plan')}</span></div>
-        <div class="empty small">Orientación deportiva general. No sustituye consejo médico ni nutricional profesional.</div>
+        <div class="data-row"><span class="data-key">Objetivo</span><span class="data-val">${esc(c.objective||'Sin objetivo')}</span></div>
+        <div class="data-row"><span class="data-key">Plan</span><span class="data-val">${esc(c.plan||'Sin plan')}</span></div>
+        <div class="data-row"><span class="data-key">Objetivo nutricional</span><span class="data-val">${esc(c.nutritionObjective||'No definido')}</span></div>
+        <div class="empty small" style="font-size:.72rem">Orientación deportiva general. No sustituye consejo médico ni nutricional profesional.</div>
       </div>
       <div class="card"><div class="card-title">Acciones</div>
-        <button class="btn btn-blue btn-sm" onclick="openModal('nutrition')">Actualizar objetivo</button>
-        <button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone || state.settings.coachPhone)}','Hola ${esc(c.name.split(' ')[0]||c.name)}, te dejo la orientación nutricional general de esta semana. Revísala y dime si tienes dudas.')">Enviar orientación</button>
+        <button class="btn btn-blue btn-sm" onclick="openModal('nutrition')">Actualizar objetivo</button>&nbsp;
+        <button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone||state.settings.coachPhone)}','Hola ${esc(c.name.split(' ')[0]||c.name)}, te dejo la orientación nutricional general de esta semana. Revísala y dime si tienes dudas.')">Enviar orientación</button>
       </div>
     </div>`;
 }
 
+/* ── WHATSAPP ────────────────────────────────── */
 function renderWhatsapp(){
   if(!state.clients.length){
-    document.getElementById('whatsappContent').innerHTML = emptyBlock('No hay clientes registrados todavía. Crea un cliente para enviar mensajes personalizados.') + `<button class="btn btn-wa" onclick="openCoachWA()">Abrir WhatsApp del coach</button>`;
+    document.getElementById('whatsappContent').innerHTML=emptyBlock('No hay clientes registrados todavía. Crea un cliente para enviar mensajes personalizados.')+`<button class="btn btn-wa" onclick="openCoachWA()">Abrir WhatsApp del coach</button>`;
     return;
   }
-  const options = state.clients.map(c => `<option value="${c.id}">${esc(c.name)} — ${esc(c.phone || 'sin teléfono')}</option>`).join('');
-  const templates = state.templates.map(t => `
+  const options=state.clients.map(c=>`<option value="${c.id}">${esc(c.name)} — ${esc(c.phone||'sin teléfono')}</option>`).join('');
+  const templates=state.templates.map(t=>`
     <div class="wa-template">
       <div class="wa-template-header"><span class="wa-template-name">${esc(t.name)}</span><span class="badge badge-plantilla">Plantilla</span></div>
       <div class="wa-msg" id="tpl-${t.id}">${esc(t.msg)}</div>
       <div class="wa-actions">
         <button class="btn btn-wa btn-sm" onclick="sendTemplate('${t.id}')">Abrir WhatsApp</button>
-        <button class="btn btn-secondary btn-sm" onclick="copyText('tpl-${t.id}')">Copiar mensaje</button>
+        <button class="btn btn-secondary btn-sm" onclick="copyText('tpl-${t.id}')">Copiar</button>
         <button class="btn btn-secondary btn-sm" onclick="openModal('template','${t.id}')">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete('templates','${t.id}','plantilla ${esc(t.name)}')">Eliminar</button>
       </div>
-    </div>
-  `).join('');
-  document.getElementById('whatsappContent').innerHTML = `
+    </div>`).join('');
+  document.getElementById('whatsappContent').innerHTML=`
     <div style="margin-bottom:16px"><label class="settings-label">Cliente activo</label><select class="form-input" style="max-width:340px" id="waClientSelect">${options}</select></div>
     ${templates}`;
 }
 
+/* ── PARTNERS ────────────────────────────────── */
 function renderPartners(){
-  document.getElementById('partnersContent').innerHTML = state.partners.length ? `<div class="partner-grid">${state.partners.map(p => `
+  document.getElementById('partnersContent').innerHTML=state.partners.length?`<div class="partner-grid">${state.partners.map(p=>`
     <div class="partner-card">
       <div class="partner-cat">${esc(p.category)}</div><div class="partner-name">${esc(p.name)}</div>
       <div class="partner-benefit">${esc(p.benefit)}</div>
-      <div class="data-row"><span class="data-key">Ubicación</span><span>${esc(p.location || '—')}</span></div>
-      <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-blue btn-sm" onclick="openPartner('${p.url || ''}')">Abrir web</button><button class="btn btn-secondary btn-sm" onclick="openModal('partner','${p.id}')">Editar</button></div>
-    </div>`).join('')}</div>` : emptyBlock('No hay partners registrados todavía.');
+      <div class="data-row"><span class="data-key">Ubicación</span><span>${esc(p.location||'—')}</span></div>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn btn-blue btn-sm" onclick="openPartner('${p.url||''}')">Abrir web</button>
+        <button class="btn btn-secondary btn-sm" onclick="openModal('partner','${p.id}')">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete('partners','${p.id}','partner ${esc(p.name)}')">Eliminar</button>
+      </div>
+    </div>`).join('')}</div>`:emptyBlock('No hay partners registrados todavía.');
 }
 
+/* ── PROGRAMS ────────────────────────────────── */
 function renderPrograms(){
-  document.getElementById('programsContent').innerHTML = state.programs.length ? `<div class="program-grid">${state.programs.map(p => {
-    const c = clientById(p.clientId);
-    return `<div class="program-card">
+  document.getElementById('programsContent').innerHTML=state.programs.length?`<div class="program-grid">${state.programs.map(p=>{
+    const c=clientById(p.clientId);
+    return`<div class="program-card">
       <div class="program-cat">${esc(p.type)} · ${esc(p.level)}</div><div class="program-name">${esc(p.name)}</div>
-      <div class="program-desc">${esc(p.objective || 'Sin objetivo definido')}</div>
-      <div class="data-row"><span class="data-key">Duración</span><span>${esc(p.duration || '—')}</span></div>
-      <div class="data-row"><span class="data-key">Cliente</span><span>${esc(c?.name || 'Sin asignar')}</span></div>
+      <div class="program-desc">${esc(p.objective||'Sin objetivo definido')}</div>
+      <div class="data-row"><span class="data-key">Duración</span><span>${esc(p.duration||'—')}</span></div>
+      <div class="data-row"><span class="data-key">Cliente</span><span>${esc(c?.name||'Sin asignar')}</span></div>
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm" onclick="openModal('program','${p.id}')">Editar</button>
         <button class="btn btn-secondary btn-sm" onclick="duplicateProgram('${p.id}')">Duplicar</button>
         <button class="btn btn-wa btn-sm" onclick="sendProgramWA('${p.id}')">Enviar WA</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete('programs','${p.id}','plan ${esc(p.name)}')">Eliminar</button>
       </div>
-    </div>`;}).join('')}</div>` : emptyBlock('No hay programas creados todavía.');
+    </div>`;}).join('')}</div>`:emptyBlock('No hay programas creados todavía.');
 }
 
+/* ── CLIENT PROFILE ──────────────────────────── */
 function renderProfile(){
-  const el = document.getElementById('profileContent');
-  const c = clientById(state.selectedClientId);
+  const el=document.getElementById('profileContent');
+  const c=clientById(state.selectedClientId);
   if(!c){
-    document.getElementById('profileTitle').textContent = 'Perfil cliente';
-    document.getElementById('profileActions').innerHTML = `<button class="btn btn-primary btn-sm" onclick="openModal('client')">+ Nuevo cliente</button>`;
-    el.innerHTML = emptyBlock('Selecciona o crea un cliente para ver su perfil.');
+    document.getElementById('profileTitle').textContent='Perfil cliente';
+    document.getElementById('profileActions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="openModal('client')">+ Nuevo cliente</button>`;
+    el.innerHTML=emptyBlock('Selecciona un cliente desde la lista para ver su perfil.');
     return;
   }
-  document.getElementById('profileTitle').textContent = c.name;
-  document.getElementById('profileActions').innerHTML = `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone || state.settings.coachPhone)}','Hola ${esc(c.name.split(' ')[0]||c.name)}.')">WhatsApp</button><button class="btn btn-secondary btn-sm" onclick="openModal('reservation')">+ Sesión</button><button class="btn btn-secondary btn-sm" onclick="openModal('metric')">+ Métrica</button><button class="btn btn-primary btn-sm" onclick="openModal('payment')">+ Pago</button>`;
-  const clientPayments = state.payments.filter(p=>p.clientId===c.id);
-  const clientReservations = state.reservations.filter(r=>r.clientId===c.id);
-  const clientMetrics = state.metrics.filter(m=>m.clientId===c.id);
-  const clientAlerts = state.healthAlerts.filter(h=>h.clientId===c.id);
-  el.innerHTML = `
+  document.getElementById('profileTitle').textContent=c.name;
+  document.getElementById('profileActions').innerHTML=`
+    <button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone||state.settings.coachPhone)}','Hola ${esc(c.name.split(' ')[0]||c.name)}.')">WhatsApp</button>
+    <button class="btn btn-secondary btn-sm" onclick="openModalFor('reservation','${c.id}')">+ Sesión</button>
+    <button class="btn btn-secondary btn-sm" onclick="openModalFor('metric','${c.id}')">+ Métrica</button>
+    <button class="btn btn-primary btn-sm" onclick="openModalFor('payment','${c.id}')">+ Pago</button>`;
+
+  const cPay=state.payments.filter(p=>p.clientId===c.id);
+  const cRes=state.reservations.filter(r=>r.clientId===c.id);
+  const cMet=state.metrics.filter(m=>m.clientId===c.id);
+  const cAle=state.healthAlerts.filter(h=>h.clientId===c.id);
+
+  // Build chart for profile
+  const metricTypes=[...new Set(cMet.map(m=>m.type))];
+  const profileChartType=metricTypes[0]||'';
+  const profileChartData=cMet.filter(m=>m.type===profileChartType).sort((a,b)=>a.date.localeCompare(b.date));
+
+  el.innerHTML=`
     <div class="card">
-      <div class="td-name"><div class="avatar" style="width:56px;height:56px;font-size:1.4rem">${initials(c.name)}</div><div><div class="name-text" style="font-size:1.2rem">${esc(c.name)}</div><div class="name-sub">${esc(c.plan || 'Sin plan')} · ${esc(c.phone || 'Sin teléfono')} · ${esc(c.email || 'Sin email')}</div><div class="name-sub">Objetivo: ${esc(c.objective || 'Sin objetivo')}</div></div></div>
+      <div class="td-name">
+        <div class="avatar" style="width:52px;height:52px;font-size:1.3rem">${initials(c.name)}</div>
+        <div>
+          <div class="name-text" style="font-size:1.15rem">${esc(c.name)}</div>
+          <div class="name-sub">${esc(c.plan||'Sin plan')} · ${esc(c.phone||'Sin teléfono')} · ${esc(c.email||'Sin email')}</div>
+          <div class="name-sub">Objetivo: ${esc(c.objective||'Sin objetivo definido')}</div>
+        </div>
+        <span class="badge badge-${esc(c.status)}" style="margin-left:auto">${esc(c.status)}</span>
+      </div>
     </div>
+
     <div class="profile-tabs">
       <div class="tab active" onclick="switchProfileTab(this,'pf-resumen')">Resumen</div>
-      <div class="tab" onclick="switchProfileTab(this,'pf-reservas')">Reservas</div>
-      <div class="tab" onclick="switchProfileTab(this,'pf-pagos')">Pagos</div>
-      <div class="tab" onclick="switchProfileTab(this,'pf-progreso')">Progreso</div>
-      <div class="tab" onclick="switchProfileTab(this,'pf-salud')">Salud</div>
+      <div class="tab" onclick="switchProfileTab(this,'pf-reservas')">Reservas (${cRes.length})</div>
+      <div class="tab" onclick="switchProfileTab(this,'pf-pagos')">Pagos (${cPay.length})</div>
+      <div class="tab" onclick="switchProfileTab(this,'pf-progreso')">Progreso (${cMet.length})</div>
+      <div class="tab" onclick="switchProfileTab(this,'pf-salud')">Salud (${cAle.length})</div>
       <div class="tab" onclick="switchProfileTab(this,'pf-notas')">Notas</div>
     </div>
-    <div id="pf-resumen" class="profile-tab-content active"><div class="three-col">
-      <div class="card"><div class="card-title">Datos personales</div><div class="data-row"><span class="data-key">Nombre</span><span class="data-val">${esc(c.name)}</span></div><div class="data-row"><span class="data-key">Teléfono</span><span class="data-val">${esc(c.phone || '—')}</span></div><div class="data-row"><span class="data-key">Email</span><span class="data-val">${esc(c.email || '—')}</span></div><div class="data-row"><span class="data-key">Ciudad</span><span class="data-val">${esc(c.city || '—')}</span></div></div>
-      <div class="card"><div class="card-title">Estado</div><div class="data-row"><span class="data-key">Plan</span><span class="data-val">${esc(c.plan || '—')}</span></div><div class="data-row"><span class="data-key">Estado</span><span class="badge badge-${esc(c.status)}">${esc(c.status)}</span></div><div class="data-row"><span class="data-key">Pagos</span><span class="data-val">${clientPayments.length}</span></div></div>
-      <div class="card"><div class="card-title">Actividad</div><div class="data-row"><span class="data-key">Reservas</span><span class="data-val">${clientReservations.length}</span></div><div class="data-row"><span class="data-key">Métricas</span><span class="data-val">${clientMetrics.length}</span></div><div class="data-row"><span class="data-key">Alertas</span><span class="data-val">${clientAlerts.length}</span></div></div>
-    </div></div>
-    <div id="pf-reservas" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Estado</th></tr></thead><tbody>${clientReservations.length?clientReservations.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.time)}</td><td>${esc(r.type)}</td><td><span class="badge badge-${r.status}">${esc(r.status)}</span></td></tr>`).join(''):emptyRow(4,'No hay reservas registradas para este cliente.')}</tbody></table></div></div>
-    <div id="pf-pagos" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Concepto</th><th>Importe</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${clientPayments.length?clientPayments.map(p=>`<tr><td>${esc(p.concept)}</td><td>${money(p.amount)}</td><td><span class="badge badge-${p.status}">${esc(p.status)}</span></td><td>${p.status!=='pagado'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Marcar pagado</button>`:''}</td></tr>`).join(''):emptyRow(4,'No hay pagos registrados para este cliente.')}</tbody></table></div></div>
-    <div id="pf-progreso" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Métrica</th><th>Valor</th><th>Fecha</th><th>Nota</th></tr></thead><tbody>${clientMetrics.length?clientMetrics.map(m=>`<tr><td>${esc(m.type)}</td><td>${esc(m.value)}</td><td>${esc(m.date)}</td><td>${esc(m.note||'—')}</td></tr>`).join(''):emptyRow(4,'No hay métricas registradas para este cliente.')}</tbody></table></div></div>
-    <div id="pf-salud" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Estado</th><th>Detalle</th><th>Fecha</th></tr></thead><tbody>${clientAlerts.length?clientAlerts.map(h=>`<tr><td>${esc(h.status)}</td><td>${esc(h.detail)}</td><td>${esc(h.date)}</td></tr>`).join(''):emptyRow(3,'No hay chequeos registrados para este cliente.')}</tbody></table></div></div>
-    <div id="pf-notas" class="profile-tab-content"><div class="card"><div class="card-title">Notas del coach <button class="btn btn-primary btn-sm" onclick="openModal('note')">+ Nueva nota</button></div>${(c.notes||[]).length?(c.notes||[]).map(n=>`<div class="data-row"><span>${esc(n.text)}</span><span class="name-sub">${esc(n.date)}</span></div>`).join(''):emptyBlock('No hay notas registradas para este cliente.')}</div></div>
-  `;
+
+    <!-- RESUMEN -->
+    <div id="pf-resumen" class="profile-tab-content active">
+      <div class="three-col">
+        <div class="card">
+          <div class="card-title">Datos personales</div>
+          <div class="data-row"><span class="data-key">Nombre</span><span class="data-val">${esc(c.name)}</span></div>
+          <div class="data-row"><span class="data-key">Teléfono</span><span class="data-val">${esc(c.phone||'Sin teléfono')}</span></div>
+          <div class="data-row"><span class="data-key">Email</span><span class="data-val">${esc(c.email||'Sin email')}</span></div>
+          <div class="data-row"><span class="data-key">Ciudad</span><span class="data-val">${esc(c.city||'—')}</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Estado del plan</div>
+          <div class="data-row"><span class="data-key">Plan</span><span class="data-val">${esc(c.plan||'Sin plan asignado')}</span></div>
+          <div class="data-row"><span class="data-key">Estado</span><span><span class="badge badge-${esc(c.status)}">${esc(c.status)}</span></span></div>
+          <div class="data-row"><span class="data-key">Objetivo nutricional</span><span class="data-val">${esc(c.nutritionObjective||'No definido')}</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Actividad</div>
+          <div class="data-row"><span class="data-key">Sesiones</span><span class="data-val">${cRes.length}</span></div>
+          <div class="data-row"><span class="data-key">Pagos</span><span class="data-val">${cPay.length}</span></div>
+          <div class="data-row"><span class="data-key">Métricas</span><span class="data-val">${cMet.length}</span></div>
+          <div class="data-row"><span class="data-key">Alertas salud</span><span class="data-val">${cAle.length}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESERVAS -->
+    <div id="pf-reservas" class="profile-tab-content">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn btn-primary btn-sm" onclick="openModalFor('reservation','${c.id}')">+ Nueva reserva</button>
+      </div>
+      ${cRes.length?`<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Lugar</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+        ${cRes.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).map(r=>`<tr>
+          <td>${esc(r.date)}</td><td class="font-mono" style="color:var(--blue);font-size:.75rem">${esc(r.time)}</td>
+          <td>${esc(r.type)}</td><td>${esc(r.place)}</td>
+          <td><span class="badge badge-${r.status}">${esc(r.status)}</span></td>
+          <td><div class="td-actions">
+            ${r.status!=='realizada'?`<button class="btn btn-primary btn-xs" onclick="updateReservationStatus('${r.id}','realizada')">Realizada</button>`:''}
+            <button class="btn btn-danger btn-xs" onclick="confirmDelete('reservations','${r.id}','reserva del ${esc(r.date)}')">Eliminar</button>
+          </div></td>
+        </tr>`).join('')}
+      </tbody></table></div>`:emptyBlock('No hay reservas registradas para este cliente.')}
+    </div>
+
+    <!-- PAGOS -->
+    <div id="pf-pagos" class="profile-tab-content">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn btn-primary btn-sm" onclick="openModalFor('payment','${c.id}')">+ Registrar pago</button>
+      </div>
+      ${cPay.length?`<div class="table-wrap"><table><thead><tr><th>Concepto</th><th>Importe</th><th>Vence</th><th>Estado</th><th>Método</th><th>Acciones</th></tr></thead><tbody>
+        ${cPay.sort((a,b)=>(b.dueDate||'').localeCompare(a.dueDate||'')).map(p=>`<tr>
+          <td>${esc(p.concept)}</td><td class="font-mono">${money(p.amount)}</td>
+          <td>${esc(p.dueDate||'—')}</td>
+          <td><span class="badge badge-${p.status}">${esc(p.status)}</span></td>
+          <td>${esc(p.method||'—')}</td>
+          <td><div class="td-actions">
+            ${p.status!=='pagado'?`<button class="btn btn-primary btn-xs" onclick="markPaid('${p.id}')">Pagado</button>`:''}
+            <button class="btn btn-danger btn-xs" onclick="confirmDelete('payments','${p.id}','pago de ${esc(p.concept)}')">Eliminar</button>
+          </div></td>
+        </tr>`).join('')}
+      </tbody></table></div>`:emptyBlock('No hay pagos registrados para este cliente.')}
+    </div>
+
+    <!-- PROGRESO -->
+    <div id="pf-progreso" class="profile-tab-content">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn btn-primary btn-sm" onclick="openModalFor('metric','${c.id}')">+ Registrar métrica</button>
+      </div>
+      ${profileChartData.length>=2?`<div class="chart-wrap" style="margin-bottom:16px">
+        <div class="chart-top"><span class="chart-title">Evolución · ${esc(profileChartType)}</span></div>
+        ${buildSVGChart(profileChartData)}
+      </div>`:''}
+      ${cMet.length?cMet.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(m=>`
+        <div class="metric-item-card">
+          <div class="metric-item-info">
+            <div class="metric-item-type">${esc(m.type)}</div>
+            <div class="metric-item-value">${esc(m.value)}</div>
+            <div class="metric-item-meta">${esc(m.date)}${m.note?` · ${esc(m.note)}`:''}</div>
+          </div>
+          <div class="metric-item-actions">
+            <button class="btn btn-blue btn-xs" onclick="openMetricDetail('${m.id}')">Detalle</button>
+            <button class="btn btn-secondary btn-xs" onclick="openModal('metric','${m.id}')">Editar</button>
+            <button class="btn btn-danger btn-xs" onclick="confirmDelete('metrics','${m.id}','métrica de ${esc(m.type)}')">Eliminar</button>
+          </div>
+        </div>`).join(''):emptyBlock('No hay métricas registradas para este cliente.')}
+      ${!profileChartData.length&&cMet.length<2?`<div class="chart-wrap" style="margin-top:12px"><div class="chart-empty">Necesitas al menos 2 registros del mismo tipo de métrica para ver la evolución.</div></div>`:''}
+    </div>
+
+    <!-- SALUD -->
+    <div id="pf-salud" class="profile-tab-content">
+      ${cAle.length?`<div class="table-wrap"><table><thead><tr><th>Estado</th><th>Detalle</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody>
+        ${cAle.map(h=>`<tr>
+          <td><span class="badge badge-${h.status==='revisado'?'pagado':'alerta'}">${esc(h.status)}</span></td>
+          <td>${esc(h.detail)}</td><td>${esc(h.date)}</td>
+          <td><button class="btn btn-secondary btn-xs" onclick="markHealthReviewed('${h.id}')">Revisado</button></td>
+        </tr>`).join('')}
+      </tbody></table></div>`:emptyBlock('No hay chequeos o alertas de salud para este cliente.')}
+    </div>
+
+    <!-- NOTAS -->
+    <div id="pf-notas" class="profile-tab-content">
+      <div class="card">
+        <div class="card-title">Notas privadas del coach <button class="btn btn-primary btn-sm" onclick="openModal('note')">+ Nueva nota</button></div>
+        ${(c.notes||[]).length?(c.notes||[]).map(n=>`
+          <div class="data-row">
+            <span style="flex:1">${esc(n.text)}</span>
+            <span class="name-sub" style="flex-shrink:0;margin-left:12px">${esc(n.date)}</span>
+          </div>`).join(''):emptyBlock('No hay notas registradas para este cliente.')}
+      </div>
+    </div>`;
 }
 
 function switchProfileTab(btn,id){
@@ -705,161 +1056,169 @@ function switchProfileTab(btn,id){
   document.getElementById(id)?.classList.add('active');
 }
 
+/* ── SETTINGS ────────────────────────────────── */
 function renderSettings(){
-  for(const [k,v] of Object.entries(state.settings)){
-    const el = document.getElementById(k);
-    if(el) el.value = v;
-  }
+  for(const[k,v]of Object.entries(state.settings)){const el=document.getElementById(k);if(el)el.value=v;}
 }
 
-function openProfile(id){ state.selectedClientId = id; saveState(); showPage('perfil'); }
-function openPartner(url){ if(url) window.open(url,'_blank'); else showToast('Partner sin URL registrada'); }
-function copyText(id){ navigator.clipboard.writeText(document.getElementById(id).textContent).then(()=>showToast('Mensaje copiado')); }
+/* ── HELPER ACTIONS ──────────────────────────── */
+function openPartner(url){if(url)window.open(url,'_blank');else showToast('Partner sin URL registrada')}
+function copyText(id){navigator.clipboard.writeText(document.getElementById(id).textContent).then(()=>showToast('Mensaje copiado'))}
 
 function sendTemplate(id){
-  const tpl = state.templates.find(t=>t.id===id);
-  const cid = document.getElementById('waClientSelect')?.value;
-  const c = clientById(cid);
-  const msg = (tpl?.msg || '').replaceAll('[nombre]', c?.name?.split(' ')[0] || '').replaceAll('[hora]','').replaceAll('[concepto]','');
-  openWA(c?.phone || state.settings.coachPhone, msg);
+  const tpl=state.templates.find(t=>t.id===id);
+  const cid=document.getElementById('waClientSelect')?.value;
+  const c=clientById(cid);
+  const msg=(tpl?.msg||'').replaceAll('[nombre]',c?.name?.split(' ')[0]||'').replaceAll('[hora]','').replaceAll('[concepto]','');
+  openWA(c?.phone||state.settings.coachPhone,msg);
 }
 
-function markPaid(id){ const p=state.payments.find(x=>x.id===id); if(p){p.status='pagado';p.method=p.method||'Registrado';saveState();renderAll();showToast('Pago marcado como pagado');} }
-function updateReservationStatus(id,status){ const r=state.reservations.find(x=>x.id===id); if(r){r.status=status;saveState();renderAll();showToast('Reserva actualizada');} }
-function markHealthReviewed(id){ const h=state.healthAlerts.find(x=>x.id===id); if(h){h.status='revisado';saveState();renderAll();showToast('Chequeo marcado como revisado');} }
-function deleteItem(arr,id){ state[arr]=state[arr].filter(x=>x.id!==id); saveState();renderAll();showToast('Elemento eliminado'); }
-function duplicateProgram(id){ const p=state.programs.find(x=>x.id===id); if(p){state.programs.push({...p,id:uid(),name:p.name+' · copia'});saveState();renderAll();showToast('Programa duplicado');} }
-function sendProgramWA(id){ const p=state.programs.find(x=>x.id===id); const c=clientById(p?.clientId); openWA(c?.phone || state.settings.coachPhone, `Hola ${c?.name?.split(' ')[0] || ''}, te dejo la indicación del plan ${p?.name || ''}. Revísalo y dime si tienes alguna duda.`); }
+function markPaid(id){const p=state.payments.find(x=>x.id===id);if(p){p.status='pagado';p.method=p.method||'Registrado';saveState();renderAll();showToast('Pago marcado como pagado');}}
+function updateReservationStatus(id,status){const r=state.reservations.find(x=>x.id===id);if(r){r.status=status;saveState();renderAll();showToast('Reserva actualizada');}}
+function markHealthReviewed(id){const h=state.healthAlerts.find(x=>x.id===id);if(h){h.status='revisado';saveState();renderAll();showToast('Chequeo marcado como revisado');}}
+function duplicateProgram(id){const p=state.programs.find(x=>x.id===id);if(p){state.programs.push({...p,id:uid(),name:p.name+' · copia'});saveState();renderAll();showToast('Programa duplicado');}}
+function sendProgramWA(id){const p=state.programs.find(x=>x.id===id);const c=clientById(p?.clientId);openWA(c?.phone||state.settings.coachPhone,`Hola ${c?.name?.split(' ')[0]||''}, te dejo la indicación del plan ${p?.name||''}. Revísalo y dime si tienes alguna duda.`);}
 
+/* ── MODALS ──────────────────────────────────── */
 function clientOptions(selected=''){
   return state.clients.map(c=>`<option value="${c.id}" ${selected===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
 }
-function requireClientsMessage(){
-  return `<div class="empty small">Primero crea un cliente para poder usar esta acción.</div>`;
+function requireClientsMessage(){return`<div class="empty small">Primero crea un cliente para poder usar esta acción.</div>`;}
+
+// Opens a modal with a specific client pre-selected
+function openModalFor(type, clientId){
+  activeModal={type,id:null,preClientId:clientId};
+  _buildModal(type, null, clientId);
+  document.getElementById('modalOverlay').classList.add('open');
 }
 
-function openModal(type, id=null){
-  activeModal = {type,id};
-  const form = document.getElementById('modalForm');
-  const title = document.getElementById('modalTitle');
-  const get = (arr) => state[arr].find(x=>x.id===id) || {};
-  const clientRequired = ['reservation','payment','metric','health','nutrition','note'].includes(type) && !state.clients.length;
+function openModal(type,id=null){
+  activeModal={type,id,preClientId:null};
+  _buildModal(type,id,null);
+  document.getElementById('modalOverlay').classList.add('open');
+}
 
-  const actions = `<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div>`;
+function _buildModal(type,id,preClientId){
+  const form=document.getElementById('modalForm');
+  const title=document.getElementById('modalTitle');
+  const get=(arr)=>state[arr].find(x=>x.id===id)||{};
+  const clientRequired=['reservation','payment','metric','health','nutrition','note'].includes(type)&&!state.clients.length;
+  const preSelected=preClientId||(state.selectedClientId)||'';
+  const actions=`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div>`;
 
   if(clientRequired){
-    title.textContent = 'Cliente requerido';
-    form.innerHTML = requireClientsMessage() + `<div style="display:flex;justify-content:flex-end;margin-top:20px"><button type="button" class="btn btn-primary" onclick="closeModal();openModal('client')">Crear cliente</button></div>`;
+    title.textContent='Cliente requerido';
+    form.innerHTML=requireClientsMessage()+`<div style="display:flex;justify-content:flex-end;margin-top:20px"><button type="button" class="btn btn-primary" onclick="closeModal();openModal('client')">Crear cliente</button></div>`;
   } else if(type==='client'){
-    const c = get('clients'); title.textContent = id ? 'Editar cliente' : 'Nuevo cliente';
-    form.innerHTML = `
+    const c=get('clients');title.textContent=id?'Editar cliente':'Nuevo cliente';
+    form.innerHTML=`
       <div class="form-row-2"><div class="form-row"><label class="form-label">Nombre</label><input name="name" class="form-input" value="${esc(c.name||'')}" required></div><div class="form-row"><label class="form-label">Teléfono / WhatsApp</label><input name="phone" class="form-input" value="${esc(c.phone||'')}" placeholder="+381 63 811 2348"></div></div>
       <div class="form-row-2"><div class="form-row"><label class="form-label">Email</label><input name="email" class="form-input" value="${esc(c.email||'')}" type="email"></div><div class="form-row"><label class="form-label">Ciudad</label><input name="city" class="form-input" value="${esc(c.city||'Belgrado')}"></div></div>
-      <div class="form-row-2"><div class="form-row"><label class="form-label">Plan</label><select name="plan" class="form-input"><option ${c.plan==='Inicio'?'selected':''}>Inicio</option><option ${c.plan==='Performance'?'selected':''}>Performance</option><option ${c.plan==='Online'?'selected':''}>Online</option><option ${c.plan==='Sin plan'?'selected':''}>Sin plan</option></select></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="prospecto" ${c.status==='prospecto'?'selected':''}>Prospecto</option><option value="activo" ${c.status==='activo'?'selected':''}>Activo</option><option value="pausado" ${c.status==='pausado'?'selected':''}>Pausado</option><option value="inactivo" ${c.status==='inactivo'?'selected':''}>Inactivo</option></select></div></div>
+      <div class="form-row-2"><div class="form-row"><label class="form-label">Plan</label><select name="plan" class="form-input"><option ${c.plan==='Inicio'?'selected':''}>Inicio</option><option ${c.plan==='Performance'?'selected':''}>Performance</option><option ${c.plan==='Online'?'selected':''}>Online</option><option ${c.plan==='Sin plan'||!c.plan?'selected':''}>Sin plan</option></select></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="prospecto" ${c.status==='prospecto'||!c.status?'selected':''}>Prospecto</option><option value="activo" ${c.status==='activo'?'selected':''}>Activo</option><option value="pausado" ${c.status==='pausado'?'selected':''}>Pausado</option><option value="inactivo" ${c.status==='inactivo'?'selected':''}>Inactivo</option></select></div></div>
       <div class="form-row"><label class="form-label">Objetivo principal</label><input name="objective" class="form-input" value="${esc(c.objective||'')}" placeholder="Pérdida de grasa, fuerza, movilidad…"></div>${actions}`;
   } else if(type==='reservation'){
-    const r = get('reservations'); title.textContent = id ? 'Editar reserva' : 'Nueva reserva';
-    form.innerHTML = `
-      <div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(r.clientId)}</select></div>
+    const r=get('reservations');title.textContent=id?'Editar reserva':'Nueva reserva';
+    form.innerHTML=`
+      <div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(r.clientId||preSelected)}</select></div>
       <div class="form-row-2"><div class="form-row"><label class="form-label">Fecha</label><input name="date" class="form-input" type="date" value="${esc(r.date||todayISO())}" required></div><div class="form-row"><label class="form-label">Hora</label><input name="time" class="form-input" type="time" value="${esc(r.time||'09:00')}" required></div></div>
-      <div class="form-row-2"><div class="form-row"><label class="form-label">Tipo</label><input name="type" class="form-input" value="${esc(r.type||'Sesión personal')}" required></div><div class="form-row"><label class="form-label">Lugar</label><input name="place" class="form-input" value="${esc(r.place||'Belgrado')}" required></div></div>
-      <div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="reservada" ${r.status==='reservada'?'selected':''}>Reservada</option><option value="confirmada" ${r.status==='confirmada'?'selected':''}>Confirmada</option><option value="realizada" ${r.status==='realizada'?'selected':''}>Realizada</option><option value="cancelada" ${r.status==='cancelada'?'selected':''}>Cancelada</option></select></div>
+      <div class="form-row-2"><div class="form-row"><label class="form-label">Tipo</label><input name="type" class="form-input" value="${esc(r.type||'Sesión personal')}" required></div><div class="form-row"><label class="form-label">Lugar</label><input name="place" class="form-input" value="${esc(r.place||'Extreme Gym')}" required></div></div>
+      <div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="reservada" ${r.status==='reservada'||!r.status?'selected':''}>Reservada</option><option value="confirmada" ${r.status==='confirmada'?'selected':''}>Confirmada</option><option value="realizada" ${r.status==='realizada'?'selected':''}>Realizada</option><option value="cancelada" ${r.status==='cancelada'?'selected':''}>Cancelada</option></select></div>
       <div class="form-row"><label class="form-label">Nota</label><textarea name="note" class="form-input" rows="2">${esc(r.note||'')}</textarea></div>${actions}`;
   } else if(type==='payment'){
-    const p = get('payments'); title.textContent = id ? 'Editar pago' : 'Registrar pago';
-    form.innerHTML = `
-      <div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(p.clientId)}</select></div>
+    const p=get('payments');title.textContent=id?'Editar pago':'Registrar pago';
+    form.innerHTML=`
+      <div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(p.clientId||preSelected)}</select></div>
       <div class="form-row"><label class="form-label">Concepto</label><input name="concept" class="form-input" value="${esc(p.concept||'Mensualidad')}" required></div>
-      <div class="form-row-2"><div class="form-row"><label class="form-label">Importe</label><input name="amount" class="form-input" value="${esc(p.amount||'')}" type="number" required></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="pendiente" ${p.status==='pendiente'?'selected':''}>Pendiente</option><option value="pagado" ${p.status==='pagado'?'selected':''}>Pagado</option><option value="vencido" ${p.status==='vencido'?'selected':''}>Vencido</option></select></div></div>
+      <div class="form-row-2"><div class="form-row"><label class="form-label">Importe</label><input name="amount" class="form-input" value="${esc(p.amount||'')}" type="number" required></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="pendiente" ${p.status==='pendiente'||!p.status?'selected':''}>Pendiente</option><option value="pagado" ${p.status==='pagado'?'selected':''}>Pagado</option><option value="vencido" ${p.status==='vencido'?'selected':''}>Vencido</option></select></div></div>
       <div class="form-row-2"><div class="form-row"><label class="form-label">Fecha límite</label><input name="dueDate" class="form-input" type="date" value="${esc(p.dueDate||todayISO())}"></div><div class="form-row"><label class="form-label">Método</label><input name="method" class="form-input" value="${esc(p.method||'')}"></div></div>${actions}`;
   } else if(type==='metric'){
-    const m = get('metrics'); title.textContent = id ? 'Editar métrica' : 'Registrar métrica';
-    form.innerHTML = `
-      <div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(m.clientId)}</select></div>
-      <div class="form-row-2"><div class="form-row"><label class="form-label">Métrica</label><select name="type" class="form-input"><option>Peso (kg)</option><option>Cintura (cm)</option><option>Fuerza (1-10)</option><option>Movilidad (1-10)</option><option>Resistencia (1-10)</option><option>Asistencia (%)</option><option>Adherencia (%)</option></select></div><div class="form-row"><label class="form-label">Valor</label><input name="value" class="form-input" value="${esc(m.value||'')}" required></div></div>
+    const m=get('metrics');title.textContent=id?'Editar métrica':'Registrar métrica';
+    form.innerHTML=`
+      <div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(m.clientId||preSelected)}</select></div>
+      <div class="form-row-2"><div class="form-row"><label class="form-label">Métrica</label><select name="type" class="form-input"><option ${m.type==='Peso (kg)'||!m.type?'selected':''}>Peso (kg)</option><option ${m.type==='Cintura (cm)'?'selected':''}>Cintura (cm)</option><option ${m.type==='Fuerza (1-10)'?'selected':''}>Fuerza (1-10)</option><option ${m.type==='Movilidad (1-10)'?'selected':''}>Movilidad (1-10)</option><option ${m.type==='Resistencia (1-10)'?'selected':''}>Resistencia (1-10)</option><option ${m.type==='Asistencia (%)'?'selected':''}>Asistencia (%)</option><option ${m.type==='Adherencia (%)'?'selected':''}>Adherencia (%)</option></select></div><div class="form-row"><label class="form-label">Valor</label><input name="value" class="form-input" value="${esc(m.value||'')}" required></div></div>
       <div class="form-row-2"><div class="form-row"><label class="form-label">Fecha</label><input name="date" type="date" class="form-input" value="${esc(m.date||todayISO())}"></div><div class="form-row"><label class="form-label">Nota</label><input name="note" class="form-input" value="${esc(m.note||'')}"></div></div>${actions}`;
   } else if(type==='health'){
-    const h = get('healthAlerts'); title.textContent = id ? 'Editar alerta' : 'Nueva alerta de salud';
-    form.innerHTML = `
-      <div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(h.clientId)}</select></div>
+    const h=get('healthAlerts');title.textContent=id?'Editar alerta':'Nueva alerta de salud';
+    form.innerHTML=`
+      <div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(h.clientId||preSelected)}</select></div>
       <div class="form-row"><label class="form-label">Detalle</label><textarea name="detail" class="form-input" rows="3" required>${esc(h.detail||'')}</textarea></div>
-      <div class="form-row-2"><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="pendiente" ${h.status==='pendiente'?'selected':''}>Pendiente</option><option value="alerta" ${h.status==='alerta'?'selected':''}>Alerta</option><option value="revisado" ${h.status==='revisado'?'selected':''}>Revisado</option></select></div><div class="form-row"><label class="form-label">Fecha</label><input name="date" type="date" class="form-input" value="${esc(h.date||todayISO())}"></div></div>${actions}`;
+      <div class="form-row-2"><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="pendiente" ${h.status==='pendiente'||!h.status?'selected':''}>Pendiente</option><option value="alerta" ${h.status==='alerta'?'selected':''}>Alerta</option><option value="revisado" ${h.status==='revisado'?'selected':''}>Revisado</option></select></div><div class="form-row"><label class="form-label">Fecha</label><input name="date" type="date" class="form-input" value="${esc(h.date||todayISO())}"></div></div>${actions}`;
   } else if(type==='program'){
-    const p = get('programs'); title.textContent = id ? 'Editar programa' : 'Crear plan';
-    form.innerHTML = `
+    const p=get('programs');title.textContent=id?'Editar programa':'Crear plan';
+    form.innerHTML=`
       <div class="form-row"><label class="form-label">Nombre del plan</label><input name="name" class="form-input" value="${esc(p.name||'')}" required></div>
       <div class="form-row-2"><div class="form-row"><label class="form-label">Tipo</label><input name="type" class="form-input" value="${esc(p.type||'Personal')}" required></div><div class="form-row"><label class="form-label">Nivel</label><input name="level" class="form-input" value="${esc(p.level||'Inicial')}"></div></div>
       <div class="form-row-2"><div class="form-row"><label class="form-label">Duración</label><input name="duration" class="form-input" value="${esc(p.duration||'4 semanas')}"></div><div class="form-row"><label class="form-label">Cliente asignado</label><select name="clientId" class="form-input"><option value="">Sin asignar</option>${clientOptions(p.clientId)}</select></div></div>
-      <div class="form-row"><label class="form-label">Objetivo / bloques</label><textarea name="objective" class="form-input" rows="3">${esc(p.objective||'')}</textarea></div>${actions}`;
+      <div class="form-row"><label class="form-label">Objetivo / descripción</label><textarea name="objective" class="form-input" rows="3">${esc(p.objective||'')}</textarea></div>${actions}`;
   } else if(type==='partner'){
-    const p = get('partners'); title.textContent = id ? 'Editar partner' : 'Agregar partner';
-    form.innerHTML = `
+    const p=get('partners');title.textContent=id?'Editar partner':'Agregar partner';
+    form.innerHTML=`
       <div class="form-row"><label class="form-label">Nombre</label><input name="name" class="form-input" value="${esc(p.name||'')}" required></div>
       <div class="form-row-2"><div class="form-row"><label class="form-label">Categoría</label><input name="category" class="form-input" value="${esc(p.category||'')}"></div><div class="form-row"><label class="form-label">Ubicación</label><input name="location" class="form-input" value="${esc(p.location||'')}"></div></div>
-      <div class="form-row"><label class="form-label">Beneficio</label><textarea name="benefit" class="form-input" rows="2">${esc(p.benefit||'')}</textarea></div>
+      <div class="form-row"><label class="form-label">Beneficio para clientes</label><textarea name="benefit" class="form-input" rows="2">${esc(p.benefit||'')}</textarea></div>
       <div class="form-row"><label class="form-label">URL</label><input name="url" class="form-input" value="${esc(p.url||'')}"></div>${actions}`;
   } else if(type==='template'){
-    const t = get('templates'); title.textContent = id ? 'Editar plantilla' : 'Nueva plantilla';
-    form.innerHTML = `<div class="form-row"><label class="form-label">Nombre</label><input name="name" class="form-input" value="${esc(t.name||'')}" required></div><div class="form-row"><label class="form-label">Mensaje</label><textarea name="msg" class="form-input" rows="4" required>${esc(t.msg||'')}</textarea></div>${actions}`;
+    const t=get('templates');title.textContent=id?'Editar plantilla':'Nueva plantilla WA';
+    form.innerHTML=`<div class="form-row"><label class="form-label">Nombre</label><input name="name" class="form-input" value="${esc(t.name||'')}" required></div><div class="form-row"><label class="form-label">Mensaje</label><textarea name="msg" class="form-input" rows="4" required>${esc(t.msg||'')}</textarea><div style="font-size:.68rem;color:var(--gray);margin-top:5px">Variables: [nombre] [hora] [concepto]</div></div>${actions}`;
   } else if(type==='note'){
-    title.textContent = 'Nueva nota';
-    form.innerHTML = `<div class="form-row"><label class="form-label">Nota</label><textarea name="text" class="form-input" rows="4" required></textarea></div>${actions}`;
+    title.textContent='Nueva nota privada';
+    form.innerHTML=`<div class="form-row"><label class="form-label">Nota</label><textarea name="text" class="form-input" rows="4" required></textarea></div>${actions}`;
   } else if(type==='nutrition'){
-    title.textContent = 'Actualizar objetivo nutricional';
-    form.innerHTML = `<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(state.selectedClientId)}</select></div><div class="form-row"><label class="form-label">Objetivo nutricional</label><input name="nutritionObjective" class="form-input" placeholder="Ej: pérdida de grasa, mantenimiento, ganancia muscular"></div>${actions}`;
+    title.textContent='Actualizar objetivo nutricional';
+    form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(preSelected)}</select></div><div class="form-row"><label class="form-label">Objetivo nutricional</label><input name="nutritionObjective" class="form-input" placeholder="Ej: pérdida de grasa, mantenimiento, ganancia muscular"></div>${actions}`;
   }
 
-  form.onsubmit = saveModal;
-  document.getElementById('modalOverlay').classList.add('open');
+  form.onsubmit=saveModal;
 }
-function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); activeModal=null; }
 
-function formData(form){ return Object.fromEntries(new FormData(form).entries()); }
-function upsert(arrName, data){
-  if(activeModal.id){
-    const idx = state[arrName].findIndex(x=>x.id===activeModal.id);
-    if(idx >= 0) state[arrName][idx] = {...state[arrName][idx], ...data};
-  } else state[arrName].push({id:uid(), ...data});
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');activeModal=null;}
+
+function formData(form){return Object.fromEntries(new FormData(form).entries())}
+function upsert(arrName,data){
+  if(activeModal?.id){
+    const idx=state[arrName].findIndex(x=>x.id===activeModal.id);
+    if(idx>=0)state[arrName][idx]={...state[arrName][idx],...data};
+  } else state[arrName].push({id:uid(),...data});
 }
 
 function saveModal(e){
   e.preventDefault();
-  const data = formData(e.target);
-  const {type,id} = activeModal || {};
+  const data=formData(e.target);
+  const{type,id}=activeModal||{};
   if(type==='client'){
-    upsert('clients', {...data, status:data.status || 'prospecto', notes: id ? (clientById(id)?.notes||[]) : []});
-    if(!state.selectedClientId && !id) state.selectedClientId = state.clients[state.clients.length-1].id;
-    showToast(id ? 'Cliente actualizado' : 'Cliente guardado');
-  } else if(type==='reservation'){ upsert('reservations', data); showToast('Reserva guardada');
-  } else if(type==='payment'){ upsert('payments', data); showToast('Pago registrado');
-  } else if(type==='metric'){ upsert('metrics', data); showToast('Métrica guardada');
-  } else if(type==='health'){ upsert('healthAlerts', data); showToast('Alerta guardada');
-  } else if(type==='program'){ upsert('programs', data); showToast('Plan guardado');
-  } else if(type==='partner'){ upsert('partners', data); showToast('Partner guardado');
-  } else if(type==='template'){ upsert('templates', data); showToast('Plantilla guardada');
+    upsert('clients',{...data,status:data.status||'prospecto',notes:id?(clientById(id)?.notes||[]):[]});
+    if(!state.selectedClientId&&!id)state.selectedClientId=state.clients[state.clients.length-1].id;
+    showToast(id?'Cliente actualizado':'Cliente guardado');
+  } else if(type==='reservation'){upsert('reservations',data);showToast('Reserva guardada');
+  } else if(type==='payment'){upsert('payments',data);showToast('Pago registrado');
+  } else if(type==='metric'){upsert('metrics',data);showToast('Métrica guardada');
+  } else if(type==='health'){upsert('healthAlerts',data);showToast('Alerta guardada');
+  } else if(type==='program'){upsert('programs',data);showToast('Plan guardado');
+  } else if(type==='partner'){upsert('partners',data);showToast('Partner guardado');
+  } else if(type==='template'){upsert('templates',data);showToast('Plantilla guardada');
   } else if(type==='note'){
-    const c = clientById(state.selectedClientId);
-    if(c){ c.notes = c.notes || []; c.notes.unshift({id:uid(), text:data.text, date:todayISO()}); showToast('Nota guardada'); }
+    const c=clientById(state.selectedClientId);
+    if(c){c.notes=c.notes||[];c.notes.unshift({id:uid(),text:data.text,date:todayISO()});showToast('Nota guardada');}
   } else if(type==='nutrition'){
-    const c = clientById(data.clientId);
-    if(c){ c.nutritionObjective = data.nutritionObjective; state.selectedClientId = c.id; showToast('Objetivo actualizado'); }
+    const c=clientById(data.clientId);
+    if(c){c.nutritionObjective=data.nutritionObjective;state.selectedClientId=c.id;showToast('Objetivo actualizado');}
   }
-  saveState(); closeModal(); renderAll();
+  saveState();closeModal();renderAll();
 }
 
 function saveSettings(){
-  ['coachName','coachEmail','coachPhone','coachCity','coachWeb','coachDesc','currency','timezone','language','defaultWa','nutritionDisclaimer','legalDisclaimer'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) state.settings[id] = el.value;
+  ['coachName','coachEmail','coachPhone','coachCity','coachWeb','coachDesc','currency','timezone','language','defaultWa','nutritionDisclaimer','legalDisclaimer'].forEach(id=>{
+    const el=document.getElementById(id);if(el)state.settings[id]=el.value;
   });
-  saveState(); showToast('Configuración guardada');
+  saveState();showToast('Configuración guardada');
 }
 
-document.getElementById('modalOverlay').addEventListener('click', e => { if(e.target.id === 'modalOverlay') closeModal(); });
-document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('es-ES', {weekday:'short', day:'2-digit', month:'short'}).toUpperCase();
-document.getElementById('globalSearch').addEventListener('input', (e)=>{
-  const q = e.target.value.trim();
-  if(q){ showPage('clientes'); document.getElementById('clientSearch').value = q; renderClients(); }
+/* ── INIT ────────────────────────────────────── */
+document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target.id==='modalOverlay')closeModal();});
+document.getElementById('topbarDate').textContent=new Date().toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'short'}).toUpperCase();
+document.getElementById('globalSearch').addEventListener('input',(e)=>{
+  const q=e.target.value.trim();
+  if(q){showPage('clientes');document.getElementById('clientSearch').value=q;renderClients();}
 });
 
 renderAll();
