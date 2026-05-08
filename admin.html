@@ -424,18 +424,34 @@ async function loadState(){
     ];
 
     for (const [stateKey, tableName] of tables) {
-      const { data, error } = await db.from(tableName).select('*');
-      if (error) throw error;
+      console.log('Cargando tabla:', tableName);
+
+      const { data, error } = await db
+        .from(tableName)
+        .select('*');
+
+      if (error) {
+        console.error('ERROR EN TABLA:', tableName, error);
+        showToast('Error en tabla: ' + tableName);
+        return;
+      }
+
       state[stateKey] = (data || []).map(snakeToCamel);
     }
+
+    console.log('Cargando settings');
 
     const { data: settingsData, error: settingsError } = await db
       .from('settings')
       .select('*')
-      .limit(1)
+      .eq('id', 'main')
       .maybeSingle();
 
-    if (settingsError) throw settingsError;
+    if (settingsError) {
+      console.error('ERROR EN SETTINGS:', settingsError);
+      showToast('Error en tabla: settings');
+      return;
+    }
 
     if (settingsData) {
       state.settings = {
@@ -450,9 +466,10 @@ async function loadState(){
 
     renderAll();
     showToast('Datos cargados desde Supabase');
+
   } catch (error) {
-    console.error(error);
-    showToast('Error cargando Supabase');
+    console.error('ERROR GENERAL:', error);
+    showToast('Error general cargando Supabase');
   }
 }
 
