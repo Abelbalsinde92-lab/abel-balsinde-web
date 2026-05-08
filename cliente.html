@@ -440,7 +440,100 @@
     .plan-item .pi-value {
       font-size: 14px; color: var(--white); font-weight: 500;
     }
+/* ─── ACCORDION / MIS DATOS ─────────────────────────────── */
 
+.accordion-block {
+  background: var(--navy3);
+  border: 1px solid #1e3450;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.accordion-title {
+  width: 100%;
+  background: transparent;
+  color: var(--white);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.accordion-title span:first-child {
+  color: var(--blue);
+}
+
+.accordion-symbol {
+  color: var(--gray);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.accordion-content {
+  display: none;
+  padding: 0 16px 16px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.accordion-block.open .accordion-content {
+  display: block;
+}
+
+.accordion-block.open .accordion-title {
+  background: rgba(94,197,240,.05);
+}
+/* ─── ACCORDION / MIS DATOS ─────────────────────────────── */
+
+.accordion-block {
+  background: var(--navy3);
+  border: 1px solid #1e3450;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.accordion-title {
+  width: 100%;
+  background: transparent;
+  color: var(--white);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.accordion-title span:first-child {
+  color: var(--blue);
+}
+
+.accordion-symbol {
+  color: var(--gray);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.accordion-content {
+  display: none;
+  padding: 0 16px 16px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.accordion-block.open .accordion-content {
+  display: block;
+}
+
+.accordion-block.open .accordion-title {
+  background: rgba(94,197,240,.05);
+}
     /* ─── NOTES ─────────────────────────────────────────────── */
     .note-item {
       background: var(--navy3);
@@ -1398,66 +1491,97 @@ function renderClientData() {
   const lastMetric = clientMetrics[0];
 
   el.innerHTML = `
-    <div class="plan-grid">
-      <div class="plan-item">
-        <div class="pi-label">Nombre</div>
-        <div class="pi-value">${clientData.name || '—'}</div>
-      </div>
+    <div class="accordion-block open">
+      <button class="accordion-title" onclick="toggleAccordion(this)">
+        <span>Perfil básico</span>
+        <span class="accordion-symbol">−</span>
+      </button>
 
-      <div class="plan-item">
-        <div class="pi-label">Teléfono</div>
-        <div class="pi-value">${clientData.phone || '—'}</div>
-      </div>
+      <div class="accordion-content">
+        <div class="plan-grid">
+          <div class="plan-item">
+            <div class="pi-label">Nombre</div>
+            <div class="pi-value">${clientData.name || '—'}</div>
+          </div>
 
-      <div class="plan-item">
-        <div class="pi-label">Email</div>
-        <div class="pi-value">${clientData.email || '—'}</div>
-      </div>
+          <div class="plan-item">
+            <div class="pi-label">Teléfono</div>
+            <div class="pi-value">${clientData.phone || '—'}</div>
+          </div>
 
-      <div class="plan-item">
-        <div class="pi-label">Ciudad</div>
-        <div class="pi-value">${clientData.city || '—'}</div>
-      </div>
+          <div class="plan-item">
+            <div class="pi-label">Email</div>
+            <div class="pi-value">${clientData.email || '—'}</div>
+          </div>
 
-      <div class="plan-item">
-        <div class="pi-label">Estado</div>
-        <div class="pi-value">${clientData.status || '—'}</div>
+          <div class="plan-item">
+            <div class="pi-label">Ciudad</div>
+            <div class="pi-value">${clientData.city || '—'}</div>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="plan-item">
-        <div class="pi-label">Plan</div>
-        <div class="pi-value">${clientData.plan || '—'}</div>
+    <div class="accordion-block">
+      <button class="accordion-title" onclick="toggleAccordion(this)">
+        <span>Entrenamiento</span>
+        <span class="accordion-symbol">+</span>
+      </button>
+
+      <div class="accordion-content">
+        <div class="plan-grid">
+          <div class="plan-item">
+            <div class="pi-label">Estado</div>
+            <div class="pi-value">${clientData.status || '—'}</div>
+          </div>
+
+          <div class="plan-item">
+            <div class="pi-label">Plan</div>
+            <div class="pi-value">${clientData.plan || '—'}</div>
+          </div>
+
+          <div class="plan-item">
+            <div class="pi-label">Objetivo principal</div>
+            <div class="pi-value">${clientData.objective || 'Sin objetivo registrado'}</div>
+          </div>
+
+          <div class="plan-item">
+            <div class="pi-label">Objetivo nutricional</div>
+            <div class="pi-value">${clientData.nutrition_objective || 'Sin objetivo nutricional registrado'}</div>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="plan-item">
-        <div class="pi-label">Objetivo principal</div>
-        <div class="pi-value">${clientData.objective || 'Sin objetivo registrado'}</div>
-      </div>
+    <div class="accordion-block">
+      <button class="accordion-title" onclick="toggleAccordion(this)">
+        <span>Resumen del proceso</span>
+        <span class="accordion-symbol">+</span>
+      </button>
 
-      <div class="plan-item">
-        <div class="pi-label">Objetivo nutricional</div>
-        <div class="pi-value">${clientData.nutrition_objective || 'Sin objetivo nutricional registrado'}</div>
-      </div>
+      <div class="accordion-content">
+        <div class="plan-grid">
+          <div class="plan-item">
+            <div class="pi-label">Reservas registradas</div>
+            <div class="pi-value">${totalReservations}</div>
+          </div>
 
-      <div class="plan-item">
-        <div class="pi-label">Reservas registradas</div>
-        <div class="pi-value">${totalReservations}</div>
-      </div>
+          <div class="plan-item">
+            <div class="pi-label">Sesiones realizadas / confirmadas</div>
+            <div class="pi-value">${completedReservations}</div>
+          </div>
 
-      <div class="plan-item">
-        <div class="pi-label">Sesiones realizadas / confirmadas</div>
-        <div class="pi-value">${completedReservations}</div>
-      </div>
+          <div class="plan-item">
+            <div class="pi-label">Pagos pendientes</div>
+            <div class="pi-value">${pendingPayments}</div>
+          </div>
 
-      <div class="plan-item">
-        <div class="pi-label">Pagos pendientes</div>
-        <div class="pi-value">${pendingPayments}</div>
-      </div>
-
-      <div class="plan-item">
-        <div class="pi-label">Última métrica</div>
-        <div class="pi-value">
-          ${lastMetric ? `${lastMetric.type || 'Métrica'}: ${lastMetric.value}${lastMetric.unit ? ' ' + lastMetric.unit : ''}` : 'Sin métricas registradas'}
+          <div class="plan-item">
+            <div class="pi-label">Última métrica</div>
+            <div class="pi-value">
+              ${lastMetric ? `${lastMetric.type || 'Métrica'}: ${lastMetric.value}${lastMetric.unit ? ' ' + lastMetric.unit : ''}` : 'Sin métricas registradas'}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1630,6 +1754,20 @@ function goClientSection(sectionId) {
     top: 0,
     behavior: 'smooth'
   });
+}
+
+function toggleAccordion(button) {
+  const block = button.closest('.accordion-block');
+  if (!block) return;
+
+  const symbol = block.querySelector('.accordion-symbol');
+  const isOpen = block.classList.contains('open');
+
+  block.classList.toggle('open', !isOpen);
+
+  if (symbol) {
+    symbol.textContent = isOpen ? '+' : '−';
+  }
 }
 
 /* ════════════════════════════════════════════════════════════
