@@ -27,6 +27,7 @@
       --green: #22c55e;
       --yellow:#f59e0b;
       --orange:#f97316;
+      --wa:    #25D366;
       --font-title: 'Bebas Neue', sans-serif;
       --font-body:  'DM Sans', sans-serif;
       --font-mono:  'Space Mono', monospace;
@@ -145,7 +146,7 @@
     .btn-primary:hover  { opacity: .88; }
     .btn-primary:active { transform: scale(.98); }
 
-    .btn-wa {
+    .btn-wa-login {
       width: 100%;
       background: transparent;
       border: 1px solid #1e3450;
@@ -157,7 +158,7 @@
       transition: border-color .2s, color .2s;
       display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    .btn-wa:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-wa-login:hover { border-color: var(--wa); color: var(--wa); }
 
     .login-error {
       background: #2a0608;
@@ -195,27 +196,27 @@
     .dash-header {
       background: var(--navy2);
       border-bottom: 1px solid #1a2e44;
-      padding: 0 24px;
-      height: 60px;
+      padding: 0 20px;
+      height: 56px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky; top: 0; z-index: 100;
     }
     .dash-header-logo {
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 9px;
     }
     .dash-header-logo .logo-badge {
-      width: 34px; height: 34px;
+      width: 32px; height: 32px;
       background: var(--red);
       border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
       font-family: var(--font-title);
-      font-size: 16px; color: var(--white);
+      font-size: 15px; color: var(--white);
     }
     .dash-header-logo .logo-text {
       font-family: var(--font-title);
-      font-size: 18px; letter-spacing: 2px;
+      font-size: 17px; letter-spacing: 2px;
     }
     .dash-header-logo .logo-text span { color: var(--red); }
 
@@ -230,127 +231,85 @@
       padding: 7px 12px;
       font-size: 12px;
       display: flex; align-items: center; gap: 6px;
-      transition: border-color .2s, color .2s;
+      transition: border-color .2s, color .2s, background .2s;
     }
     .btn-icon:hover { border-color: var(--blue); color: var(--blue); }
     .btn-icon.red:hover { border-color: var(--red); color: var(--red); }
-    
+
     #btnHeaderWA {
-  border-color: #25D366;
-  color: #25D366;
-  background: rgba(37, 211, 102, .08);
-}
+      border-color: var(--wa);
+      color: var(--wa);
+      background: rgba(37, 211, 102, .07);
+    }
+    #btnHeaderWA:hover {
+      border-color: var(--wa);
+      color: #fff;
+      background: var(--wa);
+    }
 
-#btnHeaderWA:hover {
-  border-color: #25D366;
-  color: #ffffff;
-  background: #25D366;
-}
-
-    /* Main layout */
-    .dash-main {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 28px 20px 160px;
-}
-
-    /* Welcome block */
-    .welcome-block {
-      background: linear-gradient(135deg, var(--navy3) 0%, #0d2035 100%);
-      border: 1px solid #1e3450;
-      border-left: 4px solid var(--red);
-      border-radius: 12px;
-      padding: 24px 24px;
-      margin-bottom: 24px;
-    }
-    .welcome-block h1 {
-      font-family: var(--font-title);
-      font-size: 32px;
-      letter-spacing: 2px;
-      color: var(--white);
-      margin-bottom: 8px;
-    }
-    .welcome-block h1 span { color: var(--red); }
-    .welcome-pills {
-      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
-    }
-    .pill {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      padding: 4px 10px;
-      border-radius: 20px;
-      border: 1px solid;
-    }
-    .pill-gray   { border-color: #1e3450; color: var(--gray); }
-    .pill-blue   { border-color: var(--blue); color: var(--blue); }
-    .pill-red    { border-color: var(--red); color: var(--red); }
-    .pill-green  { border-color: var(--green); color: var(--green); }
-
-    /* Quick metrics grid */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-    @media (min-width: 600px) {
-      .metrics-grid { grid-template-columns: repeat(4, 1fr); }
-    }
-    .metric-card {
+    /* ─── CLIENT NAV (tabs) ─────────────────────────────────── */
+    .client-nav {
       background: var(--navy2);
-      border: 1px solid #1a2e44;
-      border-radius: 10px;
-      padding: 16px 14px;
+      border-bottom: 1px solid #1a2e44;
+      position: sticky;
+      top: 56px;
+      z-index: 90;
+      display: flex;
+      overflow-x: auto;
+      gap: 4px;
+      padding: 8px 14px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
-    .metric-card .mc-label {
-      font-size: 10px;
-      font-family: var(--font-mono);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--gray);
-      margin-bottom: 8px;
-    }
-    .metric-card .mc-value {
-      font-family: var(--font-title);
-      font-size: 22px;
-      letter-spacing: 1px;
-      color: var(--white);
-      line-height: 1.2;
-    }
-    .metric-card .mc-value.blue  { color: var(--blue); }
-    .metric-card .mc-value.green { color: var(--green); }
-    .metric-card .mc-value.yellow{ color: var(--yellow); }
-    .metric-card .mc-value.red   { color: var(--red); }
+    .client-nav::-webkit-scrollbar { display: none; }
 
-    /* Section wrapper */
+    .client-nav button {
+      flex: 0 0 auto;
+      background: transparent;
+      color: var(--gray);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: color .15s, border-color .15s, background .15s;
+    }
+    .client-nav button:hover {
+      color: var(--blue);
+    }
+    .client-nav button.active {
+      color: var(--blue);
+      border-color: rgba(94,197,240,.35);
+      background: rgba(94,197,240,.07);
+    }
+
+    /* ─── MAIN ──────────────────────────────────────────────── */
+    .dash-main {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 22px 16px 80px;
+    }
+
+    /* ─── SECTION ───────────────────────────────────────────── */
     .section {
       background: var(--navy2);
       border: 1px solid #1a2e44;
-      border-radius: 12px;
-      margin-bottom: 20px;
+      border-radius: 14px;
       overflow: hidden;
     }
-    
-    .section-hidden {
-  display: none !important;
-}
+    .section-hidden { display: none !important; }
 
-.client-content .section {
-  animation: sectionFade .18s ease;
-  scroll-margin-top: 125px;
-}
+    .section {
+      animation: sectionFade .18s ease;
+    }
+    @keyframes sectionFade {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
-@keyframes sectionFade {
-  from {
-    opacity: 0;
-    transform: translateX(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-    
     .section-header {
       padding: 16px 20px;
       border-bottom: 1px solid #1a2e44;
@@ -373,15 +332,16 @@
     }
     .section-body { padding: 18px 20px; }
 
-    /* Empty state */
+    /* ─── EMPTY STATE ───────────────────────────────────────── */
     .empty-state {
       color: var(--gray);
       font-size: 13px;
       font-style: italic;
       padding: 8px 0;
+      line-height: 1.7;
     }
 
-    /* ─── CARDS (reservas, pagos, métricas, alertas) ────────── */
+    /* ─── DATA CARDS ────────────────────────────────────────── */
     .data-card {
       background: var(--navy3);
       border: 1px solid #1e3450;
@@ -390,11 +350,15 @@
       margin-bottom: 10px;
     }
     .data-card:last-child { margin-bottom: 0; }
+    .data-card.next-session {
+      border-color: var(--blue);
+      background: rgba(94,197,240,.05);
+    }
 
     .data-card .dc-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px 14px;
+      gap: 4px 12px;
       margin-bottom: 4px;
     }
     .data-card .dc-title {
@@ -417,8 +381,16 @@
       font-size: 12px;
       color: var(--gray);
     }
+    .next-label {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 8px;
+    }
 
-    /* Status badges */
+    /* Badges */
     .badge {
       display: inline-block;
       font-size: 10px;
@@ -437,294 +409,160 @@
     /* ─── PLAN SECTION ──────────────────────────────────────── */
     .plan-grid {
       display: grid;
-      gap: 10px;
-      grid-template-columns: 1fr;
+      gap: 14px 16px;
+      grid-template-columns: 1fr 1fr;
     }
-    @media (min-width: 600px) {
-      .plan-grid { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 480px) {
+      .plan-grid { grid-template-columns: 1fr; gap: 12px; }
     }
-    .plan-item { }
     .plan-item .pi-label {
       font-size: 10px; font-family: var(--font-mono);
       text-transform: uppercase; letter-spacing: 1px;
-      color: var(--gray); margin-bottom: 4px;
+      color: var(--gray); margin-bottom: 3px;
     }
     .plan-item .pi-value {
       font-size: 14px; color: var(--white); font-weight: 500;
     }
-/* ─── ACCORDION / MIS DATOS ─────────────────────────────── */
+    .plan-item.full { grid-column: 1 / -1; }
+    .plan-item.full .pi-value {
+      font-size: 14px;
+      color: var(--white);
+      line-height: 1.65;
+    }
+    .plan-divider {
+      grid-column: 1 / -1;
+      border: none;
+      border-top: 1px solid #1e3450;
+      margin: 4px 0;
+    }
+    .plan-no-program {
+      background: var(--navy3);
+      border: 1px dashed #1e3450;
+      border-radius: 10px;
+      padding: 16px;
+      color: var(--gray);
+      font-size: 13px;
+      font-style: italic;
+      line-height: 1.6;
+      margin-top: 4px;
+    }
 
-.accordion-block {
-  background: var(--navy3);
-  border: 1px solid #1e3450;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  overflow: hidden;
-}
+    /* ─── PROGRESS CIRCLES ─────────────────────────────────── */
+    .progress-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .progress-circle-card {
+      background: var(--navy3);
+      border: 1px solid #1e3450;
+      border-radius: 12px;
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .progress-ring {
+      width: 88px; height: 88px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--blue) calc(var(--p) * 1%), #17283b 0);
+      position: relative;
+    }
+    .progress-ring::before {
+      content: '';
+      position: absolute;
+      width: 66px; height: 66px;
+      background: var(--navy3);
+      border-radius: 50%;
+    }
+    .progress-ring span {
+      position: relative;
+      z-index: 1;
+      font-family: var(--font-title);
+      font-size: 22px;
+      color: var(--white);
+      letter-spacing: 1px;
+    }
+    .progress-circle-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 3px;
+    }
+    .progress-circle-value {
+      font-size: 13px;
+      color: var(--white);
+      font-weight: 700;
+    }
+    .progress-circle-note {
+      font-size: 11px;
+      color: var(--gray);
+      margin-top: 3px;
+    }
 
-.accordion-title {
-  width: 100%;
-  background: transparent;
-  color: var(--white);
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.accordion-title span:first-child {
-  color: var(--blue);
-}
-
-.accordion-symbol {
-  color: var(--gray);
-  font-size: 18px;
-  line-height: 1;
-}
-
-.accordion-content {
-  display: none;
-  padding: 0 16px 16px;
-  border-top: 1px solid rgba(255,255,255,.06);
-}
-
-.accordion-block.open .accordion-content {
-  display: block;
-}
-
-.accordion-block.open .accordion-title {
-  background: rgba(94,197,240,.05);
-}
-/* ─── ACCORDION / MIS DATOS ─────────────────────────────── */
-
-.accordion-block {
-  background: var(--navy3);
-  border: 1px solid #1e3450;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  overflow: hidden;
-}
-
-.accordion-title {
-  width: 100%;
-  background: transparent;
-  color: var(--white);
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.accordion-title span:first-child {
-  color: var(--blue);
-}
-
-.accordion-symbol {
-  color: var(--gray);
-  font-size: 18px;
-  line-height: 1;
-}
-
-.accordion-content {
-  display: none;
-  padding: 0 16px 16px;
-  border-top: 1px solid rgba(255,255,255,.06);
-}
-
-.accordion-block.open .accordion-content {
-  display: block;
-}
-
-.accordion-block.open .accordion-title {
-  background: rgba(94,197,240,.05);
-}
     /* ─── NOTES ─────────────────────────────────────────────── */
     .note-item {
       background: var(--navy3);
       border-left: 3px solid var(--blue);
       border-radius: 0 8px 8px 0;
-      padding: 10px 14px;
-      font-size: 13px;
+      padding: 12px 14px;
+      font-size: 14px;
       color: var(--white);
       margin-bottom: 8px;
+      line-height: 1.6;
     }
     .note-item:last-child { margin-bottom: 0; }
-    
-    /* ─── RESPONSIVE FIXES ──────────────────────────────────── */
-   @media (max-width: 480px) {
-  .login-box { padding: 28px 20px 28px; }
-  .dash-header { padding: 0 14px; }
-  .dash-header-logo .logo-text { font-size: 15px; }
-  .btn-icon .btn-label { display: none; }
-  .dash-main { padding: 18px 12px 80px; }
-  .welcome-block h1 { font-size: 26px; }
-  .section-header h2 { font-size: 17px; }
-}
 
-/* ─── CLIENT NAV / SIDEBAR ─────────────────────────────── */
+    /* ─── ACCORDION (Mis datos) ─────────────────────────────── */
+    .accordion-block {
+      background: var(--navy3);
+      border: 1px solid #1e3450;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .accordion-block:last-child { margin-bottom: 0; }
+    .accordion-title {
+      width: 100%;
+      background: transparent;
+      color: var(--white);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .accordion-title span:first-child { color: var(--blue); }
+    .accordion-symbol {
+      color: var(--gray);
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .accordion-content {
+      display: none;
+      padding: 0 16px 16px;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .accordion-block.open .accordion-content { display: block; }
+    .accordion-block.open .accordion-title { background: rgba(94,197,240,.05); }
 
-.client-layout {
-  display: grid;
-  grid-template-columns: 190px 1fr;
-  gap: 18px;
-  align-items: start;
-}
-
-.client-nav {
-  position: sticky;
-  top: 78px;
-  background: var(--navy2);
-  border: 1px solid #1a2e44;
-  border-radius: 14px;
-  padding: 12px;
-}
-
-.client-nav-title {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: var(--gray);
-  margin-bottom: 10px;
-  padding: 0 4px;
-}
-
-.client-nav button {
-  width: 100%;
-  background: transparent;
-  color: var(--gray);
-  border: 1px solid transparent;
-  border-radius: 9px;
-  padding: 10px 10px;
-  text-align: left;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: .8px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-  transition: .15s;
-}
-
-.client-nav button:hover,
-.client-nav button.active {
-  color: var(--blue);
-  border-color: #244762;
-  background: rgba(94,197,240,.06);
-}
-
-.client-content {
-  min-width: 0;
-}
-
-/* ─── PROGRESS CIRCLES ─────────────────────────────────── */
-
-.progress-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-  gap: 12px;
-}
-
-.progress-circle-card {
-  background: var(--navy3);
-  border: 1px solid #1e3450;
-  border-radius: 12px;
-  padding: 16px 12px;
-  text-align: center;
-}
-
-.progress-ring {
-  width: 92px;
-  height: 92px;
-  margin: 0 auto 10px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background:
-    conic-gradient(var(--blue) calc(var(--p) * 1%), #17283b 0);
-  position: relative;
-}
-
-.progress-ring::before {
-  content: '';
-  position: absolute;
-  width: 68px;
-  height: 68px;
-  background: var(--navy3);
-  border-radius: 50%;
-}
-
-.progress-ring span {
-  position: relative;
-  z-index: 1;
-  font-family: var(--font-title);
-  font-size: 24px;
-  color: var(--white);
-  letter-spacing: 1px;
-}
-
-.progress-circle-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--gray);
-  margin-bottom: 4px;
-}
-
-.progress-circle-value {
-  font-size: 13px;
-  color: var(--white);
-  font-weight: 700;
-}
-
-.progress-circle-note {
-  font-size: 11px;
-  color: var(--gray);
-  margin-top: 4px;
-}
-
-/* ─── RESPONSIVE CLIENT NAV ─────────────────────────────── */
-
-@media (max-width: 760px) {
-  .client-layout {
-    display: block;
-  }
-
-  .client-nav {
-    position: sticky;
-    top: 60px;
-    z-index: 80;
-    display: flex;
-    overflow-x: auto;
-    gap: 8px;
-    border-radius: 0;
-    margin: -18px -12px 18px;
-    padding: 10px 12px;
-    border-left: 0;
-    border-right: 0;
-  }
-
-  .client-nav-title {
-    display: none;
-  }
-
-  .client-nav button {
-    width: auto;
-    flex: 0 0 auto;
-    white-space: nowrap;
-    margin-bottom: 0;
-    padding: 9px 12px;
-  }
-}
-
+    /* ─── RESPONSIVE ────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .login-box { padding: 28px 20px 28px; }
+      .dash-header { padding: 0 12px; height: 52px; }
+      .dash-header-logo .logo-text { font-size: 14px; }
+      .btn-icon .btn-label { display: none; }
+      .dash-main { padding: 16px 12px 70px; }
+      .section-header h2 { font-size: 17px; }
+      .client-nav { top: 52px; padding: 8px 10px; }
+    }
   </style>
 </head>
 <body>
@@ -751,7 +589,6 @@
     <h1 class="login-title">ÁREA CLIENTE</h1>
     <p class="login-sub">Accede a tu seguimiento personal.</p>
 
-    <!-- Error message (hidden by default) -->
     <div id="loginError" class="login-error hidden">
       Teléfono o código incorrecto. Revisa los datos e inténtalo de nuevo.
     </div>
@@ -768,9 +605,8 @@
 
     <button class="btn-primary" id="btnLogin">Entrar</button>
 
-    <button class="btn-wa" onclick="openWA('Hola Abel, necesito ayuda para entrar al área cliente.')">
-      <!-- WhatsApp icon -->
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <button class="btn-wa-login" onclick="openWA('Hola Abel, necesito ayuda para entrar al área cliente.')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
         <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/>
       </svg>
@@ -810,62 +646,22 @@
     </div>
   </header>
 
+  <!-- Client Nav (sticky tabs) -->
+  <nav class="client-nav" id="clientNav">
+    <button onclick="goClientSection('section-plan')">Plan</button>
+    <button onclick="goClientSection('section-reservations')">Reservas</button>
+    <button onclick="goClientSection('section-health')">Salud</button>
+    <button onclick="goClientSection('section-notes')">Notas</button>
+    <button onclick="goClientSection('section-progress-circles')">Progreso</button>
+    <button onclick="goClientSection('section-payments')">Pagos</button>
+    <button onclick="goClientSection('section-client-data')">Mis datos</button>
+  </nav>
+
   <!-- Main content -->
   <main class="dash-main">
 
-    <!-- Welcome -->
-    <div class="welcome-block">
-      <h1>Hola, <span id="clientName">—</span></h1>
-      <div class="welcome-pills" id="welcomePills"></div>
-    </div>
-
-    <!-- Quick metric cards -->
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="mc-label">Próxima sesión</div>
-        <div class="mc-value blue" id="quickNextSession">—</div>
-      </div>
-      <div class="metric-card">
-        <div class="mc-label">Pagos pendientes</div>
-        <div class="mc-value yellow" id="quickPendingPayments">—</div>
-      </div>
-      <div class="metric-card">
-        <div class="mc-label">Última métrica</div>
-        <div class="mc-value" id="quickLastMetric">—</div>
-      </div>
-      <div class="metric-card">
-        <div class="mc-label">Alertas activas</div>
-        <div class="mc-value red" id="quickAlerts">—</div>
-      </div>
-    </div>
-
-   <div class="client-layout">
-
-  <aside class="client-nav" id="clientNav">
-    <div class="client-nav-title">Área cliente</div>
-    <button onclick="goClientSection('section-client-data')">Mis datos</button>
-    <button onclick="goClientSection('section-plan')">Mi plan</button>
-    <button onclick="goClientSection('section-progress-circles')">Progreso visual</button>
-    <button onclick="goClientSection('section-reservations')">Reservas</button>
-    <button onclick="goClientSection('section-payments')">Pagos</button>
-    <button onclick="goClientSection('section-metrics')">Métricas</button>
-    <button onclick="goClientSection('section-health')">Salud</button>
-    <button onclick="goClientSection('section-notes')">Notas</button>
-  </aside>
-
-  <div class="client-content">
-
-    <!-- ── Mis datos ── -->
-    <div class="section" id="section-client-data">
-      <div class="section-header">
-        <h2>MIS DATOS</h2>
-        <span class="sec-badge" id="clientDataBadge">Perfil</span>
-      </div>
-      <div class="section-body" id="sectionClientData"></div>
-    </div>
-
     <!-- ── Mi plan ── -->
-    <div class="section" id="section-plan">
+    <div class="section section-hidden" id="section-plan">
       <div class="section-header">
         <h2>MI PLAN</h2>
         <span class="sec-badge" id="planBadgeStatus">—</span>
@@ -873,8 +669,34 @@
       <div class="section-body" id="sectionPlan"></div>
     </div>
 
+    <!-- ── Reservas ── -->
+    <div class="section section-hidden" id="section-reservations">
+      <div class="section-header">
+        <h2>RESERVAS</h2>
+        <span class="sec-badge" id="reservationsBadge">0</span>
+      </div>
+      <div class="section-body" id="sectionReservations"></div>
+    </div>
+
+    <!-- ── Salud / indicaciones ── -->
+    <div class="section section-hidden" id="section-health">
+      <div class="section-header">
+        <h2>SALUD</h2>
+        <span class="sec-badge" id="alertsBadge">0</span>
+      </div>
+      <div class="section-body" id="sectionHealth"></div>
+    </div>
+
+    <!-- ── Notas del coach ── -->
+    <div class="section section-hidden" id="section-notes">
+      <div class="section-header">
+        <h2>NOTAS DEL COACH</h2>
+      </div>
+      <div class="section-body" id="sectionNotes"></div>
+    </div>
+
     <!-- ── Progreso visual ── -->
-    <div class="section" id="section-progress-circles">
+    <div class="section section-hidden" id="section-progress-circles">
       <div class="section-header">
         <h2>PROGRESO VISUAL</h2>
         <span class="sec-badge" id="progressCircleBadge">0</span>
@@ -882,17 +704,8 @@
       <div class="section-body" id="sectionProgressCircles"></div>
     </div>
 
-    <!-- ── Próximas reservas ── -->
-    <div class="section" id="section-reservations">
-      <div class="section-header">
-        <h2>PRÓXIMAS RESERVAS</h2>
-        <span class="sec-badge" id="reservationsBadge">0</span>
-      </div>
-      <div class="section-body" id="sectionReservations"></div>
-    </div>
-
     <!-- ── Pagos ── -->
-    <div class="section" id="section-payments">
+    <div class="section section-hidden" id="section-payments">
       <div class="section-header">
         <h2>PAGOS</h2>
         <span class="sec-badge" id="paymentsBadge">0</span>
@@ -900,36 +713,16 @@
       <div class="section-body" id="sectionPayments"></div>
     </div>
 
-    <!-- ── Progreso / Métricas ── -->
-    <div class="section" id="section-metrics">
+    <!-- ── Mis datos ── -->
+    <div class="section section-hidden" id="section-client-data">
       <div class="section-header">
-        <h2>MÉTRICAS</h2>
-        <span class="sec-badge" id="metricsBadge">0</span>
+        <h2>MIS DATOS</h2>
+        <span class="sec-badge" id="clientDataBadge">Perfil</span>
       </div>
-      <div class="section-body" id="sectionMetrics"></div>
+      <div class="section-body" id="sectionClientData"></div>
     </div>
 
-    <!-- ── Salud / indicaciones ── -->
-    <div class="section" id="section-health">
-      <div class="section-header">
-        <h2>SALUD / INDICACIONES</h2>
-        <span class="sec-badge" id="alertsBadge">0</span>
-      </div>
-      <div class="section-body" id="sectionHealth"></div>
-    </div>
-
-    <!-- ── Notas del coach ── -->
-    <div class="section" id="section-notes">
-      <div class="section-header">
-        <h2>NOTAS DEL COACH</h2>
-      </div>
-      <div class="section-body" id="sectionNotes"></div>
-    </div>
-
-    </div>
-</div>
-
-</main>
+  </main>
 
 </div><!-- /dashboardScreen -->
 
@@ -951,48 +744,39 @@ const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ── GLOBAL STATE ────────────────────────────────────────── */
-let clientData        = null;
-let clientReservations= [];
-let clientPayments    = [];
-let clientMetrics     = [];
-let clientAlerts      = [];
-let clientPrograms    = [];
+let clientData         = null;
+let clientReservations = [];
+let clientPayments     = [];
+let clientMetrics      = [];
+let clientAlerts       = [];
+let clientPrograms     = [];
 
 /* ════════════════════════════════════════════════════════════
-   UTILITY FUNCTIONS
+   UTILITY
 ════════════════════════════════════════════════════════════ */
 
-/** Quita espacios, guiones, paréntesis y el símbolo + */
 function normalizePhone(phone) {
   return String(phone).replace(/[\s\-\(\)\+]/g, '');
 }
 
-/** Construye URL de WhatsApp con mensaje prellenado */
 function buildWAUrl(phone, message) {
-  const num = normalizePhone(phone);
-  return `https://wa.me/${num}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${normalizePhone(phone)}?text=${encodeURIComponent(message)}`;
 }
 
-/** Abre WhatsApp con mensaje (usa WA_NUMBER global) */
 function openWA(message) {
   window.open(buildWAUrl(WA_NUMBER, message), '_blank');
 }
 
-/** Formatea fecha ISO a dd/mm/yyyy */
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
 function formatDate(dateStr) {
   if (!dateStr) return '—';
-
   try {
-    const clean = String(dateStr).slice(0, 10);
-    const [year, month, day] = clean.split('-');
+    const [year, month, day] = String(dateStr).slice(0, 10).split('-');
     return `${day}/${month}/${year}`;
-  } catch {
-    return dateStr;
-  }
+  } catch { return dateStr; }
 }
 
 function formatTime(timeStr) {
@@ -1000,43 +784,40 @@ function formatTime(timeStr) {
   return String(timeStr).slice(0, 5);
 }
 
-/** Formatea importe con moneda */
 function formatMoney(amount, currency) {
   if (amount == null) return '—';
   const cur = (currency || 'EUR').toUpperCase();
   try {
     return new Intl.NumberFormat('es-ES', { style:'currency', currency: cur }).format(amount);
-  } catch {
-    return `${amount} ${cur}`;
-  }
+  } catch { return `${amount} ${cur}`; }
 }
 
-/** Muestra/oculta error de login */
 function showError(msg) {
   const el = document.getElementById('loginError');
+  if (!el) return;
   el.textContent = msg || 'Teléfono o código incorrecto.';
   el.classList.remove('hidden');
 }
+
 function hideError() {
-  document.getElementById('loginError').classList.add('hidden');
+  const el = document.getElementById('loginError');
+  if (el) el.classList.add('hidden');
 }
 
-/** Muestra/oculta overlay de carga */
 function showLoading(visible) {
-  document.getElementById('loadingOverlay').classList.toggle('hidden', !visible);
+  const el = document.getElementById('loadingOverlay');
+  if (el) el.classList.toggle('hidden', !visible);
 }
 
-/** Devuelve badge HTML según estado de pago */
 function paymentBadge(status) {
   if (!status) return '';
   const s = status.toLowerCase();
-  if (s === 'pagado' || s === 'paid')    return `<span class="badge badge-green">${status}</span>`;
-  if (s === 'pendiente' || s === 'pending') return `<span class="badge badge-yellow">${status}</span>`;
-  if (s === 'vencido' || s === 'overdue')  return `<span class="badge badge-red">${status}</span>`;
+  if (['pagado','paid'].includes(s))           return `<span class="badge badge-green">${status}</span>`;
+  if (['pendiente','pending'].includes(s))     return `<span class="badge badge-yellow">${status}</span>`;
+  if (['vencido','overdue'].includes(s))       return `<span class="badge badge-red">${status}</span>`;
   return `<span class="badge badge-gray">${status}</span>`;
 }
 
-/** Devuelve badge HTML genérico */
 function genericBadge(status) {
   if (!status) return '';
   const s = status.toLowerCase();
@@ -1052,10 +833,9 @@ function genericBadge(status) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   AUTH FUNCTIONS
+   AUTH
 ════════════════════════════════════════════════════════════ */
 
-/** Intenta login: busca cliente que coincida phone normalizado + access_code */
 async function loginClient() {
   hideError();
   const phone = document.getElementById('inputPhone').value.trim();
@@ -1065,9 +845,7 @@ async function loginClient() {
 
   showLoading(true);
   try {
-    // Traemos todos los clientes (fase inicial, pocos registros)
     const { data: clients, error } = await db.from('clients').select('*');
-
     if (error) throw error;
 
     const normalInput = normalizePhone(phone);
@@ -1082,20 +860,17 @@ async function loginClient() {
       return;
     }
 
-   // Guardar sesión local
-localStorage.setItem(LS_CLIENT_ID, found.id);
-localStorage.setItem(LS_CLIENT_PHONE, normalizePhone(found.phone || phone));
+    localStorage.setItem(LS_CLIENT_ID, found.id);
+    localStorage.setItem(LS_CLIENT_PHONE, normalizePhone(found.phone || phone));
 
-await loadClientDashboard(found.id);
-
+    await loadClientDashboard(found.id);
   } catch (err) {
     showLoading(false);
     showError('Error: ' + (err.message || JSON.stringify(err)));
-console.error('Login error:', err);
+    console.error('Login error:', err);
   }
 }
 
-/** Cierra sesión: limpia localStorage y vuelve al login */
 function logoutClient() {
   localStorage.removeItem(LS_CLIENT_ID);
   localStorage.removeItem(LS_CLIENT_PHONE);
@@ -1107,11 +882,15 @@ function logoutClient() {
   clientAlerts = [];
   clientPrograms = [];
 
-  document.getElementById('dashboardScreen').classList.add('hidden');
-  document.getElementById('loginScreen').classList.remove('hidden');
+  const dash  = document.getElementById('dashboardScreen');
+  const login = document.getElementById('loginScreen');
+  if (dash)  dash.classList.add('hidden');
+  if (login) login.classList.remove('hidden');
 
-  document.getElementById('inputPhone').value = '';
-  document.getElementById('inputCode').value = '';
+  const ip = document.getElementById('inputPhone');
+  const ic = document.getElementById('inputCode');
+  if (ip) ip.value = '';
+  if (ic) ic.value = '';
 
   hideError();
 }
@@ -1120,28 +899,26 @@ function logoutClient() {
    DATA LOADING
 ════════════════════════════════════════════════════════════ */
 
-/** Carga todos los datos del cliente y renderiza el dashboard */
 async function loadClientDashboard(clientId) {
   showLoading(true);
 
   try {
-    // Datos del cliente
     const { data: client, error: cErr } = await db
       .from('clients').select('*').eq('id', clientId).single();
 
     if (cErr || !client) {
-      // ID viejo o inválido → limpiar sesión
       localStorage.removeItem(LS_CLIENT_ID);
       showLoading(false);
-      document.getElementById('loginScreen').classList.remove('hidden');
-      document.getElementById('dashboardScreen').classList.add('hidden');
+      const login = document.getElementById('loginScreen');
+      const dash  = document.getElementById('dashboardScreen');
+      if (login) login.classList.remove('hidden');
+      if (dash)  dash.classList.add('hidden');
       showError('Sesión expirada. Vuelve a iniciar sesión.');
       return;
     }
 
     clientData = client;
 
-    // Carga paralela del resto de tablas
     const [resR, payR, metR, halR, proR] = await Promise.all([
       db.from('reservations').select('*').eq('client_id', clientId).order('date', { ascending: true }),
       db.from('payments').select('*').eq('client_id', clientId).order('due_date', { ascending: false }),
@@ -1150,197 +927,301 @@ async function loadClientDashboard(clientId) {
       db.from('programs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
     ]);
 
-    clientReservations = resR.data  || [];
-    clientPayments     = payR.data  || [];
-    clientMetrics      = metR.data  || [];
-    clientAlerts       = halR.data  || [];
-    clientPrograms     = proR.data  || [];
+    clientReservations = resR.data || [];
+    clientPayments     = payR.data || [];
+    clientMetrics      = metR.data || [];
+    clientAlerts       = halR.data || [];
+    clientPrograms     = proR.data || [];
 
     renderDashboard();
 
-    // Mostrar dashboard
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('dashboardScreen').classList.remove('hidden');
+    const login = document.getElementById('loginScreen');
+    const dash  = document.getElementById('dashboardScreen');
+    if (login) login.classList.add('hidden');
+    if (dash)  dash.classList.remove('hidden');
     showLoading(false);
 
   } catch (err) {
     showLoading(false);
     console.error('Load error:', err);
-    // Si falla en login, mostrar error. Si falla en dashboard, mostrar banner.
-    if (document.getElementById('loginScreen').classList.contains('hidden')) {
-      alert('Error al cargar los datos. Comprueba tu conexión e inténtalo de nuevo.');
-    } else {
+    const loginVisible = !document.getElementById('loginScreen')?.classList.contains('hidden');
+    if (loginVisible) {
       showError('Error de conexión. Inténtalo de nuevo.');
+    } else {
+      alert('Error al cargar los datos. Comprueba tu conexión e inténtalo de nuevo.');
     }
   }
 }
 
 /* ════════════════════════════════════════════════════════════
-   RENDER FUNCTIONS
+   RENDER
 ════════════════════════════════════════════════════════════ */
 
 function renderDashboard() {
-  renderWelcome();
-  renderQuickMetrics();
-  renderClientData();
   renderProgram();
-  renderProgressCircles();
   renderReservations();
-  renderPayments();
-  renderMetrics();
   renderHealthAlerts();
   renderNotes();
+  renderProgressCircles();
+  renderPayments();
+  renderClientData();
 
+  // WhatsApp header
   const name = clientData.name || 'cliente';
   const msg  = `Hola Abel, soy ${name}. Tengo una duda sobre mi plan.`;
-
   const headerWA = document.getElementById('btnHeaderWA');
+  if (headerWA) headerWA.onclick = () => openWA(msg);
 
-if (headerWA) headerWA.onclick = () => openWA(msg);
-
-const firstNavButton = document.querySelector('.client-nav button');
-if (firstNavButton) firstNavButton.classList.add('active');
-
-goClientSection('section-progress-circles');
+  // Default section: Plan
+  goClientSection('section-plan');
 }
 
-/** Bloque de bienvenida y pills */
-function renderWelcome() {
-  document.getElementById('clientName').textContent = clientData.name || '—';
-
-  const pills = [];
-  if (clientData.plan)   pills.push({ label: clientData.plan, cls: 'pill-blue' });
-  if (clientData.status) pills.push({ label: clientData.status, cls: statusPillClass(clientData.status) });
-  if (clientData.objective) pills.push({ label: clientData.objective, cls: 'pill-gray' });
-
-  const container = document.getElementById('welcomePills');
-  container.innerHTML = pills.map(p =>
-    `<span class="pill ${p.cls}">${p.label}</span>`
-  ).join('');
-}
-
-function statusPillClass(s) {
-  const v = (s || '').toLowerCase();
-  if (['activo','active'].includes(v)) return 'pill-green';
-  if (['pausado','vencido'].includes(v)) return 'pill-red';
-  return 'pill-gray';
-}
-
-/** 4 tarjetas rápidas */
-function renderQuickMetrics() {
-  // Próxima sesión
-  const upcoming = clientReservations.filter(r => {
-  return String(r.date).slice(0, 10) >= todayISO() &&
-    !['cancelada','cancelado'].includes((r.status || '').toLowerCase());
-});
-  document.getElementById('quickNextSession').textContent =
-    upcoming.length ? formatDate(upcoming[0].date) : 'Sin reservas';
-
-  // Pagos pendientes
-  const pending = clientPayments.filter(p =>
-    ['pendiente','pending','vencido','overdue'].includes((p.status||'').toLowerCase())
-  ).length;
-  const el = document.getElementById('quickPendingPayments');
-  el.textContent = pending ? `${pending} pendiente${pending > 1 ? 's' : ''}` : 'Al día';
-  if (!pending) { el.className = 'mc-value green'; }
-
-  // Última métrica
-  const lastM = clientMetrics[0];
-  document.getElementById('quickLastMetric').textContent =
-    lastM ? `${lastM.value}${lastM.unit ? ' '+lastM.unit : ''} (${lastM.type||'—'})` : '—';
-
-  // Alertas activas
-  const activeAlerts = clientAlerts.filter(a =>
-    ['activa','active','pendiente'].includes((a.status||'').toLowerCase())
-  ).length;
-  document.getElementById('quickAlerts').textContent =
-    activeAlerts ? `${activeAlerts} activa${activeAlerts > 1 ? 's' : ''}` : 'Sin alertas';
-  if (!activeAlerts) { document.getElementById('quickAlerts').className = 'mc-value green'; }
-}
-
-/** Sección Mi Plan */
+/* ── Mi Plan ─────────────────────────────────────────────── */
 function renderProgram() {
-  const el = document.getElementById('sectionPlan');
+  const el    = document.getElementById('sectionPlan');
   const badge = document.getElementById('planBadgeStatus');
-
   if (!el) return;
 
   const prog = clientPrograms.find(p => (p.status || '').toLowerCase() === 'activo') || clientPrograms[0] || null;
 
-  if (badge) {
-    badge.textContent = clientData.status || '—';
+  if (badge) badge.textContent = clientData.status || '—';
+
+  let html = '<div class="plan-grid">';
+
+  html += `
+    <div class="plan-item">
+      <div class="pi-label">Plan contratado</div>
+      <div class="pi-value">${clientData.plan || 'Sin plan asignado'}</div>
+    </div>
+    <div class="plan-item">
+      <div class="pi-label">Estado</div>
+      <div class="pi-value">${clientData.status || '—'}</div>
+    </div>
+    <div class="plan-item full">
+      <div class="pi-label">Objetivo principal</div>
+      <div class="pi-value">${clientData.objective || 'Sin objetivo registrado'}</div>
+    </div>
+  `;
+
+  if (clientData.nutrition_objective) {
+    html += `
+      <div class="plan-item full">
+        <div class="pi-label">Objetivo nutricional</div>
+        <div class="pi-value">${clientData.nutrition_objective}</div>
+      </div>
+    `;
   }
 
-  const items = [];
-
-  items.push({
-    label: 'Plan contratado',
-    value: clientData.plan || 'Sin plan asignado'
-  });
-
-  items.push({
-    label: 'Objetivo principal',
-    value: clientData.objective || 'Sin objetivo registrado'
-  });
-
-  items.push({
-    label: 'Objetivo nutricional',
-    value: clientData.nutrition_objective || 'Sin objetivo nutricional registrado'
-  });
+  html += '<hr class="plan-divider">';
 
   if (prog) {
-    items.push({
-      label: 'Programa asignado',
-      value: prog.name || '—'
-    });
+    html += `
+      <div class="plan-item">
+        <div class="pi-label">Programa asignado</div>
+        <div class="pi-value">${prog.name || '—'}</div>
+      </div>
+      <div class="plan-item">
+        <div class="pi-label">Estado del programa</div>
+        <div class="pi-value">${prog.status || '—'}</div>
+      </div>
+    `;
+    if (prog.type) html += `<div class="plan-item"><div class="pi-label">Tipo</div><div class="pi-value">${prog.type}</div></div>`;
+    if (prog.level) html += `<div class="plan-item"><div class="pi-label">Nivel</div><div class="pi-value">${prog.level}</div></div>`;
+    if (prog.duration) html += `<div class="plan-item"><div class="pi-label">Duración</div><div class="pi-value">${prog.duration}</div></div>`;
 
-    items.push({
-      label: 'Tipo de programa',
-      value: prog.type || '—'
-    });
+    const desc = prog.description || prog.objective;
+    if (desc) {
+      html += `
+        <div class="plan-item full">
+          <div class="pi-label">Indicaciones del coach</div>
+          <div class="pi-value">${desc}</div>
+        </div>
+      `;
+    }
+    } else {
+    html += `
+      <div class="plan-item full">
+        <div class="plan-no-program">
+          Todavía no hay programa asignado. Abel actualizará esta sección cuando tu plan esté listo.
+        </div>
+      </div>
+    `;
+  }
 
-    items.push({
-      label: 'Nivel',
-      value: prog.level || '—'
-    });
+  html += '</div>';
+  el.innerHTML = html;
+}
 
-    items.push({
-      label: 'Duración',
-      value: prog.duration || '—'
-    });
+/* ── Reservas ────────────────────────────────────────────── */
+function renderReservations() {
+  const el    = document.getElementById('sectionReservations');
+  const badge = document.getElementById('reservationsBadge');
+  if (!el) return;
+  if (badge) badge.textContent = clientReservations.length;
 
-    items.push({
-      label: 'Estado del programa',
-      value: prog.status || '—'
-    });
+  if (!clientReservations.length) {
+    el.innerHTML = '<p class="empty-state">Todavía no tienes reservas registradas.</p>';
+    return;
+  }
 
-    items.push({
-      label: 'Indicaciones del coach',
-      value: prog.description || prog.objective || 'Sin indicaciones registradas'
-    });
-  } else {
-    items.push({
-      label: 'Programa asignado',
-      value: 'Todavía no hay programa asignado'
+  const today = todayISO();
+  const upcoming = clientReservations.filter(r =>
+    String(r.date).slice(0, 10) >= today &&
+    !['cancelada','cancelado'].includes((r.status || '').toLowerCase())
+  );
+  const past = clientReservations.filter(r =>
+    String(r.date).slice(0, 10) < today ||
+    ['cancelada','cancelado'].includes((r.status || '').toLowerCase())
+  );
+
+  let html = '';
+
+  if (upcoming.length) {
+    const next = upcoming[0];
+    html += `
+      <div class="data-card next-session">
+        <div class="next-label">Próxima sesión</div>
+        <div class="dc-row">
+          <span class="dc-title">${next.type || 'Sesión'}</span>
+          ${genericBadge(next.status)}
+        </div>
+        <div class="dc-row">
+          <span class="dc-sub">📅 ${formatDate(next.date)}</span>
+          ${next.time  ? `<span class="dc-sub">🕐 ${formatTime(next.time)}</span>` : ''}
+          ${next.place ? `<span class="dc-sub">📍 ${next.place}</span>` : ''}
+        </div>
+        ${next.note ? `<div class="dc-note">${next.note}</div>` : ''}
+      </div>
+    `;
+
+    upcoming.slice(1).forEach(r => {
+      html += reservationCard(r);
     });
   }
 
-  el.innerHTML = `
-    <div class="plan-grid">
-      ${items.map(i => `
-        <div class="plan-item">
-          <div class="pi-label">${i.label}</div>
-          <div class="pi-value">${i.value}</div>
-        </div>
-      `).join('')}
+  if (past.length) {
+    past.forEach(r => { html += reservationCard(r); });
+  }
+
+  el.innerHTML = html;
+}
+
+function reservationCard(r) {
+  return `
+    <div class="data-card">
+      <div class="dc-row">
+        <span class="dc-title">${r.type || 'Sesión'}</span>
+        ${genericBadge(r.status)}
+      </div>
+      <div class="dc-row">
+        <span class="dc-sub">📅 ${formatDate(r.date)}</span>
+        ${r.time  ? `<span class="dc-sub">🕐 ${formatTime(r.time)}</span>` : ''}
+        ${r.place ? `<span class="dc-sub">📍 ${r.place}</span>` : ''}
+      </div>
+      ${r.note ? `<div class="dc-note">${r.note}</div>` : ''}
     </div>
   `;
 }
 
-function renderProgressCircles() {
-  const el = document.getElementById('sectionProgressCircles');
-  const badge = document.getElementById('progressCircleBadge');
+/* ── Pagos ───────────────────────────────────────────────── */
+function renderPayments() {
+  const el    = document.getElementById('sectionPayments');
+  const badge = document.getElementById('paymentsBadge');
+  if (!el) return;
+  if (badge) badge.textContent = clientPayments.length;
 
+  if (!clientPayments.length) {
+    el.innerHTML = '<p class="empty-state">No hay pagos registrados.</p>';
+    return;
+  }
+
+  el.innerHTML = clientPayments.map(p => `
+    <div class="data-card">
+      <div class="dc-row">
+        <span class="dc-title">${p.concept || 'Pago'}</span>
+        ${paymentBadge(p.status)}
+      </div>
+      <div class="dc-row">
+        <span class="dc-sub">${formatMoney(p.amount, p.currency)}</span>
+        ${p.due_date ? `<span class="dc-sub">Vence: ${formatDate(p.due_date)}</span>` : ''}
+        ${p.method   ? `<span class="dc-meta">${p.method}</span>` : ''}
+      </div>
+      ${p.note ? `<div class="dc-note">${p.note}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+/* ── Métricas (tabla interna, no se muestra como sección) ── */
+function renderMetrics() {
+  // No hay sección de métricas separada en esta versión; los datos
+  // se usan solo para renderProgressCircles y renderClientData.
+}
+
+/* ── Alertas de salud ────────────────────────────────────── */
+function renderHealthAlerts() {
+  const el    = document.getElementById('sectionHealth');
+  const badge = document.getElementById('alertsBadge');
+  if (!el) return;
+  if (badge) badge.textContent = clientAlerts.length;
+
+  if (!clientAlerts.length) {
+    el.innerHTML = '<p class="empty-state">No hay indicaciones de salud registradas.</p>';
+    return;
+  }
+
+  el.innerHTML = clientAlerts.map(a => `
+    <div class="data-card">
+      <div class="dc-row">
+        ${genericBadge(a.status)}
+        <span class="dc-sub">${formatDate(a.date)}</span>
+      </div>
+      ${a.detail ? `<div style="margin-top:8px;font-size:14px;color:var(--white);line-height:1.6;">${a.detail}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+/* ── Notas del coach ─────────────────────────────────────── */
+function renderNotes() {
+  const el  = document.getElementById('sectionNotes');
+  if (!el) return;
+  const raw = clientData.notes;
+
+  if (!raw || raw === '' || raw === '[]' || raw === 'null') {
+    el.innerHTML = '<p class="empty-state">Todavía no hay notas del coach.</p>';
+    return;
+  }
+
+  let notes = [];
+  if (Array.isArray(raw)) {
+    notes = raw;
+  } else if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      notes = Array.isArray(parsed) ? parsed : [raw];
+    } catch { notes = [raw]; }
+  }
+
+  notes = notes
+    .map(n => {
+      if (typeof n === 'string') return n.trim();
+      if (typeof n === 'object' && n !== null)
+        return String(n.text || n.note || n.message || '').trim();
+      return '';
+    })
+    .filter(Boolean);
+
+  if (!notes.length) {
+    el.innerHTML = '<p class="empty-state">Todavía no hay notas del coach.</p>';
+    return;
+  }
+
+  el.innerHTML = notes.map(n => `<div class="note-item">${n}</div>`).join('');
+}
+
+/* ── Progreso visual ─────────────────────────────────────── */
+function renderProgressCircles() {
+  const el    = document.getElementById('sectionProgressCircles');
+  const badge = document.getElementById('progressCircleBadge');
   if (!el) return;
 
   if (!clientMetrics.length) {
@@ -1350,12 +1231,9 @@ function renderProgressCircles() {
   }
 
   const grouped = {};
-
   clientMetrics.forEach(m => {
     const key = String(m.type || 'Métrica').trim();
-
     if (!grouped[key]) grouped[key] = [];
-
     grouped[key].push({
       ...m,
       numericValue: Number(m.value || 0),
@@ -1365,49 +1243,30 @@ function renderProgressCircles() {
 
   const circles = Object.entries(grouped).map(([type, list]) => {
     list.sort((a, b) => String(b.dateKey).localeCompare(String(a.dateKey)));
-
-    const latest = list[0];
-    const first = list[list.length - 1];
+    const latest  = list[0];
+    const first   = list[list.length - 1];
     const current = Number(latest.numericValue || 0);
-    const start = Number(first.numericValue || 0);
-
-    let percent = 0;
-    let note = '';
-
+    const start   = Number(first.numericValue  || 0);
+    let percent = 0, note = '';
     const t = type.toLowerCase();
 
     if (t.includes('peso')) {
       const diff = start - current;
       const baseGoal = Math.max(Math.abs(start * 0.05), 1);
       percent = Math.round(Math.min(100, Math.max(0, (diff / baseGoal) * 100)));
-
-      if (diff > 0) note = `Bajó ${Math.abs(diff).toFixed(1)} ${latest.unit || 'kg'}`;
+      if (diff > 0)      note = `Bajó ${Math.abs(diff).toFixed(1)} ${latest.unit || 'kg'}`;
       else if (diff < 0) note = `Subió ${Math.abs(diff).toFixed(1)} ${latest.unit || 'kg'}`;
-      else note = 'Sin cambio todavía';
-
-    } else if (
-      t.includes('asistencia') ||
-      t.includes('adherencia') ||
-      t.includes('%')
-    ) {
+      else               note = 'Sin cambio todavía';
+    } else if (t.includes('asistencia') || t.includes('adherencia') || t.includes('%')) {
       percent = Math.round(Math.min(100, Math.max(0, current)));
       note = `${percent}% registrado`;
-
-    } else if (
-      t.includes('fuerza') ||
-      t.includes('movilidad') ||
-      t.includes('resistencia') ||
-      t.includes('energía') ||
-      t.includes('dolor') ||
-      t.includes('sueño')
-    ) {
+    } else if (['fuerza','movilidad','resistencia','energía','dolor','sueño'].some(k => t.includes(k))) {
       percent = Math.round(Math.min(100, Math.max(0, (current / 10) * 100)));
       note = `${current}/10`;
-
     } else {
       if (start > 0) {
         const diff = current - start;
-        percent = Math.round(Math.min(100, Math.max(0, ((current / start) * 100))));
+        percent = Math.round(Math.min(100, Math.max(0, (current / start) * 100)));
         note = diff >= 0 ? `+${diff.toFixed(1)} desde inicio` : `${diff.toFixed(1)} desde inicio`;
       } else {
         percent = Math.round(Math.min(100, Math.max(0, current)));
@@ -1415,13 +1274,7 @@ function renderProgressCircles() {
       }
     }
 
-    return {
-      type,
-      current,
-      unit: latest.unit || '',
-      percent,
-      note
-    };
+    return { type, current, unit: latest.unit || '', percent, note };
   });
 
   if (badge) badge.textContent = circles.length;
@@ -1442,25 +1295,21 @@ function renderProgressCircles() {
   `;
 }
 
+/* ── Mis datos (acordeón) ────────────────────────────────── */
 function renderClientData() {
-  const el = document.getElementById('sectionClientData');
+  const el    = document.getElementById('sectionClientData');
   const badge = document.getElementById('clientDataBadge');
-
   if (!el || !clientData) return;
-
   if (badge) badge.textContent = clientData.status || 'Perfil';
 
-  const totalReservations = clientReservations.length;
-
-  const completedReservations = clientReservations.filter(r =>
-    ['realizada', 'completada', 'confirmada'].includes((r.status || '').toLowerCase())
+  const totalRes     = clientReservations.length;
+  const completedRes = clientReservations.filter(r =>
+    ['realizada','completada','confirmada'].includes((r.status || '').toLowerCase())
   ).length;
-
-  const pendingPayments = clientPayments.filter(p =>
-    ['pendiente', 'vencido'].includes((p.status || '').toLowerCase())
+  const pendingPay   = clientPayments.filter(p =>
+    ['pendiente','vencido'].includes((p.status || '').toLowerCase())
   ).length;
-
-  const lastMetric = clientMetrics[0];
+  const lastMetric   = clientMetrics[0];
 
   el.innerHTML = `
     <div class="accordion-block open">
@@ -1468,27 +1317,23 @@ function renderClientData() {
         <span>Perfil básico</span>
         <span class="accordion-symbol">−</span>
       </button>
-
       <div class="accordion-content">
-        <div class="plan-grid">
+        <div class="plan-grid" style="margin-top:12px;">
           <div class="plan-item">
             <div class="pi-label">Nombre</div>
-            <div class="pi-value">${clientData.name || '—'}</div>
+            <div class="pi-value">${clientData.name  || '—'}</div>
           </div>
-
           <div class="plan-item">
             <div class="pi-label">Teléfono</div>
             <div class="pi-value">${clientData.phone || '—'}</div>
           </div>
-
           <div class="plan-item">
             <div class="pi-label">Email</div>
             <div class="pi-value">${clientData.email || '—'}</div>
           </div>
-
           <div class="plan-item">
             <div class="pi-label">Ciudad</div>
-            <div class="pi-value">${clientData.city || '—'}</div>
+            <div class="pi-value">${clientData.city  || '—'}</div>
           </div>
         </div>
       </div>
@@ -1499,25 +1344,21 @@ function renderClientData() {
         <span>Entrenamiento</span>
         <span class="accordion-symbol">+</span>
       </button>
-
       <div class="accordion-content">
-        <div class="plan-grid">
+        <div class="plan-grid" style="margin-top:12px;">
           <div class="plan-item">
             <div class="pi-label">Estado</div>
             <div class="pi-value">${clientData.status || '—'}</div>
           </div>
-
           <div class="plan-item">
             <div class="pi-label">Plan</div>
             <div class="pi-value">${clientData.plan || '—'}</div>
           </div>
-
-          <div class="plan-item">
+          <div class="plan-item full">
             <div class="pi-label">Objetivo principal</div>
             <div class="pi-value">${clientData.objective || 'Sin objetivo registrado'}</div>
           </div>
-
-          <div class="plan-item">
+          <div class="plan-item full">
             <div class="pi-label">Objetivo nutricional</div>
             <div class="pi-value">${clientData.nutrition_objective || 'Sin objetivo nutricional registrado'}</div>
           </div>
@@ -1530,28 +1371,26 @@ function renderClientData() {
         <span>Resumen del proceso</span>
         <span class="accordion-symbol">+</span>
       </button>
-
       <div class="accordion-content">
-        <div class="plan-grid">
+        <div class="plan-grid" style="margin-top:12px;">
           <div class="plan-item">
             <div class="pi-label">Reservas registradas</div>
-            <div class="pi-value">${totalReservations}</div>
+            <div class="pi-value">${totalRes}</div>
           </div>
-
           <div class="plan-item">
-            <div class="pi-label">Sesiones realizadas / confirmadas</div>
-            <div class="pi-value">${completedReservations}</div>
+            <div class="pi-label">Sesiones realizadas</div>
+            <div class="pi-value">${completedRes}</div>
           </div>
-
           <div class="plan-item">
             <div class="pi-label">Pagos pendientes</div>
-            <div class="pi-value">${pendingPayments}</div>
+            <div class="pi-value">${pendingPay}</div>
           </div>
-
           <div class="plan-item">
             <div class="pi-label">Última métrica</div>
             <div class="pi-value">
-              ${lastMetric ? `${lastMetric.type || 'Métrica'}: ${lastMetric.value}${lastMetric.unit ? ' ' + lastMetric.unit : ''}` : 'Sin métricas registradas'}
+              ${lastMetric
+                ? `${lastMetric.type || 'Métrica'}: ${lastMetric.value}${lastMetric.unit ? ' ' + lastMetric.unit : ''}`
+                : 'Sin métricas registradas'}
             </div>
           </div>
         </div>
@@ -1560,174 +1399,46 @@ function renderClientData() {
   `;
 }
 
-/** Reservas */
-function renderReservations() {
-  const el    = document.getElementById('sectionReservations');
-  const badge = document.getElementById('reservationsBadge');
-  badge.textContent = clientReservations.length;
-
-  if (!clientReservations.length) {
-    el.innerHTML = '<p class="empty-state">Todavía no tienes reservas registradas.</p>';
-    return;
-  }
-
-  el.innerHTML = clientReservations.map(r => `
-    <div class="data-card">
-      <div class="dc-row">
-        <span class="dc-title">${r.type || 'Sesión'}</span>
-        ${genericBadge(r.status)}
-      </div>
-      <div class="dc-row">
-        <span class="dc-sub">📅 ${formatDate(r.date)}</span>
-        ${r.time ? `<span class="dc-sub">🕐 ${formatTime(r.time)}</span>` : ''}
-        ${r.place ? `<span class="dc-sub">📍 ${r.place}</span>` : ''}
-      </div>
-      ${r.note ? `<div class="dc-note">${r.note}</div>` : ''}
-    </div>
-  `).join('');
-}
-
-/** Pagos */
-function renderPayments() {
-  const el    = document.getElementById('sectionPayments');
-  const badge = document.getElementById('paymentsBadge');
-  badge.textContent = clientPayments.length;
-
-  if (!clientPayments.length) {
-    el.innerHTML = '<p class="empty-state">No hay pagos registrados.</p>';
-    return;
-  }
-
-  el.innerHTML = clientPayments.map(p => `
-    <div class="data-card">
-      <div class="dc-row">
-        <span class="dc-title">${p.concept || 'Pago'}</span>
-        ${paymentBadge(p.status)}
-      </div>
-      <div class="dc-row">
-        <span class="dc-sub">${formatMoney(p.amount, p.currency)}</span>
-        ${p.due_date ? `<span class="dc-sub">Vence: ${formatDate(p.due_date)}</span>` : ''}
-        ${p.method ? `<span class="dc-meta">${p.method}</span>` : ''}
-      </div>
-      ${p.note ? `<div class="dc-note">${p.note}</div>` : ''}
-    </div>
-  `).join('');
-}
-
-/** Métricas / Progreso */
-function renderMetrics() {
-  const el    = document.getElementById('sectionMetrics');
-  const badge = document.getElementById('metricsBadge');
-  badge.textContent = clientMetrics.length;
-
-  if (!clientMetrics.length) {
-    el.innerHTML = '<p class="empty-state">Todavía no hay métricas registradas.</p>';
-    return;
-  }
-
-  el.innerHTML = clientMetrics.map(m => `
-    <div class="data-card">
-      <div class="dc-row">
-        <span class="dc-title">${m.type || '—'}</span>
-        <span class="dc-sub">${formatDate(m.date)}</span>
-      </div>
-      <div class="dc-row">
-        <span class="mc-value" style="font-size:18px;font-family:var(--font-title);">
-          ${m.value}${m.unit ? ' ' + m.unit : ''}
-        </span>
-      </div>
-      ${m.note ? `<div class="dc-note">${m.note}</div>` : ''}
-    </div>
-  `).join('');
-}
-
-/** Alertas de salud */
-function renderHealthAlerts() {
-  const el    = document.getElementById('sectionHealth');
-  const badge = document.getElementById('alertsBadge');
-  badge.textContent = clientAlerts.length;
-
-  if (!clientAlerts.length) {
-    el.innerHTML = '<p class="empty-state">No hay indicaciones de salud registradas.</p>';
-    return;
-  }
-
-  el.innerHTML = clientAlerts.map(a => `
-    <div class="data-card">
-      <div class="dc-row">
-        ${genericBadge(a.status)}
-        <span class="dc-sub">${formatDate(a.date)}</span>
-      </div>
-      ${a.detail ? `<div style="margin-top:6px;font-size:14px;color:var(--white);">${a.detail}</div>` : ''}
-    </div>
-  `).join('');
-}
-
-/** Notas del coach — maneja JSON array o texto plano */
-function renderNotes() {
-  const el = document.getElementById('sectionNotes');
-  const raw = clientData.notes;
-
-  if (!raw || raw === '' || raw === '[]' || raw === 'null') {
-    el.innerHTML = '<p class="empty-state">Todavía no hay notas del coach.</p>';
-    return;
-  }
-
-  let notes = [];
-
-  if (Array.isArray(raw)) {
-    notes = raw;
-  } else if (typeof raw === 'string') {
-    try {
-      const parsed = JSON.parse(raw);
-      notes = Array.isArray(parsed) ? parsed : [raw];
-    } catch {
-      notes = [raw];
-    }
-  }
-
-  notes = notes
-    .map(n => {
-      if (typeof n === 'string') return n.trim();
-      if (typeof n === 'object' && n !== null) return String(n.text || n.note || n.message || '').trim();
-      return '';
-    })
-    .filter(Boolean);
-
-  if (!notes.length) {
-    el.innerHTML = '<p class="empty-state">Todavía no hay notas del coach.</p>';
-    return;
-  }
-
-  el.innerHTML = notes.map(n => `<div class="note-item">${n}</div>`).join('');
-}
+/* ════════════════════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════════════════════ */
 
 function goClientSection(sectionId) {
+  // Hide all sections
+  document.querySelectorAll('.dash-main .section').forEach(s => {
+    s.classList.add('section-hidden');
+  });
+
+  // Show target
   const target = document.getElementById(sectionId);
   if (!target) return;
 
-  document.querySelectorAll('.client-content .section').forEach(section => {
-    section.classList.add('section-hidden');
-  });
-
   target.classList.remove('section-hidden');
 
+  // Update active nav button
   document.querySelectorAll('.client-nav button').forEach(btn => {
     btn.classList.remove('active');
   });
 
-  const btn = Array.from(document.querySelectorAll('.client-nav button')).find(b =>
+  const activeBtn = Array.from(document.querySelectorAll('.client-nav button')).find(b =>
     b.getAttribute('onclick')?.includes(sectionId)
   );
 
-  if (btn) btn.classList.add('active');
+  if (activeBtn) {
+    activeBtn.classList.add('active');
+    activeBtn.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center'
+    });
+  }
 
-  const headerHeight = document.querySelector('.dash-header')?.offsetHeight || 60;
-  const navHeight = document.querySelector('.client-nav')?.offsetHeight || 60;
-  const targetTop = target.getBoundingClientRect().top + window.scrollY;
+  const headerHeight = document.querySelector('.dash-header')?.offsetHeight || 56;
+  const navHeight = document.querySelector('.client-nav')?.offsetHeight || 48;
+  const mainTop = document.querySelector('.dash-main')?.offsetTop || 0;
 
   window.scrollTo({
-    top: targetTop - headerHeight - navHeight - 18,
+    top: mainTop - headerHeight - navHeight - 8,
     behavior: 'smooth'
   });
 }
@@ -1735,40 +1446,35 @@ function goClientSection(sectionId) {
 function toggleAccordion(button) {
   const block = button.closest('.accordion-block');
   if (!block) return;
-
   const symbol = block.querySelector('.accordion-symbol');
   const isOpen = block.classList.contains('open');
-
   block.classList.toggle('open', !isOpen);
-
-  if (symbol) {
-    symbol.textContent = isOpen ? '+' : '−';
-  }
+  if (symbol) symbol.textContent = isOpen ? '+' : '−';
 }
 
 /* ════════════════════════════════════════════════════════════
    EVENTS
 ════════════════════════════════════════════════════════════ */
 
-document.getElementById('btnLogin').addEventListener('click', loginClient);
+const btnLogin  = document.getElementById('btnLogin');
+const btnLogout = document.getElementById('btnLogout');
 
-// Enter en cualquier campo del login dispara loginClient
-['inputPhone','inputCode'].forEach(id =>
-  document.getElementById(id).addEventListener('keydown', e => {
-    if (e.key === 'Enter') loginClient();
-  })
-);
+if (btnLogin)  btnLogin.addEventListener('click', loginClient);
+if (btnLogout) btnLogout.addEventListener('click', logoutClient);
 
-document.getElementById('btnLogout').addEventListener('click', logoutClient);
+['inputPhone','inputCode'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') loginClient(); });
+});
 
 /* ════════════════════════════════════════════════════════════
-   INIT — comprobar sesión guardada al cargar
+   INIT
 ════════════════════════════════════════════════════════════ */
 (async function init() {
   const savedId = localStorage.getItem(LS_CLIENT_ID);
-
   if (savedId) {
-    document.getElementById('loginScreen').classList.add('hidden');
+    const login = document.getElementById('loginScreen');
+    if (login) login.classList.add('hidden');
     await loadClientDashboard(savedId);
   }
 })();
