@@ -318,6 +318,27 @@
       margin-bottom: 20px;
       overflow: hidden;
     }
+    
+    .section-hidden {
+  display: none !important;
+}
+
+.client-content .section {
+  animation: sectionFade .18s ease;
+  scroll-margin-top: 125px;
+}
+
+@keyframes sectionFade {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+    
     .section-header {
       padding: 16px 20px;
       border-bottom: 1px solid #1a2e44;
@@ -460,11 +481,20 @@
   .section-header h2 { font-size: 17px; }
 
   .wa-fab {
-    bottom: calc(92px + env(safe-area-inset-bottom));
-    right: 14px;
-    padding: 11px 16px;
-    font-size: 12px;
-  }
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  right: 12px;
+  padding: 10px 14px;
+  font-size: 0;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  justify-content: center;
+}
+
+.wa-fab svg {
+  width: 24px;
+  height: 24px;
+}
 }
 
 /* ─── CLIENT NAV / SIDEBAR ─────────────────────────────── */
@@ -1102,6 +1132,11 @@ const fabWA = document.getElementById('btnFabWA');
 
 if (headerWA) headerWA.onclick = () => openWA(msg);
 if (fabWA) fabWA.onclick = () => openWA(msg);
+
+const firstNavButton = document.querySelector('.client-nav button');
+if (firstNavButton) firstNavButton.classList.add('active');
+
+goClientSection('section-progress-circles');
 }
 
 /** Bloque de bienvenida y pills */
@@ -1575,6 +1610,12 @@ function goClientSection(sectionId) {
   const target = document.getElementById(sectionId);
   if (!target) return;
 
+  document.querySelectorAll('.client-content .section').forEach(section => {
+    section.classList.add('section-hidden');
+  });
+
+  target.classList.remove('section-hidden');
+
   document.querySelectorAll('.client-nav button').forEach(btn => {
     btn.classList.remove('active');
   });
@@ -1585,9 +1626,9 @@ function goClientSection(sectionId) {
 
   if (btn) btn.classList.add('active');
 
-  target.scrollIntoView({
-    behavior: 'smooth',
-    block: 'start'
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
   });
 }
 
