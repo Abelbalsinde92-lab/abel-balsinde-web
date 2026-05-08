@@ -234,6 +234,18 @@
     }
     .btn-icon:hover { border-color: var(--blue); color: var(--blue); }
     .btn-icon.red:hover { border-color: var(--red); color: var(--red); }
+    
+    #btnHeaderWA {
+  border-color: #25D366;
+  color: #25D366;
+  background: rgba(37, 211, 102, .08);
+}
+
+#btnHeaderWA:hover {
+  border-color: #25D366;
+  color: #ffffff;
+  background: #25D366;
+}
 
     /* Main layout */
     .dash-main {
@@ -545,24 +557,7 @@
       margin-bottom: 8px;
     }
     .note-item:last-child { margin-bottom: 0; }
-
-    /* ─── WA FIXED BUTTON ───────────────────────────────────── */
-    .wa-fab {
-      position: fixed;
-      bottom: 24px; right: 20px;
-      background: #25D366;
-      color: #fff;
-      border-radius: 50px;
-      padding: 12px 20px;
-      font-size: 13px;
-      font-weight: 700;
-      display: flex; align-items: center; gap: 8px;
-      box-shadow: 0 4px 20px #00000060;
-      z-index: 200;
-      transition: transform .15s;
-    }
-    .wa-fab:hover { transform: scale(1.04); }
-
+    
     /* ─── RESPONSIVE FIXES ──────────────────────────────────── */
    @media (max-width: 480px) {
   .login-box { padding: 28px 20px 28px; }
@@ -572,22 +567,6 @@
   .dash-main { padding: 18px 12px 80px; }
   .welcome-block h1 { font-size: 26px; }
   .section-header h2 { font-size: 17px; }
-
-  .wa-fab {
-  bottom: calc(96px + env(safe-area-inset-bottom));
-  right: 12px;
-  padding: 10px 14px;
-  font-size: 0;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  justify-content: center;
-}
-
-.wa-fab svg {
-  width: 24px;
-  height: 24px;
-}
 }
 
 /* ─── CLIENT NAV / SIDEBAR ─────────────────────────────── */
@@ -952,11 +931,6 @@
 
 </main>
 
-<!-- Fixed WhatsApp FAB -->
-<button class="wa-fab" id="btnFabWA">
-  Hablar con Abel
-</button>
-
 </div><!-- /dashboardScreen -->
 
 <!-- ════════════════════════════════════════════════════════════
@@ -1221,10 +1195,8 @@ function renderDashboard() {
   const msg  = `Hola Abel, soy ${name}. Tengo una duda sobre mi plan.`;
 
   const headerWA = document.getElementById('btnHeaderWA');
-const fabWA = document.getElementById('btnFabWA');
 
 if (headerWA) headerWA.onclick = () => openWA(msg);
-if (fabWA) fabWA.onclick = () => openWA(msg);
 
 const firstNavButton = document.querySelector('.client-nav button');
 if (firstNavButton) firstNavButton.classList.add('active');
