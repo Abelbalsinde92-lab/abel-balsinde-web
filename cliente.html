@@ -907,6 +907,7 @@ function renderDashboard() {
   renderWelcome();
   renderQuickMetrics();
   renderProgram();
+  renderClientData();
   renderReservations();
   renderPayments();
   renderMetrics();
@@ -1085,6 +1086,92 @@ function renderProgram() {
           <div class="pi-value">${i.value}</div>
         </div>
       `).join('')}
+    </div>
+  `;
+}
+
+function renderClientData() {
+  const el = document.getElementById('sectionClientData');
+  const badge = document.getElementById('clientStatusBadge');
+
+  if (!el || !clientData) return;
+
+  badge.textContent = clientData.status || '—';
+
+  const totalReservations = clientReservations.length;
+  const completedReservations = clientReservations.filter(r =>
+    ['realizada', 'completada', 'confirmada'].includes((r.status || '').toLowerCase())
+  ).length;
+
+  const pendingPayments = clientPayments.filter(p =>
+    ['pendiente', 'vencido'].includes((p.status || '').toLowerCase())
+  ).length;
+
+  const lastMetric = clientMetrics[0];
+
+  el.innerHTML = `
+    <div class="plan-grid">
+      <div class="plan-item">
+        <div class="pi-label">Nombre</div>
+        <div class="pi-value">${clientData.name || '—'}</div>
+      </div>
+
+      <div class="plan-item">
+        <div class="pi-label">Teléfono</div>
+        <div class="pi-value">${clientData.phone || '—'}</div>
+      </div>
+
+      <div class="plan-item">
+        <div class="pi-label">Email</div>
+        <div class="pi-value">${clientData.email || '—'}</div>
+      </div>
+
+      <div class="plan-item">
+        <div class="pi-label">Ciudad</div>
+        <div class="pi-value">${clientData.city || '—'}</div>
+      </div>
+
+      <div class="plan-item">
+        <div class="pi-label">Estado</div>
+        <div class="pi-value">${clientData.status || '—'}</div>
+      </div>
+
+      <div class="plan-item">
+        <div class="pi-label">Plan</div>
+        <div class="pi-value">${clientData.plan || '—'}</div>
+      </div>
+
+      <div class="plan-item">
+        <div class="pi-label">Objetivo principal</div>
+        <div class="pi-value">${clientData.objective || 'Sin objetivo registrado'}</div>
+      </div>
+
+      <div class="plan-item">
+        <div class="pi-label">Objetivo nutricional</div>
+        <div class="pi-value">${clientData.nutrition_objective || 'Sin objetivo nutricional registrado'}</div>
+      </div>
+
+      <div class="plan-item">
+        <div class="pi-label">Reservas registradas</div>
+        <div class="pi-value">${totalReservations}</div>
+      </div>
+
+      <div class="plan-item">
+        <div class="pi-label">Sesiones realizadas / confirmadas</div>
+        <div class="pi-value">${completedReservations}</div>
+      </div>
+
+      <div class="plan-item">
+        <div class="pi-label">Pagos pendientes</div>
+        <div class="pi-value">${pendingPayments}</div>
+      </div>
+
+      <div class="plan-item">
+        <div class="pi-label">Última métrica</div>
+        <div class="pi-value">
+          ${lastMetric ? `${lastMetric.type || 'Métrica'}: ${lastMetric.value}${lastMetric.unit ? ' ' + lastMetric.unit : ''}` : 'Sin métricas registradas'}
+        </div>
+      </div>
     </div>
   `;
 }
