@@ -237,10 +237,10 @@
 
     /* Main layout */
     .dash-main {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 28px 20px 60px;
-    }
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 28px 20px 160px;
+}
 
     /* Welcome block */
     .welcome-block {
@@ -450,15 +450,23 @@
     .wa-fab:hover { transform: scale(1.04); }
 
     /* ─── RESPONSIVE FIXES ──────────────────────────────────── */
-    @media (max-width: 480px) {
-      .login-box { padding: 28px 20px 28px; }
-      .dash-header { padding: 0 14px; }
-      .dash-header-logo .logo-text { font-size: 15px; }
-      .btn-icon .btn-label { display: none; }
-      .dash-main { padding: 18px 12px 80px; }
-      .welcome-block h1 { font-size: 26px; }
-      .section-header h2 { font-size: 17px; }
-    }
+   @media (max-width: 480px) {
+  .login-box { padding: 28px 20px 28px; }
+  .dash-header { padding: 0 14px; }
+  .dash-header-logo .logo-text { font-size: 15px; }
+  .btn-icon .btn-label { display: none; }
+  .dash-main { padding: 18px 12px 80px; }
+  .welcome-block h1 { font-size: 26px; }
+  .section-header h2 { font-size: 17px; }
+
+  .wa-fab {
+    bottom: calc(92px + env(safe-area-inset-bottom));
+    right: 14px;
+    padding: 11px 16px;
+    font-size: 12px;
+  }
+}
+</style>
   </style>
 </head>
 <body>
@@ -686,12 +694,25 @@ function openWA(message) {
 }
 
 /** Formatea fecha ISO a dd/mm/yyyy */
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return '—';
+
   try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
-  } catch { return dateStr; }
+    const clean = String(dateStr).slice(0, 10);
+    const [year, month, day] = clean.split('-');
+    return `${day}/${month}/${year}`;
+  } catch {
+    return dateStr;
+  }
+}
+
+function formatTime(timeStr) {
+  if (!timeStr) return '';
+  return String(timeStr).slice(0, 5);
 }
 
 /** Formatea importe con moneda */
@@ -915,9 +936,9 @@ function statusPillClass(s) {
 function renderQuickMetrics() {
   // Próxima sesión
   const upcoming = clientReservations.filter(r => {
-    const d = new Date(r.date);
-    return d >= new Date() && !['cancelada','cancelado'].includes((r.status||'').toLowerCase());
-  });
+  return String(r.date).slice(0, 10) >= todayISO() &&
+    !['cancelada','cancelado'].includes((r.status || '').toLowerCase());
+});
   document.getElementById('quickNextSession').textContent =
     upcoming.length ? formatDate(upcoming[0].date) : 'Sin reservas';
 
@@ -1002,7 +1023,7 @@ function renderReservations() {
       </div>
       <div class="dc-row">
         <span class="dc-sub">📅 ${formatDate(r.date)}</span>
-        ${r.time ? `<span class="dc-sub">🕐 ${r.time}</span>` : ''}
+        ${r.time ? `<span class="dc-sub">🕐 ${formatTime(r.time)}</span>` : ''}
         ${r.place ? `<span class="dc-sub">📍 ${r.place}</span>` : ''}
       </div>
       ${r.note ? `<div class="dc-note">${r.note}</div>` : ''}
@@ -1088,7 +1109,7 @@ function renderHealthAlerts() {
 
 /** Notas del coach — maneja JSON array o texto plano */
 function renderNotes() {
-  const el  = document.getElementById('sectionNotes');
+  const el = document.getElementById('sectionNotes');
   const raw = clientData.notes;
 
   if (!raw || raw === '' || raw === '[]' || raw === 'null') {
@@ -1096,25 +1117,33 @@ function renderNotes() {
     return;
   }
 
-  // Intentar parsear como JSON
-  let notes = null;
-  if (typeof raw === 'string') {
+  let notes = [];
+
+  if (Array.isArray(raw)) {
+    notes = raw;
+  } else if (typeof raw === 'string') {
     try {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) notes = parsed;
-    } catch (_) { /* no es JSON */ }
-  } else if (Array.isArray(raw)) {
-    notes = raw;
+      notes = Array.isArray(parsed) ? parsed : [raw];
+    } catch {
+      notes = [raw];
+    }
   }
 
-  if (notes && notes.length) {
-    el.innerHTML = notes.map(n =>
-      `<div class="note-item">${typeof n === 'object' ? JSON.stringify(n) : n}</div>`
-    ).join('');
-  } else {
-    // Texto plano
-    el.innerHTML = `<div class="note-item">${raw}</div>`;
+  notes = notes
+    .map(n => {
+      if (typeof n === 'string') return n.trim();
+      if (typeof n === 'object' && n !== null) return String(n.text || n.note || n.message || '').trim();
+      return '';
+    })
+    .filter(Boolean);
+
+  if (!notes.length) {
+    el.innerHTML = '<p class="empty-state">Todavía no hay notas del coach.</p>';
+    return;
   }
+
+  el.innerHTML = notes.map(n => `<div class="note-item">${n}</div>`).join('');
 }
 
 /* ════════════════════════════════════════════════════════════
