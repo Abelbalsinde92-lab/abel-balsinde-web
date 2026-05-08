@@ -465,7 +465,9 @@
     padding: 11px 16px;
     font-size: 12px;
   }
-  /* ─── CLIENT NAV / SIDEBAR ─────────────────────────────── */
+}
+
+/* ─── CLIENT NAV / SIDEBAR ─────────────────────────────── */
 
 .client-layout {
   display: grid;
@@ -822,11 +824,17 @@
       <div class="section-body" id="sectionNotes"></div>
     </div>
 
-  </div>
+    </div>
 </div>
 
-</div><!-- /dashboardScreen -->
+</main>
 
+<!-- Fixed WhatsApp FAB -->
+<button class="wa-fab" id="btnFabWA">
+  Hablar con Abel
+</button>
+
+</div><!-- /dashboardScreen -->
 
 <!-- ════════════════════════════════════════════════════════════
      JAVASCRIPT
@@ -1089,8 +1097,11 @@ function renderDashboard() {
   const name = clientData.name || 'cliente';
   const msg  = `Hola Abel, soy ${name}. Tengo una duda sobre mi plan.`;
 
-  document.getElementById('btnHeaderWA').onclick = () => openWA(msg);
-  document.getElementById('btnFabWA').onclick    = () => openWA(msg);
+  const headerWA = document.getElementById('btnHeaderWA');
+const fabWA = document.getElementById('btnFabWA');
+
+if (headerWA) headerWA.onclick = () => openWA(msg);
+if (fabWA) fabWA.onclick = () => openWA(msg);
 }
 
 /** Bloque de bienvenida y pills */
