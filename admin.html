@@ -78,7 +78,17 @@ button{font-family:inherit;cursor:pointer} input,select,textarea{font-family:inh
 .metric-label{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);display:block;margin-top:3px}
 .metric-sub{font-size:.75rem;color:var(--gray);margin-top:6px}
 
-.table-wrap{background:var(--navy2);border:1px solid var(--border2);overflow:hidden;margin-bottom:24px}
+.table-wrap{
+  background:var(--navy2);
+  border:1px solid var(--border2);
+  overflow-x:auto;
+  overflow-y:hidden;
+  margin-bottom:24px;
+  -webkit-overflow-scrolling:touch;
+}
+.table-wrap table{
+  min-width:900px;
+}
 .table-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border2);gap:12px;flex-wrap:wrap}
 .table-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.04em;color:var(--white)}
 .table-filters{display:flex;gap:8px;flex-wrap:wrap}
@@ -167,7 +177,27 @@ tr:hover td{background:rgba(255,255,255,.02)}
 @media(max-width:640px){
   .form-row-2{grid-template-columns:1fr}
   .page-title{font-size:1.8rem}
-  th,td{padding:10px 12px}
+  th,td{
+    padding:10px 12px;
+    white-space:nowrap;
+  }
+
+  .table-wrap{
+    width:100%;
+    overflow-x:auto;
+  }
+
+  .table-wrap::after{
+    content:'Desliza →';
+    display:block;
+    font-family:'Space Mono',monospace;
+    font-size:.58rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--gray2);
+    padding:8px 12px;
+    border-top:1px solid var(--border2);
+  }
 }
 </style>
 
@@ -644,7 +674,7 @@ function renderReservations(){
     const c = clientById(r.clientId);
     return `<tr>
       <td><div class="td-name"><div class="avatar">${initials(c?.name)}</div><div><div class="name-text">${esc(c?.name || 'Cliente eliminado')}</div></div></div></td>
-      <td>${esc(r.date)}</td><td class="font-mono" style="font-size:.75rem;color:var(--blue)">${esc(r.time)}</td>
+      <td>${esc(r.date)}</td><td class="font-mono" style="font-size:.75rem;color:var(--blue)">${esc(String(r.time).slice(0,5))}</td>
       <td>${esc(r.type)}</td><td>${esc(r.place)}</td><td><span class="badge badge-${r.status}">${esc(r.status)}</span></td>
       <td><div class="td-actions">
         ${r.status==='reservada'?`<button class="btn btn-secondary btn-sm" onclick="updateReservationStatus('${r.id}','confirmada')">Confirmar</button>`:''}
