@@ -590,6 +590,15 @@
   <div class="section-body" id="sectionClientData"></div>
 </div>
 
+<!-- ── Mi plan ── -->
+<div class="section">
+  <div class="section-header">
+    <h2>MI PLAN</h2>
+    <span class="sec-badge" id="planBadgeStatus">—</span>
+  </div>
+  <div class="section-body" id="sectionPlan"></div>
+</div>
+
     <!-- ── Próximas reservas ── -->
     <div class="section">
       <div class="section-header">
@@ -903,7 +912,7 @@ function renderDashboard() {
   renderMetrics();
   renderHealthAlerts();
   renderNotes();
-  // WhatsApp buttons dinámicos
+
   const name = clientData.name || 'cliente';
   const msg  = `Hola Abel, soy ${name}. Tengo una duda sobre mi plan.`;
   document.getElementById('btnHeaderWA').onclick = () => openWA(msg);
@@ -990,6 +999,82 @@ function renderProgram() {
   if (!items.length && !prog) {
     el.innerHTML = '<p class="empty-state">Todavía no hay programa asignado.</p>';
     return;
+  }
+
+  el.innerHTML = `
+    <div class="plan-grid">
+      ${items.map(i => `
+        <div class="plan-item">
+          <div class="pi-label">${i.label}</div>
+          <div class="pi-value">${i.value}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderProgram() {
+  const el = document.getElementById('sectionPlan');
+  const badge = document.getElementById('planBadgeStatus');
+
+  if (!el) return;
+
+  const prog = clientPrograms.find(p => (p.status || '').toLowerCase() === 'activo') || clientPrograms[0] || null;
+
+  badge.textContent = clientData.status || '—';
+
+  const items = [];
+
+  items.push({
+    label: 'Plan contratado',
+    value: clientData.plan || 'Sin plan asignado'
+  });
+
+  items.push({
+    label: 'Objetivo principal',
+    value: clientData.objective || 'Sin objetivo registrado'
+  });
+
+  items.push({
+    label: 'Objetivo nutricional',
+    value: clientData.nutrition_objective || 'Sin objetivo nutricional registrado'
+  });
+
+  if (prog) {
+    items.push({
+      label: 'Programa asignado',
+      value: prog.name || '—'
+    });
+
+    items.push({
+      label: 'Tipo de programa',
+      value: prog.type || '—'
+    });
+
+    items.push({
+      label: 'Nivel',
+      value: prog.level || '—'
+    });
+
+    items.push({
+      label: 'Duración',
+      value: prog.duration || '—'
+    });
+
+    items.push({
+      label: 'Estado del programa',
+      value: prog.status || '—'
+    });
+
+    items.push({
+      label: 'Indicaciones del coach',
+      value: prog.description || prog.objective || 'Sin indicaciones registradas'
+    });
+  } else {
+    items.push({
+      label: 'Programa asignado',
+      value: 'Todavía no hay programa asignado'
+    });
   }
 
   el.innerHTML = `
