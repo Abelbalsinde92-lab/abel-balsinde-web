@@ -1750,8 +1750,12 @@ function goClientSection(sectionId) {
 
   if (btn) btn.classList.add('active');
 
+  const headerHeight = document.querySelector('.dash-header')?.offsetHeight || 60;
+  const navHeight = document.querySelector('.client-nav')?.offsetHeight || 60;
+  const targetTop = target.getBoundingClientRect().top + window.scrollY;
+
   window.scrollTo({
-    top: 0,
+    top: targetTop - headerHeight - navHeight - 18,
     behavior: 'smooth'
   });
 }
