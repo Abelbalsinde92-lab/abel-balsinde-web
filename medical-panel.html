@@ -526,10 +526,6 @@ async function doLogin(){
   const btn        = document.getElementById('loginBtn')
   const errEl      = document.getElementById('loginErr')
 
-  function normalizePhone(phone){
-    return String(phone || '').replace(/[\s\-\(\)\+]/g, '')
-  }
-
   if(!identifier || !code){
     errEl.classList.add('show')
     errEl.textContent = 'Completa todos los campos.'
@@ -541,58 +537,45 @@ async function doLogin(){
   errEl.classList.remove('show')
 
   try {
+    const cleanIdentifier = identifier.toLowerCase()
+    const normalizedInput = normalizePhone(identifier)
+
     const { data, error } = await sb
-  .from('professionals')
-  .select('*')
-  .eq('professional_type', 'sports_doctor')
-  .eq('status', 'active')
-  .or(`email.eq.${identifier},phone.eq.${identifier}`)
-  .eq('access_code', code)
-  .maybeSingle()
+      .from('professionals')
+      .select('*')
+      .eq('professional_type', 'sports_doctor')
+      .eq('status', 'active')
+      .eq('access_code', code)
+      .or(`email.eq.${cleanIdentifier},phone.eq.${identifier},phone.eq.${normalizedInput}`)
+      .maybeSingle()
 
     if(error){
-      console.error('Supabase login error:', error)
+      console.error('Login Supabase error:', error)
       errEl.classList.add('show')
       errEl.textContent = 'Error Supabase: ' + error.message
       return
     }
 
-    console.log('Profesionales encontrados:', data)
-
-    const normalizedInput = normalizePhone(identifier)
-
-    const found = (data || []).find(p => {
-      const phoneMatch = normalizePhone(p.phone) === normalizedInput
-      const emailMatch = String(p.email || '').toLowerCase() === identifier.toLowerCase()
-      const codeMatch  = String(p.access_code || '').trim().toUpperCase() === code
-
-      return (phoneMatch || emailMatch) && codeMatch
-    })
-
-    if(!found){
+    if(!data){
       errEl.classList.add('show')
       errEl.textContent = 'Credenciales incorrectas o profesional no activo.'
       return
     }
 
-    sessionStorage.setItem('ab_med', JSON.stringify(found))
-    currentPro = found
+    sessionStorage.setItem('ab_med', JSON.stringify(data))
+    currentPro = data
 
-    const { error: loginUpdateError } = await sb
+    await sb
       .from('professionals')
       .update({ last_login: new Date().toISOString() })
-      .eq('id', found.id)
-
-    if(loginUpdateError){
-      console.warn('No se pudo actualizar last_login:', loginUpdateError)
-    }
+      .eq('id', data.id)
 
     initApp()
 
   } catch(e) {
-    console.error('Error inesperado login médico:', e)
+    console.error('Login unexpected error:', e)
     errEl.classList.add('show')
-    errEl.textContent = 'Error inesperado: ' + (e.message || JSON.stringify(e))
+    errEl.textContent = 'Error inesperado: ' + (e.message || e)
   } finally {
     btn.innerHTML = 'Entrar'
     btn.disabled  = false
