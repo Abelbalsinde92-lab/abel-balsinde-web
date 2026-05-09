@@ -506,9 +506,10 @@ let clientTrainingSessions   = [];
 let clientTrainingBlocks     = [];
 let clientTrainingExercises  = [];
 
-/* Training guide state (in-memory, resets on re-render) */
+/* Training guide state */
 let completedTrainingBlocks = new Set();
 let activeTrainingBlockKey  = null;
+let currentTrainingLog      = null;
 
 /* ── UTILITY ─────────────────────────────────────────────── */
 function normalizePhone(p) { return String(p).replace(/[\s\-\(\)\+]/g, ''); }
@@ -661,7 +662,7 @@ async function loadClientDashboard(clientId) {
       }
     }
 
-    renderDashboard();
+    await renderDashboard();
     document.getElementById('loginScreen')?.classList.add('hidden');
     document.getElementById('dashboardScreen')?.classList.remove('hidden');
     showLoading(false);
@@ -678,9 +679,9 @@ async function loadClientDashboard(clientId) {
 }
 
 /* ── RENDER DASHBOARD ────────────────────────────────────── */
-function renderDashboard() {
+async function renderDashboard() {
   renderProgram();
-  renderClientTraining();
+  await renderClientTraining();
   renderReservations();
   renderHealthAlerts();
   renderNotes();
@@ -774,15 +775,107 @@ function buildTrainingSteps() {
   return steps;
 }
 
+function getActiveTrainingWeek() {
+  if (!clientTrainingAssignment) return null;
+
+  var currentWeekNum = Number(clientTrainingAssignment.current_week || 1);
+
+  return clientTrainingWeeks.find(function(w) {
+    return Number(w.week_number) === currentWeekNum;
+  }) || clientTrainingWeeks[0] || null;
+}
+
+async function loadOrCreateTrainingLog() {
+  if (!clientData || !clientTrainingAssignment || !clientTrainingProgram) return null;
+
+  var activeWeek = getActiveTrainingWeek();
+
+  var payload = {
+    client_id: clientData.id,
+    assignment_id: clientTrainingAssignment.id,
+    program_id: clientTrainingProgram.id,
+    week_id: activeWeek ? activeWeek.id : null,
+    training_date: todayISO()
+  };
+
+  var existing = await db
+    .from('client_training_logs')
+    .select('*')
+    .eq('client_id', payload.client_id)
+    .eq('assignment_id', payload.assignment_id)
+    .eq('training_date', payload.training_date)
+    .maybeSingle();
+
+  if (existing.error) {
+    console.error('Error cargando progreso:', existing.error);
+    return null;
+  }
+
+  if (existing.data) {
+    currentTrainingLog = existing.data;
+    completedTrainingBlocks = new Set(existing.data.completed_block_ids || []);
+    return existing.data;
+  }
+
+  var created = await db
+    .from('client_training_logs')
+    .insert({
+      ...payload,
+      completed_block_ids: [],
+      is_finished: false,
+      started_at: new Date().toISOString()
+    })
+    .select()
+    .single();
+
+  if (created.error) {
+    console.error('Error creando progreso:', created.error);
+    return null;
+  }
+
+  currentTrainingLog = created.data;
+  completedTrainingBlocks = new Set(created.data.completed_block_ids || []);
+  return created.data;
+}
+
+async function saveTrainingProgress(extraData) {
+  if (!currentTrainingLog) {
+    await loadOrCreateTrainingLog();
+  }
+
+  if (!currentTrainingLog) return;
+
+  var payload = {
+    completed_block_ids: Array.from(completedTrainingBlocks),
+    updated_at: new Date().toISOString(),
+    ...(extraData || {})
+  };
+
+  var saved = await db
+    .from('client_training_logs')
+    .update(payload)
+    .eq('id', currentTrainingLog.id)
+    .select()
+    .single();
+
+  if (saved.error) {
+    console.error('Error guardando progreso:', saved.error);
+    alert('No se pudo guardar el progreso. Revisa conexión o permisos.');
+    return;
+  }
+
+  currentTrainingLog = saved.data;
+}
+
 /** Renders the full training guide into sectionTrainingClient */
-function renderClientTraining() {
+async function renderClientTraining() {
   const el    = document.getElementById('sectionTrainingClient');
   const badge = document.getElementById('trainingClientBadge');
   if (!el) return;
 
-  /* Reset in-session state */
   completedTrainingBlocks = new Set();
   activeTrainingBlockKey  = null;
+  currentTrainingLog      = null;
 
   if (!clientTrainingAssignment || !clientTrainingProgram) {
     if (badge) badge.textContent = 'Sin asignar';
@@ -790,16 +883,16 @@ function renderClientTraining() {
     return;
   }
 
+  await loadOrCreateTrainingLog();
+
   const currentWeekNum = Number(clientTrainingAssignment.current_week || 1);
-  const activeWeek     = clientTrainingWeeks.find(function(w) { return Number(w.week_number) === currentWeekNum; })
-                      || clientTrainingWeeks[0]
-                      || null;
+  const activeWeek     = getActiveTrainingWeek();
 
   if (badge) badge.textContent = 'Semana ' + currentWeekNum;
 
-  /* ── Summary ── */
   const levelStr = clientTrainingAssignment.assigned_level || clientTrainingProgram.level || '';
   const weekName = activeWeek ? activeWeek.name : '';
+
   const metaParts = [
     'Semana ' + currentWeekNum + (weekName ? ' · ' + weekName : ''),
     levelStr
@@ -815,7 +908,6 @@ function renderClientTraining() {
     + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
     + '</div>';
 
-  /* ── Steps ── */
   const steps = buildTrainingSteps();
 
   if (!steps.length) {
@@ -833,10 +925,24 @@ function renderClientTraining() {
 
   el.innerHTML = html;
 
-  /* Open the first step */
-  activeTrainingBlockKey = steps[0].blockId;
-  var firstCard = document.getElementById('step-' + steps[0].blockId);
-  if (firstCard) firstCard.classList.add('open');
+  applySavedTrainingState();
+
+  if (currentTrainingLog && currentTrainingLog.is_finished) {
+    renderTrainingCompletedState();
+    return;
+  }
+
+  const firstPending = steps.find(function(step) {
+    return !completedTrainingBlocks.has(step.blockId);
+  });
+
+  if (firstPending) {
+    activeTrainingBlockKey = firstPending.blockId;
+    var card = document.getElementById('step-' + firstPending.blockId);
+    if (card) card.classList.add('open');
+  } else {
+    renderTrainingCompletionBox(false);
+  }
 }
 
 /** Returns the HTML string for one training step card */
@@ -886,6 +992,37 @@ function buildTrainingStepHTML(step, index) {
     + '</div>';
 
   return html;
+}
+
+function applySavedTrainingState() {
+  completedTrainingBlocks.forEach(function(blockId) {
+    markStepVisualAsCompleted(blockId);
+  });
+}
+
+function markStepVisualAsCompleted(blockId) {
+  var card = document.getElementById('step-' + blockId);
+  if (!card) return;
+
+  card.classList.remove('open');
+  card.classList.add('completed');
+
+  var numEl = card.querySelector('.training-step-number');
+  if (numEl) numEl.textContent = '✓';
+
+  var statusEl = document.getElementById('status-' + blockId);
+  if (statusEl) {
+    statusEl.textContent = 'Completado';
+    statusEl.classList.add('done');
+  }
+
+  var btn = document.getElementById('completeBtn-' + blockId);
+  if (btn) {
+    var doneMsg = document.createElement('div');
+    doneMsg.className = 'training-step-done-msg';
+    doneMsg.textContent = '✓ Bloque completado';
+    btn.replaceWith(doneMsg);
+  }
 }
 
 /** Returns the HTML string for one exercise */
@@ -945,43 +1082,23 @@ function toggleTrainingStep(blockId) {
 }
 
 /** Marks a step as completed, closes it and opens the next pending step. */
-function completeTrainingStep(blockId) {
+async function completeTrainingStep(blockId) {
   completedTrainingBlocks.add(blockId);
 
-  var card = document.getElementById('step-' + blockId);
-  if (card) {
-    card.classList.remove('open');
-    card.classList.add('completed');
+  markStepVisualAsCompleted(blockId);
 
-    /* Number → checkmark */
-    var numEl = card.querySelector('.training-step-number');
-    if (numEl) numEl.textContent = '✓';
-
-    /* Status pill */
-    var statusEl = document.getElementById('status-' + blockId);
-    if (statusEl) { statusEl.textContent = 'Completado'; statusEl.classList.add('done'); }
-
-    /* Replace complete button */
-    var btn = document.getElementById('completeBtn-' + blockId);
-    if (btn) {
-      var doneMsg = document.createElement('div');
-      doneMsg.className = 'training-step-done-msg';
-      doneMsg.textContent = '✓ Bloque completado';
-      btn.replaceWith(doneMsg);
-    }
-  }
+  await saveTrainingProgress();
 
   activeTrainingBlockKey = null;
 
-  /* Check if all steps are done */
   if (isTrainingComplete()) {
-    renderTrainingCompletionBox();
+    renderTrainingCompletionBox(false);
     return;
   }
 
-  /* Find and open the next pending step */
   var steps = buildTrainingSteps();
   var nextStep = null;
+
   for (var i = 0; i < steps.length; i++) {
     if (!completedTrainingBlocks.has(steps[i].blockId)) {
       nextStep = steps[i];
@@ -1009,49 +1126,101 @@ function isTrainingComplete() {
 }
 
 /** Renders the completion card inside trainingCompletionArea. */
-function renderTrainingCompletionBox() {
+function renderTrainingCompletionBox(scrollToBox) {
   var area = document.getElementById('trainingCompletionArea');
   if (!area) return;
+
   area.innerHTML = '<div class="training-finish-card" id="trainingFinishCard">'
     + '<div class="training-finish-icon">🏁</div>'
     + '<div class="training-finish-title">Entrenamiento completado</div>'
     + '<div class="training-finish-sub">Has completado todos los bloques del día. ¡Buen trabajo!</div>'
-    + '<button class="training-complete-block-btn" onclick="showTrainingNotes()">Marcar entrenamiento terminado</button>'
+    + '<button class="training-complete-block-btn" onclick="finishTrainingSession()">Marcar entrenamiento terminado</button>'
     + '</div>';
 
-  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (scrollToBox !== false) {
+    area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+async function finishTrainingSession() {
+  await saveTrainingProgress({
+    is_finished: true,
+    finished_at: new Date().toISOString()
+  });
+
+  renderTrainingCompletedState();
+}
+
+function renderTrainingCompletedState() {
+  var area = document.getElementById('trainingCompletionArea');
+  if (!area) return;
+
+  area.innerHTML = '<div class="training-finish-card" id="trainingFinishCard">'
+    + '<div class="training-finish-icon">🏁</div>'
+    + '<div class="training-finish-title">Entrenamiento completado</div>'
+    + '<div class="training-finish-sub">Este entrenamiento ya quedó registrado.</div>'
+    + '</div>';
+
+  showTrainingNotes(true);
 }
 
 /** Hides the finish button and shows the notes textarea. */
-function showTrainingNotes() {
-  var finishCard = document.getElementById('trainingFinishCard');
-  if (finishCard) {
-    var btn = finishCard.querySelector('button');
-    if (btn) btn.remove();
-  }
-
+function showTrainingNotes(keepSavedNote) {
   var area = document.getElementById('trainingCompletionArea');
   if (!area) return;
+
+  var oldBox = document.getElementById('trainingNotesBox');
+  if (oldBox) oldBox.remove();
+
+  var savedNote = currentTrainingLog && currentTrainingLog.client_note
+    ? currentTrainingLog.client_note
+    : '';
 
   var notesDiv = document.createElement('div');
   notesDiv.className = 'training-notes-box';
   notesDiv.id = 'trainingNotesBox';
+
   notesDiv.innerHTML = '<div class="training-notes-title">Notas del entrenamiento</div>'
     + '<div class="training-notes-sub">Si tuviste alguna molestia, dificultad o algo que Abel deba revisar, déjalo aquí.</div>'
-    + '<textarea class="training-notes-textarea" id="trainingNoteText" placeholder="Ej: sentí molestia en la rodilla derecha durante las sentadillas…"></textarea>'
+    + '<textarea class="training-notes-textarea" id="trainingNoteText" placeholder="Ej: sentí molestia en la rodilla derecha durante las sentadillas…">' + savedNote + '</textarea>'
     + '<button class="training-complete-block-btn" id="saveNoteBtn" onclick="saveTrainingNote()">Guardar nota</button>'
-    + '<div id="trainingNoteSaved" class="training-note-saved hidden">Nota registrada para revisar con Abel.</div>';
+    + '<div id="trainingNoteSaved" class="training-note-saved ' + (savedNote ? '' : 'hidden') + '">Nota registrada para revisar con Abel.</div>';
 
   area.appendChild(notesDiv);
-  notesDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  if (keepSavedNote !== true) {
+    notesDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 /** Saves the note (in-memory only, shows confirmation message). */
-function saveTrainingNote() {
-  var saved = document.getElementById('trainingNoteSaved');
-  var btn   = document.getElementById('saveNoteBtn');
+async function saveTrainingNote() {
+  var textarea = document.getElementById('trainingNoteText');
+  var saved    = document.getElementById('trainingNoteSaved');
+  var btn      = document.getElementById('saveNoteBtn');
+
+  var note = textarea ? textarea.value.trim() : '';
+
+  if (!note) {
+    alert('Escribe una nota antes de guardar.');
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+  }
+
+  await saveTrainingProgress({
+    client_note: note
+  });
+
   if (saved) saved.classList.remove('hidden');
-  if (btn)   btn.disabled = true;
+
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Guardar nota';
+  }
 }
 
 /* ════════════════════════════════════════════════════════════
