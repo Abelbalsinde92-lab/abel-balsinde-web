@@ -288,10 +288,10 @@
 
     /* ─── MAIN ──────────────────────────────────────────────── */
     .dash-main {
-      max-width: 740px;
-      margin: 0 auto;
-      padding: 22px 16px 80px;
-    }
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 22px 16px calc(150px + env(safe-area-inset-bottom));
+}
 
     /* ─── SECTION ───────────────────────────────────────────── */
     .section {
@@ -592,14 +592,18 @@
 
     /* ─── RESPONSIVE ────────────────────────────────────────── */
     @media (max-width: 480px) {
-      .login-box { padding: 28px 20px 28px; }
-      .dash-header { padding: 0 12px; height: 52px; }
-      .dash-header-logo .logo-text { font-size: 14px; }
-      .btn-icon .btn-label { display: none; }
-      .dash-main { padding: 16px 12px 70px; }
-      .section-header h2 { font-size: 17px; }
-      .client-nav { top: 52px; padding: 8px 10px; }
-    }
+  .login-box { padding: 28px 20px 28px; }
+  .dash-header { padding: 0 12px; height: 52px; }
+  .dash-header-logo .logo-text { font-size: 14px; }
+  .btn-icon .btn-label { display: none; }
+
+  .dash-main {
+    padding: 16px 12px calc(170px + env(safe-area-inset-bottom));
+  }
+
+  .section-header h2 { font-size: 17px; }
+  .client-nav { top: 52px; padding: 8px 10px; }
+}
   
   /* ─── TRAINING CLIENT VIEW ───────────────────────────── */
 
@@ -1425,7 +1429,7 @@ function renderClientTraining() {
   const sessionNumber = session.session_number || '—';
 
   html += `
-    <div class="accordion-block training-session-card">
+    <div class="accordion-block training-session-card ${session === clientTrainingSessions[0] ? 'open' : ''}">
       <button class="training-session-head" onclick="toggleAccordion(this)">
         <div>
           <div class="training-session-title">Sesión ${sessionNumber}</div>
@@ -1863,7 +1867,7 @@ function renderClientData() {
     <div class="accordion-block">
       <button class="accordion-title" onclick="toggleAccordion(this)">
         <span>Entrenamiento</span>
-        <span class="accordion-symbol">+</span>
+        <span class="accordion-symbol">${session === clientTrainingSessions[0] ? '−' : '+'}</span>
       </button>
       <div class="accordion-content">
         <div class="plan-grid" style="margin-top:12px;">
