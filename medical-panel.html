@@ -523,6 +523,10 @@ function normalizePhone(phone){
   return String(phone || '').replace(/[\s\-\(\)\+]/g, '')
 }
 
+function todayISO(){
+  return new Date().toISOString().slice(0, 10)
+}
+
 // ════════════════════════════════════════════════════════════════
 // LOGIN
 // ════════════════════════════════════════════════════════════════
