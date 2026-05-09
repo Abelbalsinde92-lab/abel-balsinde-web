@@ -861,6 +861,12 @@ async function saveRestriction(markComplete){
   const returnNote  = document.getElementById('mf-return').value.trim()
   const coachResp   = document.getElementById('mf-resp').value.trim()
 
+  const saveButtons = document.querySelectorAll('button[onclick^="saveRestriction"]')
+  saveButtons.forEach(btn => {
+    btn.disabled = true
+    btn.style.opacity = '.55'
+  })
+
   const fullDescription =
     `Zona corporal: ${bodyArea}\n` +
     `Severidad: ${severity}\n\n` +
@@ -884,14 +890,22 @@ async function saveRestriction(markComplete){
     updated_at: new Date().toISOString()
   }
 
-  const { error: restrErr } = await sb
+  const { data: savedRestriction, error: restrErr } = await sb
     .from('client_medical_restrictions')
     .insert(restrData)
+    .select()
+    .single()
 
   if(restrErr){
     console.error('Error guardando restricción:', restrErr)
     alert('Error Supabase: ' + (restrErr.message || JSON.stringify(restrErr)))
     toast('Error guardando la restricción', 'err')
+
+    saveButtons.forEach(btn => {
+      btn.disabled = false
+      btn.style.opacity = '1'
+    })
+
     return
   }
 
@@ -916,20 +930,48 @@ async function saveRestriction(markComplete){
   if(reqErr){
     console.error('Error actualizando solicitud:', reqErr)
     alert('Restricción guardada, pero falló actualizar la solicitud: ' + (reqErr.message || JSON.stringify(reqErr)))
+
+    saveButtons.forEach(btn => {
+      btn.disabled = false
+      btn.style.opacity = '1'
+    })
+
     return
   }
-
-  toast(markComplete ? 'Restricción guardada y caso completado' : 'Restricción guardada')
 
   msgEl.style.display = 'block'
   msgEl.className = severity === 'alta' ? 'notice warn' : 'notice'
   msgEl.textContent = markComplete
-    ? '✓ Restricción registrada y caso completado. El coach verá la alerta.'
-    : '✓ Restricción registrada. Estado: en revisión. El coach puede verla.'
+    ? '✓ Restricción registrada y caso marcado como completado. El coach verá la alerta.'
+    : '✓ Restricción registrada. El caso queda en revisión.'
 
-  await openCase(client.id, currentReqId)
+  toast(markComplete ? 'Caso completado correctamente' : 'Restricción guardada correctamente')
+
+  ;['mf-type','mf-area','mf-desc','mf-reco','mf-forbidden','mf-allowed','mf-return','mf-resp'].forEach(id => {
+    const el = document.getElementById(id)
+    if(el) el.value = ''
+  })
+
+  document.getElementById('mf-severity').value = 'media'
+  document.getElementById('mf-status').value   = 'activa'
+
+  if(currentCaseData.req){
+    currentCaseData.req.status = reqStatus
+    currentCaseData.req.professional_response = coachResp
+  }
+
+  if(savedRestriction){
+    currentCaseData.prevRestr = currentCaseData.prevRestr || []
+    currentCaseData.prevRestr.unshift(savedRestriction)
+  }
+
   loadRequests()
   loadDashboard()
+
+  saveButtons.forEach(btn => {
+    btn.disabled = false
+    btn.style.opacity = '1'
+  })
 }
 
 // ════════════════════════════════════════════════════════════════
