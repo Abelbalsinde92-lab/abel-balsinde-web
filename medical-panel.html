@@ -541,25 +541,29 @@ async function doLogin(){
   errEl.classList.remove('show')
 
   try {
-    const { data: professionals, error } = await sb
+    const { data, error } = await sb
       .from('professionals')
-      .select('*')
+      .select('id, name, email, phone, access_code, role, status, professional_type, last_login')
       .eq('status', 'active')
+      .eq('role', 'sports_doctor')
 
-    if(error) throw error
+    if(error){
+      console.error('Supabase login error:', error)
+      errEl.classList.add('show')
+      errEl.textContent = 'Error Supabase: ' + error.message
+      return
+    }
+
+    console.log('Profesionales encontrados:', data)
 
     const normalizedInput = normalizePhone(identifier)
 
-    const found = (professionals || []).find(p => {
+    const found = (data || []).find(p => {
       const phoneMatch = normalizePhone(p.phone) === normalizedInput
       const emailMatch = String(p.email || '').toLowerCase() === identifier.toLowerCase()
       const codeMatch  = String(p.access_code || '').trim().toUpperCase() === code
 
-      const typeMatch =
-        p.role === 'sports_doctor' ||
-        p.professional_type === 'sports_doctor'
-
-      return (phoneMatch || emailMatch) && codeMatch && typeMatch
+      return (phoneMatch || emailMatch) && codeMatch
     })
 
     if(!found){
@@ -571,17 +575,21 @@ async function doLogin(){
     sessionStorage.setItem('ab_med', JSON.stringify(found))
     currentPro = found
 
-    await sb
+    const { error: loginUpdateError } = await sb
       .from('professionals')
       .update({ last_login: new Date().toISOString() })
       .eq('id', found.id)
 
+    if(loginUpdateError){
+      console.warn('No se pudo actualizar last_login:', loginUpdateError)
+    }
+
     initApp()
 
   } catch(e) {
-    console.error('Login médico error:', e)
+    console.error('Error inesperado login médico:', e)
     errEl.classList.add('show')
-    errEl.textContent = 'Error de conexión. Inténtalo de nuevo.'
+    errEl.textContent = 'Error inesperado: ' + (e.message || JSON.stringify(e))
   } finally {
     btn.innerHTML = 'Entrar'
     btn.disabled  = false
