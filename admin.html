@@ -1468,7 +1468,7 @@ function renderTrainingBlockDetail(){
     <tr>
       <td class="font-mono">${esc(e.exerciseOrder || e.orderNumber || '—')}</td>
       <td>
-        <div class="name-text">${esc(e.title || e.name || 'Sin título')}</div>
+        <div class="name-text">${esc(e.name || e.title || 'Sin título')}</div>
         <div class="name-sub">${esc(e.description || '')}</div>
       </td>
       <td>${esc(e.sets || '—')}</td>
@@ -2072,7 +2072,7 @@ function openModal(type, id=null){
 
     <div class="form-row">
       <label class="form-label">Nombre del ejercicio</label>
-      <input name="title" class="form-input" value="${esc(ex.title || ex.name || '')}" placeholder="Ej: Movilidad articular general" required>
+        <input name="name" class="form-input" value="${esc(ex.name || ex.title || '')}" placeholder="Ej: Movilidad articular general" required>
     </div>
 
     <div class="form-row">
