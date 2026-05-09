@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AB coach · Médico Deportivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ── VARIABLES ─────────────────────────────────────────────── */
+:root {
+  --navy:   #020B18;
+  --navy2:  #061427;
+  --navy3:  #0D1E30;
+  --navy4:  #1A2840;
+  --red:    #E20613;
+  --blue:   #5EC5F0;
+  --white:  #F5F9FF;
+  --gray:   #8A9BB0;
+  --gray2:  #4A5B70;
+  --green:  #22c55e;
+  --amber:  #f59e0b;
+  --border: rgba(94,197,240,.12);
+  --border2:rgba(255,255,255,.07);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--navy); color: var(--white); }
+button, input, select, textarea { font: inherit; }
+
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── LOGIN ─────────────────────────────────────────────────── */
+#screen-login { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+.login-card { background: var(--navy2); border: 1px solid var(--border); padding: 2.5rem 2rem; width: 100%; max-width: 400px; }
+.login-brand { margin-bottom: 2rem; }
+.login-brand .main { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: .05em; }
+.login-brand .sub  { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .18em; text-transform: uppercase; color: var(--blue); }
+.login-role { font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .15em; text-transform: uppercase; color: var(--gray); margin-bottom: 1.5rem; padding: .4rem .75rem; background: rgba(226,6,19,.08); border: 1px solid rgba(226,6,19,.2); color: #f87171; display: inline-block; }
+
+.field { margin-bottom: 1rem; }
+.field label { display: block; font-family: 'Space Mono', monospace; font-size: .57rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray); margin-bottom: .35rem; }
+.field input, .field select, .field textarea { width: 100%; background: var(--navy3); border: 1px solid var(--border2); color: var(--white); padding: 9px 11px; outline: 0; font-size: .9rem; transition: border-color .15s; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: rgba(94,197,240,.4); }
+.field textarea { min-height: 80px; resize: vertical; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; cursor: pointer; padding: 8px 16px; font-family: 'Space Mono', monospace; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; transition: all .15s; }
+.btn-sm  { padding: 5px 11px; font-size: .57rem; }
+.btn-r   { background: var(--red); color: #fff; border-color: var(--red); }
+.btn-r:hover { background: #ff1a25; }
+.btn-b   { background: rgba(94,197,240,.1); color: var(--blue); border-color: rgba(94,197,240,.25); }
+.btn-b:hover { background: rgba(94,197,240,.18); }
+.btn-o   { background: transparent; color: var(--gray); border-color: var(--border); }
+.btn-o:hover { color: var(--white); background: rgba(255,255,255,.04); }
+.btn-a   { background: rgba(245,158,11,.1); color: var(--amber); border-color: rgba(245,158,11,.25); }
+.btn-g   { background: rgba(34,197,94,.1); color: var(--green); border-color: rgba(34,197,94,.25); }
+.btn-full { width: 100%; }
+
+.error-msg { background: rgba(226,6,19,.1); border: 1px solid rgba(226,6,19,.25); color: #f87171; padding: .6rem .75rem; font-size: .8rem; margin-top: .75rem; display: none; }
+.error-msg.show { display: block; }
+
+/* ── TOP BAR ───────────────────────────────────────────────── */
+#topbar { height: 54px; flex-shrink: 0; background: var(--navy2); border-bottom: 1px solid var(--border); display: none; align-items: center; gap: 1rem; padding: 0 1.25rem; }
+.topbar-brand .m { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: .05em; }
+.topbar-brand .s { font-family: 'Space Mono', monospace; font-size: .5rem; color: var(--blue); letter-spacing: .18em; text-transform: uppercase; }
+.topbar-role { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .12em; text-transform: uppercase; padding: 3px 8px; background: rgba(226,6,19,.08); border: 1px solid rgba(226,6,19,.2); color: #f87171; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
+.topbar-user { font-family: 'Space Mono', monospace; font-size: .6rem; color: var(--gray); }
+.sep { width: 1px; height: 22px; background: var(--border); }
+
+/* ── APP LAYOUT ────────────────────────────────────────────── */
+#screen-app { flex: 1; display: none; overflow: hidden; }
+.layout { display: flex; height: calc(100vh - 54px); }
+
+/* ── SIDEBAR ───────────────────────────────────────────────── */
+.sidebar { width: 210px; flex-shrink: 0; background: var(--navy2); border-right: 1px solid var(--border); padding: 1rem 0; overflow-y: auto; }
+.nav-sec  { font-family: 'Space Mono', monospace; font-size: .5rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gray2); padding: .5rem 1rem .25rem; }
+.nav-item { display: flex; align-items: center; gap: .6rem; padding: .58rem 1rem; color: var(--gray); font-size: .82rem; border-left: 2px solid transparent; cursor: pointer; transition: all .12s; }
+.nav-item:hover { background: rgba(255,255,255,.04); color: var(--white); }
+.nav-item.on { background: rgba(226,6,19,.08); color: var(--white); border-left-color: var(--red); }
+.nav-ico   { font-family: 'Space Mono', monospace; font-size: .6rem; color: var(--red); width: 16px; text-align: center; }
+.nav-badge { margin-left: auto; background: var(--red); font-family: 'Space Mono', monospace; font-size: .5rem; padding: 2px 5px; border-radius: 2px; color: #fff; }
+
+/* ── CONTENT ───────────────────────────────────────────────── */
+.content { flex: 1; overflow-y: auto; padding: 1.5rem; }
+.view { display: none; }
+.view.on { display: block; }
+
+/* ── PAGE HEADER ───────────────────────────────────────────── */
+.ph { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
+.ptitle { font-family: 'Bebas Neue', sans-serif; font-size: 1.9rem; letter-spacing: .04em; line-height: 1; }
+.psub { font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gray); margin-top: 4px; }
+.pacts { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+/* ── METRICS ───────────────────────────────────────────────── */
+.mgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: .75rem; margin-bottom: 1.4rem; }
+.mcard { background: var(--navy3); border: 1px solid var(--border2); padding: 1rem; }
+.ml { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gray); display: block; margin-bottom: .2rem; }
+.mv { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; line-height: 1; display: block; }
+.tv-b { color: var(--blue)!important; }
+.tv-r { color: var(--red)!important; }
+.tv-g { color: var(--green)!important; }
+.tv-a { color: var(--amber)!important; }
+
+/* ── PANEL ─────────────────────────────────────────────────── */
+.panel { background: var(--navy3); border: 1px solid var(--border2); margin-bottom: 1rem; overflow: hidden; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 1rem; border-bottom: 1px solid var(--border2); flex-wrap: wrap; }
+.panel-title { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gray); }
+.panel-body { padding: .85rem 1rem; }
+.no-pad { }
+
+/* ── TABLE ─────────────────────────────────────────────────── */
+.twrap { overflow-x: auto; }
+.dt { width: 100%; border-collapse: collapse; font-size: .83rem; min-width: 520px; }
+.dt th { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray2); padding: .65rem .75rem; text-align: left; border-bottom: 1px solid var(--border2); white-space: nowrap; }
+.dt td { padding: .65rem .75rem; border-bottom: 1px solid rgba(255,255,255,.04); color: var(--gray); vertical-align: middle; }
+.dt tr:hover td { background: rgba(255,255,255,.025); color: var(--white); }
+.cn { color: var(--white); font-weight: 500; }
+.cm { font-size: .72rem; color: var(--gray); }
+
+/* ── STATUS ────────────────────────────────────────────────── */
+.st { display: inline-block; font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; }
+.st-a { background: rgba(34,197,94,.12);  color: var(--green); border: 1px solid rgba(34,197,94,.2); }
+.st-b { background: rgba(94,197,240,.1);  color: var(--blue);  border: 1px solid rgba(94,197,240,.2); }
+.st-w { background: rgba(245,158,11,.1);  color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
+.st-r { background: rgba(226,6,19,.12);   color: #f87171;      border: 1px solid rgba(226,6,19,.2); }
+.st-x { background: rgba(138,155,176,.1); color: var(--gray);  border: 1px solid rgba(138,155,176,.18); }
+
+/* Severidad colores */
+.sev-alta  { color: #f87171; font-weight: 600; }
+.sev-media { color: var(--amber); }
+.sev-baja  { color: var(--green); }
+.prio-alta  { color: #f87171; font-weight: 600; }
+.prio-media { color: var(--amber); }
+.prio-baja  { color: var(--gray); }
+
+/* ── PAIN FLAG ─────────────────────────────────────────────── */
+.pain-flag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(226,6,19,.12); border: 1px solid rgba(226,6,19,.3);
+  color: #f87171; padding: 4px 10px;
+  font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .08em; text-transform: uppercase;
+}
+
+/* ── INFO GRID ─────────────────────────────────────────────── */
+.igrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: .6rem; margin-bottom: 1rem; }
+.ic { background: var(--navy2); border: 1px solid var(--border2); padding: .7rem; }
+.ic span { display: block; font-family: 'Space Mono', monospace; font-size: .5rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray); margin-bottom: .3rem; }
+.ic b { font-size: .84rem; color: var(--white); font-weight: 500; line-height: 1.4; }
+
+/* ── TWO COL ───────────────────────────────────────────────── */
+.two  { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; margin-bottom: 1rem; }
+.frow { display: grid; grid-template-columns: repeat(2,1fr); gap: .75rem; }
+
+/* ── NOTICE ────────────────────────────────────────────────── */
+.notice { background: rgba(94,197,240,.06); border: 1px solid rgba(94,197,240,.2); padding: .75rem 1rem; margin-bottom: .85rem; color: var(--gray); font-size: .8rem; line-height: 1.5; }
+.notice.warn { background: rgba(245,158,11,.06); border-color: rgba(245,158,11,.2); }
+.notice.err  { background: rgba(226,6,19,.06); border-color: rgba(226,6,19,.2); color: #f87171; }
+.notice.sev  { background: rgba(226,6,19,.08); border-color: rgba(226,6,19,.3); color: #f87171; }
+
+/* ── EMPTY ─────────────────────────────────────────────────── */
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 1rem; gap: .75rem; text-align: center; }
+.empty-ico { width: 44px; height: 44px; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; color: var(--gray2); font-family: 'Space Mono', monospace; font-size: .9rem; }
+.empty-txt { font-family: 'Space Mono', monospace; font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray2); }
+
+/* ── CHIPS ─────────────────────────────────────────────────── */
+.chips { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.chip { font-family: 'Space Mono', monospace; font-size: .57rem; letter-spacing: .08em; text-transform: uppercase; padding: 5px 10px; background: var(--navy3); border: 1px solid var(--border2); color: var(--gray); cursor: pointer; }
+.chip.on { background: rgba(226,6,19,.1); color: #f87171; border-color: rgba(226,6,19,.25); }
+
+/* ── NOTE BLOCK ────────────────────────────────────────────── */
+.note-block { background: var(--navy2); border: 1px solid var(--border2); border-left: 2px solid var(--red); padding: .8rem; margin-bottom: .5rem; }
+.note-meta { font-family: 'Space Mono', monospace; font-size: .55rem; color: var(--red); margin-bottom: .3rem; }
+.note-text { font-size: .83rem; color: var(--gray); line-height: 1.6; }
+.note-pain { font-family: 'Space Mono', monospace; font-size: .6rem; color: #f87171; margin-top: .4rem; padding: 3px 8px; background: rgba(226,6,19,.1); border: 1px solid rgba(226,6,19,.2); display: inline-block; }
+
+/* ── LOG ITEM ──────────────────────────────────────────────── */
+.log-item { padding: .85rem; border-bottom: 1px solid var(--border2); }
+.log-item:last-child { border-bottom: none; }
+.log-date { font-family: 'Space Mono', monospace; font-size: .58rem; color: var(--gray2); margin-bottom: .25rem; }
+.log-note { font-size: .83rem; color: var(--gray); line-height: 1.55; }
+
+/* ── SPINNER ───────────────────────────────────────────────── */
+.spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(226,6,19,.3); border-top-color: var(--red); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOAST ─────────────────────────────────────────────────── */
+.toast { position: fixed; right: 1rem; bottom: 1rem; background: var(--navy2); border: 1px solid rgba(94,197,240,.25); padding: .7rem 1rem; color: var(--white); z-index: 300; transform: translateY(70px); opacity: 0; transition: .22s; font-size: .83rem; pointer-events: none; }
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── RESPONSIVE ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .two, .frow { grid-template-columns: 1fr; }
+  .content { padding: 1rem; }
+}
+@media (max-width: 480px) {
+  .mgrid { grid-template-columns: repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══════════════════════════════════════════════════════════
+       PANTALLA: LOGIN
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="screen-login">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="main">AB<span style="color:var(--blue)"> /</span> coach</div>
+        <div class="sub">Training System</div>
+      </div>
+      <div class="login-role">Panel Médico Deportivo</div>
+      <div class="field">
+        <label>Email o teléfono</label>
+        <input type="text" id="loginId" placeholder="medico@email.com" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Código de acceso</label>
+        <input type="password" id="loginCode" placeholder="Código profesional" autocomplete="current-password">
+      </div>
+      <button class="btn btn-r btn-full" id="loginBtn" onclick="doLogin()">Entrar</button>
+      <div class="error-msg" id="loginErr">Credenciales incorrectas o profesional no activo.</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       TOP BAR
+  ═══════════════════════════════════════════════════════════ -->
+  <header id="topbar">
+    <div class="topbar-brand"><span class="m">AB</span><span class="s">coach</span></div>
+    <div class="sep"></div>
+    <div class="topbar-role">Médico Deportivo</div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="topbarUser">—</span>
+      <button class="btn btn-o btn-sm" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════
+       PANTALLA: APP
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="screen-app">
+    <div class="layout">
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="nav-sec">Principal</div>
+        <div class="nav-item on" onclick="showView('v-dashboard')">
+          <span class="nav-ico">01</span>Dashboard
+        </div>
+        <div class="nav-item" onclick="showView('v-requests')">
+          <span class="nav-ico">02</span>Solicitudes
+          <span class="nav-badge" id="nb-pending">0</span>
+        </div>
+        <div class="nav-sec">Historial</div>
+        <div class="nav-item" onclick="showView('v-restrictions')">
+          <span class="nav-ico">03</span>Restricciones activas
+        </div>
+      </aside>
+
+      <!-- Content -->
+      <main class="content">
+
+        <!-- ─── DASHBOARD ─────────────────────────────────── -->
+        <div class="view on" id="v-dashboard">
+          <div class="ph">
+            <div>
+              <div class="ptitle">Panel Médico Deportivo</div>
+              <div class="psub">Resumen de casos y restricciones</div>
+            </div>
+          </div>
+          <div class="mgrid">
+            <div class="mcard"><span class="ml">Pendientes</span><span class="mv tv-a" id="dm-pend">—</span></div>
+            <div class="mcard"><span class="ml">En revisión</span><span class="mv tv-b" id="dm-rev">—</span></div>
+            <div class="mcard"><span class="ml">Completados</span><span class="mv tv-g" id="dm-done">—</span></div>
+            <div class="mcard"><span class="ml">Restricciones activas</span><span class="mv tv-r" id="dm-restr">—</span></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">Casos urgentes (prioridad alta / molestia reportada)</span></div>
+            <div id="dash-urgent"></div>
+          </div>
+          <div class="notice warn">El médico deportivo solo puede crear y actualizar restricciones médicas y recomendaciones. El entrenamiento y la nutrición los controla el coach.</div>
+        </div>
+
+        <!-- ─── SOLICITUDES ───────────────────────────────── -->
+        <div class="view" id="v-requests">
+          <div class="ph">
+            <div>
+              <div class="ptitle">Solicitudes médicas</div>
+              <div class="psub">Casos de medicina deportiva asignados</div>
+            </div>
+          </div>
+          <div class="chips" id="req-chips">
+            <button class="chip on" onclick="filterReqs('todos',this)">Todas</button>
+            <button class="chip" onclick="filterReqs('pendiente',this)">Pendientes</button>
+            <button class="chip" onclick="filterReqs('en_revision',this)">En revisión</button>
+            <button class="chip" onclick="filterReqs('completado',this)">Completadas</button>
+          </div>
+          <div class="panel">
+            <div class="twrap"><table class="dt" id="req-table">
+              <thead><tr>
+                <th>Cliente</th><th>Motivo</th><th>Prioridad</th>
+                <th>Estado</th><th>Fecha</th><th>Nota del coach</th><th></th>
+              </tr></thead>
+              <tbody id="req-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+
+        <!-- ─── DETALLE CASO MÉDICO ───────────────────────── -->
+        <div class="view" id="v-case">
+          <div class="ph">
+            <div>
+              <div class="ptitle" id="case-title">Caso médico</div>
+              <div class="psub" id="case-sub">—</div>
+            </div>
+            <div class="pacts">
+              <button class="btn btn-o btn-sm" onclick="showView('v-requests')">← Volver</button>
+            </div>
+          </div>
+
+          <!-- Alerta de dolor si existe -->
+          <div id="pain-alert" style="display:none;margin-bottom:1rem"></div>
+
+          <!-- Datos del cliente -->
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">Datos del cliente</span></div>
+            <div class="panel-body"><div class="igrid" id="case-client-info"></div></div>
+          </div>
+
+          <!-- Nota del coach -->
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">Nota del coach</span></div>
+            <div class="panel-body">
+              <div class="note-block"><div class="note-text" id="case-coach-note">—</div></div>
+            </div>
+          </div>
+
+          <!-- Logs de entrenamiento -->
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">Últimas notas de entrenamiento del cliente</span></div>
+            <div id="case-training-logs"></div>
+          </div>
+
+          <!-- Restricciones anteriores -->
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">Restricciones médicas anteriores</span></div>
+            <div id="case-restrictions-history"></div>
+          </div>
+
+          <!-- Formulario restricción médica -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Nueva restricción / informe médico</span>
+              <span class="st st-r" style="font-size:.55rem">Médico deportivo</span>
+            </div>
+            <div class="panel-body">
+              <div class="notice warn">La información registrada es una recomendación profesional para adaptar el entrenamiento. No es prescripción clínica.</div>
+
+              <div class="frow">
+                <div class="field">
+                  <label>Tipo de restricción *</label>
+                  <select id="mf-type">
+                    <option value="">Seleccionar…</option>
+                    <option value="lesion_muscular">Lesión muscular</option>
+                    <option value="lesion_articular">Lesión articular</option>
+                    <option value="lesion_tendinosa">Lesión tendinosa</option>
+                    <option value="fractura">Fractura / fisura</option>
+                    <option value="sobrecarga">Sobrecarga</option>
+                    <option value="cardio">Cardiovascular</option>
+                    <option value="metabolica">Metabólica</option>
+                    <option value="postoperatorio">Postoperatorio</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Zona corporal *</label>
+                  <select id="mf-area">
+                    <option value="">Seleccionar…</option>
+                    <option value="hombro_derecho">Hombro derecho</option>
+                    <option value="hombro_izquierdo">Hombro izquierdo</option>
+                    <option value="codo_derecho">Codo derecho</option>
+                    <option value="codo_izquierdo">Codo izquierdo</option>
+                    <option value="muneca_derecha">Muñeca derecha</option>
+                    <option value="muneca_izquierda">Muñeca izquierda</option>
+                    <option value="columna_cervical">Columna cervical</option>
+                    <option value="columna_dorsal">Columna dorsal</option>
+                    <option value="columna_lumbar">Columna lumbar</option>
+                    <option value="cadera_derecha">Cadera derecha</option>
+                    <option value="cadera_izquierda">Cadera izquierda</option>
+                    <option value="rodilla_derecha">Rodilla derecha</option>
+                    <option value="rodilla_izquierda">Rodilla izquierda</option>
+                    <option value="tobillo_derecho">Tobillo derecho</option>
+                    <option value="tobillo_izquierdo">Tobillo izquierdo</option>
+                    <option value="pie_derecho">Pie derecho</option>
+                    <option value="pie_izquierdo">Pie izquierdo</option>
+                    <option value="general">General / todo el cuerpo</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="frow">
+                <div class="field">
+                  <label>Severidad *</label>
+                  <select id="mf-severity">
+                    <option value="baja">Baja — puede entrenar con adaptaciones</option>
+                    <option value="media" selected>Media — entrenamiento reducido</option>
+                    <option value="alta">Alta — reposo o actividad muy limitada</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Estado de la restricción</label>
+                  <select id="mf-status">
+                    <option value="activa">Activa</option>
+                    <option value="revisada">Revisada / en seguimiento</option>
+                    <option value="archivada">Archivada / resuelta</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field"><label>Descripción médica *</label><textarea id="mf-desc" placeholder="Descripción del problema, diagnóstico, evolución…"></textarea></div>
+              <div class="field"><label>Recomendación médico-deportiva</label><textarea id="mf-reco" placeholder="Reposo de X semanas, fisioterapia, trabajo en rango libre de dolor…"></textarea></div>
+
+              <div class="frow">
+                <div class="field"><label>Ejercicios prohibidos</label><textarea id="mf-forbidden" placeholder="Sentadilla profunda, press de banca, sprint…" style="min-height:70px"></textarea></div>
+                <div class="field"><label>Ejercicios permitidos</label><textarea id="mf-allowed" placeholder="Natación, bicicleta, trabajo de core sin carga axial…" style="min-height:70px"></textarea></div>
+              </div>
+
+              <div class="field"><label>Nota de retorno al entrenamiento completo</label><textarea id="mf-return" placeholder="Alta médica estimada, condiciones de retorno, revisión en X semanas…" style="min-height:65px"></textarea></div>
+
+              <div class="field"><label>Respuesta al coach (resumen ejecutivo)</label><input id="mf-resp" placeholder="Mensaje directo para el coach sobre el estado del cliente…"></div>
+
+              <div style="display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap">
+                <button class="btn btn-r" onclick="saveRestriction(false)">Guardar restricción</button>
+                <button class="btn btn-g" onclick="saveRestriction(true)">Guardar y marcar completado</button>
+              </div>
+              <div id="med-save-msg" class="notice" style="margin-top:.75rem;display:none"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── RESTRICCIONES ACTIVAS ─────────────────────── -->
+        <div class="view" id="v-restrictions">
+          <div class="ph">
+            <div>
+              <div class="ptitle">Restricciones activas</div>
+              <div class="psub">Todas las restricciones médicas registradas</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="twrap"><table class="dt">
+              <thead><tr><th>Cliente</th><th>Tipo</th><th>Zona</th><th>Severidad</th><th>Estado</th><th>Fecha</th></tr></thead>
+              <tbody id="restrictions-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+</div><!-- .app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// CONFIGURACIÓN SUPABASE
+// ════════════════════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://TU_PROJECT.supabase.co'   // ← reemplazar
+const SUPABASE_ANON = 'TU_ANON_KEY'                       // ← reemplazar
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
+
+// ════════════════════════════════════════════════════════════════
+// ESTADO GLOBAL
+// ════════════════════════════════════════════════════════════════
+let currentPro      = null
+let allRequests     = []
+let filteredReqs    = []
+let currentReqId    = null
+let currentCaseData = {}
+
+// ════════════════════════════════════════════════════════════════
+// UI HELPERS
+// ════════════════════════════════════════════════════════════════
+function toast(msg, type='ok'){
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.style.borderColor = type==='err' ? 'rgba(226,6,19,.4)' : 'rgba(94,197,240,.25)'
+  t.classList.add('show')
+  setTimeout(() => t.classList.remove('show'), 2500)
+}
+
+function showView(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'))
+  document.getElementById(id)?.classList.add('on')
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('on', n.getAttribute('onclick')?.includes(id))
+  })
+  if(id === 'v-restrictions') loadRestrictionsHistory()
+}
+
+function statusBadge(s){
+  const map = { pendiente:'st-w', en_revision:'st-b', completado:'st-a', rechazado:'st-r', activa:'st-r', revisada:'st-w', archivada:'st-x' }
+  return `<span class="st ${map[s]||'st-x'}">${s}</span>`
+}
+
+function sevClass(s){ return { alta:'sev-alta', media:'sev-media', baja:'sev-baja' }[s] || '' }
+function prioClass(p){ return { alta:'prio-alta', media:'prio-media', baja:'prio-baja' }[p] || '' }
+
+function fmtDate(d){ if(!d) return '—'; return new Date(d).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}) }
+function fmtDateTime(d){ if(!d) return '—'; return new Date(d).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) }
+
+function ic(label, value){ return `<div class="ic"><span>${label}</span><b>${value||'—'}</b></div>` }
+function emptyState(msg){ return `<div class="empty"><div class="empty-ico">!</div><div class="empty-txt">${msg}</div></div>` }
+
+// ════════════════════════════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════════════════════════════
+async function doLogin(){
+  const identifier = document.getElementById('loginId').value.trim()
+  const code       = document.getElementById('loginCode').value.trim()
+  const btn        = document.getElementById('loginBtn')
+  const errEl      = document.getElementById('loginErr')
+
+  if(!identifier || !code){ errEl.classList.add('show'); errEl.textContent = 'Completa todos los campos.'; return }
+
+  btn.innerHTML = '<div class="spinner"></div>'
+  btn.disabled  = true
+  errEl.classList.remove('show')
+
+  try {
+    const { data, error } = await sb
+      .from('professionals')
+      .select('*')
+      .eq('type', 'sports_doctor')
+      .eq('status', 'activo')
+      .or(`email.eq.${identifier},phone.eq.${identifier}`)
+      .eq('access_code', code)
+      .single()
+
+    if(error || !data){
+      errEl.classList.add('show')
+      errEl.textContent = 'Credenciales incorrectas o profesional no activo.'
+      return
+    }
+
+    sessionStorage.setItem('ab_med', JSON.stringify(data))
+    currentPro = data
+
+    await sb.from('professionals').update({ last_login: new Date().toISOString() }).eq('id', data.id)
+
+    initApp()
+
+  } catch(e) {
+    errEl.classList.add('show')
+    errEl.textContent = 'Error de conexión. Inténtalo de nuevo.'
+  } finally {
+    btn.innerHTML = 'Entrar'
+    btn.disabled  = false
+  }
+}
+
+function doLogout(){
+  sessionStorage.removeItem('ab_med')
+  currentPro = null
+  allRequests = []
+  document.getElementById('screen-login').style.display = 'flex'
+  document.getElementById('topbar').style.display        = 'none'
+  document.getElementById('screen-app').style.display    = 'none'
+}
+
+// ════════════════════════════════════════════════════════════════
+// INIT APP
+// ════════════════════════════════════════════════════════════════
+function initApp(){
+  document.getElementById('screen-login').style.display  = 'none'
+  document.getElementById('topbar').style.display        = 'flex'
+  document.getElementById('screen-app').style.display    = 'block'
+  document.getElementById('topbarUser').textContent      = currentPro.name || currentPro.email
+
+  loadDashboard()
+  loadRequests()
+}
+
+// ════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════════════
+async function loadDashboard(){
+  const [reqRes, restrRes] = await Promise.all([
+    sb.from('professional_requests')
+      .select('status, client_id, priority, title, description')
+      .eq('professional_id', currentPro.id)
+      .eq('request_type', 'sports_medicine'),
+    sb.from('client_medical_restrictions')
+      .select('status, client_id, severity')
+      .eq('professional_id', currentPro.id)
+  ])
+
+  const reqs  = reqRes.data || []
+  const restr = restrRes.data || []
+
+  const pend = reqs.filter(r => r.status === 'pendiente').length
+  const rev  = reqs.filter(r => r.status === 'en_revision').length
+  const done = reqs.filter(r => r.status === 'completado').length
+  const active_restr = restr.filter(r => r.status === 'activa').length
+
+  document.getElementById('dm-pend').textContent  = pend
+  document.getElementById('dm-rev').textContent   = rev
+  document.getElementById('dm-done').textContent  = done
+  document.getElementById('dm-restr').textContent = active_restr
+  document.getElementById('nb-pending').textContent = pend + rev
+
+  // Urgentes: prioridad alta o con dolor reportado (usamos title/description como proxy)
+  const urgentReqs = reqs.filter(r => r.priority === 'alta' && r.status !== 'completado')
+
+  const el = document.getElementById('dash-urgent')
+  if(!urgentReqs.length){ el.innerHTML = emptyState('Sin casos urgentes.'); return }
+
+  const ids = [...new Set(urgentReqs.map(r => r.client_id))]
+  const { data: clients } = await sb.from('clients').select('id, name, plan').in('id', ids)
+  const cm = Object.fromEntries((clients||[]).map(c => [c.id, c]))
+
+  el.innerHTML = urgentReqs.map(r => {
+    const c = cm[r.client_id] || {}
+    return `<div style="display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;border-bottom:1px solid var(--border2)">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></span>
+      <div style="flex:1">
+        <div class="cn">${c.name||'—'}</div>
+        <div class="cm">${r.title||r.description||'—'} · prioridad alta</div>
+      </div>
+      <button class="btn btn-b btn-sm" onclick="openCase('${r.client_id}','${r.id||''}')">Ver caso</button>
+    </div>`
+  }).join('')
+}
+
+// ════════════════════════════════════════════════════════════════
+// SOLICITUDES
+// ════════════════════════════════════════════════════════════════
+async function loadRequests(){
+  const { data: reqs, error } = await sb
+    .from('professional_requests')
+    .select('*, clients(id, name, plan, objective)')
+    .eq('professional_id', currentPro.id)
+    .eq('request_type', 'sports_medicine')
+    .order('created_at', { ascending: false })
+
+  if(error){ toast('Error cargando solicitudes', 'err'); return }
+
+  allRequests = reqs || []
+  filteredReqs = [...allRequests]
+  renderRequests()
+}
+
+function filterReqs(status, btn){
+  document.querySelectorAll('#req-chips .chip').forEach(c => c.classList.remove('on'))
+  btn.classList.add('on')
+  filteredReqs = status === 'todos' ? [...allRequests] : allRequests.filter(r => r.status === status)
+  renderRequests()
+}
+
+function renderRequests(){
+  const tbody = document.getElementById('req-tbody')
+  if(!filteredReqs.length){ tbody.innerHTML = `<tr><td colspan="7">${emptyState('No hay solicitudes.')}</td></tr>`; return }
+
+  tbody.innerHTML = filteredReqs.map(r => {
+    const client = r.clients || {}
+    return `<tr>
+      <td><div class="cn">${client.name||'—'}</div><div class="cm">${client.plan||'—'}</div></td>
+      <td style="max-width:180px;font-size:.78rem">${r.title||r.description||'—'}</td>
+      <td><span class="${prioClass(r.priority)}">${r.priority||'—'}</span></td>
+      <td>${statusBadge(r.status)}</td>
+      <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
+      <td style="max-width:200px;font-size:.78rem">${r.coach_note||'—'}</td>
+      <td><button class="btn btn-b btn-sm" onclick="openCase('${r.client_id}','${r.id}')">Ver caso</button></td>
+    </tr>`
+  }).join('')
+}
+
+// ════════════════════════════════════════════════════════════════
+// DETALLE CASO MÉDICO
+// ════════════════════════════════════════════════════════════════
+async function openCase(clientId, reqId){
+  currentReqId  = reqId
+  showView('v-case')
+
+  // Datos paralelos
+  const [clientRes, reqRes, logsRes, prevRestrRes] = await Promise.all([
+    sb.from('clients').select('*').eq('id', clientId).single(),
+    sb.from('professional_requests').select('*').eq('id', reqId).single(),
+    sb.from('client_training_logs')
+      .select('training_date, client_note, coach_note, pain_flag, pain_area, is_finished, session_number')
+      .eq('client_id', clientId)
+      .order('training_date', { ascending: false })
+      .limit(10),
+    sb.from('client_medical_restrictions')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('created_at', { ascending: false })
+  ])
+
+  const client   = clientRes.data || {}
+  const req      = reqRes.data || {}
+  const logs     = logsRes.data || []
+  const prevRestr= prevRestrRes.data || []
+
+  currentCaseData = { client, req, logs, prevRestr }
+
+  // Título
+  document.getElementById('case-title').textContent = client.name || 'Cliente'
+  document.getElementById('case-sub').textContent   = `Solicitud médica · ${fmtDate(req.created_at)} · ${req.priority||''}`
+
+  // Alerta de dolor si logs recientes tienen pain_flag
+  const painLogs = logs.filter(l => l.pain_flag)
+  const painAlert = document.getElementById('pain-alert')
+  if(painLogs.length){
+    const areas = [...new Set(painLogs.map(l => l.pain_area).filter(Boolean))].join(', ')
+    painAlert.style.display = 'block'
+    painAlert.innerHTML = `<div class="notice sev">
+      ⚠ Molestia reportada en entrenamiento reciente.
+      ${areas ? `Zona(s): <strong>${areas}</strong>.` : ''}
+      Revisar logs de entrenamiento.
+    </div>`
+    // Pre-rellenar zona en formulario si hay datos
+    if(painLogs[0]?.pain_area){
+      // intentamos hacer match con las opciones del select
+      const sel = document.getElementById('mf-area')
+      for(let opt of sel.options){ if(opt.value.includes(painLogs[0].pain_area.toLowerCase())) { sel.value = opt.value; break } }
+    }
+  } else {
+    painAlert.style.display = 'none'
+  }
+
+  // Info cliente
+  document.getElementById('case-client-info').innerHTML = [
+    ic('Nombre', client.name),
+    ic('Plan', client.plan),
+    ic('Objetivo deportivo', client.objective || req.description),
+    ic('Ciudad', client.city),
+    ic('Prioridad', req.priority),
+    ic('Estado solicitud', req.status),
+    ic('Título solicitud', req.title),
+  ].join('')
+
+  // Nota del coach
+  document.getElementById('case-coach-note').textContent = req.coach_note || 'Sin nota del coach.'
+
+  // Logs de entrenamiento
+  const logsEl = document.getElementById('case-training-logs')
+  if(!logs.length){
+    logsEl.innerHTML = `<div class="panel-body">${emptyState('Sin registros de entrenamiento.')}</div>`
+  } else {
+    logsEl.innerHTML = logs.map(l => `
+      <div class="log-item">
+        <div class="log-date">${fmtDate(l.training_date)} · Sesión ${l.session_number||'—'} · ${l.is_finished ? 'Completada' : 'No completada'}</div>
+        ${l.pain_flag ? `<div class="note-pain">⚠ Molestia reportada ${l.pain_area ? '· '+l.pain_area : ''}</div>` : ''}
+        ${l.client_note ? `<div class="log-note" style="margin-top:.35rem"><strong>Cliente:</strong> ${l.client_note}</div>` : ''}
+        ${l.coach_note  ? `<div class="log-note"><strong>Coach:</strong> ${l.coach_note}</div>` : ''}
+      </div>
+    `).join('')
+  }
+
+  // Restricciones anteriores
+  const prevEl = document.getElementById('case-restrictions-history')
+  if(!prevRestr.length){
+    prevEl.innerHTML = `<div class="panel-body">${emptyState('Sin restricciones médicas anteriores.')}</div>`
+  } else {
+    prevEl.innerHTML = `<div class="twrap"><table class="dt">
+      <thead><tr><th>Tipo</th><th>Zona</th><th>Severidad</th><th>Estado</th><th>Descripción</th><th>Fecha</th></tr></thead>
+      <tbody>${prevRestr.map(r => `<tr>
+        <td>${r.restriction_type||'—'}</td>
+        <td>${r.body_area||'—'}</td>
+        <td><span class="${sevClass(r.severity)}">${r.severity||'—'}</span></td>
+        <td>${statusBadge(r.status)}</td>
+        <td style="max-width:200px;font-size:.78rem">${r.description||'—'}</td>
+        <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`
+  }
+
+  // Pre-llenar formulario con respuesta previa si existe
+  if(req.professional_response){
+    document.getElementById('mf-resp').value = req.professional_response
+  }
+
+  // Limpiar mensajes
+  document.getElementById('med-save-msg').style.display = 'none'
+}
+
+// ════════════════════════════════════════════════════════════════
+// GUARDAR RESTRICCIÓN MÉDICA
+// ════════════════════════════════════════════════════════════════
+async function saveRestriction(markComplete){
+  const msgEl = document.getElementById('med-save-msg')
+  msgEl.style.display = 'none'
+
+  const { client, req } = currentCaseData
+
+  const restrictionType = document.getElementById('mf-type').value
+  const bodyArea        = document.getElementById('mf-area').value
+  const severity        = document.getElementById('mf-severity').value
+  const description     = document.getElementById('mf-desc').value.trim()
+
+  if(!restrictionType){ toast('Selecciona el tipo de restricción', 'err'); return }
+  if(!bodyArea)        { toast('Selecciona la zona corporal', 'err'); return }
+  if(!description)     { toast('La descripción es obligatoria', 'err'); return }
+
+  const status = document.getElementById('mf-status').value
+
+  const restrData = {
+    client_id:              client.id,
+    professional_id:        currentPro.id,
+    request_id:             currentReqId,
+    restriction_type:       restrictionType,
+    body_area:              bodyArea,
+    severity,
+    description,
+    recommendation:         document.getElementById('mf-reco').value.trim(),
+    forbidden_exercises:    document.getElementById('mf-forbidden').value.trim(),
+    allowed_exercises:      document.getElementById('mf-allowed').value.trim(),
+    return_to_training_note:document.getElementById('mf-return').value.trim(),
+    status,
+    alert_coach:            severity === 'alta' || status === 'activa',
+    updated_at:             new Date().toISOString(),
+  }
+
+  // Insertar restricción (siempre nueva entrada)
+  restrData.created_at = new Date().toISOString()
+  const { error: restrErr } = await sb.from('client_medical_restrictions').insert(restrData)
+
+  if(restrErr){ toast('Error guardando la restricción', 'err'); console.error(restrErr); return }
+
+  // Si severidad alta o restricción activa, marcar adjustment_needed en logs recientes
+  if(severity === 'alta' || status === 'activa'){
+    const recentLogIds = currentCaseData.logs?.slice(0,3).map(l => l.id).filter(Boolean)
+    if(recentLogIds?.length){
+      await sb.from('client_training_logs')
+        .update({ adjustment_needed: true })
+        .in('id', recentLogIds)
+    }
+  }
+
+  // Actualizar solicitud
+  const reqStatus = markComplete ? 'completado' : 'en_revision'
+  const reqUpdate = {
+    status: reqStatus,
+    professional_response: document.getElementById('mf-resp').value.trim(),
+    updated_at: new Date().toISOString(),
+  }
+  if(markComplete) reqUpdate.completed_at = new Date().toISOString()
+
+  await sb.from('professional_requests').update(reqUpdate).eq('id', currentReqId)
+
+  toast(markComplete ? 'Restricción guardada y caso marcado como completado' : 'Restricción guardada · estado: en revisión')
+
+  msgEl.style.display = 'block'
+  msgEl.className = 'notice'
+  msgEl.textContent = markComplete
+    ? '✓ Restricción registrada y caso completado. El coach verá la alerta.'
+    : '✓ Restricción registrada. Estado: en revisión. El coach puede verlo.'
+
+  if(severity === 'alta'){
+    msgEl.className = 'notice warn'
+    msgEl.textContent += ' · Severidad ALTA: el coach ha sido notificado para ajustar el entrenamiento.'
+  }
+
+  // Limpiar formulario
+  ;['mf-type','mf-area','mf-desc','mf-reco','mf-forbidden','mf-allowed','mf-return','mf-resp'].forEach(id => {
+    const el = document.getElementById(id)
+    if(el) el.value = id === 'mf-severity' ? 'media' : id === 'mf-status' ? 'activa' : ''
+  })
+  document.getElementById('mf-severity').value = 'media'
+  document.getElementById('mf-status').value   = 'activa'
+
+  // Recargar
+  await openCase(client.id, currentReqId)
+  loadRequests()
+  loadDashboard()
+}
+
+// ════════════════════════════════════════════════════════════════
+// RESTRICCIONES ACTIVAS (historial)
+// ════════════════════════════════════════════════════════════════
+async function loadRestrictionsHistory(){
+  const { data, error } = await sb
+    .from('client_medical_restrictions')
+    .select('*, clients(name)')
+    .eq('professional_id', currentPro.id)
+    .order('created_at', { ascending: false })
+
+  const tbody = document.getElementById('restrictions-tbody')
+  if(error || !data?.length){ tbody.innerHTML = `<tr><td colspan="6">${emptyState('Sin restricciones registradas.')}</td></tr>`; return }
+
+  tbody.innerHTML = data.map(r => `<tr>
+    <td class="cn">${r.clients?.name || '—'}</td>
+    <td>${r.restriction_type || '—'}</td>
+    <td>${r.body_area || '—'}</td>
+    <td><span class="${sevClass(r.severity)}">${r.severity||'—'}</span></td>
+    <td>${statusBadge(r.status)}</td>
+    <td>${fmtDate(r.created_at)}</td>
+  </tr>`).join('')
+}
+
+// ════════════════════════════════════════════════════════════════
+// INIT: revisar sesión guardada
+// ════════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem('ab_med')
+  if(saved){
+    try {
+      currentPro = JSON.parse(saved)
+      initApp()
+    } catch(e) {
+      sessionStorage.removeItem('ab_med')
+    }
+  }
+})
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && document.getElementById('screen-login').style.display !== 'none') doLogin()
+})
+</script>
+</body>
+</html>
