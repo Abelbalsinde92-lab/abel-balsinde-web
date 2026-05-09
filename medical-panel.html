@@ -877,7 +877,12 @@ async function saveRestriction(markComplete){
   restrData.created_at = new Date().toISOString()
   const { error: restrErr } = await sb.from('client_medical_restrictions').insert(restrData)
 
-  if(restrErr){ toast('Error guardando la restricción', 'err'); console.error(restrErr); return }
+  if(restrErr){
+  console.error('Error guardando restricción:', restrErr);
+  alert('Error Supabase: ' + (restrErr.message || JSON.stringify(restrErr)));
+  toast('Error guardando la restricción', 'err');
+  return;
+}
 
   // Si severidad alta o restricción activa, marcar adjustment_needed en logs recientes
   if(severity === 'alta' || status === 'activa'){
