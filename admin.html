@@ -327,6 +327,39 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div id="partnersContent"></div>
       </div>
       
+      <div class="page" id="page-training-detail">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow" style="cursor:pointer" onclick="showPage('entrenamiento')">← Entrenamiento</div>
+      <div class="page-title" id="trainingDetailTitle">Programa</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openModal('trainingWeek')">+ Crear semana</button>
+    </div>
+  </div>
+
+  <div id="trainingDetailContent"></div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Semanas del programa</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Semana</th>
+          <th>Nombre</th>
+          <th>Objetivo</th>
+          <th>Foco</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="trainingWeeksTable"></tbody>
+    </table>
+  </div>
+</div>
+      
       <div class="page" id="page-entrenamiento">
   <div class="page-header">
     <div>
@@ -469,7 +502,8 @@ let state = {
     nutritionDisclaimer:'Orientación deportiva general. No sustituye consejo médico ni nutricional profesional.',
     legalDisclaimer:'El cliente declara estar en condiciones de realizar actividad física. El coach no se hace responsable de lesiones derivadas de información médica no declarada previamente.'
   },
-  selectedClientId: null
+  selectedClientId: null,
+selectedTrainingProgramId: null
 };
 
 let currentPage = 'dashboard';
@@ -669,6 +703,7 @@ function renderAll(){
   renderPartners();
   renderPrograms();
   renderTraining();
+  renderTrainingDetail();
   renderProfile();
   renderSettings();
 }
@@ -985,19 +1020,106 @@ function renderTraining(){
   }).join('') : emptyRow(6,'No hay programas asignados todavía.');
 }
 
-function openTrainingProgramDetail(programId){
-  const p = state.trainingPrograms.find(x => x.id === programId);
-  if (!p) return;
+function renderTrainingDetail(){
+  const titleEl = document.getElementById('trainingDetailTitle');
+  const contentEl = document.getElementById('trainingDetailContent');
+  const weeksTable = document.getElementById('trainingWeeksTable');
 
-  const weeks = state.trainingWeeks.filter(w => w.programId === programId);
+  if (!titleEl || !contentEl || !weeksTable) return;
+
+  const programId = state.selectedTrainingProgramId;
+  const program = state.trainingPrograms.find(p => p.id === programId);
+
+  if (!program) {
+    titleEl.textContent = 'Programa';
+    contentEl.innerHTML = emptyBlock('Selecciona un programa desde la sección Entrenamiento.');
+    weeksTable.innerHTML = emptyRow(6, 'No hay programa seleccionado.');
+    return;
+  }
+
+  const weeks = state.trainingWeeks
+    .filter(w => w.programId === programId)
+    .sort((a,b) => Number(a.weekNumber || 0) - Number(b.weekNumber || 0));
+
+  titleEl.textContent = program.name || 'Programa';
+
+  contentEl.innerHTML = `
+    <div class="three-col">
+      <div class="card">
+        <div class="card-title">Datos del programa</div>
+        <div class="data-row">
+          <span class="data-key">Tipo</span>
+          <span class="data-val">${esc(program.type || '—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Nivel</span>
+          <span class="data-val">${esc(program.level || '—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Estado</span>
+          <span class="badge badge-${program.status || 'activo'}">${esc(program.status || 'activo')}</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Estructura</div>
+        <div class="data-row">
+          <span class="data-key">Duración</span>
+          <span class="data-val">${esc(program.durationWeeks || '—')} semanas</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Frecuencia</span>
+          <span class="data-val">${esc(program.frequency || '—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Semanas cargadas</span>
+          <span class="data-val">${weeks.length}</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Objetivo</div>
+        <div style="color:var(--gray);font-size:.82rem;line-height:1.7;">
+          ${esc(program.objective || program.description || 'Sin objetivo definido.')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  weeksTable.innerHTML = weeks.length ? weeks.map(w => `
+    <tr>
+      <td class="font-mono">Semana ${esc(w.weekNumber || '—')}</td>
+      <td>
+        <div class="name-text">${esc(w.name || 'Sin nombre')}</div>
+        <div class="name-sub">${esc(w.description || '')}</div>
+      </td>
+      <td>${esc(w.objective || '—')}</td>
+      <td>${esc(w.focus || '—')}</td>
+      <td><span class="badge badge-${w.status || 'activo'}">${esc(w.status || 'activo')}</span></td>
+      <td>
+        <div class="td-actions">
+          <button class="btn btn-blue btn-sm" onclick="openTrainingWeekDetail('${w.id}')">Ver sesiones</button>
+          <button class="btn btn-secondary btn-sm" onclick="openModal('trainingWeek','${w.id}')">Editar</button>
+        </div>
+      </td>
+    </tr>
+  `).join('') : emptyRow(6, 'Este programa todavía no tiene semanas cargadas.');
+}
+
+function openTrainingWeekDetail(weekId){
+  const week = state.trainingWeeks.find(w => w.id === weekId);
+  if (!week) return;
 
   alert(
-    `${p.name}\n\n` +
-    `Duración: ${p.durationWeeks || '—'} semanas\n` +
-    `Frecuencia: ${p.frequency || '—'}\n` +
-    `Semanas cargadas: ${weeks.length}\n\n` +
-    `Más adelante aquí abriremos el editor completo del programa.`
+    `Semana ${week.weekNumber || '—'}\n\n` +
+    `${week.name || 'Sin nombre'}\n\n` +
+    `Aquí luego abriremos las sesiones de esta semana.`
   );
+}
+
+function openTrainingProgramDetail(programId){
+  state.selectedTrainingProgramId = programId;
+  showPage('training-detail');
 }
 
 function renderProfile(){
@@ -1293,7 +1415,64 @@ function openModal(type, id=null){
     ${actions}
   `;
 
-} else if(type==='trainingAssignment'){
+} else if(type==='trainingWeek'){
+  const w = get('trainingWeeks');
+  const selectedProgram = state.trainingPrograms.find(p => p.id === state.selectedTrainingProgramId);
+
+  title.textContent = id ? 'Editar semana' : 'Crear semana';
+
+  form.innerHTML = `
+    <div class="form-row">
+      <label class="form-label">Programa</label>
+      <select name="programId" class="form-input" required>
+        ${state.trainingPrograms.map(p => `
+          <option value="${p.id}" ${(w.programId || selectedProgram?.id) === p.id ? 'selected' : ''}>
+            ${esc(p.name)}
+          </option>
+        `).join('')}
+      </select>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Número de semana</label>
+        <input name="weekNumber" class="form-input" type="number" value="${esc(w.weekNumber || '')}" placeholder="1" required>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Estado</label>
+        <select name="status" class="form-input">
+          <option value="activo" ${w.status==='activo'?'selected':''}>Activo</option>
+          <option value="borrador" ${w.status==='borrador'?'selected':''}>Borrador</option>
+          <option value="inactivo" ${w.status==='inactivo'?'selected':''}>Inactivo</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Nombre de la semana</label>
+      <input name="name" class="form-input" value="${esc(w.name || '')}" placeholder="Ej: Semana 1 · Adaptación inicial">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Objetivo</label>
+      <textarea name="objective" class="form-input" rows="3" placeholder="Objetivo principal de esta semana">${esc(w.objective || '')}</textarea>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Foco principal</label>
+      <input name="focus" class="form-input" value="${esc(w.focus || '')}" placeholder="Ej: movilidad, fuerza general, técnica básica">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Descripción / notas</label>
+      <textarea name="description" class="form-input" rows="3">${esc(w.description || '')}</textarea>
+    </div>
+
+    ${actions}
+  `;
+  
+  } else if(type==='trainingAssignment'){
   title.textContent = 'Asignar programa a cliente';
 
   form.innerHTML = `
@@ -1446,6 +1625,11 @@ async function saveModal(e){
     } else if(type==='trainingProgram'){
   await upsert('trainingPrograms', data);
   showToast(id ? 'Programa base actualizado' : 'Programa base creado');
+
+} else if(type==='trainingWeek'){
+  await upsert('trainingWeeks', data);
+  state.selectedTrainingProgramId = data.programId;
+  showToast(id ? 'Semana actualizada' : 'Semana creada');
 
 } else if(type==='trainingAssignment'){
   await upsert('clientProgramAssignments', data);
