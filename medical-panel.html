@@ -854,79 +854,79 @@ async function saveRestriction(markComplete){
   if(!bodyArea)        { toast('Selecciona la zona corporal', 'err'); return }
   if(!description)     { toast('La descripción es obligatoria', 'err'); return }
 
-  const status = document.getElementById('mf-status').value
+  const status      = document.getElementById('mf-status').value
+  const reco        = document.getElementById('mf-reco').value.trim()
+  const forbidden   = document.getElementById('mf-forbidden').value.trim()
+  const allowed     = document.getElementById('mf-allowed').value.trim()
+  const returnNote  = document.getElementById('mf-return').value.trim()
+  const coachResp   = document.getElementById('mf-resp').value.trim()
+
+  const fullDescription =
+    `Zona corporal: ${bodyArea}\n` +
+    `Severidad: ${severity}\n\n` +
+    `${description}`
+
+  const recommendedMods =
+    `Recomendación médico-deportiva:\n${reco || '—'}\n\n` +
+    `Ejercicios permitidos:\n${allowed || '—'}\n\n` +
+    `Retorno al entrenamiento completo:\n${returnNote || '—'}`
 
   const restrData = {
-    client_id:              client.id,
-    professional_id:        currentPro.id,
-    request_id:             currentReqId,
-    restriction_type:       restrictionType,
-    body_area:              bodyArea,
-    severity,
-    description,
-    recommendation:         document.getElementById('mf-reco').value.trim(),
-    forbidden_exercises:    document.getElementById('mf-forbidden').value.trim(),
-    allowed_exercises:      document.getElementById('mf-allowed').value.trim(),
-    return_to_training_note:document.getElementById('mf-return').value.trim(),
-    status,
-    alert_coach:            severity === 'alta' || status === 'activa',
-    updated_at:             new Date().toISOString(),
+    client_id: client.id,
+    professional_request_id: currentReqId,
+    status: status || 'activa',
+    restriction_type: restrictionType,
+    description: fullDescription,
+    avoid_exercises: forbidden,
+    recommended_modifications: recommendedMods,
+    start_date: todayISO(),
+    alert_coach: severity === 'alta' || status === 'activa',
+    updated_at: new Date().toISOString()
   }
 
-  // Insertar restricción (siempre nueva entrada)
-  restrData.created_at = new Date().toISOString()
-  const { error: restrErr } = await sb.from('client_medical_restrictions').insert(restrData)
+  const { error: restrErr } = await sb
+    .from('client_medical_restrictions')
+    .insert(restrData)
 
   if(restrErr){
-  console.error('Error guardando restricción:', restrErr);
-  alert('Error Supabase: ' + (restrErr.message || JSON.stringify(restrErr)));
-  toast('Error guardando la restricción', 'err');
-  return;
-}
-
-  // Si severidad alta o restricción activa, marcar adjustment_needed en logs recientes
-  if(severity === 'alta' || status === 'activa'){
-    const recentLogIds = currentCaseData.logs?.slice(0,3).map(l => l.id).filter(Boolean)
-    if(recentLogIds?.length){
-      await sb.from('client_training_logs')
-        .update({ adjustment_needed: true })
-        .in('id', recentLogIds)
-    }
+    console.error('Error guardando restricción:', restrErr)
+    alert('Error Supabase: ' + (restrErr.message || JSON.stringify(restrErr)))
+    toast('Error guardando la restricción', 'err')
+    return
   }
 
-  // Actualizar solicitud
   const reqStatus = markComplete ? 'completado' : 'en_revision'
+
   const reqUpdate = {
     status: reqStatus,
-    professional_response: document.getElementById('mf-resp').value.trim(),
-    updated_at: new Date().toISOString(),
+    professional_response: coachResp,
+    responded_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
-  if(markComplete) reqUpdate.completed_at = new Date().toISOString()
 
-  await sb.from('professional_requests').update(reqUpdate).eq('id', currentReqId)
+  if(markComplete) {
+    reqUpdate.completed_at = new Date().toISOString()
+  }
 
-  toast(markComplete ? 'Restricción guardada y caso marcado como completado' : 'Restricción guardada · estado: en revisión')
+  const { error: reqErr } = await sb
+    .from('professional_requests')
+    .update(reqUpdate)
+    .eq('id', currentReqId)
+
+  if(reqErr){
+    console.error('Error actualizando solicitud:', reqErr)
+    alert('Restricción guardada, pero falló actualizar la solicitud: ' + (reqErr.message || JSON.stringify(reqErr)))
+    return
+  }
+
+  toast(markComplete ? 'Restricción guardada y caso completado' : 'Restricción guardada')
 
   msgEl.style.display = 'block'
-  msgEl.className = 'notice'
+  msgEl.className = severity === 'alta' ? 'notice warn' : 'notice'
   msgEl.textContent = markComplete
     ? '✓ Restricción registrada y caso completado. El coach verá la alerta.'
-    : '✓ Restricción registrada. Estado: en revisión. El coach puede verlo.'
+    : '✓ Restricción registrada. Estado: en revisión. El coach puede verla.'
 
-  if(severity === 'alta'){
-    msgEl.className = 'notice warn'
-    msgEl.textContent += ' · Severidad ALTA: el coach ha sido notificado para ajustar el entrenamiento.'
-  }
-
-  // Limpiar formulario
-  ;['mf-type','mf-area','mf-desc','mf-reco','mf-forbidden','mf-allowed','mf-return','mf-resp'].forEach(id => {
-    const el = document.getElementById(id)
-    if(el) el.value = id === 'mf-severity' ? 'media' : id === 'mf-status' ? 'activa' : ''
-  })
-  document.getElementById('mf-severity').value = 'media'
-  document.getElementById('mf-status').value   = 'activa'
-
-  // Recargar
   await openCase(client.id, currentReqId)
   loadRequests()
   loadDashboard()
