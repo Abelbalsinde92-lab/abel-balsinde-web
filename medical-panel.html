@@ -548,7 +548,7 @@ async function doLogin(){
   .eq('status', 'active')
   .or(`email.eq.${identifier},phone.eq.${identifier}`)
   .eq('access_code', code)
-  .single()
+  .maybeSingle()
 
     if(error){
       console.error('Supabase login error:', error)
