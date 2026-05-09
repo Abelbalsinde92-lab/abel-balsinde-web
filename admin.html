@@ -1214,8 +1214,8 @@ function renderTrainingWeekDetail(){
     <tr>
       <td class="font-mono">Sesión ${esc(s.sessionNumber || '—')}</td>
       <td>
-        <div class="name-text">${esc(s.name || 'Sin nombre')}</div>
-        <div class="name-sub">${esc(s.description || '')}</div>
+        <div class="name-text">${esc(s.title || s.name || 'Sin título')}</div>
+<div class="name-sub">${esc(s.description || '')}</div>
       </td>
       <td>${esc(s.objective || '—')}</td>
       <td>${esc(s.duration || '—')}</td>
@@ -1237,7 +1237,7 @@ function openTrainingSessionDetail(sessionId){
 
   alert(
     `Sesión ${session.sessionNumber || '—'}\n\n` +
-    `${session.name || 'Sin nombre'}\n\n` +
+    `${session.title || session.name || 'Sin título'}\n\n` +
     `Aquí luego abriremos los bloques y ejercicios de la sesión.`
   );
 }
@@ -1646,7 +1646,7 @@ function openModal(type, id=null){
 
     <div class="form-row">
       <label class="form-label">Nombre de la sesión</label>
-      <input name="name" class="form-input" value="${esc(s.name || '')}" placeholder="Ej: Sesión 1 · Control corporal y movilidad">
+      <input name="title" class="form-input" value="${esc(s.title || s.name || '')}" placeholder="Ej: Sesión 1 · Control corporal y movilidad">
     </div>
 
     <div class="form-row">
