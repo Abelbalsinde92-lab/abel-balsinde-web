@@ -256,7 +256,7 @@ button, input, select, textarea { font: inherit; }
         </div>
         <div class="nav-sec">Historial</div>
         <div class="nav-item" onclick="showView('v-restrictions')">
-          <span class="nav-ico">03</span>Restricciones activas
+          <span class="nav-ico">03</span>Historial médico
         </div>
       </aside>
 
@@ -446,8 +446,8 @@ button, input, select, textarea { font: inherit; }
         <div class="view" id="v-restrictions">
           <div class="ph">
             <div>
-              <div class="ptitle">Restricciones activas</div>
-              <div class="psub">Todas las restricciones médicas registradas</div>
+              <div class="ptitle">Historial médico</div>
+<div class="psub">Restricciones, revisiones y casos cerrados</div>
             </div>
           </div>
           <div class="panel">
@@ -1014,23 +1014,63 @@ function renderRestrictionHistoryLocal(){
 // RESTRICCIONES ACTIVAS (historial)
 // ════════════════════════════════════════════════════════════════
 async function loadRestrictionsHistory(){
+  const tbody = document.getElementById('restrictions-tbody')
+  if(!tbody) return
+
+  tbody.innerHTML = `<tr><td colspan="6">${emptyState('Cargando restricciones...')}</td></tr>`
+
   const { data, error } = await sb
     .from('client_medical_restrictions')
-    .select('*, clients(name)')
+    .select(`
+      id,
+      client_id,
+      professional_id,
+      professional_request_id,
+      status,
+      restriction_type,
+      body_area,
+      severity,
+      description,
+      recommendation,
+      forbidden_exercises,
+      allowed_exercises,
+      return_to_training_note,
+      avoid_exercises,
+      recommended_modifications,
+      start_date,
+      end_date,
+      created_at,
+      alert_coach,
+      clients(id, name, phone, plan)
+    `)
     .eq('professional_id', currentPro.id)
     .order('created_at', { ascending: false })
 
-  const tbody = document.getElementById('restrictions-tbody')
-  if(error || !data?.length){ tbody.innerHTML = `<tr><td colspan="6">${emptyState('Sin restricciones registradas.')}</td></tr>`; return }
+  if(error){
+    console.error('Error cargando historial médico:', error)
+    tbody.innerHTML = `<tr><td colspan="6">${emptyState('Error cargando historial médico.')}</td></tr>`
+    toast('Error cargando historial médico', 'err')
+    return
+  }
 
-  tbody.innerHTML = data.map(r => `<tr>
-    <td class="cn">${r.clients?.name || '—'}</td>
-    <td>${r.restriction_type || '—'}</td>
-    <td>${r.body_area || '—'}</td>
-    <td><span class="${sevClass(r.severity)}">${r.severity||'—'}</span></td>
-    <td>${statusBadge(r.status)}</td>
-    <td>${fmtDate(r.created_at)}</td>
-  </tr>`).join('')
+  if(!data || !data.length){
+    tbody.innerHTML = `<tr><td colspan="6">${emptyState('Sin restricciones registradas para este médico.')}</td></tr>`
+    return
+  }
+
+  tbody.innerHTML = data.map(r => `
+    <tr>
+      <td>
+        <div class="cn">${r.clients?.name || 'Cliente'}</div>
+        <div class="cm">${r.clients?.plan || ''}</div>
+      </td>
+      <td>${r.restriction_type || '—'}</td>
+      <td>${r.body_area || '—'}</td>
+      <td><span class="${sevClass(r.severity)}">${r.severity || '—'}</span></td>
+      <td>${statusBadge(r.status)}</td>
+      <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
+    </tr>
+  `).join('')
 }
 
 // ════════════════════════════════════════════════════════════════
