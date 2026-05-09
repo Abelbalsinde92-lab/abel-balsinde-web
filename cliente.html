@@ -992,7 +992,7 @@ async function renderClientTraining() {
     ? activeWeek.objective
     : (clientTrainingProgram.objective || '');
 
-  let html = '<div class="training-guide-summary">'
+  let summaryHtml = '<div class="training-guide-summary">'
     + '<div class="training-guide-title">' + (clientTrainingProgram.name || 'Programa de entrenamiento') + '</div>'
     + '<div class="training-guide-meta">' + metaParts.join(' · ') + '</div>'
     + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
@@ -1001,10 +1001,28 @@ async function renderClientTraining() {
   const steps = buildTrainingSteps();
 
   if (!steps.length) {
-    html += '<p class="empty-state">Este programa todavía no tiene bloques cargados.</p>';
-    el.innerHTML = html;
+    el.innerHTML = summaryHtml + '<p class="empty-state">Este programa todavía no tiene bloques cargados.</p>';
     return;
   }
+
+  /*
+    CASO 1:
+    El entrenamiento ya fue terminado.
+    No mostramos los bloques abiertos.
+    Mostramos resumen limpio + nota + botón para ver detalles.
+  */
+  if (currentTrainingLog && currentTrainingLog.is_finished) {
+    el.innerHTML = summaryHtml;
+    renderTrainingCompletedState();
+    return;
+  }
+
+  /*
+    CASO 2:
+    Entrenamiento en progreso o nuevo.
+    Mostramos bloques normalmente.
+  */
+  let html = summaryHtml;
 
   html += '<div class="training-step-list" id="trainingStepList">';
   steps.forEach(function(step, index) {
@@ -1016,11 +1034,6 @@ async function renderClientTraining() {
   el.innerHTML = html;
 
   applySavedTrainingState();
-
-  if (currentTrainingLog && currentTrainingLog.is_finished) {
-    renderTrainingCompletedState();
-    return;
-  }
 
   const firstPending = steps.find(function(step) {
     return !completedTrainingBlocks.has(step.blockId);
@@ -1249,59 +1262,76 @@ async function finishTrainingSession() {
 }
 
 function renderTrainingCompletedState() {
-  const el = document.getElementById('sectionTrainingClient');
+  var el = document.getElementById('sectionTrainingClient');
   if (!el) return;
 
-  const currentWeekNum = Number(clientTrainingAssignment.current_week || 1);
-  const activeWeek = getActiveTrainingWeek();
-
-  const levelStr = clientTrainingAssignment.assigned_level || clientTrainingProgram.level || '';
-  const weekName = activeWeek ? activeWeek.name : '';
-
-  const metaParts = [
-    'Semana ' + currentWeekNum + (weekName ? ' · ' + weekName : ''),
-    levelStr
-  ].filter(Boolean);
-
-  const objective = (activeWeek && activeWeek.objective)
-    ? activeWeek.objective
-    : (clientTrainingProgram.objective || '');
-
-  const savedNote = currentTrainingLog && currentTrainingLog.client_note
+  var savedNote = currentTrainingLog && currentTrainingLog.client_note
     ? currentTrainingLog.client_note
     : '';
 
-  let html = '';
+  var finishedDate = currentTrainingLog && currentTrainingLog.finished_at
+    ? formatDate(String(currentTrainingLog.finished_at).slice(0, 10))
+    : formatDate(todayISO());
 
-  html += '<div class="training-guide-summary">'
-    + '<div class="training-guide-title">' + (clientTrainingProgram.name || 'Programa de entrenamiento') + '</div>'
-    + '<div class="training-guide-meta">' + metaParts.join(' · ') + '</div>'
-    + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
-    + '</div>';
+  var html = '';
 
   html += '<div class="training-finish-card" id="trainingFinishCard">'
     + '<div class="training-finish-icon">🏁</div>'
     + '<div class="training-finish-title">Entrenamiento completado</div>'
-    + '<div class="training-finish-sub">Este entrenamiento ya quedó registrado.</div>'
-    + '</div>';
+    + '<div class="training-finish-sub">Tu sesión quedó registrada el ' + finishedDate + '. Abel revisará tus notas y ajustará lo necesario para la próxima sesión.</div>';
 
   if (savedNote) {
-    html += '<div class="training-notes-box">'
-      + '<div class="training-notes-title">Nota registrada</div>'
-      + '<div class="training-notes-sub">Esta nota quedó guardada para revisar con Abel.</div>'
-      + '<div class="note-item">' + savedNote + '</div>'
+    html += '<div class="training-notes-box" style="text-align:left;margin-top:16px;">'
+      + '<div class="training-notes-title">Nota enviada</div>'
+      + '<div class="training-notes-sub" style="margin-bottom:0;">' + savedNote + '</div>'
       + '</div>';
   } else {
-    html += '<div class="training-notes-box">'
+    html += '<div class="training-notes-box" style="text-align:left;margin-top:16px;">'
       + '<div class="training-notes-title">Notas del entrenamiento</div>'
-      + '<div class="training-notes-sub">Si tuviste alguna molestia, dificultad o algo que Abel deba revisar, déjalo aquí.</div>'
-      + '<textarea class="training-notes-textarea" id="trainingNoteText" placeholder="Ej: sentí molestia en la rodilla derecha durante las sentadillas…"></textarea>'
-      + '<button class="training-complete-block-btn" id="saveNoteBtn" onclick="saveTrainingNote()">Guardar nota</button>'
-      + '<div id="trainingNoteSaved" class="training-note-saved hidden">Nota registrada para revisar con Abel.</div>'
+      + '<div class="training-notes-sub">No dejaste nota en esta sesión.</div>'
+      + '<button class="training-complete-block-btn" onclick="showTrainingNotes(false)">Agregar nota</button>'
       + '</div>';
   }
 
-  el.innerHTML = html;
+  html += '<button class="client-action-btn" style="margin-top:16px;" onclick="toggleCompletedTrainingDetails()">'
+    + 'Ver detalles del entrenamiento realizado'
+    + '</button>';
+
+  html += '</div>';
+
+  html += '<div id="trainingCompletedDetails" class="hidden" style="margin-top:14px;">'
+    + '<div class="training-step-list" id="trainingStepList">';
+
+  var steps = buildTrainingSteps();
+
+  steps.forEach(function(step, index) {
+    html += buildTrainingStepHTML(step, index);
+  });
+
+  html += '</div></div>';
+
+  html += '<div id="trainingCompletionArea"></div>';
+
+  el.insertAdjacentHTML('beforeend', html);
+
+  completedTrainingBlocks = new Set(
+    currentTrainingLog && currentTrainingLog.completed_block_ids
+      ? currentTrainingLog.completed_block_ids
+      : steps.map(function(s) { return s.blockId; })
+  );
+
+  applySavedTrainingState();
+}
+
+function toggleCompletedTrainingDetails() {
+  var details = document.getElementById('trainingCompletedDetails');
+  if (!details) return;
+
+  details.classList.toggle('hidden');
+
+  if (!details.classList.contains('hidden')) {
+    details.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 /** Hides the finish button and shows the notes textarea. */
