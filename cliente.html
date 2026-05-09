@@ -686,6 +686,7 @@
   <!-- Client Nav (sticky tabs) -->
   <nav class="client-nav" id="clientNav">
     <button onclick="goClientSection('section-plan')">Plan</button>
+    <button onclick="goClientSection('section-training')">Entrenamiento</button>
     <button onclick="goClientSection('section-reservations')">Reservas</button>
     <button onclick="goClientSection('section-health')">Salud</button>
     <button onclick="goClientSection('section-notes')">Notas</button>
@@ -706,6 +707,14 @@
       <div class="section-body" id="sectionPlan"></div>
     </div>
 
+    <div class="section section-hidden" id="section-training">
+  <div class="section-header">
+    <h2>ENTRENAMIENTO</h2>
+    <span class="sec-badge" id="trainingClientBadge">—</span>
+  </div>
+  <div class="section-body" id="sectionTrainingClient"></div>
+</div>
+    
     <!-- ── Reservas ── -->
     <div class="section section-hidden" id="section-reservations">
       <div class="section-header">
@@ -787,6 +796,12 @@ let clientPayments     = [];
 let clientMetrics      = [];
 let clientAlerts       = [];
 let clientPrograms     = [];
+let clientTrainingAssignment = null;
+let clientTrainingProgram = null;
+let clientTrainingWeeks = [];
+let clientTrainingSessions = [];
+let clientTrainingBlocks = [];
+let clientTrainingExercises = [];
 
 /* ════════════════════════════════════════════════════════════
    UTILITY
@@ -961,20 +976,93 @@ async function loadClientDashboard(clientId) {
 
     clientData = client;
 
-    const [resR, payR, metR, halR, proR] = await Promise.all([
-      db.from('reservations').select('*').eq('client_id', clientId).order('date', { ascending: true }),
-      db.from('payments').select('*').eq('client_id', clientId).order('due_date', { ascending: false }),
-      db.from('metrics').select('*').eq('client_id', clientId).order('date', { ascending: false }),
-      db.from('health_alerts').select('*').eq('client_id', clientId).order('date', { ascending: false }),
-      db.from('programs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
-    ]);
+    const [resR, payR, metR, halR, proR, assignR] = await Promise.all([
+  db.from('reservations').select('*').eq('client_id', clientId).order('date', { ascending: true }),
+  db.from('payments').select('*').eq('client_id', clientId).order('due_date', { ascending: false }),
+  db.from('metrics').select('*').eq('client_id', clientId).order('date', { ascending: false }),
+  db.from('health_alerts').select('*').eq('client_id', clientId).order('date', { ascending: false }),
+  db.from('programs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
+
+  db.from('client_program_assignments')
+    .select('*')
+    .eq('client_id', clientId)
+    .eq('status', 'activo')
+    .order('start_date', { ascending: false })
+    .limit(1)
+]);
 
     clientReservations = resR.data || [];
     clientPayments     = payR.data || [];
     clientMetrics      = metR.data || [];
     clientAlerts       = halR.data || [];
     clientPrograms     = proR.data || [];
+    clientTrainingAssignment = assignR.data?.[0] || null;
 
+clientTrainingProgram = null;
+clientTrainingWeeks = [];
+clientTrainingSessions = [];
+clientTrainingBlocks = [];
+clientTrainingExercises = [];
+
+if (clientTrainingAssignment?.program_id) {
+  const programId = clientTrainingAssignment.program_id;
+  const currentWeek = Number(clientTrainingAssignment.current_week || 1);
+
+  const [programR, weeksR] = await Promise.all([
+    db.from('training_programs')
+      .select('*')
+      .eq('id', programId)
+      .single(),
+
+    db.from('training_weeks')
+      .select('*')
+      .eq('program_id', programId)
+      .order('week_number', { ascending: true })
+  ]);
+
+  clientTrainingProgram = programR.data || null;
+  clientTrainingWeeks = weeksR.data || [];
+
+  const activeWeek =
+    clientTrainingWeeks.find(w => Number(w.week_number) === currentWeek) ||
+    clientTrainingWeeks[0] ||
+    null;
+
+  if (activeWeek) {
+    const sessionsR = await db
+      .from('training_sessions')
+      .select('*')
+      .eq('week_id', activeWeek.id)
+      .order('session_number', { ascending: true });
+
+    clientTrainingSessions = sessionsR.data || [];
+
+    const sessionIds = clientTrainingSessions.map(s => s.id);
+
+    if (sessionIds.length) {
+      const blocksR = await db
+        .from('training_blocks')
+        .select('*')
+        .in('session_id', sessionIds)
+        .order('block_order', { ascending: true });
+
+      clientTrainingBlocks = blocksR.data || [];
+
+      const blockIds = clientTrainingBlocks.map(b => b.id);
+
+      if (blockIds.length) {
+        const exercisesR = await db
+          .from('training_exercises')
+          .select('*')
+          .in('block_id', blockIds)
+          .order('exercise_order', { ascending: true });
+
+        clientTrainingExercises = exercisesR.data || [];
+      }
+    }
+  }
+}
+    
     renderDashboard();
 
     const login = document.getElementById('loginScreen');
@@ -1001,6 +1089,7 @@ async function loadClientDashboard(clientId) {
 
 function renderDashboard() {
   renderProgram();
+  renderClientTraining();
   renderReservations();
   renderHealthAlerts();
   renderNotes();
@@ -1101,6 +1190,139 @@ html += `
 `;
 
 el.innerHTML = html;
+}
+
+function renderClientTraining() {
+  const el = document.getElementById('sectionTrainingClient');
+  const badge = document.getElementById('trainingClientBadge');
+
+  if (!el) return;
+
+  if (!clientTrainingAssignment || !clientTrainingProgram) {
+    if (badge) badge.textContent = 'Sin asignar';
+    el.innerHTML = `
+      <p class="empty-state">
+        Todavía no tienes un programa de entrenamiento asignado.
+        Cuando Abel active tu plan, aparecerá aquí.
+      </p>
+    `;
+    return;
+  }
+
+  const currentWeekNumber = Number(clientTrainingAssignment.current_week || 1);
+
+  const activeWeek =
+    clientTrainingWeeks.find(w => Number(w.week_number) === currentWeekNumber) ||
+    clientTrainingWeeks[0] ||
+    null;
+
+  if (badge) badge.textContent = `Semana ${currentWeekNumber}`;
+
+  let html = `
+    <div class="data-card next-session">
+      <div class="next-label">Programa activo</div>
+      <div class="dc-row">
+        <span class="dc-title">${clientTrainingProgram.name || 'Programa de entrenamiento'}</span>
+        ${genericBadge(clientTrainingAssignment.status || 'activo')}
+      </div>
+      <div class="dc-row">
+        <span class="dc-sub">Nivel: ${clientTrainingAssignment.assigned_level || clientTrainingProgram.level || 'General'}</span>
+        <span class="dc-sub">Semana actual: ${currentWeekNumber}</span>
+        ${clientTrainingAssignment.start_date ? `<span class="dc-sub">Inicio: ${formatDate(clientTrainingAssignment.start_date)}</span>` : ''}
+      </div>
+      ${clientTrainingProgram.objective ? `<div class="dc-note">${clientTrainingProgram.objective}</div>` : ''}
+    </div>
+  `;
+
+  if (!activeWeek) {
+    html += `<p class="empty-state">Este programa todavía no tiene semanas cargadas.</p>`;
+    el.innerHTML = html;
+    return;
+  }
+
+  html += `
+    <div class="data-card">
+      <div class="next-label">Semana actual</div>
+      <div class="dc-row">
+        <span class="dc-title">Semana ${activeWeek.week_number || currentWeekNumber} · ${activeWeek.name || ''}</span>
+      </div>
+      ${activeWeek.objective ? `<div class="dc-note">${activeWeek.objective}</div>` : ''}
+      ${activeWeek.focus ? `<div class="dc-note">Foco: ${activeWeek.focus}</div>` : ''}
+    </div>
+  `;
+
+  if (!clientTrainingSessions.length) {
+    html += `<p class="empty-state">Esta semana todavía no tiene sesiones cargadas.</p>`;
+    el.innerHTML = html;
+    return;
+  }
+
+  clientTrainingSessions.forEach(session => {
+    const blocks = clientTrainingBlocks
+      .filter(b => b.session_id === session.id)
+      .sort((a,b) => Number(a.block_order || 0) - Number(b.block_order || 0));
+
+    html += `
+      <div class="accordion-block">
+        <button class="accordion-title" onclick="toggleAccordion(this)">
+          <span>Sesión ${session.session_number || '—'} · ${session.title || session.name || 'Entrenamiento'}</span>
+          <span class="accordion-symbol">+</span>
+        </button>
+
+        <div class="accordion-content">
+          <div style="padding-top:12px;">
+            <div class="dc-row">
+              ${session.duration ? `<span class="dc-sub">Duración: ${session.duration}</span>` : ''}
+              ${session.intensity ? `<span class="dc-sub">Intensidad: ${session.intensity}</span>` : ''}
+            </div>
+
+            ${session.objective ? `<div class="dc-note">${session.objective}</div>` : ''}
+            ${session.description ? `<div class="dc-note">${session.description}</div>` : ''}
+
+            ${blocks.length ? blocks.map(block => {
+              const exercises = clientTrainingExercises
+                .filter(e => e.block_id === block.id)
+                .sort((a,b) => Number(a.exercise_order || 0) - Number(b.exercise_order || 0));
+
+              return `
+                <div class="data-card" style="margin-top:12px;">
+                  <div class="dc-row">
+                    <span class="dc-title">${block.block_order || ''}. ${block.title || block.name || 'Bloque'}</span>
+                    ${block.type ? `<span class="dc-sub">${block.type}</span>` : ''}
+                    ${block.duration ? `<span class="dc-sub">${block.duration}</span>` : ''}
+                  </div>
+
+                  ${block.objective ? `<div class="dc-note">${block.objective}</div>` : ''}
+
+                  ${exercises.length ? exercises.map(ex => `
+                    <div class="data-card" style="margin-top:10px;margin-bottom:0;background:var(--navy2);">
+                      <div class="dc-row">
+                        <span class="dc-title">${ex.exercise_order || ''}. ${ex.name || ex.title || 'Ejercicio'}</span>
+                        ${ex.level ? `<span class="dc-sub">Nivel: ${ex.level}</span>` : ''}
+                      </div>
+
+                      <div class="dc-row">
+                        ${ex.sets ? `<span class="dc-sub">Series: ${ex.sets}</span>` : ''}
+                        ${ex.reps ? `<span class="dc-sub">Reps: ${ex.reps}</span>` : ''}
+                        ${ex.time ? `<span class="dc-sub">Tiempo: ${ex.time}</span>` : ''}
+                        ${ex.rest ? `<span class="dc-sub">Descanso: ${ex.rest}</span>` : ''}
+                      </div>
+
+                      ${ex.description ? `<div class="dc-note">${ex.description}</div>` : ''}
+                      ${ex.coach_notes ? `<div class="dc-note">Nota: ${ex.coach_notes}</div>` : ''}
+                      ${ex.video_url ? `<div class="dc-note"><a href="${ex.video_url}" target="_blank">Ver referencia</a></div>` : ''}
+                    </div>
+                  `).join('') : `<p class="empty-state">Este bloque todavía no tiene ejercicios.</p>`}
+                </div>
+              `;
+            }).join('') : `<p class="empty-state">Esta sesión todavía no tiene bloques.</p>`}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  el.innerHTML = html;
 }
 
 /* ── Reservas ────────────────────────────────────────────── */
