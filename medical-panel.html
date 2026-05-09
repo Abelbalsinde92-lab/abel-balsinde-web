@@ -197,6 +197,43 @@ button, input, select, textarea { font: inherit; }
 @media (max-width: 480px) {
   .mgrid { grid-template-columns: repeat(2,1fr); }
 }
+
+.mobile-nav {
+  display: none;
+  gap: .5rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.mobile-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-nav-btn {
+  flex: 0 0 auto;
+  background: var(--navy3);
+  border: 1px solid var(--border2);
+  color: var(--gray);
+  padding: 8px 14px;
+  font-family: 'Space Mono', monospace;
+  font-size: .58rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.mobile-nav-btn.on {
+  color: var(--blue);
+  border-color: rgba(94,197,240,.35);
+  background: rgba(94,197,240,.08);
+}
+
+@media (max-width: 768px) {
+  .mobile-nav {
+    display: flex;
+  }
+}
 </style>
 </head>
 <body>
@@ -262,6 +299,11 @@ button, input, select, textarea { font: inherit; }
 
       <!-- Content -->
       <main class="content">
+        <div class="mobile-nav">
+  <button class="mobile-nav-btn on" onclick="showView('v-dashboard')">Dashboard</button>
+  <button class="mobile-nav-btn" onclick="showView('v-requests')">Solicitudes</button>
+  <button class="mobile-nav-btn" onclick="showView('v-restrictions')">Historial</button>
+</div>
 
         <!-- ─── DASHBOARD ─────────────────────────────────── -->
         <div class="view on" id="v-dashboard">
@@ -510,9 +552,15 @@ function toast(msg, type='ok'){
 function showView(id){
   document.querySelectorAll('.view').forEach(v => v.classList.remove('on'))
   document.getElementById(id)?.classList.add('on')
+
   document.querySelectorAll('.nav-item').forEach(n => {
     n.classList.toggle('on', n.getAttribute('onclick')?.includes(id))
   })
+
+  document.querySelectorAll('.mobile-nav-btn').forEach(b => {
+    b.classList.toggle('on', b.getAttribute('onclick')?.includes(id))
+  })
+
   if(id === 'v-restrictions') loadRestrictionsHistory()
 }
 
