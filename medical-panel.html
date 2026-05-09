@@ -542,10 +542,13 @@ async function doLogin(){
 
   try {
     const { data, error } = await sb
-      .from('professionals')
-      .select('id, name, email, phone, access_code, role, status, professional_type, last_login')
-      .eq('status', 'active')
-      .eq('role', 'sports_doctor')
+  .from('professionals')
+  .select('*')
+  .eq('professional_type', 'sports_doctor')
+  .eq('status', 'active')
+  .or(`email.eq.${identifier},phone.eq.${identifier}`)
+  .eq('access_code', code)
+  .single()
 
     if(error){
       console.error('Supabase login error:', error)
@@ -624,9 +627,9 @@ function initApp(){
 async function loadDashboard(){
   const [reqRes, restrRes] = await Promise.all([
     sb.from('professional_requests')
-      .select('status, client_id, priority, title, description')
-      .eq('professional_id', currentPro.id)
-      .eq('request_type', 'sports_medicine'),
+  .select('id, status, client_id, priority, title, client_note, coach_note')
+  .eq('professional_id', currentPro.id)
+  .eq('request_type', 'sports_medicine'),
     sb.from('client_medical_restrictions')
       .select('status, client_id, severity')
       .eq('professional_id', currentPro.id)
@@ -662,7 +665,7 @@ async function loadDashboard(){
       <span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></span>
       <div style="flex:1">
         <div class="cn">${c.name||'—'}</div>
-        <div class="cm">${r.title||r.description||'—'} · prioridad alta</div>
+        <div class="cm">${r.title || r.client_note || r.coach_note || '—'} · prioridad alta</div>
       </div>
       <button class="btn btn-b btn-sm" onclick="openCase('${r.client_id}','${r.id||''}')">Ver caso</button>
     </div>`
@@ -675,7 +678,29 @@ async function loadDashboard(){
 async function loadRequests(){
   const { data: reqs, error } = await sb
     .from('professional_requests')
-    .select('*, clients(id, name, plan, objective)')
+    .select(`
+  id,
+  client_id,
+  professional_id,
+  request_type,
+  status,
+  priority,
+  title,
+  client_note,
+  coach_note,
+  professional_response,
+  related_training_log_id,
+  related_session_id,
+  related_exercise_id,
+  price,
+  commission_amount,
+  payment_status,
+  created_at,
+  updated_at,
+  completed_at,
+  responded_at,
+  clients(id, name, plan, objective)
+`)
     .eq('professional_id', currentPro.id)
     .eq('request_type', 'sports_medicine')
     .order('created_at', { ascending: false })
@@ -702,7 +727,7 @@ function renderRequests(){
     const client = r.clients || {}
     return `<tr>
       <td><div class="cn">${client.name||'—'}</div><div class="cm">${client.plan||'—'}</div></td>
-      <td style="max-width:180px;font-size:.78rem">${r.title||r.description||'—'}</td>
+      <td style="max-width:180px;font-size:.78rem">${r.title || r.client_note || r.coach_note || '—'}</td>
       <td><span class="${prioClass(r.priority)}">${r.priority||'—'}</span></td>
       <td>${statusBadge(r.status)}</td>
       <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
