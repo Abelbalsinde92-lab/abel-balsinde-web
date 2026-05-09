@@ -428,6 +428,41 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </div>
 </div>
       
+      <div class="page" id="page-training-block-detail">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow" style="cursor:pointer" onclick="showPage('training-session-detail')">← Bloques de la sesión</div>
+      <div class="page-title" id="trainingBlockDetailTitle">Bloque</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openModal('trainingExercise')">+ Crear ejercicio</button>
+    </div>
+  </div>
+
+  <div id="trainingBlockDetailContent"></div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Ejercicios del bloque</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Orden</th>
+          <th>Ejercicio</th>
+          <th>Series</th>
+          <th>Reps / Tiempo</th>
+          <th>Descanso</th>
+          <th>Nivel</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="trainingExercisesTable"></tbody>
+    </table>
+  </div>
+</div>
+      
       <div class="page" id="page-entrenamiento">
   <div class="page-header">
     <div>
@@ -573,7 +608,8 @@ let state = {
   selectedClientId: null,
 selectedTrainingProgramId: null,
 selectedTrainingWeekId: null,
-selectedTrainingSessionId: null
+selectedTrainingSessionId: null,
+selectedTrainingBlockId: null
 };
 
 let currentPage = 'dashboard';
@@ -776,6 +812,7 @@ function renderAll(){
   renderTrainingDetail();
   renderTrainingWeekDetail();
   renderTrainingSessionDetail();
+  renderTrainingBlockDetail();
   renderProfile();
   renderSettings();
 }
@@ -1357,14 +1394,114 @@ function renderTrainingSessionDetail(){
   `).join('') : emptyRow(7, 'Esta sesión todavía no tiene bloques cargados.');
 }
 
+function renderTrainingBlockDetail(){
+  const titleEl = document.getElementById('trainingBlockDetailTitle');
+  const contentEl = document.getElementById('trainingBlockDetailContent');
+  const exercisesTable = document.getElementById('trainingExercisesTable');
+
+  if (!titleEl || !contentEl || !exercisesTable) return;
+
+  const blockId = state.selectedTrainingBlockId;
+  const block = state.trainingBlocks.find(b => b.id === blockId);
+
+  if (!block) {
+    titleEl.textContent = 'Bloque';
+    contentEl.innerHTML = emptyBlock('Selecciona un bloque desde el detalle de la sesión.');
+    exercisesTable.innerHTML = emptyRow(8, 'No hay bloque seleccionado.');
+    return;
+  }
+
+  const session = state.trainingSessions.find(s => s.id === block.sessionId);
+  const week = state.trainingWeeks.find(w => w.id === session?.weekId);
+  const program = state.trainingPrograms.find(p => p.id === week?.programId);
+
+  const exercises = state.trainingExercises
+    .filter(e => e.blockId === blockId)
+    .sort((a,b) => Number(a.exerciseOrder || a.orderNumber || 0) - Number(b.exerciseOrder || b.orderNumber || 0));
+
+  titleEl.textContent = block.title || block.name || 'Bloque';
+
+  contentEl.innerHTML = `
+    <div class="three-col">
+      <div class="card">
+        <div class="card-title">Ruta</div>
+        <div class="data-row">
+          <span class="data-key">Programa</span>
+          <span class="data-val">${esc(program?.name || '—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Semana</span>
+          <span class="data-val">Semana ${esc(week?.weekNumber || '—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Sesión</span>
+          <span class="data-val">${esc(session?.title || session?.name || '—')}</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Bloque</div>
+        <div class="data-row">
+          <span class="data-key">Orden</span>
+          <span class="data-val">${esc(block.blockOrder || block.orderNumber || '—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Tipo</span>
+          <span class="data-val">${esc(block.type || '—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Duración</span>
+          <span class="data-val">${esc(block.duration || '—')}</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Objetivo</div>
+        <div style="color:var(--gray);font-size:.82rem;line-height:1.7;">
+          ${esc(block.objective || block.description || 'Sin objetivo definido.')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  exercisesTable.innerHTML = exercises.length ? exercises.map(e => `
+    <tr>
+      <td class="font-mono">${esc(e.exerciseOrder || e.orderNumber || '—')}</td>
+      <td>
+        <div class="name-text">${esc(e.title || e.name || 'Sin título')}</div>
+        <div class="name-sub">${esc(e.description || '')}</div>
+      </td>
+      <td>${esc(e.sets || '—')}</td>
+      <td>${esc(e.reps || e.time || '—')}</td>
+      <td>${esc(e.rest || '—')}</td>
+      <td>${esc(e.level || 'General')}</td>
+      <td><span class="badge badge-${e.status || 'activo'}">${esc(e.status || 'activo')}</span></td>
+      <td>
+        <div class="td-actions">
+          <button class="btn btn-secondary btn-sm" onclick="openModal('trainingExercise','${e.id}')">Editar</button>
+          <button class="btn btn-secondary btn-sm" onclick="deleteItem('trainingExercises','${e.id}')">Eliminar</button>
+        </div>
+      </td>
+    </tr>
+  `).join('') : emptyRow(8, 'Este bloque todavía no tiene ejercicios cargados.');
+}
+
 function openTrainingBlockDetail(blockId){
   const block = state.trainingBlocks.find(b => b.id === blockId);
   if (!block) return;
 
-  alert(
-    `${block.title || block.name || 'Bloque'}\n\n` +
-    `Aquí luego abriremos los ejercicios de este bloque.`
-  );
+  state.selectedTrainingBlockId = blockId;
+  state.selectedTrainingSessionId = block.sessionId;
+
+  const session = state.trainingSessions.find(s => s.id === block.sessionId);
+  if (session) {
+    state.selectedTrainingWeekId = session.weekId;
+
+    const week = state.trainingWeeks.find(w => w.id === session.weekId);
+    if (week) state.selectedTrainingProgramId = week.programId;
+  }
+
+  showPage('training-block-detail');
 }
 
 function openTrainingSessionDetail(sessionId){
@@ -1893,6 +2030,106 @@ function openModal(type, id=null){
     ${actions}
   `;
   
+  } else if(type==='trainingExercise'){
+  const ex = get('trainingExercises');
+  const selectedBlock = state.trainingBlocks.find(b => b.id === state.selectedTrainingBlockId);
+
+  title.textContent = id ? 'Editar ejercicio' : 'Crear ejercicio';
+
+  form.innerHTML = `
+    <div class="form-row">
+      <label class="form-label">Bloque</label>
+      <select name="blockId" class="form-input" required>
+        ${state.trainingBlocks.map(b => {
+          const session = state.trainingSessions.find(s => s.id === b.sessionId);
+          const week = state.trainingWeeks.find(w => w.id === session?.weekId);
+          const program = state.trainingPrograms.find(p => p.id === week?.programId);
+
+          return `
+            <option value="${b.id}" ${(ex.blockId || selectedBlock?.id) === b.id ? 'selected' : ''}>
+              ${esc(program?.name || 'Programa')} · Semana ${esc(week?.weekNumber || '—')} · Sesión ${esc(session?.sessionNumber || '—')} · ${esc(b.title || b.name || 'Bloque')}
+            </option>
+          `;
+        }).join('')}
+      </select>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Orden del ejercicio</label>
+        <input name="exerciseOrder" class="form-input" type="number" value="${esc(ex.exerciseOrder || ex.orderNumber || '')}" placeholder="1" required>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Estado</label>
+        <select name="status" class="form-input">
+          <option value="activo" ${ex.status==='activo'?'selected':''}>Activo</option>
+          <option value="borrador" ${ex.status==='borrador'?'selected':''}>Borrador</option>
+          <option value="inactivo" ${ex.status==='inactivo'?'selected':''}>Inactivo</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Nombre del ejercicio</label>
+      <input name="title" class="form-input" value="${esc(ex.title || ex.name || '')}" placeholder="Ej: Movilidad articular general" required>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Descripción técnica</label>
+      <textarea name="description" class="form-input" rows="3" placeholder="Explica cómo se realiza el ejercicio">${esc(ex.description || '')}</textarea>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Series</label>
+        <input name="sets" class="form-input" value="${esc(ex.sets || '')}" placeholder="Ej: 3">
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Repeticiones</label>
+        <input name="reps" class="form-input" value="${esc(ex.reps || '')}" placeholder="Ej: 10 por lado">
+      </div>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Tiempo</label>
+        <input name="time" class="form-input" value="${esc(ex.time || '')}" placeholder="Ej: 30 segundos">
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Descanso</label>
+        <input name="rest" class="form-input" value="${esc(ex.rest || '')}" placeholder="Ej: 45 segundos">
+      </div>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Nivel / variante</label>
+        <select name="level" class="form-input">
+          <option value="General" ${ex.level==='General'?'selected':''}>General</option>
+          <option value="N1" ${ex.level==='N1'?'selected':''}>N1</option>
+          <option value="N2" ${ex.level==='N2'?'selected':''}>N2</option>
+          <option value="N3" ${ex.level==='N3'?'selected':''}>N3</option>
+          <option value="N4" ${ex.level==='N4'?'selected':''}>N4</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Video / referencia</label>
+        <input name="videoUrl" class="form-input" value="${esc(ex.videoUrl || '')}" placeholder="URL opcional">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Notas del coach</label>
+      <textarea name="coachNotes" class="form-input" rows="3">${esc(ex.coachNotes || '')}</textarea>
+    </div>
+
+    ${actions}
+  `;
+  
   } else if(type==='trainingAssignment'){
   title.textContent = 'Asignar programa a cliente';
 
@@ -2074,6 +2311,25 @@ async function saveModal(e){
   }
 
   showToast(id ? 'Bloque actualizado' : 'Bloque creado');
+
+} else if(type==='trainingExercise'){
+  await upsert('trainingExercises', data);
+  state.selectedTrainingBlockId = data.blockId;
+
+  const block = state.trainingBlocks.find(b => b.id === data.blockId);
+  if (block) {
+    state.selectedTrainingSessionId = block.sessionId;
+
+    const session = state.trainingSessions.find(s => s.id === block.sessionId);
+    if (session) {
+      state.selectedTrainingWeekId = session.weekId;
+
+      const week = state.trainingWeeks.find(w => w.id === session.weekId);
+      if (week) state.selectedTrainingProgramId = week.programId;
+    }
+  }
+
+  showToast(id ? 'Ejercicio actualizado' : 'Ejercicio creado');
 
 } else if(type==='trainingAssignment'){
   await upsert('clientProgramAssignments', data);
