@@ -359,7 +359,41 @@ tr:hover td{background:rgba(255,255,255,.02)}
     </table>
   </div>
 </div>
-      
+   
+      <div class="page" id="page-training-week-detail">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow" style="cursor:pointer" onclick="showPage('training-detail')">← Semanas del programa</div>
+      <div class="page-title" id="trainingWeekDetailTitle">Semana</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openModal('trainingSession')">+ Crear sesión</button>
+    </div>
+  </div>
+
+  <div id="trainingWeekDetailContent"></div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Sesiones de la semana</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Sesión</th>
+          <th>Nombre</th>
+          <th>Objetivo</th>
+          <th>Duración</th>
+          <th>Intensidad</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="trainingSessionsTable"></tbody>
+    </table>
+  </div>
+</div>
+           
       <div class="page" id="page-entrenamiento">
   <div class="page-header">
     <div>
@@ -503,7 +537,8 @@ let state = {
     legalDisclaimer:'El cliente declara estar en condiciones de realizar actividad física. El coach no se hace responsable de lesiones derivadas de información médica no declarada previamente.'
   },
   selectedClientId: null,
-selectedTrainingProgramId: null
+selectedTrainingProgramId: null,
+selectedTrainingWeekId: null
 };
 
 let currentPage = 'dashboard';
@@ -704,6 +739,7 @@ function renderAll(){
   renderPrograms();
   renderTraining();
   renderTrainingDetail();
+  renderTrainingWeekDetail();
   renderProfile();
   renderSettings();
 }
@@ -1106,15 +1142,114 @@ function renderTrainingDetail(){
   `).join('') : emptyRow(6, 'Este programa todavía no tiene semanas cargadas.');
 }
 
+function renderTrainingWeekDetail(){
+  const titleEl = document.getElementById('trainingWeekDetailTitle');
+  const contentEl = document.getElementById('trainingWeekDetailContent');
+  const sessionsTable = document.getElementById('trainingSessionsTable');
+
+  if (!titleEl || !contentEl || !sessionsTable) return;
+
+  const weekId = state.selectedTrainingWeekId;
+  const week = state.trainingWeeks.find(w => w.id === weekId);
+
+  if (!week) {
+    titleEl.textContent = 'Semana';
+    contentEl.innerHTML = emptyBlock('Selecciona una semana desde el detalle del programa.');
+    sessionsTable.innerHTML = emptyRow(7, 'No hay semana seleccionada.');
+    return;
+  }
+
+  const program = state.trainingPrograms.find(p => p.id === week.programId);
+
+  const sessions = state.trainingSessions
+    .filter(s => s.weekId === weekId)
+    .sort((a,b) => Number(a.sessionNumber || 0) - Number(b.sessionNumber || 0));
+
+  titleEl.textContent = `Semana ${week.weekNumber || '—'}`;
+
+  contentEl.innerHTML = `
+    <div class="three-col">
+      <div class="card">
+        <div class="card-title">Programa</div>
+        <div class="data-row">
+          <span class="data-key">Nombre</span>
+          <span class="data-val">${esc(program?.name || '—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Nivel</span>
+          <span class="data-val">${esc(program?.level || '—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Duración</span>
+          <span class="data-val">${esc(program?.durationWeeks || '—')} semanas</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Semana</div>
+        <div class="data-row">
+          <span class="data-key">Nombre</span>
+          <span class="data-val">${esc(week.name || '—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Foco</span>
+          <span class="data-val">${esc(week.focus || '—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Estado</span>
+          <span class="badge badge-${week.status || 'activo'}">${esc(week.status || 'activo')}</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Objetivo</div>
+        <div style="color:var(--gray);font-size:.82rem;line-height:1.7;">
+          ${esc(week.objective || week.description || 'Sin objetivo definido.')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  sessionsTable.innerHTML = sessions.length ? sessions.map(s => `
+    <tr>
+      <td class="font-mono">Sesión ${esc(s.sessionNumber || '—')}</td>
+      <td>
+        <div class="name-text">${esc(s.name || 'Sin nombre')}</div>
+        <div class="name-sub">${esc(s.description || '')}</div>
+      </td>
+      <td>${esc(s.objective || '—')}</td>
+      <td>${esc(s.duration || '—')}</td>
+      <td>${esc(s.intensity || '—')}</td>
+      <td><span class="badge badge-${s.status || 'activo'}">${esc(s.status || 'activo')}</span></td>
+      <td>
+        <div class="td-actions">
+          <button class="btn btn-blue btn-sm" onclick="openTrainingSessionDetail('${s.id}')">Ver bloques</button>
+          <button class="btn btn-secondary btn-sm" onclick="openModal('trainingSession','${s.id}')">Editar</button>
+        </div>
+      </td>
+    </tr>
+  `).join('') : emptyRow(7, 'Esta semana todavía no tiene sesiones cargadas.');
+}
+
+function openTrainingSessionDetail(sessionId){
+  const session = state.trainingSessions.find(s => s.id === sessionId);
+  if (!session) return;
+
+  alert(
+    `Sesión ${session.sessionNumber || '—'}\n\n` +
+    `${session.name || 'Sin nombre'}\n\n` +
+    `Aquí luego abriremos los bloques y ejercicios de la sesión.`
+  );
+}
+
 function openTrainingWeekDetail(weekId){
   const week = state.trainingWeeks.find(w => w.id === weekId);
   if (!week) return;
 
-  alert(
-    `Semana ${week.weekNumber || '—'}\n\n` +
-    `${week.name || 'Sin nombre'}\n\n` +
-    `Aquí luego abriremos las sesiones de esta semana.`
-  );
+  state.selectedTrainingWeekId = weekId;
+  state.selectedTrainingProgramId = week.programId;
+
+  showPage('training-week-detail');
 }
 
 function openTrainingProgramDetail(programId){
@@ -1472,6 +1607,78 @@ function openModal(type, id=null){
     ${actions}
   `;
   
+  } else if(type==='trainingSession'){
+  const s = get('trainingSessions');
+  const selectedWeek = state.trainingWeeks.find(w => w.id === state.selectedTrainingWeekId);
+
+  title.textContent = id ? 'Editar sesión' : 'Crear sesión';
+
+  form.innerHTML = `
+    <div class="form-row">
+      <label class="form-label">Semana</label>
+      <select name="weekId" class="form-input" required>
+        ${state.trainingWeeks.map(w => {
+          const program = state.trainingPrograms.find(p => p.id === w.programId);
+          return `
+            <option value="${w.id}" ${(s.weekId || selectedWeek?.id) === w.id ? 'selected' : ''}>
+              ${esc(program?.name || 'Programa')} · Semana ${esc(w.weekNumber || '—')} · ${esc(w.name || '')}
+            </option>
+          `;
+        }).join('')}
+      </select>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Número de sesión</label>
+        <input name="sessionNumber" class="form-input" type="number" value="${esc(s.sessionNumber || '')}" placeholder="1" required>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Estado</label>
+        <select name="status" class="form-input">
+          <option value="activo" ${s.status==='activo'?'selected':''}>Activo</option>
+          <option value="borrador" ${s.status==='borrador'?'selected':''}>Borrador</option>
+          <option value="inactivo" ${s.status==='inactivo'?'selected':''}>Inactivo</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Nombre de la sesión</label>
+      <input name="name" class="form-input" value="${esc(s.name || '')}" placeholder="Ej: Sesión 1 · Control corporal y movilidad">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Objetivo</label>
+      <textarea name="objective" class="form-input" rows="3" placeholder="Objetivo principal de esta sesión">${esc(s.objective || '')}</textarea>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Duración</label>
+        <input name="duration" class="form-input" value="${esc(s.duration || '')}" placeholder="Ej: 60 min">
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Intensidad</label>
+        <select name="intensity" class="form-input">
+          <option value="baja" ${s.intensity==='baja'?'selected':''}>Baja</option>
+          <option value="media" ${s.intensity==='media'?'selected':''}>Media</option>
+          <option value="alta" ${s.intensity==='alta'?'selected':''}>Alta</option>
+          <option value="variable" ${s.intensity==='variable'?'selected':''}>Variable</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Descripción / notas</label>
+      <textarea name="description" class="form-input" rows="3">${esc(s.description || '')}</textarea>
+    </div>
+
+    ${actions}
+  `;
+  
   } else if(type==='trainingAssignment'){
   title.textContent = 'Asignar programa a cliente';
 
@@ -1630,6 +1837,15 @@ async function saveModal(e){
   await upsert('trainingWeeks', data);
   state.selectedTrainingProgramId = data.programId;
   showToast(id ? 'Semana actualizada' : 'Semana creada');
+
+} else if(type==='trainingSession'){
+  await upsert('trainingSessions', data);
+  state.selectedTrainingWeekId = data.weekId;
+
+  const week = state.trainingWeeks.find(w => w.id === data.weekId);
+  if (week) state.selectedTrainingProgramId = week.programId;
+
+  showToast(id ? 'Sesión actualizada' : 'Sesión creada');
 
 } else if(type==='trainingAssignment'){
   await upsert('clientProgramAssignments', data);
