@@ -1249,16 +1249,59 @@ async function finishTrainingSession() {
 }
 
 function renderTrainingCompletedState() {
-  var area = document.getElementById('trainingCompletionArea');
-  if (!area) return;
+  const el = document.getElementById('sectionTrainingClient');
+  if (!el) return;
 
-  area.innerHTML = '<div class="training-finish-card" id="trainingFinishCard">'
+  const currentWeekNum = Number(clientTrainingAssignment.current_week || 1);
+  const activeWeek = getActiveTrainingWeek();
+
+  const levelStr = clientTrainingAssignment.assigned_level || clientTrainingProgram.level || '';
+  const weekName = activeWeek ? activeWeek.name : '';
+
+  const metaParts = [
+    'Semana ' + currentWeekNum + (weekName ? ' · ' + weekName : ''),
+    levelStr
+  ].filter(Boolean);
+
+  const objective = (activeWeek && activeWeek.objective)
+    ? activeWeek.objective
+    : (clientTrainingProgram.objective || '');
+
+  const savedNote = currentTrainingLog && currentTrainingLog.client_note
+    ? currentTrainingLog.client_note
+    : '';
+
+  let html = '';
+
+  html += '<div class="training-guide-summary">'
+    + '<div class="training-guide-title">' + (clientTrainingProgram.name || 'Programa de entrenamiento') + '</div>'
+    + '<div class="training-guide-meta">' + metaParts.join(' · ') + '</div>'
+    + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
+    + '</div>';
+
+  html += '<div class="training-finish-card" id="trainingFinishCard">'
     + '<div class="training-finish-icon">🏁</div>'
     + '<div class="training-finish-title">Entrenamiento completado</div>'
     + '<div class="training-finish-sub">Este entrenamiento ya quedó registrado.</div>'
     + '</div>';
 
-  showTrainingNotes(true);
+  if (savedNote) {
+    html += '<div class="training-notes-box">'
+      + '<div class="training-notes-title">Nota registrada</div>'
+      + '<div class="training-notes-sub">Esta nota quedó guardada para revisar con Abel.</div>'
+      + '<div class="note-item">' + savedNote + '</div>'
+      + '</div>';
+  } else {
+    html += '<div class="training-notes-box">'
+      + '<div class="training-notes-title">Notas del entrenamiento</div>'
+      + '<div class="training-notes-sub">Si tuviste alguna molestia, dificultad o algo que Abel deba revisar, déjalo aquí.</div>'
+      + '<textarea class="training-notes-textarea" id="trainingNoteText" placeholder="Ej: sentí molestia en la rodilla derecha durante las sentadillas…"></textarea>'
+      + '<button class="training-complete-block-btn" id="saveNoteBtn" onclick="saveTrainingNote()">Guardar nota</button>'
+      + '<div id="trainingNoteSaved" class="training-note-saved hidden">Nota registrada para revisar con Abel.</div>'
+      + '</div>';
+  }
+
+  el.innerHTML = html;
 }
 
 /** Hides the finish button and shows the notes textarea. */
@@ -1316,12 +1359,14 @@ async function saveTrainingNote() {
     client_note: note
   });
 
-  if (saved) saved.classList.remove('hidden');
+ if (saved) saved.classList.remove('hidden');
 
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = 'Guardar nota';
-  }
+if (btn) {
+  btn.disabled = false;
+  btn.textContent = 'Guardar nota';
+}
+
+renderTrainingCompletedState();
 }
 
 /* ════════════════════════════════════════════════════════════
