@@ -899,7 +899,7 @@ async function saveRestriction(markComplete){
         `Retorno: ${returnNote || '—'}`,
 
       start_date: todayISO(),
-      alert_coach: severity === 'alta' || status === 'activa',
+      alert_coach: status !== 'archivada' && (severity === 'alta' || status === 'activa'),
       updated_at: new Date().toISOString()
     }
 
