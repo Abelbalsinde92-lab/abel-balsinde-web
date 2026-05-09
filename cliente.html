@@ -1439,7 +1439,7 @@ function renderClientTraining() {
             ${session.intensity ? ` · Intensidad ${session.intensity}` : ''}
           </div>
         </div>
-        <span class="accordion-symbol">+</span>
+        <span class="accordion-symbol">${session === clientTrainingSessions[0] ? '−' : '+'}</span>
       </button>
 
       <div class="training-session-body">
@@ -1864,19 +1864,12 @@ function renderClientData() {
       </div>
     </div>
 
-    <div class="accordion-block training-session-card ${session === clientTrainingSessions[0] ? 'open' : ''}">
-  <button class="training-session-head" onclick="toggleAccordion(this)">
-    <div>
-      <div class="training-session-title">Sesión ${sessionNumber}</div>
-      <div class="training-session-sub">${sessionTitle}</div>
-      <div class="training-session-sub">
-        ${session.duration ? `${session.duration}` : ''}
-        ${session.intensity ? ` · Intensidad ${session.intensity}` : ''}
-      </div>
-    </div>
-    <span class="accordion-symbol">${session === clientTrainingSessions[0] ? '−' : '+'}</span>
+    <div class="accordion-block">
+  <button class="accordion-title" onclick="toggleAccordion(this)">
+    <span>Entrenamiento</span>
+    <span class="accordion-symbol">+</span>
   </button>
-      <div class="accordion-content">
+  <div class="accordion-content">
         <div class="plan-grid" style="margin-top:12px;">
           <div class="plan-item">
             <div class="pi-label">Estado</div>
