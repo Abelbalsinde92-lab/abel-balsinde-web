@@ -511,6 +511,49 @@ let completedTrainingBlocks = new Set();
 let activeTrainingBlockKey  = null;
 let currentTrainingLog      = null;
 
+function getTrainingStorageKey() {
+  if (!clientData || !clientTrainingAssignment) return null;
+
+  return [
+    'ab_training_progress',
+    clientData.id,
+    clientTrainingAssignment.id,
+    todayISO()
+  ].join('_');
+}
+
+function loadTrainingProgressLocal() {
+  const key = getTrainingStorageKey();
+  if (!key) return null;
+
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (error) {
+    console.error('Error leyendo progreso local:', error);
+    return null;
+  }
+}
+
+function saveTrainingProgressLocal(extraData) {
+  const key = getTrainingStorageKey();
+  if (!key) return;
+
+  const previous = loadTrainingProgressLocal() || {};
+
+  const payload = {
+    ...previous,
+    completed_block_ids: Array.from(completedTrainingBlocks),
+    is_finished: previous.is_finished || false,
+    client_note: previous.client_note || '',
+    updated_at: new Date().toISOString(),
+    ...(extraData || {})
+  };
+
+  localStorage.setItem(key, JSON.stringify(payload));
+}
+
 /* ── UTILITY ─────────────────────────────────────────────── */
 function normalizePhone(p) { return String(p).replace(/[\s\-\(\)\+]/g, ''); }
 function openWA(msg)        { window.open(`https://wa.me/${normalizePhone(WA_NUMBER)}?text=${encodeURIComponent(msg)}`, '_blank'); }
@@ -788,6 +831,16 @@ function getActiveTrainingWeek() {
 async function loadOrCreateTrainingLog() {
   if (!clientData || !clientTrainingAssignment || !clientTrainingProgram) return null;
 
+  const localProgress = loadTrainingProgressLocal();
+
+  if (localProgress) {
+    completedTrainingBlocks = new Set(localProgress.completed_block_ids || []);
+    currentTrainingLog = {
+      ...(currentTrainingLog || {}),
+      ...localProgress
+    };
+  }
+
   var activeWeek = getActiveTrainingWeek();
 
   var payload = {
@@ -798,73 +851,110 @@ async function loadOrCreateTrainingLog() {
     training_date: todayISO()
   };
 
-  var existing = await db
-    .from('client_training_logs')
-    .select('*')
-    .eq('client_id', payload.client_id)
-    .eq('assignment_id', payload.assignment_id)
-    .eq('training_date', payload.training_date)
-    .maybeSingle();
+  try {
+    var existing = await db
+      .from('client_training_logs')
+      .select('*')
+      .eq('client_id', payload.client_id)
+      .eq('assignment_id', payload.assignment_id)
+      .eq('training_date', payload.training_date)
+      .maybeSingle();
 
-  if (existing.error) {
-    console.error('Error cargando progreso:', existing.error);
-    return null;
+    if (existing.error) {
+      console.error('Error cargando progreso desde Supabase:', existing.error);
+      return currentTrainingLog;
+    }
+
+    if (existing.data) {
+      const supabaseBlocks = existing.data.completed_block_ids || [];
+      const localBlocks = localProgress?.completed_block_ids || [];
+
+      completedTrainingBlocks = new Set([
+        ...supabaseBlocks,
+        ...localBlocks
+      ]);
+
+      currentTrainingLog = {
+        ...existing.data,
+        completed_block_ids: Array.from(completedTrainingBlocks),
+        is_finished: existing.data.is_finished || localProgress?.is_finished || false,
+        client_note: existing.data.client_note || localProgress?.client_note || ''
+      };
+
+      saveTrainingProgressLocal(currentTrainingLog);
+
+      return currentTrainingLog;
+    }
+
+    var created = await db
+      .from('client_training_logs')
+      .insert({
+        ...payload,
+        completed_block_ids: Array.from(completedTrainingBlocks),
+        is_finished: localProgress?.is_finished || false,
+        client_note: localProgress?.client_note || '',
+        started_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (created.error) {
+      console.error('Error creando progreso en Supabase:', created.error);
+      return currentTrainingLog;
+    }
+
+    currentTrainingLog = created.data;
+    saveTrainingProgressLocal(currentTrainingLog);
+
+    return currentTrainingLog;
+
+  } catch (error) {
+    console.error('Error general cargando progreso:', error);
+    return currentTrainingLog;
   }
-
-  if (existing.data) {
-    currentTrainingLog = existing.data;
-    completedTrainingBlocks = new Set(existing.data.completed_block_ids || []);
-    return existing.data;
-  }
-
-  var created = await db
-    .from('client_training_logs')
-    .insert({
-      ...payload,
-      completed_block_ids: [],
-      is_finished: false,
-      started_at: new Date().toISOString()
-    })
-    .select()
-    .single();
-
-  if (created.error) {
-    console.error('Error creando progreso:', created.error);
-    return null;
-  }
-
-  currentTrainingLog = created.data;
-  completedTrainingBlocks = new Set(created.data.completed_block_ids || []);
-  return created.data;
 }
 
 async function saveTrainingProgress(extraData) {
-  if (!currentTrainingLog) {
+  saveTrainingProgressLocal(extraData);
+
+  if (!currentTrainingLog || !currentTrainingLog.id) {
     await loadOrCreateTrainingLog();
   }
 
-  if (!currentTrainingLog) return;
+  if (!currentTrainingLog || !currentTrainingLog.id) {
+    console.warn('No hay currentTrainingLog con id. Progreso guardado solo localmente.');
+    return;
+  }
+
+  const localProgress = loadTrainingProgressLocal() || {};
 
   var payload = {
     completed_block_ids: Array.from(completedTrainingBlocks),
+    is_finished: localProgress.is_finished || false,
+    client_note: localProgress.client_note || null,
     updated_at: new Date().toISOString(),
     ...(extraData || {})
   };
 
-  var saved = await db
-    .from('client_training_logs')
-    .update(payload)
-    .eq('id', currentTrainingLog.id)
-    .select()
-    .single();
+  try {
+    var saved = await db
+      .from('client_training_logs')
+      .update(payload)
+      .eq('id', currentTrainingLog.id)
+      .select()
+      .single();
 
-  if (saved.error) {
-    console.error('Error guardando progreso:', saved.error);
-    alert('No se pudo guardar el progreso. Revisa conexión o permisos.');
-    return;
+    if (saved.error) {
+      console.error('Error guardando progreso en Supabase:', saved.error);
+      return;
+    }
+
+    currentTrainingLog = saved.data;
+    saveTrainingProgressLocal(currentTrainingLog);
+
+  } catch (error) {
+    console.error('Error general guardando progreso:', error);
   }
-
-  currentTrainingLog = saved.data;
 }
 
 /** Renders the full training guide into sectionTrainingClient */
@@ -1085,6 +1175,8 @@ function toggleTrainingStep(blockId) {
 async function completeTrainingStep(blockId) {
   completedTrainingBlocks.add(blockId);
 
+  saveTrainingProgressLocal();
+
   markStepVisualAsCompleted(blockId);
 
   await saveTrainingProgress();
@@ -1143,6 +1235,11 @@ function renderTrainingCompletionBox(scrollToBox) {
 }
 
 async function finishTrainingSession() {
+  saveTrainingProgressLocal({
+    is_finished: true,
+    finished_at: new Date().toISOString()
+  });
+
   await saveTrainingProgress({
     is_finished: true,
     finished_at: new Date().toISOString()
@@ -1210,6 +1307,10 @@ async function saveTrainingNote() {
     btn.disabled = true;
     btn.textContent = 'Guardando...';
   }
+
+  saveTrainingProgressLocal({
+    client_note: note
+  });
 
   await saveTrainingProgress({
     client_note: note
