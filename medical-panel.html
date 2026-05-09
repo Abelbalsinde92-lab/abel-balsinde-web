@@ -444,19 +444,32 @@ button, input, select, textarea { font: inherit; }
 
         <!-- ─── RESTRICCIONES ACTIVAS ─────────────────────── -->
         <div class="view" id="v-restrictions">
-          <div class="ph">
-            <div>
-              <div class="ptitle">Historial médico</div>
-<div class="psub">Restricciones, revisiones y casos cerrados</div>
-            </div>
-          </div>
-          <div class="panel">
-            <div class="twrap"><table class="dt">
-              <thead><tr><th>Cliente</th><th>Tipo</th><th>Zona</th><th>Severidad</th><th>Estado</th><th>Fecha</th></tr></thead>
-              <tbody id="restrictions-tbody"></tbody>
-            </table></div>
-          </div>
-        </div>
+  <div class="ph">
+    <div>
+      <div class="ptitle">Historial médico</div>
+      <div class="psub">Restricciones, revisiones y seguimiento por cliente</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="twrap">
+      <table class="dt">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Tipo</th>
+            <th>Zona</th>
+            <th>Severidad</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="restrictions-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
       </main>
     </div>
@@ -849,10 +862,10 @@ async function saveRestriction(markComplete){
 
   const { client } = currentCaseData
 
-  if(!client?.id || !currentReqId || !currentPro?.id){
-    alert('Faltan datos del caso, cliente o profesional.')
-    return
-  }
+  if(!client?.id || !currentPro?.id){
+  alert('Faltan datos del cliente o profesional.')
+  return
+}
 
   const restrictionType = document.getElementById('mf-type').value
   const bodyArea        = document.getElementById('mf-area').value
@@ -879,7 +892,7 @@ async function saveRestriction(markComplete){
     const restrData = {
       client_id: client.id,
       professional_id: currentPro.id,
-      professional_request_id: currentReqId,
+      professional_request_id: currentReqId || null,
 
       status,
       restriction_type: restrictionType,
@@ -928,10 +941,18 @@ async function saveRestriction(markComplete){
       reqUpdate.completed_at = new Date().toISOString()
     }
 
-    const { error: reqErr } = await sb
-      .from('professional_requests')
-      .update(reqUpdate)
-      .eq('id', currentReqId)
+    if(currentReqId){
+  const { error: reqErr } = await sb
+    .from('professional_requests')
+    .update(reqUpdate)
+    .eq('id', currentReqId)
+
+  if(reqErr){
+    console.error('Error actualizando solicitud:', reqErr)
+    alert('Restricción guardada, pero falló actualizar la solicitud: ' + reqErr.message)
+    return
+  }
+}
 
     if(reqErr){
       console.error('Error actualizando solicitud:', reqErr)
@@ -1017,7 +1038,7 @@ async function loadRestrictionsHistory(){
   const tbody = document.getElementById('restrictions-tbody')
   if(!tbody) return
 
-  tbody.innerHTML = `<tr><td colspan="6">${emptyState('Cargando restricciones...')}</td></tr>`
+  tbody.innerHTML = `<tr><td colspan="7">${emptyState('Cargando historial médico...')}</td></tr>`
 
   const { data, error } = await sb
     .from('client_medical_restrictions')
@@ -1041,20 +1062,20 @@ async function loadRestrictionsHistory(){
       end_date,
       created_at,
       alert_coach,
-      clients(id, name, phone, plan)
+      clients(id, name, phone, plan, objective)
     `)
     .eq('professional_id', currentPro.id)
     .order('created_at', { ascending: false })
 
   if(error){
     console.error('Error cargando historial médico:', error)
-    tbody.innerHTML = `<tr><td colspan="6">${emptyState('Error cargando historial médico.')}</td></tr>`
+    tbody.innerHTML = `<tr><td colspan="7">${emptyState('Error cargando historial médico.')}</td></tr>`
     toast('Error cargando historial médico', 'err')
     return
   }
 
   if(!data || !data.length){
-    tbody.innerHTML = `<tr><td colspan="6">${emptyState('Sin restricciones registradas para este médico.')}</td></tr>`
+    tbody.innerHTML = `<tr><td colspan="7">${emptyState('Sin historial médico registrado.')}</td></tr>`
     return
   }
 
@@ -1069,8 +1090,121 @@ async function loadRestrictionsHistory(){
       <td><span class="${sevClass(r.severity)}">${r.severity || '—'}</span></td>
       <td>${statusBadge(r.status)}</td>
       <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
+      <td>
+        <button class="btn btn-b btn-sm" onclick="openMedicalFollowUp('${r.client_id}', '${r.professional_request_id || ''}')">
+          Ver seguimiento
+        </button>
+      </td>
     </tr>
   `).join('')
+}
+
+async function openMedicalFollowUp(clientId, reqId){
+  if(reqId){
+    await openCase(clientId, reqId)
+    return
+  }
+
+  showView('v-case')
+
+  const [clientRes, logsRes, prevRestrRes] = await Promise.all([
+    sb.from('clients')
+      .select('*')
+      .eq('id', clientId)
+      .single(),
+
+    sb.from('client_training_logs')
+      .select('id, training_date, client_note, coach_note, pain_flag, pain_area, is_finished, session_number')
+      .eq('client_id', clientId)
+      .order('training_date', { ascending: false })
+      .limit(10),
+
+    sb.from('client_medical_restrictions')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('created_at', { ascending: false })
+  ])
+
+  const client = clientRes.data || {}
+  const logs = logsRes.data || []
+  const prevRestr = prevRestrRes.data || []
+
+  currentReqId = null
+  currentCaseData = {
+    client,
+    req: {},
+    logs,
+    prevRestr
+  }
+
+  document.getElementById('case-title').textContent = client.name || 'Cliente'
+  document.getElementById('case-sub').textContent = 'Seguimiento médico · historial del cliente'
+
+  document.getElementById('case-client-info').innerHTML = [
+    ic('Nombre', client.name),
+    ic('Plan', client.plan),
+    ic('Objetivo deportivo', client.objective),
+    ic('Ciudad', client.city),
+    ic('Teléfono', client.phone),
+    ic('Estado', client.status)
+  ].join('')
+
+  document.getElementById('case-coach-note').textContent = 'Seguimiento abierto desde historial médico.'
+
+  const logsEl = document.getElementById('case-training-logs')
+  if(!logs.length){
+    logsEl.innerHTML = `<div class="panel-body">${emptyState('Sin registros de entrenamiento.')}</div>`
+  } else {
+    logsEl.innerHTML = logs.map(l => `
+      <div class="log-item">
+        <div class="log-date">${fmtDate(l.training_date)} · Sesión ${l.session_number || '—'} · ${l.is_finished ? 'Completada' : 'No completada'}</div>
+        ${l.pain_flag ? `<div class="note-pain">⚠ Molestia reportada ${l.pain_area ? '· ' + l.pain_area : ''}</div>` : ''}
+        ${l.client_note ? `<div class="log-note" style="margin-top:.35rem"><strong>Cliente:</strong> ${l.client_note}</div>` : ''}
+        ${l.coach_note ? `<div class="log-note"><strong>Coach:</strong> ${l.coach_note}</div>` : ''}
+      </div>
+    `).join('')
+  }
+
+  const prevEl = document.getElementById('case-restrictions-history')
+  if(!prevRestr.length){
+    prevEl.innerHTML = `<div class="panel-body">${emptyState('Sin restricciones médicas anteriores.')}</div>`
+  } else {
+    prevEl.innerHTML = `<div class="twrap"><table class="dt">
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Zona</th>
+          <th>Severidad</th>
+          <th>Estado</th>
+          <th>Descripción</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${prevRestr.map(r => `
+          <tr>
+            <td>${r.restriction_type || '—'}</td>
+            <td>${r.body_area || '—'}</td>
+            <td><span class="${sevClass(r.severity)}">${r.severity || '—'}</span></td>
+            <td>${statusBadge(r.status)}</td>
+            <td style="max-width:220px;font-size:.78rem">${r.description || '—'}</td>
+            <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table></div>`
+  }
+
+  document.getElementById('pain-alert').style.display = 'none'
+  document.getElementById('med-save-msg').style.display = 'none'
+
+  ;['mf-type','mf-area','mf-desc','mf-reco','mf-forbidden','mf-allowed','mf-return','mf-resp'].forEach(id => {
+    const el = document.getElementById(id)
+    if(el) el.value = ''
+  })
+
+  document.getElementById('mf-severity').value = 'media'
+  document.getElementById('mf-status').value = 'activa'
 }
 
 // ════════════════════════════════════════════════════════════════
