@@ -8,539 +8,509 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* ── VARIABLES ─────────────────────────────────────────────── */
 :root {
-  --navy:   #020B18;
-  --navy2:  #061427;
-  --navy3:  #0D1E30;
-  --navy4:  #1A2840;
-  --red:    #E20613;
-  --blue:   #5EC5F0;
-  --white:  #F5F9FF;
-  --gray:   #8A9BB0;
-  --gray2:  #4A5B70;
-  --green:  #22c55e;
-  --amber:  #f59e0b;
-  --border: rgba(94,197,240,.12);
-  --border2:rgba(255,255,255,.07);
+  --navy:#020B18; --navy2:#061427; --navy3:#0D1E30; --navy4:#1A2840;
+  --red:#E20613; --blue:#5EC5F0; --white:#F5F9FF;
+  --gray:#8A9BB0; --gray2:#4A5B70; --green:#22c55e; --amber:#f59e0b;
+  --border:rgba(94,197,240,.12); --border2:rgba(255,255,255,.07);
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--navy); color: var(--white); }
-button, input, select, textarea { font: inherit; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white)}
+button,input,select,textarea{font:inherit}
+.app{min-height:100vh;display:flex;flex-direction:column}
 
-.app { min-height: 100vh; display: flex; flex-direction: column; }
+/* ── LOGIN ── */
+#screen-login{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem}
+.login-card{background:var(--navy2);border:1px solid var(--border);padding:2.5rem 2rem;width:100%;max-width:400px}
+.login-brand{margin-bottom:2rem}
+.login-brand .main{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.05em}
+.login-brand .sub{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:var(--blue)}
+.login-role{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.5rem;padding:.4rem .75rem;background:rgba(226,6,19,.08);border:1px solid rgba(226,6,19,.2);color:#f87171;display:inline-block}
+.field{margin-bottom:1rem}
+.field label{display:block;font-family:'Space Mono',monospace;font-size:.57rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:.35rem}
+.field input,.field select,.field textarea{width:100%;background:var(--navy3);border:1px solid var(--border2);color:var(--white);padding:9px 11px;outline:0;font-size:.9rem;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(94,197,240,.4)}
+.field textarea{min-height:80px;resize:vertical}
 
-/* ── LOGIN ─────────────────────────────────────────────────── */
-#screen-login { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; }
-.login-card { background: var(--navy2); border: 1px solid var(--border); padding: 2.5rem 2rem; width: 100%; max-width: 400px; }
-.login-brand { margin-bottom: 2rem; }
-.login-brand .main { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: .05em; }
-.login-brand .sub  { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .18em; text-transform: uppercase; color: var(--blue); }
-.login-role { font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .15em; text-transform: uppercase; color: var(--gray); margin-bottom: 1.5rem; padding: .4rem .75rem; background: rgba(226,6,19,.08); border: 1px solid rgba(226,6,19,.2); color: #f87171; display: inline-block; }
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid transparent;cursor:pointer;padding:8px 16px;font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;transition:all .15s}
+.btn-sm{padding:5px 11px;font-size:.57rem}
+.btn-r{background:var(--red);color:#fff;border-color:var(--red)}.btn-r:hover{background:#ff1a25}
+.btn-b{background:rgba(94,197,240,.1);color:var(--blue);border-color:rgba(94,197,240,.25)}.btn-b:hover{background:rgba(94,197,240,.18)}
+.btn-o{background:transparent;color:var(--gray);border-color:var(--border)}.btn-o:hover{color:var(--white);background:rgba(255,255,255,.04)}
+.btn-a{background:rgba(245,158,11,.1);color:var(--amber);border-color:rgba(245,158,11,.25)}
+.btn-g{background:rgba(34,197,94,.1);color:var(--green);border-color:rgba(34,197,94,.25)}
+.btn-full{width:100%}
+.error-msg{background:rgba(226,6,19,.1);border:1px solid rgba(226,6,19,.25);color:#f87171;padding:.6rem .75rem;font-size:.8rem;margin-top:.75rem;display:none}
+.error-msg.show{display:block}
 
-.field { margin-bottom: 1rem; }
-.field label { display: block; font-family: 'Space Mono', monospace; font-size: .57rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray); margin-bottom: .35rem; }
-.field input, .field select, .field textarea { width: 100%; background: var(--navy3); border: 1px solid var(--border2); color: var(--white); padding: 9px 11px; outline: 0; font-size: .9rem; transition: border-color .15s; }
-.field input:focus, .field select:focus, .field textarea:focus { border-color: rgba(94,197,240,.4); }
-.field textarea { min-height: 80px; resize: vertical; }
+/* ── TOP BAR ── */
+#topbar{height:54px;flex-shrink:0;background:var(--navy2);border-bottom:1px solid var(--border);display:none;align-items:center;gap:1rem;padding:0 1.25rem}
+.topbar-brand .m{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.05em}
+.topbar-brand .s{font-family:'Space Mono',monospace;font-size:.5rem;color:var(--blue);letter-spacing:.18em;text-transform:uppercase}
+.topbar-role{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;background:rgba(226,6,19,.08);border:1px solid rgba(226,6,19,.2);color:#f87171}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:.75rem}
+.topbar-user{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--gray)}
+.sep{width:1px;height:22px;background:var(--border)}
 
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; cursor: pointer; padding: 8px 16px; font-family: 'Space Mono', monospace; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; transition: all .15s; }
-.btn-sm  { padding: 5px 11px; font-size: .57rem; }
-.btn-r   { background: var(--red); color: #fff; border-color: var(--red); }
-.btn-r:hover { background: #ff1a25; }
-.btn-b   { background: rgba(94,197,240,.1); color: var(--blue); border-color: rgba(94,197,240,.25); }
-.btn-b:hover { background: rgba(94,197,240,.18); }
-.btn-o   { background: transparent; color: var(--gray); border-color: var(--border); }
-.btn-o:hover { color: var(--white); background: rgba(255,255,255,.04); }
-.btn-a   { background: rgba(245,158,11,.1); color: var(--amber); border-color: rgba(245,158,11,.25); }
-.btn-g   { background: rgba(34,197,94,.1); color: var(--green); border-color: rgba(34,197,94,.25); }
-.btn-full { width: 100%; }
+/* ── APP LAYOUT ── */
+#screen-app{flex:1;display:none;overflow:hidden}
+.layout{display:flex;height:calc(100vh - 54px)}
+.sidebar{width:210px;flex-shrink:0;background:var(--navy2);border-right:1px solid var(--border);padding:1rem 0;overflow-y:auto}
+.nav-sec{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gray2);padding:.5rem 1rem .25rem}
+.nav-item{display:flex;align-items:center;gap:.6rem;padding:.58rem 1rem;color:var(--gray);font-size:.82rem;border-left:2px solid transparent;cursor:pointer;transition:all .12s}
+.nav-item:hover{background:rgba(255,255,255,.04);color:var(--white)}
+.nav-item.on{background:rgba(226,6,19,.08);color:var(--white);border-left-color:var(--red)}
+.nav-ico{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--red);width:16px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);font-family:'Space Mono',monospace;font-size:.5rem;padding:2px 5px;border-radius:2px;color:#fff}
+.content{flex:1;overflow-y:auto;padding:1.5rem}
+.view{display:none}.view.on{display:block}
 
-.error-msg { background: rgba(226,6,19,.1); border: 1px solid rgba(226,6,19,.25); color: #f87171; padding: .6rem .75rem; font-size: .8rem; margin-top: .75rem; display: none; }
-.error-msg.show { display: block; }
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.4rem}
+.ptitle{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:.04em;line-height:1}
+.psub{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-top:4px}
+.pacts{display:flex;gap:.5rem;flex-wrap:wrap}
 
-/* ── TOP BAR ───────────────────────────────────────────────── */
-#topbar { height: 54px; flex-shrink: 0; background: var(--navy2); border-bottom: 1px solid var(--border); display: none; align-items: center; gap: 1rem; padding: 0 1.25rem; }
-.topbar-brand .m { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: .05em; }
-.topbar-brand .s { font-family: 'Space Mono', monospace; font-size: .5rem; color: var(--blue); letter-spacing: .18em; text-transform: uppercase; }
-.topbar-role { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .12em; text-transform: uppercase; padding: 3px 8px; background: rgba(226,6,19,.08); border: 1px solid rgba(226,6,19,.2); color: #f87171; }
-.topbar-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
-.topbar-user { font-family: 'Space Mono', monospace; font-size: .6rem; color: var(--gray); }
-.sep { width: 1px; height: 22px; background: var(--border); }
+/* ── METRICS ── */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-bottom:1.4rem}
+.mcard{background:var(--navy3);border:1px solid var(--border2);padding:1rem}
+.ml{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);display:block;margin-bottom:.2rem}
+.mv{font-family:'Bebas Neue',sans-serif;font-size:2rem;line-height:1;display:block}
+.tv-b{color:var(--blue)!important}.tv-r{color:var(--red)!important}.tv-g{color:var(--green)!important}.tv-a{color:var(--amber)!important}
 
-/* ── APP LAYOUT ────────────────────────────────────────────── */
-#screen-app { flex: 1; display: none; overflow: hidden; }
-.layout { display: flex; height: calc(100vh - 54px); }
+/* ── PANEL ── */
+.panel{background:var(--navy3);border:1px solid var(--border2);margin-bottom:1rem;overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;border-bottom:1px solid var(--border2);flex-wrap:wrap}
+.panel-title{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray)}
+.panel-body{padding:.85rem 1rem}
 
-/* ── SIDEBAR ───────────────────────────────────────────────── */
-.sidebar { width: 210px; flex-shrink: 0; background: var(--navy2); border-right: 1px solid var(--border); padding: 1rem 0; overflow-y: auto; }
-.nav-sec  { font-family: 'Space Mono', monospace; font-size: .5rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gray2); padding: .5rem 1rem .25rem; }
-.nav-item { display: flex; align-items: center; gap: .6rem; padding: .58rem 1rem; color: var(--gray); font-size: .82rem; border-left: 2px solid transparent; cursor: pointer; transition: all .12s; }
-.nav-item:hover { background: rgba(255,255,255,.04); color: var(--white); }
-.nav-item.on { background: rgba(226,6,19,.08); color: var(--white); border-left-color: var(--red); }
-.nav-ico   { font-family: 'Space Mono', monospace; font-size: .6rem; color: var(--red); width: 16px; text-align: center; }
-.nav-badge { margin-left: auto; background: var(--red); font-family: 'Space Mono', monospace; font-size: .5rem; padding: 2px 5px; border-radius: 2px; color: #fff; }
+/* ── TABLE ── */
+.twrap{overflow-x:auto}
+.dt{width:100%;border-collapse:collapse;font-size:.83rem;min-width:520px}
+.dt th{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray2);padding:.65rem .75rem;text-align:left;border-bottom:1px solid var(--border2);white-space:nowrap}
+.dt td{padding:.65rem .75rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--gray);vertical-align:middle}
+.dt tr:hover td{background:rgba(255,255,255,.025);color:var(--white)}
+.cn{color:var(--white);font-weight:500}
+.cm{font-size:.72rem;color:var(--gray)}
 
-/* ── CONTENT ───────────────────────────────────────────────── */
-.content { flex: 1; overflow-y: auto; padding: 1.5rem; }
-.view { display: none; }
-.view.on { display: block; }
+/* ── STATUS ── */
+.st{display:inline-block;font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px}
+.st-a{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.st-b{background:rgba(94,197,240,.1);color:var(--blue);border:1px solid rgba(94,197,240,.2)}
+.st-w{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.st-r{background:rgba(226,6,19,.12);color:#f87171;border:1px solid rgba(226,6,19,.2)}
+.st-x{background:rgba(138,155,176,.1);color:var(--gray);border:1px solid rgba(138,155,176,.18)}
+.sev-alta{color:#f87171;font-weight:600}.sev-media{color:var(--amber)}.sev-baja{color:var(--green)}
+.prio-alta{color:#f87171;font-weight:600}.prio-media{color:var(--amber)}.prio-baja{color:var(--gray)}
 
-/* ── PAGE HEADER ───────────────────────────────────────────── */
-.ph { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
-.ptitle { font-family: 'Bebas Neue', sans-serif; font-size: 1.9rem; letter-spacing: .04em; line-height: 1; }
-.psub { font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gray); margin-top: 4px; }
-.pacts { display: flex; gap: .5rem; flex-wrap: wrap; }
+/* ── INFO GRID ── */
+.igrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem;margin-bottom:1rem}
+.ic{background:var(--navy2);border:1px solid var(--border2);padding:.7rem}
+.ic span{display:block;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:.3rem}
+.ic b{font-size:.84rem;color:var(--white);font-weight:500;line-height:1.4}
 
-/* ── METRICS ───────────────────────────────────────────────── */
-.mgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: .75rem; margin-bottom: 1.4rem; }
-.mcard { background: var(--navy3); border: 1px solid var(--border2); padding: 1rem; }
-.ml { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gray); display: block; margin-bottom: .2rem; }
-.mv { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; line-height: 1; display: block; }
-.tv-b { color: var(--blue)!important; }
-.tv-r { color: var(--red)!important; }
-.tv-g { color: var(--green)!important; }
-.tv-a { color: var(--amber)!important; }
+/* ── DETAIL GRID (restricción) ── */
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin-bottom:1rem}
+.detail-block{background:var(--navy2);border:1px solid var(--border2);padding:.85rem 1rem}
+.detail-block .dl{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);display:block;margin-bottom:.35rem}
+.detail-block .dv{font-size:.85rem;color:var(--white);line-height:1.55}
+.detail-block.full{grid-column:1/-1}
 
-/* ── PANEL ─────────────────────────────────────────────────── */
-.panel { background: var(--navy3); border: 1px solid var(--border2); margin-bottom: 1rem; overflow: hidden; }
-.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 1rem; border-bottom: 1px solid var(--border2); flex-wrap: wrap; }
-.panel-title { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gray); }
-.panel-body { padding: .85rem 1rem; }
-.no-pad { }
+/* ── TWO COL ── */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-bottom:1rem}
+.frow{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
 
-/* ── TABLE ─────────────────────────────────────────────────── */
-.twrap { overflow-x: auto; }
-.dt { width: 100%; border-collapse: collapse; font-size: .83rem; min-width: 520px; }
-.dt th { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray2); padding: .65rem .75rem; text-align: left; border-bottom: 1px solid var(--border2); white-space: nowrap; }
-.dt td { padding: .65rem .75rem; border-bottom: 1px solid rgba(255,255,255,.04); color: var(--gray); vertical-align: middle; }
-.dt tr:hover td { background: rgba(255,255,255,.025); color: var(--white); }
-.cn { color: var(--white); font-weight: 500; }
-.cm { font-size: .72rem; color: var(--gray); }
+/* ── NOTICE ── */
+.notice{background:rgba(94,197,240,.06);border:1px solid rgba(94,197,240,.2);padding:.75rem 1rem;margin-bottom:.85rem;color:var(--gray);font-size:.8rem;line-height:1.5}
+.notice.warn{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.2)}
+.notice.err{background:rgba(226,6,19,.06);border-color:rgba(226,6,19,.2);color:#f87171}
+.notice.sev{background:rgba(226,6,19,.08);border-color:rgba(226,6,19,.3);color:#f87171}
 
-/* ── STATUS ────────────────────────────────────────────────── */
-.st { display: inline-block; font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; }
-.st-a { background: rgba(34,197,94,.12);  color: var(--green); border: 1px solid rgba(34,197,94,.2); }
-.st-b { background: rgba(94,197,240,.1);  color: var(--blue);  border: 1px solid rgba(94,197,240,.2); }
-.st-w { background: rgba(245,158,11,.1);  color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
-.st-r { background: rgba(226,6,19,.12);   color: #f87171;      border: 1px solid rgba(226,6,19,.2); }
-.st-x { background: rgba(138,155,176,.1); color: var(--gray);  border: 1px solid rgba(138,155,176,.18); }
+/* ── EMPTY ── */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1rem;gap:.75rem;text-align:center}
+.empty-ico{width:44px;height:44px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--gray2);font-family:'Space Mono',monospace;font-size:.9rem}
+.empty-txt{font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray2)}
 
-/* Severidad colores */
-.sev-alta  { color: #f87171; font-weight: 600; }
-.sev-media { color: var(--amber); }
-.sev-baja  { color: var(--green); }
-.prio-alta  { color: #f87171; font-weight: 600; }
-.prio-media { color: var(--amber); }
-.prio-baja  { color: var(--gray); }
+/* ── CHIPS ── */
+.chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.chip{font-family:'Space Mono',monospace;font-size:.57rem;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;background:var(--navy3);border:1px solid var(--border2);color:var(--gray);cursor:pointer}
+.chip.on{background:rgba(226,6,19,.1);color:#f87171;border-color:rgba(226,6,19,.25)}
 
-/* ── PAIN FLAG ─────────────────────────────────────────────── */
-.pain-flag {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(226,6,19,.12); border: 1px solid rgba(226,6,19,.3);
-  color: #f87171; padding: 4px 10px;
-  font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .08em; text-transform: uppercase;
+/* ── NOTE / LOG ── */
+.note-block{background:var(--navy2);border:1px solid var(--border2);border-left:2px solid var(--red);padding:.8rem;margin-bottom:.5rem}
+.note-text{font-size:.83rem;color:var(--gray);line-height:1.6}
+.note-pain{font-family:'Space Mono',monospace;font-size:.6rem;color:#f87171;margin-top:.4rem;padding:3px 8px;background:rgba(226,6,19,.1);border:1px solid rgba(226,6,19,.2);display:inline-block}
+.log-item{padding:.85rem;border-bottom:1px solid var(--border2)}
+.log-item:last-child{border-bottom:none}
+.log-date{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--gray2);margin-bottom:.25rem}
+.log-note{font-size:.83rem;color:var(--gray);line-height:1.55}
+
+/* ── SPINNER / TOAST ── */
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(226,6,19,.3);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;right:1rem;bottom:1rem;background:var(--navy2);border:1px solid rgba(94,197,240,.25);padding:.7rem 1rem;color:var(--white);z-index:300;transform:translateY(70px);opacity:0;transition:.22s;font-size:.83rem;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ══════════════════════════════════════════════
+   MOBILE NAV
+══════════════════════════════════════════════ */
+.mobile-nav{display:none;gap:.5rem;overflow-x:auto;padding-bottom:1rem;margin-bottom:1rem;border-bottom:1px solid var(--border)}
+.mobile-nav::-webkit-scrollbar{display:none}
+.mobile-nav-btn{flex:0 0 auto;background:var(--navy3);border:1px solid var(--border2);color:var(--gray);padding:8px 14px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.mobile-nav-btn.on{color:var(--blue);border-color:rgba(94,197,240,.35);background:rgba(94,197,240,.08)}
+
+/* ══════════════════════════════════════════════
+   REQUEST CARDS (mobile)
+══════════════════════════════════════════════ */
+.req-cards{display:none}
+.req-card{background:var(--navy3);border:1px solid var(--border2);padding:1rem;margin-bottom:.75rem}
+.req-card-head{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:.6rem}
+.req-card-name{font-size:1rem;font-weight:600;color:var(--white);margin-bottom:.5rem}
+.req-card-rows{display:grid;grid-template-columns:1fr 1fr;gap:.35rem .75rem;margin-bottom:.75rem}
+.req-card-row-key{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gray)}
+.req-card-row-val{font-size:.78rem;color:var(--white);font-weight:500}
+.req-card-note{font-size:.8rem;color:var(--gray);line-height:1.5;margin-bottom:.75rem;border-left:2px solid rgba(94,197,240,.3);padding-left:.6rem}
+.req-card-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+
+/* ══════════════════════════════════════════════
+   HISTORY CARDS (mobile)
+══════════════════════════════════════════════ */
+.hist-cards{display:none}
+.hist-card{background:var(--navy3);border:1px solid var(--border2);padding:1rem;margin-bottom:.75rem}
+.hist-card-head{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gray2);margin-bottom:.6rem}
+.hist-card-name{font-size:1rem;font-weight:600;color:var(--white);margin-bottom:.5rem}
+.hist-card-rows{display:grid;grid-template-columns:1fr 1fr;gap:.35rem .75rem;margin-bottom:.75rem}
+.hist-card-row-key{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gray)}
+.hist-card-row-val{font-size:.78rem;color:var(--white);font-weight:500}
+.hist-card-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════ */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .two,.frow{grid-template-columns:1fr}
+  .content{padding:1rem}
+  .mobile-nav{display:flex}
+  /* solicitudes: ocultar tabla, mostrar cards */
+  .req-table-wrap{display:none}
+  .req-cards{display:block}
+  /* historial: ocultar tabla, mostrar cards */
+  .hist-table-wrap{display:none}
+  .hist-cards{display:block}
 }
-
-/* ── INFO GRID ─────────────────────────────────────────────── */
-.igrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: .6rem; margin-bottom: 1rem; }
-.ic { background: var(--navy2); border: 1px solid var(--border2); padding: .7rem; }
-.ic span { display: block; font-family: 'Space Mono', monospace; font-size: .5rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray); margin-bottom: .3rem; }
-.ic b { font-size: .84rem; color: var(--white); font-weight: 500; line-height: 1.4; }
-
-/* ── TWO COL ───────────────────────────────────────────────── */
-.two  { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; margin-bottom: 1rem; }
-.frow { display: grid; grid-template-columns: repeat(2,1fr); gap: .75rem; }
-
-/* ── NOTICE ────────────────────────────────────────────────── */
-.notice { background: rgba(94,197,240,.06); border: 1px solid rgba(94,197,240,.2); padding: .75rem 1rem; margin-bottom: .85rem; color: var(--gray); font-size: .8rem; line-height: 1.5; }
-.notice.warn { background: rgba(245,158,11,.06); border-color: rgba(245,158,11,.2); }
-.notice.err  { background: rgba(226,6,19,.06); border-color: rgba(226,6,19,.2); color: #f87171; }
-.notice.sev  { background: rgba(226,6,19,.08); border-color: rgba(226,6,19,.3); color: #f87171; }
-
-/* ── EMPTY ─────────────────────────────────────────────────── */
-.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 1rem; gap: .75rem; text-align: center; }
-.empty-ico { width: 44px; height: 44px; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; color: var(--gray2); font-family: 'Space Mono', monospace; font-size: .9rem; }
-.empty-txt { font-family: 'Space Mono', monospace; font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray2); }
-
-/* ── CHIPS ─────────────────────────────────────────────────── */
-.chips { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-.chip { font-family: 'Space Mono', monospace; font-size: .57rem; letter-spacing: .08em; text-transform: uppercase; padding: 5px 10px; background: var(--navy3); border: 1px solid var(--border2); color: var(--gray); cursor: pointer; }
-.chip.on { background: rgba(226,6,19,.1); color: #f87171; border-color: rgba(226,6,19,.25); }
-
-/* ── NOTE BLOCK ────────────────────────────────────────────── */
-.note-block { background: var(--navy2); border: 1px solid var(--border2); border-left: 2px solid var(--red); padding: .8rem; margin-bottom: .5rem; }
-.note-meta { font-family: 'Space Mono', monospace; font-size: .55rem; color: var(--red); margin-bottom: .3rem; }
-.note-text { font-size: .83rem; color: var(--gray); line-height: 1.6; }
-.note-pain { font-family: 'Space Mono', monospace; font-size: .6rem; color: #f87171; margin-top: .4rem; padding: 3px 8px; background: rgba(226,6,19,.1); border: 1px solid rgba(226,6,19,.2); display: inline-block; }
-
-/* ── LOG ITEM ──────────────────────────────────────────────── */
-.log-item { padding: .85rem; border-bottom: 1px solid var(--border2); }
-.log-item:last-child { border-bottom: none; }
-.log-date { font-family: 'Space Mono', monospace; font-size: .58rem; color: var(--gray2); margin-bottom: .25rem; }
-.log-note { font-size: .83rem; color: var(--gray); line-height: 1.55; }
-
-/* ── SPINNER ───────────────────────────────────────────────── */
-.spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(226,6,19,.3); border-top-color: var(--red); border-radius: 50%; animation: spin .7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── TOAST ─────────────────────────────────────────────────── */
-.toast { position: fixed; right: 1rem; bottom: 1rem; background: var(--navy2); border: 1px solid rgba(94,197,240,.25); padding: .7rem 1rem; color: var(--white); z-index: 300; transform: translateY(70px); opacity: 0; transition: .22s; font-size: .83rem; pointer-events: none; }
-.toast.show { transform: translateY(0); opacity: 1; }
-
-/* ── RESPONSIVE ────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .two, .frow { grid-template-columns: 1fr; }
-  .content { padding: 1rem; }
-}
-@media (max-width: 480px) {
-  .mgrid { grid-template-columns: repeat(2,1fr); }
-}
-
-.mobile-nav {
-  display: none;
-  gap: .5rem;
-  overflow-x: auto;
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.mobile-nav::-webkit-scrollbar {
-  display: none;
-}
-
-.mobile-nav-btn {
-  flex: 0 0 auto;
-  background: var(--navy3);
-  border: 1px solid var(--border2);
-  color: var(--gray);
-  padding: 8px 14px;
-  font-family: 'Space Mono', monospace;
-  font-size: .58rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-}
-
-.mobile-nav-btn.on {
-  color: var(--blue);
-  border-color: rgba(94,197,240,.35);
-  background: rgba(94,197,240,.08);
-}
-
-@media (max-width: 768px) {
-  .mobile-nav {
-    display: flex;
-  }
+@media(max-width:480px){
+  .mgrid{grid-template-columns:repeat(2,1fr)}
+  .req-card-rows,.hist-card-rows{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- ══════════════════════════════════════════════════════════
-       PANTALLA: LOGIN
-  ═══════════════════════════════════════════════════════════ -->
-  <div id="screen-login">
-    <div class="login-card">
-      <div class="login-brand">
-        <div class="main">AB<span style="color:var(--blue)"> /</span> coach</div>
-        <div class="sub">Training System</div>
-      </div>
-      <div class="login-role">Panel Médico Deportivo</div>
-      <div class="field">
-        <label>Email o teléfono</label>
-        <input type="text" id="loginId" placeholder="medico@email.com" autocomplete="username">
-      </div>
-      <div class="field">
-        <label>Código de acceso</label>
-        <input type="password" id="loginCode" placeholder="Código profesional" autocomplete="current-password">
-      </div>
-      <button class="btn btn-r btn-full" id="loginBtn" onclick="doLogin()">Entrar</button>
-      <div class="error-msg" id="loginErr">Credenciales incorrectas o profesional no activo.</div>
+<!-- ── LOGIN ── -->
+<div id="screen-login">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="main">AB<span style="color:var(--blue)"> /</span> coach</div>
+      <div class="sub">Training System</div>
     </div>
+    <div class="login-role">Panel Médico Deportivo</div>
+    <div class="field">
+      <label>Email o teléfono</label>
+      <input type="text" id="loginId" placeholder="medico@email.com" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Código de acceso</label>
+      <input type="password" id="loginCode" placeholder="Código profesional" autocomplete="current-password">
+    </div>
+    <button class="btn btn-r btn-full" id="loginBtn" onclick="doLogin()">Entrar</button>
+    <div class="error-msg" id="loginErr">Credenciales incorrectas o profesional no activo.</div>
   </div>
-
-  <!-- ══════════════════════════════════════════════════════════
-       TOP BAR
-  ═══════════════════════════════════════════════════════════ -->
-  <header id="topbar">
-    <div class="topbar-brand"><span class="m">AB</span><span class="s">coach</span></div>
-    <div class="sep"></div>
-    <div class="topbar-role">Médico Deportivo</div>
-    <div class="topbar-right">
-      <span class="topbar-user" id="topbarUser">—</span>
-      <button class="btn btn-o btn-sm" onclick="doLogout()">Cerrar sesión</button>
-    </div>
-  </header>
-
-  <!-- ══════════════════════════════════════════════════════════
-       PANTALLA: APP
-  ═══════════════════════════════════════════════════════════ -->
-  <div id="screen-app">
-    <div class="layout">
-
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="nav-sec">Principal</div>
-        <div class="nav-item on" onclick="showView('v-dashboard')">
-          <span class="nav-ico">01</span>Dashboard
-        </div>
-        <div class="nav-item" onclick="showView('v-requests')">
-          <span class="nav-ico">02</span>Solicitudes
-          <span class="nav-badge" id="nb-pending">0</span>
-        </div>
-        <div class="nav-sec">Historial</div>
-        <div class="nav-item" onclick="showView('v-restrictions')">
-          <span class="nav-ico">03</span>Historial médico
-        </div>
-      </aside>
-
-      <!-- Content -->
-      <main class="content">
-        <div class="mobile-nav">
-  <button class="mobile-nav-btn on" onclick="showView('v-dashboard')">Dashboard</button>
-  <button class="mobile-nav-btn" onclick="showView('v-requests')">Solicitudes</button>
-  <button class="mobile-nav-btn" onclick="showView('v-restrictions')">Historial</button>
 </div>
 
-        <!-- ─── DASHBOARD ─────────────────────────────────── -->
-        <div class="view on" id="v-dashboard">
-          <div class="ph">
-            <div>
-              <div class="ptitle">Panel Médico Deportivo</div>
-              <div class="psub">Resumen de casos y restricciones</div>
-            </div>
+<!-- ── TOP BAR ── -->
+<header id="topbar">
+  <div class="topbar-brand"><span class="m">AB</span><span class="s">coach</span></div>
+  <div class="sep"></div>
+  <div class="topbar-role">Médico Deportivo</div>
+  <div class="topbar-right">
+    <span class="topbar-user" id="topbarUser">—</span>
+    <button class="btn btn-o btn-sm" onclick="doLogout()">Cerrar sesión</button>
+  </div>
+</header>
+
+<!-- ── APP ── -->
+<div id="screen-app">
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="nav-sec">Principal</div>
+      <div class="nav-item on" onclick="showView('v-dashboard')"><span class="nav-ico">01</span>Dashboard</div>
+      <div class="nav-item" onclick="showView('v-requests')"><span class="nav-ico">02</span>Solicitudes<span class="nav-badge" id="nb-pending">0</span></div>
+      <div class="nav-sec">Historial</div>
+      <div class="nav-item" onclick="showView('v-restrictions')"><span class="nav-ico">03</span>Historial médico</div>
+    </aside>
+
+    <!-- Content -->
+    <main class="content">
+
+      <!-- Mobile nav -->
+      <div class="mobile-nav">
+        <button class="mobile-nav-btn on" onclick="showView('v-dashboard')">Dashboard</button>
+        <button class="mobile-nav-btn" onclick="showView('v-requests')">Solicitudes</button>
+        <button class="mobile-nav-btn" onclick="showView('v-restrictions')">Historial</button>
+      </div>
+
+      <!-- ── DASHBOARD ── -->
+      <div class="view on" id="v-dashboard">
+        <div class="ph">
+          <div>
+            <div class="ptitle">Panel Médico Deportivo</div>
+            <div class="psub">Resumen de casos y restricciones</div>
           </div>
-          <div class="mgrid">
-            <div class="mcard"><span class="ml">Pendientes</span><span class="mv tv-a" id="dm-pend">—</span></div>
-            <div class="mcard"><span class="ml">En revisión</span><span class="mv tv-b" id="dm-rev">—</span></div>
-            <div class="mcard"><span class="ml">Completados</span><span class="mv tv-g" id="dm-done">—</span></div>
-            <div class="mcard"><span class="ml">Restricciones activas</span><span class="mv tv-r" id="dm-restr">—</span></div>
+        </div>
+        <div class="mgrid">
+          <div class="mcard"><span class="ml">Pendientes</span><span class="mv tv-a" id="dm-pend">—</span></div>
+          <div class="mcard"><span class="ml">En revisión</span><span class="mv tv-b" id="dm-rev">—</span></div>
+          <div class="mcard"><span class="ml">Completados</span><span class="mv tv-g" id="dm-done">—</span></div>
+          <div class="mcard"><span class="ml">Restricciones activas</span><span class="mv tv-r" id="dm-restr">—</span></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Casos urgentes (prioridad alta)</span></div>
+          <div id="dash-urgent"></div>
+        </div>
+        <div class="notice warn">El médico deportivo solo puede crear y actualizar restricciones médicas y recomendaciones. El entrenamiento y la nutrición los controla el coach.</div>
+      </div>
+
+      <!-- ── SOLICITUDES ── -->
+      <div class="view" id="v-requests">
+        <div class="ph">
+          <div>
+            <div class="ptitle">Solicitudes médicas</div>
+            <div class="psub">Casos de medicina deportiva asignados</div>
           </div>
-          <div class="panel">
-            <div class="panel-head"><span class="panel-title">Casos urgentes (prioridad alta / molestia reportada)</span></div>
-            <div id="dash-urgent"></div>
-          </div>
-          <div class="notice warn">El médico deportivo solo puede crear y actualizar restricciones médicas y recomendaciones. El entrenamiento y la nutrición los controla el coach.</div>
+        </div>
+        <div class="chips" id="req-chips">
+          <button class="chip on" onclick="filterReqs('todos',this)">Todas</button>
+          <button class="chip" onclick="filterReqs('pendiente',this)">Pendientes</button>
+          <button class="chip" onclick="filterReqs('en_revision',this)">En revisión</button>
+          <button class="chip" onclick="filterReqs('completado',this)">Completadas</button>
         </div>
 
-        <!-- ─── SOLICITUDES ───────────────────────────────── -->
-        <div class="view" id="v-requests">
-          <div class="ph">
-            <div>
-              <div class="ptitle">Solicitudes médicas</div>
-              <div class="psub">Casos de medicina deportiva asignados</div>
-            </div>
-          </div>
-          <div class="chips" id="req-chips">
-            <button class="chip on" onclick="filterReqs('todos',this)">Todas</button>
-            <button class="chip" onclick="filterReqs('pendiente',this)">Pendientes</button>
-            <button class="chip" onclick="filterReqs('en_revision',this)">En revisión</button>
-            <button class="chip" onclick="filterReqs('completado',this)">Completadas</button>
-          </div>
-          <div class="panel">
-            <div class="twrap"><table class="dt" id="req-table">
+        <!-- Tabla desktop -->
+        <div class="panel req-table-wrap">
+          <div class="twrap">
+            <table class="dt">
               <thead><tr>
                 <th>Cliente</th><th>Motivo</th><th>Prioridad</th>
                 <th>Estado</th><th>Fecha</th><th>Nota del coach</th><th></th>
               </tr></thead>
               <tbody id="req-tbody"></tbody>
-            </table></div>
+            </table>
           </div>
         </div>
 
-        <!-- ─── DETALLE CASO MÉDICO ───────────────────────── -->
-        <div class="view" id="v-case">
-          <div class="ph">
-            <div>
-              <div class="ptitle" id="case-title">Caso médico</div>
-              <div class="psub" id="case-sub">—</div>
-            </div>
-            <div class="pacts">
-              <button class="btn btn-o btn-sm" onclick="showView('v-requests')">← Volver</button>
-            </div>
+        <!-- Cards móvil -->
+        <div class="req-cards" id="req-cards"></div>
+      </div>
+
+      <!-- ── DETALLE CASO MÉDICO ── -->
+      <div class="view" id="v-case">
+        <div class="ph">
+          <div>
+            <div class="ptitle" id="case-title">Caso médico</div>
+            <div class="psub" id="case-sub">—</div>
           </div>
-
-          <!-- Alerta de dolor si existe -->
-          <div id="pain-alert" style="display:none;margin-bottom:1rem"></div>
-
-          <!-- Datos del cliente -->
-          <div class="panel">
-            <div class="panel-head"><span class="panel-title">Datos del cliente</span></div>
-            <div class="panel-body"><div class="igrid" id="case-client-info"></div></div>
+          <div class="pacts">
+            <button class="btn btn-o btn-sm" id="case-back-btn" onclick="showView('v-requests')">← Volver</button>
           </div>
-
-          <!-- Nota del coach -->
-          <div class="panel">
-            <div class="panel-head"><span class="panel-title">Nota del coach</span></div>
-            <div class="panel-body">
-              <div class="note-block"><div class="note-text" id="case-coach-note">—</div></div>
-            </div>
+        </div>
+        <div id="pain-alert" style="display:none;margin-bottom:1rem"></div>
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Datos del cliente</span></div>
+          <div class="panel-body"><div class="igrid" id="case-client-info"></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Nota del coach</span></div>
+          <div class="panel-body">
+            <div class="note-block"><div class="note-text" id="case-coach-note">—</div></div>
           </div>
-
-          <!-- Logs de entrenamiento -->
-          <div class="panel">
-            <div class="panel-head"><span class="panel-title">Últimas notas de entrenamiento del cliente</span></div>
-            <div id="case-training-logs"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Últimas notas de entrenamiento del cliente</span></div>
+          <div id="case-training-logs"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Restricciones médicas anteriores</span></div>
+          <div id="case-restrictions-history"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">Nueva restricción / informe médico</span>
+            <span class="st st-r" style="font-size:.55rem">Médico deportivo</span>
           </div>
-
-          <!-- Restricciones anteriores -->
-          <div class="panel">
-            <div class="panel-head"><span class="panel-title">Restricciones médicas anteriores</span></div>
-            <div id="case-restrictions-history"></div>
-          </div>
-
-          <!-- Formulario restricción médica -->
-          <div class="panel">
-            <div class="panel-head">
-              <span class="panel-title">Nueva restricción / informe médico</span>
-              <span class="st st-r" style="font-size:.55rem">Médico deportivo</span>
-            </div>
-            <div class="panel-body">
-              <div class="notice warn">La información registrada es una recomendación profesional para adaptar el entrenamiento. No es prescripción clínica.</div>
-
-              <div class="frow">
-                <div class="field">
-                  <label>Tipo de restricción *</label>
-                  <select id="mf-type">
-                    <option value="">Seleccionar…</option>
-                    <option value="lesion_muscular">Lesión muscular</option>
-                    <option value="lesion_articular">Lesión articular</option>
-                    <option value="lesion_tendinosa">Lesión tendinosa</option>
-                    <option value="fractura">Fractura / fisura</option>
-                    <option value="sobrecarga">Sobrecarga</option>
-                    <option value="cardio">Cardiovascular</option>
-                    <option value="metabolica">Metabólica</option>
-                    <option value="postoperatorio">Postoperatorio</option>
-                    <option value="otro">Otro</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>Zona corporal *</label>
-                  <select id="mf-area">
-                    <option value="">Seleccionar…</option>
-                    <option value="hombro_derecho">Hombro derecho</option>
-                    <option value="hombro_izquierdo">Hombro izquierdo</option>
-                    <option value="codo_derecho">Codo derecho</option>
-                    <option value="codo_izquierdo">Codo izquierdo</option>
-                    <option value="muneca_derecha">Muñeca derecha</option>
-                    <option value="muneca_izquierda">Muñeca izquierda</option>
-                    <option value="columna_cervical">Columna cervical</option>
-                    <option value="columna_dorsal">Columna dorsal</option>
-                    <option value="columna_lumbar">Columna lumbar</option>
-                    <option value="cadera_derecha">Cadera derecha</option>
-                    <option value="cadera_izquierda">Cadera izquierda</option>
-                    <option value="rodilla_derecha">Rodilla derecha</option>
-                    <option value="rodilla_izquierda">Rodilla izquierda</option>
-                    <option value="tobillo_derecho">Tobillo derecho</option>
-                    <option value="tobillo_izquierdo">Tobillo izquierdo</option>
-                    <option value="pie_derecho">Pie derecho</option>
-                    <option value="pie_izquierdo">Pie izquierdo</option>
-                    <option value="general">General / todo el cuerpo</option>
-                    <option value="otro">Otro</option>
-                  </select>
-                </div>
+          <div class="panel-body">
+            <div class="notice warn">La información registrada es una recomendación profesional para adaptar el entrenamiento. No es prescripción clínica.</div>
+            <div class="frow">
+              <div class="field">
+                <label>Tipo de restricción *</label>
+                <select id="mf-type">
+                  <option value="">Seleccionar…</option>
+                  <option value="lesion_muscular">Lesión muscular</option>
+                  <option value="lesion_articular">Lesión articular</option>
+                  <option value="lesion_tendinosa">Lesión tendinosa</option>
+                  <option value="fractura">Fractura / fisura</option>
+                  <option value="sobrecarga">Sobrecarga</option>
+                  <option value="cardio">Cardiovascular</option>
+                  <option value="metabolica">Metabólica</option>
+                  <option value="postoperatorio">Postoperatorio</option>
+                  <option value="otro">Otro</option>
+                </select>
               </div>
-
-              <div class="frow">
-                <div class="field">
-                  <label>Severidad *</label>
-                  <select id="mf-severity">
-                    <option value="baja">Baja — puede entrenar con adaptaciones</option>
-                    <option value="media" selected>Media — entrenamiento reducido</option>
-                    <option value="alta">Alta — reposo o actividad muy limitada</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>Estado de la restricción</label>
-                  <select id="mf-status">
-                    <option value="activa">Activa</option>
-                    <option value="revisada">Revisada / en seguimiento</option>
-                    <option value="archivada">Archivada / resuelta</option>
-                  </select>
-                </div>
+              <div class="field">
+                <label>Zona corporal *</label>
+                <select id="mf-area">
+                  <option value="">Seleccionar…</option>
+                  <option value="hombro_derecho">Hombro derecho</option>
+                  <option value="hombro_izquierdo">Hombro izquierdo</option>
+                  <option value="codo_derecho">Codo derecho</option>
+                  <option value="codo_izquierdo">Codo izquierdo</option>
+                  <option value="muneca_derecha">Muñeca derecha</option>
+                  <option value="muneca_izquierda">Muñeca izquierda</option>
+                  <option value="columna_cervical">Columna cervical</option>
+                  <option value="columna_dorsal">Columna dorsal</option>
+                  <option value="columna_lumbar">Columna lumbar</option>
+                  <option value="cadera_derecha">Cadera derecha</option>
+                  <option value="cadera_izquierda">Cadera izquierda</option>
+                  <option value="rodilla_derecha">Rodilla derecha</option>
+                  <option value="rodilla_izquierda">Rodilla izquierda</option>
+                  <option value="tobillo_derecho">Tobillo derecho</option>
+                  <option value="tobillo_izquierdo">Tobillo izquierdo</option>
+                  <option value="pie_derecho">Pie derecho</option>
+                  <option value="pie_izquierdo">Pie izquierdo</option>
+                  <option value="general">General / todo el cuerpo</option>
+                  <option value="otro">Otro</option>
+                </select>
               </div>
-
-              <div class="field"><label>Descripción médica *</label><textarea id="mf-desc" placeholder="Descripción del problema, diagnóstico, evolución…"></textarea></div>
-              <div class="field"><label>Recomendación médico-deportiva</label><textarea id="mf-reco" placeholder="Reposo de X semanas, fisioterapia, trabajo en rango libre de dolor…"></textarea></div>
-
-              <div class="frow">
-                <div class="field"><label>Ejercicios prohibidos</label><textarea id="mf-forbidden" placeholder="Sentadilla profunda, press de banca, sprint…" style="min-height:70px"></textarea></div>
-                <div class="field"><label>Ejercicios permitidos</label><textarea id="mf-allowed" placeholder="Natación, bicicleta, trabajo de core sin carga axial…" style="min-height:70px"></textarea></div>
-              </div>
-
-              <div class="field"><label>Nota de retorno al entrenamiento completo</label><textarea id="mf-return" placeholder="Alta médica estimada, condiciones de retorno, revisión en X semanas…" style="min-height:65px"></textarea></div>
-
-              <div class="field"><label>Respuesta al coach (resumen ejecutivo)</label><input id="mf-resp" placeholder="Mensaje directo para el coach sobre el estado del cliente…"></div>
-
-              <div style="display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap">
-                <button class="btn btn-r" onclick="saveRestriction(false)">Guardar restricción</button>
-                <button class="btn btn-g" onclick="saveRestriction(true)">Guardar y marcar completado</button>
-              </div>
-              <div id="med-save-msg" class="notice" style="margin-top:.75rem;display:none"></div>
             </div>
+            <div class="frow">
+              <div class="field">
+                <label>Severidad *</label>
+                <select id="mf-severity">
+                  <option value="baja">Baja — puede entrenar con adaptaciones</option>
+                  <option value="media" selected>Media — entrenamiento reducido</option>
+                  <option value="alta">Alta — reposo o actividad muy limitada</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Estado de la restricción</label>
+                <select id="mf-status">
+                  <option value="activa">Activa</option>
+                  <option value="revisada">Revisada / en seguimiento</option>
+                  <option value="archivada">Archivada / resuelta</option>
+                </select>
+              </div>
+            </div>
+            <div class="field"><label>Descripción médica *</label><textarea id="mf-desc" placeholder="Descripción del problema, diagnóstico, evolución…"></textarea></div>
+            <div class="field"><label>Recomendación médico-deportiva</label><textarea id="mf-reco" placeholder="Reposo de X semanas, fisioterapia, trabajo en rango libre de dolor…"></textarea></div>
+            <div class="frow">
+              <div class="field"><label>Ejercicios prohibidos</label><textarea id="mf-forbidden" placeholder="Sentadilla profunda, press de banca, sprint…" style="min-height:70px"></textarea></div>
+              <div class="field"><label>Ejercicios permitidos</label><textarea id="mf-allowed" placeholder="Natación, bicicleta, trabajo de core sin carga axial…" style="min-height:70px"></textarea></div>
+            </div>
+            <div class="field"><label>Nota de retorno al entrenamiento completo</label><textarea id="mf-return" placeholder="Alta médica estimada, condiciones de retorno, revisión en X semanas…" style="min-height:65px"></textarea></div>
+            <div class="field"><label>Respuesta al coach (resumen ejecutivo)</label><input id="mf-resp" placeholder="Mensaje directo para el coach sobre el estado del cliente…"></div>
+            <div style="display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap">
+              <button class="btn btn-r" onclick="saveRestriction(false)">Guardar restricción</button>
+              <button class="btn btn-g" onclick="saveRestriction(true)">Guardar y marcar completado</button>
+            </div>
+            <div id="med-save-msg" class="notice" style="margin-top:.75rem;display:none"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── HISTORIAL MÉDICO ── -->
+      <div class="view" id="v-restrictions">
+        <div class="ph">
+          <div>
+            <div class="ptitle">Historial médico</div>
+            <div class="psub">Restricciones, revisiones y seguimiento por cliente</div>
           </div>
         </div>
 
-        <!-- ─── RESTRICCIONES ACTIVAS ─────────────────────── -->
-        <div class="view" id="v-restrictions">
-  <div class="ph">
-    <div>
-      <div class="ptitle">Historial médico</div>
-      <div class="psub">Restricciones, revisiones y seguimiento por cliente</div>
-    </div>
-  </div>
+        <!-- Tabla desktop -->
+        <div class="panel hist-table-wrap">
+          <div class="twrap">
+            <table class="dt">
+              <thead><tr>
+                <th>Cliente</th><th>Restricción</th><th>Zona corporal</th>
+                <th>Severidad</th><th>Estado</th><th>Fecha</th><th>Acción</th>
+              </tr></thead>
+              <tbody id="restrictions-tbody"></tbody>
+            </table>
+          </div>
+        </div>
 
-  <div class="panel">
-    <div class="twrap">
-      <table class="dt">
-        <thead>
-          <tr>
-            <th>Cliente</th>
-            <th>Tipo</th>
-            <th>Zona</th>
-            <th>Severidad</th>
-            <th>Estado</th>
-            <th>Fecha</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-        <tbody id="restrictions-tbody"></tbody>
-      </table>
-    </div>
+        <!-- Cards móvil -->
+        <div class="hist-cards" id="hist-cards"></div>
+      </div>
+
+      <!-- ── DETALLE RESTRICCIÓN ── -->
+      <div class="view" id="v-restriction-detail">
+        <div class="ph">
+          <div>
+            <div class="ptitle" id="rd-title">Detalle médico</div>
+            <div class="psub" id="rd-sub">—</div>
+          </div>
+          <div class="pacts">
+            <button class="btn btn-o btn-sm" onclick="showView('v-restrictions');loadRestrictionsHistory()">← Historial</button>
+          </div>
+        </div>
+
+        <!-- Info del cliente -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Datos del cliente</span></div>
+          <div class="panel-body"><div class="igrid" id="rd-client-info"></div></div>
+        </div>
+
+        <!-- Detalle de la restricción -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Restricción médica</span></div>
+          <div class="panel-body">
+            <div class="detail-grid" id="rd-restriction-info"></div>
+          </div>
+        </div>
+
+        <!-- Indicaciones clínicas -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Indicaciones clínicas para el entrenamiento</span></div>
+          <div class="panel-body" id="rd-clinical"></div>
+        </div>
+      </div>
+
+    </main>
   </div>
 </div>
-
-      </main>
-    </div>
-  </div>
-
-</div><!-- .app -->
+</div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════════════════════
-// CONFIGURACIÓN SUPABASE
-// ════════════════════════════════════════════════════════════════
+// ── SUPABASE ──
 const SUPABASE_URL  = 'https://icjuuptbcnkpwgsoyiuj.supabase.co'
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanV1cHRiY25rcHdnc295aXVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTIzMjQsImV4cCI6MjA5MzcyODMyNH0.L__PcG-5HUkV5hpnsujrWi8mkL1o1lCKRf-mrSeO5V8'
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
 
-// ════════════════════════════════════════════════════════════════
-// ESTADO GLOBAL
-// ════════════════════════════════════════════════════════════════
+// ── ESTADO ──
 let currentPro      = null
 let allRequests     = []
 let filteredReqs    = []
 let currentReqId    = null
 let currentCaseData = {}
 
-// ════════════════════════════════════════════════════════════════
-// UI HELPERS
-// ════════════════════════════════════════════════════════════════
+// ── UI HELPERS ──
 function toast(msg, type='ok'){
   const t = document.getElementById('toast')
   t.textContent = msg
@@ -552,56 +522,33 @@ function toast(msg, type='ok'){
 function showView(id){
   document.querySelectorAll('.view').forEach(v => v.classList.remove('on'))
   document.getElementById(id)?.classList.add('on')
-
-  document.querySelectorAll('.nav-item').forEach(n => {
-    n.classList.toggle('on', n.getAttribute('onclick')?.includes(id))
-  })
-
-  document.querySelectorAll('.mobile-nav-btn').forEach(b => {
-    b.classList.toggle('on', b.getAttribute('onclick')?.includes(id))
-  })
-
+  document.querySelectorAll('.nav-item').forEach(n =>
+    n.classList.toggle('on', n.getAttribute('onclick')?.includes(id)))
+  document.querySelectorAll('.mobile-nav-btn').forEach(b =>
+    b.classList.toggle('on', b.getAttribute('onclick')?.includes(id)))
   if(id === 'v-restrictions') loadRestrictionsHistory()
 }
 
 function statusBadge(s){
   const map = { pendiente:'st-w', en_revision:'st-b', completado:'st-a', rechazado:'st-r', activa:'st-r', revisada:'st-w', archivada:'st-x' }
-  return `<span class="st ${map[s]||'st-x'}">${s}</span>`
+  return `<span class="st ${map[s]||'st-x'}">${s||'—'}</span>`
 }
-
-function sevClass(s){ return { alta:'sev-alta', media:'sev-media', baja:'sev-baja' }[s] || '' }
-function prioClass(p){ return { alta:'prio-alta', media:'prio-media', baja:'prio-baja' }[p] || '' }
-
+function sevClass(s){ return {alta:'sev-alta',media:'sev-media',baja:'sev-baja'}[s]||'' }
+function prioClass(p){ return {alta:'prio-alta',media:'prio-media',baja:'prio-baja'}[p]||'' }
 function fmtDate(d){ if(!d) return '—'; return new Date(d).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}) }
-function fmtDateTime(d){ if(!d) return '—'; return new Date(d).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) }
-
 function ic(label, value){ return `<div class="ic"><span>${label}</span><b>${value||'—'}</b></div>` }
-function emptyState(msg){
-  return `<div class="empty"><div class="empty-ico">!</div><div class="empty-txt">${msg}</div></div>`
-}
+function emptyState(msg){ return `<div class="empty"><div class="empty-ico">!</div><div class="empty-txt">${msg}</div></div>` }
+function normalizePhone(phone){ return String(phone||'').replace(/[\s\-\(\)\+]/g,'') }
+function todayISO(){ return new Date().toISOString().slice(0,10) }
 
-function normalizePhone(phone){
-  return String(phone || '').replace(/[\s\-\(\)\+]/g, '')
-}
-
-function todayISO(){
-  return new Date().toISOString().slice(0, 10)
-}
-
-// ════════════════════════════════════════════════════════════════
-// LOGIN
-// ════════════════════════════════════════════════════════════════
+// ── LOGIN ──
 async function doLogin(){
   const identifier = document.getElementById('loginId').value.trim()
   const code       = document.getElementById('loginCode').value.trim().toUpperCase()
   const btn        = document.getElementById('loginBtn')
   const errEl      = document.getElementById('loginErr')
 
-  if(!identifier || !code){
-    errEl.classList.add('show')
-    errEl.textContent = 'Completa todos los campos.'
-    return
-  }
+  if(!identifier || !code){ errEl.classList.add('show'); errEl.textContent = 'Completa todos los campos.'; return }
 
   btn.innerHTML = '<div class="spinner"></div>'
   btn.disabled  = true
@@ -620,70 +567,47 @@ async function doLogin(){
       .or(`email.eq.${cleanIdentifier},phone.eq.${identifier},phone.eq.${normalizedInput}`)
       .maybeSingle()
 
-    if(error){
-      console.error('Login Supabase error:', error)
-      errEl.classList.add('show')
-      errEl.textContent = 'Error Supabase: ' + error.message
-      return
-    }
-
-    if(!data){
-      errEl.classList.add('show')
-      errEl.textContent = 'Credenciales incorrectas o profesional no activo.'
-      return
-    }
+    if(error){ errEl.classList.add('show'); errEl.textContent = 'Error Supabase: ' + error.message; return }
+    if(!data){ errEl.classList.add('show'); errEl.textContent = 'Credenciales incorrectas o profesional no activo.'; return }
 
     sessionStorage.setItem('ab_med', JSON.stringify(data))
     currentPro = data
 
-    await sb
-      .from('professionals')
-      .update({ last_login: new Date().toISOString() })
-      .eq('id', data.id)
-
+    await sb.from('professionals').update({ last_login: new Date().toISOString() }).eq('id', data.id)
     initApp()
 
   } catch(e) {
-    console.error('Login unexpected error:', e)
-    errEl.classList.add('show')
-    errEl.textContent = 'Error inesperado: ' + (e.message || e)
+    errEl.classList.add('show'); errEl.textContent = 'Error inesperado: ' + (e.message || e)
   } finally {
-    btn.innerHTML = 'Entrar'
-    btn.disabled  = false
+    btn.innerHTML = 'Entrar'; btn.disabled = false
   }
 }
 
 function doLogout(){
   sessionStorage.removeItem('ab_med')
-  currentPro = null
-  allRequests = []
+  currentPro = null; allRequests = []
   document.getElementById('screen-login').style.display = 'flex'
   document.getElementById('topbar').style.display        = 'none'
   document.getElementById('screen-app').style.display    = 'none'
 }
 
-// ════════════════════════════════════════════════════════════════
-// INIT APP
-// ════════════════════════════════════════════════════════════════
+// ── INIT ──
 function initApp(){
   document.getElementById('screen-login').style.display  = 'none'
   document.getElementById('topbar').style.display        = 'flex'
   document.getElementById('screen-app').style.display    = 'block'
   document.getElementById('topbarUser').textContent      = currentPro.name || currentPro.email
-
   loadDashboard()
   loadRequests()
 }
 
-// ════════════════════════════════════════════════════════════════
-// DASHBOARD
-// ════════════════════════════════════════════════════════════════
+// ── DASHBOARD ──
 async function loadDashboard(){
   const [reqRes, restrRes] = await Promise.all([
     sb.from('professional_requests')
-  .select('id, status, client_id, priority, title, client_note, coach_note')
-  .eq('professional_id', currentPro.id)
-  .eq('request_type', 'sports_medicine'),
+      .select('id, status, client_id, priority, title, client_note, coach_note')
+      .eq('professional_id', currentPro.id)
+      .eq('request_type', 'sports_medicine'),
     sb.from('client_medical_restrictions')
       .select('status, client_id, severity')
       .eq('professional_id', currentPro.id)
@@ -692,21 +616,15 @@ async function loadDashboard(){
   const reqs  = reqRes.data || []
   const restr = restrRes.data || []
 
-  const pend = reqs.filter(r => r.status === 'pendiente').length
-  const rev  = reqs.filter(r => r.status === 'en_revision').length
-  const done = reqs.filter(r => r.status === 'completado').length
-  const active_restr = restr.filter(r => r.status === 'activa').length
+  document.getElementById('dm-pend').textContent  = reqs.filter(r => r.status === 'pendiente').length
+  document.getElementById('dm-rev').textContent   = reqs.filter(r => r.status === 'en_revision').length
+  document.getElementById('dm-done').textContent  = reqs.filter(r => r.status === 'completado').length
+  document.getElementById('dm-restr').textContent = restr.filter(r => r.status === 'activa').length
+  document.getElementById('nb-pending').textContent = reqs.filter(r => ['pendiente','en_revision'].includes(r.status)).length
 
-  document.getElementById('dm-pend').textContent  = pend
-  document.getElementById('dm-rev').textContent   = rev
-  document.getElementById('dm-done').textContent  = done
-  document.getElementById('dm-restr').textContent = active_restr
-  document.getElementById('nb-pending').textContent = pend + rev
-
-  // Urgentes: prioridad alta o con dolor reportado (usamos title/description como proxy)
   const urgentReqs = reqs.filter(r => r.priority === 'alta' && r.status !== 'completado')
-
   const el = document.getElementById('dash-urgent')
+
   if(!urgentReqs.length){ el.innerHTML = emptyState('Sin casos urgentes.'); return }
 
   const ids = [...new Set(urgentReqs.map(r => r.client_id))]
@@ -726,42 +644,18 @@ async function loadDashboard(){
   }).join('')
 }
 
-// ════════════════════════════════════════════════════════════════
-// SOLICITUDES
-// ════════════════════════════════════════════════════════════════
+// ── SOLICITUDES ──
 async function loadRequests(){
   const { data: reqs, error } = await sb
     .from('professional_requests')
-    .select(`
-  id,
-  client_id,
-  professional_id,
-  request_type,
-  status,
-  priority,
-  title,
-  client_note,
-  coach_note,
-  professional_response,
-  related_training_log_id,
-  related_session_id,
-  related_exercise_id,
-  price,
-  commission_amount,
-  payment_status,
-  created_at,
-  updated_at,
-  completed_at,
-  responded_at,
-  clients(id, name, plan, objective)
-`)
+    .select(`id, client_id, professional_id, request_type, status, priority, title, client_note, coach_note, professional_response, related_training_log_id, related_session_id, related_exercise_id, price, commission_amount, payment_status, created_at, updated_at, completed_at, responded_at, clients(id, name, plan, objective)`)
     .eq('professional_id', currentPro.id)
     .eq('request_type', 'sports_medicine')
     .order('created_at', { ascending: false })
 
   if(error){ toast('Error cargando solicitudes', 'err'); return }
 
-  allRequests = reqs || []
+  allRequests  = reqs || []
   filteredReqs = [...allRequests]
   renderRequests()
 }
@@ -775,13 +669,21 @@ function filterReqs(status, btn){
 
 function renderRequests(){
   const tbody = document.getElementById('req-tbody')
-  if(!filteredReqs.length){ tbody.innerHTML = `<tr><td colspan="7">${emptyState('No hay solicitudes.')}</td></tr>`; return }
+  const cards = document.getElementById('req-cards')
 
+  if(!filteredReqs.length){
+    tbody.innerHTML = `<tr><td colspan="7">${emptyState('No hay solicitudes.')}</td></tr>`
+    cards.innerHTML = emptyState('No hay solicitudes.')
+    return
+  }
+
+  // ── Tabla desktop ──
   tbody.innerHTML = filteredReqs.map(r => {
     const client = r.clients || {}
+    const motivo = r.title || r.client_note || r.coach_note || '—'
     return `<tr>
       <td><div class="cn">${client.name||'—'}</div><div class="cm">${client.plan||'—'}</div></td>
-      <td style="max-width:180px;font-size:.78rem">${r.title || r.client_note || r.coach_note || '—'}</td>
+      <td style="max-width:180px;font-size:.78rem">${motivo}</td>
       <td><span class="${prioClass(r.priority)}">${r.priority||'—'}</span></td>
       <td>${statusBadge(r.status)}</td>
       <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
@@ -789,131 +691,114 @@ function renderRequests(){
       <td><button class="btn btn-b btn-sm" onclick="openCase('${r.client_id}','${r.id}')">Ver caso</button></td>
     </tr>`
   }).join('')
+
+  // ── Cards móvil ──
+  cards.innerHTML = filteredReqs.map(r => {
+    const client = r.clients || {}
+    const motivo = r.title || r.client_note || r.coach_note || '—'
+    return `<div class="req-card">
+      <div class="req-card-head">Caso médico</div>
+      <div class="req-card-name">${client.name||'—'}</div>
+      <div class="req-card-rows">
+        <div>
+          <div class="req-card-row-key">Estado</div>
+          <div class="req-card-row-val">${statusBadge(r.status)}</div>
+        </div>
+        <div>
+          <div class="req-card-row-key">Prioridad</div>
+          <div class="req-card-row-val"><span class="${prioClass(r.priority)}">${r.priority||'—'}</span></div>
+        </div>
+        <div>
+          <div class="req-card-row-key">Plan</div>
+          <div class="req-card-row-val">${client.plan||'—'}</div>
+        </div>
+        <div>
+          <div class="req-card-row-key">Fecha</div>
+          <div class="req-card-row-val">${fmtDate(r.created_at)}</div>
+        </div>
+      </div>
+      ${(r.coach_note || r.client_note) ? `<div class="req-card-note">${r.coach_note || r.client_note}</div>` : ''}
+      <div class="req-card-actions">
+        <button class="btn btn-b btn-sm" onclick="openCase('${r.client_id}','${r.id}')">Ver caso</button>
+      </div>
+    </div>`
+  }).join('')
 }
 
-// ════════════════════════════════════════════════════════════════
-// DETALLE CASO MÉDICO
-// ════════════════════════════════════════════════════════════════
+// ── DETALLE CASO ──
 async function openCase(clientId, reqId){
   currentReqId  = reqId
+  document.getElementById('case-back-btn').setAttribute('onclick', "showView('v-requests')")
   showView('v-case')
 
-  // Datos paralelos
   const [clientRes, reqRes, logsRes, prevRestrRes] = await Promise.all([
     sb.from('clients').select('*').eq('id', clientId).single(),
     sb.from('professional_requests').select('*').eq('id', reqId).single(),
     sb.from('client_training_logs')
       .select('id, training_date, client_note, coach_note, pain_flag, pain_area, is_finished, session_number')
-      .eq('client_id', clientId)
-      .order('training_date', { ascending: false })
-      .limit(10),
+      .eq('client_id', clientId).order('training_date', { ascending: false }).limit(10),
     sb.from('client_medical_restrictions')
-      .select('*')
-      .eq('client_id', clientId)
-      .order('created_at', { ascending: false })
+      .select('*').eq('client_id', clientId).order('created_at', { ascending: false })
   ])
 
-  const client   = clientRes.data || {}
-  const req      = reqRes.data || {}
-  const logs     = logsRes.data || []
-  const prevRestr= prevRestrRes.data || []
+  const client    = clientRes.data || {}
+  const req       = reqRes.data || {}
+  const logs      = logsRes.data || []
+  const prevRestr = prevRestrRes.data || []
 
   currentCaseData = { client, req, logs, prevRestr }
 
-  // Título
   document.getElementById('case-title').textContent = client.name || 'Cliente'
   document.getElementById('case-sub').textContent   = `Solicitud médica · ${fmtDate(req.created_at)} · ${req.priority||''}`
 
-  // Alerta de dolor si logs recientes tienen pain_flag
   const painLogs = logs.filter(l => l.pain_flag)
   const painAlert = document.getElementById('pain-alert')
   if(painLogs.length){
     const areas = [...new Set(painLogs.map(l => l.pain_area).filter(Boolean))].join(', ')
     painAlert.style.display = 'block'
-    painAlert.innerHTML = `<div class="notice sev">
-      ⚠ Molestia reportada en entrenamiento reciente.
-      ${areas ? `Zona(s): <strong>${areas}</strong>.` : ''}
-      Revisar logs de entrenamiento.
-    </div>`
-    // Pre-rellenar zona en formulario si hay datos
+    painAlert.innerHTML = `<div class="notice sev">⚠ Molestia reportada en entrenamiento reciente.${areas ? ` Zona(s): <strong>${areas}</strong>.` : ''} Revisar logs de entrenamiento.</div>`
     if(painLogs[0]?.pain_area){
-      // intentamos hacer match con las opciones del select
       const sel = document.getElementById('mf-area')
-      for(let opt of sel.options){ if(opt.value.includes(painLogs[0].pain_area.toLowerCase())) { sel.value = opt.value; break } }
+      for(let opt of sel.options){ if(opt.value.includes(painLogs[0].pain_area.toLowerCase())){ sel.value = opt.value; break } }
     }
   } else {
     painAlert.style.display = 'none'
   }
 
-  // Info cliente
   document.getElementById('case-client-info').innerHTML = [
     ic('Nombre', client.name),
     ic('Plan', client.plan),
-    ic('Objetivo deportivo', client.objective || req.client_note || req.coach_note),
+    ic('Objetivo', client.objective || req.client_note || req.coach_note),
     ic('Ciudad', client.city),
     ic('Prioridad', req.priority),
     ic('Estado solicitud', req.status),
     ic('Título solicitud', req.title),
   ].join('')
 
-  // Nota del coach
   document.getElementById('case-coach-note').textContent = req.coach_note || 'Sin nota del coach.'
 
-  // Logs de entrenamiento
   const logsEl = document.getElementById('case-training-logs')
-  if(!logs.length){
-    logsEl.innerHTML = `<div class="panel-body">${emptyState('Sin registros de entrenamiento.')}</div>`
-  } else {
-    logsEl.innerHTML = logs.map(l => `
-      <div class="log-item">
-        <div class="log-date">${fmtDate(l.training_date)} · Sesión ${l.session_number||'—'} · ${l.is_finished ? 'Completada' : 'No completada'}</div>
-        ${l.pain_flag ? `<div class="note-pain">⚠ Molestia reportada ${l.pain_area ? '· '+l.pain_area : ''}</div>` : ''}
-        ${l.client_note ? `<div class="log-note" style="margin-top:.35rem"><strong>Cliente:</strong> ${l.client_note}</div>` : ''}
-        ${l.coach_note  ? `<div class="log-note"><strong>Coach:</strong> ${l.coach_note}</div>` : ''}
-      </div>
-    `).join('')
-  }
+  logsEl.innerHTML = !logs.length ? `<div class="panel-body">${emptyState('Sin registros de entrenamiento.')}</div>` :
+    logs.map(l => `<div class="log-item">
+      <div class="log-date">${fmtDate(l.training_date)} · Sesión ${l.session_number||'—'} · ${l.is_finished ? 'Completada' : 'No completada'}</div>
+      ${l.pain_flag ? `<div class="note-pain">⚠ Molestia reportada ${l.pain_area ? '· '+l.pain_area : ''}</div>` : ''}
+      ${l.client_note ? `<div class="log-note" style="margin-top:.35rem"><strong>Cliente:</strong> ${l.client_note}</div>` : ''}
+      ${l.coach_note  ? `<div class="log-note"><strong>Coach:</strong> ${l.coach_note}</div>` : ''}
+    </div>`).join('')
 
-  // Restricciones anteriores
-  const prevEl = document.getElementById('case-restrictions-history')
-  if(!prevRestr.length){
-    prevEl.innerHTML = `<div class="panel-body">${emptyState('Sin restricciones médicas anteriores.')}</div>`
-  } else {
-    prevEl.innerHTML = `<div class="twrap"><table class="dt">
-      <thead><tr><th>Tipo</th><th>Zona</th><th>Severidad</th><th>Estado</th><th>Descripción</th><th>Fecha</th></tr></thead>
-      <tbody>${prevRestr.map(r => `<tr>
-        <td>${r.restriction_type||'—'}</td>
-        <td>${r.body_area||'—'}</td>
-        <td><span class="${sevClass(r.severity)}">${r.severity||'—'}</span></td>
-        <td>${statusBadge(r.status)}</td>
-        <td style="max-width:200px;font-size:.78rem">${r.description||'—'}</td>
-        <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
-      </tr>`).join('')}</tbody>
-    </table></div>`
-  }
+  renderRestrictionHistoryLocal()
 
-  // Pre-llenar formulario con respuesta previa si existe
-  if(req.professional_response){
-    document.getElementById('mf-resp').value = req.professional_response
-  }
-
-  // Limpiar mensajes
+  if(req.professional_response) document.getElementById('mf-resp').value = req.professional_response
   document.getElementById('med-save-msg').style.display = 'none'
 }
 
-// ════════════════════════════════════════════════════════════════
-// GUARDAR RESTRICCIÓN MÉDICA
-// ════════════════════════════════════════════════════════════════
+// ── GUARDAR RESTRICCIÓN ──
 async function saveRestriction(markComplete){
   const msgEl = document.getElementById('med-save-msg')
   msgEl.style.display = 'none'
 
   const { client } = currentCaseData
-
-  if(!client?.id || !currentPro?.id){
-  alert('Faltan datos del cliente o profesional.')
-  return
-}
+  if(!client?.id || !currentPro?.id){ alert('Faltan datos del cliente o profesional.'); return }
 
   const restrictionType = document.getElementById('mf-type').value
   const bodyArea        = document.getElementById('mf-area').value
@@ -931,81 +816,44 @@ async function saveRestriction(markComplete){
   if(!description){ toast('La descripción es obligatoria', 'err'); return }
 
   const saveButtons = document.querySelectorAll('button[onclick^="saveRestriction"]')
-  saveButtons.forEach(btn => {
-    btn.disabled = true
-    btn.style.opacity = '.55'
-  })
+  saveButtons.forEach(btn => { btn.disabled = true; btn.style.opacity = '.55' })
 
   try {
     const restrData = {
       client_id: client.id,
       professional_id: currentPro.id,
       professional_request_id: currentReqId || null,
-
       status,
       restriction_type: restrictionType,
       body_area: bodyArea,
       severity,
-
       description,
       recommendation,
       forbidden_exercises: forbidden,
       allowed_exercises: allowed,
       return_to_training_note: returnNote,
-
       avoid_exercises: forbidden,
-      recommended_modifications:
-        `Recomendación: ${recommendation || '—'}\n\n` +
-        `Permitidos: ${allowed || '—'}\n\n` +
-        `Retorno: ${returnNote || '—'}`,
-
+      recommended_modifications: `Recomendación: ${recommendation||'—'}\n\nPermitidos: ${allowed||'—'}\n\nRetorno: ${returnNote||'—'}`,
       start_date: todayISO(),
       alert_coach: status !== 'archivada' && (severity === 'alta' || status === 'activa'),
       updated_at: new Date().toISOString()
     }
 
     const { data: savedRestriction, error: restrErr } = await sb
-      .from('client_medical_restrictions')
-      .insert(restrData)
-      .select()
-      .single()
+      .from('client_medical_restrictions').insert(restrData).select().single()
 
-    if(restrErr){
-      console.error('Error guardando restricción:', restrErr)
-      alert('Error Supabase guardando restricción: ' + restrErr.message)
-      return
-    }
-
-    const reqStatus = markComplete ? 'completado' : 'en_revision'
-
-    const reqUpdate = {
-      status: reqStatus,
-      professional_response: coachResp || recommendation || description,
-      responded_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-
-    if(markComplete){
-      reqUpdate.completed_at = new Date().toISOString()
-    }
+    if(restrErr){ alert('Error Supabase guardando restricción: ' + restrErr.message); return }
 
     if(currentReqId){
-  const { error: reqErr } = await sb
-    .from('professional_requests')
-    .update(reqUpdate)
-    .eq('id', currentReqId)
-
-  if(reqErr){
-    console.error('Error actualizando solicitud:', reqErr)
-    alert('Restricción guardada, pero falló actualizar la solicitud: ' + reqErr.message)
-    return
-  }
-}
-
-    if(reqErr){
-      console.error('Error actualizando solicitud:', reqErr)
-      alert('Restricción guardada, pero falló actualizar la solicitud: ' + reqErr.message)
-      return
+      const reqUpdate = {
+        status: markComplete ? 'completado' : 'en_revision',
+        professional_response: coachResp || recommendation || description,
+        responded_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        ...(markComplete && { completed_at: new Date().toISOString() })
+      }
+      const { error: reqErr } = await sb.from('professional_requests').update(reqUpdate).eq('id', currentReqId)
+      if(reqErr){ alert('Restricción guardada, pero falló actualizar la solicitud: ' + reqErr.message); return }
     }
 
     msgEl.style.display = 'block'
@@ -1017,10 +865,8 @@ async function saveRestriction(markComplete){
     toast(markComplete ? 'Caso completado correctamente' : 'Restricción guardada correctamente')
 
     ;['mf-type','mf-area','mf-desc','mf-reco','mf-forbidden','mf-allowed','mf-return','mf-resp'].forEach(id => {
-      const el = document.getElementById(id)
-      if(el) el.value = ''
+      const el = document.getElementById(id); if(el) el.value = ''
     })
-
     document.getElementById('mf-severity').value = 'media'
     document.getElementById('mf-status').value = 'activa'
 
@@ -1034,20 +880,15 @@ async function saveRestriction(markComplete){
     await loadDashboard()
 
   } catch(e){
-    console.error('Error inesperado guardando:', e)
     alert('Error inesperado: ' + (e.message || e))
   } finally {
-    saveButtons.forEach(btn => {
-      btn.disabled = false
-      btn.style.opacity = '1'
-    })
+    saveButtons.forEach(btn => { btn.disabled = false; btn.style.opacity = '1' })
   }
 }
 
 function renderRestrictionHistoryLocal(){
   const prevEl = document.getElementById('case-restrictions-history')
   const prevRestr = currentCaseData.prevRestr || []
-
   if(!prevEl) return
 
   if(!prevRestr.length){
@@ -1056,217 +897,222 @@ function renderRestrictionHistoryLocal(){
   }
 
   prevEl.innerHTML = `<div class="twrap"><table class="dt">
-    <thead>
-      <tr>
-        <th>Tipo</th>
-        <th>Zona</th>
-        <th>Severidad</th>
-        <th>Estado</th>
-        <th>Descripción</th>
-        <th>Fecha</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${prevRestr.map(r => `<tr>
-        <td>${r.restriction_type || '—'}</td>
-        <td>${r.body_area || '—'}</td>
-        <td><span class="${sevClass(r.severity)}">${r.severity || '—'}</span></td>
-        <td>${statusBadge(r.status)}</td>
-        <td style="max-width:200px;font-size:.78rem">${r.description || '—'}</td>
-        <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
-      </tr>`).join('')}
-    </tbody>
+    <thead><tr><th>Tipo</th><th>Zona</th><th>Severidad</th><th>Estado</th><th>Descripción</th><th>Fecha</th></tr></thead>
+    <tbody>${prevRestr.map(r => `<tr>
+      <td>${r.restriction_type||'—'}</td>
+      <td>${r.body_area||'—'}</td>
+      <td><span class="${sevClass(r.severity)}">${r.severity||'—'}</span></td>
+      <td>${statusBadge(r.status)}</td>
+      <td style="max-width:200px;font-size:.78rem">${r.description||'—'}</td>
+      <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
+    </tr>`).join('')}</tbody>
   </table></div>`
 }
 
-// ════════════════════════════════════════════════════════════════
-// RESTRICCIONES ACTIVAS (historial)
-// ════════════════════════════════════════════════════════════════
+// ── HISTORIAL MÉDICO ──
 async function loadRestrictionsHistory(){
   const tbody = document.getElementById('restrictions-tbody')
-  if(!tbody) return
+  const cards = document.getElementById('hist-cards')
+  if(!tbody && !cards) return
 
-  tbody.innerHTML = `<tr><td colspan="7">${emptyState('Cargando historial médico...')}</td></tr>`
+  if(tbody) tbody.innerHTML = `<tr><td colspan="7">${emptyState('Cargando historial médico...')}</td></tr>`
+  if(cards) cards.innerHTML = emptyState('Cargando historial médico...')
 
   const { data, error } = await sb
     .from('client_medical_restrictions')
-    .select(`
-      id,
-      client_id,
-      professional_id,
-      professional_request_id,
-      status,
-      restriction_type,
-      body_area,
-      severity,
-      description,
-      recommendation,
-      forbidden_exercises,
-      allowed_exercises,
-      return_to_training_note,
-      avoid_exercises,
-      recommended_modifications,
-      start_date,
-      end_date,
-      created_at,
-      alert_coach,
-      clients(id, name, phone, plan, objective)
-    `)
+    .select('*, clients(id, name, plan, objective, city)')
     .eq('professional_id', currentPro.id)
     .order('created_at', { ascending: false })
 
   if(error){
-    console.error('Error cargando historial médico:', error)
-    tbody.innerHTML = `<tr><td colspan="7">${emptyState('Error cargando historial médico.')}</td></tr>`
+    if(tbody) tbody.innerHTML = `<tr><td colspan="7">${emptyState('Error cargando historial.')}</td></tr>`
+    if(cards) cards.innerHTML = emptyState('Error cargando historial.')
     toast('Error cargando historial médico', 'err')
     return
   }
 
   if(!data || !data.length){
-    tbody.innerHTML = `<tr><td colspan="7">${emptyState('Sin historial médico registrado.')}</td></tr>`
+    if(tbody) tbody.innerHTML = `<tr><td colspan="7">${emptyState('Sin historial médico registrado.')}</td></tr>`
+    if(cards) cards.innerHTML = emptyState('Sin historial médico registrado.')
     return
   }
 
-  tbody.innerHTML = data.map(r => `
-    <tr>
-      <td>
-        <div class="cn">${r.clients?.name || 'Cliente'}</div>
-        <div class="cm">${r.clients?.plan || ''}</div>
-      </td>
-      <td>${r.restriction_type || '—'}</td>
-      <td>${r.body_area || '—'}</td>
-      <td><span class="${sevClass(r.severity)}">${r.severity || '—'}</span></td>
+  // ── Tabla desktop ──
+  if(tbody){
+    tbody.innerHTML = data.map(r => `<tr>
+      <td><div class="cn">${r.clients?.name||'—'}</div><div class="cm">${r.clients?.plan||''}</div></td>
+      <td>${r.restriction_type||'—'}</td>
+      <td>${r.body_area||'—'}</td>
+      <td><span class="${sevClass(r.severity)}">${r.severity||'—'}</span></td>
       <td>${statusBadge(r.status)}</td>
       <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
       <td>
-        <button class="btn btn-b btn-sm" onclick="openMedicalFollowUp('${r.client_id}', '${r.professional_request_id || ''}')">
-          Ver seguimiento
-        </button>
+        ${r.professional_request_id
+          ? `<button class="btn btn-b btn-sm" onclick="openCase('${r.client_id}','${r.professional_request_id}')">Ver caso</button>`
+          : `<button class="btn btn-b btn-sm" onclick="openRestrictionDetail('${r.id}')">Ver detalle</button>`
+        }
       </td>
-    </tr>
-  `).join('')
+    </tr>`).join('')
+  }
+
+  // ── Cards móvil ──
+  if(cards){
+    cards.innerHTML = data.map(r => `<div class="hist-card">
+      <div class="hist-card-head">Historial médico</div>
+      <div class="hist-card-name">${r.clients?.name||'—'}</div>
+      <div class="hist-card-rows">
+        <div>
+          <div class="hist-card-row-key">Restricción</div>
+          <div class="hist-card-row-val">${r.restriction_type||'—'}</div>
+        </div>
+        <div>
+          <div class="hist-card-row-key">Zona</div>
+          <div class="hist-card-row-val">${r.body_area||'—'}</div>
+        </div>
+        <div>
+          <div class="hist-card-row-key">Severidad</div>
+          <div class="hist-card-row-val"><span class="${sevClass(r.severity)}">${r.severity||'—'}</span></div>
+        </div>
+        <div>
+          <div class="hist-card-row-key">Estado</div>
+          <div class="hist-card-row-val">${statusBadge(r.status)}</div>
+        </div>
+        <div>
+          <div class="hist-card-row-key">Plan</div>
+          <div class="hist-card-row-val">${r.clients?.plan||'—'}</div>
+        </div>
+        <div>
+          <div class="hist-card-row-key">Fecha</div>
+          <div class="hist-card-row-val">${fmtDate(r.created_at)}</div>
+        </div>
+      </div>
+      <div class="hist-card-actions">
+        ${r.professional_request_id
+          ? `<button class="btn btn-b btn-sm" onclick="openCase('${r.client_id}','${r.professional_request_id}')">Ver caso</button>`
+          : `<button class="btn btn-b btn-sm" onclick="openRestrictionDetail('${r.id}')">Ver detalle</button>`
+        }
+      </div>
+    </div>`).join('')
+  }
 }
 
-async function openMedicalFollowUp(clientId, reqId){
-  if(reqId){
-    await openCase(clientId, reqId)
+// ── DETALLE RESTRICCIÓN (sin request_id) ──
+async function openRestrictionDetail(restrictionId){
+  showView('v-restriction-detail')
+
+  document.getElementById('rd-title').textContent = 'Cargando...'
+  document.getElementById('rd-sub').textContent   = '—'
+  document.getElementById('rd-client-info').innerHTML = ''
+  document.getElementById('rd-restriction-info').innerHTML = ''
+  document.getElementById('rd-clinical').innerHTML = ''
+
+  const { data: r, error } = await sb
+    .from('client_medical_restrictions')
+    .select('*, clients(id, name, plan, objective, city)')
+    .eq('id', restrictionId)
+    .single()
+
+  if(error || !r){
+    toast('Error cargando detalle', 'err')
+    document.getElementById('rd-title').textContent = 'Error'
     return
   }
 
-  showView('v-case')
+  const client = r.clients || {}
 
-  const [clientRes, logsRes, prevRestrRes] = await Promise.all([
-    sb.from('clients')
-      .select('*')
-      .eq('id', clientId)
-      .single(),
+  document.getElementById('rd-title').textContent = client.name || 'Detalle médico'
+  document.getElementById('rd-sub').textContent   = `Restricción médica · ${fmtDate(r.created_at)}`
 
-    sb.from('client_training_logs')
-      .select('id, training_date, client_note, coach_note, pain_flag, pain_area, is_finished, session_number')
-      .eq('client_id', clientId)
-      .order('training_date', { ascending: false })
-      .limit(10),
-
-    sb.from('client_medical_restrictions')
-      .select('*')
-      .eq('client_id', clientId)
-      .order('created_at', { ascending: false })
-  ])
-
-  const client = clientRes.data || {}
-  const logs = logsRes.data || []
-  const prevRestr = prevRestrRes.data || []
-
-  currentReqId = null
-  currentCaseData = {
-    client,
-    req: {},
-    logs,
-    prevRestr
-  }
-
-  document.getElementById('case-title').textContent = client.name || 'Cliente'
-  document.getElementById('case-sub').textContent = 'Seguimiento médico · historial del cliente'
-
-  document.getElementById('case-client-info').innerHTML = [
+  // Info cliente
+  document.getElementById('rd-client-info').innerHTML = [
     ic('Nombre', client.name),
     ic('Plan', client.plan),
     ic('Objetivo deportivo', client.objective),
     ic('Ciudad', client.city),
-    ic('Teléfono', client.phone),
-    ic('Estado', client.status)
+    ic('Estado restricción', r.status),
+    ic('Creado', fmtDate(r.created_at)),
   ].join('')
 
-  document.getElementById('case-coach-note').textContent = 'Seguimiento abierto desde historial médico.'
+  // Restricción
+  document.getElementById('rd-restriction-info').innerHTML = `
+    <div class="detail-block">
+      <span class="dl">Tipo de restricción</span>
+      <div class="dv">${r.restriction_type||'—'}</div>
+    </div>
+    <div class="detail-block">
+      <span class="dl">Zona corporal</span>
+      <div class="dv">${r.body_area||'—'}</div>
+    </div>
+    <div class="detail-block">
+      <span class="dl">Severidad</span>
+      <div class="dv"><span class="${sevClass(r.severity)}">${r.severity||'—'}</span></div>
+    </div>
+    <div class="detail-block">
+      <span class="dl">Estado</span>
+      <div class="dv">${statusBadge(r.status)}</div>
+    </div>
+    <div class="detail-block full">
+      <span class="dl">Descripción médica</span>
+      <div class="dv">${r.description||'—'}</div>
+    </div>
+  `
 
-  const logsEl = document.getElementById('case-training-logs')
-  if(!logs.length){
-    logsEl.innerHTML = `<div class="panel-body">${emptyState('Sin registros de entrenamiento.')}</div>`
-  } else {
-    logsEl.innerHTML = logs.map(l => `
-      <div class="log-item">
-        <div class="log-date">${fmtDate(l.training_date)} · Sesión ${l.session_number || '—'} · ${l.is_finished ? 'Completada' : 'No completada'}</div>
-        ${l.pain_flag ? `<div class="note-pain">⚠ Molestia reportada ${l.pain_area ? '· ' + l.pain_area : ''}</div>` : ''}
-        ${l.client_note ? `<div class="log-note" style="margin-top:.35rem"><strong>Cliente:</strong> ${l.client_note}</div>` : ''}
-        ${l.coach_note ? `<div class="log-note"><strong>Coach:</strong> ${l.coach_note}</div>` : ''}
+  // Indicaciones clínicas
+  const blocks = []
+
+  if(r.recommendation) blocks.push(`
+    <div class="detail-block full" style="background:var(--navy2);border:1px solid var(--border2);padding:.85rem 1rem;margin-bottom:.75rem">
+      <span class="dl">Recomendación médico-deportiva</span>
+      <div class="dv">${r.recommendation}</div>
+    </div>`)
+
+  if(r.forbidden_exercises || r.avoid_exercises) blocks.push(`
+    <div class="detail-block" style="background:rgba(226,6,19,.06);border:1px solid rgba(226,6,19,.2);padding:.85rem 1rem;margin-bottom:.75rem">
+      <span class="dl" style="color:#f87171">Ejercicios prohibidos</span>
+      <div class="dv">${r.forbidden_exercises || r.avoid_exercises || '—'}</div>
+    </div>`)
+
+  if(r.allowed_exercises) blocks.push(`
+    <div class="detail-block" style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);padding:.85rem 1rem;margin-bottom:.75rem">
+      <span class="dl" style="color:var(--green)">Ejercicios permitidos</span>
+      <div class="dv">${r.allowed_exercises}</div>
+    </div>`)
+
+  if(r.return_to_training_note) blocks.push(`
+    <div class="detail-block" style="background:rgba(94,197,240,.06);border:1px solid rgba(94,197,240,.2);padding:.85rem 1rem;margin-bottom:.75rem">
+      <span class="dl" style="color:var(--blue)">Nota de retorno al entrenamiento</span>
+      <div class="dv">${r.return_to_training_note}</div>
+    </div>`)
+
+  if(r.recommended_modifications) blocks.push(`
+    <div class="detail-block" style="background:var(--navy2);border:1px solid var(--border2);padding:.85rem 1rem;margin-bottom:.75rem">
+      <span class="dl">Modificaciones recomendadas</span>
+      <div class="dv" style="white-space:pre-line">${r.recommended_modifications}</div>
+    </div>`)
+
+  if(r.start_date || r.end_date) blocks.push(`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+      <div class="detail-block" style="background:var(--navy2);border:1px solid var(--border2);padding:.85rem 1rem">
+        <span class="dl">Fecha de inicio</span>
+        <div class="dv">${fmtDate(r.start_date)}</div>
       </div>
-    `).join('')
-  }
+      <div class="detail-block" style="background:var(--navy2);border:1px solid var(--border2);padding:.85rem 1rem">
+        <span class="dl">Fecha estimada de alta</span>
+        <div class="dv">${fmtDate(r.end_date)}</div>
+      </div>
+    </div>`)
 
-  const prevEl = document.getElementById('case-restrictions-history')
-  if(!prevRestr.length){
-    prevEl.innerHTML = `<div class="panel-body">${emptyState('Sin restricciones médicas anteriores.')}</div>`
-  } else {
-    prevEl.innerHTML = `<div class="twrap"><table class="dt">
-      <thead>
-        <tr>
-          <th>Tipo</th>
-          <th>Zona</th>
-          <th>Severidad</th>
-          <th>Estado</th>
-          <th>Descripción</th>
-          <th>Fecha</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${prevRestr.map(r => `
-          <tr>
-            <td>${r.restriction_type || '—'}</td>
-            <td>${r.body_area || '—'}</td>
-            <td><span class="${sevClass(r.severity)}">${r.severity || '—'}</span></td>
-            <td>${statusBadge(r.status)}</td>
-            <td style="max-width:220px;font-size:.78rem">${r.description || '—'}</td>
-            <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table></div>`
-  }
-
-  document.getElementById('pain-alert').style.display = 'none'
-  document.getElementById('med-save-msg').style.display = 'none'
-
-  ;['mf-type','mf-area','mf-desc','mf-reco','mf-forbidden','mf-allowed','mf-return','mf-resp'].forEach(id => {
-    const el = document.getElementById(id)
-    if(el) el.value = ''
-  })
-
-  document.getElementById('mf-severity').value = 'media'
-  document.getElementById('mf-status').value = 'activa'
+  document.getElementById('rd-clinical').innerHTML = blocks.length
+    ? blocks.join('')
+    : emptyState('Sin indicaciones clínicas adicionales registradas.')
 }
 
-// ════════════════════════════════════════════════════════════════
-// INIT: revisar sesión guardada
-// ════════════════════════════════════════════════════════════════
+// ── SESIÓN GUARDADA ──
 window.addEventListener('DOMContentLoaded', () => {
   const saved = sessionStorage.getItem('ab_med')
   if(saved){
-    try {
-      currentPro = JSON.parse(saved)
-      initApp()
-    } catch(e) {
-      sessionStorage.removeItem('ab_med')
-    }
+    try { currentPro = JSON.parse(saved); initApp() }
+    catch(e){ sessionStorage.removeItem('ab_med') }
   }
 })
 
