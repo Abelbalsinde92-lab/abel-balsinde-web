@@ -1510,8 +1510,20 @@ async function saveModal(e){
     renderAll();
 
   } catch (error) {
-    console.error(error);
-    showToast('Error guardando en Supabase');
+
+  console.error('ERROR SUPABASE:', error);
+
+  const msg =
+
+    error?.message ||
+
+    error?.details ||
+
+    error?.hint ||
+
+    JSON.stringify(error);
+
+  showToast('Error: ' + msg);
   }
 }
 
