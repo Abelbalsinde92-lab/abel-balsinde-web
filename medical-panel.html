@@ -522,40 +522,64 @@ function emptyState(msg){ return `<div class="empty"><div class="empty-ico">!</d
 // ════════════════════════════════════════════════════════════════
 async function doLogin(){
   const identifier = document.getElementById('loginId').value.trim()
-  const code       = document.getElementById('loginCode').value.trim()
+  const code       = document.getElementById('loginCode').value.trim().toUpperCase()
   const btn        = document.getElementById('loginBtn')
   const errEl      = document.getElementById('loginErr')
 
-  if(!identifier || !code){ errEl.classList.add('show'); errEl.textContent = 'Completa todos los campos.'; return }
+  function normalizePhone(phone){
+    return String(phone || '').replace(/[\s\-\(\)\+]/g, '')
+  }
+
+  if(!identifier || !code){
+    errEl.classList.add('show')
+    errEl.textContent = 'Completa todos los campos.'
+    return
+  }
 
   btn.innerHTML = '<div class="spinner"></div>'
   btn.disabled  = true
   errEl.classList.remove('show')
 
   try {
-    const { data, error } = await sb
+    const { data: professionals, error } = await sb
       .from('professionals')
       .select('*')
-      .eq('type', 'sports_doctor')
-      .eq('status', 'activo')
-      .or(`email.eq.${identifier},phone.eq.${identifier}`)
-      .eq('access_code', code)
-      .single()
+      .eq('status', 'active')
 
-    if(error || !data){
+    if(error) throw error
+
+    const normalizedInput = normalizePhone(identifier)
+
+    const found = (professionals || []).find(p => {
+      const phoneMatch = normalizePhone(p.phone) === normalizedInput
+      const emailMatch = String(p.email || '').toLowerCase() === identifier.toLowerCase()
+      const codeMatch  = String(p.access_code || '').trim().toUpperCase() === code
+
+      const typeMatch =
+        p.role === 'sports_doctor' ||
+        p.professional_type === 'sports_doctor'
+
+      return (phoneMatch || emailMatch) && codeMatch && typeMatch
+    })
+
+    if(!found){
       errEl.classList.add('show')
       errEl.textContent = 'Credenciales incorrectas o profesional no activo.'
       return
     }
 
-    sessionStorage.setItem('ab_med', JSON.stringify(data))
-    currentPro = data
+    sessionStorage.setItem('ab_med', JSON.stringify(found))
+    currentPro = found
 
-    await sb.from('professionals').update({ last_login: new Date().toISOString() }).eq('id', data.id)
+    await sb
+      .from('professionals')
+      .update({ last_login: new Date().toISOString() })
+      .eq('id', found.id)
 
     initApp()
 
   } catch(e) {
+    console.error('Login médico error:', e)
     errEl.classList.add('show')
     errEl.textContent = 'Error de conexión. Inténtalo de nuevo.'
   } finally {
@@ -692,7 +716,7 @@ async function openCase(clientId, reqId){
     sb.from('clients').select('*').eq('id', clientId).single(),
     sb.from('professional_requests').select('*').eq('id', reqId).single(),
     sb.from('client_training_logs')
-      .select('training_date, client_note, coach_note, pain_flag, pain_area, is_finished, session_number')
+      .select('id, training_date, client_note, coach_note, pain_flag, pain_area, is_finished, session_number')
       .eq('client_id', clientId)
       .order('training_date', { ascending: false })
       .limit(10),
