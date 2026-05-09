@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AB coach · Nutricionista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ── VARIABLES ─────────────────────────────────────────────── */
+:root {
+  --navy:   #020B18;
+  --navy2:  #061427;
+  --navy3:  #0D1E30;
+  --navy4:  #1A2840;
+  --red:    #E20613;
+  --blue:   #5EC5F0;
+  --white:  #F5F9FF;
+  --gray:   #8A9BB0;
+  --gray2:  #4A5B70;
+  --green:  #22c55e;
+  --amber:  #f59e0b;
+  --border: rgba(94,197,240,.12);
+  --border2:rgba(255,255,255,.07);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--navy); color: var(--white); }
+button, input, select, textarea { font: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* ── TYPOGRAPHY ────────────────────────────────────────────── */
+.f-display { font-family: 'Bebas Neue', sans-serif; letter-spacing: .04em; }
+.f-mono    { font-family: 'Space Mono', monospace; }
+
+/* ── LAYOUT ────────────────────────────────────────────────── */
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── LOGIN ─────────────────────────────────────────────────── */
+#screen-login {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 2rem;
+}
+.login-card {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  padding: 2.5rem 2rem;
+  width: 100%; max-width: 400px;
+}
+.login-brand { margin-bottom: 2rem; }
+.login-brand .main { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: .05em; }
+.login-brand .sub  { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .18em; text-transform: uppercase; color: var(--blue); }
+.login-role {
+  font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .15em;
+  text-transform: uppercase; color: var(--gray); margin-bottom: 1.5rem;
+  padding: .4rem .75rem; background: rgba(94,197,240,.08);
+  border: 1px solid var(--border); display: inline-block;
+}
+.field { margin-bottom: 1rem; }
+.field label { display: block; font-family: 'Space Mono', monospace; font-size: .57rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray); margin-bottom: .35rem; }
+.field input, .field select, .field textarea {
+  width: 100%; background: var(--navy3); border: 1px solid var(--border2);
+  color: var(--white); padding: 9px 11px; outline: 0; font-size: .9rem;
+  transition: border-color .15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: rgba(94,197,240,.4); }
+.field textarea { min-height: 80px; resize: vertical; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid transparent; cursor: pointer; padding: 8px 16px;
+  font-family: 'Space Mono', monospace; font-size: .62rem; letter-spacing: .08em;
+  text-transform: uppercase; white-space: nowrap; transition: all .15s;
+}
+.btn-sm { padding: 5px 11px; font-size: .57rem; }
+.btn-r  { background: var(--red);   color: #fff; border-color: var(--red); }
+.btn-r:hover { background: #ff1a25; }
+.btn-b  { background: rgba(94,197,240,.1); color: var(--blue); border-color: rgba(94,197,240,.25); }
+.btn-b:hover { background: rgba(94,197,240,.18); }
+.btn-o  { background: transparent; color: var(--gray); border-color: var(--border); }
+.btn-o:hover { color: var(--white); background: rgba(255,255,255,.04); }
+.btn-g  { background: rgba(34,197,94,.1); color: var(--green); border-color: rgba(34,197,94,.25); }
+.btn-full { width: 100%; }
+.error-msg { background: rgba(226,6,19,.1); border: 1px solid rgba(226,6,19,.25); color: #f87171; padding: .6rem .75rem; font-size: .8rem; margin-top: .75rem; display: none; }
+.error-msg.show { display: block; }
+
+/* ── TOP BAR ───────────────────────────────────────────────── */
+#topbar {
+  height: 54px; flex-shrink: 0; background: var(--navy2);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 1rem; padding: 0 1.25rem;
+  display: none;
+}
+.topbar-brand { display: flex; align-items: baseline; gap: 3px; }
+.topbar-brand .m { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: .05em; }
+.topbar-brand .s { font-family: 'Space Mono', monospace; font-size: .5rem; color: var(--blue); letter-spacing: .18em; text-transform: uppercase; }
+.topbar-role {
+  font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--gray);
+  padding: 3px 8px; background: rgba(94,197,240,.08); border: 1px solid var(--border);
+}
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
+.topbar-user { font-family: 'Space Mono', monospace; font-size: .6rem; color: var(--gray); }
+.sep { width: 1px; height: 22px; background: var(--border); }
+
+/* ── MAIN LAYOUT ───────────────────────────────────────────── */
+#screen-app { flex: 1; display: none; overflow: hidden; }
+.layout { display: flex; height: calc(100vh - 54px); }
+
+/* ── SIDEBAR ───────────────────────────────────────────────── */
+.sidebar {
+  width: 210px; flex-shrink: 0; background: var(--navy2);
+  border-right: 1px solid var(--border); padding: 1rem 0; overflow-y: auto;
+}
+.nav-sec { font-family: 'Space Mono', monospace; font-size: .5rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gray2); padding: .5rem 1rem .25rem; }
+.nav-item {
+  display: flex; align-items: center; gap: .6rem; padding: .58rem 1rem;
+  color: var(--gray); font-size: .82rem; border-left: 2px solid transparent; cursor: pointer;
+  transition: all .12s;
+}
+.nav-item:hover { background: rgba(255,255,255,.04); color: var(--white); }
+.nav-item.on { background: rgba(94,197,240,.08); color: var(--white); border-left-color: var(--blue); }
+.nav-ico { font-family: 'Space Mono', monospace; font-size: .6rem; color: var(--blue); width: 16px; text-align: center; }
+.nav-badge { margin-left: auto; background: var(--red); font-family: 'Space Mono', monospace; font-size: .5rem; padding: 2px 5px; border-radius: 2px; color: #fff; }
+
+/* ── CONTENT ───────────────────────────────────────────────── */
+.content { flex: 1; overflow-y: auto; padding: 1.5rem; }
+.view { display: none; }
+.view.on { display: block; }
+
+/* ── PAGE HEADER ───────────────────────────────────────────── */
+.ph { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
+.ptitle { font-family: 'Bebas Neue', sans-serif; font-size: 1.9rem; letter-spacing: .04em; line-height: 1; }
+.psub { font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gray); margin-top: 4px; }
+.pacts { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+/* ── METRIC CARDS ──────────────────────────────────────────── */
+.mgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .75rem; margin-bottom: 1.4rem; }
+.mcard { background: var(--navy3); border: 1px solid var(--border2); padding: 1rem; }
+.ml { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gray); display: block; margin-bottom: .2rem; }
+.mv { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; line-height: 1; display: block; }
+.tv-b { color: var(--blue) !important; }
+.tv-r { color: var(--red) !important; }
+.tv-g { color: var(--green) !important; }
+.tv-a { color: var(--amber) !important; }
+
+/* ── PANEL ─────────────────────────────────────────────────── */
+.panel { background: var(--navy3); border: 1px solid var(--border2); margin-bottom: 1rem; overflow: hidden; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 1rem; border-bottom: 1px solid var(--border2); flex-wrap: wrap; }
+.panel-title { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gray); }
+.panel-body { padding: .85rem 1rem; }
+.no-pad { }
+
+/* ── TABLE ─────────────────────────────────────────────────── */
+.twrap { overflow-x: auto; }
+.dt { width: 100%; border-collapse: collapse; font-size: .83rem; min-width: 520px; }
+.dt th { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray2); padding: .65rem .75rem; text-align: left; border-bottom: 1px solid var(--border2); white-space: nowrap; }
+.dt td { padding: .65rem .75rem; border-bottom: 1px solid rgba(255,255,255,.04); color: var(--gray); vertical-align: middle; }
+.dt tr:hover td { background: rgba(255,255,255,.025); color: var(--white); }
+.cn { color: var(--white); font-weight: 500; }
+.cm { font-size: .72rem; color: var(--gray); }
+
+/* ── STATUS BADGE ──────────────────────────────────────────── */
+.st { display: inline-block; font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; }
+.st-a  { background: rgba(34,197,94,.12);  color: var(--green); border: 1px solid rgba(34,197,94,.2); }
+.st-b  { background: rgba(94,197,240,.1);  color: var(--blue);  border: 1px solid rgba(94,197,240,.2); }
+.st-w  { background: rgba(245,158,11,.1);  color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
+.st-r  { background: rgba(226,6,19,.12);   color: #f87171;      border: 1px solid rgba(226,6,19,.2); }
+.st-x  { background: rgba(138,155,176,.1); color: var(--gray);  border: 1px solid rgba(138,155,176,.18); }
+
+/* ── PRIORITY ──────────────────────────────────────────────── */
+.prio-alta  { color: #f87171; font-weight: 600; }
+.prio-media { color: var(--amber); }
+.prio-baja  { color: var(--gray); }
+
+/* ── INFO GRID ─────────────────────────────────────────────── */
+.igrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .6rem; margin-bottom: 1rem; }
+.ic { background: var(--navy2); border: 1px solid var(--border2); padding: .7rem; }
+.ic span { display: block; font-family: 'Space Mono', monospace; font-size: .5rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray); margin-bottom: .3rem; }
+.ic b { font-size: .84rem; color: var(--white); font-weight: 500; line-height: 1.4; }
+
+/* ── TWO COL ───────────────────────────────────────────────── */
+.two { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; margin-bottom: 1rem; }
+.frow { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; }
+
+/* ── NOTICE ────────────────────────────────────────────────── */
+.notice { background: rgba(94,197,240,.06); border: 1px solid rgba(94,197,240,.2); padding: .75rem 1rem; margin-bottom: .85rem; color: var(--gray); font-size: .8rem; line-height: 1.5; }
+.notice.warn { background: rgba(245,158,11,.06); border-color: rgba(245,158,11,.2); }
+.notice.err  { background: rgba(226,6,19,.06); border-color: rgba(226,6,19,.2); color: #f87171; }
+
+/* ── EMPTY STATE ───────────────────────────────────────────── */
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 1rem; gap: .75rem; text-align: center; }
+.empty-ico { width: 44px; height: 44px; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; color: var(--gray2); font-family: 'Space Mono', monospace; font-size: .9rem; }
+.empty-txt { font-family: 'Space Mono', monospace; font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray2); }
+
+/* ── CHIPS ─────────────────────────────────────────────────── */
+.chips { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.chip { font-family: 'Space Mono', monospace; font-size: .57rem; letter-spacing: .08em; text-transform: uppercase; padding: 5px 10px; background: var(--navy3); border: 1px solid var(--border2); color: var(--gray); cursor: pointer; }
+.chip.on { background: rgba(94,197,240,.1); color: var(--blue); border-color: rgba(94,197,240,.25); }
+
+/* ── NOTE BLOCK ────────────────────────────────────────────── */
+.note-block { background: var(--navy2); border: 1px solid var(--border2); border-left: 2px solid var(--blue); padding: .8rem; margin-bottom: .5rem; }
+.note-meta { font-family: 'Space Mono', monospace; font-size: .55rem; color: var(--blue); margin-bottom: .3rem; }
+.note-text { font-size: .83rem; color: var(--gray); line-height: 1.6; }
+
+/* ── SPINNER ───────────────────────────────────────────────── */
+.spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(94,197,240,.3); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOAST ─────────────────────────────────────────────────── */
+.toast { position: fixed; right: 1rem; bottom: 1rem; background: var(--navy2); border: 1px solid rgba(94,197,240,.25); padding: .7rem 1rem; color: var(--white); z-index: 300; transform: translateY(70px); opacity: 0; transition: .22s; font-size: .83rem; pointer-events: none; }
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── MODAL ─────────────────────────────────────────────────── */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(2,11,24,.85); z-index: 200; align-items: center; justify-content: center; }
+.modal-bg.open { display: flex; }
+.modal-card { background: var(--navy2); border: 1px solid var(--border); width: min(540px, 95vw); max-height: 90vh; overflow-y: auto; }
+.modal-head { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.2rem; border-bottom: 1px solid var(--border2); }
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: .04em; }
+.modal-body { padding: 1.2rem; }
+.modal-foot { display: flex; justify-content: flex-end; gap: .5rem; border-top: 1px solid var(--border2); padding: .75rem 1.2rem; }
+.xbtn { background: transparent; border: 0; color: var(--gray); font-size: 1.1rem; cursor: pointer; }
+
+/* ── RESPONSIVE ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .two, .frow { grid-template-columns: 1fr; }
+  .content { padding: 1rem; }
+}
+@media (max-width: 480px) {
+  .mgrid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══════════════════════════════════════════════════════════
+       PANTALLA: LOGIN
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="screen-login">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="main">AB<span style="color:var(--blue)"> /</span> coach</div>
+        <div class="sub">Training System</div>
+      </div>
+      <div class="login-role">Panel Nutricionista</div>
+      <div class="field">
+        <label>Email o teléfono</label>
+        <input type="text" id="loginId" placeholder="profesional@email.com" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Código de acceso</label>
+        <input type="password" id="loginCode" placeholder="Código profesional" autocomplete="current-password">
+      </div>
+      <button class="btn btn-r btn-full" id="loginBtn" onclick="doLogin()">Entrar</button>
+      <div class="error-msg" id="loginErr">Credenciales incorrectas o profesional no activo.</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       TOP BAR (visible tras login)
+  ═══════════════════════════════════════════════════════════ -->
+  <header id="topbar">
+    <div class="topbar-brand"><span class="m">AB</span><span class="s">coach</span></div>
+    <div class="sep"></div>
+    <div class="topbar-role">Nutricionista</div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="topbarUser">—</span>
+      <button class="btn btn-o btn-sm" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════
+       PANTALLA: APP
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="screen-app">
+    <div class="layout">
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="nav-sec">Principal</div>
+        <div class="nav-item on" onclick="showView('v-dashboard')">
+          <span class="nav-ico">01</span>Dashboard
+        </div>
+        <div class="nav-item" onclick="showView('v-requests')">
+          <span class="nav-ico">02</span>Solicitudes
+          <span class="nav-badge" id="nb-pending">0</span>
+        </div>
+        <div class="nav-sec">Historial</div>
+        <div class="nav-item" onclick="showView('v-history')">
+          <span class="nav-ico">03</span>Planes creados
+        </div>
+      </aside>
+
+      <!-- Content -->
+      <main class="content">
+
+        <!-- ─── DASHBOARD ─────────────────────────────────── -->
+        <div class="view on" id="v-dashboard">
+          <div class="ph">
+            <div>
+              <div class="ptitle">Panel Nutricionista</div>
+              <div class="psub">Resumen de solicitudes y casos</div>
+            </div>
+          </div>
+          <div class="mgrid" id="dash-metrics">
+            <div class="mcard"><span class="ml">Pendientes</span><span class="mv tv-a" id="dm-pend">—</span></div>
+            <div class="mcard"><span class="ml">En revisión</span><span class="mv tv-b" id="dm-rev">—</span></div>
+            <div class="mcard"><span class="ml">Completados</span><span class="mv tv-g" id="dm-done">—</span></div>
+            <div class="mcard"><span class="ml">Total clientes atendidos</span><span class="mv" id="dm-total">—</span></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">Solicitudes urgentes (prioridad alta)</span></div>
+            <div id="dash-urgent"></div>
+          </div>
+          <div class="notice">Solo ves solicitudes asignadas a ti. El coach mantiene el control del plan de entrenamiento del cliente.</div>
+        </div>
+
+        <!-- ─── SOLICITUDES ───────────────────────────────── -->
+        <div class="view" id="v-requests">
+          <div class="ph">
+            <div>
+              <div class="ptitle">Solicitudes</div>
+              <div class="psub">Casos de nutrición asignados</div>
+            </div>
+          </div>
+          <div class="chips" id="req-chips">
+            <button class="chip on" onclick="filterReqs('todos',this)">Todas</button>
+            <button class="chip" onclick="filterReqs('pendiente',this)">Pendientes</button>
+            <button class="chip" onclick="filterReqs('en_revision',this)">En revisión</button>
+            <button class="chip" onclick="filterReqs('completado',this)">Completadas</button>
+          </div>
+          <div class="panel">
+            <div class="twrap"><table class="dt" id="req-table">
+              <thead><tr>
+                <th>Cliente</th><th>Objetivo</th><th>Prioridad</th>
+                <th>Estado</th><th>Fecha</th><th>Nota del coach</th><th></th>
+              </tr></thead>
+              <tbody id="req-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+
+        <!-- ─── DETALLE CASO ───────────────────────────────── -->
+        <div class="view" id="v-case">
+          <div class="ph">
+            <div>
+              <div class="ptitle" id="case-title">Caso</div>
+              <div class="psub" id="case-sub">—</div>
+            </div>
+            <div class="pacts">
+              <button class="btn btn-o btn-sm" onclick="showView('v-requests')">← Volver</button>
+              <button class="btn btn-r btn-sm" onclick="openPlanModal()">Guardar / Actualizar plan</button>
+            </div>
+          </div>
+          <!-- Datos del cliente -->
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">Datos del cliente</span></div>
+            <div class="panel-body">
+              <div class="igrid" id="case-client-info"></div>
+            </div>
+          </div>
+          <!-- Nota del coach -->
+          <div class="panel" id="case-coach-note-panel">
+            <div class="panel-head"><span class="panel-title">Nota del coach</span></div>
+            <div class="panel-body">
+              <div class="note-block"><div class="note-text" id="case-coach-note">—</div></div>
+            </div>
+          </div>
+          <!-- Historial de planes -->
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">Historial de planes nutricionales</span></div>
+            <div id="case-plans-history"></div>
+          </div>
+          <!-- Formulario plan -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Plan nutricional — nuevo / actualizar</span>
+              <span class="st st-b" id="plan-form-status">borrador</span>
+            </div>
+            <div class="panel-body" id="plan-form-body">
+              <div class="notice">Orientación deportiva general. No sustituye asesoramiento médico ni nutricional prescriptivo.</div>
+              <div class="frow">
+                <div class="field"><label>Objetivo nutricional</label><input id="pf-goal" placeholder="Definición, ganancia muscular…"></div>
+                <div class="field"><label>Calorías diarias (~)</label><input id="pf-cal" type="number" placeholder="2200"></div>
+              </div>
+              <div class="frow">
+                <div class="field"><label>Proteína (g/día)</label><input id="pf-prot" type="number" placeholder="140"></div>
+                <div class="field"><label>Carbohidratos (g/día)</label><input id="pf-carb" type="number" placeholder="220"></div>
+              </div>
+              <div class="frow">
+                <div class="field"><label>Grasas (g/día)</label><input id="pf-fat" type="number" placeholder="65"></div>
+                <div class="field"><label>Hidratación</label><input id="pf-hydra" placeholder="2,5 litros mínimo"></div>
+              </div>
+              <div class="field"><label>Restricciones / alergias</label><textarea id="pf-restrict" placeholder="Intolerancia al gluten, alergia al marisco…"></textarea></div>
+              <div class="field"><label>Recomendaciones generales</label><textarea id="pf-recs" placeholder="Priorizar proteína en desayuno, evitar azúcar simple…"></textarea></div>
+              <div class="field"><label>Notas de distribución / comidas</label><textarea id="pf-meals" placeholder="5 comidas al día, última comida antes de 21:00…"></textarea></div>
+              <div class="frow">
+                <div class="field">
+                  <label>Estado del plan</label>
+                  <select id="pf-status">
+                    <option value="borrador">Borrador</option>
+                    <option value="activo">Activo</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Respuesta al coach</label>
+                  <input id="pf-resp" placeholder="Resumen para el coach…">
+                </div>
+              </div>
+              <div style="display:flex;gap:.5rem;margin-top:.5rem">
+                <button class="btn btn-r" onclick="savePlan(false)">Guardar plan</button>
+                <button class="btn btn-g" onclick="savePlan(true)">Guardar y marcar completado</button>
+              </div>
+              <div id="plan-save-msg" class="notice" style="margin-top:.75rem;display:none"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── HISTORIAL PLANES ───────────────────────────── -->
+        <div class="view" id="v-history">
+          <div class="ph">
+            <div>
+              <div class="ptitle">Planes creados</div>
+              <div class="psub">Historial de planes nutricionales</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="twrap"><table class="dt">
+              <thead><tr><th>Cliente</th><th>Objetivo</th><th>Calorías</th><th>Estado</th><th>Creado</th></tr></thead>
+              <tbody id="history-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+</div><!-- .app -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// CONFIGURACIÓN SUPABASE
+// ════════════════════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://TU_PROJECT.supabase.co'   // ← reemplazar
+const SUPABASE_ANON = 'TU_ANON_KEY'                       // ← reemplazar
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
+
+// ════════════════════════════════════════════════════════════════
+// ESTADO GLOBAL
+// ════════════════════════════════════════════════════════════════
+let currentPro    = null   // professional logueado
+let allRequests   = []     // solicitudes del profesional
+let filteredReqs  = []     // solicitudes filtradas por chip activo
+let currentReqId  = null   // solicitud activa en vista detalle
+let currentCaseData = {}   // datos del caso activo
+
+// ════════════════════════════════════════════════════════════════
+// UI HELPERS
+// ════════════════════════════════════════════════════════════════
+function toast(msg, type='ok'){
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.style.borderColor = type==='err' ? 'rgba(226,6,19,.4)' : 'rgba(94,197,240,.25)'
+  t.classList.add('show')
+  setTimeout(() => t.classList.remove('show'), 2500)
+}
+
+function showView(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'))
+  document.getElementById(id)?.classList.add('on')
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('on', n.getAttribute('onclick')?.includes(id))
+  })
+  if(id === 'v-history') loadHistory()
+}
+
+function statusBadge(s){
+  const map = { pendiente:'st-w', en_revision:'st-b', completado:'st-a', rechazado:'st-r' }
+  return `<span class="st ${map[s]||'st-x'}">${s}</span>`
+}
+
+function prioClass(p){ return { alta:'prio-alta', media:'prio-media', baja:'prio-baja' }[p] || '' }
+
+function fmtDate(d){ if(!d) return '—'; return new Date(d).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}) }
+
+function ic(label, value){ return `<div class="ic"><span>${label}</span><b>${value||'—'}</b></div>` }
+
+function emptyState(msg){ return `<div class="empty"><div class="empty-ico">—</div><div class="empty-txt">${msg}</div></div>` }
+
+// ════════════════════════════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════════════════════════════
+async function doLogin(){
+  const identifier = document.getElementById('loginId').value.trim()
+  const code       = document.getElementById('loginCode').value.trim()
+  const btn        = document.getElementById('loginBtn')
+  const errEl      = document.getElementById('loginErr')
+
+  if(!identifier || !code){ errEl.classList.add('show'); errEl.textContent = 'Completa todos los campos.'; return }
+
+  btn.innerHTML = '<div class="spinner"></div>'
+  btn.disabled  = true
+  errEl.classList.remove('show')
+
+  try {
+    // Buscar profesional por email o teléfono con tipo nutritionist y activo
+    const { data, error } = await sb
+      .from('professionals')
+      .select('*')
+      .eq('type', 'nutritionist')
+      .eq('status', 'activo')
+      .or(`email.eq.${identifier},phone.eq.${identifier}`)
+      .eq('access_code', code)
+      .single()
+
+    if(error || !data){
+      errEl.classList.add('show')
+      errEl.textContent = 'Credenciales incorrectas o profesional no activo.'
+      return
+    }
+
+    // Guardar en sessionStorage para persistencia de sesión
+    sessionStorage.setItem('ab_pro', JSON.stringify(data))
+    currentPro = data
+
+    // Actualizar last_login
+    await sb.from('professionals').update({ last_login: new Date().toISOString() }).eq('id', data.id)
+
+    initApp()
+
+  } catch(e) {
+    errEl.classList.add('show')
+    errEl.textContent = 'Error de conexión. Inténtalo de nuevo.'
+  } finally {
+    btn.innerHTML = 'Entrar'
+    btn.disabled  = false
+  }
+}
+
+function doLogout(){
+  sessionStorage.removeItem('ab_pro')
+  currentPro = null
+  allRequests = []
+  document.getElementById('screen-login').style.display = 'flex'
+  document.getElementById('topbar').style.display        = 'none'
+  document.getElementById('screen-app').style.display    = 'none'
+}
+
+// ════════════════════════════════════════════════════════════════
+// INICIALIZACIÓN DE LA APP
+// ════════════════════════════════════════════════════════════════
+function initApp(){
+  document.getElementById('screen-login').style.display  = 'none'
+  document.getElementById('topbar').style.display        = 'flex'
+  document.getElementById('screen-app').style.display    = 'block'
+  document.getElementById('topbarUser').textContent      = currentPro.name || currentPro.email
+
+  loadDashboard()
+  loadRequests()
+}
+
+// ════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════════════
+async function loadDashboard(){
+  const { data, error } = await sb
+    .from('professional_requests')
+    .select('status, client_id, priority')
+    .eq('professional_id', currentPro.id)
+    .eq('request_type', 'nutrition')
+
+  if(error || !data) return
+
+  const pend  = data.filter(r => r.status === 'pendiente').length
+  const rev   = data.filter(r => r.status === 'en_revision').length
+  const done  = data.filter(r => r.status === 'completado').length
+  const total = [...new Set(data.map(r => r.client_id))].length
+
+  document.getElementById('dm-pend').textContent  = pend
+  document.getElementById('dm-rev').textContent   = rev
+  document.getElementById('dm-done').textContent  = done
+  document.getElementById('dm-total').textContent = total
+  document.getElementById('nb-pending').textContent = pend + rev
+
+  // Solicitudes urgentes
+  const urgent = data.filter(r => r.priority === 'alta' && r.status !== 'completado')
+  const el = document.getElementById('dash-urgent')
+
+  if(!urgent.length){ el.innerHTML = emptyState('Sin solicitudes urgentes.'); return }
+
+  // Cargar nombres de clientes para las urgentes
+  const ids = [...new Set(urgent.map(r => r.client_id))]
+  const { data: clients } = await sb.from('clients').select('id, name, plan').in('id', ids)
+  const clientMap = Object.fromEntries((clients||[]).map(c => [c.id, c]))
+
+  el.innerHTML = urgent.map(r => {
+    const c = clientMap[r.client_id] || {}
+    return `<div class="item-row" style="display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;border-bottom:1px solid var(--border2)">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></span>
+      <div style="flex:1">
+        <div class="cn">${c.name||'—'}</div>
+        <div class="cm">Plan ${c.plan||'—'} · prioridad alta</div>
+      </div>
+      <button class="btn btn-b btn-sm" onclick="openCase('${r.client_id}','${r.id||''}')">Ver caso</button>
+    </div>`
+  }).join('')
+}
+
+// ════════════════════════════════════════════════════════════════
+// SOLICITUDES
+// ════════════════════════════════════════════════════════════════
+async function loadRequests(){
+  const { data: reqs, error } = await sb
+    .from('professional_requests')
+    .select('*, clients(id, name, plan, objective)')
+    .eq('professional_id', currentPro.id)
+    .eq('request_type', 'nutrition')
+    .order('created_at', { ascending: false })
+
+  if(error){ toast('Error cargando solicitudes', 'err'); return }
+
+  allRequests = reqs || []
+  filteredReqs = [...allRequests]
+  renderRequests()
+}
+
+function filterReqs(status, btn){
+  document.querySelectorAll('#req-chips .chip').forEach(c => c.classList.remove('on'))
+  btn.classList.add('on')
+  filteredReqs = status === 'todos' ? [...allRequests] : allRequests.filter(r => r.status === status)
+  renderRequests()
+}
+
+function renderRequests(){
+  const tbody = document.getElementById('req-tbody')
+  if(!filteredReqs.length){ tbody.innerHTML = `<tr><td colspan="7">${emptyState('No hay solicitudes.')}</td></tr>`; return }
+
+  tbody.innerHTML = filteredReqs.map(r => {
+    const client = r.clients || {}
+    return `<tr>
+      <td><div class="cn">${client.name||'—'}</div><div class="cm">${client.plan||'—'}</div></td>
+      <td>${client.objective||r.description||'—'}</td>
+      <td><span class="${prioClass(r.priority)}">${r.priority||'—'}</span></td>
+      <td>${statusBadge(r.status)}</td>
+      <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
+      <td style="max-width:200px;font-size:.78rem">${r.coach_note||'—'}</td>
+      <td><button class="btn btn-b btn-sm" onclick="openCase('${r.client_id}','${r.id}')">Ver caso</button></td>
+    </tr>`
+  }).join('')
+}
+
+// ════════════════════════════════════════════════════════════════
+// DETALLE CASO
+// ════════════════════════════════════════════════════════════════
+async function openCase(clientId, reqId){
+  currentReqId = reqId
+  showView('v-case')
+
+  // Cargar cliente
+  const { data: client } = await sb
+    .from('clients')
+    .select('*')
+    .eq('id', clientId)
+    .single()
+
+  // Cargar solicitud
+  const { data: req } = await sb
+    .from('professional_requests')
+    .select('*')
+    .eq('id', reqId)
+    .single()
+
+  // Cargar métricas más recientes
+  const { data: metrics } = await sb
+    .from('metrics')
+    .select('*')
+    .eq('client_id', clientId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+  const lastMetric = metrics?.[0] || {}
+
+  // Cargar historial de planes nutricionales
+  const { data: plans } = await sb
+    .from('client_nutrition_plans')
+    .select('*')
+    .eq('client_id', clientId)
+    .order('created_at', { ascending: false })
+
+  currentCaseData = { client: client||{}, req: req||{}, plans: plans||[] }
+
+  // Título
+  document.getElementById('case-title').textContent = client?.name || 'Cliente'
+  document.getElementById('case-sub').textContent   = `Solicitud · ${fmtDate(req?.created_at)} · ${req?.priority||''}`
+
+  // Info del cliente
+  document.getElementById('case-client-info').innerHTML = [
+    ic('Nombre', client?.name),
+    ic('Plan', client?.plan),
+    ic('Objetivo', client?.objective || req?.description),
+    ic('Ciudad', client?.city),
+    ic('Peso actual', lastMetric.weight ? lastMetric.weight + ' kg' : '—'),
+    ic('Cintura', lastMetric.waist ? lastMetric.waist + ' cm' : '—'),
+    ic('Prioridad solicitud', req?.priority),
+    ic('Estado solicitud', req?.status),
+  ].join('')
+
+  // Nota del coach
+  document.getElementById('case-coach-note').textContent = req?.coach_note || 'Sin nota del coach.'
+
+  // Historial planes
+  const histEl = document.getElementById('case-plans-history')
+  if(!plans?.length){
+    histEl.innerHTML = `<div class="panel-body">${emptyState('Sin planes nutricionales anteriores.')}</div>`
+  } else {
+    histEl.innerHTML = `<div class="twrap"><table class="dt">
+      <thead><tr><th>Objetivo</th><th>Calorías</th><th>Proteína</th><th>Estado</th><th>Fecha</th></tr></thead>
+      <tbody>${plans.map(p => `<tr>
+        <td>${p.goal||'—'}</td>
+        <td>${p.calories ? p.calories+' kcal' : '—'}</td>
+        <td>${p.protein ? p.protein+' g' : '—'}</td>
+        <td>${statusBadge(p.status)}</td>
+        <td>${fmtDate(p.created_at)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`
+  }
+
+  // Pre-llenar formulario con el último plan activo si existe
+  const activePlan = plans?.find(p => p.status === 'activo') || plans?.[0]
+  if(activePlan){
+    document.getElementById('pf-goal').value    = activePlan.goal || ''
+    document.getElementById('pf-cal').value     = activePlan.calories || ''
+    document.getElementById('pf-prot').value    = activePlan.protein || ''
+    document.getElementById('pf-carb').value    = activePlan.carbs || ''
+    document.getElementById('pf-fat').value     = activePlan.fats || ''
+    document.getElementById('pf-hydra').value   = activePlan.hydration || ''
+    document.getElementById('pf-restrict').value = activePlan.restrictions || ''
+    document.getElementById('pf-recs').value    = activePlan.recommendations || ''
+    document.getElementById('pf-meals').value   = activePlan.meal_notes || ''
+    document.getElementById('pf-status').value  = activePlan.status || 'borrador'
+    document.getElementById('pf-resp').value    = req?.professional_response || ''
+  } else {
+    // Limpiar formulario
+    ['pf-goal','pf-cal','pf-prot','pf-carb','pf-fat','pf-hydra','pf-restrict','pf-recs','pf-meals','pf-resp'].forEach(id => {
+      document.getElementById(id).value = ''
+    })
+    document.getElementById('pf-status').value = 'borrador'
+    if(req?.professional_response) document.getElementById('pf-resp').value = req.professional_response
+  }
+
+  document.getElementById('plan-save-msg').style.display = 'none'
+}
+
+// ════════════════════════════════════════════════════════════════
+// GUARDAR PLAN NUTRICIONAL
+// ════════════════════════════════════════════════════════════════
+async function savePlan(markComplete){
+  const msgEl = document.getElementById('plan-save-msg')
+  msgEl.style.display = 'none'
+
+  const { client, req } = currentCaseData
+
+  const planData = {
+    client_id:       client.id,
+    professional_id: currentPro.id,
+    request_id:      currentReqId,
+    goal:            document.getElementById('pf-goal').value.trim(),
+    calories:        parseInt(document.getElementById('pf-cal').value) || null,
+    protein:         parseInt(document.getElementById('pf-prot').value) || null,
+    carbs:           parseInt(document.getElementById('pf-carb').value) || null,
+    fats:            parseInt(document.getElementById('pf-fat').value) || null,
+    hydration:       document.getElementById('pf-hydra').value.trim(),
+    restrictions:    document.getElementById('pf-restrict').value.trim(),
+    recommendations: document.getElementById('pf-recs').value.trim(),
+    meal_notes:      document.getElementById('pf-meals').value.trim(),
+    status:          document.getElementById('pf-status').value,
+    updated_at:      new Date().toISOString(),
+  }
+
+  if(!planData.goal){ toast('El objetivo nutricional es obligatorio', 'err'); return }
+
+  // Insertar o actualizar (buscamos si ya existe un plan con este request_id)
+  const existing = currentCaseData.plans?.find(p => p.request_id === currentReqId)
+
+  let planError
+  if(existing){
+    const { error } = await sb.from('client_nutrition_plans').update(planData).eq('id', existing.id)
+    planError = error
+  } else {
+    planData.created_at = new Date().toISOString()
+    const { error } = await sb.from('client_nutrition_plans').insert(planData)
+    planError = error
+  }
+
+  if(planError){ toast('Error guardando el plan', 'err'); return }
+
+  // Actualizar professional_requests
+  const reqStatus = markComplete ? 'completado' : 'en_revision'
+  const reqUpdate = {
+    status: reqStatus,
+    professional_response: document.getElementById('pf-resp').value.trim(),
+    updated_at: new Date().toISOString(),
+  }
+  if(markComplete) reqUpdate.completed_at = new Date().toISOString()
+
+  await sb.from('professional_requests').update(reqUpdate).eq('id', currentReqId)
+
+  toast(markComplete ? 'Plan guardado y caso marcado como completado' : 'Plan guardado en revisión')
+
+  msgEl.style.display = 'block'
+  msgEl.className = 'notice'
+  msgEl.textContent = markComplete ? '✓ Caso marcado como completado. El coach puede revisarlo.' : '✓ Plan guardado. Estado: en revisión.'
+
+  // Recargar datos del caso
+  await openCase(client.id, currentReqId)
+
+  // Actualizar contador sidebar
+  loadRequests()
+  loadDashboard()
+}
+
+// ════════════════════════════════════════════════════════════════
+// HISTORIAL DE PLANES
+// ════════════════════════════════════════════════════════════════
+async function loadHistory(){
+  const { data, error } = await sb
+    .from('client_nutrition_plans')
+    .select('*, clients(name)')
+    .eq('professional_id', currentPro.id)
+    .order('created_at', { ascending: false })
+
+  const tbody = document.getElementById('history-tbody')
+  if(error || !data?.length){ tbody.innerHTML = `<tr><td colspan="5">${emptyState('Sin planes registrados.')}</td></tr>`; return }
+
+  tbody.innerHTML = data.map(p => `<tr>
+    <td class="cn">${p.clients?.name || '—'}</td>
+    <td>${p.goal || '—'}</td>
+    <td>${p.calories ? p.calories+' kcal' : '—'}</td>
+    <td>${statusBadge(p.status)}</td>
+    <td>${fmtDate(p.created_at)}</td>
+  </tr>`).join('')
+}
+
+// ════════════════════════════════════════════════════════════════
+// INIT: revisar sesión guardada
+// ════════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem('ab_pro')
+  if(saved){
+    try {
+      currentPro = JSON.parse(saved)
+      initApp()
+    } catch(e) {
+      sessionStorage.removeItem('ab_pro')
+    }
+  }
+})
+
+// Enter en login
+document.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && document.getElementById('screen-login').style.display !== 'none') doLogin()
+})
+</script>
+</body>
+</html>
