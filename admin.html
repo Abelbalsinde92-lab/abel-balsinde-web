@@ -226,6 +226,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">◈ Inicio</div>
       <div class="nav-item" data-page="clientes" onclick="showPage('clientes')">◉ Clientes <span class="nav-badge" id="badge-clientes"></span></div>
       <div class="nav-item" data-page="planes" onclick="showPage('planes')">▤ Programas / Planes <span class="nav-badge" id="badge-planes"></span></div>
+      <div class="nav-item" data-page="entrenamiento" onclick="showPage('entrenamiento')">▦ Entrenamiento <span class="nav-badge" id="badge-entrenamiento"></span></div>
       <div class="nav-section">Gestión</div>
       <div class="nav-item" data-page="reservas" onclick="showPage('reservas')">◷ Reservas <span class="nav-badge" id="badge-reservas"></span></div>
       <div class="nav-item" data-page="pagos" onclick="showPage('pagos')">◎ Pagos <span class="nav-badge" id="badge-pagos"></span></div>
@@ -325,6 +326,59 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="page-header"><div><div class="page-eyebrow">Comunicación</div><div class="page-title">Partners</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('partner')">+ Agregar partner</button></div></div>
         <div id="partnersContent"></div>
       </div>
+      
+      <div class="page" id="page-entrenamiento">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Sistema de entrenamiento</div>
+      <div class="page-title">Entrenamiento</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openModal('trainingProgram')">+ Crear programa base</button>
+      <button class="btn btn-secondary" onclick="openModal('trainingAssignment')">Asignar a cliente</button>
+    </div>
+  </div>
+
+  <div class="metrics-row" id="trainingMetrics"></div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Programas base</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Programa</th>
+          <th>Duración</th>
+          <th>Frecuencia</th>
+          <th>Objetivo</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="trainingProgramsTable"></tbody>
+    </table>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Programas asignados a clientes</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Programa</th>
+          <th>Nivel</th>
+          <th>Semana actual</th>
+          <th>Estado</th>
+          <th>Inicio</th>
+        </tr>
+      </thead>
+      <tbody id="trainingAssignmentsTable"></tbody>
+    </table>
+  </div>
+</div>
 
       <div class="page" id="page-planes">
         <div class="page-header"><div><div class="page-eyebrow">Gestión</div><div class="page-title">Programas / Planes</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('program')">+ Crear plan</button></div></div>
@@ -393,6 +447,14 @@ let state = {
   programs: [],
   partners: [],
   templates: [],
+
+  trainingPrograms: [],
+  trainingWeeks: [],
+  trainingSessions: [],
+  trainingBlocks: [],
+  trainingExercises: [],
+  clientProgramAssignments: [],
+  clientSessionLogs: [],
   settings: {
     coachName:'Abel Balsinde',
     coachEmail:'abel@email.com',
@@ -429,7 +491,15 @@ function toDbTable(arrName){
     healthAlerts: 'health_alerts',
     programs: 'programs',
     partners: 'partners',
-    templates: 'templates'
+    templates: 'templates',
+
+    trainingPrograms: 'training_programs',
+    trainingWeeks: 'training_weeks',
+    trainingSessions: 'training_sessions',
+    trainingBlocks: 'training_blocks',
+    trainingExercises: 'training_exercises',
+    clientProgramAssignments: 'client_program_assignments',
+    clientSessionLogs: 'client_session_logs'
   };
   return map[arrName];
 }
@@ -455,15 +525,23 @@ function snakeToCamel(obj){
 async function loadState(){
   try {
     const tables = [
-      ['clients', 'clients'],
-      ['reservations', 'reservations'],
-      ['payments', 'payments'],
-      ['metrics', 'metrics'],
-      ['healthAlerts', 'health_alerts'],
-      ['programs', 'programs'],
-      ['partners', 'partners'],
-      ['templates', 'templates']
-    ];
+  ['clients', 'clients'],
+  ['reservations', 'reservations'],
+  ['payments', 'payments'],
+  ['metrics', 'metrics'],
+  ['healthAlerts', 'health_alerts'],
+  ['programs', 'programs'],
+  ['partners', 'partners'],
+  ['templates', 'templates'],
+
+  ['trainingPrograms', 'training_programs'],
+  ['trainingWeeks', 'training_weeks'],
+  ['trainingSessions', 'training_sessions'],
+  ['trainingBlocks', 'training_blocks'],
+  ['trainingExercises', 'training_exercises'],
+  ['clientProgramAssignments', 'client_program_assignments'],
+  ['clientSessionLogs', 'client_session_logs']
+];
 
     for (const [stateKey, tableName] of tables) {
       console.log('Cargando tabla:', tableName);
@@ -590,6 +668,7 @@ function renderAll(){
   renderWhatsapp();
   renderPartners();
   renderPrograms();
+  renderTraining();
   renderProfile();
   renderSettings();
 }
@@ -607,7 +686,8 @@ function renderBadges(){
   set('badge-progreso', state.metrics.length);
   set('badge-salud', state.healthAlerts.filter(h => h.status !== 'revisado').length);
   set('badge-planes', state.programs.length);
-  set('badge-partners', state.partners.length);
+set('badge-entrenamiento', state.trainingPrograms.length);
+set('badge-partners', state.partners.length);
 }
 
 function renderDashboard(){
@@ -834,6 +914,90 @@ function renderPrograms(){
         <button class="btn btn-wa btn-sm" onclick="sendProgramWA('${p.id}')">Enviar WA</button>
       </div>
     </div>`;}).join('')}</div>` : emptyBlock('No hay programas creados todavía.');
+}
+
+function renderTraining(){
+  const metricsEl = document.getElementById('trainingMetrics');
+  const programsTable = document.getElementById('trainingProgramsTable');
+  const assignmentsTable = document.getElementById('trainingAssignmentsTable');
+
+  if (!metricsEl || !programsTable || !assignmentsTable) return;
+
+  const activePrograms = state.trainingPrograms.filter(p => p.status === 'activo').length;
+  const assignedPrograms = state.clientProgramAssignments.filter(a => a.status === 'activo').length;
+
+  metricsEl.innerHTML = `
+    <div class="metric-card blue">
+      <span class="metric-num">${state.trainingPrograms.length}</span>
+      <span class="metric-label">Programas base</span>
+      <div class="metric-sub">Planes reutilizables</div>
+    </div>
+    <div class="metric-card green">
+      <span class="metric-num">${activePrograms}</span>
+      <span class="metric-label">Activos</span>
+      <div class="metric-sub">Disponibles para asignar</div>
+    </div>
+    <div class="metric-card yellow">
+      <span class="metric-num">${assignedPrograms}</span>
+      <span class="metric-label">Asignados</span>
+      <div class="metric-sub">Clientes con plan activo</div>
+    </div>
+    <div class="metric-card red">
+      <span class="metric-num">${state.trainingExercises.length}</span>
+      <span class="metric-label">Ejercicios</span>
+      <div class="metric-sub">Ejercicios cargados</div>
+    </div>
+  `;
+
+  programsTable.innerHTML = state.trainingPrograms.length ? state.trainingPrograms.map(p => `
+    <tr>
+      <td>
+        <div class="name-text">${esc(p.name)}</div>
+        <div class="name-sub">${esc(p.type || 'Sin tipo')} · ${esc(p.level || 'Sin nivel')}</div>
+      </td>
+      <td>${esc(p.durationWeeks || '—')} semanas</td>
+      <td>${esc(p.frequency || '—')}</td>
+      <td>${esc(p.objective || '—')}</td>
+      <td><span class="badge badge-${p.status || 'activo'}">${esc(p.status || 'activo')}</span></td>
+      <td>
+        <div class="td-actions">
+          <button class="btn btn-blue btn-sm" onclick="openTrainingProgramDetail('${p.id}')">Ver</button>
+          <button class="btn btn-secondary btn-sm" onclick="openModal('trainingProgram','${p.id}')">Editar</button>
+        </div>
+      </td>
+    </tr>
+  `).join('') : emptyRow(6,'No hay programas base creados todavía.');
+
+  assignmentsTable.innerHTML = state.clientProgramAssignments.length ? state.clientProgramAssignments.map(a => {
+    const c = clientById(a.clientId);
+    const p = state.trainingPrograms.find(x => x.id === a.programId);
+
+    return `
+      <tr>
+        <td>${esc(c?.name || 'Cliente eliminado')}</td>
+        <td>${esc(p?.name || 'Programa eliminado')}</td>
+        <td>${esc(a.assignedLevel || 'N1')}</td>
+        <td>${esc(a.currentWeek || 1)}</td>
+        <td><span class="badge badge-${a.status || 'activo'}">${esc(a.status || 'activo')}</span></td>
+        <td>${formatDate(a.startDate)}</td>
+      </tr>
+    `;
+  }).join('') : emptyRow(6,'No hay programas asignados todavía.');
+}
+
+function openTrainingProgramDetail(programId){
+  const p = state.trainingPrograms.find(x => x.id === programId);
+  if (!p) return;
+
+  const weeks = state.trainingWeeks.filter(w => w.programId === programId);
+
+  alert(
+    `${p.name}\n\n` +
+    `Duración: ${p.durationWeeks || '—'} semanas\n` +
+    `Frecuencia: ${p.frequency || '—'}\n` +
+    `Semanas cargadas: ${weeks.length}\n\n` +
+    `Más adelante aquí abriremos el editor completo del programa.`
+  );
 }
 
 function renderProfile(){
@@ -1070,6 +1234,114 @@ function openModal(type, id=null){
       <div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(h.clientId)}</select></div>
       <div class="form-row"><label class="form-label">Detalle</label><textarea name="detail" class="form-input" rows="3" required>${esc(h.detail||'')}</textarea></div>
       <div class="form-row-2"><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="pendiente" ${h.status==='pendiente'?'selected':''}>Pendiente</option><option value="alerta" ${h.status==='alerta'?'selected':''}>Alerta</option><option value="revisado" ${h.status==='revisado'?'selected':''}>Revisado</option></select></div><div class="form-row"><label class="form-label">Fecha</label><input name="date" type="date" class="form-input" value="${esc(h.date||todayISO())}"></div></div>${actions}`;
+  } else if(type==='trainingProgram'){
+  const p = get('trainingPrograms');
+  title.textContent = id ? 'Editar programa base' : 'Crear programa base';
+
+  form.innerHTML = `
+    <div class="form-row">
+      <label class="form-label">Nombre del programa</label>
+      <input name="name" class="form-input" value="${esc(p.name||'')}" placeholder="Ej: Plan base 3 meses" required>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Tipo</label>
+        <input name="type" class="form-input" value="${esc(p.type||'Condición física')}" placeholder="Fuerza, movilidad, lucha, general">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Nivel general</label>
+        <input name="level" class="form-input" value="${esc(p.level||'N1-N4')}" placeholder="N1-N4">
+      </div>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Duración en semanas</label>
+        <input name="durationWeeks" class="form-input" type="number" value="${esc(p.durationWeeks||12)}">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Frecuencia</label>
+        <input name="frequency" class="form-input" value="${esc(p.frequency||'3 sesiones por semana')}">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Objetivo</label>
+      <textarea name="objective" class="form-input" rows="3">${esc(p.objective||'')}</textarea>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Equipamiento necesario</label>
+      <input name="equipment" class="form-input" value="${esc(p.equipment||'Peso corporal, bandas, colchoneta opcional')}">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Descripción</label>
+      <textarea name="description" class="form-input" rows="3">${esc(p.description||'')}</textarea>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Estado</label>
+      <select name="status" class="form-input">
+        <option value="activo" ${p.status==='activo'?'selected':''}>Activo</option>
+        <option value="borrador" ${p.status==='borrador'?'selected':''}>Borrador</option>
+        <option value="inactivo" ${p.status==='inactivo'?'selected':''}>Inactivo</option>
+      </select>
+    </div>
+
+    ${actions}
+  `;
+
+} else if(type==='trainingAssignment'){
+  title.textContent = 'Asignar programa a cliente';
+
+  form.innerHTML = `
+    <div class="form-row">
+      <label class="form-label">Cliente</label>
+      <select name="clientId" class="form-input" required>
+        ${clientOptions()}
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Programa base</label>
+      <select name="programId" class="form-input" required>
+        ${state.trainingPrograms.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Nivel asignado</label>
+        <select name="assignedLevel" class="form-input">
+          <option value="N1">N1 — Principiante</option>
+          <option value="N2">N2 — Básico</option>
+          <option value="N3">N3 — Intermedio</option>
+          <option value="N4">N4 — Avanzado</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Semana actual</label>
+        <input name="currentWeek" class="form-input" type="number" value="1">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Fecha de inicio</label>
+      <input name="startDate" class="form-input" type="date" value="${todayISO()}">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Notas del coach</label>
+      <textarea name="coachNotes" class="form-input" rows="3"></textarea>
+    </div>
+
+    <input type="hidden" name="status" value="activo">
+
+    ${actions}
+  `;
   } else if(type==='program'){
     const p = get('programs'); title.textContent = id ? 'Editar programa' : 'Crear plan';
     form.innerHTML = `
@@ -1171,6 +1443,14 @@ async function saveModal(e){
       await upsert('healthAlerts', data);
       showToast('Alerta guardada');
 
+    } else if(type==='trainingProgram'){
+  await upsert('trainingPrograms', data);
+  showToast(id ? 'Programa base actualizado' : 'Programa base creado');
+
+} else if(type==='trainingAssignment'){
+  await upsert('clientProgramAssignments', data);
+  showToast('Programa asignado al cliente');
+    
     } else if(type==='program'){
       await upsert('programs', data);
       showToast('Plan guardado');
