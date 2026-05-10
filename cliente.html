@@ -995,10 +995,10 @@ function buildTrainingSteps(sessionIdFilter) {
 function getActiveTrainingWeek() {
   if (!clientTrainingAssignment) return null;
 
-  var currentWeekNum = Number(clientTrainingAssignment.current_week || 1);
+  var weekNumberToUse = getAssignedWeekNumber();
 
   return clientTrainingWeeks.find(function(w) {
-    return Number(w.week_number) === currentWeekNum;
+    return Number(w.week_number) === weekNumberToUse;
   }) || clientTrainingWeeks[0] || null;
 }
 
@@ -1149,7 +1149,7 @@ async function renderClientTraining() {
 
   await loadOrCreateTrainingLog();
 
-  const currentWeekNum = Number(clientTrainingAssignment.current_week || 1);
+  const currentWeekNum = getAssignedWeekNumber();
   const activeWeek     = getActiveTrainingWeek();
 
   if (badge) badge.textContent = 'Semana ' + currentWeekNum;
@@ -1495,6 +1495,33 @@ async function finishTrainingSession() {
     is_finished: true,
     finished_at: new Date().toISOString()
   });
+
+  const el = document.getElementById('sectionTrainingClient');
+
+  if (el) {
+    const currentWeekNum = getAssignedWeekNumber();
+    const activeWeek = getActiveTrainingWeek();
+    const levelStr = getAssignedTrainingLevel();
+    const weekName = activeWeek ? activeWeek.name : '';
+
+    const metaParts = [
+      getAssignmentScopeLabel(),
+      'Semana ' + currentWeekNum + (weekName ? ' · ' + weekName : ''),
+      levelStr
+    ].filter(Boolean);
+
+    const objective = (activeWeek && activeWeek.objective)
+      ? activeWeek.objective
+      : (clientTrainingProgram.objective || '');
+
+    const summaryHtml = '<div class="training-guide-summary">'
+      + '<div class="training-guide-title">' + (clientTrainingProgram.name || 'Programa de entrenamiento') + '</div>'
+      + '<div class="training-guide-meta">' + metaParts.join(' · ') + '</div>'
+      + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
+      + '</div>';
+
+    el.innerHTML = summaryHtml;
+  }
 
   renderTrainingCompletedState();
 }
