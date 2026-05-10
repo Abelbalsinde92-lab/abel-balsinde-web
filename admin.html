@@ -2249,7 +2249,6 @@ function openModal(type, id=null){
 
   setTimeout(() => toggleAssignmentScopeFields('full'), 50);
 
-  setTimeout(() => toggleAssignmentScopeFields('full'), 50);
   } else if(type==='program'){
     const p = get('programs'); title.textContent = id ? 'Editar programa' : 'Crear plan';
     form.innerHTML = `
@@ -2473,70 +2472,108 @@ async function saveModal(e){
       showToast(id ? 'Ejercicio actualizado' : 'Ejercicio creado');
 
     } else if(type === 'trainingAssignment'){
-      const scope = data.assignmentScope || 'full';
+  const scope = data.assignmentScope || 'full';
 
-      if(scope === 'day' && (!data.assignedWeek || !data.assignedSessionNumber)) {
-        showToast('Para asignar un día debes indicar semana y Día A/B/C');
-        return;
-      }
+  if(scope === 'day' && (!data.assignedWeek || !data.assignedSessionNumber)) {
+    showToast('Para asignar un día debes indicar semana y Día A/B/C');
+    return;
+  }
 
-      if(scope === 'week' && !data.assignedWeek) {
-        showToast('Para asignar una semana debes indicar el número de semana');
-        return;
-      }
+  if(scope === 'week' && !data.assignedWeek) {
+    showToast('Para asignar una semana debes indicar el número de semana');
+    return;
+  }
 
-      if(scope === 'month' && !data.assignedMonth) {
-        showToast('Para asignar un mes debes indicar Mes 1, 2 o 3');
-        return;
-      }
+  if(scope === 'month' && !data.assignedMonth) {
+    showToast('Para asignar un mes debes indicar Mes 1, 2 o 3');
+    return;
+  }
 
-      if(!data.commercialLabel) {
-        if(scope === 'day') {
-          const dayLabel =
-            data.assignedSessionNumber === '1' ? 'Día A' :
-            data.assignedSessionNumber === '2' ? 'Día B' :
-            data.assignedSessionNumber === '3' ? 'Día C' :
-            'Día';
+  if(!data.commercialLabel) {
+    if(scope === 'day') {
+      const dayLabel =
+        data.assignedSessionNumber === '1' ? 'Día A' :
+        data.assignedSessionNumber === '2' ? 'Día B' :
+        data.assignedSessionNumber === '3' ? 'Día C' :
+        'Día';
 
-          data.commercialLabel = `${dayLabel} · Semana ${data.assignedWeek}`;
-        }
+      data.commercialLabel = `${dayLabel} · Semana ${data.assignedWeek}`;
+    }
 
-        if(scope === 'week') {
-          data.commercialLabel = `Semana ${data.assignedWeek}`;
-        }
+    if(scope === 'week') {
+      data.commercialLabel = `Semana ${data.assignedWeek}`;
+    }
 
-        if(scope === 'month') {
-          data.commercialLabel = `Mes ${data.assignedMonth}`;
-        }
+    if(scope === 'month') {
+      data.commercialLabel = `Mes ${data.assignedMonth}`;
+    }
 
-        if(scope === 'full') {
-          data.commercialLabel = 'Plan completo';
-        }
-      }
+    if(scope === 'full') {
+      data.commercialLabel = 'Plan completo';
+    }
+  }
 
-      if(scope === 'day' || scope === 'week') {
-        data.currentWeek = data.assignedWeek || data.currentWeek || 1;
-      }
+  if(scope === 'day' || scope === 'week') {
+    data.currentWeek = data.assignedWeek || data.currentWeek || 1;
+  }
 
-      if(scope === 'month') {
-        const monthToWeek = {
-          '1': 1,
-          '2': 5,
-          '3': 9
-        };
+  if(scope === 'month') {
+    const monthToWeek = {
+      '1': 1,
+      '2': 5,
+      '3': 9
+    };
 
-        data.currentWeek = monthToWeek[String(data.assignedMonth)] || 1;
-      }
+    data.currentWeek = monthToWeek[String(data.assignedMonth)] || 1;
+  }
 
-      if(scope === 'full') {
-        data.currentWeek = data.currentWeek || 1;
-      }
+  if(scope === 'full') {
+    data.currentWeek = data.currentWeek || 1;
+  }
 
-      data.status = data.status || 'activo';
+  data.status = 'activo';
 
-      await upsert('clientProgramAssignments', data);
-      showToast('Entrenamiento asignado al cliente');
+  const cleanAssignment = {
+    clientId: data.clientId,
+    programId: data.programId,
+    status: data.status,
+    assignmentScope: scope,
+    commercialLabel: data.commercialLabel,
+    assignedLevel: data.assignedLevel || 'N1',
+    currentWeek: data.currentWeek || 1,
+    assignedMonth: scope === 'month' ? data.assignedMonth : null,
+    assignedWeek: (scope === 'day' || scope === 'week') ? data.assignedWeek : null,
+    assignedSessionNumber: scope === 'day' ? data.assignedSessionNumber : null,
+    startDate: data.startDate || todayISO(),
+    coachNotes: data.coachNotes || ''
+  };
 
+  let deactivateQuery = db
+    .from('client_program_assignments')
+    .update({ status: 'inactivo' })
+    .eq('client_id', cleanAssignment.clientId)
+    .eq('status', 'activo');
+
+  if(id) {
+    deactivateQuery = deactivateQuery.neq('id', id);
+  }
+
+  const { error: deactivateError } = await deactivateQuery;
+
+  if(deactivateError) throw deactivateError;
+
+  state.clientProgramAssignments = state.clientProgramAssignments.map(a => {
+    if(a.clientId === cleanAssignment.clientId && a.status === 'activo' && a.id !== id) {
+      return { ...a, status: 'inactivo' };
+    }
+
+    return a;
+  });
+
+  await upsert('clientProgramAssignments', cleanAssignment);
+
+  showToast('Entrenamiento asignado al cliente');
+    
     } else if(type === 'program'){
       await upsert('programs', data);
       showToast(id ? 'Plan actualizado' : 'Plan guardado');
