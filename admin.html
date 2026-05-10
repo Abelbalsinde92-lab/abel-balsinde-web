@@ -2181,11 +2181,11 @@ function openModal(type, id=null){
       </div>
 
       <div class="form-row">
-        <label class="form-label">Alcance comercial</label>
+        <label class="form-label">Qué quieres enviar al cliente</label>
         <select name="assignmentScope" class="form-input" onchange="toggleAssignmentScopeFields(this.value)">
-          <option value="day">Día suelto</option>
-          <option value="week">Semana completa</option>
-          <option value="month">Mes completo</option>
+          <option value="day">Solo un día</option>
+          <option value="week">Una semana completa</option>
+          <option value="month">Un mes completo</option>
           <option value="full" selected>Plan completo</option>
         </select>
       </div>
@@ -2246,6 +2246,8 @@ function openModal(type, id=null){
 
     ${actions}
   `;
+
+  setTimeout(() => toggleAssignmentScopeFields('full'), 50);
 
   setTimeout(() => toggleAssignmentScopeFields('full'), 50);
   } else if(type==='program'){
