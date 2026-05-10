@@ -503,13 +503,14 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <table>
       <thead>
         <tr>
-          <th>Cliente</th>
-          <th>Programa</th>
-          <th>Nivel</th>
-          <th>Semana actual</th>
-          <th>Estado</th>
-          <th>Inicio</th>
-        </tr>
+  <th>Cliente</th>
+  <th>Programa</th>
+  <th>Alcance</th>
+  <th>Nivel</th>
+  <th>Semana actual</th>
+  <th>Estado</th>
+  <th>Inicio</th>
+</tr>
       </thead>
       <tbody id="trainingAssignmentsTable"></tbody>
     </table>
@@ -772,6 +773,13 @@ function formatDate(dateStr){
 function formatTime(timeStr){
   if(!timeStr) return '—';
   return String(timeStr).slice(0,5);
+}
+function getAssignmentScopeLabel(scope) {
+  if (scope === 'day') return 'Día suelto';
+  if (scope === 'week') return 'Semana completa';
+  if (scope === 'month') return 'Mes completo';
+  if (scope === 'full') return 'Plan completo';
+  return 'Plan completo';
 }
 function clientById(id){ return state.clients.find(c => c.id === id); }
 function initials(name){ return (name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase() || '?'; }
@@ -1123,13 +1131,17 @@ function renderTraining(){
       <tr>
         <td>${esc(c?.name || 'Cliente eliminado')}</td>
         <td>${esc(p?.name || 'Programa eliminado')}</td>
-        <td>${esc(a.assignedLevel || 'N1')}</td>
-        <td>${esc(a.currentWeek || 1)}</td>
-        <td><span class="badge badge-${a.status || 'activo'}">${esc(a.status || 'activo')}</span></td>
-        <td>${formatDate(a.startDate)}</td>
+<td>
+  <div class="name-text">${esc(a.commercialLabel || getAssignmentScopeLabel(a.assignmentScope))}</div>
+  <div class="name-sub">${esc(getAssignmentScopeLabel(a.assignmentScope))}</div>
+</td>
+<td>${esc(a.assignedLevel || 'N1')}</td>
+<td>${esc(a.currentWeek || 1)}</td>
+<td><span class="badge badge-${a.status || 'activo'}">${esc(a.status || 'activo')}</span></td>
+<td>${formatDate(a.startDate)}</td>
       </tr>
     `;
-  }).join('') : emptyRow(6,'No hay programas asignados todavía.');
+  }).join('') : emptyRow(7,'No hay programas asignados todavía.')
 }
 
 function renderTrainingDetail(){
@@ -2216,6 +2228,50 @@ function openModal(type, id=null){
   form.onsubmit = saveModal;
   document.getElementById('modalOverlay').classList.add('open');
 }
+
+function toggleAssignmentScopeFields(scope) {
+  const box = document.getElementById('assignmentScopeFields');
+  if (!box) return;
+
+  const monthInput = box.querySelector('[name="assignedMonth"]');
+  const weekInput = box.querySelector('[name="assignedWeek"]');
+  const sessionInput = box.querySelector('[name="assignedSessionNumber"]');
+
+  if (!monthInput || !weekInput || !sessionInput) return;
+
+  monthInput.disabled = false;
+  weekInput.disabled = false;
+  sessionInput.disabled = false;
+
+  if (scope === 'full') {
+    monthInput.value = '';
+    weekInput.value = '';
+    sessionInput.value = '';
+    monthInput.disabled = true;
+    weekInput.disabled = true;
+    sessionInput.disabled = true;
+  }
+
+  if (scope === 'month') {
+    weekInput.value = '';
+    sessionInput.value = '';
+    weekInput.disabled = true;
+    sessionInput.disabled = true;
+  }
+
+  if (scope === 'week') {
+    monthInput.value = '';
+    sessionInput.value = '';
+    monthInput.disabled = true;
+    sessionInput.disabled = true;
+  }
+
+  if (scope === 'day') {
+    monthInput.value = '';
+    monthInput.disabled = true;
+  }
+}
+
 function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); activeModal=null; }
 
 function formData(form){ return Object.fromEntries(new FormData(form).entries()); }
@@ -2289,9 +2345,64 @@ async function saveModal(e){
       await upsert('healthAlerts', data);
       showToast('Alerta guardada');
 
-    } else if(type==='trainingProgram'){
-  await upsert('trainingPrograms', data);
-  showToast(id ? 'Programa base actualizado' : 'Programa base creado');
+    } else if(type==='trainingAssignment'){
+  const scope = data.assignmentScope || 'full';
+
+  if (scope === 'day' && (!data.assignedWeek || !data.assignedSessionNumber)) {
+    showToast('Para asignar un día debes indicar semana y Día A/B/C');
+    return;
+  }
+
+  if (scope === 'week' && !data.assignedWeek) {
+    showToast('Para asignar una semana debes indicar el número de semana');
+    return;
+  }
+
+  if (scope === 'month' && !data.assignedMonth) {
+    showToast('Para asignar un mes debes indicar Mes 1, 2 o 3');
+    return;
+  }
+
+  if (!data.commercialLabel) {
+    if (scope === 'day') {
+      const dayLabel = data.assignedSessionNumber === '1' ? 'Día A' : data.assignedSessionNumber === '2' ? 'Día B' : 'Día C';
+      data.commercialLabel = dayLabel + ' · Semana ' + data.assignedWeek;
+    }
+
+    if (scope === 'week') {
+      data.commercialLabel = 'Semana ' + data.assignedWeek;
+    }
+
+    if (scope === 'month') {
+      data.commercialLabel = 'Mes ' + data.assignedMonth;
+    }
+
+    if (scope === 'full') {
+      data.commercialLabel = 'Plan completo';
+    }
+  }
+
+  if (scope === 'day' || scope === 'week') {
+    data.currentWeek = data.assignedWeek || data.currentWeek || 1;
+  }
+
+  if (scope === 'month') {
+    const monthToWeek = {
+      '1': 1,
+      '2': 5,
+      '3': 9
+    };
+    data.currentWeek = monthToWeek[String(data.assignedMonth)] || 1;
+  }
+
+  if (scope === 'full') {
+    data.currentWeek = data.currentWeek || 1;
+  }
+
+  await upsert('clientProgramAssignments', data);
+  showToast('Entrenamiento asignado al cliente');
+    
+    } else if(type==='program'){
 
 } else if(type==='trainingWeek'){
   await upsert('trainingWeeks', data);
@@ -2341,12 +2452,102 @@ async function saveModal(e){
   showToast(id ? 'Ejercicio actualizado' : 'Ejercicio creado');
 
 } else if(type==='trainingAssignment'){
-  await upsert('clientProgramAssignments', data);
-  showToast('Programa asignado al cliente');
-    
-    } else if(type==='program'){
-      await upsert('programs', data);
-      showToast('Plan guardado');
+  title.textContent = 'Asignar entrenamiento a cliente';
+
+  form.innerHTML = `
+    <div class="form-row">
+      <label class="form-label">Cliente</label>
+      <select name="clientId" class="form-input" required>
+        ${clientOptions()}
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Programa base</label>
+      <select name="programId" class="form-input" required>
+        ${state.trainingPrograms.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Nivel asignado</label>
+        <select name="assignedLevel" class="form-input">
+          <option value="N1">N1 — Principiante</option>
+          <option value="N2">N2 — Básico</option>
+          <option value="N3">N3 — Intermedio</option>
+          <option value="N4">N4 — Avanzado</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Alcance comercial</label>
+        <select name="assignmentScope" class="form-input" onchange="toggleAssignmentScopeFields(this.value)">
+          <option value="day">Día suelto</option>
+          <option value="week">Semana completa</option>
+          <option value="month">Mes completo</option>
+          <option value="full" selected>Plan completo</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="assignmentScopeFields" style="background:var(--navy3);border:1px solid var(--border2);padding:14px;margin-bottom:14px;">
+      <div class="form-row-2">
+        <div class="form-row">
+          <label class="form-label">Mes asignado</label>
+          <select name="assignedMonth" class="form-input">
+            <option value="">No aplica</option>
+            <option value="1">Mes 1</option>
+            <option value="2">Mes 2</option>
+            <option value="3">Mes 3</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Semana asignada</label>
+          <input name="assignedWeek" class="form-input" type="number" min="1" max="12" placeholder="Ej: 1">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Día / sesión asignada</label>
+        <select name="assignedSessionNumber" class="form-input">
+          <option value="">No aplica</option>
+          <option value="1">Día A</option>
+          <option value="2">Día B</option>
+          <option value="3">Día C</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Semana actual</label>
+        <input name="currentWeek" class="form-input" type="number" value="1">
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Fecha de inicio</label>
+        <input name="startDate" class="form-input" type="date" value="${todayISO()}">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Etiqueta comercial</label>
+      <input name="commercialLabel" class="form-input" placeholder="Ej: Día A · Semana 1 / Mes 1 completo / Plan completo">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Notas del coach</label>
+      <textarea name="coachNotes" class="form-input" rows="3"></textarea>
+    </div>
+
+    <input type="hidden" name="status" value="activo">
+
+    ${actions}
+  `;
+
+  setTimeout(() => toggleAssignmentScopeFields('full'), 50);
 
     } else if(type==='partner'){
       await upsert('partners', data);
