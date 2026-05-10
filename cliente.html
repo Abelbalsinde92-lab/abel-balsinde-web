@@ -1157,9 +1157,10 @@ async function renderClientTraining() {
   const levelStr = getAssignedTrainingLevel();
   const weekName = activeWeek ? activeWeek.name : '';
 
-  const metaParts = [
-  getAssignmentScopeLabel(),
-  'Semana ' + currentWeekNum + (weekName ? ' · ' + weekName : ''),
+  const scopeLabel = getAssignmentScopeLabel();
+
+const metaParts = [
+  scopeLabel,
   levelStr
 ].filter(Boolean);
 
@@ -1504,11 +1505,12 @@ async function finishTrainingSession() {
     const levelStr = getAssignedTrainingLevel();
     const weekName = activeWeek ? activeWeek.name : '';
 
-    const metaParts = [
-      getAssignmentScopeLabel(),
-      'Semana ' + currentWeekNum + (weekName ? ' · ' + weekName : ''),
-      levelStr
-    ].filter(Boolean);
+    const scopeLabel = getAssignmentScopeLabel();
+
+const metaParts = [
+  scopeLabel,
+  levelStr
+].filter(Boolean);
 
     const objective = (activeWeek && activeWeek.objective)
       ? activeWeek.objective
