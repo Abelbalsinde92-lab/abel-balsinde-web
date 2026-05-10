@@ -595,6 +595,52 @@ function formatDate(d) {
   try { const [y,m,day] = String(d).slice(0,10).split('-'); return `${day}/${m}/${y}`; } catch { return d; }
 }
 function formatTime(t)  { return t ? String(t).slice(0,5) : ''; }
+
+function getAssignmentScope() {
+  return clientTrainingAssignment?.assignment_scope || 'full';
+}
+
+function getAssignmentScopeLabel() {
+  const scope = getAssignmentScope();
+
+  if (scope === 'day') return clientTrainingAssignment?.commercial_label || 'Día asignado';
+  if (scope === 'week') return clientTrainingAssignment?.commercial_label || 'Semana asignada';
+  if (scope === 'month') return clientTrainingAssignment?.commercial_label || 'Mes asignado';
+  return clientTrainingAssignment?.commercial_label || 'Plan completo';
+}
+
+function getAssignedWeekNumber() {
+  const scope = getAssignmentScope();
+
+  if (scope === 'day' || scope === 'week') {
+    return Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
+  }
+
+  if (scope === 'month') {
+    const month = Number(clientTrainingAssignment?.assigned_month || 1);
+
+    if (month === 1) return 1;
+    if (month === 2) return 5;
+    if (month === 3) return 9;
+
+    return Number(clientTrainingAssignment?.current_week || 1);
+  }
+
+  return Number(clientTrainingAssignment?.current_week || 1);
+}
+
+function filterSessionsByAssignmentScope(sessions) {
+  const scope = getAssignmentScope();
+
+  if (scope !== 'day') return sessions;
+
+  const assignedSessionNumber = Number(clientTrainingAssignment?.assigned_session_number || 1);
+
+  return sessions.filter(function(session) {
+    return Number(session.session_number || 0) === assignedSessionNumber;
+  });
+}
+
 function formatMoney(amount, currency) {
   if (amount == null) return '—';
   const cur = (currency || 'EUR').toUpperCase();
@@ -675,8 +721,14 @@ function logoutClient() {
 /* ── DATA LOADING ────────────────────────────────────────── */
 async function loadClientDashboard(clientId) {
   showLoading(true);
+
   try {
-    const { data: client, error: cErr } = await db.from('clients').select('*').eq('id', clientId).single();
+    const { data: client, error: cErr } = await db
+      .from('clients')
+      .select('*')
+      .eq('id', clientId)
+      .single();
+
     if (cErr || !client) {
       localStorage.removeItem(LS_CLIENT_ID);
       showLoading(false);
@@ -685,6 +737,7 @@ async function loadClientDashboard(clientId) {
       showError('Sesión expirada. Vuelve a iniciar sesión.');
       return;
     }
+
     clientData = client;
 
     const [resR, payR, metR, halR, proR, assignR] = await Promise.all([
@@ -693,41 +746,79 @@ async function loadClientDashboard(clientId) {
       db.from('metrics').select('*').eq('client_id', clientId).order('date', { ascending: false }),
       db.from('health_alerts').select('*').eq('client_id', clientId).order('date', { ascending: false }),
       db.from('programs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
-      db.from('client_program_assignments').select('*').eq('client_id', clientId).eq('status', 'activo').order('start_date', { ascending: false }).limit(1),
+      db
+        .from('client_program_assignments')
+        .select('*')
+        .eq('client_id', clientId)
+        .eq('status', 'activo')
+        .order('start_date', { ascending: false })
+        .limit(1),
     ]);
 
-    clientReservations       = resR.data    || [];
-    clientPayments           = payR.data    || [];
-    clientMetrics            = metR.data    || [];
-    clientAlerts             = halR.data    || [];
-    clientPrograms           = proR.data    || [];
+    clientReservations       = resR.data || [];
+    clientPayments           = payR.data || [];
+    clientMetrics            = metR.data || [];
+    clientAlerts             = halR.data || [];
+    clientPrograms           = proR.data || [];
     clientTrainingAssignment = assignR.data?.[0] || null;
 
-    clientTrainingProgram = null; clientTrainingWeeks = [];
-    clientTrainingSessions = []; clientTrainingBlocks = []; clientTrainingExercises = [];
+    clientTrainingProgram   = null;
+    clientTrainingWeeks     = [];
+    clientTrainingSessions  = [];
+    clientTrainingBlocks    = [];
+    clientTrainingExercises = [];
 
     if (clientTrainingAssignment?.program_id) {
-      const programId   = clientTrainingAssignment.program_id;
-      const currentWeek = Number(clientTrainingAssignment.current_week || 1);
+      const programId = clientTrainingAssignment.program_id;
+      const weekNumberToLoad = getAssignedWeekNumber();
 
       const [programR, weeksR] = await Promise.all([
         db.from('training_programs').select('*').eq('id', programId).single(),
         db.from('training_weeks').select('*').eq('program_id', programId).order('week_number', { ascending: true }),
       ]);
-      clientTrainingProgram = programR.data || null;
-      clientTrainingWeeks   = weeksR.data   || [];
 
-      const activeWeek = clientTrainingWeeks.find(w => Number(w.week_number) === currentWeek) || clientTrainingWeeks[0] || null;
+      clientTrainingProgram = programR.data || null;
+      clientTrainingWeeks   = weeksR.data || [];
+
+      const activeWeek = clientTrainingWeeks.find(function(w) {
+        return Number(w.week_number) === weekNumberToLoad;
+      }) || clientTrainingWeeks[0] || null;
+
       if (activeWeek) {
-        const sessR = await db.from('training_sessions').select('*').eq('week_id', activeWeek.id).order('session_number', { ascending: true });
-        clientTrainingSessions = sessR.data || [];
-        const sessionIds = clientTrainingSessions.map(s => s.id);
+        const sessR = await db
+          .from('training_sessions')
+          .select('*')
+          .eq('week_id', activeWeek.id)
+          .order('session_number', { ascending: true });
+
+        const allSessions = sessR.data || [];
+
+        clientTrainingSessions = filterSessionsByAssignmentScope(allSessions);
+
+        const sessionIds = clientTrainingSessions.map(function(s) {
+          return s.id;
+        });
+
         if (sessionIds.length) {
-          const blocksR = await db.from('training_blocks').select('*').in('session_id', sessionIds).order('block_order', { ascending: true });
+          const blocksR = await db
+            .from('training_blocks')
+            .select('*')
+            .in('session_id', sessionIds)
+            .order('block_order', { ascending: true });
+
           clientTrainingBlocks = blocksR.data || [];
-          const blockIds = clientTrainingBlocks.map(b => b.id);
+
+          const blockIds = clientTrainingBlocks.map(function(b) {
+            return b.id;
+          });
+
           if (blockIds.length) {
-            const exR = await db.from('training_exercises').select('*').in('block_id', blockIds).order('exercise_order', { ascending: true });
+            const exR = await db
+              .from('training_exercises')
+              .select('*')
+              .in('block_id', blockIds)
+              .order('exercise_order', { ascending: true });
+
             clientTrainingExercises = exR.data || [];
           }
         }
@@ -735,13 +826,16 @@ async function loadClientDashboard(clientId) {
     }
 
     await renderDashboard();
+
     document.getElementById('loginScreen')?.classList.add('hidden');
     document.getElementById('dashboardScreen')?.classList.remove('hidden');
+
     showLoading(false);
 
   } catch (err) {
     showLoading(false);
     console.error('Load error:', err);
+
     if (!document.getElementById('loginScreen')?.classList.contains('hidden')) {
       showError('Error de conexión. Inténtalo de nuevo.');
     } else {
@@ -1064,9 +1158,10 @@ async function renderClientTraining() {
   const weekName = activeWeek ? activeWeek.name : '';
 
   const metaParts = [
-    'Semana ' + currentWeekNum + (weekName ? ' · ' + weekName : ''),
-    levelStr
-  ].filter(Boolean);
+  getAssignmentScopeLabel(),
+  'Semana ' + currentWeekNum + (weekName ? ' · ' + weekName : ''),
+  levelStr
+].filter(Boolean);
 
   const objective = (activeWeek && activeWeek.objective)
     ? activeWeek.objective
