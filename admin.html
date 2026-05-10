@@ -2151,8 +2151,8 @@ function openModal(type, id=null){
     ${actions}
   `;
   
-  } else if(type==='trainingAssignment'){
-  title.textContent = 'Asignar programa a cliente';
+  } else if(type === 'trainingAssignment'){
+  title.textContent = 'Asignar entrenamiento a cliente';
 
   form.innerHTML = `
     <div class="form-row">
@@ -2181,14 +2181,60 @@ function openModal(type, id=null){
       </div>
 
       <div class="form-row">
+        <label class="form-label">Alcance comercial</label>
+        <select name="assignmentScope" class="form-input" onchange="toggleAssignmentScopeFields(this.value)">
+          <option value="day">Día suelto</option>
+          <option value="week">Semana completa</option>
+          <option value="month">Mes completo</option>
+          <option value="full" selected>Plan completo</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="assignmentScopeFields" style="background:var(--navy3);border:1px solid var(--border2);padding:14px;margin-bottom:14px;">
+      <div class="form-row-2">
+        <div class="form-row">
+          <label class="form-label">Mes asignado</label>
+          <select name="assignedMonth" class="form-input">
+            <option value="">No aplica</option>
+            <option value="1">Mes 1</option>
+            <option value="2">Mes 2</option>
+            <option value="3">Mes 3</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Semana asignada</label>
+          <input name="assignedWeek" class="form-input" type="number" min="1" max="12" placeholder="Ej: 1">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Día / sesión asignada</label>
+        <select name="assignedSessionNumber" class="form-input">
+          <option value="">No aplica</option>
+          <option value="1">Día A</option>
+          <option value="2">Día B</option>
+          <option value="3">Día C</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-row">
         <label class="form-label">Semana actual</label>
         <input name="currentWeek" class="form-input" type="number" value="1">
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Fecha de inicio</label>
+        <input name="startDate" class="form-input" type="date" value="${todayISO()}">
       </div>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Fecha de inicio</label>
-      <input name="startDate" class="form-input" type="date" value="${todayISO()}">
+      <label class="form-label">Etiqueta comercial</label>
+      <input name="commercialLabel" class="form-input" placeholder="Ej: Día A · Semana 1 / Mes 1 completo / Plan completo">
     </div>
 
     <div class="form-row">
@@ -2200,6 +2246,8 @@ function openModal(type, id=null){
 
     ${actions}
   `;
+
+  setTimeout(() => toggleAssignmentScopeFields('full'), 50);
   } else if(type==='program'){
     const p = get('programs'); title.textContent = id ? 'Editar programa' : 'Crear plan';
     form.innerHTML = `
