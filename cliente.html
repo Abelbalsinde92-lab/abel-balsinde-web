@@ -194,6 +194,35 @@
       font-size: 10px; color: var(--gray);
       letter-spacing: .8px; margin-bottom: 6px;
     }
+    .training-day-tabs{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  margin:12px 0 14px;
+  padding-bottom:2px;
+  scrollbar-width:none;
+}
+.training-day-tabs::-webkit-scrollbar{display:none}
+.training-day-tab{
+  flex:0 0 auto;
+  background:var(--navy3);
+  border:1px solid #1e3450;
+  color:var(--gray);
+  border-radius:8px;
+  padding:8px 12px;
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.training-day-tab.active{
+  color:var(--blue);
+  border-color:rgba(94,197,240,.45);
+  background:rgba(94,197,240,.08);
+}
+.training-day-panel{display:none}
+.training-day-panel.active{display:block}
     .training-week-objective {
       font-size: 13px; color: var(--gray);
       line-height: 1.6;
@@ -788,11 +817,60 @@ function renderProgram() {
  * session-separator label (shown only for the first block of each session
  * when there are multiple sessions in the week).
  */
-function buildTrainingSteps() {
-  const steps = [];
-  const multiSession = clientTrainingSessions.length > 1;
+function getSessionDayLabel(session, index) {
+  const title = String(session.title || session.name || '').toLowerCase();
+  const code  = String(session.session_code || '').toLowerCase();
+  const num   = Number(session.session_number || index + 1);
 
-  clientTrainingSessions.forEach(function(session, sIdx) {
+  if (title.includes('día a') || title.includes('dia a') || code.includes('a')) return 'Día A';
+  if (title.includes('día b') || title.includes('dia b') || code.includes('b')) return 'Día B';
+  if (title.includes('día c') || title.includes('dia c') || code.includes('c')) return 'Día C';
+
+  if (num === 1) return 'Día A';
+  if (num === 2) return 'Día B';
+  if (num === 3) return 'Día C';
+
+  return 'Día ' + num;
+}
+
+function getSessionDisplayTitle(session, index) {
+  const day = getSessionDayLabel(session, index);
+  const title = session.title || session.name || '';
+
+  if (title && !String(title).toLowerCase().includes(day.toLowerCase())) {
+    return day + ' · ' + title;
+  }
+
+  return title || day;
+}
+
+function showTrainingDay(sessionId) {
+  document.querySelectorAll('.training-day-tab').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.sessionId === sessionId);
+  });
+
+  document.querySelectorAll('.training-day-panel').forEach(function(panel) {
+    panel.classList.toggle('active', panel.dataset.sessionId === sessionId);
+  });
+
+  const activePanel = document.querySelector('.training-day-panel.active');
+  if (activePanel) {
+    activePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function buildTrainingSteps(sessionIdFilter) {
+  const steps = [];
+
+  const sessionsToUse = sessionIdFilter
+    ? clientTrainingSessions.filter(function(s) { return String(s.id) === String(sessionIdFilter); })
+    : clientTrainingSessions;
+
+  sessionsToUse.forEach(function(session, sIdx) {
+    const realSessionIndex = clientTrainingSessions.findIndex(function(s) {
+      return String(s.id) === String(session.id);
+    });
+
     const sessionBlocks = clientTrainingBlocks
       .filter(function(b) { return b.session_id === session.id; })
       .slice()
@@ -805,11 +883,13 @@ function buildTrainingSteps() {
         .sort(function(a, b) { return Number(a.exercise_order || 0) - Number(b.exercise_order || 0); });
 
       steps.push({
-        blockId:          String(block.id),
-        block:            block,
-        exercises:        exercises,
-        sessionSeparator: (multiSession && bIdx === 0)
-          ? 'Sesión ' + (session.session_number || (sIdx + 1)) + (session.title ? ' · ' + session.title : '') + (session.duration ? ' · ' + session.duration : '')
+        blockId: String(block.id),
+        block: block,
+        exercises: exercises,
+        sessionId: String(session.id),
+        session: session,
+        sessionSeparator: bIdx === 0
+          ? getSessionDisplayTitle(session, realSessionIndex >= 0 ? realSessionIndex : sIdx)
           : null
       });
     });
@@ -998,46 +1078,69 @@ async function renderClientTraining() {
     + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
     + '</div>';
 
-  const steps = buildTrainingSteps();
+  const allSteps = buildTrainingSteps();
 
-  if (!steps.length) {
-    el.innerHTML = summaryHtml + '<p class="empty-state">Este programa todavía no tiene bloques cargados.</p>';
-    return;
-  }
+if (!allSteps.length) {
+  el.innerHTML = summaryHtml + '<p class="empty-state">Este programa todavía no tiene bloques cargados.</p>';
+  return;
+}
 
-  /*
-    CASO 1:
-    El entrenamiento ya fue terminado.
-    No mostramos los bloques abiertos.
-    Mostramos resumen limpio + nota + botón para ver detalles.
-  */
-  if (currentTrainingLog && currentTrainingLog.is_finished) {
-    el.innerHTML = summaryHtml;
-    renderTrainingCompletedState();
-    return;
-  }
+/*
+  CASO 1:
+  El entrenamiento ya fue terminado.
+*/
+if (currentTrainingLog && currentTrainingLog.is_finished) {
+  el.innerHTML = summaryHtml;
+  renderTrainingCompletedState();
+  return;
+}
 
-  /*
-    CASO 2:
-    Entrenamiento en progreso o nuevo.
-    Mostramos bloques normalmente.
-  */
-  let html = summaryHtml;
+let html = summaryHtml;
 
+if (clientTrainingSessions.length > 1) {
+  html += '<div class="training-day-tabs">';
+  clientTrainingSessions.forEach(function(session, index) {
+    const sessionId = String(session.id);
+    const activeClass = index === 0 ? ' active' : '';
+    html += '<button class="training-day-tab' + activeClass + '" data-session-id="' + sessionId + '" onclick="showTrainingDay(\'' + sessionId + '\')">'
+      + getSessionDayLabel(session, index)
+      + '</button>';
+  });
+  html += '</div>';
+
+  clientTrainingSessions.forEach(function(session, index) {
+    const sessionId = String(session.id);
+    const activeClass = index === 0 ? ' active' : '';
+    const sessionSteps = buildTrainingSteps(sessionId);
+
+    html += '<div class="training-day-panel' + activeClass + '" data-session-id="' + sessionId + '">';
+    html += '<div class="training-step-list">';
+
+    sessionSteps.forEach(function(step, stepIndex) {
+      html += buildTrainingStepHTML(step, stepIndex);
+    });
+
+    html += '</div>';
+    html += '</div>';
+  });
+
+} else {
   html += '<div class="training-step-list" id="trainingStepList">';
-  steps.forEach(function(step, index) {
+  allSteps.forEach(function(step, index) {
     html += buildTrainingStepHTML(step, index);
   });
   html += '</div>';
-  html += '<div id="trainingCompletionArea"></div>';
+}
 
+html += '<div id="trainingCompletionArea"></div>';
+  
   el.innerHTML = html;
 
   applySavedTrainingState();
 
-  const firstPending = steps.find(function(step) {
-    return !completedTrainingBlocks.has(step.blockId);
-  });
+  const firstPending = allSteps.find(function(step) {
+  return !completedTrainingBlocks.has(step.blockId);
+});
 
   if (firstPending) {
     activeTrainingBlockKey = firstPending.blockId;
@@ -1344,9 +1447,37 @@ function renderTrainingCompletedState() {
 
   var steps = buildTrainingSteps();
 
+if (clientTrainingSessions.length > 1) {
+  html += '<div class="training-day-tabs">';
+  clientTrainingSessions.forEach(function(session, index) {
+    const sessionId = String(session.id);
+    const activeClass = index === 0 ? ' active' : '';
+    html += '<button class="training-day-tab' + activeClass + '" data-session-id="' + sessionId + '" onclick="showTrainingDay(\'' + sessionId + '\')">'
+      + getSessionDayLabel(session, index)
+      + '</button>';
+  });
+  html += '</div>';
+
+  clientTrainingSessions.forEach(function(session, index) {
+    const sessionId = String(session.id);
+    const activeClass = index === 0 ? ' active' : '';
+    const sessionSteps = buildTrainingSteps(sessionId);
+
+    html += '<div class="training-day-panel' + activeClass + '" data-session-id="' + sessionId + '">';
+    html += '<div class="training-step-list">';
+
+    sessionSteps.forEach(function(step, stepIndex) {
+      html += buildTrainingStepHTML(step, stepIndex);
+    });
+
+    html += '</div></div>';
+  });
+
+} else {
   steps.forEach(function(step, index) {
     html += buildTrainingStepHTML(step, index);
   });
+}
 
   html += '</div></div>';
 
