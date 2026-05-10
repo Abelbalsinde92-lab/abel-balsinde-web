@@ -980,7 +980,7 @@ async function renderClientTraining() {
 
   if (badge) badge.textContent = 'Semana ' + currentWeekNum;
 
-  const levelStr = clientTrainingAssignment.assigned_level || clientTrainingProgram.level || '';
+  const levelStr = getAssignedTrainingLevel();
   const weekName = activeWeek ? activeWeek.name : '';
 
   const metaParts = [
@@ -1128,8 +1128,35 @@ function markStepVisualAsCompleted(blockId) {
   }
 }
 
+function getAssignedTrainingLevel() {
+  const rawLevel =
+    clientTrainingAssignment?.assigned_level ||
+    clientTrainingProgram?.level ||
+    'N1';
+
+  const level = String(rawLevel).trim().toUpperCase();
+
+  if (['N1', 'N2', 'N3', 'N4'].includes(level)) return level;
+
+  return 'N1';
+}
+
+function getExerciseVariantByLevel(ex) {
+  const level = getAssignedTrainingLevel();
+
+  if (level === 'N1') return ex.variant_n1 || '';
+  if (level === 'N2') return ex.variant_n2 || '';
+  if (level === 'N3') return ex.variant_n3 || '';
+  if (level === 'N4') return ex.variant_n4 || '';
+
+  return ex.variant_n1 || '';
+}
+
 /** Returns the HTML string for one exercise */
 function buildExerciseHTML(ex) {
+  const assignedLevel = getAssignedTrainingLevel();
+  const levelVariant  = getExerciseVariantByLevel(ex);
+
   var stats = [
     ex.sets ? { label: 'Series',   value: ex.sets } : null,
     ex.reps ? { label: 'Reps',     value: ex.reps } : null,
@@ -1154,10 +1181,23 @@ function buildExerciseHTML(ex) {
     html += '</div>';
   }
 
-  if (ex.level)       html += '<div class="training-level-tag">Variante: ' + ex.level + '</div>';
-  if (ex.description) html += '<div class="training-instruction"><strong>Cómo hacerlo</strong>' + ex.description + '</div>';
-  if (ex.coach_notes) html += '<div class="training-coach-note">Coach: ' + ex.coach_notes + '</div>';
-  if (ex.video_url)   html += '<a href="' + ex.video_url + '" target="_blank" class="training-video-btn">&#9654; Ver referencia</a>';
+  html += '<div class="training-level-tag">Nivel ' + assignedLevel + '</div>';
+
+  if (levelVariant) {
+    html += '<div class="training-instruction"><strong>Trabajo indicado</strong>' + levelVariant + '</div>';
+  }
+
+  if (ex.description) {
+    html += '<div class="training-instruction"><strong>Cómo hacerlo</strong>' + ex.description + '</div>';
+  }
+
+  if (ex.coaching_notes || ex.coach_notes) {
+    html += '<div class="training-coach-note">Coach: ' + (ex.coaching_notes || ex.coach_notes) + '</div>';
+  }
+
+  if (ex.video_url) {
+    html += '<a href="' + ex.video_url + '" target="_blank" class="training-video-btn">&#9654; Ver referencia</a>';
+  }
 
   html += '</div>';
   return html;
