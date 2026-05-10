@@ -2570,6 +2570,12 @@ async function saveModal(e){
     return a;
   });
 
+await db
+  .from('client_program_assignments')
+  .update({ status: 'inactivo' })
+  .eq('client_id', data.clientId)
+  .eq('status', 'activo');
+
   await upsert('clientProgramAssignments', cleanAssignment);
 
   showToast('Entrenamiento asignado al cliente');
