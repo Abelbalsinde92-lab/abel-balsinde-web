@@ -824,6 +824,23 @@ function formatTime(timeStr){
   if(!timeStr) return '—';
   return String(timeStr).slice(0,5);
 }
+
+function formatDirectionLabel(direction) {
+  if (direction === 'higher_better') return 'Mejor más alto';
+  if (direction === 'lower_better') return 'Mejor más bajo';
+  if (direction === 'neutral') return 'Referencia';
+  return direction || 'Referencia';
+}
+
+function getAssessmentPlaceholder(item) {
+  if (item.metricType === 'repeticiones') return 'Ej: 25';
+  if (item.metricType === 'tiempo') return 'Ej: 60';
+  if (item.metricType === 'peso') return 'Ej: 82.5';
+  if (item.metricType === 'medida') return 'Ej: 90';
+  if (item.metricType === 'escala') return 'Ej: 7';
+  return 'Resultado';
+}
+
 function getAssignmentScopeLabel(scope) {
   if (scope === 'day') return 'Día suelto';
   if (scope === 'week') return 'Semana completa';
@@ -2522,6 +2539,79 @@ function openModal(type, id=null){
   document.getElementById('modalOverlay').classList.add('open');
 }
 
+function formatDirectionLabel(direction) {
+  if (direction === 'higher_better') return 'Mejor más alto';
+  if (direction === 'lower_better') return 'Mejor más bajo';
+  if (direction === 'neutral') return 'Referencia';
+  return direction || 'Referencia';
+}
+
+function getAssessmentPlaceholder(item) {
+  if (item.metricType === 'repeticiones') return 'Ej: 25';
+  if (item.metricType === 'tiempo') return 'Ej: 60';
+  if (item.metricType === 'peso') return 'Ej: 82.5';
+  if (item.metricType === 'medida') return 'Ej: 90';
+  if (item.metricType === 'escala') return 'Ej: 7';
+  return 'Resultado';
+}
+
+function buildAssessmentItemsInputs(items) {
+  if (!items || !items.length) {
+    return `
+      <div class="empty small">
+        Esta plantilla no tiene ejercicios registrados.
+      </div>
+    `;
+  }
+
+  return items.map(item => `
+    <div style="background:var(--navy3);border:1px solid var(--border2);padding:16px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <div class="name-text" style="font-size:1rem;margin-bottom:4px;">
+            ${esc(item.exerciseName || 'Ejercicio')}
+          </div>
+          <div class="name-sub">
+            ${esc(item.metricType || 'métrica')} · ${esc(item.unit || '')} · ${esc(item.targetNote || '')}
+          </div>
+        </div>
+
+        <span class="badge badge-plantilla">
+          ${esc(formatDirectionLabel(item.direction))}
+        </span>
+      </div>
+
+      <input type="hidden" name="assessmentItemId[]" value="${esc(item.id)}">
+      <input type="hidden" name="exerciseName[]" value="${esc(item.exerciseName || '')}">
+      <input type="hidden" name="metricType[]" value="${esc(item.metricType || '')}">
+      <input type="hidden" name="unit[]" value="${esc(item.unit || '')}">
+      <input type="hidden" name="direction[]" value="${esc(item.direction || '')}">
+      <input type="hidden" name="itemOrder[]" value="${esc(item.itemOrder || '')}">
+
+      <div class="form-row">
+        <label class="form-label">Resultado</label>
+        <input name="resultValue[]" class="form-input" placeholder="${esc(getAssessmentPlaceholder(item))}">
+      </div>
+
+      <div class="form-row" style="margin-bottom:0;">
+        <label class="form-label">Nota</label>
+        <input name="resultNote[]" class="form-input" placeholder="Observación opcional">
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAssessmentFormItems(templateId) {
+  const box = document.getElementById('assessmentItemsBox');
+  if (!box) return;
+
+  const items = state.assessmentTemplateItems
+    .filter(item => item.templateId === templateId)
+    .sort((a,b) => Number(a.itemOrder || 0) - Number(b.itemOrder || 0));
+
+  box.innerHTML = buildAssessmentItemsInputs(items);
+}
+
 function toggleAssignmentScopeFields(scope) {
   const box = document.getElementById('assignmentScopeFields');
   if (!box) return;
@@ -2931,6 +3021,71 @@ async function saveModal(e){
   state.clientAssessmentResults.push(...savedResults.map(snakeToCamel));
 
   showToast('Test registrado correctamente');
+    
+        } else if(type === 'assessment'){
+      const resultValues = e.target.querySelectorAll('[name="resultValue[]"]');
+      const resultNotes = e.target.querySelectorAll('[name="resultNote[]"]');
+      const itemIds = e.target.querySelectorAll('[name="assessmentItemId[]"]');
+      const exerciseNames = e.target.querySelectorAll('[name="exerciseName[]"]');
+      const metricTypes = e.target.querySelectorAll('[name="metricType[]"]');
+      const units = e.target.querySelectorAll('[name="unit[]"]');
+      const directions = e.target.querySelectorAll('[name="direction[]"]');
+      const itemOrders = e.target.querySelectorAll('[name="itemOrder[]"]');
+
+      const assessmentId = uid();
+
+      const assessmentPayload = {
+        id: assessmentId,
+        clientId: data.clientId,
+        templateId: data.templateId,
+        assessmentDate: data.assessmentDate || todayISO(),
+        status: data.status || 'realizada',
+        coachNotes: data.coachNotes || ''
+      };
+
+      const { data: savedAssessment, error: assessmentError } = await db
+        .from('client_assessments')
+        .insert(camelToSnake(assessmentPayload))
+        .select()
+        .single();
+
+      if (assessmentError) throw assessmentError;
+
+      const resultsPayload = [];
+
+      resultValues.forEach((input, index) => {
+        const value = input.value.trim();
+
+        if (!value) return;
+
+        resultsPayload.push(camelToSnake({
+          id: uid(),
+          assessmentId: assessmentId,
+          templateItemId: itemIds[index]?.value || null,
+          exerciseName: exerciseNames[index]?.value || '',
+          metricType: metricTypes[index]?.value || '',
+          unit: units[index]?.value || '',
+          direction: directions[index]?.value || '',
+          resultValue: value,
+          resultNote: resultNotes[index]?.value || '',
+          itemOrder: itemOrders[index]?.value || index + 1
+        }));
+      });
+
+      if (resultsPayload.length) {
+        const { data: savedResults, error: resultsError } = await db
+          .from('client_assessment_results')
+          .insert(resultsPayload)
+          .select();
+
+        if (resultsError) throw resultsError;
+
+        state.clientAssessmentResults.push(...(savedResults || []).map(snakeToCamel));
+      }
+
+      state.clientAssessments.push(snakeToCamel(savedAssessment));
+
+      showToast('Test registrado correctamente');
     
     } else if(type === 'program'){
       await upsert('programs', data);
