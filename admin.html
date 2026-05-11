@@ -210,6 +210,146 @@ tr:hover td{background:rgba(255,255,255,.02)}
     padding:8px 12px;
     border-top:1px solid var(--border2);
   }
+   
+   /* Assessment view modal */
+.av-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin:10px 0 18px;
+}
+
+.av-summary-item{
+  background:var(--navy3);
+  border:1px solid var(--border2);
+  padding:12px;
+  text-align:center;
+}
+
+.av-summary-num{
+  display:block;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.8rem;
+  line-height:1;
+  color:var(--blue);
+}
+
+.av-summary-label{
+  display:block;
+  margin-top:4px;
+  font-family:'Space Mono',monospace;
+  font-size:.55rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--gray);
+}
+
+.av-section-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:18px 0 12px;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.25rem;
+  letter-spacing:.04em;
+  color:var(--white);
+}
+
+.av-result-row{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  background:var(--navy3);
+  border:1px solid var(--border2);
+  padding:14px;
+}
+
+.av-exercise-name{
+  font-weight:500;
+  color:var(--white);
+  margin-bottom:3px;
+}
+
+.av-meta{
+  font-family:'Space Mono',monospace;
+  font-size:.58rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--gray);
+}
+
+.av-note{
+  margin-top:8px;
+  font-size:.75rem;
+  color:var(--gray);
+  line-height:1.45;
+}
+
+.av-value{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2rem;
+  line-height:1;
+  color:var(--white);
+}
+
+.av-unit{
+  display:block;
+  margin-top:3px;
+  font-family:'Space Mono',monospace;
+  font-size:.55rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--gray);
+}
+
+.mini-chart-wrap{
+  background:rgba(94,197,240,.04);
+  border:1px solid rgba(94,197,240,.12);
+  border-top:none;
+  padding:12px 14px;
+}
+
+.mini-chart-title{
+  font-family:'Space Mono',monospace;
+  font-size:.58rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--blue);
+  margin-bottom:8px;
+}
+
+.mini-chart-no-data{
+  font-size:.75rem;
+  color:var(--gray);
+}
+
+.mini-chart-labels{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:4px;
+}
+
+.mini-chart-label{
+  font-family:'Space Mono',monospace;
+  font-size:.52rem;
+  color:var(--gray);
+  text-align:center;
+}
+
+@media(max-width:640px){
+  .av-summary-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .av-result-row{
+    flex-direction:column;
+  }
+
+  .av-value,
+  .av-unit{
+    text-align:left;
+  }
 }
 </style>
 
@@ -599,6 +739,15 @@ tr:hover td{background:rgba(255,255,255,.02)}
 </div>
 
 <div class="toast" id="toast">Acción completada</div>
+
+<!-- MODAL EXCLUSIVO: Ver resultados de evaluación -->
+<div class="overlay" id="assessmentViewOverlay">
+  <div class="modal" style="max-width:720px;width:100%">
+    <button class="modal-close" onclick="closeAssessmentView()">✕</button>
+    <h3 id="avTitle">Resultados del test</h3>
+    <div id="assessmentViewContent"></div>
+  </div>
+</div>
 
 <script>
 const COACH_DEFAULT_PHONE = '381638112348';
@@ -1067,7 +1216,8 @@ function renderAssessments(){
   const totalAssessments = state.clientAssessments.length;
   const totalClientsWithTests = new Set(state.clientAssessments.map(a => a.clientId)).size;
   const totalTemplates = state.assessmentTemplates.length;
-  const latestAssessment = [...state.clientAssessments].sort((a,b) => String(b.assessmentDate || '').localeCompare(String(a.assessmentDate || '')))[0];
+  const latestAssessment = [...state.clientAssessments]
+    .sort((a,b) => String(b.assessmentDate || '').localeCompare(String(a.assessmentDate || '')))[0];
 
   metricsEl.innerHTML = `
     <div class="metric-card blue">
@@ -1105,7 +1255,7 @@ function renderAssessments(){
         <td>${esc(c?.name || 'Cliente eliminado')}</td>
         <td>
           <div class="name-text">${esc(a.assessmentName || tpl?.name || 'Test inicial funcional')}</div>
-          <div class="name-sub">${results.length} resultado${results.length !== 1 ? 's' : ''} registrado${results.length !== 1 ? 's' : ''}</div>
+          <div class="name-sub">${results.length} resultado${results.length !== 1 ? 's' : ''}</div>
         </td>
         <td>${formatDate(a.assessmentDate)}</td>
         <td><span class="badge badge-${a.status || 'realizada'}">${esc(a.status || 'realizada')}</span></td>
@@ -1119,6 +1269,81 @@ function renderAssessments(){
       </tr>
     `;
   }).join('') : emptyRow(6, 'Todavía no hay evaluaciones registradas.');
+}
+
+function closeAssessmentView() {
+  document.getElementById('assessmentViewOverlay').classList.remove('open');
+  document.getElementById('assessmentViewContent').innerHTML = '';
+}
+
+function buildMiniChart(dataPoints) {
+  if (!dataPoints || dataPoints.length < 2) return null;
+
+  const values = dataPoints.map(d => d.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+
+  const W = 280, H = 56, PAD = 6;
+  const innerW = W - PAD * 2;
+  const innerH = H - PAD * 2;
+
+  const pts = dataPoints.map((d, i) => {
+    const x = PAD + (i / (dataPoints.length - 1)) * innerW;
+    const y = PAD + innerH - ((d.value - min) / range) * innerH;
+    return { x, y, date: d.date, value: d.value };
+  });
+
+  const polyline = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+  const area = [
+    `${pts[0].x.toFixed(1)},${(H - PAD).toFixed(1)}`,
+    ...pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`),
+    `${pts[pts.length - 1].x.toFixed(1)},${(H - PAD).toFixed(1)}`
+  ].join(' ');
+
+  const dots = pts.map(p =>
+    `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3"
+      fill="var(--blue)" stroke="var(--navy3)" stroke-width="1.5"/>`
+  ).join('');
+
+  const labels = pts.map(p => {
+    const d = String(p.date || '').slice(5);
+    return `<span class="mini-chart-label">${esc(d)}<br><span style="color:var(--white);font-size:.6rem">${p.value}</span></span>`;
+  }).join('');
+
+  return `
+    <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}"
+      xmlns="http://www.w3.org/2000/svg" style="display:block;overflow:visible">
+      <polygon points="${area}" fill="rgba(94,197,240,0.08)" stroke="none"/>
+      <polyline points="${polyline}" fill="none" stroke="var(--blue)" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
+      ${dots}
+    </svg>
+    <div class="mini-chart-labels">${labels}</div>
+  `;
+}
+
+function buildExerciseHistory(clientId, exerciseName) {
+  const clientAssessmentIds = state.clientAssessments
+    .filter(a => a.clientId === clientId)
+    .map(a => a.id);
+
+  return state.clientAssessmentResults
+    .filter(r =>
+      clientAssessmentIds.includes(r.assessmentId) &&
+      (r.exerciseName || '').trim().toLowerCase() === (exerciseName || '').trim().toLowerCase()
+    )
+    .map(r => {
+      const assessment = state.clientAssessments.find(a => a.id === r.assessmentId);
+      return {
+        date: assessment?.assessmentDate || '',
+        value: r.resultValue,
+        numValue: parseFloat(String(r.resultValue).replace(',', '.'))
+      };
+    })
+    .filter(d => d.date)
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
 }
 
 function viewAssessment(assessmentId){
@@ -3117,6 +3342,10 @@ async function saveSettings(){
 
 document.getElementById('modalOverlay').addEventListener('click', e => {
   if (e.target.id === 'modalOverlay') closeModal();
+});
+
+document.getElementById('assessmentViewOverlay').addEventListener('click', e => {
+  if (e.target.id === 'assessmentViewOverlay') closeAssessmentView();
 });
 
 document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('es-ES', {
