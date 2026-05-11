@@ -231,6 +231,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div class="nav-item" data-page="reservas" onclick="showPage('reservas')">◷ Reservas <span class="nav-badge" id="badge-reservas"></span></div>
       <div class="nav-item" data-page="pagos" onclick="showPage('pagos')">◎ Pagos <span class="nav-badge" id="badge-pagos"></span></div>
       <div class="nav-item" data-page="progreso" onclick="showPage('progreso')">↗ Progreso <span class="nav-badge" id="badge-progreso"></span></div>
+      <div class="nav-item" data-page="evaluaciones" onclick="showPage('evaluaciones')">◬ Evaluaciones <span class="nav-badge" id="badge-evaluaciones"></span></div>
       <div class="nav-section">Clínico</div>
       <div class="nav-item" data-page="nutricion" onclick="showPage('nutricion')">◐ Nutrición</div>
       <div class="nav-item" data-page="salud" onclick="showPage('salud')">♡ Salud / Chequeos <span class="nav-badge" id="badge-salud"></span></div>
@@ -306,6 +307,39 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Métrica</th><th>Valor</th><th>Fecha</th><th>Nota</th><th>Acciones</th></tr></thead><tbody id="metricsTable"></tbody></table></div>
       </div>
 
+      <div class="page" id="page-evaluaciones">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Seguimiento</div>
+      <div class="page-title">Evaluaciones / Test inicial</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openModal('assessment')">+ Registrar test</button>
+    </div>
+  </div>
+
+  <div class="metrics-row" id="assessmentMetrics"></div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Historial de evaluaciones</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Test</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Notas</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="assessmentsTable"></tbody>
+    </table>
+  </div>
+</div>
+      
       <div class="page" id="page-nutricion">
         <div class="page-header"><div><div class="page-eyebrow">Clínico</div><div class="page-title">Nutrición</div></div><div class="page-actions"><button class="btn btn-blue" onclick="openModal('nutrition')">Actualizar objetivo</button></div></div>
         <div id="nutritionContent"></div>
@@ -826,7 +860,8 @@ function renderAll(){
   renderReservations();
   renderPayments();
   renderProgress();
-  renderHealth();
+renderAssessments();
+renderHealth();
   renderNutrition();
   renderWhatsapp();
   renderPartners();
@@ -851,6 +886,7 @@ function renderBadges(){
   set('badge-reservas', state.reservations.length);
   set('badge-pagos', state.payments.filter(p => p.status !== 'pagado').length);
   set('badge-progreso', state.metrics.length);
+  set('badge-evaluaciones', state.clientAssessments.length);
   set('badge-salud', state.healthAlerts.filter(h => h.status !== 'revisado').length);
   set('badge-planes', state.programs.length);
 set('badge-entrenamiento', state.trainingPrograms.length);
@@ -997,6 +1033,126 @@ function renderProgress(){
     const c = clientById(m.clientId);
     return `<tr><td>${esc(c?.name || 'Cliente eliminado')}</td><td>${esc(m.type)}</td><td>${esc(m.value)}</td><td>${esc(m.date)}</td><td>${esc(m.note || '—')}</td><td><button class="btn btn-secondary btn-sm" onclick="deleteItem('metrics','${m.id}')">Eliminar</button></td></tr>`;
   }).join('') : emptyRow(6,'No hay métricas registradas todavía.');
+}
+
+function renderAssessments(){
+  const metricsEl = document.getElementById('assessmentMetrics');
+  const tableEl = document.getElementById('assessmentsTable');
+
+  if (!metricsEl || !tableEl) return;
+
+  const totalAssessments = state.clientAssessments.length;
+  const totalClientsWithTests = new Set(state.clientAssessments.map(a => a.clientId)).size;
+  const totalTemplates = state.assessmentTemplates.length;
+  const latestAssessment = [...state.clientAssessments].sort((a,b) => String(b.assessmentDate || '').localeCompare(String(a.assessmentDate || '')))[0];
+
+  metricsEl.innerHTML = `
+    <div class="metric-card blue">
+      <span class="metric-num">${totalAssessments}</span>
+      <span class="metric-label">Tests realizados</span>
+      <div class="metric-sub">Historial completo</div>
+    </div>
+
+    <div class="metric-card green">
+      <span class="metric-num">${totalClientsWithTests}</span>
+      <span class="metric-label">Clientes evaluados</span>
+      <div class="metric-sub">Con al menos un test</div>
+    </div>
+
+    <div class="metric-card yellow">
+      <span class="metric-num">${totalTemplates}</span>
+      <span class="metric-label">Plantillas</span>
+      <div class="metric-sub">Tests disponibles</div>
+    </div>
+
+    <div class="metric-card red">
+      <span class="metric-num">${latestAssessment ? formatDate(latestAssessment.assessmentDate) : '—'}</span>
+      <span class="metric-label">Último test</span>
+      <div class="metric-sub">${latestAssessment ? 'Registro más reciente' : 'Sin evaluaciones'}</div>
+    </div>
+  `;
+
+  const rows = [...state.clientAssessments]
+    .sort((a,b) => String(b.assessmentDate || '').localeCompare(String(a.assessmentDate || '')));
+
+  tableEl.innerHTML = rows.length ? rows.map(a => {
+    const c = clientById(a.clientId);
+    const tpl = state.assessmentTemplates.find(t => t.id === a.templateId);
+    const results = state.clientAssessmentResults.filter(r => r.assessmentId === a.id);
+
+    return `
+      <tr>
+        <td>${esc(c?.name || 'Cliente eliminado')}</td>
+        <td>
+          <div class="name-text">${esc(tpl?.name || 'Test sin plantilla')}</div>
+          <div class="name-sub">${results.length} resultados registrados</div>
+        </td>
+        <td>${formatDate(a.assessmentDate)}</td>
+        <td><span class="badge badge-${a.status || 'realizada'}">${esc(a.status || 'realizada')}</span></td>
+        <td>${esc(a.coachNotes || '—')}</td>
+        <td>
+          <div class="td-actions">
+            <button class="btn btn-blue btn-sm" onclick="viewAssessment('${a.id}')">Ver resultados</button>
+            <button class="btn btn-secondary btn-sm" onclick="deleteAssessment('${a.id}')">Eliminar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('') : emptyRow(6, 'Todavía no hay evaluaciones registradas.');
+}
+
+function viewAssessment(assessmentId){
+  const assessment = state.clientAssessments.find(a => a.id === assessmentId);
+  if (!assessment) {
+    showToast('Evaluación no encontrada');
+    return;
+  }
+
+  const c = clientById(assessment.clientId);
+  const tpl = state.assessmentTemplates.find(t => t.id === assessment.templateId);
+  const results = state.clientAssessmentResults
+    .filter(r => r.assessmentId === assessmentId)
+    .sort((a,b) => Number(a.itemOrder || 0) - Number(b.itemOrder || 0));
+
+  const detail = results.length ? results.map(r => {
+    return `${r.exerciseName}: ${r.resultValue || '—'} ${r.unit || ''}`;
+  }).join('\n') : 'Sin resultados registrados.';
+
+  alert(
+    `Cliente: ${c?.name || 'Cliente eliminado'}\n` +
+    `Test: ${tpl?.name || 'Test'}\n` +
+    `Fecha: ${formatDate(assessment.assessmentDate)}\n\n` +
+    detail
+  );
+}
+
+async function deleteAssessment(assessmentId){
+  if (!confirm('¿Seguro que quieres eliminar esta evaluación y sus resultados?')) return;
+
+  try {
+    const { error: resultsError } = await db
+      .from('client_assessment_results')
+      .delete()
+      .eq('assessment_id', assessmentId);
+
+    if (resultsError) throw resultsError;
+
+    const { error: assessmentError } = await db
+      .from('client_assessments')
+      .delete()
+      .eq('id', assessmentId);
+
+    if (assessmentError) throw assessmentError;
+
+    state.clientAssessmentResults = state.clientAssessmentResults.filter(r => r.assessmentId !== assessmentId);
+    state.clientAssessments = state.clientAssessments.filter(a => a.id !== assessmentId);
+
+    renderAll();
+    showToast('Evaluación eliminada');
+  } catch (error) {
+    console.error(error);
+    showToast('Error eliminando evaluación');
+  }
 }
 
 function renderHealth(){
