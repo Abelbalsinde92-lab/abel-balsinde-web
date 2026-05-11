@@ -2965,14 +2965,19 @@ async function saveModal(e){
 
   const assessmentId = uid();
 
-  const assessmentPayload = {
-    id: assessmentId,
-    clientId: data.clientId,
-    templateId: data.templateId,
-    assessmentDate: data.assessmentDate || todayISO(),
-    status: data.status || 'realizada',
-    coachNotes: data.coachNotes || ''
-  };
+  const selectedTemplate = state.assessmentTemplates.find(t => t.id === data.templateId);
+
+  const selectedTemplate = state.assessmentTemplates.find(t => t.id === data.templateId);
+
+const assessmentPayload = {
+  id: assessmentId,
+  clientId: data.clientId,
+  templateId: data.templateId,
+  assessmentName: selectedTemplate?.name || 'Test inicial funcional',
+  assessmentDate: data.assessmentDate || todayISO(),
+  status: data.status || 'realizada',
+  coachNotes: data.coachNotes || ''
+};
 
   const { data: savedAssessment, error: assessmentError } = await db
     .from('client_assessments')
