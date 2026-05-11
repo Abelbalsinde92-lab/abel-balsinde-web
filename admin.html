@@ -2962,22 +2962,19 @@ async function saveModal(e){
     
     } else if(type === 'assessment'){
   const form = e.target;
-
   const assessmentId = uid();
 
   const selectedTemplate = state.assessmentTemplates.find(t => t.id === data.templateId);
 
-  const selectedTemplate = state.assessmentTemplates.find(t => t.id === data.templateId);
-
-const assessmentPayload = {
-  id: assessmentId,
-  clientId: data.clientId,
-  templateId: data.templateId,
-  assessmentName: selectedTemplate?.name || 'Test inicial funcional',
-  assessmentDate: data.assessmentDate || todayISO(),
-  status: data.status || 'realizada',
-  coachNotes: data.coachNotes || ''
-};
+  const assessmentPayload = {
+    id: assessmentId,
+    clientId: data.clientId,
+    templateId: data.templateId,
+    assessmentName: selectedTemplate?.name || 'Test inicial funcional',
+    assessmentDate: data.assessmentDate || todayISO(),
+    status: data.status || 'realizada',
+    coachNotes: data.coachNotes || ''
+  };
 
   const { data: savedAssessment, error: assessmentError } = await db
     .from('client_assessments')
@@ -3006,8 +3003,8 @@ const assessmentPayload = {
     direction: directions[index] || 'neutral',
     itemOrder: itemOrders[index] || index + 1,
     resultValue: values[index] || '',
-    note: notes[index] || ''
-  })).filter(r => r.resultValue !== '' || r.note !== '');
+    resultNote: notes[index] || ''
+  })).filter(r => r.resultValue !== '' || r.resultNote !== '');
 
   let savedResults = [];
 
@@ -3026,71 +3023,6 @@ const assessmentPayload = {
   state.clientAssessmentResults.push(...savedResults.map(snakeToCamel));
 
   showToast('Test registrado correctamente');
-    
-        } else if(type === 'assessment'){
-      const resultValues = e.target.querySelectorAll('[name="resultValue[]"]');
-      const resultNotes = e.target.querySelectorAll('[name="resultNote[]"]');
-      const itemIds = e.target.querySelectorAll('[name="assessmentItemId[]"]');
-      const exerciseNames = e.target.querySelectorAll('[name="exerciseName[]"]');
-      const metricTypes = e.target.querySelectorAll('[name="metricType[]"]');
-      const units = e.target.querySelectorAll('[name="unit[]"]');
-      const directions = e.target.querySelectorAll('[name="direction[]"]');
-      const itemOrders = e.target.querySelectorAll('[name="itemOrder[]"]');
-
-      const assessmentId = uid();
-
-      const assessmentPayload = {
-        id: assessmentId,
-        clientId: data.clientId,
-        templateId: data.templateId,
-        assessmentDate: data.assessmentDate || todayISO(),
-        status: data.status || 'realizada',
-        coachNotes: data.coachNotes || ''
-      };
-
-      const { data: savedAssessment, error: assessmentError } = await db
-        .from('client_assessments')
-        .insert(camelToSnake(assessmentPayload))
-        .select()
-        .single();
-
-      if (assessmentError) throw assessmentError;
-
-      const resultsPayload = [];
-
-      resultValues.forEach((input, index) => {
-        const value = input.value.trim();
-
-        if (!value) return;
-
-        resultsPayload.push(camelToSnake({
-          id: uid(),
-          assessmentId: assessmentId,
-          templateItemId: itemIds[index]?.value || null,
-          exerciseName: exerciseNames[index]?.value || '',
-          metricType: metricTypes[index]?.value || '',
-          unit: units[index]?.value || '',
-          direction: directions[index]?.value || '',
-          resultValue: value,
-          resultNote: resultNotes[index]?.value || '',
-          itemOrder: itemOrders[index]?.value || index + 1
-        }));
-      });
-
-      if (resultsPayload.length) {
-        const { data: savedResults, error: resultsError } = await db
-          .from('client_assessment_results')
-          .insert(resultsPayload)
-          .select();
-
-        if (resultsError) throw resultsError;
-
-        state.clientAssessmentResults.push(...(savedResults || []).map(snakeToCamel));
-      }
-
-      state.clientAssessments.push(snakeToCamel(savedAssessment));
-
-      showToast('Test registrado correctamente');
     
     } else if(type === 'program'){
       await upsert('programs', data);
