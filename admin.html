@@ -2965,20 +2965,23 @@ async function saveModal(e){
   const assessmentId = uid();
 
   const selectedTemplate = state.assessmentTemplates.find(t => t.id === data.templateId);
+  const assessmentName = selectedTemplate?.name || 'Test inicial funcional';
 
   const assessmentPayload = {
     id: assessmentId,
-    clientId: data.clientId,
-    templateId: data.templateId,
-    assessmentName: selectedTemplate?.name || 'Test inicial funcional',
-    assessmentDate: data.assessmentDate || todayISO(),
+    client_id: data.clientId,
+    template_id: data.templateId,
+    assessment_name: assessmentName,
+    assessment_date: data.assessmentDate || todayISO(),
     status: data.status || 'realizada',
-    coachNotes: data.coachNotes || ''
+    coach_notes: data.coachNotes || ''
   };
+
+  console.log('Guardando evaluación:', assessmentPayload);
 
   const { data: savedAssessment, error: assessmentError } = await db
     .from('client_assessments')
-    .insert(camelToSnake(assessmentPayload))
+    .insert(assessmentPayload)
     .select()
     .single();
 
@@ -2995,23 +2998,23 @@ async function saveModal(e){
 
   const resultsPayload = itemIds.map((itemId, index) => ({
     id: uid(),
-    assessmentId: assessmentId,
-    templateItemId: itemId,
-    exerciseName: exerciseNames[index] || '',
-    metricType: metricTypes[index] || '',
+    assessment_id: assessmentId,
+    template_item_id: itemId,
+    exercise_name: exerciseNames[index] || '',
+    metric_type: metricTypes[index] || '',
     unit: units[index] || '',
     direction: directions[index] || 'neutral',
-    itemOrder: itemOrders[index] || index + 1,
-    resultValue: values[index] || '',
-    resultNote: notes[index] || ''
-  })).filter(r => r.resultValue !== '' || r.resultNote !== '');
+    item_order: itemOrders[index] || index + 1,
+    result_value: values[index] || '',
+    result_note: notes[index] || ''
+  })).filter(r => r.result_value !== '' || r.result_note !== '');
 
   let savedResults = [];
 
   if (resultsPayload.length) {
     const { data: resultData, error: resultsError } = await db
       .from('client_assessment_results')
-      .insert(resultsPayload.map(camelToSnake))
+      .insert(resultsPayload)
       .select();
 
     if (resultsError) throw resultsError;
