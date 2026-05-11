@@ -1123,28 +1123,69 @@ function renderAssessments(){
 
 function viewAssessment(assessmentId){
   const assessment = state.clientAssessments.find(a => a.id === assessmentId);
-  if (!assessment) { showToast('Evaluación no encontrada'); return; }
+  if (!assessment) {
+    showToast('Evaluación no encontrada');
+    return;
+  }
 
   const c = clientById(assessment.clientId);
-  const tpl = state.assessmentTemplates.find(t => t.id === assessment.templateId);
   const results = state.clientAssessmentResults
     .filter(r => r.assessmentId === assessmentId)
     .sort((a,b) => Number(a.itemOrder || 0) - Number(b.itemOrder || 0));
 
-  const detail = results.length
-    ? results.map(r => {
-        const note = r.note ? ` (${r.note})` : '';
-        return `${r.exerciseName || '—'}: ${r.resultValue || '—'} ${r.unit || ''}${note}`;
-      }).join('\n')
-    : 'Sin resultados registrados.';
+  const title = document.getElementById('modalTitle');
+  const form = document.getElementById('modalForm');
 
-  alert(
-    `Cliente: ${c?.name || 'Cliente eliminado'}\n` +
-    `Test: ${assessment.assessmentName || tpl?.name || 'Test'}\n` +
-    `Fecha: ${formatDate(assessment.assessmentDate)}\n` +
-    `Notas: ${assessment.coachNotes || '—'}\n\n` +
-    detail
-  );
+  title.textContent = assessment.assessmentName || 'Resultados del test';
+
+  form.innerHTML = `
+    <div class="card" style="margin-bottom:14px;">
+      <div class="data-row">
+        <span class="data-key">Cliente</span>
+        <span class="data-val">${esc(c?.name || 'Cliente eliminado')}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-key">Fecha</span>
+        <span class="data-val">${formatDate(assessment.assessmentDate)}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-key">Estado</span>
+        <span class="badge badge-${assessment.status || 'realizada'}">${esc(assessment.status || 'realizada')}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-key">Notas</span>
+        <span class="data-val">${esc(assessment.coachNotes || '—')}</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Resultados registrados</div>
+
+      ${
+        results.length
+          ? results.map(r => `
+            <div class="data-row">
+              <span>
+                <strong>${esc(r.exerciseName || 'Ejercicio')}</strong>
+                <div class="name-sub">${esc(r.metricType || '')} · ${esc(r.direction || '')}</div>
+              </span>
+              <span class="data-val">
+                ${esc(r.resultValue || '—')} ${esc(r.unit || '')}
+                ${r.note ? `<div class="name-sub">${esc(r.note)}</div>` : ''}
+              </span>
+            </div>
+          `).join('')
+          : `<div class="empty small">Sin resultados registrados.</div>`
+      }
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:20px">
+      <button type="button" class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+    </div>
+  `;
+
+  form.onsubmit = null;
+  document.getElementById('modalOverlay').classList.add('open');
 }
 
 async function deleteAssessment(assessmentId){
