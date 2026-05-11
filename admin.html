@@ -180,38 +180,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(94,197,240,.2);border-radius:2px}
 
-@media(max-width:900px){
-  .sidebar{position:fixed;left:-100%;top:0;bottom:0;z-index:50;transition:left .25s}
-  .sidebar.open{left:0}
-  .two-col,.three-col,.settings-grid{grid-template-columns:1fr}
-  .content{padding:22px 18px 34px}
-}
-@media(max-width:640px){
-  .form-row-2{grid-template-columns:1fr}
-  .page-title{font-size:1.8rem}
-  th,td{
-    padding:10px 12px;
-    white-space:nowrap;
-  }
-
-  .table-wrap{
-    width:100%;
-    overflow-x:auto;
-  }
-
-  .table-wrap::after{
-    content:'Desliza →';
-    display:block;
-    font-family:'Space Mono',monospace;
-    font-size:.58rem;
-    letter-spacing:.12em;
-    text-transform:uppercase;
-    color:var(--gray2);
-    padding:8px 12px;
-    border-top:1px solid var(--border2);
-  }
-   
-   /* Assessment view modal */
+/* Assessment view modal */
 .av-summary-grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -349,6 +318,63 @@ tr:hover td{background:rgba(255,255,255,.02)}
   .av-value,
   .av-unit{
     text-align:left;
+  }
+}
+
+@media(max-width:900px){
+  .sidebar{position:fixed;left:-100%;top:0;bottom:0;z-index:50;transition:left .25s}
+  .sidebar.open{left:0}
+  .two-col,.three-col,.settings-grid{grid-template-columns:1fr}
+  .content{padding:22px 18px 34px}
+}
+@media(max-width:640px){
+  .form-row-2{grid-template-columns:1fr}
+  .page-title{font-size:1.8rem}
+  th,td{
+    padding:10px 12px;
+    white-space:nowrap;
+  }
+
+  .table-wrap{
+    width:100%;
+    overflow-x:auto;
+  }
+
+  .table-wrap::after{
+    content:'Desliza →';
+    display:block;
+    font-family:'Space Mono',monospace;
+    font-size:.58rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--gray2);
+    padding:8px 12px;
+    border-top:1px solid var(--border2);
+  }
+   
+  @media(max-width:640px){
+  .form-row-2{grid-template-columns:1fr}
+  .page-title{font-size:1.8rem}
+  th,td{
+    padding:10px 12px;
+    white-space:nowrap;
+  }
+
+  .table-wrap{
+    width:100%;
+    overflow-x:auto;
+  }
+
+  .table-wrap::after{
+    content:'Desliza →';
+    display:block;
+    font-family:'Space Mono',monospace;
+    font-size:.58rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--gray2);
+    padding:8px 12px;
+    border-top:1px solid var(--border2);
   }
 }
 </style>
@@ -1346,7 +1372,7 @@ function buildExerciseHistory(clientId, exerciseName) {
     .sort((a, b) => String(a.date).localeCompare(String(b.date)));
 }
 
-function viewAssessment(assessmentId){
+function viewAssessment(assessmentId) {
   const assessment = state.clientAssessments.find(a => a.id === assessmentId);
   if (!assessment) {
     showToast('Evaluación no encontrada');
@@ -1354,20 +1380,49 @@ function viewAssessment(assessmentId){
   }
 
   const c = clientById(assessment.clientId);
+
   const results = state.clientAssessmentResults
     .filter(r => r.assessmentId === assessmentId)
-    .sort((a,b) => Number(a.itemOrder || 0) - Number(b.itemOrder || 0));
+    .sort((a, b) => Number(a.itemOrder || 0) - Number(b.itemOrder || 0));
 
-  const title = document.getElementById('modalTitle');
-  const form = document.getElementById('modalForm');
+  document.getElementById('avTitle').textContent =
+    assessment.assessmentName || 'Resultados del test';
 
-  title.textContent = assessment.assessmentName || 'Resultados del test';
+  const totalResults = results.length;
+  const higherCount = results.filter(r => r.direction === 'higher_better').length;
+  const lowerCount = results.filter(r => r.direction === 'lower_better').length;
+  const neutralCount = results.filter(r => r.direction === 'neutral' || !r.direction).length;
 
-  form.innerHTML = `
-    <div class="card" style="margin-bottom:14px;">
+  const summaryHtml = `
+    <div class="av-summary-grid">
+      <div class="av-summary-item">
+        <span class="av-summary-num">${totalResults}</span>
+        <span class="av-summary-label">Resultados</span>
+      </div>
+      <div class="av-summary-item">
+        <span class="av-summary-num" style="color:var(--green)">${higherCount}</span>
+        <span class="av-summary-label">Mejor más alto</span>
+      </div>
+      <div class="av-summary-item">
+        <span class="av-summary-num" style="color:var(--red)">${lowerCount}</span>
+        <span class="av-summary-label">Mejor más bajo</span>
+      </div>
+      <div class="av-summary-item">
+        <span class="av-summary-num" style="color:var(--gray)">${neutralCount}</span>
+        <span class="av-summary-label">Referencia</span>
+      </div>
+    </div>
+  `;
+
+  const headerHtml = `
+    <div class="card" style="margin-bottom:14px">
       <div class="data-row">
         <span class="data-key">Cliente</span>
         <span class="data-val">${esc(c?.name || 'Cliente eliminado')}</span>
+      </div>
+      <div class="data-row">
+        <span class="data-key">Test</span>
+        <span class="data-val">${esc(assessment.assessmentName || '—')}</span>
       </div>
       <div class="data-row">
         <span class="data-key">Fecha</span>
@@ -1375,42 +1430,111 @@ function viewAssessment(assessmentId){
       </div>
       <div class="data-row">
         <span class="data-key">Estado</span>
-        <span class="badge badge-${assessment.status || 'realizada'}">${esc(assessment.status || 'realizada')}</span>
+        <span class="badge badge-${esc(assessment.status || 'realizada')}">${esc(assessment.status || 'realizada')}</span>
       </div>
-      <div class="data-row">
-        <span class="data-key">Notas</span>
-        <span class="data-val">${esc(assessment.coachNotes || '—')}</span>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Resultados registrados</div>
-
       ${
-        results.length
-          ? results.map(r => `
-            <div class="data-row">
-              <span>
-                <strong>${esc(r.exerciseName || 'Ejercicio')}</strong>
-                <div class="name-sub">${esc(r.metricType || '')} · ${esc(r.direction || '')}</div>
-              </span>
-              <span class="data-val">
-                ${esc(r.resultValue || '—')} ${esc(r.unit || '')}
-                ${r.note ? `<div class="name-sub">${esc(r.note)}</div>` : ''}
-              </span>
-            </div>
-          `).join('')
-          : `<div class="empty small">Sin resultados registrados.</div>`
+        assessment.coachNotes
+          ? `<div class="data-row">
+              <span class="data-key">Notas</span>
+              <span class="data-val" style="font-size:.8rem;color:var(--gray);text-align:right;max-width:340px;white-space:normal">${esc(assessment.coachNotes)}</span>
+            </div>`
+          : ''
       }
     </div>
 
+    <div class="page-eyebrow" style="margin-bottom:6px">Resumen automático</div>
+    ${summaryHtml}
+  `;
+
+  let resultsHtml = '';
+
+  if (!results.length) {
+    resultsHtml = `<div class="empty small">Sin resultados registrados para este test.</div>`;
+  } else {
+    resultsHtml = results.map(r => {
+      const directionLabel = formatDirectionLabel(r.direction);
+      const isNumeric = r.resultValue !== '' && !isNaN(parseFloat(String(r.resultValue).replace(',', '.')));
+
+      const history = buildExerciseHistory(assessment.clientId, r.exerciseName);
+      const numericHistory = history.filter(h => !isNaN(h.numValue));
+
+      let chartHtml = '';
+
+      if (isNumeric && numericHistory.length < 2) {
+        chartHtml = `
+          <div class="mini-chart-wrap">
+            <div class="mini-chart-title">Historial · ${esc(r.exerciseName || '')}</div>
+            <div class="mini-chart-no-data">Sin historial suficiente para mostrar evolución.</div>
+          </div>
+        `;
+      }
+
+      if (isNumeric && numericHistory.length >= 2) {
+        const chartData = numericHistory.map(h => ({
+          date: h.date,
+          value: h.numValue
+        }));
+
+        const svgContent = buildMiniChart(chartData);
+
+        chartHtml = svgContent ? `
+          <div class="mini-chart-wrap">
+            <div class="mini-chart-title">Evolución · ${esc(r.exerciseName || '')}</div>
+            ${svgContent}
+          </div>
+        ` : '';
+      }
+
+      return `
+        <div style="margin-bottom:14px">
+          <div class="av-result-row">
+            <div>
+              <div class="av-exercise-name">${esc(r.exerciseName || 'Ejercicio')}</div>
+              <div class="av-meta">
+                ${esc(r.metricType || '')}
+                ${
+                  r.direction
+                    ? ` · <span style="color:${
+                        r.direction === 'higher_better'
+                          ? 'var(--green)'
+                          : r.direction === 'lower_better'
+                            ? 'var(--red)'
+                            : 'var(--gray)'
+                      }">${esc(directionLabel)}</span>`
+                    : ''
+                }
+              </div>
+              ${r.note ? `<div class="av-note">✎ ${esc(r.note)}</div>` : ''}
+            </div>
+
+            <div style="text-align:right">
+              <div class="av-value">${esc(r.resultValue || '—')}</div>
+              ${r.unit ? `<span class="av-unit">${esc(r.unit)}</span>` : ''}
+            </div>
+          </div>
+
+          ${chartHtml}
+        </div>
+      `;
+    }).join('');
+  }
+
+  document.getElementById('assessmentViewContent').innerHTML = `
+    ${headerHtml}
+
+    <div class="av-section-title">
+      Resultados
+      <span class="badge badge-plantilla">${totalResults}</span>
+    </div>
+
+    ${resultsHtml}
+
     <div style="display:flex;justify-content:flex-end;margin-top:20px">
-      <button type="button" class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+      <button type="button" class="btn btn-secondary" onclick="closeAssessmentView()">Cerrar</button>
     </div>
   `;
 
-  form.onsubmit = null;
-  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('assessmentViewOverlay').classList.add('open');
 }
 
 async function deleteAssessment(assessmentId){
