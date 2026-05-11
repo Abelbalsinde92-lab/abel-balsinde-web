@@ -4,1102 +4,668 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AB Coach — Área Cliente</title>
-
-  <!-- Google Fonts -->
+  <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-
-  <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
-    /* ─── VARIABLES ─────────────────────────────────────────── */
     :root {
-      --navy:  #020B18;
-      --navy2: #061427;
-      --navy3: #0D1E30;
-      --navy4: #132236;
-      --red:   #E20613;
-      --blue:  #5EC5F0;
-      --white: #F5F9FF;
-      --gray:  #8A9BB0;
-      --green: #22c55e;
-      --yellow:#f59e0b;
-      --orange:#f97316;
-      --font-title: 'Bebas Neue', sans-serif;
-      --font-body:  'DM Sans', sans-serif;
-      --font-mono:  'Space Mono', monospace;
+      --navy:#020B18; --navy2:#061427; --navy3:#0D1E30; --navy4:#132236;
+      --red:#E20613; --blue:#5EC5F0; --white:#F5F9FF;
+      --gray:#8A9BB0; --green:#22c55e; --yellow:#f59e0b;
+      --fn-title:'Bebas Neue',sans-serif;
+      --fn-body:'DM Sans',sans-serif;
+      --fn-mono:'Space Mono',monospace;
     }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--navy);color:var(--white);font-family:var(--fn-body);font-size:15px;line-height:1.6;min-height:100vh}
+    a{color:inherit;text-decoration:none}
+    button{cursor:pointer;border:none;outline:none;font-family:var(--fn-body)}
+    input{outline:none;font-family:var(--fn-body)}
+    .hidden{display:none!important}
 
-    /* ─── RESET ─────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      background: var(--navy);
-      color: var(--white);
-      font-family: var(--font-body);
-      font-size: 15px;
-      line-height: 1.6;
-      min-height: 100vh;
+    /* ── LOADING ── */
+    #loadingScreen{
+      position:fixed;inset:0;background:var(--navy);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999;
     }
-    a { color: inherit; text-decoration: none; }
-    button { cursor: pointer; border: none; outline: none; font-family: var(--font-body); }
-    input  { outline: none; font-family: var(--font-body); }
+    .spinner{width:40px;height:40px;border:3px solid #1a2e44;border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    #loadingScreen p{color:var(--gray);font-size:13px;font-family:var(--fn-mono);letter-spacing:.08em}
 
-    /* ─── UTILITY ───────────────────────────────────────────── */
-    .hidden  { display: none !important; }
-    .sr-only { position: absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+    /* ── LOGIN ── */
+    #loginScreen{
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;
+      background:radial-gradient(ellipse at 60% 0%,#0d1e3080 0%,transparent 60%),var(--navy);
+    }
+    .login-box{
+      width:100%;max-width:420px;background:var(--navy2);
+      border:1px solid #1a2e44;border-radius:16px;padding:40px 32px 36px;
+    }
+    .login-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+    .logo-badge{
+      width:44px;height:44px;background:var(--red);border-radius:8px;
+      display:flex;align-items:center;justify-content:center;
+      font-family:var(--fn-title);font-size:20px;color:var(--white)
+    }
+    .logo-text{font-family:var(--fn-title);font-size:22px;letter-spacing:2px}
+    .logo-text span{color:var(--red)}
+    .login-title{font-family:var(--fn-title);font-size:30px;letter-spacing:2px;margin-bottom:6px}
+    .login-sub{font-size:13px;color:var(--gray);margin-bottom:28px}
+    .field-group{margin-bottom:16px}
+    .field-group label{display:block;font-size:11px;font-family:var(--fn-mono);letter-spacing:1px;color:var(--gray);text-transform:uppercase;margin-bottom:6px}
+    .field-group input{
+      width:100%;background:var(--navy3);border:1px solid #1e3450;border-radius:8px;
+      padding:12px 14px;color:var(--white);font-size:15px;transition:border-color .2s
+    }
+    .field-group input:focus{border-color:var(--blue)}
+    .field-group input::placeholder{color:#3a5068}
+    .btn-login{
+      width:100%;background:var(--red);color:var(--white);border-radius:8px;
+      padding:13px;font-size:15px;font-weight:700;letter-spacing:.5px;
+      transition:opacity .2s,transform .1s;margin-top:4px
+    }
+    .btn-login:hover{opacity:.88}
+    .btn-login:active{transform:scale(.98)}
+    .login-error{
+      background:#2a0608;border:1px solid var(--red);color:#f87171;
+      border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px
+    }
+    .login-info{
+      background:rgba(94,197,240,.06);border:1px solid rgba(94,197,240,.2);color:var(--blue);
+      border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px
+    }
+    .btn-wa-help{
+      width:100%;background:transparent;border:1px solid #1e3450;color:var(--gray);
+      border-radius:8px;padding:11px;font-size:13px;margin-top:12px;
+      transition:border-color .2s,color .2s;display:flex;align-items:center;justify-content:center;gap:8px
+    }
+    .btn-wa-help:hover{border-color:var(--blue);color:var(--blue)}
+    .back-link{display:block;text-align:center;margin-top:16px;font-size:12px;font-family:var(--fn-mono);color:var(--gray);letter-spacing:.08em;transition:color .2s}
+    .back-link:hover{color:var(--white)}
 
-    /* ─── LOGIN SCREEN ──────────────────────────────────────── */
-    #loginScreen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
-      background: radial-gradient(ellipse at 60% 0%, #0d1e3080 0%, transparent 60%),
-                  var(--navy);
+    /* ── CODE HINT ── */
+    .code-hint{
+      background:rgba(94,197,240,.04);border:1px dashed rgba(94,197,240,.2);
+      border-radius:8px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--gray);line-height:1.6
     }
-    .login-box {
-      width: 100%;
-      max-width: 400px;
-      background: var(--navy2);
-      border: 1px solid #1a2e44;
-      border-radius: 16px;
-      padding: 40px 32px 36px;
-    }
-    .login-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 28px;
-    }
-    .login-logo .logo-badge {
-      width: 44px; height: 44px;
-      background: var(--red);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-title);
-      font-size: 20px;
-      color: var(--white);
-      letter-spacing: 1px;
-    }
-    .login-logo .logo-text {
-      font-family: var(--font-title);
-      font-size: 22px;
-      letter-spacing: 2px;
-      color: var(--white);
-    }
-    .login-logo .logo-text span { color: var(--red); }
-    .login-title {
-      font-family: var(--font-title);
-      font-size: 30px;
-      letter-spacing: 2px;
-      color: var(--white);
-      margin-bottom: 6px;
-    }
-    .login-sub {
-      font-size: 13px;
-      color: var(--gray);
-      margin-bottom: 28px;
-    }
+    .code-hint strong{color:var(--white);font-family:var(--fn-mono)}
 
-    /* Form fields */
-    .field-group { margin-bottom: 16px; }
-    .field-group label {
-      display: block;
-      font-size: 11px;
-      font-family: var(--font-mono);
-      letter-spacing: 1px;
-      color: var(--gray);
-      text-transform: uppercase;
-      margin-bottom: 6px;
+    /* ── DASHBOARD ── */
+    #dashboardScreen{min-height:100vh}
+    .dash-header{
+      background:var(--navy2);border-bottom:1px solid #1a2e44;padding:0 24px;height:60px;
+      display:flex;align-items:center;justify-content:space-between;
+      position:sticky;top:0;z-index:100
     }
-    .field-group input {
-      width: 100%;
-      background: var(--navy3);
-      border: 1px solid #1e3450;
-      border-radius: 8px;
-      padding: 12px 14px;
-      color: var(--white);
-      font-size: 15px;
-      transition: border-color .2s;
+    .dash-header-logo{display:flex;align-items:center;gap:10px}
+    .dash-header-logo .logo-badge-sm{
+      width:34px;height:34px;background:var(--red);border-radius:6px;
+      display:flex;align-items:center;justify-content:center;
+      font-family:var(--fn-title);font-size:16px
     }
-    .field-group input:focus { border-color: var(--blue); }
-    .field-group input::placeholder { color: #3a5068; }
+    .dash-logo-text{font-family:var(--fn-title);font-size:18px;letter-spacing:2px}
+    .dash-logo-text span{color:var(--red)}
+    .dash-header-actions{display:flex;align-items:center;gap:8px}
+    .btn-icon{
+      background:transparent;border:1px solid #1e3450;color:var(--gray);border-radius:7px;
+      padding:7px 12px;font-size:12px;display:flex;align-items:center;gap:6px;
+      transition:border-color .2s,color .2s
+    }
+    .btn-icon:hover{border-color:var(--blue);color:var(--blue)}
+    .btn-icon.red:hover{border-color:var(--red);color:var(--red)}
+    .dash-main{max-width:960px;margin:0 auto;padding:28px 20px 60px}
 
-    /* Buttons */
-    .btn-primary {
-      width: 100%;
-      background: var(--red);
-      color: var(--white);
-      border-radius: 8px;
-      padding: 13px;
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: .5px;
-      transition: opacity .2s, transform .1s;
-      margin-top: 4px;
+    /* Welcome */
+    .welcome-block{
+      background:linear-gradient(135deg,var(--navy3) 0%,#0d2035 100%);
+      border:1px solid #1e3450;border-left:4px solid var(--red);
+      border-radius:12px;padding:24px;margin-bottom:24px
     }
-    .btn-primary:hover  { opacity: .88; }
-    .btn-primary:active { transform: scale(.98); }
+    .welcome-block h1{font-family:var(--fn-title);font-size:32px;letter-spacing:2px;margin-bottom:8px}
+    .welcome-block h1 span{color:var(--red)}
+    .welcome-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .pill{font-size:11px;font-family:var(--fn-mono);padding:4px 10px;border-radius:20px;border:1px solid}
+    .pill-gray{border-color:#1e3450;color:var(--gray)}
+    .pill-blue{border-color:var(--blue);color:var(--blue)}
+    .pill-green{border-color:var(--green);color:var(--green)}
+    .pill-red{border-color:var(--red);color:var(--red)}
 
-    .btn-wa {
-      width: 100%;
-      background: transparent;
-      border: 1px solid #1e3450;
-      color: var(--gray);
-      border-radius: 8px;
-      padding: 11px;
-      font-size: 13px;
-      margin-top: 12px;
-      transition: border-color .2s, color .2s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
-    .btn-wa:hover { border-color: var(--blue); color: var(--blue); }
+    /* Metric cards */
+    .metrics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:28px}
+    @media(min-width:600px){.metrics-grid{grid-template-columns:repeat(4,1fr)}}
+    .metric-card{background:var(--navy2);border:1px solid #1a2e44;border-radius:10px;padding:16px 14px}
+    .mc-label{font-size:10px;font-family:var(--fn-mono);letter-spacing:1px;text-transform:uppercase;color:var(--gray);margin-bottom:8px}
+    .mc-value{font-family:var(--fn-title);font-size:22px;letter-spacing:1px;color:var(--white);line-height:1.2}
+    .mc-value.blue{color:var(--blue)}.mc-value.green{color:var(--green)}.mc-value.yellow{color:var(--yellow)}.mc-value.red{color:var(--red)}
 
-    .login-error {
-      background: #2a0608;
-      border: 1px solid var(--red);
-      color: #f87171;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 13px;
-      margin-bottom: 14px;
-    }
+    /* Section */
+    .section{background:var(--navy2);border:1px solid #1a2e44;border-radius:12px;margin-bottom:20px;overflow:hidden}
+    .section-header{padding:16px 20px;border-bottom:1px solid #1a2e44;display:flex;align-items:center;justify-content:space-between}
+    .section-header h2{font-family:var(--fn-title);font-size:20px;letter-spacing:2px}
+    .sec-badge{font-size:10px;font-family:var(--fn-mono);background:var(--navy3);border:1px solid #1e3450;color:var(--gray);padding:3px 8px;border-radius:4px}
+    .section-body{padding:18px 20px}
+    .empty-state{color:var(--gray);font-size:13px;font-style:italic;padding:8px 0}
 
-    /* ─── LOADING OVERLAY ───────────────────────────────────── */
-    #loadingOverlay {
-      position: fixed; inset: 0;
-      background: var(--navy);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 16px;
-      z-index: 999;
-    }
-    .spinner {
-      width: 40px; height: 40px;
-      border: 3px solid #1a2e44;
-      border-top-color: var(--red);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #loadingOverlay p { color: var(--gray); font-size: 13px; }
+    /* Data cards */
+    .data-card{background:var(--navy3);border:1px solid #1e3450;border-radius:10px;padding:14px 16px;margin-bottom:10px}
+    .data-card:last-child{margin-bottom:0}
+    .dc-row{display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:4px}
+    .dc-title{font-weight:700;font-size:14px;color:var(--white)}
+    .dc-sub{font-size:12px;color:var(--gray);font-family:var(--fn-mono)}
+    .dc-note{font-size:12px;color:var(--gray);margin-top:6px;font-style:italic}
 
-    /* ─── DASHBOARD ─────────────────────────────────────────── */
-    #dashboardScreen { min-height: 100vh; }
+    /* Badges */
+    .badge{display:inline-block;font-size:10px;font-family:var(--fn-mono);padding:2px 8px;border-radius:4px;letter-spacing:.5px;font-weight:700}
+    .badge-green{background:#052512;color:var(--green);border:1px solid var(--green)}
+    .badge-yellow{background:#1f1400;color:var(--yellow);border:1px solid var(--yellow)}
+    .badge-red{background:#2a0608;color:#f87171;border:1px solid var(--red)}
+    .badge-blue{background:#031b2a;color:var(--blue);border:1px solid var(--blue)}
+    .badge-gray{background:#0d1e30;color:var(--gray);border:1px solid #2a3e52}
 
-    /* Header */
-    .dash-header {
-      background: var(--navy2);
-      border-bottom: 1px solid #1a2e44;
-      padding: 0 24px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky; top: 0; z-index: 100;
-    }
-    .dash-header-logo {
-      display: flex; align-items: center; gap: 10px;
-    }
-    .dash-header-logo .logo-badge {
-      width: 34px; height: 34px;
-      background: var(--red);
-      border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-title);
-      font-size: 16px; color: var(--white);
-    }
-    .dash-header-logo .logo-text {
-      font-family: var(--font-title);
-      font-size: 18px; letter-spacing: 2px;
-    }
-    .dash-header-logo .logo-text span { color: var(--red); }
+    /* Plan grid */
+    .plan-grid{display:grid;gap:10px;grid-template-columns:1fr}
+    @media(min-width:600px){.plan-grid{grid-template-columns:1fr 1fr}}
+    .pi-label{font-size:10px;font-family:var(--fn-mono);text-transform:uppercase;letter-spacing:1px;color:var(--gray);margin-bottom:4px}
+    .pi-value{font-size:14px;color:var(--white);font-weight:500}
 
-    .dash-header-actions {
-      display: flex; align-items: center; gap: 8px;
-    }
-    .btn-icon {
-      background: transparent;
-      border: 1px solid #1e3450;
-      color: var(--gray);
-      border-radius: 7px;
-      padding: 7px 12px;
-      font-size: 12px;
-      display: flex; align-items: center; gap: 6px;
-      transition: border-color .2s, color .2s;
-    }
-    .btn-icon:hover { border-color: var(--blue); color: var(--blue); }
-    .btn-icon.red:hover { border-color: var(--red); color: var(--red); }
+    /* Notes */
+    .note-item{background:var(--navy3);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;color:var(--white);margin-bottom:8px}
+    .note-item:last-child{margin-bottom:0}
 
-    /* Main layout */
-    .dash-main {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 28px 20px 60px;
-    }
+    /* Trainings */
+    .training-card{background:var(--navy3);border:1px solid #1e3450;border-radius:10px;padding:16px;margin-bottom:12px}
+    .training-week{font-family:var(--fn-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);margin-bottom:8px}
+    .training-title{font-family:var(--fn-title);font-size:18px;letter-spacing:.04em;margin-bottom:4px}
+    .training-meta{font-size:12px;color:var(--gray);margin-bottom:10px}
+    .training-objective{font-size:13px;color:var(--gray);line-height:1.6}
+    .progress-bar{height:4px;background:#1a2e44;border-radius:2px;margin-top:12px;overflow:hidden}
+    .progress-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--blue));border-radius:2px;transition:width .6s ease}
 
-    /* Welcome block */
-    .welcome-block {
-      background: linear-gradient(135deg, var(--navy3) 0%, #0d2035 100%);
-      border: 1px solid #1e3450;
-      border-left: 4px solid var(--red);
-      border-radius: 12px;
-      padding: 24px 24px;
-      margin-bottom: 24px;
+    /* WA FAB */
+    .wa-fab{
+      position:fixed;bottom:24px;right:20px;background:#25D366;color:#fff;
+      border-radius:50px;padding:12px 20px;font-size:13px;font-weight:700;
+      display:flex;align-items:center;gap:8px;
+      box-shadow:0 4px 20px #00000060;z-index:200;transition:transform .15s
     }
-    .welcome-block h1 {
-      font-family: var(--font-title);
-      font-size: 32px;
-      letter-spacing: 2px;
-      color: var(--white);
-      margin-bottom: 8px;
-    }
-    .welcome-block h1 span { color: var(--red); }
-    .welcome-pills {
-      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
-    }
-    .pill {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      padding: 4px 10px;
-      border-radius: 20px;
-      border: 1px solid;
-    }
-    .pill-gray   { border-color: #1e3450; color: var(--gray); }
-    .pill-blue   { border-color: var(--blue); color: var(--blue); }
-    .pill-red    { border-color: var(--red); color: var(--red); }
-    .pill-green  { border-color: var(--green); color: var(--green); }
+    .wa-fab:hover{transform:scale(1.04)}
 
-    /* Quick metrics grid */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 28px;
+    /* Role separator bar */
+    .admin-access-bar{
+      background:rgba(226,6,19,.08);border-top:1px solid rgba(226,6,19,.2);
+      padding:10px 20px;font-size:11px;font-family:var(--fn-mono);
+      color:rgba(226,6,19,.6);letter-spacing:.08em;text-align:center
     }
-    @media (min-width: 600px) {
-      .metrics-grid { grid-template-columns: repeat(4, 1fr); }
-    }
-    .metric-card {
-      background: var(--navy2);
-      border: 1px solid #1a2e44;
-      border-radius: 10px;
-      padding: 16px 14px;
-    }
-    .metric-card .mc-label {
-      font-size: 10px;
-      font-family: var(--font-mono);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--gray);
-      margin-bottom: 8px;
-    }
-    .metric-card .mc-value {
-      font-family: var(--font-title);
-      font-size: 22px;
-      letter-spacing: 1px;
-      color: var(--white);
-      line-height: 1.2;
-    }
-    .metric-card .mc-value.blue  { color: var(--blue); }
-    .metric-card .mc-value.green { color: var(--green); }
-    .metric-card .mc-value.yellow{ color: var(--yellow); }
-    .metric-card .mc-value.red   { color: var(--red); }
+    .admin-access-bar a{color:var(--red);transition:opacity .2s}
+    .admin-access-bar a:hover{opacity:.7}
 
-    /* Section wrapper */
-    .section {
-      background: var(--navy2);
-      border: 1px solid #1a2e44;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-    .section-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid #1a2e44;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .section-header h2 {
-      font-family: var(--font-title);
-      font-size: 20px;
-      letter-spacing: 2px;
-      color: var(--white);
-    }
-    .section-header .sec-badge {
-      font-size: 10px;
-      font-family: var(--font-mono);
-      background: var(--navy3);
-      border: 1px solid #1e3450;
-      color: var(--gray);
-      padding: 3px 8px;
-      border-radius: 4px;
-    }
-    .section-body { padding: 18px 20px; }
-
-    /* Empty state */
-    .empty-state {
-      color: var(--gray);
-      font-size: 13px;
-      font-style: italic;
-      padding: 8px 0;
-    }
-
-    /* ─── CARDS (reservas, pagos, métricas, alertas) ────────── */
-    .data-card {
-      background: var(--navy3);
-      border: 1px solid #1e3450;
-      border-radius: 10px;
-      padding: 14px 16px;
-      margin-bottom: 10px;
-    }
-    .data-card:last-child { margin-bottom: 0; }
-
-    .data-card .dc-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px 14px;
-      margin-bottom: 4px;
-    }
-    .data-card .dc-title {
-      font-weight: 700;
-      font-size: 14px;
-      color: var(--white);
-    }
-    .data-card .dc-sub {
-      font-size: 12px;
-      color: var(--gray);
-      font-family: var(--font-mono);
-    }
-    .data-card .dc-note {
-      font-size: 12px;
-      color: var(--gray);
-      margin-top: 6px;
-      font-style: italic;
-    }
-    .data-card .dc-meta {
-      font-size: 12px;
-      color: var(--gray);
-    }
-
-    /* Status badges */
-    .badge {
-      display: inline-block;
-      font-size: 10px;
-      font-family: var(--font-mono);
-      padding: 2px 8px;
-      border-radius: 4px;
-      letter-spacing: .5px;
-      font-weight: 700;
-    }
-    .badge-green  { background: #052512; color: var(--green); border: 1px solid var(--green); }
-    .badge-yellow { background: #1f1400; color: var(--yellow); border: 1px solid var(--yellow); }
-    .badge-red    { background: #2a0608; color: #f87171; border: 1px solid var(--red); }
-    .badge-blue   { background: #031b2a; color: var(--blue); border: 1px solid var(--blue); }
-    .badge-gray   { background: #0d1e30; color: var(--gray); border: 1px solid #2a3e52; }
-
-    /* ─── PLAN SECTION ──────────────────────────────────────── */
-    .plan-grid {
-      display: grid;
-      gap: 10px;
-      grid-template-columns: 1fr;
-    }
-    @media (min-width: 600px) {
-      .plan-grid { grid-template-columns: 1fr 1fr; }
-    }
-    .plan-item { }
-    .plan-item .pi-label {
-      font-size: 10px; font-family: var(--font-mono);
-      text-transform: uppercase; letter-spacing: 1px;
-      color: var(--gray); margin-bottom: 4px;
-    }
-    .plan-item .pi-value {
-      font-size: 14px; color: var(--white); font-weight: 500;
-    }
-
-    /* ─── NOTES ─────────────────────────────────────────────── */
-    .note-item {
-      background: var(--navy3);
-      border-left: 3px solid var(--blue);
-      border-radius: 0 8px 8px 0;
-      padding: 10px 14px;
-      font-size: 13px;
-      color: var(--white);
-      margin-bottom: 8px;
-    }
-    .note-item:last-child { margin-bottom: 0; }
-
-    /* ─── WA FIXED BUTTON ───────────────────────────────────── */
-    .wa-fab {
-      position: fixed;
-      bottom: 24px; right: 20px;
-      background: #25D366;
-      color: #fff;
-      border-radius: 50px;
-      padding: 12px 20px;
-      font-size: 13px;
-      font-weight: 700;
-      display: flex; align-items: center; gap: 8px;
-      box-shadow: 0 4px 20px #00000060;
-      z-index: 200;
-      transition: transform .15s;
-    }
-    .wa-fab:hover { transform: scale(1.04); }
-
-    /* ─── RESPONSIVE FIXES ──────────────────────────────────── */
-    @media (max-width: 480px) {
-      .login-box { padding: 28px 20px 28px; }
-      .dash-header { padding: 0 14px; }
-      .dash-header-logo .logo-text { font-size: 15px; }
-      .btn-icon .btn-label { display: none; }
-      .dash-main { padding: 18px 12px 80px; }
-      .welcome-block h1 { font-size: 26px; }
-      .section-header h2 { font-size: 17px; }
+    @media(max-width:480px){
+      .login-box{padding:28px 20px}
+      .dash-header{padding:0 14px}
+      .dash-logo-text{font-size:15px}
+      .btn-icon .btn-label{display:none}
+      .dash-main{padding:18px 12px 80px}
+      .welcome-block h1{font-size:26px}
     }
   </style>
 </head>
 <body>
 
-<!-- ════════════════════════════════════════════════════════════
-     LOADING OVERLAY
-════════════════════════════════════════════════════════════ -->
-<div id="loadingOverlay" class="hidden">
+<!-- ── LOADING ── -->
+<div id="loadingScreen">
   <div class="spinner"></div>
-  <p>Cargando...</p>
+  <p>Verificando acceso...</p>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════
-     LOGIN SCREEN
-════════════════════════════════════════════════════════════ -->
-<div id="loginScreen">
+<!-- ── LOGIN ── -->
+<div id="loginScreen" class="hidden">
   <div class="login-box">
 
     <div class="login-logo">
       <div class="logo-badge">AB</div>
       <div class="logo-text">ABEL <span>BALSINDE</span></div>
     </div>
-
     <h1 class="login-title">ÁREA CLIENTE</h1>
     <p class="login-sub">Accede a tu seguimiento personal.</p>
 
-    <!-- Error message (hidden by default) -->
-    <div id="loginError" class="login-error hidden">
-      Teléfono o código incorrecto. Revisa los datos e inténtalo de nuevo.
+    <div id="loginInfo" class="login-info hidden"></div>
+    <div id="loginError" class="login-error hidden"></div>
+
+    <div class="code-hint">
+      Introduce tu <strong>teléfono</strong> y el <strong>código de acceso</strong> que te envió Abel por WhatsApp.
     </div>
 
     <div class="field-group">
       <label for="inputPhone">Teléfono</label>
       <input type="tel" id="inputPhone" placeholder="Ej. +34 627 493 593" autocomplete="tel" />
     </div>
-
     <div class="field-group">
       <label for="inputCode">Código de acceso</label>
-      <input type="text" id="inputCode" placeholder="Ej. AB1234" autocomplete="off" />
+      <input type="text" id="inputCode" placeholder="Ej. AB1234" autocomplete="off" maxlength="20" />
     </div>
 
-    <button class="btn-primary" id="btnLogin">Entrar</button>
+    <button class="btn-login" id="btnLogin">Entrar</button>
 
-    <button class="btn-wa" onclick="openWA('Hola Abel, necesito ayuda para entrar al área cliente.')">
-      <!-- WhatsApp icon -->
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/>
-      </svg>
+    <button class="btn-wa-help" onclick="openWA('Hola Abel, necesito ayuda para entrar al área cliente.')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/></svg>
       ¿Necesitas ayuda? Contacta a Abel
     </button>
 
+    <a href="/" class="back-link">← Volver al sitio</a>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════
-     DASHBOARD SCREEN
-════════════════════════════════════════════════════════════ -->
+<!-- ── DASHBOARD ── -->
 <div id="dashboardScreen" class="hidden">
-
-  <!-- Header -->
   <header class="dash-header">
     <div class="dash-header-logo">
-      <div class="logo-badge">AB</div>
-      <div class="logo-text">ABEL <span>BALSINDE</span></div>
+      <div class="logo-badge-sm">AB</div>
+      <div class="dash-logo-text">ABEL <span>BALSINDE</span></div>
     </div>
     <div class="dash-header-actions">
       <button class="btn-icon" id="btnHeaderWA">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/>
-        </svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/></svg>
         <span class="btn-label">WhatsApp</span>
       </button>
       <button class="btn-icon red" id="btnLogout">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-          <polyline points="16 17 21 12 16 7"/>
-          <line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span class="btn-label">Salir</span>
       </button>
     </div>
   </header>
 
-  <!-- Main content -->
   <main class="dash-main">
 
-    <!-- Welcome -->
     <div class="welcome-block">
       <h1>Hola, <span id="clientName">—</span></h1>
       <div class="welcome-pills" id="welcomePills"></div>
     </div>
 
-    <!-- Quick metric cards -->
     <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="mc-label">Próxima sesión</div>
-        <div class="mc-value blue" id="quickNextSession">—</div>
-      </div>
-      <div class="metric-card">
-        <div class="mc-label">Pagos pendientes</div>
-        <div class="mc-value yellow" id="quickPendingPayments">—</div>
-      </div>
-      <div class="metric-card">
-        <div class="mc-label">Última métrica</div>
-        <div class="mc-value" id="quickLastMetric">—</div>
-      </div>
-      <div class="metric-card">
-        <div class="mc-label">Alertas activas</div>
-        <div class="mc-value red" id="quickAlerts">—</div>
-      </div>
+      <div class="metric-card"><div class="mc-label">Próxima sesión</div><div class="mc-value blue" id="quickNext">—</div></div>
+      <div class="metric-card"><div class="mc-label">Pagos pendientes</div><div class="mc-value yellow" id="quickPay">—</div></div>
+      <div class="metric-card"><div class="mc-label">Última métrica</div><div class="mc-value" id="quickMetric">—</div></div>
+      <div class="metric-card"><div class="mc-label">Alertas</div><div class="mc-value red" id="quickAlerts">—</div></div>
     </div>
 
-    <!-- ── Mi plan ── -->
+    <!-- Mi Plan -->
     <div class="section">
-      <div class="section-header">
-        <h2>MI PLAN</h2>
-        <span class="sec-badge" id="planBadgeStatus">—</span>
-      </div>
+      <div class="section-header"><h2>MI PLAN</h2><span class="sec-badge" id="planBadge">—</span></div>
       <div class="section-body" id="sectionPlan"></div>
     </div>
 
-    <!-- ── Próximas reservas ── -->
+    <!-- Mi Entrenamiento -->
     <div class="section">
-      <div class="section-header">
-        <h2>PRÓXIMAS RESERVAS</h2>
-        <span class="sec-badge" id="reservationsBadge">0</span>
-      </div>
+      <div class="section-header"><h2>MI ENTRENAMIENTO</h2><span class="sec-badge" id="trainingBadge">—</span></div>
+      <div class="section-body" id="sectionTraining"></div>
+    </div>
+
+    <!-- Próximas reservas -->
+    <div class="section">
+      <div class="section-header"><h2>PRÓXIMAS RESERVAS</h2><span class="sec-badge" id="reservationsBadge">0</span></div>
       <div class="section-body" id="sectionReservations"></div>
     </div>
 
-    <!-- ── Pagos ── -->
+    <!-- Pagos -->
     <div class="section">
-      <div class="section-header">
-        <h2>PAGOS</h2>
-        <span class="sec-badge" id="paymentsBadge">0</span>
-      </div>
+      <div class="section-header"><h2>PAGOS</h2><span class="sec-badge" id="paymentsBadge">0</span></div>
       <div class="section-body" id="sectionPayments"></div>
     </div>
 
-    <!-- ── Progreso / Métricas ── -->
+    <!-- Progreso -->
     <div class="section">
-      <div class="section-header">
-        <h2>PROGRESO</h2>
-        <span class="sec-badge" id="metricsBadge">0</span>
-      </div>
+      <div class="section-header"><h2>PROGRESO</h2><span class="sec-badge" id="metricsBadge">0</span></div>
       <div class="section-body" id="sectionMetrics"></div>
     </div>
 
-    <!-- ── Salud / indicaciones ── -->
+    <!-- Salud -->
     <div class="section">
-      <div class="section-header">
-        <h2>SALUD / INDICACIONES</h2>
-        <span class="sec-badge" id="alertsBadge">0</span>
-      </div>
+      <div class="section-header"><h2>SALUD / INDICACIONES</h2><span class="sec-badge" id="alertsBadge">0</span></div>
       <div class="section-body" id="sectionHealth"></div>
     </div>
 
-    <!-- ── Notas del coach ── -->
+    <!-- Notas -->
     <div class="section">
-      <div class="section-header">
-        <h2>NOTAS DEL COACH</h2>
-      </div>
+      <div class="section-header"><h2>NOTAS DEL COACH</h2></div>
       <div class="section-body" id="sectionNotes"></div>
     </div>
 
   </main>
 
-  <!-- Fixed WhatsApp FAB -->
-  <button class="wa-fab" id="btnFabWA">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/>
-    </svg>
+  <div class="admin-access-bar">
+    ¿Eres el coach? <a href="/admin.html">→ Acceder al panel de administración</a>
+  </div>
+
+  <button class="wa-fab" id="btnFab">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/></svg>
     Hablar con Abel
   </button>
+</div>
 
-</div><!-- /dashboardScreen -->
+<!-- ── AUTH MODULE ── -->
+<script src="/auth.js"></script>
 
-
-<!-- ════════════════════════════════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════════════════════════════ -->
 <script>
+/* ════════════════════════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://icjuuptbcnkpwgsoyiuj.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanV1cHRiY25rcHdnc295aXVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTIzMjQsImV4cCI6MjA5MzcyODMyNH0.L__PcG-5HUkV5hpnsujrWi8mkL1o1lCKRf-mrSeO5V8';
+const WA_NUMBER   = '381638112348';
 
-/* ── CONFIG ──────────────────────────────────────────────── */
-const SUPABASE_URL  = 'https://icjuuptbcnkpwgsoyiuj.supabase.co';
-const SUPABASE_KEY  = 'AQUÍ PEGARÉ MI ANON KEY'; // ← Pega tu anon key aquí
-const WA_NUMBER     = '381638112348';             // Número de Abel (sin +)
-const LS_KEY        = 'abCoachClientId';
-
-/* ── INIT SUPABASE ───────────────────────────────────────── */
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ── GLOBAL STATE ────────────────────────────────────────── */
-let clientData        = null;
-let clientReservations= [];
-let clientPayments    = [];
-let clientMetrics     = [];
-let clientAlerts      = [];
-let clientPrograms    = [];
+/* ════════════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════════════ */
+let clientData         = null;
+let clientReservations = [];
+let clientPayments     = [];
+let clientMetrics      = [];
+let clientAlerts       = [];
+let clientPrograms     = [];
+let clientTraining     = [];
+let clientWeeks        = [];
 
 /* ════════════════════════════════════════════════════════════
-   UTILITY FUNCTIONS
+   UTILS
 ════════════════════════════════════════════════════════════ */
-
-/** Quita espacios, guiones, paréntesis y el símbolo + */
-function normalizePhone(phone) {
-  return String(phone).replace(/[\s\-\(\)\+]/g, '');
+function normPhone(p){ return String(p||'').replace(/[\s\-\(\)\+]/g,'') }
+function openWA(msg){ window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,'_blank') }
+function formatDate(d){
+  if(!d) return '—';
+  const [y,m,day] = String(d).split('-');
+  return `${day}/${m}/${y}`;
 }
+function money(n){ return `${Number(n||0).toLocaleString('es-ES')}€` }
+function showEl(id){ document.getElementById(id)?.classList.remove('hidden') }
+function hideEl(id){ document.getElementById(id)?.classList.add('hidden') }
+function setText(id,t){ const e=document.getElementById(id); if(e) e.textContent=t }
 
-/** Construye URL de WhatsApp con mensaje prellenado */
-function buildWAUrl(phone, message) {
-  const num = normalizePhone(phone);
-  return `https://wa.me/${num}?text=${encodeURIComponent(message)}`;
+function payBadge(s){
+  const v=(s||'').toLowerCase();
+  if(['pagado','paid'].includes(v)) return `<span class="badge badge-green">${s}</span>`;
+  if(['pendiente','pending'].includes(v)) return `<span class="badge badge-yellow">${s}</span>`;
+  if(['vencido','overdue'].includes(v)) return `<span class="badge badge-red">${s}</span>`;
+  return `<span class="badge badge-gray">${s}</span>`;
 }
-
-/** Abre WhatsApp con mensaje (usa WA_NUMBER global) */
-function openWA(message) {
-  window.open(buildWAUrl(WA_NUMBER, message), '_blank');
-}
-
-/** Formatea fecha ISO a dd/mm/yyyy */
-function formatDate(dateStr) {
-  if (!dateStr) return '—';
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
-  } catch { return dateStr; }
-}
-
-/** Formatea importe con moneda */
-function formatMoney(amount, currency) {
-  if (amount == null) return '—';
-  const cur = (currency || 'EUR').toUpperCase();
-  try {
-    return new Intl.NumberFormat('es-ES', { style:'currency', currency: cur }).format(amount);
-  } catch {
-    return `${amount} ${cur}`;
-  }
-}
-
-/** Muestra/oculta error de login */
-function showError(msg) {
-  const el = document.getElementById('loginError');
-  el.textContent = msg || 'Teléfono o código incorrecto.';
-  el.classList.remove('hidden');
-}
-function hideError() {
-  document.getElementById('loginError').classList.add('hidden');
-}
-
-/** Muestra/oculta overlay de carga */
-function showLoading(visible) {
-  document.getElementById('loadingOverlay').classList.toggle('hidden', !visible);
-}
-
-/** Devuelve badge HTML según estado de pago */
-function paymentBadge(status) {
-  if (!status) return '';
-  const s = status.toLowerCase();
-  if (s === 'pagado' || s === 'paid')    return `<span class="badge badge-green">${status}</span>`;
-  if (s === 'pendiente' || s === 'pending') return `<span class="badge badge-yellow">${status}</span>`;
-  if (s === 'vencido' || s === 'overdue')  return `<span class="badge badge-red">${status}</span>`;
-  return `<span class="badge badge-gray">${status}</span>`;
-}
-
-/** Devuelve badge HTML genérico */
-function genericBadge(status) {
-  if (!status) return '';
-  const s = status.toLowerCase();
-  if (['activo','active','confirmada','confirmado','realizada','completado'].includes(s))
-    return `<span class="badge badge-green">${status}</span>`;
-  if (['pendiente','pending','reservada'].includes(s))
-    return `<span class="badge badge-yellow">${status}</span>`;
-  if (['cancelada','cancelado','vencido','inactivo'].includes(s))
-    return `<span class="badge badge-red">${status}</span>`;
-  if (['reprogramada','revisión'].includes(s))
-    return `<span class="badge badge-blue">${status}</span>`;
-  return `<span class="badge badge-gray">${status}</span>`;
+function genericBadge(s){
+  const v=(s||'').toLowerCase();
+  if(['activo','confirmada','realizada','completado'].includes(v)) return `<span class="badge badge-green">${s}</span>`;
+  if(['reservada','pendiente'].includes(v)) return `<span class="badge badge-yellow">${s}</span>`;
+  if(['cancelada','inactivo','vencido'].includes(v)) return `<span class="badge badge-red">${s}</span>`;
+  return `<span class="badge badge-blue">${s}</span>`;
 }
 
 /* ════════════════════════════════════════════════════════════
-   AUTH FUNCTIONS
+   AUTH FLOW
 ════════════════════════════════════════════════════════════ */
+function showLoginInfo(msg){ const e=document.getElementById('loginInfo'); if(e){e.textContent=msg;e.classList.remove('hidden')} }
+function showLoginError(msg){ const e=document.getElementById('loginError'); if(e){e.textContent=msg;e.classList.remove('hidden')} }
+function clearMessages(){
+  document.getElementById('loginInfo')?.classList.add('hidden');
+  document.getElementById('loginError')?.classList.add('hidden');
+}
 
-/** Intenta login: busca cliente que coincida phone normalizado + access_code */
-async function loginClient() {
-  hideError();
+async function attemptLogin(){
+  clearMessages();
   const phone = document.getElementById('inputPhone').value.trim();
   const code  = document.getElementById('inputCode').value.trim().toUpperCase();
+  if(!phone||!code){ showLoginError('Completa los dos campos.'); return; }
 
-  if (!phone || !code) { showError('Completa los dos campos.'); return; }
+  hideEl('loginScreen');
+  showEl('loadingScreen');
 
-  showLoading(true);
   try {
-    // Traemos todos los clientes (fase inicial, pocos registros)
-    const { data: clients, error } = await db.from('clients').select('*');
+    const { data: clients, error } = await db.from('clients').select('id,phone,access_code,name');
+    if(error) throw error;
 
-    if (error) throw error;
-
-    const normalInput = normalizePhone(phone);
-    const found = (clients || []).find(c =>
-      normalizePhone(c.phone) === normalInput &&
-      (c.access_code || '').trim().toUpperCase() === code
+    const normInput = normPhone(phone);
+    const found = (clients||[]).find(c =>
+      normPhone(c.phone) === normInput &&
+      (c.access_code||'').trim().toUpperCase() === code
     );
 
-    if (!found) {
-      showLoading(false);
-      showError('Teléfono o código incorrecto.');
+    if(!found){
+      hideEl('loadingScreen');
+      showEl('loginScreen');
+      showLoginError('Teléfono o código incorrecto. Revisa los datos e inténtalo de nuevo.');
       return;
     }
 
-    // Guardar sesión y cargar dashboard
-    localStorage.setItem(LS_KEY, found.id);
-    await loadClientDashboard(found.id);
+    // ── LOGIN EXITOSO → guardar sesión via Auth module
+    Auth.loginAsClient(found.id);
+    // Auth.loginAsClient hace window.location.replace, así que el código de abajo no llega a ejecutarse
 
-  } catch (err) {
-    showLoading(false);
-    showError('Error de conexión. Inténtalo de nuevo.');
-    console.error('Login error:', err);
+  } catch(err){
+    console.error(err);
+    hideEl('loadingScreen');
+    showEl('loginScreen');
+    showLoginError('Error de conexión. Inténtalo de nuevo.');
   }
 }
 
-/** Cierra sesión: limpia localStorage y vuelve al login */
-function logoutClient() {
-  localStorage.removeItem(LS_KEY);
-  clientData = null;
-  // Reset UI
-  document.getElementById('dashboardScreen').classList.add('hidden');
-  document.getElementById('loginScreen').classList.remove('hidden');
-  document.getElementById('inputPhone').value = '';
-  document.getElementById('inputCode').value  = '';
-  hideError();
-}
-
 /* ════════════════════════════════════════════════════════════
-   DATA LOADING
+   LOAD DATA
 ════════════════════════════════════════════════════════════ */
-
-/** Carga todos los datos del cliente y renderiza el dashboard */
-async function loadClientDashboard(clientId) {
-  showLoading(true);
-
+async function loadDashboard(clientId){
   try {
-    // Datos del cliente
-    const { data: client, error: cErr } = await db
-      .from('clients').select('*').eq('id', clientId).single();
+    const [cR,resR,payR,metR,halR,proR,assignR] = await Promise.all([
+      db.from('clients').select('*').eq('id',clientId).single(),
+      db.from('reservations').select('*').eq('client_id',clientId).order('date',{ascending:true}),
+      db.from('payments').select('*').eq('client_id',clientId).order('due_date',{ascending:false}),
+      db.from('metrics').select('*').eq('client_id',clientId).order('date',{ascending:false}),
+      db.from('health_alerts').select('*').eq('client_id',clientId).order('date',{ascending:false}),
+      db.from('programs').select('*').eq('client_id',clientId).order('created_at',{ascending:false}),
+      db.from('client_program_assignments').select(`*,training_programs(*)`).eq('client_id',clientId).eq('status','activo'),
+    ]);
 
-    if (cErr || !client) {
-      // ID viejo o inválido → limpiar sesión
-      localStorage.removeItem(LS_KEY);
-      showLoading(false);
-      document.getElementById('loginScreen').classList.remove('hidden');
-      document.getElementById('dashboardScreen').classList.add('hidden');
-      showError('Sesión expirada. Vuelve a iniciar sesión.');
+    if(cR.error || !cR.data){
+      // ID inválido → limpiar sesión
+      Auth.logout();
       return;
     }
 
-    clientData = client;
-
-    // Carga paralela del resto de tablas
-    const [resR, payR, metR, halR, proR] = await Promise.all([
-      db.from('reservations').select('*').eq('client_id', clientId).order('date', { ascending: true }),
-      db.from('payments').select('*').eq('client_id', clientId).order('due_date', { ascending: false }),
-      db.from('metrics').select('*').eq('client_id', clientId).order('date', { ascending: false }),
-      db.from('health_alerts').select('*').eq('client_id', clientId).order('date', { ascending: false }),
-      db.from('programs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
-    ]);
-
+    clientData         = cR.data;
     clientReservations = resR.data  || [];
     clientPayments     = payR.data  || [];
     clientMetrics      = metR.data  || [];
     clientAlerts       = halR.data  || [];
     clientPrograms     = proR.data  || [];
+    clientTraining     = assignR.data || [];
 
     renderDashboard();
+    hideEl('loadingScreen');
+    showEl('dashboardScreen');
 
-    // Mostrar dashboard
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('dashboardScreen').classList.remove('hidden');
-    showLoading(false);
-
-  } catch (err) {
-    showLoading(false);
-    console.error('Load error:', err);
-    // Si falla en login, mostrar error. Si falla en dashboard, mostrar banner.
-    if (document.getElementById('loginScreen').classList.contains('hidden')) {
-      alert('Error al cargar los datos. Comprueba tu conexión e inténtalo de nuevo.');
-    } else {
-      showError('Error de conexión. Inténtalo de nuevo.');
-    }
+  } catch(err){
+    console.error(err);
+    hideEl('loadingScreen');
+    showEl('loginScreen');
+    showLoginError('Error al cargar los datos. Inténtalo de nuevo.');
   }
 }
 
 /* ════════════════════════════════════════════════════════════
-   RENDER FUNCTIONS
+   RENDER
 ════════════════════════════════════════════════════════════ */
+function renderDashboard(){
+  const name = clientData.name||'—';
+  const waMsg = `Hola Abel, soy ${name}. Tengo una duda sobre mi plan.`;
+  document.getElementById('btnHeaderWA').onclick = () => openWA(waMsg);
+  document.getElementById('btnFab').onclick       = () => openWA(waMsg);
+  document.getElementById('btnLogout').onclick    = () => Auth.logout();
 
-function renderDashboard() {
-  renderWelcome();
-  renderQuickMetrics();
-  renderProgram();
+  setText('clientName', name);
+
+  // Pills
+  const pills = [];
+  if(clientData.plan)      pills.push({l:clientData.plan,c:'pill-blue'});
+  if(clientData.status)    pills.push({l:clientData.status,c:statusPill(clientData.status)});
+  if(clientData.objective) pills.push({l:clientData.objective,c:'pill-gray'});
+  document.getElementById('welcomePills').innerHTML = pills.map(p=>`<span class="pill ${p.c}">${p.l}</span>`).join('');
+
+  // Quick metrics
+  const upcoming = clientReservations.filter(r=>{
+    const d=new Date(r.date); return d>=new Date()&&!['cancelada'].includes((r.status||'').toLowerCase());
+  });
+  setText('quickNext', upcoming.length ? formatDate(upcoming[0].date) : 'Sin reservas');
+
+  const pending = clientPayments.filter(p=>['pendiente','vencido'].includes((p.status||'').toLowerCase())).length;
+  const payEl = document.getElementById('quickPay');
+  payEl.textContent = pending ? `${pending} pendiente${pending>1?'s':''}` : 'Al día';
+  if(!pending) payEl.className = 'mc-value green';
+
+  const lastM = clientMetrics[0];
+  setText('quickMetric', lastM ? `${lastM.value}${lastM.unit?' '+lastM.unit:''}` : '—');
+
+  const activeAlerts = clientAlerts.filter(a=>['activa','pendiente'].includes((a.status||'').toLowerCase())).length;
+  const alertEl = document.getElementById('quickAlerts');
+  alertEl.textContent = activeAlerts ? `${activeAlerts}` : '0';
+  if(!activeAlerts) alertEl.className = 'mc-value green';
+
+  renderPlan();
+  renderTraining();
   renderReservations();
   renderPayments();
   renderMetrics();
-  renderHealthAlerts();
+  renderHealth();
   renderNotes();
-  // WhatsApp buttons dinámicos
-  const name = clientData.name || 'cliente';
-  const msg  = `Hola Abel, soy ${name}. Tengo una duda sobre mi plan.`;
-  document.getElementById('btnHeaderWA').onclick = () => openWA(msg);
-  document.getElementById('btnFabWA').onclick    = () => openWA(msg);
 }
 
-/** Bloque de bienvenida y pills */
-function renderWelcome() {
-  document.getElementById('clientName').textContent = clientData.name || '—';
-
-  const pills = [];
-  if (clientData.plan)   pills.push({ label: clientData.plan, cls: 'pill-blue' });
-  if (clientData.status) pills.push({ label: clientData.status, cls: statusPillClass(clientData.status) });
-  if (clientData.objective) pills.push({ label: clientData.objective, cls: 'pill-gray' });
-
-  const container = document.getElementById('welcomePills');
-  container.innerHTML = pills.map(p =>
-    `<span class="pill ${p.cls}">${p.label}</span>`
-  ).join('');
-}
-
-function statusPillClass(s) {
-  const v = (s || '').toLowerCase();
-  if (['activo','active'].includes(v)) return 'pill-green';
-  if (['pausado','vencido'].includes(v)) return 'pill-red';
+function statusPill(s){
+  const v=(s||'').toLowerCase();
+  if(['activo','active'].includes(v)) return 'pill-green';
+  if(['pausado','vencido'].includes(v)) return 'pill-red';
   return 'pill-gray';
 }
 
-/** 4 tarjetas rápidas */
-function renderQuickMetrics() {
-  // Próxima sesión
-  const upcoming = clientReservations.filter(r => {
-    const d = new Date(r.date);
-    return d >= new Date() && !['cancelada','cancelado'].includes((r.status||'').toLowerCase());
-  });
-  document.getElementById('quickNextSession').textContent =
-    upcoming.length ? formatDate(upcoming[0].date) : 'Sin reservas';
-
-  // Pagos pendientes
-  const pending = clientPayments.filter(p =>
-    ['pendiente','pending','vencido','overdue'].includes((p.status||'').toLowerCase())
-  ).length;
-  const el = document.getElementById('quickPendingPayments');
-  el.textContent = pending ? `${pending} pendiente${pending > 1 ? 's' : ''}` : 'Al día';
-  if (!pending) { el.className = 'mc-value green'; }
-
-  // Última métrica
-  const lastM = clientMetrics[0];
-  document.getElementById('quickLastMetric').textContent =
-    lastM ? `${lastM.value}${lastM.unit ? ' '+lastM.unit : ''} (${lastM.type||'—'})` : '—';
-
-  // Alertas activas
-  const activeAlerts = clientAlerts.filter(a =>
-    ['activa','active','pendiente'].includes((a.status||'').toLowerCase())
-  ).length;
-  document.getElementById('quickAlerts').textContent =
-    activeAlerts ? `${activeAlerts} activa${activeAlerts > 1 ? 's' : ''}` : 'Sin alertas';
-  if (!activeAlerts) { document.getElementById('quickAlerts').className = 'mc-value green'; }
+function renderPlan(){
+  const prog = clientPrograms.find(p=>(p.status||'').toLowerCase()==='activo')||clientPrograms[0]||null;
+  const badge = document.getElementById('planBadge');
+  if(badge) badge.textContent = clientData.status||'—';
+  const el = document.getElementById('sectionPlan');
+  const items = [];
+  if(clientData.plan)              items.push({l:'Plan contratado',v:clientData.plan});
+  if(clientData.objective)         items.push({l:'Objetivo',v:clientData.objective});
+  if(clientData.nutrition_objective) items.push({l:'Objetivo nutricional',v:clientData.nutrition_objective});
+  if(prog){
+    items.push({l:'Programa',v:prog.name||'—'});
+    items.push({l:'Tipo',v:prog.type||'—'});
+    items.push({l:'Nivel',v:prog.level||'—'});
+    items.push({l:'Duración',v:prog.duration||'—'});
+  }
+  el.innerHTML = items.length
+    ? `<div class="plan-grid">${items.map(i=>`<div><div class="pi-label">${i.l}</div><div class="pi-value">${i.v}</div></div>`).join('')}</div>`
+    : '<p class="empty-state">Todavía no hay programa asignado.</p>';
 }
 
-/** Sección Mi Plan */
-function renderProgram() {
-  // Programa: primero el activo, si no el más reciente
-  const prog = clientPrograms.find(p => (p.status||'').toLowerCase() === 'activo') || clientPrograms[0] || null;
-  const el   = document.getElementById('sectionPlan');
-  const badge = document.getElementById('planBadgeStatus');
-
-  badge.textContent = clientData.status || '—';
-
-  const items = [];
-
-  if (clientData.plan)               items.push({ label: 'Plan contratado',    value: clientData.plan });
-  if (clientData.objective)          items.push({ label: 'Objetivo',           value: clientData.objective });
-  if (clientData.nutrition_objective)items.push({ label: 'Objetivo nutricional',value: clientData.nutrition_objective });
-
-  if (prog) {
-    items.push({ label: 'Programa',   value: prog.name || '—' });
-    items.push({ label: 'Tipo',       value: prog.type || '—' });
-    items.push({ label: 'Nivel',      value: prog.level || '—' });
-    items.push({ label: 'Duración',   value: prog.duration || '—' });
-    if (prog.description) items.push({ label: 'Descripción', value: prog.description });
-  }
-
-  if (!items.length && !prog) {
-    el.innerHTML = '<p class="empty-state">Todavía no hay programa asignado.</p>';
+function renderTraining(){
+  const badge = document.getElementById('trainingBadge');
+  const el    = document.getElementById('sectionTraining');
+  if(!clientTraining.length){
+    if(badge) badge.textContent='—';
+    el.innerHTML='<p class="empty-state">Todavía no tienes un programa de entrenamiento asignado.</p>';
     return;
   }
-
+  const assignment = clientTraining[0];
+  const prog = assignment.training_programs;
+  if(badge) badge.textContent = assignment.commercial_label||assignment.assigned_level||'Activo';
+  const week = assignment.current_week||1;
+  const total = prog?.duration_weeks||12;
+  const pct = Math.min(100,Math.round((week/total)*100));
   el.innerHTML = `
-    <div class="plan-grid">
-      ${items.map(i => `
-        <div class="plan-item">
-          <div class="pi-label">${i.label}</div>
-          <div class="pi-value">${i.value}</div>
-        </div>
-      `).join('')}
+    <div class="training-card">
+      <div class="training-week">${assignment.commercial_label||'Plan asignado'} · Nivel ${assignment.assigned_level||'N1'}</div>
+      <div class="training-title">${prog?.name||'Plan de entrenamiento'}</div>
+      <div class="training-meta">${prog?.frequency||'—'} · ${prog?.duration_weeks||'—'} semanas</div>
+      <div class="training-objective">${prog?.objective||prog?.description||'Sin descripción disponible.'}</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <span style="font-size:11px;font-family:var(--fn-mono);color:var(--gray)">Semana ${week} de ${total}</span>
+        <span style="font-size:11px;font-family:var(--fn-mono);color:var(--blue)">${pct}% completado</span>
+      </div>
     </div>
+    <div style="font-size:12px;color:var(--gray);padding:4px 0">Para ver el detalle completo de tu programa contacta con Abel por WhatsApp.</div>
   `;
 }
 
-/** Reservas */
-function renderReservations() {
-  const el    = document.getElementById('sectionReservations');
+function renderReservations(){
   const badge = document.getElementById('reservationsBadge');
-  badge.textContent = clientReservations.length;
-
-  if (!clientReservations.length) {
-    el.innerHTML = '<p class="empty-state">Todavía no tienes reservas registradas.</p>';
-    return;
-  }
-
-  el.innerHTML = clientReservations.map(r => `
+  const el    = document.getElementById('sectionReservations');
+  if(badge) badge.textContent = clientReservations.length;
+  if(!clientReservations.length){ el.innerHTML='<p class="empty-state">Todavía no tienes reservas registradas.</p>'; return; }
+  el.innerHTML = clientReservations.map(r=>`
     <div class="data-card">
-      <div class="dc-row">
-        <span class="dc-title">${r.type || 'Sesión'}</span>
-        ${genericBadge(r.status)}
-      </div>
+      <div class="dc-row"><span class="dc-title">${r.type||'Sesión'}</span>${genericBadge(r.status)}</div>
       <div class="dc-row">
         <span class="dc-sub">📅 ${formatDate(r.date)}</span>
-        ${r.time ? `<span class="dc-sub">🕐 ${r.time}</span>` : ''}
-        ${r.place ? `<span class="dc-sub">📍 ${r.place}</span>` : ''}
+        ${r.time?`<span class="dc-sub">🕐 ${String(r.time).slice(0,5)}</span>`:''}
+        ${r.place?`<span class="dc-sub">📍 ${r.place}</span>`:''}
       </div>
-      ${r.note ? `<div class="dc-note">${r.note}</div>` : ''}
-    </div>
-  `).join('');
+      ${r.note?`<div class="dc-note">${r.note}</div>`:''}
+    </div>`).join('');
 }
 
-/** Pagos */
-function renderPayments() {
-  const el    = document.getElementById('sectionPayments');
+function renderPayments(){
   const badge = document.getElementById('paymentsBadge');
-  badge.textContent = clientPayments.length;
-
-  if (!clientPayments.length) {
-    el.innerHTML = '<p class="empty-state">No hay pagos registrados.</p>';
-    return;
-  }
-
-  el.innerHTML = clientPayments.map(p => `
+  const el    = document.getElementById('sectionPayments');
+  if(badge) badge.textContent = clientPayments.length;
+  if(!clientPayments.length){ el.innerHTML='<p class="empty-state">No hay pagos registrados.</p>'; return; }
+  el.innerHTML = clientPayments.map(p=>`
     <div class="data-card">
+      <div class="dc-row"><span class="dc-title">${p.concept||'Pago'}</span>${payBadge(p.status)}</div>
       <div class="dc-row">
-        <span class="dc-title">${p.concept || 'Pago'}</span>
-        ${paymentBadge(p.status)}
+        <span class="dc-sub">${money(p.amount)}</span>
+        ${p.due_date?`<span class="dc-sub">Vence: ${formatDate(p.due_date)}</span>`:''}
       </div>
-      <div class="dc-row">
-        <span class="dc-sub">${formatMoney(p.amount, p.currency)}</span>
-        ${p.due_date ? `<span class="dc-sub">Vence: ${formatDate(p.due_date)}</span>` : ''}
-        ${p.method ? `<span class="dc-meta">${p.method}</span>` : ''}
-      </div>
-      ${p.note ? `<div class="dc-note">${p.note}</div>` : ''}
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-/** Métricas / Progreso */
-function renderMetrics() {
-  const el    = document.getElementById('sectionMetrics');
+function renderMetrics(){
   const badge = document.getElementById('metricsBadge');
-  badge.textContent = clientMetrics.length;
-
-  if (!clientMetrics.length) {
-    el.innerHTML = '<p class="empty-state">Todavía no hay métricas registradas.</p>';
-    return;
-  }
-
-  el.innerHTML = clientMetrics.map(m => `
+  const el    = document.getElementById('sectionMetrics');
+  if(badge) badge.textContent = clientMetrics.length;
+  if(!clientMetrics.length){ el.innerHTML='<p class="empty-state">Todavía no hay métricas registradas.</p>'; return; }
+  el.innerHTML = clientMetrics.map(m=>`
     <div class="data-card">
-      <div class="dc-row">
-        <span class="dc-title">${m.type || '—'}</span>
-        <span class="dc-sub">${formatDate(m.date)}</span>
-      </div>
-      <div class="dc-row">
-        <span class="mc-value" style="font-size:18px;font-family:var(--font-title);">
-          ${m.value}${m.unit ? ' ' + m.unit : ''}
-        </span>
-      </div>
-      ${m.note ? `<div class="dc-note">${m.note}</div>` : ''}
-    </div>
-  `).join('');
+      <div class="dc-row"><span class="dc-title">${m.type||'—'}</span><span class="dc-sub">${formatDate(m.date)}</span></div>
+      <div class="dc-row"><span style="font-family:var(--fn-title);font-size:20px">${m.value}${m.unit?' '+m.unit:''}</span></div>
+      ${m.note?`<div class="dc-note">${m.note}</div>`:''}
+    </div>`).join('');
 }
 
-/** Alertas de salud */
-function renderHealthAlerts() {
-  const el    = document.getElementById('sectionHealth');
+function renderHealth(){
   const badge = document.getElementById('alertsBadge');
-  badge.textContent = clientAlerts.length;
-
-  if (!clientAlerts.length) {
-    el.innerHTML = '<p class="empty-state">No hay indicaciones de salud registradas.</p>';
-    return;
-  }
-
-  el.innerHTML = clientAlerts.map(a => `
+  const el    = document.getElementById('sectionHealth');
+  if(badge) badge.textContent = clientAlerts.length;
+  if(!clientAlerts.length){ el.innerHTML='<p class="empty-state">No hay indicaciones de salud registradas.</p>'; return; }
+  el.innerHTML = clientAlerts.map(a=>`
     <div class="data-card">
-      <div class="dc-row">
-        ${genericBadge(a.status)}
-        <span class="dc-sub">${formatDate(a.date)}</span>
-      </div>
-      ${a.detail ? `<div style="margin-top:6px;font-size:14px;color:var(--white);">${a.detail}</div>` : ''}
-    </div>
-  `).join('');
+      <div class="dc-row">${genericBadge(a.status)}<span class="dc-sub">${formatDate(a.date)}</span></div>
+      ${a.detail?`<div style="margin-top:6px;font-size:14px;color:var(--white)">${a.detail}</div>`:''}
+    </div>`).join('');
 }
 
-/** Notas del coach — maneja JSON array o texto plano */
-function renderNotes() {
-  const el  = document.getElementById('sectionNotes');
+function renderNotes(){
+  const el = document.getElementById('sectionNotes');
   const raw = clientData.notes;
-
-  if (!raw || raw === '' || raw === '[]' || raw === 'null') {
-    el.innerHTML = '<p class="empty-state">Todavía no hay notas del coach.</p>';
+  if(!raw||raw===''||raw==='[]'||raw==='null'){
+    el.innerHTML='<p class="empty-state">Todavía no hay notas del coach.</p>';
     return;
   }
-
-  // Intentar parsear como JSON
-  let notes = null;
-  if (typeof raw === 'string') {
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) notes = parsed;
-    } catch (_) { /* no es JSON */ }
-  } else if (Array.isArray(raw)) {
-    notes = raw;
-  }
-
-  if (notes && notes.length) {
-    el.innerHTML = notes.map(n =>
-      `<div class="note-item">${typeof n === 'object' ? JSON.stringify(n) : n}</div>`
-    ).join('');
+  let notes=null;
+  if(typeof raw==='string'){ try{ const p=JSON.parse(raw); if(Array.isArray(p))notes=p; }catch(_){} }
+  else if(Array.isArray(raw)) notes=raw;
+  if(notes&&notes.length){
+    el.innerHTML = notes.map(n=>{
+      if(typeof n==='object'&&n.text) return `<div class="note-item">${n.text}<div style="margin-top:4px;font-size:11px;font-family:var(--fn-mono);color:var(--gray)">${n.date||''}</div></div>`;
+      return `<div class="note-item">${n}</div>`;
+    }).join('');
   } else {
-    // Texto plano
     el.innerHTML = `<div class="note-item">${raw}</div>`;
   }
 }
@@ -1107,30 +673,47 @@ function renderNotes() {
 /* ════════════════════════════════════════════════════════════
    EVENTS
 ════════════════════════════════════════════════════════════ */
-
-document.getElementById('btnLogin').addEventListener('click', loginClient);
-
-// Enter en cualquier campo del login dispara loginClient
+document.getElementById('btnLogin').addEventListener('click', attemptLogin);
 ['inputPhone','inputCode'].forEach(id =>
-  document.getElementById(id).addEventListener('keydown', e => {
-    if (e.key === 'Enter') loginClient();
-  })
+  document.getElementById(id).addEventListener('keydown', e => { if(e.key==='Enter') attemptLogin(); })
 );
 
-document.getElementById('btnLogout').addEventListener('click', logoutClient);
-
 /* ════════════════════════════════════════════════════════════
-   INIT — comprobar sesión guardada al cargar
+   INIT — verificar sesión al cargar
 ════════════════════════════════════════════════════════════ */
-(async function init() {
-  const savedId = localStorage.getItem(LS_KEY);
-  if (savedId) {
-    // Intentar cargar directamente sin mostrar login
-    document.getElementById('loginScreen').classList.add('hidden');
-    await loadClientDashboard(savedId);
+(async function init(){
+  // Mostrar mensajes contextuales
+  const params = new URLSearchParams(location.search);
+  if(params.get('auth')==='required'){
+    // Limpiar la URL sin recargar
+    history.replaceState({},'',location.pathname);
   }
-})();
+  if(params.get('logged_out')==='1'){
+    history.replaceState({},'',location.pathname);
+  }
 
+  // ── PROTECCIÓN DE RUTA ──────────────────────────────────
+  // Si hay sesión activa de tipo 'client', cargar dashboard directamente
+  if(Auth.isClient()){
+    const clientId = Auth.getClientId();
+    await loadDashboard(clientId);
+    return;
+  }
+
+  // Si hay sesión de admin accediendo a /cliente.html → mostrar aviso + login
+  if(Auth.isAdmin()){
+    // El admin puede ver el área cliente solo si quiere (no se redirige al admin)
+    // Simplemente muestra el login de cliente
+    hideEl('loadingScreen');
+    showEl('loginScreen');
+    showLoginInfo('Eres admin. Para ver el área de un cliente, introduce sus credenciales.');
+    return;
+  }
+
+  // Sin sesión → mostrar login
+  hideEl('loadingScreen');
+  showEl('loginScreen');
+})();
 </script>
 </body>
 </html>
