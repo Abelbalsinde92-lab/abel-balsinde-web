@@ -1918,7 +1918,7 @@ function openModal(type, id=null){
   const form = document.getElementById('modalForm');
   const title = document.getElementById('modalTitle');
   const get = (arr) => state[arr].find(x=>x.id===id) || {};
-  const clientRequired = ['reservation','payment','metric','health','nutrition','note'].includes(type) && !state.clients.length;
+  const clientRequired = ['reservation','payment','metric','health','nutrition','note','assessment'].includes(type) && !state.clients.length;
 
   const actions = `<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div>`;
 
@@ -2421,6 +2421,78 @@ function openModal(type, id=null){
 
   setTimeout(() => toggleAssignmentScopeFields('full'), 50);
 
+  } else if(type === 'assessment'){
+  title.textContent = 'Registrar test inicial';
+
+  const templates = state.assessmentTemplates || [];
+  const defaultTemplate = templates[0];
+  const templateItems = defaultTemplate
+    ? state.assessmentTemplateItems
+        .filter(item => item.templateId === defaultTemplate.id)
+        .sort((a,b) => Number(a.itemOrder || 0) - Number(b.itemOrder || 0))
+    : [];
+
+  if (!templates.length) {
+    form.innerHTML = `
+      <div class="empty small">
+        No hay plantillas de evaluación creadas todavía.
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:20px">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+      </div>
+    `;
+  } else {
+    form.innerHTML = `
+      <div class="form-row">
+        <label class="form-label">Cliente</label>
+        <select name="clientId" class="form-input" required>
+          ${clientOptions(state.selectedClientId)}
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Plantilla de test</label>
+        <select name="templateId" class="form-input" required onchange="renderAssessmentFormItems(this.value)">
+          ${templates.map(t => `
+            <option value="${t.id}" ${defaultTemplate?.id === t.id ? 'selected' : ''}>
+              ${esc(t.name || 'Test sin nombre')}
+            </option>
+          `).join('')}
+        </select>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-row">
+          <label class="form-label">Fecha del test</label>
+          <input name="assessmentDate" class="form-input" type="date" value="${todayISO()}" required>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Estado</label>
+          <select name="status" class="form-input">
+            <option value="realizada" selected>Realizada</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="revisar">Revisar</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Resultados por ejercicio</label>
+        <div id="assessmentItemsBox">
+          ${buildAssessmentItemsInputs(templateItems)}
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Notas del coach</label>
+        <textarea name="coachNotes" class="form-input" rows="3" placeholder="Ej: buena actitud, falta estabilidad en cadera, mejorar resistencia…"></textarea>
+      </div>
+
+      ${actions}
+    `;
+  }
+  
   } else if(type==='program'){
     const p = get('programs'); title.textContent = id ? 'Editar programa' : 'Crear plan';
     form.innerHTML = `
@@ -2491,6 +2563,58 @@ function toggleAssignmentScopeFields(scope) {
     monthInput.value = '';
     monthInput.disabled = true;
   }
+}
+
+function buildAssessmentItemsInputs(items){
+  if (!items || !items.length) {
+    return `
+      <div class="empty small">
+        Esta plantilla no tiene ejercicios cargados.
+      </div>
+    `;
+  }
+
+  return items.map(item => `
+    <div style="background:var(--navy3);border:1px solid var(--border2);padding:12px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;">
+        <div>
+          <div class="name-text">${esc(item.exerciseName)}</div>
+          <div class="name-sub">${esc(item.metricType || '')} · ${esc(item.unit || '')} · ${esc(item.targetNote || '')}</div>
+        </div>
+        <span class="badge badge-plantilla">${esc(item.direction || 'neutral')}</span>
+      </div>
+
+      <input type="hidden" name="result_item_id[]" value="${esc(item.id)}">
+      <input type="hidden" name="result_exercise_name[]" value="${esc(item.exerciseName)}">
+      <input type="hidden" name="result_metric_type[]" value="${esc(item.metricType || '')}">
+      <input type="hidden" name="result_unit[]" value="${esc(item.unit || '')}">
+      <input type="hidden" name="result_direction[]" value="${esc(item.direction || 'neutral')}">
+      <input type="hidden" name="result_item_order[]" value="${esc(item.itemOrder || 0)}">
+
+      <div class="form-row-2">
+        <div class="form-row" style="margin-bottom:0;">
+          <label class="form-label">Resultado</label>
+          <input name="result_value[]" class="form-input" placeholder="Ej: 25 / 60 / 8">
+        </div>
+
+        <div class="form-row" style="margin-bottom:0;">
+          <label class="form-label">Nota</label>
+          <input name="result_note[]" class="form-input" placeholder="Observación opcional">
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAssessmentFormItems(templateId){
+  const box = document.getElementById('assessmentItemsBox');
+  if (!box) return;
+
+  const items = state.assessmentTemplateItems
+    .filter(item => item.templateId === templateId)
+    .sort((a,b) => Number(a.itemOrder || 0) - Number(b.itemOrder || 0));
+
+  box.innerHTML = buildAssessmentItemsInputs(items);
 }
 
 function closeModal(){
@@ -2745,6 +2869,68 @@ async function saveModal(e){
   await upsert('clientProgramAssignments', cleanAssignment);
 
   showToast('Entrenamiento asignado al cliente');
+    
+    } else if(type === 'assessment'){
+  const form = e.target;
+
+  const assessmentId = uid();
+
+  const assessmentPayload = {
+    id: assessmentId,
+    clientId: data.clientId,
+    templateId: data.templateId,
+    assessmentDate: data.assessmentDate || todayISO(),
+    status: data.status || 'realizada',
+    coachNotes: data.coachNotes || ''
+  };
+
+  const { data: savedAssessment, error: assessmentError } = await db
+    .from('client_assessments')
+    .insert(camelToSnake(assessmentPayload))
+    .select()
+    .single();
+
+  if (assessmentError) throw assessmentError;
+
+  const itemIds = Array.from(form.querySelectorAll('[name="result_item_id[]"]')).map(x => x.value);
+  const exerciseNames = Array.from(form.querySelectorAll('[name="result_exercise_name[]"]')).map(x => x.value);
+  const metricTypes = Array.from(form.querySelectorAll('[name="result_metric_type[]"]')).map(x => x.value);
+  const units = Array.from(form.querySelectorAll('[name="result_unit[]"]')).map(x => x.value);
+  const directions = Array.from(form.querySelectorAll('[name="result_direction[]"]')).map(x => x.value);
+  const itemOrders = Array.from(form.querySelectorAll('[name="result_item_order[]"]')).map(x => x.value);
+  const values = Array.from(form.querySelectorAll('[name="result_value[]"]')).map(x => x.value);
+  const notes = Array.from(form.querySelectorAll('[name="result_note[]"]')).map(x => x.value);
+
+  const resultsPayload = itemIds.map((itemId, index) => ({
+    id: uid(),
+    assessmentId: assessmentId,
+    templateItemId: itemId,
+    exerciseName: exerciseNames[index] || '',
+    metricType: metricTypes[index] || '',
+    unit: units[index] || '',
+    direction: directions[index] || 'neutral',
+    itemOrder: itemOrders[index] || index + 1,
+    resultValue: values[index] || '',
+    note: notes[index] || ''
+  })).filter(r => r.resultValue !== '' || r.note !== '');
+
+  let savedResults = [];
+
+  if (resultsPayload.length) {
+    const { data: resultData, error: resultsError } = await db
+      .from('client_assessment_results')
+      .insert(resultsPayload.map(camelToSnake))
+      .select();
+
+    if (resultsError) throw resultsError;
+
+    savedResults = resultData || [];
+  }
+
+  state.clientAssessments.unshift(snakeToCamel(savedAssessment));
+  state.clientAssessmentResults.push(...savedResults.map(snakeToCamel));
+
+  showToast('Test registrado correctamente');
     
     } else if(type === 'program'){
       await upsert('programs', data);
