@@ -592,6 +592,11 @@ let state = {
   trainingExercises: [],
   clientProgramAssignments: [],
   clientSessionLogs: [],
+
+  assessmentTemplates: [],
+  assessmentTemplateItems: [],
+  clientAssessments: [],
+  clientAssessmentResults: [],
   settings: {
     coachName:'Abel Balsinde',
     coachEmail:'abel@email.com',
@@ -641,6 +646,11 @@ function toDbTable(arrName){
     trainingExercises: 'training_exercises',
     clientProgramAssignments: 'client_program_assignments',
     clientSessionLogs: 'client_session_logs'
+  
+  assessmentTemplates: 'assessment_templates',
+assessmentTemplateItems: 'assessment_template_items',
+clientAssessments: 'client_assessments',
+clientAssessmentResults: 'client_assessment_results'
   };
   return map[arrName];
 }
@@ -681,7 +691,12 @@ async function loadState(){
   ['trainingBlocks', 'training_blocks'],
   ['trainingExercises', 'training_exercises'],
   ['clientProgramAssignments', 'client_program_assignments'],
-  ['clientSessionLogs', 'client_session_logs']
+['clientSessionLogs', 'client_session_logs'],
+
+['assessmentTemplates', 'assessment_templates'],
+['assessmentTemplateItems', 'assessment_template_items'],
+['clientAssessments', 'client_assessments'],
+['clientAssessmentResults', 'client_assessment_results']
 ];
 
     for (const [stateKey, tableName] of tables) {
@@ -2569,12 +2584,6 @@ async function saveModal(e){
 
     return a;
   });
-
-await db
-  .from('client_program_assignments')
-  .update({ status: 'inactivo' })
-  .eq('client_id', data.clientId)
-  .eq('status', 'activo');
 
   await upsert('clientProgramAssignments', cleanAssignment);
 
