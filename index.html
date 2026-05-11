@@ -96,11 +96,19 @@ p.body-text{font-size:.95rem;color:var(--gray);line-height:1.75;font-weight:300}
 }
 .hero-text-col{z-index:2}
 .hero-ctas{display:flex;gap:1rem;flex-wrap:wrap;margin-top:2.5rem}
-.hero-visual{position:relative;aspect-ratio:4/5;max-height:680px}
+.hero-visual{
+  position:relative;
+  aspect-ratio:3/4;
+  max-height:680px;
+  overflow:hidden;
+}
+
 .hero-photo{
-  width:100%;height:100%;object-fit:cover;
-  object-position:center top;
-  filter:contrast(1.08) brightness(.82);
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center center;
+  filter:contrast(1.08) brightness(.86);
   clip-path:polygon(0 0,100% 0,100% calc(100% - 32px),calc(100% - 32px) 100%,0 100%);
 }
 .hero-photo-fallback{
@@ -112,8 +120,12 @@ p.body-text{font-size:.95rem;color:var(--gray);line-height:1.75;font-weight:300}
 }
 .hero-photo-fallback b{font-family:'Bebas Neue',sans-serif;font-size:9rem;color:rgba(94,197,240,.12)}
 .hero-badge{
-  position:absolute;right:-16px;bottom:-16px;
-  background:var(--red);padding:16px 20px;
+  position:absolute;
+  right:14px;
+  bottom:14px;
+  background:var(--red);
+  padding:14px 18px;
+  min-width:170px;
   clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
 }
 .hero-badge b{font-family:'Bebas Neue',sans-serif;font-size:2rem;display:block;line-height:1}
@@ -252,8 +264,21 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   nav.desktop,.lang,.header-right .btn{display:none}
   .menu-btn{display:block}
   .hero-grid,.grid2,.sport-grid{grid-template-columns:1fr;gap:2rem}
-  .hero-visual{aspect-ratio:4/3;max-height:420px}
-  .sport-visual{aspect-ratio:4/3;max-height:380px}
+
+  .hero-visual{
+    aspect-ratio:3/4;
+    max-height:none;
+    margin-top:.5rem;
+  }
+
+  .hero-photo{
+    object-position:center center;
+  }
+
+  .sport-visual{
+    aspect-ratio:4/3;
+    max-height:380px;
+  }
   .skills-grid{grid-template-columns:repeat(3,1fr)}
   .timeline{grid-template-columns:1fr;gap:2rem}
   .plans-grid,.compare{grid-template-columns:1fr}
@@ -263,7 +288,22 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   .skills-grid{grid-template-columns:repeat(2,1fr)}
   .panel-metrics{grid-template-columns:repeat(2,1fr)}
   .footer-inner,.footer-bottom{flex-direction:column;align-items:flex-start}
-  .hero-badge{right:0;bottom:-8px}
+
+  .hero-badge{
+    right:10px;
+    bottom:10px;
+    padding:12px 16px;
+    min-width:150px;
+  }
+
+  .hero-badge b{
+    font-size:1.8rem;
+  }
+
+  .hero-badge span{
+    font-size:.5rem;
+  }
+
   .sport-accent{left:0}
   .about-accent{left:0}
 }
