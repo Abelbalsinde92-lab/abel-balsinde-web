@@ -825,6 +825,7 @@ function formatTime(timeStr){
   return String(timeStr).slice(0,5);
 }
 
+/* ── ASSESSMENT HELPERS (single definition) ── */
 function formatDirectionLabel(direction) {
   if (direction === 'higher_better') return 'Mejor más alto';
   if (direction === 'lower_better') return 'Mejor más bajo';
@@ -1053,6 +1054,10 @@ function renderProgress(){
   }).join('') : emptyRow(6,'No hay métricas registradas todavía.');
 }
 
+/* ══════════════════════════════════════════════════════
+   ASSESSMENT RENDER FUNCTIONS
+══════════════════════════════════════════════════════ */
+
 function renderAssessments(){
   const metricsEl = document.getElementById('assessmentMetrics');
   const tableEl = document.getElementById('assessmentsTable');
@@ -1070,19 +1075,16 @@ function renderAssessments(){
       <span class="metric-label">Tests realizados</span>
       <div class="metric-sub">Historial completo</div>
     </div>
-
     <div class="metric-card green">
       <span class="metric-num">${totalClientsWithTests}</span>
       <span class="metric-label">Clientes evaluados</span>
       <div class="metric-sub">Con al menos un test</div>
     </div>
-
     <div class="metric-card yellow">
       <span class="metric-num">${totalTemplates}</span>
       <span class="metric-label">Plantillas</span>
       <div class="metric-sub">Tests disponibles</div>
     </div>
-
     <div class="metric-card red">
       <span class="metric-num">${latestAssessment ? formatDate(latestAssessment.assessmentDate) : '—'}</span>
       <span class="metric-label">Último test</span>
@@ -1102,8 +1104,8 @@ function renderAssessments(){
       <tr>
         <td>${esc(c?.name || 'Cliente eliminado')}</td>
         <td>
-          <div class="name-text">${esc(tpl?.name || 'Test sin plantilla')}</div>
-          <div class="name-sub">${results.length} resultados registrados</div>
+          <div class="name-text">${esc(a.assessmentName || tpl?.name || 'Test inicial funcional')}</div>
+          <div class="name-sub">${results.length} resultado${results.length !== 1 ? 's' : ''} registrado${results.length !== 1 ? 's' : ''}</div>
         </td>
         <td>${formatDate(a.assessmentDate)}</td>
         <td><span class="badge badge-${a.status || 'realizada'}">${esc(a.status || 'realizada')}</span></td>
@@ -1121,10 +1123,7 @@ function renderAssessments(){
 
 function viewAssessment(assessmentId){
   const assessment = state.clientAssessments.find(a => a.id === assessmentId);
-  if (!assessment) {
-    showToast('Evaluación no encontrada');
-    return;
-  }
+  if (!assessment) { showToast('Evaluación no encontrada'); return; }
 
   const c = clientById(assessment.clientId);
   const tpl = state.assessmentTemplates.find(t => t.id === assessment.templateId);
@@ -1132,14 +1131,18 @@ function viewAssessment(assessmentId){
     .filter(r => r.assessmentId === assessmentId)
     .sort((a,b) => Number(a.itemOrder || 0) - Number(b.itemOrder || 0));
 
-  const detail = results.length ? results.map(r => {
-    return `${r.exerciseName}: ${r.resultValue || '—'} ${r.unit || ''}`;
-  }).join('\n') : 'Sin resultados registrados.';
+  const detail = results.length
+    ? results.map(r => {
+        const note = r.note ? ` (${r.note})` : '';
+        return `${r.exerciseName || '—'}: ${r.resultValue || '—'} ${r.unit || ''}${note}`;
+      }).join('\n')
+    : 'Sin resultados registrados.';
 
   alert(
     `Cliente: ${c?.name || 'Cliente eliminado'}\n` +
-    `Test: ${tpl?.name || 'Test'}\n` +
-    `Fecha: ${formatDate(assessment.assessmentDate)}\n\n` +
+    `Test: ${assessment.assessmentName || tpl?.name || 'Test'}\n` +
+    `Fecha: ${formatDate(assessment.assessmentDate)}\n` +
+    `Notas: ${assessment.coachNotes || '—'}\n\n` +
     detail
   );
 }
@@ -1172,6 +1175,64 @@ async function deleteAssessment(assessmentId){
     showToast('Error eliminando evaluación');
   }
 }
+
+/* ── Assessment form helpers ── */
+
+/**
+ * Builds the result-input rows for each template item.
+ * Field names use snake_case to match Supabase columns directly.
+ */
+function buildAssessmentItemsInputs(items) {
+  if (!items || !items.length) {
+    return `<div class="empty small">Esta plantilla no tiene ejercicios cargados.</div>`;
+  }
+
+  return items.map(item => `
+    <div style="background:var(--navy3);border:1px solid var(--border2);padding:12px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;">
+        <div>
+          <div class="name-text">${esc(item.exerciseName || 'Ejercicio')}</div>
+          <div class="name-sub">${esc(item.metricType || '')} · ${esc(item.unit || '')} · ${esc(item.targetNote || '')}</div>
+        </div>
+        <span class="badge badge-plantilla">${esc(formatDirectionLabel(item.direction))}</span>
+      </div>
+
+      <input type="hidden" name="result_item_id[]"       value="${esc(item.id)}">
+      <input type="hidden" name="result_exercise_name[]" value="${esc(item.exerciseName || '')}">
+      <input type="hidden" name="result_metric_type[]"   value="${esc(item.metricType || '')}">
+      <input type="hidden" name="result_unit[]"          value="${esc(item.unit || '')}">
+      <input type="hidden" name="result_direction[]"     value="${esc(item.direction || 'neutral')}">
+      <input type="hidden" name="result_item_order[]"    value="${esc(item.itemOrder || 0)}">
+
+      <div class="form-row-2">
+        <div class="form-row" style="margin-bottom:0;">
+          <label class="form-label">Resultado</label>
+          <input name="result_value[]" class="form-input" placeholder="${esc(getAssessmentPlaceholder(item))}">
+        </div>
+        <div class="form-row" style="margin-bottom:0;">
+          <label class="form-label">Nota</label>
+          <input name="note[]" class="form-input" placeholder="Observación opcional">
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/**
+ * Re-renders the items box when the user changes the template selector.
+ */
+function renderAssessmentFormItems(templateId) {
+  const box = document.getElementById('assessmentItemsBox');
+  if (!box) return;
+
+  const items = state.assessmentTemplateItems
+    .filter(item => item.templateId === templateId)
+    .sort((a,b) => Number(a.itemOrder || 0) - Number(b.itemOrder || 0));
+
+  box.innerHTML = buildAssessmentItemsInputs(items);
+}
+
+/* ══════════════════════════════════════════════════════ */
 
 function renderHealth(){
   const active = state.healthAlerts.filter(h=>h.status !== 'revisado').length;
@@ -2439,6 +2500,7 @@ function openModal(type, id=null){
   setTimeout(() => toggleAssignmentScopeFields('full'), 50);
 
   } else if(type === 'assessment'){
+  /* ── MODAL: Registrar test inicial ── */
   title.textContent = 'Registrar test inicial';
 
   const templates = state.assessmentTemplates || [];
@@ -2451,9 +2513,7 @@ function openModal(type, id=null){
 
   if (!templates.length) {
     form.innerHTML = `
-      <div class="empty small">
-        No hay plantillas de evaluación creadas todavía.
-      </div>
+      <div class="empty small">No hay plantillas de evaluación creadas todavía.</div>
       <div style="display:flex;justify-content:flex-end;margin-top:20px">
         <button type="button" class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
       </div>
@@ -2483,7 +2543,6 @@ function openModal(type, id=null){
           <label class="form-label">Fecha del test</label>
           <input name="assessmentDate" class="form-input" type="date" value="${todayISO()}" required>
         </div>
-
         <div class="form-row">
           <label class="form-label">Estado</label>
           <select name="status" class="form-input">
@@ -2503,13 +2562,13 @@ function openModal(type, id=null){
 
       <div class="form-row">
         <label class="form-label">Notas del coach</label>
-        <textarea name="coachNotes" class="form-input" rows="3" placeholder="Ej: buena actitud, falta estabilidad en cadera, mejorar resistencia…"></textarea>
+        <textarea name="coachNotes" class="form-input" rows="3" placeholder="Ej: buena actitud, falta estabilidad en cadera…"></textarea>
       </div>
 
       ${actions}
     `;
   }
-  
+
   } else if(type==='program'){
     const p = get('programs'); title.textContent = id ? 'Editar programa' : 'Crear plan';
     form.innerHTML = `
@@ -2537,79 +2596,6 @@ function openModal(type, id=null){
 
   form.onsubmit = saveModal;
   document.getElementById('modalOverlay').classList.add('open');
-}
-
-function formatDirectionLabel(direction) {
-  if (direction === 'higher_better') return 'Mejor más alto';
-  if (direction === 'lower_better') return 'Mejor más bajo';
-  if (direction === 'neutral') return 'Referencia';
-  return direction || 'Referencia';
-}
-
-function getAssessmentPlaceholder(item) {
-  if (item.metricType === 'repeticiones') return 'Ej: 25';
-  if (item.metricType === 'tiempo') return 'Ej: 60';
-  if (item.metricType === 'peso') return 'Ej: 82.5';
-  if (item.metricType === 'medida') return 'Ej: 90';
-  if (item.metricType === 'escala') return 'Ej: 7';
-  return 'Resultado';
-}
-
-function buildAssessmentItemsInputs(items) {
-  if (!items || !items.length) {
-    return `
-      <div class="empty small">
-        Esta plantilla no tiene ejercicios registrados.
-      </div>
-    `;
-  }
-
-  return items.map(item => `
-    <div style="background:var(--navy3);border:1px solid var(--border2);padding:16px;margin-bottom:12px;">
-      <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:12px;">
-        <div>
-          <div class="name-text" style="font-size:1rem;margin-bottom:4px;">
-            ${esc(item.exerciseName || 'Ejercicio')}
-          </div>
-          <div class="name-sub">
-            ${esc(item.metricType || 'métrica')} · ${esc(item.unit || '')} · ${esc(item.targetNote || '')}
-          </div>
-        </div>
-
-        <span class="badge badge-plantilla">
-          ${esc(formatDirectionLabel(item.direction))}
-        </span>
-      </div>
-
-      <input type="hidden" name="assessmentItemId[]" value="${esc(item.id)}">
-      <input type="hidden" name="exerciseName[]" value="${esc(item.exerciseName || '')}">
-      <input type="hidden" name="metricType[]" value="${esc(item.metricType || '')}">
-      <input type="hidden" name="unit[]" value="${esc(item.unit || '')}">
-      <input type="hidden" name="direction[]" value="${esc(item.direction || '')}">
-      <input type="hidden" name="itemOrder[]" value="${esc(item.itemOrder || '')}">
-
-      <div class="form-row">
-        <label class="form-label">Resultado</label>
-        <input name="resultValue[]" class="form-input" placeholder="${esc(getAssessmentPlaceholder(item))}">
-      </div>
-
-      <div class="form-row" style="margin-bottom:0;">
-        <label class="form-label">Nota</label>
-        <input name="resultNote[]" class="form-input" placeholder="Observación opcional">
-      </div>
-    </div>
-  `).join('');
-}
-
-function renderAssessmentFormItems(templateId) {
-  const box = document.getElementById('assessmentItemsBox');
-  if (!box) return;
-
-  const items = state.assessmentTemplateItems
-    .filter(item => item.templateId === templateId)
-    .sort((a,b) => Number(a.itemOrder || 0) - Number(b.itemOrder || 0));
-
-  box.innerHTML = buildAssessmentItemsInputs(items);
 }
 
 function toggleAssignmentScopeFields(scope) {
@@ -2653,58 +2639,6 @@ function toggleAssignmentScopeFields(scope) {
     monthInput.value = '';
     monthInput.disabled = true;
   }
-}
-
-function buildAssessmentItemsInputs(items){
-  if (!items || !items.length) {
-    return `
-      <div class="empty small">
-        Esta plantilla no tiene ejercicios cargados.
-      </div>
-    `;
-  }
-
-  return items.map(item => `
-    <div style="background:var(--navy3);border:1px solid var(--border2);padding:12px;margin-bottom:10px;">
-      <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;">
-        <div>
-          <div class="name-text">${esc(item.exerciseName)}</div>
-          <div class="name-sub">${esc(item.metricType || '')} · ${esc(item.unit || '')} · ${esc(item.targetNote || '')}</div>
-        </div>
-        <span class="badge badge-plantilla">${esc(item.direction || 'neutral')}</span>
-      </div>
-
-      <input type="hidden" name="result_item_id[]" value="${esc(item.id)}">
-      <input type="hidden" name="result_exercise_name[]" value="${esc(item.exerciseName)}">
-      <input type="hidden" name="result_metric_type[]" value="${esc(item.metricType || '')}">
-      <input type="hidden" name="result_unit[]" value="${esc(item.unit || '')}">
-      <input type="hidden" name="result_direction[]" value="${esc(item.direction || 'neutral')}">
-      <input type="hidden" name="result_item_order[]" value="${esc(item.itemOrder || 0)}">
-
-      <div class="form-row-2">
-        <div class="form-row" style="margin-bottom:0;">
-          <label class="form-label">Resultado</label>
-          <input name="result_value[]" class="form-input" placeholder="Ej: 25 / 60 / 8">
-        </div>
-
-        <div class="form-row" style="margin-bottom:0;">
-          <label class="form-label">Nota</label>
-          <input name="result_note[]" class="form-input" placeholder="Observación opcional">
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function renderAssessmentFormItems(templateId){
-  const box = document.getElementById('assessmentItemsBox');
-  if (!box) return;
-
-  const items = state.assessmentTemplateItems
-    .filter(item => item.templateId === templateId)
-    .sort((a,b) => Number(a.itemOrder || 0) - Number(b.itemOrder || 0));
-
-  box.innerHTML = buildAssessmentItemsInputs(items);
 }
 
 function closeModal(){
@@ -2959,74 +2893,84 @@ async function saveModal(e){
   await upsert('clientProgramAssignments', cleanAssignment);
 
   showToast('Entrenamiento asignado al cliente');
-    
+
     } else if(type === 'assessment'){
-  const form = e.target;
-  const assessmentId = uid();
+      /* ══════════════════════════════════════════════════════
+         GUARDAR EVALUACIÓN — snake_case directo a Supabase
+      ══════════════════════════════════════════════════════ */
+      const assessmentForm = e.target;
+      const assessmentId = uid();
 
-  const selectedTemplate = state.assessmentTemplates.find(t => t.id === data.templateId);
-  const assessmentName = selectedTemplate?.name || 'Test inicial funcional';
+      // Obtener nombre del test desde la plantilla seleccionada
+      const selectedTemplate = state.assessmentTemplates.find(t => t.id === data.templateId);
+      const assessmentName = selectedTemplate?.name || 'Test inicial funcional';
 
-  const assessmentPayload = {
-    id: assessmentId,
-    client_id: data.clientId,
-    template_id: data.templateId,
-    assessment_name: assessmentName,
-    assessment_date: data.assessmentDate || todayISO(),
-    status: data.status || 'realizada',
-    coach_notes: data.coachNotes || ''
-  };
+      // Payload en snake_case — coincide exactamente con client_assessments
+      const assessmentPayload = {
+        id: assessmentId,
+        client_id: data.clientId,
+        template_id: data.templateId,
+        assessment_name: assessmentName,
+        assessment_date: data.assessmentDate || todayISO(),
+        status: data.status || 'realizada',
+        coach_notes: data.coachNotes || ''
+      };
 
-  console.log('Guardando evaluación:', assessmentPayload);
+      console.log('Guardando evaluación:', assessmentPayload);
 
-  const { data: savedAssessment, error: assessmentError } = await db
-    .from('client_assessments')
-    .insert(assessmentPayload)
-    .select()
-    .single();
+      const { data: savedAssessment, error: assessmentError } = await db
+        .from('client_assessments')
+        .insert(assessmentPayload)
+        .select()
+        .single();
 
-  if (assessmentError) throw assessmentError;
+      if (assessmentError) throw assessmentError;
 
-  const itemIds = Array.from(form.querySelectorAll('[name="result_item_id[]"]')).map(x => x.value);
-  const exerciseNames = Array.from(form.querySelectorAll('[name="result_exercise_name[]"]')).map(x => x.value);
-  const metricTypes = Array.from(form.querySelectorAll('[name="result_metric_type[]"]')).map(x => x.value);
-  const units = Array.from(form.querySelectorAll('[name="result_unit[]"]')).map(x => x.value);
-  const directions = Array.from(form.querySelectorAll('[name="result_direction[]"]')).map(x => x.value);
-  const itemOrders = Array.from(form.querySelectorAll('[name="result_item_order[]"]')).map(x => x.value);
-  const values = Array.from(form.querySelectorAll('[name="result_value[]"]')).map(x => x.value);
-  const notes = Array.from(form.querySelectorAll('[name="result_note[]"]')).map(x => x.value);
+      // Recoger arrays de los inputs del formulario
+      const itemIds       = Array.from(assessmentForm.querySelectorAll('[name="result_item_id[]"]')).map(x => x.value);
+      const exerciseNames = Array.from(assessmentForm.querySelectorAll('[name="result_exercise_name[]"]')).map(x => x.value);
+      const metricTypes   = Array.from(assessmentForm.querySelectorAll('[name="result_metric_type[]"]')).map(x => x.value);
+      const units         = Array.from(assessmentForm.querySelectorAll('[name="result_unit[]"]')).map(x => x.value);
+      const directions    = Array.from(assessmentForm.querySelectorAll('[name="result_direction[]"]')).map(x => x.value);
+      const itemOrders    = Array.from(assessmentForm.querySelectorAll('[name="result_item_order[]"]')).map(x => x.value);
+      const values        = Array.from(assessmentForm.querySelectorAll('[name="result_value[]"]')).map(x => x.value);
+      const notes         = Array.from(assessmentForm.querySelectorAll('[name="note[]"]')).map(x => x.value);
 
-  const resultsPayload = itemIds.map((itemId, index) => ({
-  id: uid(),
-  assessmentId: assessmentId,
-  templateItemId: itemId,
-  exerciseName: exerciseNames[index] || '',
-  metricType: metricTypes[index] || '',
-  unit: units[index] || '',
-  direction: directions[index] || 'neutral',
-  itemOrder: itemOrders[index] || index + 1,
-  resultValue: values[index] || '',
-  note: notes[index] || ''
-})).filter(r => r.resultValue !== '' || r.note !== '');
+      // Payload en snake_case — coincide exactamente con client_assessment_results
+      const resultsPayload = itemIds.map((itemId, index) => ({
+        id: uid(),
+        assessment_id: assessmentId,
+        template_item_id: itemId,
+        exercise_name: exerciseNames[index] || '',
+        metric_type: metricTypes[index] || '',
+        unit: units[index] || '',
+        direction: directions[index] || 'neutral',
+        item_order: Number(itemOrders[index]) || index + 1,
+        result_value: values[index] || '',
+        note: notes[index] || ''
+      })).filter(r => r.result_value !== '' || r.note !== '');
 
-  let savedResults = [];
+      let savedResults = [];
 
-  if (resultsPayload.length) {
-    const { data: resultData, error: resultsError } = await db
-      .from('client_assessment_results')
-      .insert(resultsPayload)
-      .select();
+      if (resultsPayload.length) {
+        console.log('Guardando resultados:', resultsPayload);
 
-    if (resultsError) throw resultsError;
+        const { data: resultData, error: resultsError } = await db
+          .from('client_assessment_results')
+          .insert(resultsPayload)
+          .select();
 
-    savedResults = resultData || [];
-  }
+        if (resultsError) throw resultsError;
 
-  state.clientAssessments.unshift(snakeToCamel(savedAssessment));
-  state.clientAssessmentResults.push(...savedResults.map(snakeToCamel));
+        savedResults = resultData || [];
+      }
 
-  showToast('Test registrado correctamente');
-    
+      // Actualizar estado local
+      state.clientAssessments.unshift(snakeToCamel(savedAssessment));
+      state.clientAssessmentResults.push(...savedResults.map(snakeToCamel));
+
+      showToast(`Test registrado · ${savedResults.length} resultado${savedResults.length !== 1 ? 's' : ''} guardado${savedResults.length !== 1 ? 's' : ''}`);
+
     } else if(type === 'program'){
       await upsert('programs', data);
       showToast(id ? 'Plan actualizado' : 'Plan guardado');
