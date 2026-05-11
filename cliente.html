@@ -5,9 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AB Coach — Área Cliente</title>
 
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -24,7 +27,6 @@
       --green: #22c55e;
       --yellow:#f59e0b;
       --orange:#f97316;
-      --wa:    #25D366;
       --font-title: 'Bebas Neue', sans-serif;
       --font-body:  'DM Sans', sans-serif;
       --font-mono:  'Space Mono', monospace;
@@ -33,7 +35,14 @@
     /* ─── RESET ─────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-    body { background: var(--navy); color: var(--white); font-family: var(--font-body); font-size: 15px; line-height: 1.6; min-height: 100vh; }
+    body {
+      background: var(--navy);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
     a { color: inherit; text-decoration: none; }
     button { cursor: pointer; border: none; outline: none; font-family: var(--font-body); }
     input  { outline: none; font-family: var(--font-body); }
@@ -42,400 +51,475 @@
     .hidden  { display: none !important; }
     .sr-only { position: absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
 
-    /* ─── LOGIN ─────────────────────────────────────────────── */
+    /* ─── LOGIN SCREEN ──────────────────────────────────────── */
     #loginScreen {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 24px 16px;
-      background: radial-gradient(ellipse at 60% 0%, #0d1e3080 0%, transparent 60%), var(--navy);
+      background: radial-gradient(ellipse at 60% 0%, #0d1e3080 0%, transparent 60%),
+                  var(--navy);
     }
-    .login-box { width: 100%; max-width: 400px; background: var(--navy2); border: 1px solid #1a2e44; border-radius: 16px; padding: 40px 32px 36px; }
-    .login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
-    .login-logo .logo-badge { width: 44px; height: 44px; background: var(--red); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: var(--font-title); font-size: 20px; color: var(--white); }
-    .login-logo .logo-text { font-family: var(--font-title); font-size: 22px; letter-spacing: 2px; }
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+      background: var(--navy2);
+      border: 1px solid #1a2e44;
+      border-radius: 16px;
+      padding: 40px 32px 36px;
+    }
+    .login-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .login-logo .logo-badge {
+      width: 44px; height: 44px;
+      background: var(--red);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-title);
+      font-size: 20px;
+      color: var(--white);
+      letter-spacing: 1px;
+    }
+    .login-logo .logo-text {
+      font-family: var(--font-title);
+      font-size: 22px;
+      letter-spacing: 2px;
+      color: var(--white);
+    }
     .login-logo .logo-text span { color: var(--red); }
-    .login-title { font-family: var(--font-title); font-size: 30px; letter-spacing: 2px; margin-bottom: 6px; }
-    .login-sub   { font-size: 13px; color: var(--gray); margin-bottom: 28px; }
+    .login-title {
+      font-family: var(--font-title);
+      font-size: 30px;
+      letter-spacing: 2px;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+    .login-sub {
+      font-size: 13px;
+      color: var(--gray);
+      margin-bottom: 28px;
+    }
 
+    /* Form fields */
     .field-group { margin-bottom: 16px; }
-    .field-group label { display: block; font-size: 11px; font-family: var(--font-mono); letter-spacing: 1px; color: var(--gray); text-transform: uppercase; margin-bottom: 6px; }
-    .field-group input { width: 100%; background: var(--navy3); border: 1px solid #1e3450; border-radius: 8px; padding: 12px 14px; color: var(--white); font-size: 15px; transition: border-color .2s; }
+    .field-group label {
+      display: block;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      letter-spacing: 1px;
+      color: var(--gray);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .field-group input {
+      width: 100%;
+      background: var(--navy3);
+      border: 1px solid #1e3450;
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: var(--white);
+      font-size: 15px;
+      transition: border-color .2s;
+    }
     .field-group input:focus { border-color: var(--blue); }
     .field-group input::placeholder { color: #3a5068; }
 
-    .btn-primary { width: 100%; background: var(--red); color: var(--white); border-radius: 8px; padding: 13px; font-size: 15px; font-weight: 700; letter-spacing: .5px; transition: opacity .2s, transform .1s; margin-top: 4px; }
+    /* Buttons */
+    .btn-primary {
+      width: 100%;
+      background: var(--red);
+      color: var(--white);
+      border-radius: 8px;
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      transition: opacity .2s, transform .1s;
+      margin-top: 4px;
+    }
     .btn-primary:hover  { opacity: .88; }
     .btn-primary:active { transform: scale(.98); }
 
-    .btn-wa-login { width: 100%; background: transparent; border: 1px solid #1e3450; color: var(--gray); border-radius: 8px; padding: 11px; font-size: 13px; margin-top: 12px; transition: border-color .2s, color .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-wa-login:hover { border-color: var(--wa); color: var(--wa); }
+    .btn-wa {
+      width: 100%;
+      background: transparent;
+      border: 1px solid #1e3450;
+      color: var(--gray);
+      border-radius: 8px;
+      padding: 11px;
+      font-size: 13px;
+      margin-top: 12px;
+      transition: border-color .2s, color .2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-wa:hover { border-color: var(--blue); color: var(--blue); }
 
-    .login-error { background: #2a0608; border: 1px solid var(--red); color: #f87171; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; }
+    .login-error {
+      background: #2a0608;
+      border: 1px solid var(--red);
+      color: #f87171;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
 
-    /* ─── LOADING ───────────────────────────────────────────── */
-    #loadingOverlay { position: fixed; inset: 0; background: var(--navy); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 999; }
-    .spinner { width: 40px; height: 40px; border: 3px solid #1a2e44; border-top-color: var(--red); border-radius: 50%; animation: spin .7s linear infinite; }
+    /* ─── LOADING OVERLAY ───────────────────────────────────── */
+    #loadingOverlay {
+      position: fixed; inset: 0;
+      background: var(--navy);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px;
+      z-index: 999;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #1a2e44;
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
     #loadingOverlay p { color: var(--gray); font-size: 13px; }
 
     /* ─── DASHBOARD ─────────────────────────────────────────── */
     #dashboardScreen { min-height: 100vh; }
 
-    .dash-header { background: var(--navy2); border-bottom: 1px solid #1a2e44; padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-    .dash-header-logo { display: flex; align-items: center; gap: 9px; }
-    .dash-header-logo .logo-badge { width: 32px; height: 32px; background: var(--red); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--font-title); font-size: 15px; color: var(--white); }
-    .dash-header-logo .logo-text { font-family: var(--font-title); font-size: 17px; letter-spacing: 2px; }
+    /* Header */
+    .dash-header {
+      background: var(--navy2);
+      border-bottom: 1px solid #1a2e44;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .dash-header-logo {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .dash-header-logo .logo-badge {
+      width: 34px; height: 34px;
+      background: var(--red);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-title);
+      font-size: 16px; color: var(--white);
+    }
+    .dash-header-logo .logo-text {
+      font-family: var(--font-title);
+      font-size: 18px; letter-spacing: 2px;
+    }
     .dash-header-logo .logo-text span { color: var(--red); }
-    .dash-header-actions { display: flex; align-items: center; gap: 8px; }
 
-    .btn-icon { background: transparent; border: 1px solid #1e3450; color: var(--gray); border-radius: 7px; padding: 7px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px; transition: border-color .2s, color .2s, background .2s; }
-    .btn-icon:hover     { border-color: var(--blue); color: var(--blue); }
-    .btn-icon.red:hover { border-color: var(--red);  color: var(--red);  }
-    #btnHeaderWA       { border-color: var(--wa); color: var(--wa); background: rgba(37,211,102,.07); }
-    #btnHeaderWA:hover { color: #fff; background: var(--wa); }
+    .dash-header-actions {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .btn-icon {
+      background: transparent;
+      border: 1px solid #1e3450;
+      color: var(--gray);
+      border-radius: 7px;
+      padding: 7px 12px;
+      font-size: 12px;
+      display: flex; align-items: center; gap: 6px;
+      transition: border-color .2s, color .2s;
+    }
+    .btn-icon:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-icon.red:hover { border-color: var(--red); color: var(--red); }
 
-    /* ─── NAV TABS ──────────────────────────────────────────── */
-    .client-nav { background: var(--navy2); border-bottom: 1px solid #1a2e44; position: sticky; top: 56px; z-index: 90; display: flex; overflow-x: auto; gap: 4px; padding: 8px 14px; scrollbar-width: none; -ms-overflow-style: none; }
-    .client-nav::-webkit-scrollbar { display: none; }
-    .client-nav button { flex: 0 0 auto; background: transparent; color: var(--gray); border: 1px solid transparent; border-radius: 8px; padding: 8px 14px; font-family: var(--font-mono); font-size: 10px; letter-spacing: .8px; text-transform: uppercase; white-space: nowrap; transition: color .15s, border-color .15s, background .15s; }
-    .client-nav button:hover  { color: var(--blue); }
-    .client-nav button.active { color: var(--blue); border-color: rgba(94,197,240,.35); background: rgba(94,197,240,.07); }
+    /* Main layout */
+    .dash-main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
 
-    /* ─── MAIN ──────────────────────────────────────────────── */
-    .dash-main { max-width: 740px; margin: 0 auto; padding: 22px 16px calc(150px + env(safe-area-inset-bottom)); }
+    /* Welcome block */
+    .welcome-block {
+      background: linear-gradient(135deg, var(--navy3) 0%, #0d2035 100%);
+      border: 1px solid #1e3450;
+      border-left: 4px solid var(--red);
+      border-radius: 12px;
+      padding: 24px 24px;
+      margin-bottom: 24px;
+    }
+    .welcome-block h1 {
+      font-family: var(--font-title);
+      font-size: 32px;
+      letter-spacing: 2px;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+    .welcome-block h1 span { color: var(--red); }
+    .welcome-pills {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
+    }
+    .pill {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid;
+    }
+    .pill-gray   { border-color: #1e3450; color: var(--gray); }
+    .pill-blue   { border-color: var(--blue); color: var(--blue); }
+    .pill-red    { border-color: var(--red); color: var(--red); }
+    .pill-green  { border-color: var(--green); color: var(--green); }
 
-    /* ─── SECTIONS ──────────────────────────────────────────── */
-    .section { background: var(--navy2); border: 1px solid #1a2e44; border-radius: 14px; overflow: hidden; animation: sectionFade .18s ease; }
-    @keyframes sectionFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .section-hidden { display: none !important; }
-    .section-header { padding: 16px 20px; border-bottom: 1px solid #1a2e44; display: flex; align-items: center; justify-content: space-between; }
-    .section-header h2 { font-family: var(--font-title); font-size: 20px; letter-spacing: 2px; }
-    .section-header .sec-badge { font-size: 10px; font-family: var(--font-mono); background: var(--navy3); border: 1px solid #1e3450; color: var(--gray); padding: 3px 8px; border-radius: 4px; }
+    /* Quick metrics grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    @media (min-width: 600px) {
+      .metrics-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .metric-card {
+      background: var(--navy2);
+      border: 1px solid #1a2e44;
+      border-radius: 10px;
+      padding: 16px 14px;
+    }
+    .metric-card .mc-label {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 8px;
+    }
+    .metric-card .mc-value {
+      font-family: var(--font-title);
+      font-size: 22px;
+      letter-spacing: 1px;
+      color: var(--white);
+      line-height: 1.2;
+    }
+    .metric-card .mc-value.blue  { color: var(--blue); }
+    .metric-card .mc-value.green { color: var(--green); }
+    .metric-card .mc-value.yellow{ color: var(--yellow); }
+    .metric-card .mc-value.red   { color: var(--red); }
+
+    /* Section wrapper */
+    .section {
+      background: var(--navy2);
+      border: 1px solid #1a2e44;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .section-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #1a2e44;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .section-header h2 {
+      font-family: var(--font-title);
+      font-size: 20px;
+      letter-spacing: 2px;
+      color: var(--white);
+    }
+    .section-header .sec-badge {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      background: var(--navy3);
+      border: 1px solid #1e3450;
+      color: var(--gray);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
     .section-body { padding: 18px 20px; }
 
-    .empty-state { color: var(--gray); font-size: 13px; font-style: italic; padding: 8px 0; line-height: 1.7; }
+    /* Empty state */
+    .empty-state {
+      color: var(--gray);
+      font-size: 13px;
+      font-style: italic;
+      padding: 8px 0;
+    }
 
-    /* ─── DATA CARDS (reservas, pagos, salud) ───────────────── */
-    .data-card { background: var(--navy3); border: 1px solid #1e3450; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+    /* ─── CARDS (reservas, pagos, métricas, alertas) ────────── */
+    .data-card {
+      background: var(--navy3);
+      border: 1px solid #1e3450;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
     .data-card:last-child { margin-bottom: 0; }
-    .data-card.next-session { border-color: var(--blue); background: rgba(94,197,240,.05); }
-    .data-card .dc-row { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 4px; }
-    .data-card .dc-title { font-weight: 700; font-size: 14px; color: var(--white); }
-    .data-card .dc-sub   { font-size: 12px; color: var(--gray); font-family: var(--font-mono); }
-    .data-card .dc-note  { font-size: 12px; color: var(--gray); margin-top: 6px; font-style: italic; }
-    .data-card .dc-meta  { font-size: 12px; color: var(--gray); }
-    .next-label { font-size: 10px; font-family: var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--blue); margin-bottom: 8px; }
 
-    .action-box { margin-top: 16px; display: grid; gap: 10px; }
-    .client-action-btn { width: 100%; background: rgba(94,197,240,.07); border: 1px solid rgba(94,197,240,.35); color: var(--blue); border-radius: 10px; padding: 12px 14px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .8px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .client-action-btn:hover { background: rgba(94,197,240,.12); }
-    .client-action-btn.wa { border-color: rgba(37,211,102,.45); color: var(--wa); background: rgba(37,211,102,.07); }
-    .client-action-btn.wa:hover { background: rgba(37,211,102,.14); }
+    .data-card .dc-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 14px;
+      margin-bottom: 4px;
+    }
+    .data-card .dc-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--white);
+    }
+    .data-card .dc-sub {
+      font-size: 12px;
+      color: var(--gray);
+      font-family: var(--font-mono);
+    }
+    .data-card .dc-note {
+      font-size: 12px;
+      color: var(--gray);
+      margin-top: 6px;
+      font-style: italic;
+    }
+    .data-card .dc-meta {
+      font-size: 12px;
+      color: var(--gray);
+    }
 
-    /* ─── BADGES ────────────────────────────────────────────── */
-    .badge { display: inline-block; font-size: 10px; font-family: var(--font-mono); padding: 2px 8px; border-radius: 4px; letter-spacing: .5px; font-weight: 700; }
+    /* Status badges */
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: .5px;
+      font-weight: 700;
+    }
     .badge-green  { background: #052512; color: var(--green); border: 1px solid var(--green); }
     .badge-yellow { background: #1f1400; color: var(--yellow); border: 1px solid var(--yellow); }
     .badge-red    { background: #2a0608; color: #f87171; border: 1px solid var(--red); }
     .badge-blue   { background: #031b2a; color: var(--blue); border: 1px solid var(--blue); }
     .badge-gray   { background: #0d1e30; color: var(--gray); border: 1px solid #2a3e52; }
 
-    /* ─── PLAN GRID ─────────────────────────────────────────── */
-    .plan-grid { display: grid; gap: 14px 16px; grid-template-columns: 1fr 1fr; }
-    .plan-item .pi-label { font-size: 10px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px; color: var(--gray); margin-bottom: 3px; }
-    .plan-item .pi-value { font-size: 14px; color: var(--white); font-weight: 500; }
-    .plan-item.full { grid-column: 1 / -1; }
-    .plan-item.full .pi-value { font-size: 14px; line-height: 1.65; }
-    .plan-divider { grid-column: 1 / -1; border: none; border-top: 1px solid #1e3450; margin: 4px 0; }
-    .plan-no-program { background: var(--navy3); border: 1px dashed #1e3450; border-radius: 10px; padding: 16px; color: var(--gray); font-size: 13px; font-style: italic; line-height: 1.6; margin-top: 4px; }
-
-    /* ─── PROGRESS CIRCLES ─────────────────────────────────── */
-    .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
-    .progress-circle-card { background: var(--navy3); border: 1px solid #1e3450; border-radius: 12px; padding: 16px 12px; text-align: center; }
-    .progress-ring { width: 88px; height: 88px; margin: 0 auto 10px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--blue) calc(var(--p) * 1%), #17283b 0); position: relative; }
-    .progress-ring::before { content: ''; position: absolute; width: 66px; height: 66px; background: var(--navy3); border-radius: 50%; }
-    .progress-ring span { position: relative; z-index: 1; font-family: var(--font-title); font-size: 22px; color: var(--white); }
-    .progress-circle-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); margin-bottom: 3px; }
-    .progress-circle-value { font-size: 13px; color: var(--white); font-weight: 700; }
-    .progress-circle-note  { font-size: 11px; color: var(--gray); margin-top: 3px; }
+    /* ─── PLAN SECTION ──────────────────────────────────────── */
+    .plan-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 600px) {
+      .plan-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .plan-item { }
+    .plan-item .pi-label {
+      font-size: 10px; font-family: var(--font-mono);
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--gray); margin-bottom: 4px;
+    }
+    .plan-item .pi-value {
+      font-size: 14px; color: var(--white); font-weight: 500;
+    }
 
     /* ─── NOTES ─────────────────────────────────────────────── */
-    .note-item { background: var(--navy3); border-left: 3px solid var(--blue); border-radius: 0 8px 8px 0; padding: 12px 14px; font-size: 14px; color: var(--white); margin-bottom: 8px; line-height: 1.6; }
+    .note-item {
+      background: var(--navy3);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 8px 8px 0;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
     .note-item:last-child { margin-bottom: 0; }
 
-    /* ─── ACCORDION (Mis datos) ─────────────────────────────── */
-    .accordion-block { background: var(--navy3); border: 1px solid #1e3450; border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
-    .accordion-block:last-child { margin-bottom: 0; }
-    .accordion-title { width: 100%; background: transparent; color: var(--white); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
-    .accordion-title span:first-child { color: var(--blue); }
-    .accordion-symbol { color: var(--gray); font-size: 18px; line-height: 1; flex-shrink: 0; }
-    .accordion-content { display: none; padding: 0 16px 16px; border-top: 1px solid rgba(255,255,255,.06); }
-    .accordion-block.open .accordion-content { display: block; }
-    .accordion-block.open .accordion-title   { background: rgba(94,197,240,.05); }
-
-    /* ═══════════════════════════════════════════════════════════
-       TRAINING GUIDE
-    ═══════════════════════════════════════════════════════════ */
-
-    /* Summary header — compact */
-    .training-guide-summary {
-      background: var(--navy3);
-      border-left: 3px solid var(--red);
-      border-radius: 0 10px 10px 0;
-      padding: 14px 16px;
-      margin-bottom: 14px;
+    /* ─── WA FIXED BUTTON ───────────────────────────────────── */
+    .wa-fab {
+      position: fixed;
+      bottom: 24px; right: 20px;
+      background: #25D366;
+      color: #fff;
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 20px #00000060;
+      z-index: 200;
+      transition: transform .15s;
     }
-    .training-guide-title {
-      font-family: var(--font-title);
-      font-size: 22px; letter-spacing: 1px;
-      color: var(--white); margin-bottom: 3px;
-    }
-    .training-guide-meta {
-      font-family: var(--font-mono);
-      font-size: 10px; color: var(--gray);
-      letter-spacing: .8px; margin-bottom: 6px;
-    }
-    .training-day-tabs{
-  display:flex;
-  gap:8px;
-  overflow-x:auto;
-  margin:12px 0 14px;
-  padding-bottom:2px;
-  scrollbar-width:none;
-}
-.training-day-tabs::-webkit-scrollbar{display:none}
-.training-day-tab{
-  flex:0 0 auto;
-  background:var(--navy3);
-  border:1px solid #1e3450;
-  color:var(--gray);
-  border-radius:8px;
-  padding:8px 12px;
-  font-family:var(--font-mono);
-  font-size:10px;
-  letter-spacing:.8px;
-  text-transform:uppercase;
-  white-space:nowrap;
-}
-.training-day-tab.active{
-  color:var(--blue);
-  border-color:rgba(94,197,240,.45);
-  background:rgba(94,197,240,.08);
-}
-.training-day-panel{display:none}
-.training-day-panel.active{display:block}
-    .training-week-objective {
-      font-size: 13px; color: var(--gray);
-      line-height: 1.6;
-      border-top: 1px solid rgba(255,255,255,.06);
-      padding-top: 8px; margin-top: 6px;
-    }
+    .wa-fab:hover { transform: scale(1.04); }
 
-    /* Session separator (discrete) */
-    .training-session-separator {
-      font-family: var(--font-mono);
-      font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
-      color: var(--blue);
-      padding: 12px 2px 4px;
-    }
-
-    /* Step list */
-    .training-step-list { display: flex; flex-direction: column; gap: 8px; }
-
-    /* Step card */
-    .training-step-card {
-      background: var(--navy3);
-      border: 1px solid #1e3450;
-      border-radius: 12px; overflow: hidden;
-      transition: border-color .2s;
-    }
-    .training-step-card.open      { border-color: rgba(94,197,240,.4); }
-    .training-step-card.completed { border-color: rgba(34,197,94,.3); }
-
-    /* Step header button */
-    .training-step-header {
-      width: 100%; background: transparent;
-      padding: 14px 16px;
-      display: flex; align-items: center; gap: 12px;
-      text-align: left; transition: background .15s;
-    }
-    .training-step-card.open      .training-step-header { background: rgba(94,197,240,.05); }
-    .training-step-card.completed .training-step-header { background: rgba(34,197,94,.04); }
-
-    /* Step number badge */
-    .training-step-number {
-      flex-shrink: 0;
-      width: 36px; height: 36px;
-      border-radius: 8px;
-      background: var(--navy2); border: 1px solid #1e3450;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-title); font-size: 20px; color: var(--white);
-      transition: background .2s, color .2s, border-color .2s;
-    }
-    .training-step-card.open      .training-step-number { border-color: var(--blue); color: var(--blue); }
-    .training-step-card.completed .training-step-number { background: rgba(34,197,94,.12); border-color: var(--green); color: var(--green); font-size: 15px; }
-
-    .training-step-info { flex: 1; min-width: 0; }
-    .training-step-title { font-size: 15px; font-weight: 700; color: var(--white); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .training-step-meta  { font-family: var(--font-mono); font-size: 10px; color: var(--gray); margin-top: 3px; letter-spacing: .5px; }
-
-    .training-step-status {
-      flex-shrink: 0;
-      font-family: var(--font-mono); font-size: 10px;
-      letter-spacing: .8px; text-transform: uppercase;
-      color: var(--gray); padding: 3px 8px;
-      border: 1px solid #1e3450; border-radius: 4px;
-      white-space: nowrap;
-    }
-    .training-step-status.done { color: var(--green); border-color: rgba(34,197,94,.4); background: rgba(34,197,94,.08); }
-
-    /* Step body */
-    .training-step-body {
-      display: none;
-      padding: 0 16px 16px;
-      border-top: 1px solid rgba(255,255,255,.06);
-    }
-    .training-step-card.open .training-step-body { display: block; }
-
-    .training-step-objective {
-      font-size: 13px; color: var(--gray); line-height: 1.6;
-      padding: 12px 0 12px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-      margin-bottom: 12px;
-    }
-
-    /* Exercise card */
-    .training-exercise-card {
-      background: var(--navy2);
-      border: 1px solid #1e3450;
-      border-left: 2px solid var(--blue);
-      border-radius: 0 10px 10px 0;
-      padding: 12px 14px; margin-bottom: 8px;
-    }
-    .training-exercise-card:last-of-type { margin-bottom: 0; }
-
-    .training-exercise-title {
-      font-size: 15px; font-weight: 700;
-      color: var(--white); margin-bottom: 10px; line-height: 1.3;
-    }
-    .training-ex-num {
-      font-family: var(--font-mono); font-size: 11px;
-      color: var(--blue); margin-right: 4px;
-    }
-
-    .training-exercise-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 6px; margin-bottom: 10px;
-    }
-    .training-mini-stat { background: var(--navy3); border: 1px solid #1e3450; border-radius: 8px; padding: 8px 6px; text-align: center; }
-    .training-mini-label { font-family: var(--font-mono); font-size: 9px; color: var(--gray); text-transform: uppercase; letter-spacing: .6px; display: block; margin-bottom: 3px; }
-    .training-mini-value { font-family: var(--font-title); font-size: 20px; color: var(--white); letter-spacing: .5px; line-height: 1; }
-
-    .training-level-tag { display: inline-block; font-family: var(--font-mono); font-size: 10px; padding: 2px 8px; border-radius: 4px; border: 1px solid #2a3e52; color: var(--gray); margin-bottom: 8px; }
-
-    .training-instruction { font-size: 14px; color: var(--white); line-height: 1.7; margin-top: 8px; }
-    .training-instruction strong { display: block; color: var(--blue); font-family: var(--font-mono); font-size: 10px; letter-spacing: .8px; text-transform: uppercase; font-weight: 400; margin-bottom: 4px; }
-
-    .training-coach-note { font-size: 13px; color: var(--gray); font-style: italic; line-height: 1.6; margin-top: 6px; }
-
-    .training-video-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 7px 12px; background: rgba(94,197,240,.08); border: 1px solid rgba(94,197,240,.3); border-radius: 8px; color: var(--blue); font-family: var(--font-mono); font-size: 10px; letter-spacing: .8px; text-transform: uppercase; transition: background .15s; }
-    .training-video-btn:hover { background: rgba(94,197,240,.16); }
-
-    /* Complete block button */
-    .training-complete-block-btn {
-      width: 100%;
-      background: var(--green); color: #fff;
-      border-radius: 12px; padding: 16px;
-      font-size: 16px; font-weight: 700; letter-spacing: .3px;
-      margin-top: 16px;
-      transition: opacity .2s;
-    }
-    .training-complete-block-btn:hover   { opacity: .88; }
-    .training-complete-block-btn:disabled { opacity: .5; cursor: default; }
-
-    .training-step-done-msg {
-      text-align: center; color: var(--green);
-      font-family: var(--font-mono); font-size: 11px;
-      letter-spacing: 1px; text-transform: uppercase;
-      padding: 12px 0 0;
-    }
-
-    /* Finish card */
-    .training-finish-card {
-      background: var(--navy3);
-      border: 1px solid rgba(34,197,94,.45);
-      border-radius: 14px; padding: 28px 20px;
-      margin-top: 16px; text-align: center;
-    }
-    .training-finish-icon  { font-size: 40px; margin-bottom: 10px; }
-    .training-finish-title { font-family: var(--font-title); font-size: 28px; letter-spacing: 2px; color: var(--white); margin-bottom: 6px; }
-    .training-finish-sub   { font-size: 13px; color: var(--gray); line-height: 1.6; margin-bottom: 16px; }
-
-    /* Notes box */
-    .training-notes-box { background: var(--navy3); border: 1px solid #1e3450; border-radius: 14px; padding: 20px; margin-top: 12px; }
-    .training-notes-title { font-family: var(--font-title); font-size: 20px; letter-spacing: 1px; color: var(--white); margin-bottom: 6px; }
-    .training-notes-sub   { font-size: 13px; color: var(--gray); margin-bottom: 12px; line-height: 1.6; }
-    .training-notes-textarea {
-      width: 100%; background: var(--navy2); border: 1px solid #1e3450;
-      border-radius: 8px; padding: 12px 14px; color: var(--white);
-      font-size: 14px; font-family: var(--font-body); line-height: 1.6;
-      resize: vertical; min-height: 100px; margin-bottom: 10px; display: block;
-    }
-    .training-notes-textarea:focus { border-color: var(--blue); outline: none; }
-    .training-note-saved { color: var(--green); font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 8px 0; }
-
-    /* ─── RESPONSIVE ────────────────────────────────────────── */
+    /* ─── RESPONSIVE FIXES ──────────────────────────────────── */
     @media (max-width: 480px) {
-      .login-box { padding: 28px 20px; }
-      .dash-header { padding: 0 12px; height: 52px; }
-      .dash-header-logo .logo-text { font-size: 14px; }
+      .login-box { padding: 28px 20px 28px; }
+      .dash-header { padding: 0 14px; }
+      .dash-header-logo .logo-text { font-size: 15px; }
       .btn-icon .btn-label { display: none; }
-      .client-nav { top: 52px; padding: 8px 10px; }
-      .section-body { padding: 14px; }
+      .dash-main { padding: 18px 12px 80px; }
+      .welcome-block h1 { font-size: 26px; }
       .section-header h2 { font-size: 17px; }
-      .plan-grid { grid-template-columns: 1fr; gap: 12px; }
-      .dash-main { padding: 16px 12px calc(170px + env(safe-area-inset-bottom)); }
-      .training-exercise-grid { grid-template-columns: repeat(2, 1fr); }
-      .training-mini-value { font-size: 18px; }
     }
   </style>
 </head>
 <body>
 
-<!-- LOADING -->
+<!-- ════════════════════════════════════════════════════════════
+     LOADING OVERLAY
+════════════════════════════════════════════════════════════ -->
 <div id="loadingOverlay" class="hidden">
   <div class="spinner"></div>
   <p>Cargando...</p>
 </div>
 
-<!-- LOGIN -->
+<!-- ════════════════════════════════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════════════════════════════════ -->
 <div id="loginScreen">
   <div class="login-box">
+
     <div class="login-logo">
       <div class="logo-badge">AB</div>
       <div class="logo-text">ABEL <span>BALSINDE</span></div>
     </div>
+
     <h1 class="login-title">ÁREA CLIENTE</h1>
     <p class="login-sub">Accede a tu seguimiento personal.</p>
-    <div id="loginError" class="login-error hidden">Teléfono o código incorrecto. Revisa los datos e inténtalo de nuevo.</div>
+
+    <!-- Error message (hidden by default) -->
+    <div id="loginError" class="login-error hidden">
+      Teléfono o código incorrecto. Revisa los datos e inténtalo de nuevo.
+    </div>
+
     <div class="field-group">
       <label for="inputPhone">Teléfono</label>
       <input type="tel" id="inputPhone" placeholder="Ej. +34 627 493 593" autocomplete="tel" />
     </div>
+
     <div class="field-group">
       <label for="inputCode">Código de acceso</label>
       <input type="text" id="inputCode" placeholder="Ej. AB1234" autocomplete="off" />
     </div>
+
     <button class="btn-primary" id="btnLogin">Entrar</button>
-    <button class="btn-wa-login" onclick="openWA('Hola Abel, necesito ayuda para entrar al área cliente.')">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/></svg>
+
+    <button class="btn-wa" onclick="openWA('Hola Abel, necesito ayuda para entrar al área cliente.')">
+      <!-- WhatsApp icon -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/>
+      </svg>
       ¿Necesitas ayuda? Contacta a Abel
     </button>
+
   </div>
 </div>
 
-<!-- DASHBOARD -->
+<!-- ════════════════════════════════════════════════════════════
+     DASHBOARD SCREEN
+════════════════════════════════════════════════════════════ -->
 <div id="dashboardScreen" class="hidden">
 
+  <!-- Header -->
   <header class="dash-header">
     <div class="dash-header-logo">
       <div class="logo-badge">AB</div>
@@ -443,1551 +527,610 @@
     </div>
     <div class="dash-header-actions">
       <button class="btn-icon" id="btnHeaderWA">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/>
+        </svg>
         <span class="btn-label">WhatsApp</span>
       </button>
       <button class="btn-icon red" id="btnLogout">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
         <span class="btn-label">Salir</span>
       </button>
     </div>
   </header>
 
-  <nav class="client-nav" id="clientNav">
-    <button onclick="goClientSection('section-plan')">Plan</button>
-    <button onclick="goClientSection('section-training')">Entrenamiento</button>
-    <button onclick="goClientSection('section-reservations')">Reservas</button>
-    <button onclick="goClientSection('section-health')">Salud</button>
-    <button onclick="goClientSection('section-notes')">Notas</button>
-    <button onclick="goClientSection('section-progress-circles')">Progreso</button>
-    <button onclick="goClientSection('section-payments')">Pagos</button>
-    <button onclick="goClientSection('section-client-data')">Mis datos</button>
-  </nav>
-
+  <!-- Main content -->
   <main class="dash-main">
 
-    <div class="section section-hidden" id="section-plan">
-      <div class="section-header"><h2>MI PLAN</h2><span class="sec-badge" id="planBadgeStatus">—</span></div>
+    <!-- Welcome -->
+    <div class="welcome-block">
+      <h1>Hola, <span id="clientName">—</span></h1>
+      <div class="welcome-pills" id="welcomePills"></div>
+    </div>
+
+    <!-- Quick metric cards -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="mc-label">Próxima sesión</div>
+        <div class="mc-value blue" id="quickNextSession">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="mc-label">Pagos pendientes</div>
+        <div class="mc-value yellow" id="quickPendingPayments">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="mc-label">Última métrica</div>
+        <div class="mc-value" id="quickLastMetric">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="mc-label">Alertas activas</div>
+        <div class="mc-value red" id="quickAlerts">—</div>
+      </div>
+    </div>
+
+    <!-- ── Mi plan ── -->
+    <div class="section">
+      <div class="section-header">
+        <h2>MI PLAN</h2>
+        <span class="sec-badge" id="planBadgeStatus">—</span>
+      </div>
       <div class="section-body" id="sectionPlan"></div>
     </div>
 
-    <div class="section section-hidden" id="section-training">
-      <div class="section-header"><h2>ENTRENAMIENTO</h2><span class="sec-badge" id="trainingClientBadge">—</span></div>
-      <div class="section-body" id="sectionTrainingClient"></div>
-    </div>
-
-    <div class="section section-hidden" id="section-reservations">
-      <div class="section-header"><h2>RESERVAS</h2><span class="sec-badge" id="reservationsBadge">0</span></div>
+    <!-- ── Próximas reservas ── -->
+    <div class="section">
+      <div class="section-header">
+        <h2>PRÓXIMAS RESERVAS</h2>
+        <span class="sec-badge" id="reservationsBadge">0</span>
+      </div>
       <div class="section-body" id="sectionReservations"></div>
     </div>
 
-    <div class="section section-hidden" id="section-health">
-      <div class="section-header"><h2>SALUD</h2><span class="sec-badge" id="alertsBadge">0</span></div>
-      <div class="section-body" id="sectionHealth"></div>
-    </div>
-
-    <div class="section section-hidden" id="section-notes">
-      <div class="section-header"><h2>NOTAS DEL COACH</h2></div>
-      <div class="section-body" id="sectionNotes"></div>
-    </div>
-
-    <div class="section section-hidden" id="section-progress-circles">
-      <div class="section-header"><h2>PROGRESO VISUAL</h2><span class="sec-badge" id="progressCircleBadge">0</span></div>
-      <div class="section-body" id="sectionProgressCircles"></div>
-    </div>
-
-    <div class="section section-hidden" id="section-payments">
-      <div class="section-header"><h2>PAGOS</h2><span class="sec-badge" id="paymentsBadge">0</span></div>
+    <!-- ── Pagos ── -->
+    <div class="section">
+      <div class="section-header">
+        <h2>PAGOS</h2>
+        <span class="sec-badge" id="paymentsBadge">0</span>
+      </div>
       <div class="section-body" id="sectionPayments"></div>
     </div>
 
-    <div class="section section-hidden" id="section-client-data">
-      <div class="section-header"><h2>MIS DATOS</h2><span class="sec-badge" id="clientDataBadge">Perfil</span></div>
-      <div class="section-body" id="sectionClientData"></div>
+    <!-- ── Progreso / Métricas ── -->
+    <div class="section">
+      <div class="section-header">
+        <h2>PROGRESO</h2>
+        <span class="sec-badge" id="metricsBadge">0</span>
+      </div>
+      <div class="section-body" id="sectionMetrics"></div>
+    </div>
+
+    <!-- ── Salud / indicaciones ── -->
+    <div class="section">
+      <div class="section-header">
+        <h2>SALUD / INDICACIONES</h2>
+        <span class="sec-badge" id="alertsBadge">0</span>
+      </div>
+      <div class="section-body" id="sectionHealth"></div>
+    </div>
+
+    <!-- ── Notas del coach ── -->
+    <div class="section">
+      <div class="section-header">
+        <h2>NOTAS DEL COACH</h2>
+      </div>
+      <div class="section-body" id="sectionNotes"></div>
     </div>
 
   </main>
-</div>
 
+  <!-- Fixed WhatsApp FAB -->
+  <button class="wa-fab" id="btnFabWA">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/>
+    </svg>
+    Hablar con Abel
+  </button>
+
+</div><!-- /dashboardScreen -->
+
+
+<!-- ════════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════════ -->
 <script>
+
 /* ── CONFIG ──────────────────────────────────────────────── */
-const SUPABASE_URL = 'https://icjuuptbcnkpwgsoyiuj.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanV1cHRiY25rcHdnc295aXVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTIzMjQsImV4cCI6MjA5MzcyODMyNH0.L__PcG-5HUkV5hpnsujrWi8mkL1o1lCKRf-mrSeO5V8';
-const WA_NUMBER   = '381638112348';
+const SUPABASE_URL  = 'https://icjuuptbcnkpwgsoyiuj.supabase.co';
+const SUPABASE_KEY  = 'AQUÍ PEGARÉ MI ANON KEY'; // ← Pega tu anon key aquí
+const WA_NUMBER     = '381638112348';             // Número de Abel (sin +)
+const LS_KEY        = 'abCoachClientId';
 
-const LS_CLIENT_ID    = 'abCoachClientId';
-const LS_CLIENT_PHONE = 'abCoachClientPhone';
-
+/* ── INIT SUPABASE ───────────────────────────────────────── */
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ── GLOBAL STATE ────────────────────────────────────────── */
-let clientData               = null;
-let clientReservations       = [];
-let clientPayments           = [];
-let clientMetrics            = [];
-let clientAlerts             = [];
-let clientPrograms           = [];
-let clientTrainingAssignment = null;
-let clientTrainingProgram    = null;
-let clientTrainingWeeks      = [];
-let clientTrainingSessions   = [];
-let clientTrainingBlocks     = [];
-let clientTrainingExercises  = [];
+let clientData        = null;
+let clientReservations= [];
+let clientPayments    = [];
+let clientMetrics     = [];
+let clientAlerts      = [];
+let clientPrograms    = [];
 
-/* Training guide state */
-let completedTrainingBlocks = new Set();
-let activeTrainingBlockKey  = null;
-let currentTrainingLog      = null;
+/* ════════════════════════════════════════════════════════════
+   UTILITY FUNCTIONS
+════════════════════════════════════════════════════════════ */
 
-function getTrainingStorageKey() {
-  if (!clientData || !clientTrainingAssignment) return null;
-
-  return [
-    'ab_training_progress',
-    clientData.id,
-    clientTrainingAssignment.id,
-    todayISO()
-  ].join('_');
+/** Quita espacios, guiones, paréntesis y el símbolo + */
+function normalizePhone(phone) {
+  return String(phone).replace(/[\s\-\(\)\+]/g, '');
 }
 
-function loadTrainingProgressLocal() {
-  const key = getTrainingStorageKey();
-  if (!key) return null;
+/** Construye URL de WhatsApp con mensaje prellenado */
+function buildWAUrl(phone, message) {
+  const num = normalizePhone(phone);
+  return `https://wa.me/${num}?text=${encodeURIComponent(message)}`;
+}
 
+/** Abre WhatsApp con mensaje (usa WA_NUMBER global) */
+function openWA(message) {
+  window.open(buildWAUrl(WA_NUMBER, message), '_blank');
+}
+
+/** Formatea fecha ISO a dd/mm/yyyy */
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
   try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch (error) {
-    console.error('Error leyendo progreso local:', error);
-    return null;
-  }
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
+  } catch { return dateStr; }
 }
 
-function saveTrainingProgressLocal(extraData) {
-  const key = getTrainingStorageKey();
-  if (!key) return;
-
-  const previous = loadTrainingProgressLocal() || {};
-
-  const payload = {
-    ...previous,
-    completed_block_ids: Array.from(completedTrainingBlocks),
-    is_finished: previous.is_finished || false,
-    client_note: previous.client_note || '',
-    updated_at: new Date().toISOString(),
-    ...(extraData || {})
-  };
-
-  localStorage.setItem(key, JSON.stringify(payload));
-}
-
-/* ── UTILITY ─────────────────────────────────────────────── */
-function normalizePhone(p) { return String(p).replace(/[\s\-\(\)\+]/g, ''); }
-function openWA(msg)        { window.open(`https://wa.me/${normalizePhone(WA_NUMBER)}?text=${encodeURIComponent(msg)}`, '_blank'); }
-function clientWA(text)     { openWA(`Hola Abel, soy ${clientData?.name || 'cliente'}. ${text}`); }
-
-function todayISO() { return new Date().toISOString().slice(0, 10); }
-
-function formatDate(d) {
-  if (!d) return '—';
-  try { const [y,m,day] = String(d).slice(0,10).split('-'); return `${day}/${m}/${y}`; } catch { return d; }
-}
-function formatTime(t)  { return t ? String(t).slice(0,5) : ''; }
-
-function getAssignmentScope() {
-  return clientTrainingAssignment?.assignment_scope || 'full';
-}
-
-function getAssignmentScopeLabel() {
-  const scope = getAssignmentScope();
-
-  if (scope === 'day') return clientTrainingAssignment?.commercial_label || 'Día asignado';
-  if (scope === 'week') return clientTrainingAssignment?.commercial_label || 'Semana asignada';
-  if (scope === 'month') return clientTrainingAssignment?.commercial_label || 'Mes asignado';
-  return clientTrainingAssignment?.commercial_label || 'Plan completo';
-}
-
-function getAssignedWeekNumber() {
-  const scope = getAssignmentScope();
-
-  if (scope === 'day' || scope === 'week') {
-    return Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
-  }
-
-  if (scope === 'month') {
-    const month = Number(clientTrainingAssignment?.assigned_month || 1);
-
-    if (month === 1) return 1;
-    if (month === 2) return 5;
-    if (month === 3) return 9;
-
-    return Number(clientTrainingAssignment?.current_week || 1);
-  }
-
-  return Number(clientTrainingAssignment?.current_week || 1);
-}
-
-function filterSessionsByAssignmentScope(sessions) {
-  const scope = getAssignmentScope();
-
-  if (scope !== 'day') return sessions;
-
-  const assignedSessionNumber = Number(clientTrainingAssignment?.assigned_session_number || 1);
-
-  return sessions.filter(function(session) {
-    return Number(session.session_number || 0) === assignedSessionNumber;
-  });
-}
-
+/** Formatea importe con moneda */
 function formatMoney(amount, currency) {
   if (amount == null) return '—';
   const cur = (currency || 'EUR').toUpperCase();
-  try { return new Intl.NumberFormat('es-ES', { style:'currency', currency: cur }).format(amount); }
-  catch { return `${amount} ${cur}`; }
+  try {
+    return new Intl.NumberFormat('es-ES', { style:'currency', currency: cur }).format(amount);
+  } catch {
+    return `${amount} ${cur}`;
+  }
 }
 
+/** Muestra/oculta error de login */
 function showError(msg) {
   const el = document.getElementById('loginError');
-  if (!el) return;
   el.textContent = msg || 'Teléfono o código incorrecto.';
   el.classList.remove('hidden');
 }
-function hideError()       { document.getElementById('loginError')?.classList.add('hidden'); }
-function showLoading(v)    { document.getElementById('loadingOverlay')?.classList.toggle('hidden', !v); }
-
-function paymentBadge(s) {
-  if (!s) return '';
-  const v = s.toLowerCase();
-  if (['pagado','paid'].includes(v))       return `<span class="badge badge-green">${s}</span>`;
-  if (['pendiente','pending'].includes(v)) return `<span class="badge badge-yellow">${s}</span>`;
-  if (['vencido','overdue'].includes(v))   return `<span class="badge badge-red">${s}</span>`;
-  return `<span class="badge badge-gray">${s}</span>`;
-}
-function genericBadge(s) {
-  if (!s) return '';
-  const v = s.toLowerCase();
-  if (['activo','active','confirmada','confirmado','realizada','completado'].includes(v)) return `<span class="badge badge-green">${s}</span>`;
-  if (['pendiente','pending','reservada'].includes(v))                                   return `<span class="badge badge-yellow">${s}</span>`;
-  if (['cancelada','cancelado','vencido','inactivo'].includes(v))                        return `<span class="badge badge-red">${s}</span>`;
-  if (['reprogramada','revisión'].includes(v))                                           return `<span class="badge badge-blue">${s}</span>`;
-  return `<span class="badge badge-gray">${s}</span>`;
+function hideError() {
+  document.getElementById('loginError').classList.add('hidden');
 }
 
-/* ── AUTH ────────────────────────────────────────────────── */
+/** Muestra/oculta overlay de carga */
+function showLoading(visible) {
+  document.getElementById('loadingOverlay').classList.toggle('hidden', !visible);
+}
+
+/** Devuelve badge HTML según estado de pago */
+function paymentBadge(status) {
+  if (!status) return '';
+  const s = status.toLowerCase();
+  if (s === 'pagado' || s === 'paid')    return `<span class="badge badge-green">${status}</span>`;
+  if (s === 'pendiente' || s === 'pending') return `<span class="badge badge-yellow">${status}</span>`;
+  if (s === 'vencido' || s === 'overdue')  return `<span class="badge badge-red">${status}</span>`;
+  return `<span class="badge badge-gray">${status}</span>`;
+}
+
+/** Devuelve badge HTML genérico */
+function genericBadge(status) {
+  if (!status) return '';
+  const s = status.toLowerCase();
+  if (['activo','active','confirmada','confirmado','realizada','completado'].includes(s))
+    return `<span class="badge badge-green">${status}</span>`;
+  if (['pendiente','pending','reservada'].includes(s))
+    return `<span class="badge badge-yellow">${status}</span>`;
+  if (['cancelada','cancelado','vencido','inactivo'].includes(s))
+    return `<span class="badge badge-red">${status}</span>`;
+  if (['reprogramada','revisión'].includes(s))
+    return `<span class="badge badge-blue">${status}</span>`;
+  return `<span class="badge badge-gray">${status}</span>`;
+}
+
+/* ════════════════════════════════════════════════════════════
+   AUTH FUNCTIONS
+════════════════════════════════════════════════════════════ */
+
+/** Intenta login: busca cliente que coincida phone normalizado + access_code */
 async function loginClient() {
   hideError();
   const phone = document.getElementById('inputPhone').value.trim();
   const code  = document.getElementById('inputCode').value.trim().toUpperCase();
+
   if (!phone || !code) { showError('Completa los dos campos.'); return; }
 
   showLoading(true);
   try {
+    // Traemos todos los clientes (fase inicial, pocos registros)
     const { data: clients, error } = await db.from('clients').select('*');
+
     if (error) throw error;
+
+    const normalInput = normalizePhone(phone);
     const found = (clients || []).find(c =>
-      normalizePhone(c.phone) === normalizePhone(phone) &&
+      normalizePhone(c.phone) === normalInput &&
       (c.access_code || '').trim().toUpperCase() === code
     );
-    if (!found) { showLoading(false); showError('Teléfono o código incorrecto.'); return; }
-    localStorage.setItem(LS_CLIENT_ID, found.id);
-    localStorage.setItem(LS_CLIENT_PHONE, normalizePhone(found.phone || phone));
+
+    if (!found) {
+      showLoading(false);
+      showError('Teléfono o código incorrecto.');
+      return;
+    }
+
+    // Guardar sesión y cargar dashboard
+    localStorage.setItem(LS_KEY, found.id);
     await loadClientDashboard(found.id);
+
   } catch (err) {
     showLoading(false);
-    showError('Error: ' + (err.message || JSON.stringify(err)));
+    showError('Error de conexión. Inténtalo de nuevo.');
     console.error('Login error:', err);
   }
 }
 
+/** Cierra sesión: limpia localStorage y vuelve al login */
 function logoutClient() {
-  localStorage.removeItem(LS_CLIENT_ID);
-  localStorage.removeItem(LS_CLIENT_PHONE);
-  clientData = null; clientReservations = []; clientPayments = [];
-  clientMetrics = []; clientAlerts = []; clientPrograms = [];
-  clientTrainingAssignment = null; clientTrainingProgram = null;
-  clientTrainingWeeks = []; clientTrainingSessions = [];
-  clientTrainingBlocks = []; clientTrainingExercises = [];
-  completedTrainingBlocks = new Set(); activeTrainingBlockKey = null;
-
-  document.getElementById('dashboardScreen')?.classList.add('hidden');
-  document.getElementById('loginScreen')?.classList.remove('hidden');
+  localStorage.removeItem(LS_KEY);
+  clientData = null;
+  // Reset UI
+  document.getElementById('dashboardScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
   document.getElementById('inputPhone').value = '';
   document.getElementById('inputCode').value  = '';
   hideError();
 }
 
-/* ── DATA LOADING ────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════
+   DATA LOADING
+════════════════════════════════════════════════════════════ */
+
+/** Carga todos los datos del cliente y renderiza el dashboard */
 async function loadClientDashboard(clientId) {
   showLoading(true);
 
   try {
+    // Datos del cliente
     const { data: client, error: cErr } = await db
-      .from('clients')
-      .select('*')
-      .eq('id', clientId)
-      .single();
+      .from('clients').select('*').eq('id', clientId).single();
 
     if (cErr || !client) {
-      localStorage.removeItem(LS_CLIENT_ID);
+      // ID viejo o inválido → limpiar sesión
+      localStorage.removeItem(LS_KEY);
       showLoading(false);
-      document.getElementById('loginScreen')?.classList.remove('hidden');
-      document.getElementById('dashboardScreen')?.classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('dashboardScreen').classList.add('hidden');
       showError('Sesión expirada. Vuelve a iniciar sesión.');
       return;
     }
 
     clientData = client;
 
-    const [resR, payR, metR, halR, proR, assignR] = await Promise.all([
+    // Carga paralela del resto de tablas
+    const [resR, payR, metR, halR, proR] = await Promise.all([
       db.from('reservations').select('*').eq('client_id', clientId).order('date', { ascending: true }),
       db.from('payments').select('*').eq('client_id', clientId).order('due_date', { ascending: false }),
       db.from('metrics').select('*').eq('client_id', clientId).order('date', { ascending: false }),
       db.from('health_alerts').select('*').eq('client_id', clientId).order('date', { ascending: false }),
       db.from('programs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
-      db
-  .from('client_program_assignments')
-  .select('*')
-  .eq('client_id', clientId)
-  .eq('status', 'activo')
-  .order('created_at', { ascending: false })
-  .order('start_date', { ascending: false })
-  .limit(1),
     ]);
 
-    clientReservations       = resR.data || [];
-    clientPayments           = payR.data || [];
-    clientMetrics            = metR.data || [];
-    clientAlerts             = halR.data || [];
-    clientPrograms           = proR.data || [];
-    clientTrainingAssignment = assignR.data?.[0] || null;
+    clientReservations = resR.data  || [];
+    clientPayments     = payR.data  || [];
+    clientMetrics      = metR.data  || [];
+    clientAlerts       = halR.data  || [];
+    clientPrograms     = proR.data  || [];
 
-    clientTrainingProgram   = null;
-    clientTrainingWeeks     = [];
-    clientTrainingSessions  = [];
-    clientTrainingBlocks    = [];
-    clientTrainingExercises = [];
+    renderDashboard();
 
-    if (clientTrainingAssignment?.program_id) {
-      const programId = clientTrainingAssignment.program_id;
-      const weekNumberToLoad = getAssignedWeekNumber();
-
-      const [programR, weeksR] = await Promise.all([
-        db.from('training_programs').select('*').eq('id', programId).single(),
-        db.from('training_weeks').select('*').eq('program_id', programId).order('week_number', { ascending: true }),
-      ]);
-
-      clientTrainingProgram = programR.data || null;
-      clientTrainingWeeks   = weeksR.data || [];
-
-      const activeWeek = clientTrainingWeeks.find(function(w) {
-        return Number(w.week_number) === weekNumberToLoad;
-      }) || clientTrainingWeeks[0] || null;
-
-      if (activeWeek) {
-        const sessR = await db
-          .from('training_sessions')
-          .select('*')
-          .eq('week_id', activeWeek.id)
-          .order('session_number', { ascending: true });
-
-        const allSessions = sessR.data || [];
-
-        clientTrainingSessions = filterSessionsByAssignmentScope(allSessions);
-
-        const sessionIds = clientTrainingSessions.map(function(s) {
-          return s.id;
-        });
-
-        if (sessionIds.length) {
-          const blocksR = await db
-            .from('training_blocks')
-            .select('*')
-            .in('session_id', sessionIds)
-            .order('block_order', { ascending: true });
-
-          clientTrainingBlocks = blocksR.data || [];
-
-          const blockIds = clientTrainingBlocks.map(function(b) {
-            return b.id;
-          });
-
-          if (blockIds.length) {
-            const exR = await db
-              .from('training_exercises')
-              .select('*')
-              .in('block_id', blockIds)
-              .order('exercise_order', { ascending: true });
-
-            clientTrainingExercises = exR.data || [];
-          }
-        }
-      }
-    }
-
-    await renderDashboard();
-
-    document.getElementById('loginScreen')?.classList.add('hidden');
-    document.getElementById('dashboardScreen')?.classList.remove('hidden');
-
+    // Mostrar dashboard
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('dashboardScreen').classList.remove('hidden');
     showLoading(false);
 
   } catch (err) {
     showLoading(false);
     console.error('Load error:', err);
-
-    if (!document.getElementById('loginScreen')?.classList.contains('hidden')) {
-      showError('Error de conexión. Inténtalo de nuevo.');
-    } else {
+    // Si falla en login, mostrar error. Si falla en dashboard, mostrar banner.
+    if (document.getElementById('loginScreen').classList.contains('hidden')) {
       alert('Error al cargar los datos. Comprueba tu conexión e inténtalo de nuevo.');
+    } else {
+      showError('Error de conexión. Inténtalo de nuevo.');
     }
   }
 }
 
-/* ── RENDER DASHBOARD ────────────────────────────────────── */
-async function renderDashboard() {
+/* ════════════════════════════════════════════════════════════
+   RENDER FUNCTIONS
+════════════════════════════════════════════════════════════ */
+
+function renderDashboard() {
+  renderWelcome();
+  renderQuickMetrics();
   renderProgram();
-  await renderClientTraining();
   renderReservations();
+  renderPayments();
+  renderMetrics();
   renderHealthAlerts();
   renderNotes();
-  renderProgressCircles();
-  renderPayments();
-  renderClientData();
-
+  // WhatsApp buttons dinámicos
   const name = clientData.name || 'cliente';
-  const headerWA = document.getElementById('btnHeaderWA');
-  if (headerWA) headerWA.onclick = () => openWA(`Hola Abel, soy ${name}. Tengo una duda sobre mi plan.`);
-
-  goClientSection('section-plan');
+  const msg  = `Hola Abel, soy ${name}. Tengo una duda sobre mi plan.`;
+  document.getElementById('btnHeaderWA').onclick = () => openWA(msg);
+  document.getElementById('btnFabWA').onclick    = () => openWA(msg);
 }
 
-/* ── MI PLAN ─────────────────────────────────────────────── */
+/** Bloque de bienvenida y pills */
+function renderWelcome() {
+  document.getElementById('clientName').textContent = clientData.name || '—';
+
+  const pills = [];
+  if (clientData.plan)   pills.push({ label: clientData.plan, cls: 'pill-blue' });
+  if (clientData.status) pills.push({ label: clientData.status, cls: statusPillClass(clientData.status) });
+  if (clientData.objective) pills.push({ label: clientData.objective, cls: 'pill-gray' });
+
+  const container = document.getElementById('welcomePills');
+  container.innerHTML = pills.map(p =>
+    `<span class="pill ${p.cls}">${p.label}</span>`
+  ).join('');
+}
+
+function statusPillClass(s) {
+  const v = (s || '').toLowerCase();
+  if (['activo','active'].includes(v)) return 'pill-green';
+  if (['pausado','vencido'].includes(v)) return 'pill-red';
+  return 'pill-gray';
+}
+
+/** 4 tarjetas rápidas */
+function renderQuickMetrics() {
+  // Próxima sesión
+  const upcoming = clientReservations.filter(r => {
+    const d = new Date(r.date);
+    return d >= new Date() && !['cancelada','cancelado'].includes((r.status||'').toLowerCase());
+  });
+  document.getElementById('quickNextSession').textContent =
+    upcoming.length ? formatDate(upcoming[0].date) : 'Sin reservas';
+
+  // Pagos pendientes
+  const pending = clientPayments.filter(p =>
+    ['pendiente','pending','vencido','overdue'].includes((p.status||'').toLowerCase())
+  ).length;
+  const el = document.getElementById('quickPendingPayments');
+  el.textContent = pending ? `${pending} pendiente${pending > 1 ? 's' : ''}` : 'Al día';
+  if (!pending) { el.className = 'mc-value green'; }
+
+  // Última métrica
+  const lastM = clientMetrics[0];
+  document.getElementById('quickLastMetric').textContent =
+    lastM ? `${lastM.value}${lastM.unit ? ' '+lastM.unit : ''} (${lastM.type||'—'})` : '—';
+
+  // Alertas activas
+  const activeAlerts = clientAlerts.filter(a =>
+    ['activa','active','pendiente'].includes((a.status||'').toLowerCase())
+  ).length;
+  document.getElementById('quickAlerts').textContent =
+    activeAlerts ? `${activeAlerts} activa${activeAlerts > 1 ? 's' : ''}` : 'Sin alertas';
+  if (!activeAlerts) { document.getElementById('quickAlerts').className = 'mc-value green'; }
+}
+
+/** Sección Mi Plan */
 function renderProgram() {
-  const el    = document.getElementById('sectionPlan');
-  const badge = document.getElementById('planBadgeStatus');
-  if (!el) return;
-  if (badge) badge.textContent = clientData.status || '—';
-
+  // Programa: primero el activo, si no el más reciente
   const prog = clientPrograms.find(p => (p.status||'').toLowerCase() === 'activo') || clientPrograms[0] || null;
+  const el   = document.getElementById('sectionPlan');
+  const badge = document.getElementById('planBadgeStatus');
 
-  let html = '<div class="plan-grid">';
-  html += `
-    <div class="plan-item"><div class="pi-label">Plan contratado</div><div class="pi-value">${clientData.plan || 'Sin plan asignado'}</div></div>
-    <div class="plan-item"><div class="pi-label">Estado</div><div class="pi-value">${clientData.status || '—'}</div></div>
-    <div class="plan-item full"><div class="pi-label">Objetivo principal</div><div class="pi-value">${clientData.objective || 'Sin objetivo registrado'}</div></div>
-  `;
-  if (clientData.nutrition_objective) {
-    html += `<div class="plan-item full"><div class="pi-label">Objetivo nutricional</div><div class="pi-value">${clientData.nutrition_objective}</div></div>`;
-  }
-  html += '<hr class="plan-divider">';
+  badge.textContent = clientData.status || '—';
+
+  const items = [];
+
+  if (clientData.plan)               items.push({ label: 'Plan contratado',    value: clientData.plan });
+  if (clientData.objective)          items.push({ label: 'Objetivo',           value: clientData.objective });
+  if (clientData.nutrition_objective)items.push({ label: 'Objetivo nutricional',value: clientData.nutrition_objective });
+
   if (prog) {
-    html += `
-      <div class="plan-item"><div class="pi-label">Programa asignado</div><div class="pi-value">${prog.name || '—'}</div></div>
-      <div class="plan-item"><div class="pi-label">Estado del programa</div><div class="pi-value">${prog.status || '—'}</div></div>
-    `;
-    if (prog.type)     html += `<div class="plan-item"><div class="pi-label">Tipo</div><div class="pi-value">${prog.type}</div></div>`;
-    if (prog.level)    html += `<div class="plan-item"><div class="pi-label">Nivel</div><div class="pi-value">${prog.level}</div></div>`;
-    if (prog.duration) html += `<div class="plan-item"><div class="pi-label">Duración</div><div class="pi-value">${prog.duration}</div></div>`;
-    const desc = prog.description || prog.objective;
-    if (desc) html += `<div class="plan-item full"><div class="pi-label">Indicaciones del coach</div><div class="pi-value">${desc}</div></div>`;
-  } else {
-    html += `<div class="plan-item full"><div class="plan-no-program">Todavía no hay programa asignado. Abel actualizará esta sección cuando tu plan esté listo.</div></div>`;
-  }
-  html += `</div>
-    <div class="action-box">
-      <button class="client-action-btn wa" onclick="clientWA('Quiero consultar un ajuste o nuevo plan de entrenamiento.')">Consultar ajuste de plan</button>
-    </div>`;
-  el.innerHTML = html;
-}
-
-/* ════════════════════════════════════════════════════════════
-   TRAINING GUIDE
-════════════════════════════════════════════════════════════ */
-
-/**
- * Builds a flat list of steps (one per block) from the loaded training data.
- * Each step carries a reference to its block, its exercises, and an optional
- * session-separator label (shown only for the first block of each session
- * when there are multiple sessions in the week).
- */
-function getSessionDayLabel(session, index) {
-  const title = String(session.title || session.name || '').toLowerCase();
-  const code  = String(session.session_code || '').toLowerCase();
-  const num   = Number(session.session_number || index + 1);
-
-  if (title.includes('día a') || title.includes('dia a') || code.includes('a')) return 'Día A';
-  if (title.includes('día b') || title.includes('dia b') || code.includes('b')) return 'Día B';
-  if (title.includes('día c') || title.includes('dia c') || code.includes('c')) return 'Día C';
-
-  if (num === 1) return 'Día A';
-  if (num === 2) return 'Día B';
-  if (num === 3) return 'Día C';
-
-  return 'Día ' + num;
-}
-
-function getSessionDisplayTitle(session, index) {
-  const day = getSessionDayLabel(session, index);
-  const title = session.title || session.name || '';
-
-  if (title && !String(title).toLowerCase().includes(day.toLowerCase())) {
-    return day + ' · ' + title;
+    items.push({ label: 'Programa',   value: prog.name || '—' });
+    items.push({ label: 'Tipo',       value: prog.type || '—' });
+    items.push({ label: 'Nivel',      value: prog.level || '—' });
+    items.push({ label: 'Duración',   value: prog.duration || '—' });
+    if (prog.description) items.push({ label: 'Descripción', value: prog.description });
   }
 
-  return title || day;
-}
-
-function showTrainingDay(sessionId) {
-  document.querySelectorAll('.training-day-tab').forEach(function(btn) {
-    btn.classList.toggle('active', btn.dataset.sessionId === sessionId);
-  });
-
-  document.querySelectorAll('.training-day-panel').forEach(function(panel) {
-    panel.classList.toggle('active', panel.dataset.sessionId === sessionId);
-  });
-
-  const activePanel = document.querySelector('.training-day-panel.active');
-  if (activePanel) {
-    activePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
-
-function buildTrainingSteps(sessionIdFilter) {
-  const steps = [];
-
-  const sessionsToUse = sessionIdFilter
-    ? clientTrainingSessions.filter(function(s) { return String(s.id) === String(sessionIdFilter); })
-    : clientTrainingSessions;
-
-  sessionsToUse.forEach(function(session, sIdx) {
-    const realSessionIndex = clientTrainingSessions.findIndex(function(s) {
-      return String(s.id) === String(session.id);
-    });
-
-    const sessionBlocks = clientTrainingBlocks
-      .filter(function(b) { return b.session_id === session.id; })
-      .slice()
-      .sort(function(a, b) { return Number(a.block_order || 0) - Number(b.block_order || 0); });
-
-    sessionBlocks.forEach(function(block, bIdx) {
-      const exercises = clientTrainingExercises
-        .filter(function(e) { return e.block_id === block.id; })
-        .slice()
-        .sort(function(a, b) { return Number(a.exercise_order || 0) - Number(b.exercise_order || 0); });
-
-      steps.push({
-        blockId: String(block.id),
-        block: block,
-        exercises: exercises,
-        sessionId: String(session.id),
-        session: session,
-        sessionSeparator: bIdx === 0
-          ? getSessionDisplayTitle(session, realSessionIndex >= 0 ? realSessionIndex : sIdx)
-          : null
-      });
-    });
-  });
-
-  return steps;
-}
-
-function getActiveTrainingWeek() {
-  if (!clientTrainingAssignment) return null;
-
-  var weekNumberToUse = getAssignedWeekNumber();
-
-  return clientTrainingWeeks.find(function(w) {
-    return Number(w.week_number) === weekNumberToUse;
-  }) || clientTrainingWeeks[0] || null;
-}
-
-async function loadOrCreateTrainingLog() {
-  if (!clientData || !clientTrainingAssignment || !clientTrainingProgram) return null;
-
-  const localProgress = loadTrainingProgressLocal();
-
-  if (localProgress) {
-    completedTrainingBlocks = new Set(localProgress.completed_block_ids || []);
-    currentTrainingLog = {
-      ...(currentTrainingLog || {}),
-      ...localProgress
-    };
-  }
-
-  var activeWeek = getActiveTrainingWeek();
-
-  var payload = {
-    client_id: clientData.id,
-    assignment_id: clientTrainingAssignment.id,
-    program_id: clientTrainingProgram.id,
-    week_id: activeWeek ? activeWeek.id : null,
-    training_date: todayISO()
-  };
-
-  try {
-    var existing = await db
-      .from('client_training_logs')
-      .select('*')
-      .eq('client_id', payload.client_id)
-      .eq('assignment_id', payload.assignment_id)
-      .eq('training_date', payload.training_date)
-      .maybeSingle();
-
-    if (existing.error) {
-      console.error('Error cargando progreso desde Supabase:', existing.error);
-      return currentTrainingLog;
-    }
-
-    if (existing.data) {
-      const supabaseBlocks = existing.data.completed_block_ids || [];
-      const localBlocks = localProgress?.completed_block_ids || [];
-
-      completedTrainingBlocks = new Set([
-        ...supabaseBlocks,
-        ...localBlocks
-      ]);
-
-      currentTrainingLog = {
-        ...existing.data,
-        completed_block_ids: Array.from(completedTrainingBlocks),
-        is_finished: existing.data.is_finished || localProgress?.is_finished || false,
-        client_note: existing.data.client_note || localProgress?.client_note || ''
-      };
-
-      saveTrainingProgressLocal(currentTrainingLog);
-
-      return currentTrainingLog;
-    }
-
-    var created = await db
-      .from('client_training_logs')
-      .insert({
-        ...payload,
-        completed_block_ids: Array.from(completedTrainingBlocks),
-        is_finished: localProgress?.is_finished || false,
-        client_note: localProgress?.client_note || '',
-        started_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (created.error) {
-      console.error('Error creando progreso en Supabase:', created.error);
-      return currentTrainingLog;
-    }
-
-    currentTrainingLog = created.data;
-    saveTrainingProgressLocal(currentTrainingLog);
-
-    return currentTrainingLog;
-
-  } catch (error) {
-    console.error('Error general cargando progreso:', error);
-    return currentTrainingLog;
-  }
-}
-
-async function saveTrainingProgress(extraData) {
-  saveTrainingProgressLocal(extraData);
-
-  if (!currentTrainingLog || !currentTrainingLog.id) {
-    await loadOrCreateTrainingLog();
-  }
-
-  if (!currentTrainingLog || !currentTrainingLog.id) {
-    console.warn('No hay currentTrainingLog con id. Progreso guardado solo localmente.');
+  if (!items.length && !prog) {
+    el.innerHTML = '<p class="empty-state">Todavía no hay programa asignado.</p>';
     return;
   }
 
-  const localProgress = loadTrainingProgressLocal() || {};
-
-  var payload = {
-    completed_block_ids: Array.from(completedTrainingBlocks),
-    is_finished: localProgress.is_finished || false,
-    client_note: localProgress.client_note || null,
-    updated_at: new Date().toISOString(),
-    ...(extraData || {})
-  };
-
-  try {
-    var saved = await db
-      .from('client_training_logs')
-      .update(payload)
-      .eq('id', currentTrainingLog.id)
-      .select()
-      .single();
-
-    if (saved.error) {
-      console.error('Error guardando progreso en Supabase:', saved.error);
-      return;
-    }
-
-    currentTrainingLog = saved.data;
-    saveTrainingProgressLocal(currentTrainingLog);
-
-  } catch (error) {
-    console.error('Error general guardando progreso:', error);
-  }
+  el.innerHTML = `
+    <div class="plan-grid">
+      ${items.map(i => `
+        <div class="plan-item">
+          <div class="pi-label">${i.label}</div>
+          <div class="pi-value">${i.value}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
-/** Renders the full training guide into sectionTrainingClient */
-async function renderClientTraining() {
-  const el    = document.getElementById('sectionTrainingClient');
-  const badge = document.getElementById('trainingClientBadge');
-  if (!el) return;
-
-  completedTrainingBlocks = new Set();
-  activeTrainingBlockKey  = null;
-  currentTrainingLog      = null;
-
-  if (!clientTrainingAssignment || !clientTrainingProgram) {
-    if (badge) badge.textContent = 'Sin asignar';
-    el.innerHTML = '<p class="empty-state">Todavía no tienes un programa de entrenamiento asignado. Cuando Abel active tu plan, aparecerá aquí.</p>';
-    return;
-  }
-
-  await loadOrCreateTrainingLog();
-
-const activeWeek = getActiveTrainingWeek();
-
-if (badge) badge.textContent = getAssignmentScopeLabel();
-
-const levelStr = getAssignedTrainingLevel();
-const scopeLabel = getAssignmentScopeLabel();
-
-const metaParts = [
-  scopeLabel,
-  levelStr
-].filter(Boolean);
-
-  const scopeLabel = getAssignmentScopeLabel();
-
-const metaParts = [
-  scopeLabel,
-  levelStr
-].filter(Boolean);
-
-  const objective = (activeWeek && activeWeek.objective)
-    ? activeWeek.objective
-    : (clientTrainingProgram.objective || '');
-
-  let summaryHtml = '<div class="training-guide-summary">'
-    + '<div class="training-guide-title">' + (clientTrainingProgram.name || 'Programa de entrenamiento') + '</div>'
-    + '<div class="training-guide-meta">' + metaParts.join(' · ') + '</div>'
-    + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
-    + '</div>';
-
-  const allSteps = buildTrainingSteps();
-
-if (!allSteps.length) {
-  el.innerHTML = summaryHtml + '<p class="empty-state">Este programa todavía no tiene bloques cargados.</p>';
-  return;
-}
-
-/*
-  CASO 1:
-  El entrenamiento ya fue terminado.
-*/
-if (currentTrainingLog && currentTrainingLog.is_finished) {
-  el.innerHTML = summaryHtml;
-  renderTrainingCompletedState();
-  return;
-}
-
-let html = summaryHtml;
-
-if (clientTrainingSessions.length > 1) {
-  html += '<div class="training-day-tabs">';
-  clientTrainingSessions.forEach(function(session, index) {
-    const sessionId = String(session.id);
-    const activeClass = index === 0 ? ' active' : '';
-    html += '<button class="training-day-tab' + activeClass + '" data-session-id="' + sessionId + '" onclick="showTrainingDay(\'' + sessionId + '\')">'
-      + getSessionDayLabel(session, index)
-      + '</button>';
-  });
-  html += '</div>';
-
-  clientTrainingSessions.forEach(function(session, index) {
-    const sessionId = String(session.id);
-    const activeClass = index === 0 ? ' active' : '';
-    const sessionSteps = buildTrainingSteps(sessionId);
-
-    html += '<div class="training-day-panel' + activeClass + '" data-session-id="' + sessionId + '">';
-    html += '<div class="training-step-list">';
-
-    sessionSteps.forEach(function(step, stepIndex) {
-      html += buildTrainingStepHTML(step, stepIndex);
-    });
-
-    html += '</div>';
-    html += '</div>';
-  });
-
-} else {
-  html += '<div class="training-step-list" id="trainingStepList">';
-  allSteps.forEach(function(step, index) {
-    html += buildTrainingStepHTML(step, index);
-  });
-  html += '</div>';
-}
-
-html += '<div id="trainingCompletionArea"></div>';
-  
-  el.innerHTML = html;
-
-  applySavedTrainingState();
-
-  const firstPending = allSteps.find(function(step) {
-  return !completedTrainingBlocks.has(step.blockId);
-});
-
-  if (firstPending) {
-    activeTrainingBlockKey = firstPending.blockId;
-    var card = document.getElementById('step-' + firstPending.blockId);
-    if (card) card.classList.add('open');
-  } else {
-    renderTrainingCompletionBox(false);
-  }
-}
-
-/** Returns the HTML string for one training step card */
-function buildTrainingStepHTML(step, index) {
-  var blockId   = step.blockId;
-  var block     = step.block;
-  var exercises = step.exercises;
-  var blockNum  = block.block_order || (index + 1);
-
-  var metaParts = [block.duration, block.type].filter(Boolean);
-
-  var html = '';
-
-  /* Session separator */
-  if (step.sessionSeparator) {
-    html += '<div class="training-session-separator">' + step.sessionSeparator + '</div>';
-  }
-
-  html += '<div class="training-step-card" id="step-' + blockId + '">'
-    /* Header */
-    + '<button class="training-step-header" onclick="toggleTrainingStep(\'' + blockId + '\')">'
-    +   '<div class="training-step-number">' + blockNum + '</div>'
-    +   '<div class="training-step-info">'
-    +     '<div class="training-step-title">' + (block.title || block.name || 'Bloque') + '</div>'
-    +     (metaParts.length ? '<div class="training-step-meta">' + metaParts.join(' · ') + '</div>' : '')
-    +   '</div>'
-    +   '<div class="training-step-status" id="status-' + blockId + '">Pendiente</div>'
-    + '</button>'
-    /* Body */
-    + '<div class="training-step-body">'
-    + (block.objective ? '<div class="training-step-objective">' + block.objective + '</div>' : '');
-
-  /* Exercises */
-  exercises.forEach(function(ex) {
-    html += buildExerciseHTML(ex);
-  });
-
-  if (!exercises.length) {
-    html += '<p class="empty-state" style="margin-top:12px;">Este bloque todavía no tiene ejercicios registrados.</p>';
-  }
-
-  /* Complete button */
-  html += '<button class="training-complete-block-btn" id="completeBtn-' + blockId + '" onclick="completeTrainingStep(\'' + blockId + '\')">'
-    +   'Marcar bloque terminado'
-    + '</button>'
-    + '</div>'
-    + '</div>';
-
-  return html;
-}
-
-function applySavedTrainingState() {
-  completedTrainingBlocks.forEach(function(blockId) {
-    markStepVisualAsCompleted(blockId);
-  });
-}
-
-function markStepVisualAsCompleted(blockId) {
-  var card = document.getElementById('step-' + blockId);
-  if (!card) return;
-
-  card.classList.remove('open');
-  card.classList.add('completed');
-
-  var numEl = card.querySelector('.training-step-number');
-  if (numEl) numEl.textContent = '✓';
-
-  var statusEl = document.getElementById('status-' + blockId);
-  if (statusEl) {
-    statusEl.textContent = 'Completado';
-    statusEl.classList.add('done');
-  }
-
-  var btn = document.getElementById('completeBtn-' + blockId);
-  if (btn) {
-    var doneMsg = document.createElement('div');
-    doneMsg.className = 'training-step-done-msg';
-    doneMsg.textContent = '✓ Bloque completado';
-    btn.replaceWith(doneMsg);
-  }
-}
-
-function getAssignedTrainingLevel() {
-  const rawLevel =
-    clientTrainingAssignment?.assigned_level ||
-    clientTrainingProgram?.level ||
-    'N1';
-
-  const level = String(rawLevel).trim().toUpperCase();
-
-  if (['N1', 'N2', 'N3', 'N4'].includes(level)) return level;
-
-  return 'N1';
-}
-
-function getExerciseVariantByLevel(ex) {
-  const level = getAssignedTrainingLevel();
-
-  if (level === 'N1') return ex.variant_n1 || '';
-  if (level === 'N2') return ex.variant_n2 || '';
-  if (level === 'N3') return ex.variant_n3 || '';
-  if (level === 'N4') return ex.variant_n4 || '';
-
-  return ex.variant_n1 || '';
-}
-
-/** Returns the HTML string for one exercise */
-function buildExerciseHTML(ex) {
-  const assignedLevel = getAssignedTrainingLevel();
-  const levelVariant  = getExerciseVariantByLevel(ex);
-
-  var stats = [
-    ex.sets ? { label: 'Series',   value: ex.sets } : null,
-    ex.reps ? { label: 'Reps',     value: ex.reps } : null,
-    ex.time ? { label: 'Tiempo',   value: ex.time } : null,
-    ex.rest ? { label: 'Descanso', value: ex.rest } : null
-  ].filter(Boolean);
-
-  var html = '<div class="training-exercise-card">'
-    + '<div class="training-exercise-title">'
-    + (ex.exercise_order ? '<span class="training-ex-num">' + ex.exercise_order + '.</span>' : '')
-    + (ex.name || ex.title || 'Ejercicio')
-    + '</div>';
-
-  if (stats.length) {
-    html += '<div class="training-exercise-grid">';
-    stats.forEach(function(s) {
-      html += '<div class="training-mini-stat">'
-        + '<span class="training-mini-label">' + s.label + '</span>'
-        + '<div class="training-mini-value">' + s.value + '</div>'
-        + '</div>';
-    });
-    html += '</div>';
-  }
-
-  html += '<div class="training-level-tag">Nivel ' + assignedLevel + '</div>';
-
-  if (levelVariant) {
-    html += '<div class="training-instruction"><strong>Trabajo indicado</strong>' + levelVariant + '</div>';
-  }
-
-  if (ex.description) {
-    html += '<div class="training-instruction"><strong>Cómo hacerlo</strong>' + ex.description + '</div>';
-  }
-
-  if (ex.coaching_notes || ex.coach_notes) {
-    html += '<div class="training-coach-note">Coach: ' + (ex.coaching_notes || ex.coach_notes) + '</div>';
-  }
-
-  if (ex.video_url) {
-    html += '<a href="' + ex.video_url + '" target="_blank" class="training-video-btn">&#9654; Ver referencia</a>';
-  }
-
-  html += '</div>';
-  return html;
-}
-
-/** Toggle open/close a step. Only one step open at a time. */
-function toggleTrainingStep(blockId) {
-  var card = document.getElementById('step-' + blockId);
-  if (!card) return;
-
-  if (activeTrainingBlockKey === blockId) {
-    /* Close */
-    card.classList.remove('open');
-    activeTrainingBlockKey = null;
-  } else {
-    /* Close previous */
-    if (activeTrainingBlockKey) {
-      var prev = document.getElementById('step-' + activeTrainingBlockKey);
-      if (prev) prev.classList.remove('open');
-    }
-    /* Open this */
-    activeTrainingBlockKey = blockId;
-    card.classList.add('open');
-  }
-}
-
-/** Marks a step as completed, closes it and opens the next pending step. */
-async function completeTrainingStep(blockId) {
-  completedTrainingBlocks.add(blockId);
-
-  saveTrainingProgressLocal();
-
-  markStepVisualAsCompleted(blockId);
-
-  await saveTrainingProgress();
-
-  activeTrainingBlockKey = null;
-
-  if (isTrainingComplete()) {
-    renderTrainingCompletionBox(false);
-    return;
-  }
-
-  var steps = buildTrainingSteps();
-  var nextStep = null;
-
-  for (var i = 0; i < steps.length; i++) {
-    if (!completedTrainingBlocks.has(steps[i].blockId)) {
-      nextStep = steps[i];
-      break;
-    }
-  }
-
-  if (nextStep) {
-    activeTrainingBlockKey = nextStep.blockId;
-    var nextCard = document.getElementById('step-' + nextStep.blockId);
-    if (nextCard) {
-      nextCard.classList.add('open');
-      setTimeout(function() {
-        nextCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 180);
-    }
-  }
-}
-
-/** Returns true when every step has been completed. */
-function isTrainingComplete() {
-  var steps = buildTrainingSteps();
-  if (!steps.length) return false;
-  return steps.every(function(s) { return completedTrainingBlocks.has(s.blockId); });
-}
-
-/** Renders the completion card inside trainingCompletionArea. */
-function renderTrainingCompletionBox(scrollToBox) {
-  var area = document.getElementById('trainingCompletionArea');
-  if (!area) return;
-
-  area.innerHTML = '<div class="training-finish-card" id="trainingFinishCard">'
-    + '<div class="training-finish-icon">🏁</div>'
-    + '<div class="training-finish-title">Entrenamiento completado</div>'
-    + '<div class="training-finish-sub">Has completado todos los bloques del día. ¡Buen trabajo!</div>'
-    + '<button class="training-complete-block-btn" onclick="finishTrainingSession()">Marcar entrenamiento terminado</button>'
-    + '</div>';
-
-  if (scrollToBox !== false) {
-    area.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
-
-async function finishTrainingSession() {
-  saveTrainingProgressLocal({
-    is_finished: true,
-    finished_at: new Date().toISOString()
-  });
-
-  await saveTrainingProgress({
-    is_finished: true,
-    finished_at: new Date().toISOString()
-  });
-
-  const el = document.getElementById('sectionTrainingClient');
-
-  if (el) {
-    const currentWeekNum = getAssignedWeekNumber();
-    const activeWeek = getActiveTrainingWeek();
-    const levelStr = getAssignedTrainingLevel();
-    const weekName = activeWeek ? activeWeek.name : '';
-
-    const scopeLabel = getAssignmentScopeLabel();
-
-const metaParts = [
-  scopeLabel,
-  levelStr
-].filter(Boolean);
-
-    const objective = (activeWeek && activeWeek.objective)
-      ? activeWeek.objective
-      : (clientTrainingProgram.objective || '');
-
-    const summaryHtml = '<div class="training-guide-summary">'
-      + '<div class="training-guide-title">' + (clientTrainingProgram.name || 'Programa de entrenamiento') + '</div>'
-      + '<div class="training-guide-meta">' + metaParts.join(' · ') + '</div>'
-      + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
-      + '</div>';
-
-    el.innerHTML = summaryHtml;
-  }
-
-  renderTrainingCompletedState();
-}
-
-function renderTrainingCompletedState() {
-  var el = document.getElementById('sectionTrainingClient');
-  if (!el) return;
-
-  var savedNote = currentTrainingLog && currentTrainingLog.client_note
-    ? currentTrainingLog.client_note
-    : '';
-
-  var finishedDate = currentTrainingLog && currentTrainingLog.finished_at
-    ? formatDate(String(currentTrainingLog.finished_at).slice(0, 10))
-    : formatDate(todayISO());
-
-  var html = '';
-
-  html += '<div class="training-finish-card" id="trainingFinishCard">'
-    + '<div class="training-finish-icon">🏁</div>'
-    + '<div class="training-finish-title">Entrenamiento completado</div>'
-    + '<div class="training-finish-sub">Tu sesión quedó registrada el ' + finishedDate + '. Abel revisará tus notas y ajustará lo necesario para la próxima sesión.</div>';
-
-  if (savedNote) {
-    html += '<div class="training-notes-box" style="text-align:left;margin-top:16px;">'
-      + '<div class="training-notes-title">Nota enviada</div>'
-      + '<div class="training-notes-sub" style="margin-bottom:0;">' + savedNote + '</div>'
-      + '</div>';
-  } else {
-    html += '<div class="training-notes-box" style="text-align:left;margin-top:16px;">'
-      + '<div class="training-notes-title">Notas del entrenamiento</div>'
-      + '<div class="training-notes-sub">No dejaste nota en esta sesión.</div>'
-      + '<button class="training-complete-block-btn" onclick="showTrainingNotes(false)">Agregar nota</button>'
-      + '</div>';
-  }
-
-  html += '<button class="client-action-btn" style="margin-top:16px;" onclick="toggleCompletedTrainingDetails()">'
-    + 'Ver detalles del entrenamiento realizado'
-    + '</button>';
-
-  html += '</div>';
-
-  html += '<div id="trainingCompletedDetails" class="hidden" style="margin-top:14px;">'
-    + '<div class="training-step-list" id="trainingStepList">';
-
-  var steps = buildTrainingSteps();
-
-if (clientTrainingSessions.length > 1) {
-  html += '<div class="training-day-tabs">';
-  clientTrainingSessions.forEach(function(session, index) {
-    const sessionId = String(session.id);
-    const activeClass = index === 0 ? ' active' : '';
-    html += '<button class="training-day-tab' + activeClass + '" data-session-id="' + sessionId + '" onclick="showTrainingDay(\'' + sessionId + '\')">'
-      + getSessionDayLabel(session, index)
-      + '</button>';
-  });
-  html += '</div>';
-
-  clientTrainingSessions.forEach(function(session, index) {
-    const sessionId = String(session.id);
-    const activeClass = index === 0 ? ' active' : '';
-    const sessionSteps = buildTrainingSteps(sessionId);
-
-    html += '<div class="training-day-panel' + activeClass + '" data-session-id="' + sessionId + '">';
-    html += '<div class="training-step-list">';
-
-    sessionSteps.forEach(function(step, stepIndex) {
-      html += buildTrainingStepHTML(step, stepIndex);
-    });
-
-    html += '</div></div>';
-  });
-
-} else {
-  steps.forEach(function(step, index) {
-    html += buildTrainingStepHTML(step, index);
-  });
-}
-
-  html += '</div></div>';
-
-  html += '<div id="trainingCompletionArea"></div>';
-
-  el.insertAdjacentHTML('beforeend', html);
-
-  completedTrainingBlocks = new Set(
-    currentTrainingLog && currentTrainingLog.completed_block_ids
-      ? currentTrainingLog.completed_block_ids
-      : steps.map(function(s) { return s.blockId; })
-  );
-
-  applySavedTrainingState();
-}
-
-function toggleCompletedTrainingDetails() {
-  var details = document.getElementById('trainingCompletedDetails');
-  if (!details) return;
-
-  details.classList.toggle('hidden');
-
-  if (!details.classList.contains('hidden')) {
-    details.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
-
-/** Hides the finish button and shows the notes textarea. */
-function showTrainingNotes(keepSavedNote) {
-  var area = document.getElementById('trainingCompletionArea');
-  if (!area) return;
-
-  var oldBox = document.getElementById('trainingNotesBox');
-  if (oldBox) oldBox.remove();
-
-  var savedNote = currentTrainingLog && currentTrainingLog.client_note
-    ? currentTrainingLog.client_note
-    : '';
-
-  var notesDiv = document.createElement('div');
-  notesDiv.className = 'training-notes-box';
-  notesDiv.id = 'trainingNotesBox';
-
-  notesDiv.innerHTML = '<div class="training-notes-title">Notas del entrenamiento</div>'
-    + '<div class="training-notes-sub">Si tuviste alguna molestia, dificultad o algo que Abel deba revisar, déjalo aquí.</div>'
-    + '<textarea class="training-notes-textarea" id="trainingNoteText" placeholder="Ej: sentí molestia en la rodilla derecha durante las sentadillas…">' + savedNote + '</textarea>'
-    + '<button class="training-complete-block-btn" id="saveNoteBtn" onclick="saveTrainingNote()">Guardar nota</button>'
-    + '<div id="trainingNoteSaved" class="training-note-saved ' + (savedNote ? '' : 'hidden') + '">Nota registrada para revisar con Abel.</div>';
-
-  area.appendChild(notesDiv);
-
-  if (keepSavedNote !== true) {
-    notesDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
-
-/** Saves the note (in-memory only, shows confirmation message). */
-async function saveTrainingNote() {
-  var textarea = document.getElementById('trainingNoteText');
-  var saved    = document.getElementById('trainingNoteSaved');
-  var btn      = document.getElementById('saveNoteBtn');
-
-  var note = textarea ? textarea.value.trim() : '';
-
-  if (!note) {
-    alert('Escribe una nota antes de guardar.');
-    return;
-  }
-
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = 'Guardando...';
-  }
-
-  saveTrainingProgressLocal({
-    client_note: note
-  });
-
-  await saveTrainingProgress({
-    client_note: note
-  });
-
- if (saved) saved.classList.remove('hidden');
-
-if (btn) {
-  btn.disabled = false;
-  btn.textContent = 'Guardar nota';
-}
-
-const el = document.getElementById('sectionTrainingClient');
-
-if (el) {
-  const activeWeek = getActiveTrainingWeek();
-  const levelStr = getAssignedTrainingLevel();
-  const scopeLabel = getAssignmentScopeLabel();
-
-  const metaParts = [
-    scopeLabel,
-    levelStr
-  ].filter(Boolean);
-
-  const objective = (activeWeek && activeWeek.objective)
-    ? activeWeek.objective
-    : (clientTrainingProgram.objective || '');
-
-  const summaryHtml = '<div class="training-guide-summary">'
-    + '<div class="training-guide-title">' + (clientTrainingProgram.name || 'Programa de entrenamiento') + '</div>'
-    + '<div class="training-guide-meta">' + metaParts.join(' · ') + '</div>'
-    + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
-    + '</div>';
-
-  el.innerHTML = summaryHtml;
-}
-
-renderTrainingCompletedState();
-
-/* ════════════════════════════════════════════════════════════
-   OTHER RENDER FUNCTIONS (unchanged)
-════════════════════════════════════════════════════════════ */
-
+/** Reservas */
 function renderReservations() {
-  var el    = document.getElementById('sectionReservations');
-  var badge = document.getElementById('reservationsBadge');
-  if (!el) return;
-  if (badge) badge.textContent = clientReservations.length;
+  const el    = document.getElementById('sectionReservations');
+  const badge = document.getElementById('reservationsBadge');
+  badge.textContent = clientReservations.length;
 
   if (!clientReservations.length) {
-    el.innerHTML = '<p class="empty-state">Todavía no tienes reservas registradas.</p>'
-      + '<div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero solicitar una nueva reserva de entrenamiento.\')">Solicitar nueva reserva</button></div>';
+    el.innerHTML = '<p class="empty-state">Todavía no tienes reservas registradas.</p>';
     return;
   }
 
-  var today    = todayISO();
-  var upcoming = clientReservations.filter(function(r) {
-    return String(r.date).slice(0,10) >= today && !['cancelada','cancelado'].includes((r.status||'').toLowerCase());
-  });
-  var past = clientReservations.filter(function(r) {
-    return String(r.date).slice(0,10) < today || ['cancelada','cancelado'].includes((r.status||'').toLowerCase());
-  });
-
-  var html = '';
-  if (upcoming.length) {
-    var next = upcoming[0];
-    html += '<div class="data-card next-session">'
-      + '<div class="next-label">Próxima sesión</div>'
-      + '<div class="dc-row"><span class="dc-title">' + (next.type||'Sesión') + '</span>' + genericBadge(next.status) + '</div>'
-      + '<div class="dc-row">'
-      +   '<span class="dc-sub">📅 ' + formatDate(next.date) + '</span>'
-      +   (next.time  ? '<span class="dc-sub">🕐 ' + formatTime(next.time) + '</span>' : '')
-      +   (next.place ? '<span class="dc-sub">📍 ' + next.place + '</span>' : '')
-      + '</div>'
-      + (next.note ? '<div class="dc-note">' + next.note + '</div>' : '')
-      + '</div>';
-    upcoming.slice(1).forEach(function(r) { html += reservationCard(r); });
-  }
-  past.forEach(function(r) { html += reservationCard(r); });
-  html += '<div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero solicitar una nueva reserva de entrenamiento.\')">Solicitar nueva reserva</button></div>';
-  el.innerHTML = html;
+  el.innerHTML = clientReservations.map(r => `
+    <div class="data-card">
+      <div class="dc-row">
+        <span class="dc-title">${r.type || 'Sesión'}</span>
+        ${genericBadge(r.status)}
+      </div>
+      <div class="dc-row">
+        <span class="dc-sub">📅 ${formatDate(r.date)}</span>
+        ${r.time ? `<span class="dc-sub">🕐 ${r.time}</span>` : ''}
+        ${r.place ? `<span class="dc-sub">📍 ${r.place}</span>` : ''}
+      </div>
+      ${r.note ? `<div class="dc-note">${r.note}</div>` : ''}
+    </div>
+  `).join('');
 }
 
-function reservationCard(r) {
-  return '<div class="data-card">'
-    + '<div class="dc-row"><span class="dc-title">' + (r.type||'Sesión') + '</span>' + genericBadge(r.status) + '</div>'
-    + '<div class="dc-row">'
-    +   '<span class="dc-sub">📅 ' + formatDate(r.date) + '</span>'
-    +   (r.time  ? '<span class="dc-sub">🕐 ' + formatTime(r.time) + '</span>' : '')
-    +   (r.place ? '<span class="dc-sub">📍 ' + r.place + '</span>' : '')
-    + '</div>'
-    + (r.note ? '<div class="dc-note">' + r.note + '</div>' : '')
-    + '</div>';
-}
-
+/** Pagos */
 function renderPayments() {
-  var el    = document.getElementById('sectionPayments');
-  var badge = document.getElementById('paymentsBadge');
-  if (!el) return;
-  if (badge) badge.textContent = clientPayments.length;
-  if (!clientPayments.length) { el.innerHTML = '<p class="empty-state">No hay pagos registrados.</p>'; return; }
-  el.innerHTML = clientPayments.map(function(p) {
-    return '<div class="data-card">'
-      + '<div class="dc-row"><span class="dc-title">' + (p.concept||'Pago') + '</span>' + paymentBadge(p.status) + '</div>'
-      + '<div class="dc-row">'
-      +   '<span class="dc-sub">' + formatMoney(p.amount, p.currency) + '</span>'
-      +   (p.due_date ? '<span class="dc-sub">Vence: ' + formatDate(p.due_date) + '</span>' : '')
-      +   (p.method   ? '<span class="dc-meta">' + p.method + '</span>' : '')
-      + '</div>'
-      + (p.note ? '<div class="dc-note">' + p.note + '</div>' : '')
-      + '</div>';
-  }).join('');
-}
+  const el    = document.getElementById('sectionPayments');
+  const badge = document.getElementById('paymentsBadge');
+  badge.textContent = clientPayments.length;
 
-function renderHealthAlerts() {
-  var el    = document.getElementById('sectionHealth');
-  var badge = document.getElementById('alertsBadge');
-  if (!el) return;
-  if (badge) badge.textContent = clientAlerts.length;
-  if (!clientAlerts.length) { el.innerHTML = '<p class="empty-state">No hay indicaciones de salud registradas.</p>'; return; }
-  el.innerHTML = clientAlerts.map(function(a) {
-    return '<div class="data-card">'
-      + '<div class="dc-row">' + genericBadge(a.status) + '<span class="dc-sub">' + formatDate(a.date) + '</span></div>'
-      + (a.detail ? '<div style="margin-top:8px;font-size:14px;color:var(--white);line-height:1.6;">' + a.detail + '</div>' : '')
-      + '</div>';
-  }).join('');
-}
-
-function renderNotes() {
-  var el = document.getElementById('sectionNotes');
-  if (!el) return;
-  var raw = clientData.notes;
-  if (!raw || raw === '' || raw === '[]' || raw === 'null') {
-    el.innerHTML = '<p class="empty-state">Todavía no hay notas del coach.</p>'; return;
-  }
-  var notes = [];
-  if (Array.isArray(raw)) { notes = raw; }
-  else if (typeof raw === 'string') {
-    try { var p = JSON.parse(raw); notes = Array.isArray(p) ? p : [raw]; } catch { notes = [raw]; }
-  }
-  notes = notes.map(function(n) {
-    if (typeof n === 'string') return n.trim();
-    if (typeof n === 'object' && n) return String(n.text || n.note || n.message || '').trim();
-    return '';
-  }).filter(Boolean);
-  el.innerHTML = notes.length
-    ? notes.map(function(n) { return '<div class="note-item">' + n + '</div>'; }).join('')
-    : '<p class="empty-state">Todavía no hay notas del coach.</p>';
-}
-
-function renderProgressCircles() {
-  var el    = document.getElementById('sectionProgressCircles');
-  var badge = document.getElementById('progressCircleBadge');
-  if (!el) return;
-  if (!clientMetrics.length) {
-    if (badge) badge.textContent = '0';
-    el.innerHTML = '<p class="empty-state">Todavía no hay métricas suficientes para mostrar progreso visual.</p>';
+  if (!clientPayments.length) {
+    el.innerHTML = '<p class="empty-state">No hay pagos registrados.</p>';
     return;
   }
 
-  var grouped = {};
-  clientMetrics.forEach(function(m) {
-    var key = String(m.type || 'Métrica').trim();
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push({ value: m.value, unit: m.unit, note: m.note, numericValue: Number(m.value||0), dateKey: String(m.date||'').slice(0,10) });
-  });
-
-  var circles = Object.keys(grouped).map(function(type) {
-    var list = grouped[type].slice().sort(function(a,b) { return String(b.dateKey).localeCompare(String(a.dateKey)); });
-    var latest = list[0], first = list[list.length-1];
-    var current = Number(latest.numericValue||0), start = Number(first.numericValue||0);
-    var percent = 0, note = '';
-    var t = type.toLowerCase();
-
-    if (t.includes('peso')) {
-      var diff = start - current;
-      percent = Math.round(Math.min(100, Math.max(0, (diff / Math.max(Math.abs(start*.05),1)) * 100)));
-      note = diff > 0 ? 'Bajó ' + Math.abs(diff).toFixed(1) + ' ' + (latest.unit||'kg')
-           : diff < 0 ? 'Subió ' + Math.abs(diff).toFixed(1) + ' ' + (latest.unit||'kg')
-           : 'Sin cambio todavía';
-    } else if (t.includes('asistencia')||t.includes('adherencia')||t.includes('%')) {
-      percent = Math.round(Math.min(100, Math.max(0, current))); note = percent + '% registrado';
-    } else if (['fuerza','movilidad','resistencia','energía','dolor','sueño'].some(function(k){ return t.includes(k); })) {
-      percent = Math.round(Math.min(100, Math.max(0, (current/10)*100))); note = current + '/10';
-    } else {
-      if (start > 0) {
-        var d2 = current - start;
-        percent = Math.round(Math.min(100, Math.max(0, (current/start)*100)));
-        note = d2 >= 0 ? '+' + d2.toFixed(1) + ' desde inicio' : d2.toFixed(1) + ' desde inicio';
-      } else {
-        percent = Math.round(Math.min(100, Math.max(0, current))); note = 'Último registro';
-      }
-    }
-    return { type: type, current: current, unit: latest.unit||'', percent: percent, note: note };
-  });
-
-  if (badge) badge.textContent = circles.length;
-  el.innerHTML = '<div class="progress-grid">'
-    + circles.map(function(c) {
-        return '<div class="progress-circle-card">'
-          + '<div class="progress-ring" style="--p:' + c.percent + '"><span>' + c.percent + '%</span></div>'
-          + '<div class="progress-circle-label">' + c.type + '</div>'
-          + '<div class="progress-circle-value">' + c.current + (c.unit ? ' ' + c.unit : '') + '</div>'
-          + '<div class="progress-circle-note">' + c.note + '</div>'
-          + '</div>';
-      }).join('')
-    + '</div>';
+  el.innerHTML = clientPayments.map(p => `
+    <div class="data-card">
+      <div class="dc-row">
+        <span class="dc-title">${p.concept || 'Pago'}</span>
+        ${paymentBadge(p.status)}
+      </div>
+      <div class="dc-row">
+        <span class="dc-sub">${formatMoney(p.amount, p.currency)}</span>
+        ${p.due_date ? `<span class="dc-sub">Vence: ${formatDate(p.due_date)}</span>` : ''}
+        ${p.method ? `<span class="dc-meta">${p.method}</span>` : ''}
+      </div>
+      ${p.note ? `<div class="dc-note">${p.note}</div>` : ''}
+    </div>
+  `).join('');
 }
 
-function renderClientData() {
-  var el    = document.getElementById('sectionClientData');
-  var badge = document.getElementById('clientDataBadge');
-  if (!el || !clientData) return;
-  if (badge) badge.textContent = clientData.status || 'Perfil';
+/** Métricas / Progreso */
+function renderMetrics() {
+  const el    = document.getElementById('sectionMetrics');
+  const badge = document.getElementById('metricsBadge');
+  badge.textContent = clientMetrics.length;
 
-  var totalRes     = clientReservations.length;
-  var completedRes = clientReservations.filter(function(r) { return ['realizada','completada','confirmada'].includes((r.status||'').toLowerCase()); }).length;
-  var pendingPay   = clientPayments.filter(function(p) { return ['pendiente','vencido'].includes((p.status||'').toLowerCase()); }).length;
-  var lastMetric   = clientMetrics[0];
-
-  el.innerHTML = '<div class="accordion-block open">'
-    + '<button class="accordion-title" onclick="toggleAccordion(this)">'
-    +   '<span>Perfil básico</span><span class="accordion-symbol">−</span>'
-    + '</button>'
-    + '<div class="accordion-content">'
-    +   '<div class="plan-grid" style="margin-top:12px;">'
-    +     '<div class="plan-item"><div class="pi-label">Nombre</div><div class="pi-value">'   + (clientData.name ||'—') + '</div></div>'
-    +     '<div class="plan-item"><div class="pi-label">Teléfono</div><div class="pi-value">' + (clientData.phone||'—') + '</div></div>'
-    +     '<div class="plan-item"><div class="pi-label">Email</div><div class="pi-value">'    + (clientData.email||'—') + '</div></div>'
-    +     '<div class="plan-item"><div class="pi-label">Ciudad</div><div class="pi-value">'   + (clientData.city ||'—') + '</div></div>'
-    +   '</div>'
-    + '</div>'
-    + '</div>'
-    + '<div class="accordion-block">'
-    + '<button class="accordion-title" onclick="toggleAccordion(this)">'
-    +   '<span>Entrenamiento</span><span class="accordion-symbol">+</span>'
-    + '</button>'
-    + '<div class="accordion-content">'
-    +   '<div class="plan-grid" style="margin-top:12px;">'
-    +     '<div class="plan-item"><div class="pi-label">Estado</div><div class="pi-value">' + (clientData.status||'—') + '</div></div>'
-    +     '<div class="plan-item"><div class="pi-label">Plan</div><div class="pi-value">'   + (clientData.plan||'—')   + '</div></div>'
-    +     '<div class="plan-item full"><div class="pi-label">Objetivo principal</div><div class="pi-value">' + (clientData.objective||'Sin objetivo registrado') + '</div></div>'
-    +     '<div class="plan-item full"><div class="pi-label">Objetivo nutricional</div><div class="pi-value">' + (clientData.nutrition_objective||'Sin objetivo nutricional registrado') + '</div></div>'
-    +   '</div>'
-    + '</div>'
-    + '</div>'
-    + '<div class="accordion-block">'
-    + '<button class="accordion-title" onclick="toggleAccordion(this)">'
-    +   '<span>Resumen del proceso</span><span class="accordion-symbol">+</span>'
-    + '</button>'
-    + '<div class="accordion-content">'
-    +   '<div class="plan-grid" style="margin-top:12px;">'
-    +     '<div class="plan-item"><div class="pi-label">Reservas registradas</div><div class="pi-value">' + totalRes     + '</div></div>'
-    +     '<div class="plan-item"><div class="pi-label">Sesiones realizadas</div><div class="pi-value">'  + completedRes + '</div></div>'
-    +     '<div class="plan-item"><div class="pi-label">Pagos pendientes</div><div class="pi-value">'     + pendingPay   + '</div></div>'
-    +     '<div class="plan-item"><div class="pi-label">Última métrica</div><div class="pi-value">'
-    +       (lastMetric ? (lastMetric.type||'Métrica') + ': ' + lastMetric.value + (lastMetric.unit ? ' ' + lastMetric.unit : '') : 'Sin métricas registradas')
-    +     '</div></div>'
-    +   '</div>'
-    + '</div>'
-    + '</div>';
-}
-
-/* ── NAVIGATION ──────────────────────────────────────────── */
-function goClientSection(sectionId) {
-  document.querySelectorAll('.dash-main .section').forEach(function(s) { s.classList.add('section-hidden'); });
-  var target = document.getElementById(sectionId);
-  if (!target) return;
-  target.classList.remove('section-hidden');
-
-  document.querySelectorAll('.client-nav button').forEach(function(b) { b.classList.remove('active'); });
-  var activeBtn = Array.from(document.querySelectorAll('.client-nav button'))
-    .find(function(b) { return b.getAttribute('onclick')?.includes(sectionId); });
-  if (activeBtn) {
-    activeBtn.classList.add('active');
-    activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  if (!clientMetrics.length) {
+    el.innerHTML = '<p class="empty-state">Todavía no hay métricas registradas.</p>';
+    return;
   }
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  el.innerHTML = clientMetrics.map(m => `
+    <div class="data-card">
+      <div class="dc-row">
+        <span class="dc-title">${m.type || '—'}</span>
+        <span class="dc-sub">${formatDate(m.date)}</span>
+      </div>
+      <div class="dc-row">
+        <span class="mc-value" style="font-size:18px;font-family:var(--font-title);">
+          ${m.value}${m.unit ? ' ' + m.unit : ''}
+        </span>
+      </div>
+      ${m.note ? `<div class="dc-note">${m.note}</div>` : ''}
+    </div>
+  `).join('');
 }
 
-function toggleAccordion(button) {
-  var block = button.closest('.accordion-block');
-  if (!block) return;
-  var symbol = block.querySelector('.accordion-symbol');
-  var isOpen = block.classList.contains('open');
-  block.classList.toggle('open', !isOpen);
-  if (symbol) symbol.textContent = isOpen ? '+' : '−';
+/** Alertas de salud */
+function renderHealthAlerts() {
+  const el    = document.getElementById('sectionHealth');
+  const badge = document.getElementById('alertsBadge');
+  badge.textContent = clientAlerts.length;
+
+  if (!clientAlerts.length) {
+    el.innerHTML = '<p class="empty-state">No hay indicaciones de salud registradas.</p>';
+    return;
+  }
+
+  el.innerHTML = clientAlerts.map(a => `
+    <div class="data-card">
+      <div class="dc-row">
+        ${genericBadge(a.status)}
+        <span class="dc-sub">${formatDate(a.date)}</span>
+      </div>
+      ${a.detail ? `<div style="margin-top:6px;font-size:14px;color:var(--white);">${a.detail}</div>` : ''}
+    </div>
+  `).join('');
 }
 
-/* ── EVENTS ──────────────────────────────────────────────── */
-document.getElementById('btnLogin') ?.addEventListener('click', loginClient);
-document.getElementById('btnLogout')?.addEventListener('click', logoutClient);
-['inputPhone','inputCode'].forEach(function(id) {
-  document.getElementById(id)?.addEventListener('keydown', function(e) { if (e.key === 'Enter') loginClient(); });
-});
+/** Notas del coach — maneja JSON array o texto plano */
+function renderNotes() {
+  const el  = document.getElementById('sectionNotes');
+  const raw = clientData.notes;
 
-/* ── INIT ────────────────────────────────────────────────── */
+  if (!raw || raw === '' || raw === '[]' || raw === 'null') {
+    el.innerHTML = '<p class="empty-state">Todavía no hay notas del coach.</p>';
+    return;
+  }
+
+  // Intentar parsear como JSON
+  let notes = null;
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) notes = parsed;
+    } catch (_) { /* no es JSON */ }
+  } else if (Array.isArray(raw)) {
+    notes = raw;
+  }
+
+  if (notes && notes.length) {
+    el.innerHTML = notes.map(n =>
+      `<div class="note-item">${typeof n === 'object' ? JSON.stringify(n) : n}</div>`
+    ).join('');
+  } else {
+    // Texto plano
+    el.innerHTML = `<div class="note-item">${raw}</div>`;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   EVENTS
+════════════════════════════════════════════════════════════ */
+
+document.getElementById('btnLogin').addEventListener('click', loginClient);
+
+// Enter en cualquier campo del login dispara loginClient
+['inputPhone','inputCode'].forEach(id =>
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') loginClient();
+  })
+);
+
+document.getElementById('btnLogout').addEventListener('click', logoutClient);
+
+/* ════════════════════════════════════════════════════════════
+   INIT — comprobar sesión guardada al cargar
+════════════════════════════════════════════════════════════ */
 (async function init() {
-  var savedId = localStorage.getItem(LS_CLIENT_ID);
+  const savedId = localStorage.getItem(LS_KEY);
   if (savedId) {
-    document.getElementById('loginScreen')?.classList.add('hidden');
+    // Intentar cargar directamente sin mostrar login
+    document.getElementById('loginScreen').classList.add('hidden');
     await loadClientDashboard(savedId);
   }
 })();
+
 </script>
 </body>
 </html>
