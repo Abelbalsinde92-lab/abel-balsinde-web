@@ -1150,13 +1150,17 @@ async function renderClientTraining() {
 
   await loadOrCreateTrainingLog();
 
-  const currentWeekNum = getAssignedWeekNumber();
-  const activeWeek     = getActiveTrainingWeek();
+const activeWeek = getActiveTrainingWeek();
 
-  if (badge) badge.textContent = 'Semana ' + currentWeekNum;
+if (badge) badge.textContent = getAssignmentScopeLabel();
 
-  const levelStr = getAssignedTrainingLevel();
-  const weekName = activeWeek ? activeWeek.name : '';
+const levelStr = getAssignedTrainingLevel();
+const scopeLabel = getAssignmentScopeLabel();
+
+const metaParts = [
+  scopeLabel,
+  levelStr
+].filter(Boolean);
 
   const scopeLabel = getAssignmentScopeLabel();
 
@@ -1692,8 +1696,32 @@ if (btn) {
   btn.textContent = 'Guardar nota';
 }
 
-renderTrainingCompletedState();
+const el = document.getElementById('sectionTrainingClient');
+
+if (el) {
+  const activeWeek = getActiveTrainingWeek();
+  const levelStr = getAssignedTrainingLevel();
+  const scopeLabel = getAssignmentScopeLabel();
+
+  const metaParts = [
+    scopeLabel,
+    levelStr
+  ].filter(Boolean);
+
+  const objective = (activeWeek && activeWeek.objective)
+    ? activeWeek.objective
+    : (clientTrainingProgram.objective || '');
+
+  const summaryHtml = '<div class="training-guide-summary">'
+    + '<div class="training-guide-title">' + (clientTrainingProgram.name || 'Programa de entrenamiento') + '</div>'
+    + '<div class="training-guide-meta">' + metaParts.join(' · ') + '</div>'
+    + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
+    + '</div>';
+
+  el.innerHTML = summaryHtml;
 }
+
+renderTrainingCompletedState();
 
 /* ════════════════════════════════════════════════════════════
    OTHER RENDER FUNCTIONS (unchanged)
