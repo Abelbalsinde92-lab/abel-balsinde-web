@@ -2997,17 +2997,17 @@ async function saveModal(e){
   const notes = Array.from(form.querySelectorAll('[name="result_note[]"]')).map(x => x.value);
 
   const resultsPayload = itemIds.map((itemId, index) => ({
-    id: uid(),
-    assessment_id: assessmentId,
-    template_item_id: itemId,
-    exercise_name: exerciseNames[index] || '',
-    metric_type: metricTypes[index] || '',
-    unit: units[index] || '',
-    direction: directions[index] || 'neutral',
-    item_order: itemOrders[index] || index + 1,
-    result_value: values[index] || '',
-    result_note: notes[index] || ''
-  })).filter(r => r.result_value !== '' || r.result_note !== '');
+  id: uid(),
+  assessmentId: assessmentId,
+  templateItemId: itemId,
+  exerciseName: exerciseNames[index] || '',
+  metricType: metricTypes[index] || '',
+  unit: units[index] || '',
+  direction: directions[index] || 'neutral',
+  itemOrder: itemOrders[index] || index + 1,
+  resultValue: values[index] || '',
+  note: notes[index] || ''
+})).filter(r => r.resultValue !== '' || r.note !== '');
 
   let savedResults = [];
 
