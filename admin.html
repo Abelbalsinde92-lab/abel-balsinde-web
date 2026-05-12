@@ -388,7 +388,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="page-header"><div><div class="page-eyebrow">Gestión</div><div class="page-title">Clientes</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('client')">+ Nuevo cliente</button></div></div>
         <div class="search-bar"><span style="color:var(--gray2)">⌕</span><input id="clientSearch" type="text" placeholder="Buscar por nombre, teléfono, email, estado o plan…" oninput="renderClients()"></div>
         <div class="table-filters" style="margin-bottom:16px" id="clientFilters"></div>
-        <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Estado</th><th>Plan</th><th>Código acceso</th><th>Última sesión</th><th>Próxima reserva</th><th>Pago</th><th>Acciones</th></tr></thead><tbody id="clientsTable"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Estado</th><th>Plan</th><th>Código acceso</th><th>Última sesión</th>.  <th>Próxima reserva</th><th>Pago</th><th>Acciones</th></tr></thead><tbody id="clientsTable"></tbody></table></div>
       </div>
 
       <div class="page" id="page-perfil">
@@ -835,14 +835,12 @@ function renderAlertas(){
         <td><span class="badge badge-${badgeEstado}">${esc(estado)}</span></td>
         <td>${formatDate(String(a.createdAt || '').slice(0,10))}</td>
         <td>
-          <td>
   <div class="td-actions">
     ${!a.leidaAt ? `<button class="btn btn-primary btn-sm" onclick="marcarAlertaLeida('${a.id}')">Marcar leída</button>` : ''}
     ${a.estado !== 'resuelta' ? `<button class="btn btn-blue btn-sm" onclick="resolverAlerta('${a.id}')">Resolver</button>` : ''}
     ${a.clientPhone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(a.clientPhone)}','Hola ${esc((a.clientName||'').split(' ')[0]||'')}, vi tu nota sobre el entrenamiento. ¿Cómo te sientes ahora?')">WA</button>` : ''}
   </div>
 </td>
-        </td>
       </tr>
     `;
   }).join('') : emptyRow(7,'No hay alertas registradas todavía.');
@@ -927,7 +925,6 @@ document.getElementById('dashboardAlerts').innerHTML = alertList.length
       </div>
     `).join('')
   : emptyBlock('No hay alertas.');
-  document.getElementById('dashboardAlerts').innerHTML=alertList.length?alertList.slice(0,4).map(h=>{const c=clientById(h.clientId);return`<div class="data-row"><span>${esc(c?.name||'Sin cliente')} · ${esc(h.detail)}</span><button class="btn btn-secondary btn-sm" onclick="markHealthReviewed('${h.id}')">Revisado</button></div>`;}).join(''):emptyBlock('No hay alertas.');
   const payList=state.payments.filter(p=>p.status!=='pagado');
   document.getElementById('dashboardPayments').innerHTML=payList.length?payList.slice(0,4).map(p=>{const c=clientById(p.clientId);return`<div class="data-row"><span>${esc(c?.name||'Sin cliente')} · ${esc(p.concept)}</span><span style="color:var(--yellow)">${money(p.amount)}</span></div>`;}).join(''):emptyBlock('Sin pagos pendientes.');
 }
@@ -954,8 +951,9 @@ function renderClients(){
       <td><span class="badge badge-${paymentStatus}">${paymentStatus}</span></td>
       <td><div class="td-actions">
         <button class="btn btn-blue btn-sm" onclick="openProfile('${c.id}')">Ver perfil</button>
-        <button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(c.name.split(' ')[0]||c.name)}.')">WA</button>
-        <button class="btn btn-secondary btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
+<button class="btn btn-secondary btn-sm" onclick="copyClientLink('${c.id}')">Copiar link</button>
+<button class="btn btn-wa btn-sm" onclick="sendClientAccessWA('${c.id}')">Enviar acceso</button>
+<button class="btn btn-secondary btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
       </div></td>
     </tr>`;
   }).join(''):emptyRow(8,'No hay clientes registrados todavía.');
@@ -1156,6 +1154,48 @@ function renderSettings(){
   for(const[k,v]of Object.entries(state.settings)){const el=document.getElementById(k);if(el)el.value=v;}
 }
 
+function getClientAccessPath(client){
+  return client?.preferredLang === 'sr' ? '/cliente-sr.html' : '/cliente.html';
+}
+
+function getClientAccessUrl(client){
+  const origin = window.location.origin;
+  return origin + getClientAccessPath(client) + '?client=' + encodeURIComponent(client.id);
+}
+
+function copyClientLink(clientId){
+  const c = clientById(clientId);
+  if(!c){
+    showToast('Cliente no encontrado');
+    return;
+  }
+
+  const url = getClientAccessUrl(c);
+
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('Link del cliente copiado');
+  }).catch(() => {
+    prompt('Copia este link:', url);
+  });
+}
+
+function sendClientAccessWA(clientId){
+  const c = clientById(clientId);
+  if(!c){
+    showToast('Cliente no encontrado');
+    return;
+  }
+
+  const url = getClientAccessUrl(c);
+  const code = c.accessCode || '';
+
+  const msg = c.preferredLang === 'sr'
+    ? `Zdravo ${c.name?.split(' ')[0] || ''}, ovo je pristup tvojoj klijentskoj zoni AB SYSTEM:\n\n${url}\n\nTelefon: ${c.phone || ''}\nKod: ${code}`
+    : `Hola ${c.name?.split(' ')[0] || ''}, este es tu acceso al área cliente de AB SYSTEM:\n\n${url}\n\nTeléfono: ${c.phone || ''}\nCódigo: ${code}`;
+
+  openWA(c.phone || state.settings.coachPhone, msg);
+}
+
 function openProfile(id){ state.selectedClientId=id;showPage('perfil'); }
 function openPartner(url){ if(url)window.open(url,'_blank');else showToast('Partner sin URL registrada'); }
 function copyText(id){ navigator.clipboard.writeText(document.getElementById(id).textContent).then(()=>showToast('Mensaje copiado')); }
@@ -1191,7 +1231,7 @@ function openModal(type,id=null){
   if(clientRequired){title.textContent='Cliente requerido';form.innerHTML=requireClientsMessage()+`<div style="display:flex;justify-content:flex-end;margin-top:20px"><button type="button" class="btn btn-primary" onclick="closeModal();openModal('client')">Crear cliente</button></div>`;}
   else if(type==='client'){
     const c=get('clients');title.textContent=id?'Editar cliente':'Nuevo cliente';
-    form.innerHTML=`<div class="form-row-2"><div class="form-row"><label class="form-label">Nombre</label><input name="name" class="form-input" value="${esc(c.name||'')}" required></div><div class="form-row"><label class="form-label">Teléfono / WhatsApp</label><input name="phone" class="form-input" value="${esc(c.phone||'')}"></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Email</label><input name="email" class="form-input" value="${esc(c.email||'')}" type="email"></div><div class="form-row"><label class="form-label">Ciudad</label><input name="city" class="form-input" value="${esc(c.city||'Belgrado')}"></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Plan</label><select name="plan" class="form-input"><option ${c.plan==='Inicio'?'selected':''}>Inicio</option><option ${c.plan==='Performance'?'selected':''}>Performance</option><option ${c.plan==='Online'?'selected':''}>Online</option><option ${c.plan==='Sin plan'?'selected':''}>Sin plan</option></select></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="prospecto" ${c.status==='prospecto'?'selected':''}>Prospecto</option><option value="activo" ${c.status==='activo'?'selected':''}>Activo</option><option value="pausado" ${c.status==='pausado'?'selected':''}>Pausado</option><option value="inactivo" ${c.status==='inactivo'?'selected':''}>Inactivo</option></select></div></div><div class="form-row"><label class="form-label">Código de acceso (para área cliente)</label><input name="access_code" class="form-input" value="${esc(c.accessCode||'')}" placeholder="Ej: AB1234" style="font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase"></div><div class="form-row"><label class="form-label">Objetivo principal</label><input name="objective" class="form-input" value="${esc(c.objective||'')}"></div>${actions}`;
+    form.innerHTML=`<div class="form-row-2"><div class="form-row"><label class="form-label">Nombre</label><input name="name" class="form-input" value="${esc(c.name||'')}" required></div><div class="form-row"><label class="form-label">Teléfono / WhatsApp</label><input name="phone" class="form-input" value="${esc(c.phone||'')}"></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Email</label><input name="email" class="form-input" value="${esc(c.email||'')}" type="email"></div><div class="form-row"><label class="form-label">Ciudad</label><input name="city" class="form-input" value="${esc(c.city||'Belgrado')}"></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Plan</label><select name="plan" class="form-input"><option ${c.plan==='Inicio'?'selected':''}>Inicio</option><option ${c.plan==='Performance'?'selected':''}>Performance</option><option ${c.plan==='Online'?'selected':''}>Online</option><option ${c.plan==='Sin plan'?'selected':''}>Sin plan</option></select></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="prospecto" ${c.status==='prospecto'?'selected':''}>Prospecto</option><option value="activo" ${c.status==='activo'?'selected':''}>Activo</option><option value="pausado" ${c.status==='pausado'?'selected':''}>Pausado</option><option value="inactivo" ${c.status==='inactivo'?'selected':''}>Inactivo</option></select></div></div><div class="form-row"><label class="form-label">Código de acceso (para área cliente)</label><input name="access_code" class="form-input" value="${esc(c.accessCode||'')}" placeholder="Ej: AB1234" style="font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase"></div><div class="form-row"><label class="form-label">Idioma del área cliente</label><select name="preferredLang" class="form-input"><option value="es" ${c.preferredLang === 'es' || !c.preferredLang ? 'selected' : ''}>Español</option><option value="sr" ${c.preferredLang === 'sr' ? 'selected' : ''}>Srpski</option></select></div><div class="form-row"><label class="form-label">Objetivo principal</label><input name="objective" class="form-input" value="${esc(c.objective||'')}"></div></div>${actions}`;
   }
   else if(type==='reservation'){const r=get('reservations');title.textContent=id?'Editar reserva':'Nueva reserva';form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(r.clientId)}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Fecha</label><input name="date" class="form-input" type="date" value="${esc(r.date||todayISO())}" required></div><div class="form-row"><label class="form-label">Hora</label><input name="time" class="form-input" type="time" value="${esc(r.time||'09:00')}" required></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Tipo</label><input name="type" class="form-input" value="${esc(r.type||'Sesión personal')}" required></div><div class="form-row"><label class="form-label">Lugar</label><input name="place" class="form-input" value="${esc(r.place||'Belgrado')}" required></div></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="reservada" ${r.status==='reservada'?'selected':''}>Reservada</option><option value="confirmada" ${r.status==='confirmada'?'selected':''}>Confirmada</option><option value="realizada" ${r.status==='realizada'?'selected':''}>Realizada</option><option value="cancelada" ${r.status==='cancelada'?'selected':''}>Cancelada</option></select></div><div class="form-row"><label class="form-label">Nota</label><textarea name="note" class="form-input" rows="2">${esc(r.note||'')}</textarea></div>${actions}`;}
   else if(type==='payment'){const p=get('payments');title.textContent=id?'Editar pago':'Registrar pago';form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(p.clientId)}</select></div><div class="form-row"><label class="form-label">Concepto</label><input name="concept" class="form-input" value="${esc(p.concept||'Mensualidad')}" required></div><div class="form-row-2"><div class="form-row"><label class="form-label">Importe</label><input name="amount" class="form-input" value="${esc(p.amount||'')}" type="number" required></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="pendiente" ${p.status==='pendiente'?'selected':''}>Pendiente</option><option value="pagado" ${p.status==='pagado'?'selected':''}>Pagado</option><option value="vencido" ${p.status==='vencido'?'selected':''}>Vencido</option></select></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Fecha límite</label><input name="dueDate" class="form-input" type="date" value="${esc(p.dueDate||todayISO())}"></div><div class="form-row"><label class="form-label">Método</label><input name="method" class="form-input" value="${esc(p.method||'')}"></div></div>${actions}`;}
