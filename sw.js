@@ -1,9 +1,10 @@
-const CACHE_NAME = 'ab-system-v13';
+const CACHE_NAME = 'ab-system-v14';
 
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/cliente.html',
+  '/cliente-sr.html',
   '/admin.html',
   '/manifest.json',
   '/hero-ab-system.png.PNG',
