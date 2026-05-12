@@ -844,28 +844,24 @@ function renderAlertas(){
 
 async function marcarAlertaLeida(id){
   try{
-    const { data, error } = await db
-      .from('alertas')
-      .update({
-        estado: 'leida',
-        leida_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
+    const { data, error } = await db.rpc('admin_marcar_alerta_leida', {
+      p_alerta_id: id
+    });
 
     if(error) throw error;
 
+    const updated = Array.isArray(data) ? data[0] : null;
+
     const idx = state.alertas.findIndex(a => a.id === id);
     if(idx >= 0){
-      state.alertas[idx].estado = 'leida';
-      state.alertas[idx].leidaAt = data.leida_at;
+      state.alertas[idx].estado = updated?.estado || 'leida';
+      state.alertas[idx].leidaAt = updated?.leida_at || new Date().toISOString();
     }
 
     renderAll();
     showToast('Alerta marcada como leída');
   }catch(err){
-    console.error(err);
+    console.error('Error marcar alerta:', err);
     showToast('Error marcando alerta');
   }
 }
