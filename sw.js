@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ab-coach-v1';
+const CACHE_NAME = 'ab-system-v2';
 
 const STATIC_ASSETS = [
   '/',
@@ -6,8 +6,11 @@ const STATIC_ASSETS = [
   '/cliente.html',
   '/admin.html',
   '/manifest.json',
-  '/hero-gym-red.jpeg',
-  '/abel-lucha-bw.jpg'
+  '/hero-ab-system.png',
+  '/abel-lucha-bw.jpg',
+  '/ab-system-logo.png.PNG',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -33,9 +36,31 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
+  const request = event.request;
+  const url = new URL(request.url);
+
+  // Para páginas HTML: primero red, luego caché.
+  if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
+          return response;
+        })
+        .catch(() => caches.match(request).then(cached => cached || caches.match('/')))
+    );
+    return;
+  }
+
+  // Para assets: primero caché, luego red.
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      return cachedResponse || fetch(event.request).catch(() => caches.match('/'));
+    caches.match(request).then(cachedResponse => {
+      return cachedResponse || fetch(request).then(response => {
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
+        return response;
+      });
     })
   );
 });
