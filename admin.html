@@ -291,6 +291,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <nav class="sidebar-nav">
       <div class="nav-section">Principal</div>
       <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">◈ Inicio</div>
+      <div class="nav-item" data-page="alertas" onclick="showPage('alertas')">🔔 Alertas <span class="nav-badge" id="badge-alertas"></span></div>
       <div class="nav-item" data-page="clientes" onclick="showPage('clientes')">◉ Clientes <span class="nav-badge" id="badge-clientes"></span></div>
       <div class="nav-item" data-page="planes" onclick="showPage('planes')">▤ Programas / Planes <span class="nav-badge" id="badge-planes"></span></div>
       <div class="nav-item" data-page="entrenamiento" onclick="showPage('entrenamiento')">▦ Entrenamiento <span class="nav-badge" id="badge-entrenamiento"></span></div>
@@ -352,6 +353,37 @@ tr:hover td{background:rgba(255,255,255,.02)}
         </div>
       </div>
 
+      <div class="page" id="page-alertas">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Notificaciones</div>
+      <div class="page-title">Alertas</div>
+    </div>
+  </div>
+
+  <div class="metrics-row" id="alertasMetrics"></div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Alertas recientes</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Tipo</th>
+          <th>Mensaje</th>
+          <th>Nivel</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="alertasTable"></tbody>
+    </table>
+  </div>
+</div>
+      
       <div class="page" id="page-clientes">
         <div class="page-header"><div><div class="page-eyebrow">Gestión</div><div class="page-title">Clientes</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('client')">+ Nuevo cliente</button></div></div>
         <div class="search-bar"><span style="color:var(--gray2)">⌕</span><input id="clientSearch" type="text" placeholder="Buscar por nombre, teléfono, email, estado o plan…" oninput="renderClients()"></div>
@@ -583,7 +615,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ── STATE ──────────────────────────────────────────────── */
 let state = {
-  clients:[],reservations:[],payments:[],metrics:[],healthAlerts:[],programs:[],partners:[],templates:[],
+  clients:[],reservations:[],payments:[],metrics:[],healthAlerts:[],alertas:[],programs:[],partners:[],templates:[],
   trainingPrograms:[],trainingWeeks:[],trainingSessions:[],trainingBlocks:[],trainingExercises:[],
   clientProgramAssignments:[],clientSessionLogs:[],
   assessmentTemplates:[],assessmentTemplateItems:[],clientAssessments:[],clientAssessmentResults:[],
@@ -654,7 +686,28 @@ function snakeToCamel(obj){ const out={}; for(const[key,value]of Object.entries(
 
 async function loadState(){
   try{
-    const tables=[['clients','clients'],['reservations','reservations'],['payments','payments'],['metrics','metrics'],['healthAlerts','health_alerts'],['programs','programs'],['partners','partners'],['templates','templates'],['trainingPrograms','training_programs'],['trainingWeeks','training_weeks'],['trainingSessions','training_sessions'],['trainingBlocks','training_blocks'],['trainingExercises','training_exercises'],['clientProgramAssignments','client_program_assignments'],['clientSessionLogs','client_session_logs'],['assessmentTemplates','assessment_templates'],['assessmentTemplateItems','assessment_template_items'],['clientAssessments','client_assessments'],['clientAssessmentResults','client_assessment_results']];
+    const tables=[
+  ['clients','clients'],
+  ['reservations','reservations'],
+  ['payments','payments'],
+  ['metrics','metrics'],
+  ['healthAlerts','health_alerts'],
+  ['alertas','admin_alertas_detalle'],
+  ['programs','programs'],
+  ['partners','partners'],
+  ['templates','templates'],
+  ['trainingPrograms','training_programs'],
+  ['trainingWeeks','training_weeks'],
+  ['trainingSessions','training_sessions'],
+  ['trainingBlocks','training_blocks'],
+  ['trainingExercises','training_exercises'],
+  ['clientProgramAssignments','client_program_assignments'],
+  ['clientSessionLogs','client_session_logs'],
+  ['assessmentTemplates','assessment_templates'],
+  ['assessmentTemplateItems','assessment_template_items'],
+  ['clientAssessments','client_assessments'],
+  ['clientAssessmentResults','client_assessment_results']
+];
     for(const[stateKey,tableName]of tables){const{data,error}=await db.from(tableName).select('*');if(error){showToast('Error en tabla: '+tableName);return;}state[stateKey]=(data||[]).map(snakeToCamel);}
     const{data:settingsData}=await db.from('settings').select('*').eq('id','main').maybeSingle();
     if(settingsData)state.settings={...state.settings,...snakeToCamel(settingsData)};
@@ -700,7 +753,7 @@ function showPage(id){
 }
 
 function renderAll(){
-  renderBadges();renderDashboard();renderClients();renderReservations();renderPayments();renderProgress();
+  renderBadges();renderDashboard();renderAlertas();renderClients();renderReservations();renderPayments();renderProgress();
   renderAssessments();renderHealth();renderNutrition();renderWhatsapp();renderPartners();renderPrograms();
   renderTraining();renderTrainingDetail();renderTrainingWeekDetail();renderTrainingSessionDetail();
   renderTrainingBlockDetail();renderProfile();renderSettings();
@@ -708,10 +761,113 @@ function renderAll(){
 
 function renderBadges(){
   const set=(id,n)=>{const el=document.getElementById(id);if(!el)return;el.textContent=n;el.classList.toggle('show',Number(n)>0);};
-  set('badge-clientes',state.clients.length);set('badge-reservas',state.reservations.length);
-  set('badge-pagos',state.payments.filter(p=>p.status!=='pagado').length);set('badge-progreso',state.metrics.length);
-  set('badge-evaluaciones',state.clientAssessments.length);set('badge-salud',state.healthAlerts.filter(h=>h.status!=='revisado').length);
-  set('badge-planes',state.programs.length);set('badge-entrenamiento',state.trainingPrograms.length);set('badge-partners',state.partners.length);
+
+  set('badge-alertas', state.alertas.filter(a => a.estado !== 'leida' && !a.leidaAt).length);
+  set('badge-clientes',state.clients.length);
+  set('badge-reservas',state.reservations.length);
+  set('badge-pagos',state.payments.filter(p=>p.status!=='pagado').length);
+  set('badge-progreso',state.metrics.length);
+  set('badge-evaluaciones',state.clientAssessments.length);
+  set('badge-salud',state.healthAlerts.filter(h=>h.status!=='revisado').length);
+  set('badge-planes',state.programs.length);
+  set('badge-entrenamiento',state.trainingPrograms.length);
+  set('badge-partners',state.partners.length);
+}
+
+function renderAlertas(){
+  const metricsEl = document.getElementById('alertasMetrics');
+  const tableEl = document.getElementById('alertasTable');
+  if(!metricsEl || !tableEl) return;
+
+  const pendientes = state.alertas.filter(a => a.estado === 'pendiente' && !a.leidaAt);
+  const criticas = state.alertas.filter(a => a.nivel === 'critica');
+  const molestias = state.alertas.filter(a => a.tipoAlerta === 'molestia_entrenamiento');
+
+  metricsEl.innerHTML = `
+    <div class="metric-card red">
+      <span class="metric-num">${pendientes.length}</span>
+      <span class="metric-label">Pendientes</span>
+    </div>
+    <div class="metric-card yellow">
+      <span class="metric-num">${criticas.length}</span>
+      <span class="metric-label">Críticas</span>
+    </div>
+    <div class="metric-card blue">
+      <span class="metric-num">${molestias.length}</span>
+      <span class="metric-label">Molestias</span>
+    </div>
+    <div class="metric-card green">
+      <span class="metric-num">${state.alertas.length}</span>
+      <span class="metric-label">Total</span>
+    </div>
+  `;
+
+  const rows = [...state.alertas].sort((a,b) =>
+    String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
+  );
+
+  tableEl.innerHTML = rows.length ? rows.map(a => {
+    const estado = a.leidaAt ? 'leida' : (a.estado || 'pendiente');
+    const badgeEstado = estado === 'pendiente' ? 'pendiente' : 'pagado';
+    const badgeNivel = a.nivel === 'critica' || a.nivel === 'alerta'
+      ? 'alerta'
+      : a.nivel === 'precaucion'
+        ? 'pendiente'
+        : 'prospecto';
+
+    return `
+      <tr>
+        <td>
+          <div class="td-name">
+            <div class="avatar">${initials(a.clientName || 'Cliente')}</div>
+            <div>
+              <div class="name-text">${esc(a.clientName || 'Sin cliente')}</div>
+              <div class="name-sub">${esc(a.clientPhone || '')}</div>
+            </div>
+          </div>
+        </td>
+        <td>${esc(a.tipoAlerta || 'alerta')}</td>
+        <td style="white-space:normal;min-width:280px">${esc(a.mensaje || '')}</td>
+        <td><span class="badge badge-${badgeNivel}">${esc(a.nivel || 'info')}</span></td>
+        <td><span class="badge badge-${badgeEstado}">${esc(estado)}</span></td>
+        <td>${formatDate(String(a.createdAt || '').slice(0,10))}</td>
+        <td>
+          <div class="td-actions">
+            ${!a.leidaAt ? `<button class="btn btn-primary btn-sm" onclick="marcarAlertaLeida('${a.id}')">Marcar leída</button>` : ''}
+            ${a.clientPhone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(a.clientPhone)}','Hola ${esc((a.clientName||'').split(' ')[0]||'')}, vi tu nota sobre el entrenamiento. ¿Cómo te sientes ahora?')">WA</button>` : ''}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('') : emptyRow(7,'No hay alertas registradas todavía.');
+}
+
+async function marcarAlertaLeida(id){
+  try{
+    const { data, error } = await db
+      .from('alertas')
+      .update({
+        estado: 'leida',
+        leida_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if(error) throw error;
+
+    const idx = state.alertas.findIndex(a => a.id === id);
+    if(idx >= 0){
+      state.alertas[idx].estado = 'leida';
+      state.alertas[idx].leidaAt = data.leida_at;
+    }
+
+    renderAll();
+    showToast('Alerta marcada como leída');
+  }catch(err){
+    console.error(err);
+    showToast('Error marcando alerta');
+  }
 }
 
 function renderDashboard(){
@@ -721,11 +877,23 @@ function renderDashboard(){
   const pendingPayments=state.payments.filter(p=>p.status!=='pagado').length;
   const income=state.payments.filter(p=>p.status==='pagado').reduce((s,p)=>s+Number(p.amount||0),0);
   const upcoming=state.reservations.filter(r=>r.date>=today).length;
-  const alerts=state.healthAlerts.filter(h=>h.status!=='revisado').length;
+  const alerts = state.alertas.filter(a => a.estado === 'pendiente' && !a.leidaAt).length;
   document.getElementById('dashboardMetrics').innerHTML=`<div class="metric-card blue"><span class="metric-num">${activeClients}</span><span class="metric-label">Clientes activos</span></div><div class="metric-card red"><span class="metric-num">${todaySessions}</span><span class="metric-label">Sesiones hoy</span></div><div class="metric-card yellow"><span class="metric-num">${pendingPayments}</span><span class="metric-label">Pagos pendientes</span></div><div class="metric-card green"><span class="metric-num">${money(income)}</span><span class="metric-label">Ingresos del mes</span></div><div class="metric-card blue"><span class="metric-num">${upcoming}</span><span class="metric-label">Reservas próximos 7d</span></div><div class="metric-card red"><span class="metric-num">${alerts}</span><span class="metric-label">Alertas salud</span></div>`;
   const agenda=state.reservations.filter(r=>r.date===today);
   document.getElementById('agendaToday').innerHTML=agenda.length?agenda.map(r=>{const c=clientById(r.clientId);return`<div class="data-row"><span><strong>${formatTime(r.time)}</strong> · ${esc(c?.name||'Cliente eliminado')}</span><span class="badge badge-${r.status}">${esc(r.status)}</span></div>`;}).join(''):emptyBlock('No hay reservas para hoy.');
-  const alertList=state.healthAlerts.filter(h=>h.status!=='revisado');
+  const alertList = state.alertas.filter(a => a.estado === 'pendiente' && !a.leidaAt);
+
+document.getElementById('dashboardAlerts').innerHTML = alertList.length
+  ? alertList.slice(0,4).map(a => `
+      <div class="data-row">
+        <span>
+          <strong>${esc(a.clientName || 'Cliente')}</strong><br>
+          <span style="color:var(--gray);font-size:.78rem">${esc(a.mensaje || '')}</span>
+        </span>
+        <button class="btn btn-secondary btn-sm" onclick="showPage('alertas')">Ver</button>
+      </div>
+    `).join('')
+  : emptyBlock('No hay alertas.');
   document.getElementById('dashboardAlerts').innerHTML=alertList.length?alertList.slice(0,4).map(h=>{const c=clientById(h.clientId);return`<div class="data-row"><span>${esc(c?.name||'Sin cliente')} · ${esc(h.detail)}</span><button class="btn btn-secondary btn-sm" onclick="markHealthReviewed('${h.id}')">Revisado</button></div>`;}).join(''):emptyBlock('No hay alertas.');
   const payList=state.payments.filter(p=>p.status!=='pagado');
   document.getElementById('dashboardPayments').innerHTML=payList.length?payList.slice(0,4).map(p=>{const c=clientById(p.clientId);return`<div class="data-row"><span>${esc(c?.name||'Sin cliente')} · ${esc(p.concept)}</span><span style="color:var(--yellow)">${money(p.amount)}</span></div>`;}).join(''):emptyBlock('Sin pagos pendientes.');
