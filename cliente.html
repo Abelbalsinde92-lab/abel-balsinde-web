@@ -620,48 +620,129 @@ async function loadClientDashboard(clientId) {
       clientAssessmentResults = rr.data || [];
     }
 
-    // Load training data respecting assignment scope
-    clientTrainingProgram   = null;
-    clientTrainingWeeks     = [];
-    clientTrainingSessions  = [];
-    clientTrainingBlocks    = [];
-    clientTrainingExercises = [];
+    // Load visible training data from final multilingual view
+clientTrainingProgram   = null;
+clientTrainingWeeks     = [];
+clientTrainingSessions  = [];
+clientTrainingBlocks    = [];
+clientTrainingExercises = [];
 
-    if (clientTrainingAssignment?.program_id) {
-      const pid = clientTrainingAssignment.program_id;
-      const [progR, weeksR] = await Promise.all([
-        db.from('training_programs').select('*').eq('id', pid).single(),
-        db.from('training_weeks').select('*').eq('program_id', pid).order('week_number', { ascending: true }),
-      ]);
-      clientTrainingProgram = progR.data || null;
-      clientTrainingWeeks   = weeksR.data || [];
+if (clientTrainingAssignment?.program_id) {
+  const pid = clientTrainingAssignment.program_id;
 
-      // Select weeks based on scope
-      const weekNums = getAssignedWeekNumbers(); // null = all
-      const weeksToLoad = weekNums === null
-        ? clientTrainingWeeks
-        : clientTrainingWeeks.filter(w => weekNums.includes(Number(w.week_number)));
+  let q = db
+    .from('client_training_plan_visible')
+    .select('*')
+    .eq('client_id', clientId)
+    .eq('program_id', pid)
+    .order('week_order', { ascending: true })
+    .order('session_order', { ascending: true })
+    .order('block_order', { ascending: true })
+    .order('exercise_order', { ascending: true });
 
-      const finalWeeks = weeksToLoad.length ? weeksToLoad : clientTrainingWeeks.slice(0, 1);
+  const visibleR = await q;
 
-      if (finalWeeks.length) {
-        const weekIds = finalWeeks.map(w => w.id);
-        const sessR = await db.from('training_sessions').select('*').in('week_id', weekIds).order('session_number', { ascending: true });
-        const allSessions = sessR.data || [];
-        clientTrainingSessions = filterSessionsByScope(allSessions);
+  if (visibleR.error) {
+    console.error('Visible training view error:', visibleR.error);
+  }
 
-        const sessionIds = clientTrainingSessions.map(s => s.id);
-        if (sessionIds.length) {
-          const blocksR = await db.from('training_blocks').select('*').in('session_id', sessionIds).order('block_order', { ascending: true, nullsFirst: false });
-          clientTrainingBlocks = blocksR.data || [];
-          const blockIds = clientTrainingBlocks.map(b => b.id);
-          if (blockIds.length) {
-            const exR = await db.from('training_exercises').select('*').in('block_id', blockIds).order('exercise_order', { ascending: true });
-            clientTrainingExercises = exR.data || [];
-          }
-        }
+  let rows = visibleR.data || [];
+
+  // Apply commercial scope: day / week / month / full
+  const weekNums = getAssignedWeekNumbers();
+
+  if (weekNums !== null) {
+    rows = rows.filter(r => weekNums.includes(Number(r.week_order)));
+  }
+
+  const scope = getAssignmentScope();
+
+  if (['day', 'session', 'sesion', 'día', 'dia'].includes(scope)) {
+    const assignedSession = Number(clientTrainingAssignment?.assigned_session_number || 1);
+    rows = rows.filter(r => Number(r.session_order) === assignedSession);
+  }
+
+  if (rows.length) {
+    const first = rows[0];
+
+    clientTrainingProgram = {
+      id: first.program_id,
+      name: first.program_name,
+      description: first.program_description,
+      objective: first.program_objective
+    };
+
+    const weeksMap = new Map();
+    const sessionsMap = new Map();
+    const blocksMap = new Map();
+
+    rows.forEach(r => {
+      if (!weeksMap.has(r.week_id)) {
+        weeksMap.set(r.week_id, {
+          id: r.week_id,
+          week_number: r.week_order,
+          order_index: r.week_order,
+          name: r.week_name,
+          description: r.week_description,
+          objective: r.week_objective,
+          focus: r.week_focus
+        });
       }
-    }
+
+      if (!sessionsMap.has(r.session_id)) {
+        sessionsMap.set(r.session_id, {
+          id: r.session_id,
+          week_id: r.week_id,
+          session_number: r.session_order,
+          order_index: r.session_order,
+          title: r.session_title,
+          description: r.session_description,
+          objective: r.session_objective,
+          intensity: r.session_intensity
+        });
+      }
+
+      if (!blocksMap.has(r.block_id)) {
+        blocksMap.set(r.block_id, {
+          id: r.block_id,
+          session_id: r.session_id,
+          block_order: r.block_order,
+          order_index: r.block_order,
+          title: r.block_title,
+          description: r.block_description,
+          objective: r.block_objective,
+          type: r.block_type
+        });
+      }
+
+      clientTrainingExercises.push({
+        id: r.exercise_id,
+        block_id: r.block_id,
+        exercise_order: r.exercise_order,
+        order_index: r.exercise_order,
+        name: r.exercise_name,
+        description: r.exercise_description,
+        variant_n1: r.variant_n1,
+        variant_n2: r.variant_n2,
+        variant_n3: r.variant_n3,
+        variant_n4: r.variant_n4,
+        coaching_notes: r.coaching_notes
+      });
+    });
+
+    clientTrainingWeeks = Array.from(weeksMap.values()).sort(
+      (a, b) => Number(a.week_number || 0) - Number(b.week_number || 0)
+    );
+
+    clientTrainingSessions = Array.from(sessionsMap.values()).sort(
+      (a, b) => Number(a.session_number || 0) - Number(b.session_number || 0)
+    );
+
+    clientTrainingBlocks = Array.from(blocksMap.values()).sort(
+      (a, b) => Number(a.block_order || 0) - Number(b.block_order || 0)
+    );
+  }
+}
 
     await renderDashboard();
     document.getElementById('loginScreen')?.classList.add('hidden');
@@ -838,8 +919,14 @@ function buildTrainingSteps(sessionIdFilter) {
 
 function getActiveTrainingWeek() {
   if (!clientTrainingAssignment) return null;
+
   const nums = getAssignedWeekNumbers();
-  if (nums === null) return clientTrainingWeeks[0] || null;
+
+  if (nums === null) {
+    const currentWeek = Number(clientTrainingAssignment?.current_week || 1);
+    return clientTrainingWeeks.find(w => Number(w.week_number) === currentWeek) || clientTrainingWeeks[0] || null;
+  }
+
   return clientTrainingWeeks.find(w => Number(w.week_number) === nums[0]) || clientTrainingWeeks[0] || null;
 }
 
