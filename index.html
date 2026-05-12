@@ -361,36 +361,71 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   .stats-inner{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:600px){
-  .skills-grid{grid-template-columns:repeat(2,1fr)}
-  .panel-metrics{grid-template-columns:repeat(2,1fr)}
-  .footer-inner,.footer-bottom{flex-direction:column;align-items:flex-start}
+  .skills-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
 
+  .panel-metrics{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .footer-inner,
+  .footer-bottom{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  /* HERO MOBILE LIMPIO */
   #hero{
-  min-height:88svh;
-  padding-top:86px;
-}
+    min-height:88svh;
+    padding-top:86px;
+  }
 
   .hero-bg img{
-  object-position:86% top;
-  filter:contrast(1.01) brightness(1.34) saturate(1.08);
-}
+    object-position:88% top;
+    filter:contrast(1.01) brightness(1.38) saturate(1.08);
+  }
 
-.hero-bg::after{
-  background:
-    linear-gradient(180deg, rgba(2,11,24,.24) 0%, rgba(2,11,24,.12) 45%, rgba(2,11,24,.03) 100%),
-    linear-gradient(90deg, rgba(2,11,24,.28) 0%, rgba(2,11,24,.08) 100%);
-}
-  
+  .hero-bg::after{
+    background:
+      linear-gradient(180deg, rgba(2,11,24,.22) 0%, rgba(2,11,24,.10) 46%, rgba(2,11,24,.02) 100%),
+      linear-gradient(90deg, rgba(2,11,24,.30) 0%, rgba(2,11,24,.07) 100%);
+  }
+
+  .hero-text-col{
+    width:64%;
+    max-width:290px;
+  }
+
   #hero h1{
-  font-size:2.82rem;
-  line-height:.94;
-  letter-spacing:.01em;
-  margin-bottom:1rem;
-  max-width:92%;
-}
+    font-size:2.78rem;
+    line-height:.93;
+    letter-spacing:.01em;
+    margin-bottom:1rem;
+    max-width:100%;
+  }
 
   #hero .lead{
     max-width:100%;
+    font-size:.92rem;
+    line-height:1.55;
+    margin-bottom:1.4rem;
+  }
+
+  .hero-ctas{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:.8rem;
+  }
+
+  .hero-ctas .btn{
+    width:100%;
+    padding:11px 12px;
+    font-size:.62rem;
+  }
+
+  .hero-ctas .client-access{
+    grid-column:1 / -1;
   }
 
   .hero-visual{
@@ -412,21 +447,14 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
     font-size:.5rem;
   }
 
-  .hero-ctas{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:.8rem;
+  .sport-accent{
+    left:0;
   }
 
-  .hero-ctas .btn{
-    width:100%;
-    padding:11px 12px;
-    font-size:.62rem;
+  .about-accent{
+    left:0;
   }
-
-  .hero-ctas .client-access{
-    grid-column:1 / -1;
-  }
+}
 
   .sport-accent{left:0}
   .about-accent{left:0}
