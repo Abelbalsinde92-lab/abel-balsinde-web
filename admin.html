@@ -1220,6 +1220,23 @@ function sendProgramWA(id){ const p=state.programs.find(x=>x.id===id);const c=cl
 function clientOptions(selected=''){ return state.clients.map(c=>`<option value="${c.id}" ${selected===c.id?'selected':''}>${esc(c.name)}</option>`).join(''); }
 function requireClientsMessage(){ return`<div class="empty small">Primero crea un cliente para poder usar esta acción.</div>`; }
 
+// ── BILINGUAL FIELD HELPER ───────────────────────────────
+function biField(labelEs, labelSr, nameEs, nameSr, valueEs='', valueSr='', type='input', rows=2){
+  const tag = type==='textarea'
+    ? `<textarea name="${nameEs}" class="form-input" rows="${rows}">${esc(valueEs)}</textarea>
+       <textarea name="${nameSr}" class="form-input" rows="${rows}" style="margin-top:4px;border-top:none">${esc(valueSr)}</textarea>`
+    : `<input name="${nameEs}" class="form-input" value="${esc(valueEs)}">
+       <input name="${nameSr}" class="form-input" value="${esc(valueSr)}" style="margin-top:4px;border-top:none">`;
+  return `<div class="form-row">
+    <label class="form-label">
+      ${labelEs}
+      <span style="margin-left:6px;font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.1em;background:rgba(94,197,240,.1);color:var(--blue);padding:1px 6px;border-radius:2px">ES</span>
+      <span style="margin-left:4px;font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.1em;background:rgba(226,6,19,.08);color:#f87171;padding:1px 6px;border-radius:2px">SR</span>
+    </label>
+    ${tag}
+  </div>`;
+}
+
 /* ── MODALS (full implementation preserved) ── */
 function openModal(type,id=null){
   activeModal={type,id};
@@ -1229,20 +1246,154 @@ function openModal(type,id=null){
   const actions=`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div>`;
 
   if(clientRequired){title.textContent='Cliente requerido';form.innerHTML=requireClientsMessage()+`<div style="display:flex;justify-content:flex-end;margin-top:20px"><button type="button" class="btn btn-primary" onclick="closeModal();openModal('client')">Crear cliente</button></div>`;}
+
   else if(type==='client'){
     const c=get('clients');title.textContent=id?'Editar cliente':'Nuevo cliente';
-    form.innerHTML=`<div class="form-row-2"><div class="form-row"><label class="form-label">Nombre</label><input name="name" class="form-input" value="${esc(c.name||'')}" required></div><div class="form-row"><label class="form-label">Teléfono / WhatsApp</label><input name="phone" class="form-input" value="${esc(c.phone||'')}"></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Email</label><input name="email" class="form-input" value="${esc(c.email||'')}" type="email"></div><div class="form-row"><label class="form-label">Ciudad</label><input name="city" class="form-input" value="${esc(c.city||'Belgrado')}"></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Plan</label><select name="plan" class="form-input"><option ${c.plan==='Inicio'?'selected':''}>Inicio</option><option ${c.plan==='Performance'?'selected':''}>Performance</option><option ${c.plan==='Online'?'selected':''}>Online</option><option ${c.plan==='Sin plan'?'selected':''}>Sin plan</option></select></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="prospecto" ${c.status==='prospecto'?'selected':''}>Prospecto</option><option value="activo" ${c.status==='activo'?'selected':''}>Activo</option><option value="pausado" ${c.status==='pausado'?'selected':''}>Pausado</option><option value="inactivo" ${c.status==='inactivo'?'selected':''}>Inactivo</option></select></div></div><div class="form-row"><label class="form-label">Código de acceso (para área cliente)</label><input name="access_code" class="form-input" value="${esc(c.accessCode||'')}" placeholder="Ej: AB1234" style="font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase"></div><div class="form-row"><label class="form-label">Idioma del área cliente</label><select name="preferredLang" class="form-input"><option value="es" ${c.preferredLang === 'es' || !c.preferredLang ? 'selected' : ''}>Español</option><option value="sr" ${c.preferredLang === 'sr' ? 'selected' : ''}>Srpski</option></select></div><div class="form-row"><label class="form-label">Objetivo principal</label><input name="objective" class="form-input" value="${esc(c.objective||'')}"></div>${actions}`;
+    form.innerHTML=`
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Nombre</label><input name="name" class="form-input" value="${esc(c.name||'')}" required></div>
+        <div class="form-row"><label class="form-label">Teléfono / WhatsApp</label><input name="phone" class="form-input" value="${esc(c.phone||'')}"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Email</label><input name="email" class="form-input" value="${esc(c.email||'')}" type="email"></div>
+        <div class="form-row"><label class="form-label">Ciudad</label><input name="city" class="form-input" value="${esc(c.city||'Belgrado')}"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Plan</label><select name="plan" class="form-input"><option ${c.plan==='Inicio'?'selected':''}>Inicio</option><option ${c.plan==='Performance'?'selected':''}>Performance</option><option ${c.plan==='Online'?'selected':''}>Online</option><option ${c.plan==='Sin plan'?'selected':''}>Sin plan</option></select></div>
+        <div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="prospecto" ${c.status==='prospecto'?'selected':''}>Prospecto</option><option value="activo" ${c.status==='activo'?'selected':''}>Activo</option><option value="pausado" ${c.status==='pausado'?'selected':''}>Pausado</option><option value="inactivo" ${c.status==='inactivo'?'selected':''}>Inactivo</option></select></div>
+      </div>
+      <div class="form-row"><label class="form-label">Código de acceso (para área cliente)</label><input name="access_code" class="form-input" value="${esc(c.accessCode||'')}" placeholder="Ej: AB1234" style="font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase"></div>
+      <div class="form-row">
+        <label class="form-label">Idioma del área cliente</label>
+        <select name="preferred_lang" class="form-input">
+          <option value="es" ${(c.preferredLang||'es')==='es'?'selected':''}>🇪🇸 Español</option>
+          <option value="sr" ${c.preferredLang==='sr'?'selected':''}>🇷🇸 Srpski</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">Objetivo principal</label><input name="objective" class="form-input" value="${esc(c.objective||'')}"></div>
+      ${actions}`;
   }
+
   else if(type==='reservation'){const r=get('reservations');title.textContent=id?'Editar reserva':'Nueva reserva';form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(r.clientId)}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Fecha</label><input name="date" class="form-input" type="date" value="${esc(r.date||todayISO())}" required></div><div class="form-row"><label class="form-label">Hora</label><input name="time" class="form-input" type="time" value="${esc(r.time||'09:00')}" required></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Tipo</label><input name="type" class="form-input" value="${esc(r.type||'Sesión personal')}" required></div><div class="form-row"><label class="form-label">Lugar</label><input name="place" class="form-input" value="${esc(r.place||'Belgrado')}" required></div></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="reservada" ${r.status==='reservada'?'selected':''}>Reservada</option><option value="confirmada" ${r.status==='confirmada'?'selected':''}>Confirmada</option><option value="realizada" ${r.status==='realizada'?'selected':''}>Realizada</option><option value="cancelada" ${r.status==='cancelada'?'selected':''}>Cancelada</option></select></div><div class="form-row"><label class="form-label">Nota</label><textarea name="note" class="form-input" rows="2">${esc(r.note||'')}</textarea></div>${actions}`;}
+
   else if(type==='payment'){const p=get('payments');title.textContent=id?'Editar pago':'Registrar pago';form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(p.clientId)}</select></div><div class="form-row"><label class="form-label">Concepto</label><input name="concept" class="form-input" value="${esc(p.concept||'Mensualidad')}" required></div><div class="form-row-2"><div class="form-row"><label class="form-label">Importe</label><input name="amount" class="form-input" value="${esc(p.amount||'')}" type="number" required></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="pendiente" ${p.status==='pendiente'?'selected':''}>Pendiente</option><option value="pagado" ${p.status==='pagado'?'selected':''}>Pagado</option><option value="vencido" ${p.status==='vencido'?'selected':''}>Vencido</option></select></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Fecha límite</label><input name="dueDate" class="form-input" type="date" value="${esc(p.dueDate||todayISO())}"></div><div class="form-row"><label class="form-label">Método</label><input name="method" class="form-input" value="${esc(p.method||'')}"></div></div>${actions}`;}
+
   else if(type==='metric'){const m=get('metrics');title.textContent=id?'Editar métrica':'Registrar métrica';form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(m.clientId)}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Métrica</label><select name="type" class="form-input"><option>Peso (kg)</option><option>Cintura (cm)</option><option>Fuerza (1-10)</option><option>Movilidad (1-10)</option><option>Resistencia (1-10)</option></select></div><div class="form-row"><label class="form-label">Valor</label><input name="value" class="form-input" value="${esc(m.value||'')}" required></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Fecha</label><input name="date" type="date" class="form-input" value="${esc(m.date||todayISO())}"></div><div class="form-row"><label class="form-label">Nota</label><input name="note" class="form-input" value="${esc(m.note||'')}"></div></div>${actions}`;}
+
   else if(type==='health'){const h=get('healthAlerts');title.textContent=id?'Editar alerta':'Nueva alerta de salud';form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(h.clientId)}</select></div><div class="form-row"><label class="form-label">Detalle</label><textarea name="detail" class="form-input" rows="3" required>${esc(h.detail||'')}</textarea></div><div class="form-row-2"><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="pendiente">Pendiente</option><option value="alerta">Alerta</option><option value="revisado">Revisado</option></select></div><div class="form-row"><label class="form-label">Fecha</label><input name="date" type="date" class="form-input" value="${esc(h.date||todayISO())}"></div></div>${actions}`;}
-  else if(type==='trainingProgram'){const p=get('trainingPrograms');title.textContent=id?'Editar programa base':'Crear programa base';form.innerHTML=`<div class="form-row"><label class="form-label">Nombre del programa</label><input name="name" class="form-input" value="${esc(p.name||'')}" required></div><div class="form-row-2"><div class="form-row"><label class="form-label">Tipo</label><input name="type" class="form-input" value="${esc(p.type||'Condición física')}"></div><div class="form-row"><label class="form-label">Nivel general</label><input name="level" class="form-input" value="${esc(p.level||'N1-N4')}"></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Duración en semanas</label><input name="durationWeeks" class="form-input" type="number" value="${esc(p.durationWeeks||12)}"></div><div class="form-row"><label class="form-label">Frecuencia</label><input name="frequency" class="form-input" value="${esc(p.frequency||'3 sesiones por semana')}"></div></div><div class="form-row"><label class="form-label">Objetivo</label><textarea name="objective" class="form-input" rows="3">${esc(p.objective||'')}</textarea></div><div class="form-row"><label class="form-label">Descripción</label><textarea name="description" class="form-input" rows="3">${esc(p.description||'')}</textarea></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="activo" ${p.status==='activo'?'selected':''}>Activo</option><option value="borrador" ${p.status==='borrador'?'selected':''}>Borrador</option></select></div>${actions}`;}
-  else if(type==='trainingWeek'){const w=get('trainingWeeks');const selProg=state.trainingPrograms.find(p=>p.id===state.selectedTrainingProgramId);title.textContent=id?'Editar semana':'Crear semana';form.innerHTML=`<div class="form-row"><label class="form-label">Programa</label><select name="programId" class="form-input" required>${state.trainingPrograms.map(p=>`<option value="${p.id}" ${(w.programId||selProg?.id)===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Número de semana</label><input name="weekNumber" class="form-input" type="number" value="${esc(w.weekNumber||'')}" required></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="activo">Activo</option><option value="borrador">Borrador</option></select></div></div><div class="form-row"><label class="form-label">Nombre de la semana</label><input name="name" class="form-input" value="${esc(w.name||'')}"></div><div class="form-row"><label class="form-label">Objetivo</label><textarea name="objective" class="form-input" rows="3">${esc(w.objective||'')}</textarea></div><div class="form-row"><label class="form-label">Foco principal</label><input name="focus" class="form-input" value="${esc(w.focus||'')}"></div>${actions}`;}
-  else if(type==='trainingSession'){const s=get('trainingSessions');const selWeek=state.trainingWeeks.find(w=>w.id===state.selectedTrainingWeekId);title.textContent=id?'Editar sesión':'Crear sesión';form.innerHTML=`<div class="form-row"><label class="form-label">Semana</label><select name="weekId" class="form-input" required>${state.trainingWeeks.map(w=>{const p=state.trainingPrograms.find(x=>x.id===w.programId);return`<option value="${w.id}" ${(s.weekId||selWeek?.id)===w.id?'selected':''}>${esc(p?.name||'Programa')} · Semana ${esc(w.weekNumber||'—')}</option>`;}).join('')}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Número de sesión</label><input name="sessionNumber" class="form-input" type="number" value="${esc(s.sessionNumber||'')}" required></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="activo">Activo</option><option value="borrador">Borrador</option></select></div></div><div class="form-row"><label class="form-label">Nombre de la sesión</label><input name="title" class="form-input" value="${esc(s.title||s.name||'')}"></div><div class="form-row"><label class="form-label">Objetivo</label><textarea name="objective" class="form-input" rows="3">${esc(s.objective||'')}</textarea></div><div class="form-row-2"><div class="form-row"><label class="form-label">Duración</label><input name="duration" class="form-input" value="${esc(s.duration||'')}"></div><div class="form-row"><label class="form-label">Intensidad</label><select name="intensity" class="form-input"><option value="baja">Baja</option><option value="media">Media</option><option value="alta">Alta</option><option value="variable">Variable</option></select></div></div>${actions}`;}
-  else if(type==='trainingBlock'){const b=get('trainingBlocks');const selSess=state.trainingSessions.find(s=>s.id===state.selectedTrainingSessionId);title.textContent=id?'Editar bloque':'Crear bloque';form.innerHTML=`<div class="form-row"><label class="form-label">Sesión</label><select name="sessionId" class="form-input" required>${state.trainingSessions.map(s=>{const w=state.trainingWeeks.find(x=>x.id===s.weekId);const p=state.trainingPrograms.find(x=>x.id===w?.programId);return`<option value="${s.id}" ${(b.sessionId||selSess?.id)===s.id?'selected':''}>${esc(p?.name||'—')} · S${esc(w?.weekNumber||'—')} · Sesión ${esc(s.sessionNumber||'—')}</option>`;}).join('')}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Orden del bloque</label><input name="blockOrder" class="form-input" type="number" value="${esc(b.blockOrder||b.orderNumber||'')}" required></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="activo">Activo</option><option value="borrador">Borrador</option></select></div></div><div class="form-row"><label class="form-label">Título del bloque</label><input name="title" class="form-input" value="${esc(b.title||b.name||'')}"></div><div class="form-row-2"><div class="form-row"><label class="form-label">Tipo de bloque</label><select name="type" class="form-input"><option value="calentamiento">Calentamiento</option><option value="movilidad">Movilidad</option><option value="fuerza">Fuerza</option><option value="tecnica">Técnica</option><option value="principal">Parte principal</option><option value="vuelta_calma">Vuelta a la calma</option><option value="otro">Otro</option></select></div><div class="form-row"><label class="form-label">Duración</label><input name="duration" class="form-input" value="${esc(b.duration||'')}"></div></div><div class="form-row"><label class="form-label">Objetivo</label><textarea name="objective" class="form-input" rows="3">${esc(b.objective||'')}</textarea></div>${actions}`;}
-  else if(type==='trainingExercise'){const ex=get('trainingExercises');const selBlock=state.trainingBlocks.find(b=>b.id===state.selectedTrainingBlockId);title.textContent=id?'Editar ejercicio':'Crear ejercicio';form.innerHTML=`<div class="form-row"><label class="form-label">Bloque</label><select name="blockId" class="form-input" required>${state.trainingBlocks.map(b=>{const s=state.trainingSessions.find(x=>x.id===b.sessionId);const w=state.trainingWeeks.find(x=>x.id===s?.weekId);const p=state.trainingPrograms.find(x=>x.id===w?.programId);return`<option value="${b.id}" ${(ex.blockId||selBlock?.id)===b.id?'selected':''}>${esc(p?.name||'—')} · S${esc(w?.weekNumber||'—')} · ${esc(b.title||b.name||'Bloque')}</option>`;}).join('')}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Orden</label><input name="exerciseOrder" class="form-input" type="number" value="${esc(ex.exerciseOrder||ex.orderNumber||'')}" required></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="activo">Activo</option><option value="borrador">Borrador</option></select></div></div><div class="form-row"><label class="form-label">Nombre del ejercicio</label><input name="name" class="form-input" value="${esc(ex.name||ex.title||'')}" required></div><div class="form-row"><label class="form-label">Descripción técnica</label><textarea name="description" class="form-input" rows="3">${esc(ex.description||'')}</textarea></div><div class="form-row-2"><div class="form-row"><label class="form-label">Series</label><input name="sets" class="form-input" value="${esc(ex.sets||'')}"></div><div class="form-row"><label class="form-label">Repeticiones</label><input name="reps" class="form-input" value="${esc(ex.reps||'')}"></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Tiempo</label><input name="time" class="form-input" value="${esc(ex.time||'')}"></div><div class="form-row"><label class="form-label">Descanso</label><input name="rest" class="form-input" value="${esc(ex.rest||'')}"></div></div><div class="form-row"><label class="form-label">Nivel / variante</label><select name="level" class="form-input"><option value="General">General</option><option value="N1">N1</option><option value="N2">N2</option><option value="N3">N3</option><option value="N4">N4</option></select></div><div class="form-row"><label class="form-label">Notas del coach</label><textarea name="coachNotes" class="form-input" rows="3">${esc(ex.coachNotes||'')}</textarea></div>${actions}`;}
-  else if(type==='trainingAssignment'){title.textContent='Asignar entrenamiento a cliente';form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions()}</select></div><div class="form-row"><label class="form-label">Programa base</label><select name="programId" class="form-input" required>${state.trainingPrograms.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Nivel asignado</label><select name="assignedLevel" class="form-input"><option value="N1">N1 — Principiante</option><option value="N2">N2 — Básico</option><option value="N3">N3 — Intermedio</option><option value="N4">N4 — Avanzado</option></select></div><div class="form-row"><label class="form-label">Alcance</label><select name="assignmentScope" class="form-input"><option value="full" selected>Plan completo</option><option value="month">Mes completo</option><option value="week">Semana completa</option><option value="day">Solo un día</option></select></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Semana actual</label><input name="currentWeek" class="form-input" type="number" value="1"></div><div class="form-row"><label class="form-label">Fecha de inicio</label><input name="startDate" class="form-input" type="date" value="${todayISO()}"></div></div><div class="form-row"><label class="form-label">Etiqueta comercial</label><input name="commercialLabel" class="form-input" placeholder="Ej: Plan completo / Mes 1"></div><input type="hidden" name="status" value="activo">${actions}`;}
+
+  else if(type==='trainingProgram'){
+    const p=get('trainingPrograms');title.textContent=id?'Editar programa base':'Crear programa base';
+    form.innerHTML=`
+      ${biField('Nombre del programa','Naziv programa','name_es','name_sr',p.nameEs||p.name||'',p.nameSr||'')}
+      <div class="form-row-2">
+        <div>${biField('Tipo','Tip','type_es','type_sr',p.typeEs||p.type||'Condición física',p.typeSr||'')}</div>
+        <div>${biField('Nivel','Nivo','level_es','level_sr',p.levelEs||p.level||'N1-N4',p.levelSr||'')}</div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Duración en semanas</label><input name="duration_weeks" class="form-input" type="number" value="${esc(p.durationWeeks||12)}"></div>
+        <div class="form-row"><label class="form-label">Frecuencia</label><input name="frequency" class="form-input" value="${esc(p.frequency||'3 sesiones por semana')}"></div>
+      </div>
+      ${biField('Objetivo','Cilj','objective_es','objective_sr',p.objectiveEs||p.objective||'',p.objectiveSr||'','textarea',3)}
+      ${biField('Descripción','Opis','description_es','description_sr',p.descriptionEs||p.description||'',p.descriptionSr||'','textarea',2)}
+      <div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="activo" ${p.status==='activo'?'selected':''}>Activo</option><option value="borrador" ${p.status==='borrador'?'selected':''}>Borrador</option></select></div>
+      ${actions}`;
+  }
+
+  else if(type==='trainingWeek'){
+    const w=get('trainingWeeks');const selProg=state.trainingPrograms.find(p=>p.id===state.selectedTrainingProgramId);
+    title.textContent=id?'Editar semana':'Crear semana';
+    form.innerHTML=`
+      <div class="form-row"><label class="form-label">Programa</label><select name="program_id" class="form-input" required>${state.trainingPrograms.map(p=>`<option value="${p.id}" ${(w.programId||selProg?.id)===p.id?'selected':''}>${esc(p.name||p.nameEs||'')}</option>`).join('')}</select></div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Número de semana</label><input name="week_number" class="form-input" type="number" value="${esc(w.weekNumber||'')}" required></div>
+        <div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="activo">Activo</option><option value="borrador">Borrador</option></select></div>
+      </div>
+      ${biField('Nombre de la semana','Naziv sedmice','name_es','name_sr',w.nameEs||w.name||'',w.nameSr||'')}
+      ${biField('Objetivo','Cilj','objective_es','objective_sr',w.objectiveEs||w.objective||'',w.objectiveSr||'','textarea',2)}
+      ${biField('Foco principal','Glavni fokus','focus_es','focus_sr',w.focusEs||w.focus||'',w.focusSr||'')}
+      ${actions}`;
+  }
+
+  else if(type==='trainingSession'){
+    const s=get('trainingSessions');const selWeek=state.trainingWeeks.find(w=>w.id===state.selectedTrainingWeekId);
+    title.textContent=id?'Editar sesión':'Crear sesión';
+    form.innerHTML=`
+      <div class="form-row"><label class="form-label">Semana</label><select name="week_id" class="form-input" required>${state.trainingWeeks.map(w=>{const p=state.trainingPrograms.find(x=>x.id===w.programId);return`<option value="${w.id}" ${(s.weekId||selWeek?.id)===w.id?'selected':''}>${esc(p?.nameEs||p?.name||'Programa')} · Semana ${esc(w.weekNumber||'—')}</option>`;}).join('')}</select></div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Número de sesión</label><input name="session_number" class="form-input" type="number" value="${esc(s.sessionNumber||'')}" required></div>
+        <div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="activo">Activo</option><option value="borrador">Borrador</option></select></div>
+      </div>
+      ${biField('Nombre de la sesión','Naziv sesije','title_es','title_sr',s.titleEs||s.title||s.name||'',s.titleSr||'')}
+      ${biField('Objetivo','Cilj','objective_es','objective_sr',s.objectiveEs||s.objective||'',s.objectiveSr||'','textarea',2)}
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Duración</label><input name="duration" class="form-input" value="${esc(s.duration||'')}"></div>
+        <div class="form-row"><label class="form-label">Intensidad</label><select name="intensity" class="form-input"><option value="baja">Baja</option><option value="media">Media</option><option value="alta">Alta</option><option value="variable">Variable</option></select></div>
+      </div>
+      ${biField('Descripción','Opis','description_es','description_sr',s.descriptionEs||s.description||'',s.descriptionSr||'','textarea',2)}
+      ${actions}`;
+  }
+
+  else if(type==='trainingBlock'){
+    const b=get('trainingBlocks');const selSess=state.trainingSessions.find(s=>s.id===state.selectedTrainingSessionId);
+    title.textContent=id?'Editar bloque':'Crear bloque';
+    form.innerHTML=`
+      <div class="form-row"><label class="form-label">Sesión</label><select name="session_id" class="form-input" required>${state.trainingSessions.map(s=>{const w=state.trainingWeeks.find(x=>x.id===s.weekId);const p=state.trainingPrograms.find(x=>x.id===w?.programId);return`<option value="${s.id}" ${(b.sessionId||selSess?.id)===s.id?'selected':''}>${esc(p?.nameEs||p?.name||'—')} · S${esc(w?.weekNumber||'—')} · Sesión ${esc(s.sessionNumber||'—')}</option>`;}).join('')}</select></div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Orden del bloque</label><input name="block_order" class="form-input" type="number" value="${esc(b.blockOrder||b.orderNumber||'')}" required></div>
+        <div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="activo">Activo</option><option value="borrador">Borrador</option></select></div>
+      </div>
+      ${biField('Título del bloque','Naziv bloka','title_es','title_sr',b.titleEs||b.title||b.name||'',b.titleSr||'')}
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Tipo de bloque</label><select name="type" class="form-input"><option value="calentamiento">Calentamiento</option><option value="movilidad">Movilidad</option><option value="fuerza">Fuerza</option><option value="tecnica">Técnica</option><option value="principal">Parte principal</option><option value="vuelta_calma">Vuelta a la calma</option><option value="otro">Otro</option></select></div>
+        <div class="form-row"><label class="form-label">Duración</label><input name="duration" class="form-input" value="${esc(b.duration||'')}"></div>
+      </div>
+      ${biField('Objetivo','Cilj','objective_es','objective_sr',b.objectiveEs||b.objective||'',b.objectiveSr||'','textarea',2)}
+      ${biField('Descripción','Opis','description_es','description_sr',b.descriptionEs||b.description||'',b.descriptionSr||'','textarea',2)}
+      ${actions}`;
+  }
+
+  else if(type==='trainingExercise'){
+    const ex=get('trainingExercises');const selBlock=state.trainingBlocks.find(b=>b.id===state.selectedTrainingBlockId);
+    title.textContent=id?'Editar ejercicio':'Crear ejercicio';
+    form.innerHTML=`
+      <div class="form-row"><label class="form-label">Bloque</label><select name="block_id" class="form-input" required>${state.trainingBlocks.map(b=>{const s=state.trainingSessions.find(x=>x.id===b.sessionId);const w=state.trainingWeeks.find(x=>x.id===s?.weekId);const p=state.trainingPrograms.find(x=>x.id===w?.programId);return`<option value="${b.id}" ${(ex.blockId||selBlock?.id)===b.id?'selected':''}>${esc(p?.nameEs||p?.name||'—')} · S${esc(w?.weekNumber||'—')} · ${esc(b.titleEs||b.title||b.name||'Bloque')}</option>`;}).join('')}</select></div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Orden</label><input name="exercise_order" class="form-input" type="number" value="${esc(ex.exerciseOrder||ex.orderNumber||'')}" required></div>
+        <div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="activo">Activo</option><option value="borrador">Borrador</option></select></div>
+      </div>
+      ${biField('Nombre del ejercicio','Naziv vežbe','name_es','name_sr',ex.nameEs||ex.name||ex.title||'',ex.nameSr||'')}
+      ${biField('Descripción técnica','Tehnički opis','description_es','description_sr',ex.descriptionEs||ex.description||'',ex.descriptionSr||'','textarea',2)}
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Series</label><input name="sets" class="form-input" value="${esc(ex.sets||'')}"></div>
+        <div class="form-row"><label class="form-label">Repeticiones</label><input name="reps" class="form-input" value="${esc(ex.reps||'')}"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Tiempo</label><input name="time" class="form-input" value="${esc(ex.time||'')}"></div>
+        <div class="form-row"><label class="form-label">Descanso</label><input name="rest" class="form-input" value="${esc(ex.rest||'')}"></div>
+      </div>
+      <div class="form-row"><label class="form-label">Nivel / variante</label><select name="level" class="form-input"><option value="General">General</option><option value="N1">N1</option><option value="N2">N2</option><option value="N3">N3</option><option value="N4">N4</option></select></div>
+      <div style="background:var(--navy3);border:1px solid var(--border2);padding:12px;margin-bottom:14px">
+        <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:10px">Variantes por nivel</div>
+        ${biField('Variante N1','Varijanta N1','variant_n1_es','variant_n1_sr',ex.variantN1Es||'',ex.variantN1Sr||'','textarea',1)}
+        ${biField('Variante N2','Varijanta N2','variant_n2_es','variant_n2_sr',ex.variantN2Es||'',ex.variantN2Sr||'','textarea',1)}
+        ${biField('Variante N3','Varijanta N3','variant_n3_es','variant_n3_sr',ex.variantN3Es||'',ex.variantN3Sr||'','textarea',1)}
+        ${biField('Variante N4','Varijanta N4','variant_n4_es','variant_n4_sr',ex.variantN4Es||'',ex.variantN4Sr||'','textarea',1)}
+      </div>
+      ${biField('Notas del coach','Napomene trenera','coaching_notes_es','coaching_notes_sr',ex.coachingNotesEs||ex.coachNotes||'',ex.coachingNotesSr||'','textarea',2)}
+      ${actions}`;
+  }
+
+  else if(type==='template'){
+    const t=get('templates');title.textContent=id?'Editar plantilla':'Nueva plantilla';
+    form.innerHTML=`
+      ${biField('Nombre','Naziv','name_es','name_sr',t.nameEs||t.name||'',t.nameSr||'')}
+      ${biField('Mensaje','Poruka','msg_es','msg_sr',t.msgEs||t.msg||'',t.msgSr||'','textarea',4)}
+      ${actions}`;
+  }
+
+  else if(type==='trainingAssignment'){title.textContent='Asignar entrenamiento a cliente';form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions()}</select></div><div class="form-row"><label class="form-label">Programa base</label><select name="programId" class="form-input" required>${state.trainingPrograms.map(p=>`<option value="${p.id}">${esc(p.nameEs||p.name||'')}</option>`).join('')}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Nivel asignado</label><select name="assignedLevel" class="form-input"><option value="N1">N1 — Principiante</option><option value="N2">N2 — Básico</option><option value="N3">N3 — Intermedio</option><option value="N4">N4 — Avanzado</option></select></div><div class="form-row"><label class="form-label">Alcance</label><select name="assignmentScope" class="form-input"><option value="full" selected>Plan completo</option><option value="month">Mes completo</option><option value="week">Semana completa</option><option value="day">Solo un día</option></select></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Semana actual</label><input name="currentWeek" class="form-input" type="number" value="1"></div><div class="form-row"><label class="form-label">Fecha de inicio</label><input name="startDate" class="form-input" type="date" value="${todayISO()}"></div></div><div class="form-row"><label class="form-label">Etiqueta comercial</label><input name="commercialLabel" class="form-input" placeholder="Ej: Plan completo / Mes 1"></div><input type="hidden" name="status" value="activo">${actions}`;}
+
   else if(type==='assessment'){
     title.textContent='Registrar test inicial';
     const templates=state.assessmentTemplates||[];const defaultTpl=templates[0];
@@ -1250,10 +1401,13 @@ function openModal(type,id=null){
     if(!templates.length){form.innerHTML=`<div class="empty small">No hay plantillas de evaluación creadas todavía.</div><div style="display:flex;justify-content:flex-end;margin-top:20px"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cerrar</button></div>`;}
     else{form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(state.selectedClientId)}</select></div><div class="form-row"><label class="form-label">Plantilla de test</label><select name="templateId" class="form-input" required onchange="renderAssessmentFormItems(this.value)">${templates.map(t=>`<option value="${t.id}" ${defaultTpl?.id===t.id?'selected':''}>${esc(t.name||'Test sin nombre')}</option>`).join('')}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Fecha del test</label><input name="assessmentDate" class="form-input" type="date" value="${todayISO()}" required></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="realizada" selected>Realizada</option><option value="pendiente">Pendiente</option></select></div></div><div class="form-row"><label class="form-label">Resultados por ejercicio</label><div id="assessmentItemsBox">${buildAssessmentItemsInputs(templateItems)}</div></div><div class="form-row"><label class="form-label">Notas del coach</label><textarea name="coachNotes" class="form-input" rows="3"></textarea></div>${actions}`;}
   }
+
   else if(type==='program'){const p=get('programs');title.textContent=id?'Editar programa':'Crear plan';form.innerHTML=`<div class="form-row"><label class="form-label">Nombre del plan</label><input name="name" class="form-input" value="${esc(p.name||'')}" required></div><div class="form-row-2"><div class="form-row"><label class="form-label">Tipo</label><input name="type" class="form-input" value="${esc(p.type||'Personal')}" required></div><div class="form-row"><label class="form-label">Nivel</label><input name="level" class="form-input" value="${esc(p.level||'Inicial')}"></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Duración</label><input name="duration" class="form-input" value="${esc(p.duration||'4 semanas')}"></div><div class="form-row"><label class="form-label">Cliente asignado</label><select name="clientId" class="form-input"><option value="">Sin asignar</option>${clientOptions(p.clientId)}</select></div></div><div class="form-row"><label class="form-label">Objetivo / bloques</label><textarea name="objective" class="form-input" rows="3">${esc(p.objective||'')}</textarea></div>${actions}`;}
+
   else if(type==='partner'){const p=get('partners');title.textContent=id?'Editar partner':'Agregar partner';form.innerHTML=`<div class="form-row"><label class="form-label">Nombre</label><input name="name" class="form-input" value="${esc(p.name||'')}" required></div><div class="form-row-2"><div class="form-row"><label class="form-label">Categoría</label><input name="category" class="form-input" value="${esc(p.category||'')}"></div><div class="form-row"><label class="form-label">Ubicación</label><input name="location" class="form-input" value="${esc(p.location||'')}"></div></div><div class="form-row"><label class="form-label">Beneficio</label><textarea name="benefit" class="form-input" rows="2">${esc(p.benefit||'')}</textarea></div><div class="form-row"><label class="form-label">URL</label><input name="url" class="form-input" value="${esc(p.url||'')}"></div>${actions}`;}
-  else if(type==='template'){const t=get('templates');title.textContent=id?'Editar plantilla':'Nueva plantilla';form.innerHTML=`<div class="form-row"><label class="form-label">Nombre</label><input name="name" class="form-input" value="${esc(t.name||'')}" required></div><div class="form-row"><label class="form-label">Mensaje</label><textarea name="msg" class="form-input" rows="4" required>${esc(t.msg||'')}</textarea></div>${actions}`;}
+
   else if(type==='note'){title.textContent='Nueva nota';form.innerHTML=`<div class="form-row"><label class="form-label">Nota</label><textarea name="text" class="form-input" rows="4" required></textarea></div>${actions}`;}
+
   else if(type==='nutrition'){title.textContent='Actualizar objetivo nutricional';form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(state.selectedClientId)}</select></div><div class="form-row"><label class="form-label">Objetivo nutricional</label><input name="nutritionObjective" class="form-input"></div>${actions}`;}
 
   form.onsubmit=saveModal;
@@ -1279,21 +1433,95 @@ async function saveModal(e){
   try{
     const data=formData(e.target);const{type,id}=activeModal||{};
     if(type==='client'){
-      // Normalize access code
-      if(data.access_code) data.access_code = data.access_code.trim().toUpperCase();
-      await upsert('clients',{...data,status:data.status||'prospecto',notes:id?(clientById(id)?.notes||[]):[]});
-      if(!state.selectedClientId&&!id)state.selectedClientId=state.clients[state.clients.length-1]?.id||null;
-      showToast(id?'Cliente actualizado':'Cliente guardado');
-    }
+  if(data.access_code) data.access_code = data.access_code.trim().toUpperCase();
+  // preferred_lang llega del select como 'preferred_lang' (snake) → el helper camelToSnake lo convierte bien
+  await upsert('clients',{...data,status:data.status||'prospecto',notes:id?(clientById(id)?.notes||[]):[]});
+  if(!state.selectedClientId&&!id)state.selectedClientId=state.clients[state.clients.length-1]?.id||null;
+  showToast(id?'Cliente actualizado':'Cliente guardado');
+}
     else if(type==='reservation'){await upsert('reservations',data);showToast('Reserva guardada');}
     else if(type==='payment'){await upsert('payments',data);showToast('Pago registrado');}
     else if(type==='metric'){await upsert('metrics',data);showToast('Métrica guardada');}
     else if(type==='health'){await upsert('healthAlerts',data);showToast('Alerta guardada');}
-    else if(type==='trainingProgram'){await upsert('trainingPrograms',data);showToast(id?'Programa actualizado':'Programa creado');}
-    else if(type==='trainingWeek'){await upsert('trainingWeeks',data);if(data.programId)state.selectedTrainingProgramId=data.programId;showToast(id?'Semana actualizada':'Semana creada');}
-    else if(type==='trainingSession'){await upsert('trainingSessions',data);if(data.weekId){state.selectedTrainingWeekId=data.weekId;const week=state.trainingWeeks.find(w=>w.id===data.weekId);if(week)state.selectedTrainingProgramId=week.programId;}showToast(id?'Sesión actualizada':'Sesión creada');}
-    else if(type==='trainingBlock'){await upsert('trainingBlocks',data);if(data.sessionId){state.selectedTrainingSessionId=data.sessionId;const session=state.trainingSessions.find(s=>s.id===data.sessionId);if(session){state.selectedTrainingWeekId=session.weekId;const week=state.trainingWeeks.find(w=>w.id===session.weekId);if(week)state.selectedTrainingProgramId=week.programId;}}showToast(id?'Bloque actualizado':'Bloque creado');}
-    else if(type==='trainingExercise'){await upsert('trainingExercises',data);if(data.blockId){state.selectedTrainingBlockId=data.blockId;const block=state.trainingBlocks.find(b=>b.id===data.blockId);if(block){state.selectedTrainingSessionId=block.sessionId;const session=state.trainingSessions.find(s=>s.id===block.sessionId);if(session){state.selectedTrainingWeekId=session.weekId;const week=state.trainingWeeks.find(w=>w.id===session.weekId);if(week)state.selectedTrainingProgramId=week.programId;}}}showToast(id?'Ejercicio actualizado':'Ejercicio creado');}
+    else if(type==='trainingProgram'){
+  await upsert('trainingPrograms',{
+    ...data,
+    name:        data.name_es || data.name,
+    description: data.description_es || data.description,
+    objective:   data.objective_es || data.objective,
+    type:        data.type_es || data.type,
+    level:       data.level_es || data.level,
+  });
+  showToast(id?'Programa actualizado':'Programa creado');
+}
+    else if(type==='trainingWeek'){
+  await upsert('trainingWeeks',{
+    ...data,
+    name:        data.name_es || data.name,
+    description: data.description_es || data.description,
+    objective:   data.objective_es || data.objective,
+    focus:       data.focus_es || data.focus,
+  });
+  if(data.program_id) state.selectedTrainingProgramId=data.program_id;
+  showToast(id?'Semana actualizada':'Semana creada');
+}
+    else if(type==='trainingSession'){
+  await upsert('trainingSessions',{
+    ...data,
+    title:       data.title_es || data.title,
+    name:        data.title_es || data.name,
+    description: data.description_es || data.description,
+    objective:   data.objective_es || data.objective,
+  });
+  if(data.week_id){
+    state.selectedTrainingWeekId=data.week_id;
+    const week=state.trainingWeeks.find(w=>w.id===data.week_id);
+    if(week) state.selectedTrainingProgramId=week.programId;
+  }
+  showToast(id?'Sesión actualizada':'Sesión creada');
+}
+    else if(type==='trainingBlock'){
+  await upsert('trainingBlocks',{
+    ...data,
+    title:       data.title_es || data.title,
+    name:        data.title_es || data.name,
+    description: data.description_es || data.description,
+    objective:   data.objective_es || data.objective,
+  });
+  if(data.session_id){
+    state.selectedTrainingSessionId=data.session_id;
+    const session=state.trainingSessions.find(s=>s.id===data.session_id);
+    if(session){
+      state.selectedTrainingWeekId=session.weekId;
+      const week=state.trainingWeeks.find(w=>w.id===session.weekId);
+      if(week) state.selectedTrainingProgramId=week.programId;
+    }
+  }
+  showToast(id?'Bloque actualizado':'Bloque creado');
+}
+    else if(type==='trainingExercise'){
+  await upsert('trainingExercises',{
+    ...data,
+    name:          data.name_es || data.name,
+    title:         data.name_es || data.title,
+    description:   data.description_es || data.description,
+    coach_notes:   data.coaching_notes_es || data.coach_notes,
+  });
+  if(data.block_id){
+    state.selectedTrainingBlockId=data.block_id;
+    const block=state.trainingBlocks.find(b=>b.id===data.block_id);
+    if(block){
+      state.selectedTrainingSessionId=block.sessionId;
+      const session=state.trainingSessions.find(s=>s.id===block.sessionId);
+      if(session){
+        state.selectedTrainingWeekId=session.weekId;
+        const week=state.trainingWeeks.find(w=>w.id===session.weekId);
+        if(week) state.selectedTrainingProgramId=week.programId;
+      }
+    }
+  }
+  showToast(id?'Ejercicio actualizado':'Ejercicio creado');
+}
     else if(type==='trainingAssignment'){
       data.status='activo';
       const cleanAssignment={clientId:data.clientId,programId:data.programId,status:'activo',assignmentScope:data.assignmentScope||'full',commercialLabel:data.commercialLabel||'Plan completo',assignedLevel:data.assignedLevel||'N1',currentWeek:data.currentWeek||1,startDate:data.startDate||todayISO(),coachNotes:data.coachNotes||''};
@@ -1325,7 +1553,14 @@ async function saveModal(e){
     }
     else if(type==='program'){await upsert('programs',data);showToast(id?'Plan actualizado':'Plan guardado');}
     else if(type==='partner'){await upsert('partners',data);showToast('Partner guardado');}
-    else if(type==='template'){await upsert('templates',data);showToast('Plantilla guardada');}
+    else if(type==='template'){
+  await upsert('templates',{
+    ...data,
+    name: data.name_es || data.name,
+    msg:  data.msg_es  || data.msg,
+  });
+  showToast('Plantilla guardada');
+}
     else if(type==='note'){
       const c=clientById(state.selectedClientId);if(c){const notes=Array.isArray(c.notes)?c.notes:[];notes.unshift({id:uid(),text:data.text,date:todayISO()});const{data:saved,error}=await db.from('clients').update({notes}).eq('id',c.id).select().single();if(error)throw error;Object.assign(c,snakeToCamel(saved));showToast('Nota guardada');}
     }
