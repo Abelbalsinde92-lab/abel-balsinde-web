@@ -610,6 +610,12 @@ async function loadClientDashboard(clientId) {
     clientAlerts             = halR.data  || [];
     clientPrograms           = proR.data  || [];
     clientTrainingAssignment = assignR.data?.[0] || null;
+    
+    console.log('CLIENT ID:', clientId);
+console.log('ASSIGN ERROR:', assignR.error);
+console.log('ASSIGN DATA:', assignR.data);
+console.log('ACTIVE ASSIGNMENT:', clientTrainingAssignment);
+    
     clientAssessments        = assR.data  || [];
 
     // Load assessment results
@@ -648,20 +654,59 @@ if (clientTrainingAssignment?.program_id) {
 
   let rows = visibleR.data || [];
 
+  console.log('VISIBLE VIEW ERROR:', visibleR.error);
+console.log('VISIBLE ROWS BEFORE FILTER:', rows.length);
+console.log('ASSIGNMENT SCOPE:', getAssignmentScope());
+console.log('ASSIGNED WEEKS:', getAssignedWeekNumbers());
+console.log('ASSIGNED SESSION:', clientTrainingAssignment?.assigned_session_number);
+  
   // Apply commercial scope: day / week / month / full
-  const weekNums = getAssignedWeekNumbers();
+const scope = getAssignmentScope();
 
-  if (weekNums !== null) {
-    rows = rows.filter(r => weekNums.includes(Number(r.week_order)));
-  }
+if (scope === 'day') {
+  const assignedWeek = Number(
+    clientTrainingAssignment?.assigned_week ||
+    clientTrainingAssignment?.current_week ||
+    1
+  );
 
-  const scope = getAssignmentScope();
+  const assignedSession = Number(
+    clientTrainingAssignment?.assigned_session_number ||
+    1
+  );
 
-  if (['day', 'session', 'sesion', 'día', 'dia'].includes(scope)) {
-    const assignedSession = Number(clientTrainingAssignment?.assigned_session_number || 1);
-    rows = rows.filter(r => Number(r.session_order) === assignedSession);
-  }
+  rows = rows.filter(r =>
+    Number(r.week_order) === assignedWeek &&
+    Number(r.session_order) === assignedSession
+  );
+}
 
+else if (scope === 'week') {
+  const assignedWeek = Number(
+    clientTrainingAssignment?.assigned_week ||
+    clientTrainingAssignment?.current_week ||
+    1
+  );
+
+  rows = rows.filter(r =>
+    Number(r.week_order) === assignedWeek
+  );
+}
+
+else if (scope === 'month') {
+  const assignedMonth = Number(clientTrainingAssignment?.assigned_month || 1);
+  const startWeek = (assignedMonth - 1) * 4 + 1;
+  const endWeek = startWeek + 3;
+
+  rows = rows.filter(r =>
+    Number(r.week_order) >= startWeek &&
+    Number(r.week_order) <= endWeek
+  );
+}
+
+  console.log('VISIBLE ROWS AFTER FILTER:', rows.length);
+console.log('FIRST VISIBLE ROW:', rows[0]);
+  
   if (rows.length) {
     const first = rows[0];
 
