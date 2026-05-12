@@ -491,7 +491,11 @@ function genericBadge(s) {
 }
 
 /* ══ ASSIGNMENT SCOPE HELPERS ══ */
-function getAssignmentScope() { return clientTrainingAssignment?.assignment_scope || 'full'; }
+function getAssignmentScope() {
+  return String(clientTrainingAssignment?.assignment_scope || 'full')
+    .trim()
+    .toLowerCase();
+}
 function getAssignmentScopeLabel() {
   const s = getAssignmentScope();
   if (s === 'day')   return clientTrainingAssignment?.commercial_label || 'Día asignado';
@@ -644,9 +648,20 @@ let q = db
   .order('block_order', { ascending: true })
   .order('exercise_order', { ascending: true });
 
+let q = db
+  .from('client_training_plan_visible')
+  .select('*')
+  .eq('client_id', clientId);
+
 if (pid) {
   q = q.eq('program_id', pid);
 }
+
+q = q
+  .order('week_order', { ascending: true })
+  .order('session_order', { ascending: true })
+  .order('block_order', { ascending: true })
+  .order('exercise_order', { ascending: true });
 
 const visibleR = await q;
 
