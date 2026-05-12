@@ -265,7 +265,7 @@
   <div class="login-box">
     <div class="login-logo">
       <div class="logo-badge">AB</div>
-      <div class="logo-text">ABEL <span>BALSINDE</span></div>
+      <div class="logo-text">AB <span>SYSTEM</span></div>
     </div>
     <h1 class="login-title">KLIJENTSKA ZONA</h1>
     <p class="login-sub">Pristupite svom ličnom praćenju.</p>
@@ -1388,7 +1388,7 @@ function renderSummary() {
   if (lastAss) html += '<div class="summary-card full"><div class="summary-label">Poslednja evaluacija</div><div class="summary-value">'+(lastAss.assessment_name||'Test')+' · '+formatDate(lastAss.assessment_date)+'</div></div>';
   if (lastNote) html += '<div class="summary-card full"><div class="summary-label">Poslednja napomena trenera</div><div class="summary-value" style="font-style:italic;color:var(--gray)">'+lastNote+'</div></div>';
   html += '</div>';
-  html += '<button class="copy-summary-btn" onclick="copySummaryToClipboard()">Kopiraj rezime u clipboard</button>';
+  html += '<button class="copy-summary-btn" onclick="copySummaryToClipboard()">Kopiraj rezime</button>';
   el.innerHTML = html;
 }
 
@@ -1418,7 +1418,7 @@ function copySummaryToClipboard() {
   ].filter(Boolean).join('\n');
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.querySelector('.copy-summary-btn');
-    if (btn) { btn.textContent='✓ Kopirano'; setTimeout(()=>{btn.textContent='Kopiraj rezime u clipboard';},2000); }
+    if (btn) { btn.textContent='✓ Kopirano'; setTimeout(()=>{btn.textContent='Kopiraj rezime';},2000); }
   }).catch(() => { alert('Kopiranje nije uspelo.'); });
 }
 
