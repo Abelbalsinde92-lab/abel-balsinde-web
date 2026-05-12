@@ -633,80 +633,92 @@ clientTrainingSessions  = [];
 clientTrainingBlocks    = [];
 clientTrainingExercises = [];
 
-if (clientTrainingAssignment?.program_id) {
-  const pid = clientTrainingAssignment.program_id;
+let pid = clientTrainingAssignment?.program_id || null;
 
-  let q = db
-    .from('client_training_plan_visible')
-    .select('*')
-    .eq('client_id', clientId)
-    .eq('program_id', pid)
-    .order('week_order', { ascending: true })
-    .order('session_order', { ascending: true })
-    .order('block_order', { ascending: true })
-    .order('exercise_order', { ascending: true });
+let q = db
+  .from('client_training_plan_visible')
+  .select('*')
+  .eq('client_id', clientId)
+  .order('week_order', { ascending: true })
+  .order('session_order', { ascending: true })
+  .order('block_order', { ascending: true })
+  .order('exercise_order', { ascending: true });
 
-  const visibleR = await q;
+if (pid) {
+  q = q.eq('program_id', pid);
+}
 
-  if (visibleR.error) {
-    console.error('Visible training view error:', visibleR.error);
+const visibleR = await q;
+
+console.log('CLIENT TRAINING ASSIGNMENT:', clientTrainingAssignment);
+console.log('VISIBLE VIEW ERROR:', visibleR.error);
+console.log('VISIBLE ROWS RAW:', visibleR.data?.length || 0);
+
+if (visibleR.error) {
+  console.error('Visible training view error:', visibleR.error);
+}
+
+let rows = visibleR.data || [];
+
+if (rows.length) {
+  if (!pid) {
+    pid = rows[0].program_id;
   }
 
-  let rows = visibleR.data || [];
+  const scope = getAssignmentScope();
 
-  console.log('VISIBLE VIEW ERROR:', visibleR.error);
-console.log('VISIBLE ROWS BEFORE FILTER:', rows.length);
-console.log('ASSIGNMENT SCOPE:', getAssignmentScope());
-console.log('ASSIGNED WEEKS:', getAssignedWeekNumbers());
-console.log('ASSIGNED SESSION:', clientTrainingAssignment?.assigned_session_number);
-  
-  // Apply commercial scope: day / week / month / full
-const scope = getAssignmentScope();
+  console.log('ASSIGNMENT SCOPE:', scope);
+  console.log('ASSIGNED WEEK:', clientTrainingAssignment?.assigned_week);
+  console.log('CURRENT WEEK:', clientTrainingAssignment?.current_week);
+  console.log('ASSIGNED MONTH:', clientTrainingAssignment?.assigned_month);
+  console.log('ASSIGNED SESSION:', clientTrainingAssignment?.assigned_session_number);
 
-if (scope === 'day') {
-  const assignedWeek = Number(
-    clientTrainingAssignment?.assigned_week ||
-    clientTrainingAssignment?.current_week ||
-    1
-  );
+  if (clientTrainingAssignment) {
+    if (scope === 'day') {
+      const assignedWeek = Number(
+        clientTrainingAssignment?.assigned_week ||
+        clientTrainingAssignment?.current_week ||
+        1
+      );
 
-  const assignedSession = Number(
-    clientTrainingAssignment?.assigned_session_number ||
-    1
-  );
+      const assignedSession = Number(
+        clientTrainingAssignment?.assigned_session_number ||
+        1
+      );
 
-  rows = rows.filter(r =>
-    Number(r.week_order) === assignedWeek &&
-    Number(r.session_order) === assignedSession
-  );
-}
+      rows = rows.filter(r =>
+        Number(r.week_order) === assignedWeek &&
+        Number(r.session_order) === assignedSession
+      );
+    }
 
-else if (scope === 'week') {
-  const assignedWeek = Number(
-    clientTrainingAssignment?.assigned_week ||
-    clientTrainingAssignment?.current_week ||
-    1
-  );
+    else if (scope === 'week') {
+      const assignedWeek = Number(
+        clientTrainingAssignment?.assigned_week ||
+        clientTrainingAssignment?.current_week ||
+        1
+      );
 
-  rows = rows.filter(r =>
-    Number(r.week_order) === assignedWeek
-  );
-}
+      rows = rows.filter(r =>
+        Number(r.week_order) === assignedWeek
+      );
+    }
 
-else if (scope === 'month') {
-  const assignedMonth = Number(clientTrainingAssignment?.assigned_month || 1);
-  const startWeek = (assignedMonth - 1) * 4 + 1;
-  const endWeek = startWeek + 3;
+    else if (scope === 'month') {
+      const assignedMonth = Number(clientTrainingAssignment?.assigned_month || 1);
+      const startWeek = (assignedMonth - 1) * 4 + 1;
+      const endWeek = startWeek + 3;
 
-  rows = rows.filter(r =>
-    Number(r.week_order) >= startWeek &&
-    Number(r.week_order) <= endWeek
-  );
-}
+      rows = rows.filter(r =>
+        Number(r.week_order) >= startWeek &&
+        Number(r.week_order) <= endWeek
+      );
+    }
+  }
 
   console.log('VISIBLE ROWS AFTER FILTER:', rows.length);
-console.log('FIRST VISIBLE ROW:', rows[0]);
-  
+  console.log('FIRST VISIBLE ROW:', rows[0]);
+
   if (rows.length) {
     const first = rows[0];
 
@@ -1060,13 +1072,21 @@ async function renderClientTraining() {
   activeTrainingBlockKey  = null;
   currentTrainingLog      = null;
 
-  if (!clientTrainingAssignment || !clientTrainingProgram) {
-    if (badge) badge.textContent = 'Sin asignar';
-    el.innerHTML = '<p class="empty-state">Todavía no tienes un programa de entrenamiento asignado. Cuando Abel active tu plan, aparecerá aquí.</p>';
-    return;
-  }
+  if (!clientTrainingProgram) {
+  if (badge) badge.textContent = 'Sin asignar';
+  el.innerHTML = '<p class="empty-state">Todavía no tienes un programa de entrenamiento asignado. Cuando Abel active tu plan, aparecerá aquí.</p>';
+  return;
+}
 
+  if (clientTrainingAssignment) {
   await loadOrCreateTrainingLog();
+} else {
+  const localProgress = loadTrainingProgressLocal();
+  if (localProgress) {
+    completedTrainingBlocks = new Set(localProgress.completed_block_ids || []);
+    currentTrainingLog = localProgress;
+  }
+}
 
  const activeWeek = getActiveTrainingWeek();
   const levelStr   = getAssignedTrainingLevel();
