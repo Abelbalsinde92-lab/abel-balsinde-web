@@ -642,16 +642,19 @@ let pid = clientTrainingAssignment?.program_id || null;
 let q = db
   .from('client_training_plan_visible')
   .select('*')
-  .eq('client_id', clientId)
+  .eq('client_id', clientId);
+
+if (pid) {
+  q = q.eq('program_id', pid);
+}
+
+q = q
   .order('week_order', { ascending: true })
   .order('session_order', { ascending: true })
   .order('block_order', { ascending: true })
   .order('exercise_order', { ascending: true });
 
-let q = db
-  .from('client_training_plan_visible')
-  .select('*')
-  .eq('client_id', clientId);
+const visibleR = await q;
 
 if (pid) {
   q = q.eq('program_id', pid);
