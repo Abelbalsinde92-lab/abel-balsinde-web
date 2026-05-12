@@ -548,22 +548,39 @@ function getExerciseVariantByLevel(ex) {
 ══════════════════════════════════════════════════════════ */
 async function loginClient() {
   hideError();
+
   const phone = document.getElementById('inputPhone').value.trim();
-  const code  = document.getElementById('inputCode').value.trim().toUpperCase();
-  if (!phone || !code) { showError('Completa los dos campos.'); return; }
+  const code  = document.getElementById('inputCode').value.trim();
+
+  if (!phone || !code) {
+    showError('Completa los dos campos.');
+    return;
+  }
+
   showLoading(true);
+
   try {
-    const { data: clients, error } = await db.from('clients').select('id,phone,access_code');
+    const { data, error } = await db.rpc('client_login_by_phone_code', {
+      p_phone: phone,
+      p_access_code: code
+    });
+
     if (error) throw error;
-    const found = (clients || []).find(c =>
-      normalizePhone(c.phone) === normalizePhone(phone) &&
-      (c.access_code || '').trim().toUpperCase() === code
-    );
-    if (!found) { showLoading(false); showError('Teléfono o código incorrecto.'); return; }
-    Auth.loginAsClient(found.id); // saves session + redirects
+
+    const found = Array.isArray(data) ? data[0] : null;
+
+    if (!found) {
+      showLoading(false);
+      showError('Teléfono o código incorrecto.');
+      return;
+    }
+
+    Auth.loginAsClient(found.id);
+
   } catch (err) {
+    console.error('Login cliente error:', err);
     showLoading(false);
-    showError('Error: ' + (err.message || JSON.stringify(err)));
+    showError('Error al validar acceso. Inténtalo de nuevo.');
   }
 }
 
