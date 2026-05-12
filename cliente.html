@@ -697,6 +697,37 @@ async function renderDashboard() {
   goClientSection('section-training'); // open training tab by default (as in screenshot)
 }
 
+/* ══ BILINGUAL HELPER ══════════════════════════════════════
+   pickLang(obj, base, lang)
+   Busca en orden: obj[base_lang] (camelCase) → obj[base_lang] (snake_case) → obj[base_es] → obj[base]
+══════════════════════════════════════════════════════════ */
+function pickLang(obj, base, lang) {
+  if (!obj) return '';
+  const l = (lang || clientData?.preferred_lang || 'es').toLowerCase();
+
+  // camelCase: nameEs, nameSr, titleEs, titleSr…
+  const camelLang = base + l.charAt(0).toUpperCase() + l.slice(1);
+  // snake_case: name_es, name_sr…
+  const snakeLang = base + '_' + l;
+  // fallback español camelCase y snake_case
+  const camelEs   = base + 'Es';
+  const snakeEs   = base + '_es';
+
+  const val =
+    obj[camelLang] ||
+    obj[snakeLang] ||
+    obj[camelEs]   ||
+    obj[snakeEs]   ||
+    obj[base]      ||
+    '';
+
+  return String(val).trim();
+}
+
+function getLang() {
+  return (clientData?.preferred_lang || 'es').toLowerCase();
+}
+
 /* ══ MI PLAN ══ */
 function renderProgram() {
   const el    = document.getElementById('sectionPlan');
@@ -714,12 +745,14 @@ function renderProgram() {
   html += '<hr class="plan-divider">';
 
   if (clientTrainingAssignment && clientTrainingProgram) {
-    html += '<div class="plan-item"><div class="pi-label">Programa activo</div><div class="pi-value">' + (clientTrainingProgram.name || '—') + '</div></div>';
+    const lg = getLang();
+    html += '<div class="plan-item"><div class="pi-label">Programa activo</div><div class="pi-value">' + (pickLang(clientTrainingProgram, 'name', lg) || '—') + '</div></div>';
     html += '<div class="plan-item"><div class="pi-label">Alcance</div><div class="pi-value">' + getAssignmentScopeLabel() + '</div></div>';
     html += '<div class="plan-item"><div class="pi-label">Nivel asignado</div><div class="pi-value">' + (clientTrainingAssignment.assigned_level || 'N1') + '</div></div>';
     html += '<div class="plan-item"><div class="pi-label">Semana actual</div><div class="pi-value">' + (clientTrainingAssignment.current_week || 1) + '</div></div>';
     html += '<div class="plan-item"><div class="pi-label">Inicio</div><div class="pi-value">' + formatDate(clientTrainingAssignment.start_date) + '</div></div>';
-    if (clientTrainingProgram.objective) html += '<div class="plan-item full"><div class="pi-label">Objetivo del programa</div><div class="pi-value">' + clientTrainingProgram.objective + '</div></div>';
+    const progObj = pickLang(clientTrainingProgram, 'objective', lg);
+    if (progObj) html += '<div class="plan-item full"><div class="pi-label">Objetivo del programa</div><div class="pi-value">' + progObj + '</div></div>';
     if (clientTrainingAssignment.coach_notes) html += '<div class="plan-item full"><div class="pi-label">Notas del coach</div><div class="pi-value">' + clientTrainingAssignment.coach_notes + '</div></div>';
   } else {
     const prog = clientPrograms.find(p => (p.status||'').toLowerCase() === 'activo') || clientPrograms[0] || null;
@@ -755,7 +788,8 @@ function getSessionDayLabel(session, index) {
 
 function getSessionDisplayTitle(session, index) {
   const day   = getSessionDayLabel(session, index);
-  const title = session.title || session.name || '';
+  const _lg   = getLang();
+  const title = pickLang(session, 'title', _lg) || pickLang(session, 'name', _lg) || '';
   if (title && !String(title).toLowerCase().includes(day.toLowerCase())) return day + ' · ' + title;
   return title || day;
 }
@@ -902,16 +936,17 @@ async function renderClientTraining() {
 
   await loadOrCreateTrainingLog();
 
-  const activeWeek = getActiveTrainingWeek();
+ const activeWeek = getActiveTrainingWeek();
   const levelStr   = getAssignedTrainingLevel();
   const scopeLabel = getAssignmentScopeLabel();
   const metaParts  = [scopeLabel, levelStr].filter(Boolean);
-  const objective  = activeWeek?.objective || clientTrainingProgram.objective || '';
+  const lg         = getLang();
+  const objective  = pickLang(activeWeek, 'objective', lg) || pickLang(clientTrainingProgram, 'objective', lg);
 
   if (badge) badge.textContent = scopeLabel;
 
   const summaryHtml = '<div class="training-guide-summary">'
-    + '<div class="training-guide-title">' + (clientTrainingProgram.name || 'Programa de entrenamiento') + '</div>'
+    + '<div class="training-guide-title">' + (pickLang(clientTrainingProgram, 'name', lg) || 'Programa de entrenamiento') + '</div>'
     + '<div class="training-guide-meta">' + metaParts.join(' · ') + '</div>'
     + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
     + '</div>';
@@ -969,7 +1004,10 @@ async function renderClientTraining() {
 function buildTrainingStepHTML(step, index) {
   const blockId  = step.blockId;
   const block    = step.block;
-  const blockNum = block.block_order || (index + 1);
+  const blockNum  = block.block_order || (index + 1);
+  const _lg       = getLang();
+  const blockTitle = pickLang(block, 'title', _lg) || pickLang(block, 'name', _lg) || 'Bloque';
+  const blockObj   = pickLang(block, 'objective', _lg);
   const metaP    = [block.duration, block.type].filter(Boolean);
   let html = '';
   if (step.sessionSeparator) html += '<div class="training-session-separator">' + step.sessionSeparator + '</div>';
@@ -977,13 +1015,13 @@ function buildTrainingStepHTML(step, index) {
     + '<button class="training-step-header" onclick="toggleTrainingStep(\'' + blockId + '\')">'
     + '<div class="training-step-number">' + blockNum + '</div>'
     + '<div class="training-step-info">'
-    + '<div class="training-step-title">' + (block.title || block.name || 'Bloque') + '</div>'
+    + '<div class="training-step-title">' + blockTitle + '</div>'
     + (metaP.length ? '<div class="training-step-meta">' + metaP.join(' · ') + '</div>' : '')
     + '</div>'
     + '<div class="training-step-status" id="status-' + blockId + '">Pendiente</div>'
     + '</button>'
     + '<div class="training-step-body">'
-    + (block.objective ? '<div class="training-step-objective">' + block.objective + '</div>' : '');
+    + (blockObj ? '<div class="training-step-objective">' + blockObj + '</div>' : '');
   step.exercises.forEach(ex => { html += buildExerciseHTML(ex); });
   if (!step.exercises.length) html += '<p class="empty-state" style="margin-top:12px;">Este bloque todavía no tiene ejercicios registrados.</p>';
   html += '<button class="training-complete-block-btn" id="completeBtn-' + blockId + '" onclick="completeTrainingStep(\'' + blockId + '\')">Marcar bloque terminado</button>'
@@ -993,7 +1031,24 @@ function buildTrainingStepHTML(step, index) {
 
 function buildExerciseHTML(ex) {
   const lvl     = getAssignedTrainingLevel();
-  const variant = getExerciseVariantByLevel(ex);
+  const _lg     = getLang();
+
+  // Variante por nivel con soporte bilingüe
+  function pickVariant(ex, lvl, lang) {
+    const base = 'variant_' + lvl.toLowerCase(); // variant_n1, variant_n2…
+    return pickLang(ex, base.replace('_', ''), lang) || // variantN1Es / variantN1Sr
+           ex[base + '_' + lang] ||                      // variant_n1_sr
+           ex[base + '_es']      ||                      // variant_n1_es
+           ex[base]              ||                      // variant_n1
+           getExerciseVariantByLevel(ex);                // fallback original
+  }
+
+  const variant = pickVariant(ex, lvl, _lg);
+  const exName  = pickLang(ex, 'name', _lg) || pickLang(ex, 'title', _lg) || 'Ejercicio';
+  const exDesc  = pickLang(ex, 'description', _lg);
+  const exNotes = pickLang(ex, 'coachingNotes', _lg) || pickLang(ex, 'coachNotes', _lg)
+                || ex.coaching_notes || ex.coach_notes || '';
+
   const stats = [
     ex.sets ? { label:'Series',   value:ex.sets } : null,
     ex.reps ? { label:'Reps',     value:ex.reps } : null,
@@ -1004,16 +1059,20 @@ function buildExerciseHTML(ex) {
   let html = '<div class="training-exercise-card">'
     + '<div class="training-exercise-title">'
     + (ex.exercise_order ? '<span class="training-ex-num">' + ex.exercise_order + '.</span>' : '')
-    + (ex.name || ex.title || 'Ejercicio') + '</div>';
+    + exName + '</div>';
+
   if (stats.length) {
     html += '<div class="training-exercise-grid">';
-    stats.forEach(s => { html += '<div class="training-mini-stat"><span class="training-mini-label">' + s.label + '</span><div class="training-mini-value">' + s.value + '</div></div>'; });
+    stats.forEach(s => {
+      html += '<div class="training-mini-stat"><span class="training-mini-label">' + s.label + '</span><div class="training-mini-value">' + s.value + '</div></div>';
+    });
     html += '</div>';
   }
+
   html += '<div class="training-level-tag">Nivel ' + lvl + '</div>';
   if (variant) html += '<div class="training-instruction"><strong>Trabajo indicado</strong>' + variant + '</div>';
-  if (ex.description) html += '<div class="training-instruction"><strong>Cómo hacerlo</strong>' + ex.description + '</div>';
-  if (ex.coaching_notes || ex.coach_notes) html += '<div class="training-coach-note">Coach: ' + (ex.coaching_notes || ex.coach_notes) + '</div>';
+  if (exDesc)  html += '<div class="training-instruction"><strong>Cómo hacerlo</strong>' + exDesc + '</div>';
+  if (exNotes) html += '<div class="training-coach-note">Coach: ' + exNotes + '</div>';
   if (ex.video_url) html += '<a href="' + ex.video_url + '" target="_blank" class="training-video-btn">&#9654; Ver referencia</a>';
   html += '</div>';
   return html;
@@ -1090,7 +1149,8 @@ async function finishTrainingSession() {
     const sp = getAssignmentScopeLabel();
     const lv = getAssignedTrainingLevel();
     const obj = aw?.objective || clientTrainingProgram?.objective || '';
-    el.innerHTML = '<div class="training-guide-summary"><div class="training-guide-title">' + (clientTrainingProgram?.name || 'Programa') + '</div>'
+    const _lg = getLang();
+    el.innerHTML = '<div class="training-guide-summary"><div class="training-guide-title">' + (pickLang(clientTrainingProgram, 'name', _lg) || 'Programa') + '</div>'
       + '<div class="training-guide-meta">' + [sp,lv].filter(Boolean).join(' · ') + '</div>'
       + (obj ? '<div class="training-week-objective">'+obj+'</div>' : '') + '</div>';
   }
@@ -1183,7 +1243,8 @@ async function saveTrainingNote() {
     const sp  = getAssignmentScopeLabel();
     const lv  = getAssignedTrainingLevel();
     const obj = aw?.objective || clientTrainingProgram?.objective || '';
-    el.innerHTML = '<div class="training-guide-summary"><div class="training-guide-title">' + (clientTrainingProgram?.name || 'Programa') + '</div>'
+    const _lg = getLang();
+    el.innerHTML = '<div class="training-guide-summary"><div class="training-guide-title">' + (pickLang(clientTrainingProgram, 'name', _lg) || 'Programa') + '</div>'
       + '<div class="training-guide-meta">' + [sp,lv].filter(Boolean).join(' · ') + '</div>'
       + (obj ? '<div class="training-week-objective">'+obj+'</div>' : '') + '</div>';
   }
