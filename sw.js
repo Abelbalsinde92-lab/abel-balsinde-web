@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ab-system-v4';
+const CACHE_NAME = 'ab-system-v5';
 
 const STATIC_ASSETS = [
   '/',
@@ -7,8 +7,9 @@ const STATIC_ASSETS = [
   '/admin.html',
   '/manifest.json',
   '/hero-ab-system.png.PNG',
-  '/abel-lucha-bw.jpg',
   '/hero-gym-red.jpeg',
+  '/abel-lucha-bw.jpg',
+  '/ab-system-logo.png.PNG',
   '/icon-192.png',
   '/icon-512.png'
 ];
@@ -37,10 +38,12 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
   const request = event.request;
-  const url = new URL(request.url);
 
   // Para páginas HTML: primero red, luego caché.
-  if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
+  if (
+    request.mode === 'navigate' ||
+    request.headers.get('accept')?.includes('text/html')
+  ) {
     event.respondWith(
       fetch(request)
         .then(response => {
@@ -48,7 +51,9 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
           return response;
         })
-        .catch(() => caches.match(request).then(cached => cached || caches.match('/')))
+        .catch(() =>
+          caches.match(request).then(cached => cached || caches.match('/'))
+        )
     );
     return;
   }
