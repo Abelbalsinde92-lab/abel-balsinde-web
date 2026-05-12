@@ -89,47 +89,102 @@ p.body-text{font-size:.95rem;color:var(--gray);line-height:1.75;font-weight:300}
 .alt-bg{background:var(--navy3)}
 
 /* ── HERO ── */
-#hero{min-height:100svh;padding-top:80px;display:flex;align-items:center;position:relative}
-.hero-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;
-  max-width:1200px;margin:0 auto;width:100%;
-}
-.hero-text-col{z-index:2}
-.hero-ctas{display:flex;gap:1rem;flex-wrap:wrap;margin-top:2.5rem}
-.hero-visual{
+#hero{
+  min-height:100svh;
+  padding-top:80px;
+  display:flex;
+  align-items:center;
   position:relative;
-  aspect-ratio:3/4;
-  max-height:680px;
   overflow:hidden;
+  background:
+    linear-gradient(90deg, rgba(2,11,24,.96) 0%, rgba(2,11,24,.88) 42%, rgba(2,11,24,.48) 100%),
+    url('/hero-gym-red.jpeg') center right / cover no-repeat;
 }
 
-.hero-photo{
+#hero::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 72% 28%, rgba(226,6,19,.18), transparent 34%),
+    linear-gradient(180deg, rgba(2,11,24,.1), rgba(2,11,24,.38));
+  pointer-events:none;
+}
+
+#hero::after{
+  content:'';
+  position:absolute;
+  right:0;
+  top:0;
+  bottom:0;
+  width:42%;
+  background:linear-gradient(90deg, transparent, rgba(94,197,240,.08));
+  border-left:1px solid rgba(94,197,240,.12);
+  pointer-events:none;
+}
+
+.hero-grid{
+  display:grid;
+  grid-template-columns:minmax(0, 660px) 1fr;
+  gap:4rem;
+  align-items:center;
+  max-width:1200px;
+  margin:0 auto;
   width:100%;
-  height:100%;
-  object-fit:cover;
-  object-position:center center;
-  filter:contrast(1.08) brightness(.86);
-  clip-path:polygon(0 0,100% 0,100% calc(100% - 32px),calc(100% - 32px) 100%,0 100%);
+  position:relative;
+  z-index:2;
 }
+
+.hero-text-col{
+  z-index:2;
+}
+
+.hero-ctas{
+  display:flex;
+  gap:1rem;
+  flex-wrap:wrap;
+  margin-top:2.5rem;
+}
+
+.hero-visual{
+  position:relative;
+  min-height:520px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-end;
+}
+
+.hero-photo,
 .hero-photo-fallback{
-  display:none;width:100%;height:100%;
-  background:var(--navy3);
-  align-items:center;justify-content:center;
-  border:1px solid var(--border);
-  clip-path:polygon(0 0,100% 0,100% calc(100% - 32px),calc(100% - 32px) 100%,0 100%);
+  display:none!important;
 }
-.hero-photo-fallback b{font-family:'Bebas Neue',sans-serif;font-size:9rem;color:rgba(94,197,240,.12)}
+
 .hero-badge{
   position:absolute;
-  right:14px;
-  bottom:14px;
-  background:var(--red);
+  right:0;
+  bottom:0;
+  background:rgba(226,6,19,.92);
+  backdrop-filter:blur(8px);
   padding:14px 18px;
   min-width:170px;
   clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
+  box-shadow:0 18px 50px rgba(0,0,0,.35);
 }
-.hero-badge b{font-family:'Bebas Neue',sans-serif;font-size:2rem;display:block;line-height:1}
-.hero-badge span{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+
+.hero-badge b{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2rem;
+  display:block;
+  line-height:1;
+}
+
+.hero-badge span{
+  font-family:'Space Mono',monospace;
+  font-size:.55rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.75);
+}
 
 /* ── STATS BAR ── */
 .stats-bar{background:var(--navy3);padding:2rem clamp(1.5rem,5vw,4rem);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
@@ -265,15 +320,25 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   .menu-btn{display:block}
   .hero-grid,.grid2,.sport-grid{grid-template-columns:1fr;gap:2rem}
 
-  .hero-visual{
-  aspect-ratio:4/5;
-  max-height:560px;
-  overflow:hidden;
-}
+    #hero{
+    min-height:92svh;
+    background:
+      linear-gradient(180deg, rgba(2,11,24,.96) 0%, rgba(2,11,24,.90) 48%, rgba(2,11,24,.62) 100%),
+      url('/hero-gym-red.jpeg') center top / cover no-repeat;
+  }
 
-.hero-photo{
-  object-position:center center;
-}
+  #hero::after{
+    display:none;
+  }
+
+  .hero-grid{
+    grid-template-columns:1fr;
+    gap:2rem;
+  }
+
+  .hero-visual{
+    min-height:120px;
+  }
 
   .sport-visual{
     aspect-ratio:4/3;
@@ -289,30 +354,27 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   .panel-metrics{grid-template-columns:repeat(2,1fr)}
   .footer-inner,.footer-bottom{flex-direction:column;align-items:flex-start}
 
+    #hero{
+    min-height:88svh;
+    padding-top:86px;
+    background:
+      linear-gradient(180deg, rgba(2,11,24,.98) 0%, rgba(2,11,24,.92) 52%, rgba(2,11,24,.68) 100%),
+      url('/hero-gym-red.jpeg') center top / cover no-repeat;
+  }
+
   .hero-visual{
-  aspect-ratio:4/5;
-  max-height:520px;
-}
+    min-height:90px;
+  }
 
-.hero-badge{
-  right:16px;
-  bottom:16px;
-  padding:14px 18px;
-}
-
-.hero-badge b{
-  font-size:1.7rem;
-}
-  
   .hero-badge{
-    right:10px;
-    bottom:10px;
+    right:0;
+    bottom:0;
     padding:12px 16px;
-    min-width:150px;
+    min-width:145px;
   }
 
   .hero-badge b{
-    font-size:1.8rem;
+    font-size:1.7rem;
   }
 
   .hero-badge span{
@@ -384,21 +446,12 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
         <a href="#plans" class="btn secondary">Ver planes</a>
       </div>
     </div>
-    <div class="hero-visual anim d2">
-      <!-- Foto de gimnasio: camiseta roja, sentado en banco, ambiente oscuro -->
-      <img
-  src="/hero-gym-red.jpeg"
-  alt="Abel Balsinde, entrenador personal en gimnasio para entrenamiento funcional en Belgrado"
-  class="hero-photo"
-  loading="eager"
-  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
->
-      <div class="hero-photo-fallback" style="display:none"><b>AB</b></div>
-      <div class="hero-badge">
-        <b>+20</b>
-        <span>Experiencia deportiva</span>
-      </div>
-    </div>
+    <div class="hero-visual anim d2" aria-hidden="true">
+  <div class="hero-badge">
+    <b>+20</b>
+    <span>Experiencia deportiva</span>
+  </div>
+</div>
   </div>
 </section>
 
