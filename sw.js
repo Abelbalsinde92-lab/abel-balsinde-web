@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ab-system-v7';
+const CACHE_NAME = 'ab-system-v9';
 
 const STATIC_ASSETS = [
   '/',
