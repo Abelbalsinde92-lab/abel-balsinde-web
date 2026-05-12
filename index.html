@@ -374,20 +374,23 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   .panel-metrics{grid-template-columns:repeat(2,1fr)}
   .footer-inner,.footer-bottom{flex-direction:column;align-items:flex-start}
 
-      #hero{
+  #hero{
     min-height:88svh;
     padding-top:86px;
+    background:
+      linear-gradient(180deg, rgba(2,11,24,.58) 0%, rgba(2,11,24,.36) 52%, rgba(2,11,24,.10) 100%),
+      url('/hero-gym-red.jpeg') 100% top / cover no-repeat;
   }
 
-  .hero-bg img{
-  object-position:72% top;
-}
+  #hero h1{
+    font-size:3.45rem;
+    line-height:.92;
+    margin-bottom:1.1rem;
+  }
 
-  .hero-bg::after{
-  background:
-    linear-gradient(180deg, rgba(2,11,24,.68) 0%, rgba(2,11,24,.44) 50%, rgba(2,11,24,.16) 100%),
-    linear-gradient(90deg, rgba(2,11,24,.50) 0%, rgba(2,11,24,.14) 100%);
-}
+  #hero .lead{
+    max-width:100%;
+  }
 
   .hero-visual{
     min-height:90px;
@@ -408,7 +411,7 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
     font-size:.5rem;
   }
 
-    .hero-ctas{
+  .hero-ctas{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:.8rem;
@@ -422,16 +425,6 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
 
   .hero-ctas .client-access{
     grid-column:1 / -1;
-  }
-
-    #hero h1{
-    font-size:3.95rem;
-    line-height:.92;
-    max-width:320px;
-  }
-
-  #hero .lead{
-    max-width:92%;
   }
 
   .sport-accent{left:0}
