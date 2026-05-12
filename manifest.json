@@ -1,7 +1,7 @@
 {
-  "name": "AB Coach",
-  "short_name": "AB Coach",
-  "description": "Entrenamiento funcional con seguimiento personal de Abel Balsinde.",
+  "name": "AB SYSTEM",
+  "short_name": "AB SYSTEM",
+  "description": "Entrenamiento funcional en Belgrado con seguimiento personal, estructura y progreso medible.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -9,6 +9,7 @@
   "background_color": "#020B18",
   "theme_color": "#020B18",
   "lang": "es",
+  "categories": ["health", "fitness", "sports"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
