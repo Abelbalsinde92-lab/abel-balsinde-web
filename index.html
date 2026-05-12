@@ -155,9 +155,9 @@ p.body-text{font-size:.95rem;color:var(--gray);line-height:1.75;font-weight:300}
 .hero-bg img{
   width:100%;
   height:100%;
-  object-fit:cover;
-  object-position:66% 22%;
-  filter:contrast(1.05) brightness(1.14);
+  object-fit:contain;
+  object-position:right center;
+  filter:contrast(1.03) brightness(1.14) saturate(1.05);
 }
 
 /* Capa oscura para lectura */
@@ -166,8 +166,8 @@ p.body-text{font-size:.95rem;color:var(--gray);line-height:1.75;font-weight:300}
   position:absolute;
   inset:0;
   background:
-    linear-gradient(90deg, rgba(2,11,24,.78) 0%, rgba(2,11,24,.50) 44%, rgba(2,11,24,.12) 100%),
-    linear-gradient(180deg, rgba(2,11,24,.04) 0%, rgba(2,11,24,.18) 100%);
+    linear-gradient(90deg, rgba(2,11,24,.86) 0%, rgba(2,11,24,.52) 42%, rgba(2,11,24,.10) 100%),
+    linear-gradient(180deg, rgba(2,11,24,.04) 0%, rgba(2,11,24,.14) 100%);
   z-index:1;
 }
 
@@ -429,9 +429,10 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   }
 
   .hero-bg img{
-    object-position:84% top;
-    filter:contrast(1.01) brightness(1.38) saturate(1.08);
-  }
+  object-fit:cover;
+  object-position:84% top;
+  filter:contrast(1.01) brightness(1.38) saturate(1.08);
+}
 
   .hero-bg::after{
     background:
