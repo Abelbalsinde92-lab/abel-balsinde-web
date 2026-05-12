@@ -8,7 +8,7 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/hero-ab-system.png.PNG',
   '/abel-lucha-bw.jpg',
-  '/ab-system-logo.png.PNG',
+  '/hero-gym-red.jpeg',
   '/icon-192.png',
   '/icon-512.png'
 ];
