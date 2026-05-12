@@ -107,31 +107,33 @@ p.body-text{font-size:.95rem;color:var(--gray);line-height:1.75;font-weight:300}
   align-items:center;
   position:relative;
   overflow:hidden;
-  background:
-  linear-gradient(90deg, rgba(2,11,24,.78) 0%, rgba(2,11,24,.52) 42%, rgba(2,11,24,.08) 100%),
-  url('/hero-gym-red.jpeg') 82% center / cover no-repeat;
+  background:var(--navy);
 }
 
-#hero::before{
+/* Foto real de fondo */
+.hero-bg{
+  position:absolute;
+  inset:0;
+  z-index:0;
+}
+
+.hero-bg img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:68% center;
+  filter:contrast(1.05) brightness(.92);
+}
+
+/* Capa oscura para lectura */
+.hero-bg::after{
   content:'';
   position:absolute;
   inset:0;
   background:
-    radial-gradient(circle at 72% 28%, rgba(226,6,19,.06), transparent 38%),
-    linear-gradient(180deg, rgba(2,11,24,.02), rgba(2,11,24,.10));
-  pointer-events:none;
-}
-
-#hero::after{
-  content:'';
-  position:absolute;
-  right:0;
-  top:0;
-  bottom:0;
-  width:42%;
-  background:linear-gradient(90deg, transparent, rgba(94,197,240,.035));
-  border-left:1px solid rgba(94,197,240,.08);
-  pointer-events:none;
+    linear-gradient(90deg, rgba(2,11,24,.88) 0%, rgba(2,11,24,.62) 45%, rgba(2,11,24,.18) 100%),
+    linear-gradient(180deg, rgba(2,11,24,.10) 0%, rgba(2,11,24,.30) 100%);
+  z-index:1;
 }
 
 .hero-grid{
@@ -165,16 +167,11 @@ p.body-text{font-size:.95rem;color:var(--gray);line-height:1.75;font-weight:300}
   justify-content:flex-end;
 }
 
-.hero-photo,
-.hero-photo-fallback{
-  display:none!important;
-}
-
 .hero-badge{
   position:absolute;
   right:0;
   bottom:0;
-  background:rgba(226,6,19,.92);
+  background:rgba(226,6,19,.94);
   backdrop-filter:blur(8px);
   padding:14px 18px;
   min-width:170px;
@@ -331,15 +328,27 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   .menu-btn{display:block}
   .hero-grid,.grid2,.sport-grid{grid-template-columns:1fr;gap:2rem}
 
-    #hero{
-  min-height:92svh;
-  background:
-  linear-gradient(180deg, rgba(2,11,24,.76) 0%, rgba(2,11,24,.54) 48%, rgba(2,11,24,.22) 100%),
-  url('/hero-gym-red.jpeg') 70% top / cover no-repeat;
-}
+      #hero{
+    min-height:92svh;
+  }
 
-  #hero::after{
-    display:none;
+  .hero-bg img{
+    object-position:64% top;
+  }
+
+  .hero-bg::after{
+    background:
+      linear-gradient(180deg, rgba(2,11,24,.82) 0%, rgba(2,11,24,.56) 48%, rgba(2,11,24,.28) 100%),
+      linear-gradient(90deg, rgba(2,11,24,.58) 0%, rgba(2,11,24,.22) 100%);
+  }
+
+  .hero-grid{
+    grid-template-columns:1fr;
+    gap:2rem;
+  }
+
+  .hero-visual{
+    min-height:120px;
   }
 
   .hero-grid{
@@ -365,13 +374,20 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   .panel-metrics{grid-template-columns:repeat(2,1fr)}
   .footer-inner,.footer-bottom{flex-direction:column;align-items:flex-start}
 
-    #hero{
-  min-height:88svh;
-  padding-top:86px;
-  background:
-    linear-gradient(180deg, rgba(2,11,24,.74) 0%, rgba(2,11,24,.50) 52%, rgba(2,11,24,.18) 100%),
-    url('/hero-gym-red.jpeg') 90% top / cover no-repeat;
-}
+      #hero{
+    min-height:88svh;
+    padding-top:86px;
+  }
+
+  .hero-bg img{
+    object-position:62% top;
+  }
+
+  .hero-bg::after{
+    background:
+      linear-gradient(180deg, rgba(2,11,24,.78) 0%, rgba(2,11,24,.54) 50%, rgba(2,11,24,.24) 100%),
+      linear-gradient(90deg, rgba(2,11,24,.58) 0%, rgba(2,11,24,.18) 100%);
+  }
 
   .hero-visual{
     min-height:90px;
@@ -454,6 +470,10 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
 
 <!-- HERO — foto de gimnasio, camiseta roja -->
 <section id="hero">
+  <div class="hero-bg" aria-hidden="true">
+    <img src="/hero-gym-red.jpeg" alt="">
+  </div>
+
   <div class="hero-grid inner">
     <div class="hero-text-col">
       <div class="eyebrow anim">Entrenamiento funcional · Belgrado</div>
