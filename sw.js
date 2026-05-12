@@ -6,7 +6,7 @@ const STATIC_ASSETS = [
   '/cliente.html',
   '/admin.html',
   '/manifest.json',
-  '/hero-ab-system.png',
+  '/hero-ab-system.png.PNG',
   '/abel-lucha-bw.jpg',
   '/ab-system-logo.png.PNG',
   '/icons/icon-192.png',
