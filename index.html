@@ -51,6 +51,19 @@ nav.desktop a:hover{color:var(--white)}
 .mobile-nav{display:none;position:fixed;top:64px;left:0;right:0;background:var(--navy2);z-index:99;padding:1.5rem 2rem 2rem;flex-direction:column;gap:1rem;border-bottom:1px solid var(--border)}
 .mobile-nav.open{display:flex}
 .mobile-nav a{font-family:'Space Mono',monospace;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);padding:.5rem 0;border-bottom:1px solid var(--border2);transition:color .15s}
+.mobile-nav a.mobile-client-link{
+  color:var(--blue);
+  border:1px solid rgba(94,197,240,.35);
+  background:rgba(94,197,240,.08);
+  padding:.75rem 1rem;
+  text-align:center;
+  margin-top:.25rem;
+}
+
+.mobile-nav a.mobile-client-link::before{
+  content:'↳ ';
+  color:var(--blue);
+}
 .mobile-nav a:hover{color:var(--white)}
 .mobile-lang{display:flex;gap:1rem;margin-top:.5rem}
 
@@ -315,6 +328,18 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
 .footer-link{font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);transition:color .15s}
 .footer-link:hover{color:var(--white)}
 .footer-bottom{max-width:1200px;margin:2rem auto 0;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;color:rgba(138,155,176,.65);font-size:.75rem}
+.footer-client{
+  color:var(--blue);
+}
+
+.footer-admin{
+  opacity:.45;
+}
+
+.footer-admin:hover{
+  opacity:1;
+  color:var(--red);
+}
 
 /* ── ANIMATIONS ── */
 .anim{opacity:0}
@@ -491,7 +516,7 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   <a href="#plans" onclick="closeMenu()">Planes</a>
   <a href="#about" onclick="closeMenu()">Sobre Abel</a>
   <a href="#faq" onclick="closeMenu()">FAQ</a>
-  <a href="/cliente.html" onclick="closeMenu()">Área cliente</a>
+  <a href="/cliente.html" class="mobile-client-link" onclick="closeMenu()">Área cliente</a>
   <div class="mobile-lang">
     <a class="active footer-link" href="/">ES</a>
     <a class="footer-link" href="/sr.html">SR</a>
@@ -870,12 +895,14 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
       <p class="footer-link" style="margin-top:8px">Training System</p>
     </div>
     <div class="footer-links">
-      <a href="#system" class="footer-link">Sistema</a>
-      <a href="#method" class="footer-link">El método</a>
-      <a href="#plans" class="footer-link">Planes</a>
-      <a href="#about" class="footer-link">Sobre Abel</a>
-      <a href="#faq" class="footer-link">FAQ</a>
-    </div>
+  <a href="#system" class="footer-link">Sistema</a>
+  <a href="#method" class="footer-link">El método</a>
+  <a href="#plans" class="footer-link">Planes</a>
+  <a href="#about" class="footer-link">Sobre Abel</a>
+  <a href="#faq" class="footer-link">FAQ</a>
+  <a href="/cliente.html" class="footer-link footer-client">Área cliente</a>
+  <a href="/admin.html" class="footer-link footer-admin">Admin</a>
+</div>
     <div style="display:flex;gap:1rem">
       <a class="footer-link" href="/">ES</a>
       <a class="footer-link" href="/sr.html">SR</a>
