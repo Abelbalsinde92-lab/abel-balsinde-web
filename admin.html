@@ -827,15 +827,21 @@ function renderAlertas(){
           </div>
         </td>
         <td>${esc(a.tipoAlerta || 'alerta')}</td>
-        <td style="white-space:normal;min-width:280px">${esc(a.mensaje || '')}</td>
+        <td style="white-space:normal;min-width:280px">
+  ${esc(a.mensaje || '')}
+  ${a.notaAdmin ? `<div class="name-sub" style="margin-top:6px;color:var(--blue)">Nota coach: ${esc(a.notaAdmin)}</div>` : ''}
+</td>
         <td><span class="badge badge-${badgeNivel}">${esc(a.nivel || 'info')}</span></td>
         <td><span class="badge badge-${badgeEstado}">${esc(estado)}</span></td>
         <td>${formatDate(String(a.createdAt || '').slice(0,10))}</td>
         <td>
-          <div class="td-actions">
-            ${!a.leidaAt ? `<button class="btn btn-primary btn-sm" onclick="marcarAlertaLeida('${a.id}')">Marcar leída</button>` : ''}
-            ${a.clientPhone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(a.clientPhone)}','Hola ${esc((a.clientName||'').split(' ')[0]||'')}, vi tu nota sobre el entrenamiento. ¿Cómo te sientes ahora?')">WA</button>` : ''}
-          </div>
+          <td>
+  <div class="td-actions">
+    ${!a.leidaAt ? `<button class="btn btn-primary btn-sm" onclick="marcarAlertaLeida('${a.id}')">Marcar leída</button>` : ''}
+    ${a.estado !== 'resuelta' ? `<button class="btn btn-blue btn-sm" onclick="resolverAlerta('${a.id}')">Resolver</button>` : ''}
+    ${a.clientPhone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(a.clientPhone)}','Hola ${esc((a.clientName||'').split(' ')[0]||'')}, vi tu nota sobre el entrenamiento. ¿Cómo te sientes ahora?')">WA</button>` : ''}
+  </div>
+</td>
         </td>
       </tr>
     `;
@@ -863,6 +869,37 @@ async function marcarAlertaLeida(id){
   }catch(err){
     console.error('Error marcar alerta:', err);
     showToast('Error marcando alerta');
+  }
+}
+
+async function resolverAlerta(id){
+  const nota = prompt('Nota interna del coach sobre esta alerta:', '');
+
+  if(nota === null) return;
+
+  try{
+    const { data, error } = await db.rpc('admin_resolver_alerta', {
+      p_alerta_id: id,
+      p_nota_admin: nota
+    });
+
+    if(error) throw error;
+
+    const updated = Array.isArray(data) ? data[0] : null;
+
+    const idx = state.alertas.findIndex(a => a.id === id);
+    if(idx >= 0){
+      state.alertas[idx].estado = updated?.estado || 'resuelta';
+      state.alertas[idx].leidaAt = updated?.leida_at || state.alertas[idx].leidaAt || new Date().toISOString();
+      state.alertas[idx].resueltaAt = updated?.resuelta_at || new Date().toISOString();
+      state.alertas[idx].notaAdmin = updated?.nota_admin || nota;
+    }
+
+    renderAll();
+    showToast('Alerta marcada como resuelta');
+  }catch(err){
+    console.error('Error resolver alerta:', err);
+    showToast('Error resolviendo alerta');
   }
 }
 
