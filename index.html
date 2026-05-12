@@ -92,6 +92,10 @@ section{padding:clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)}
 .eyebrow::before{content:'';width:24px;height:1px;background:var(--blue)}
 h1,h2{font-family:'Bebas Neue',sans-serif;line-height:.96;letter-spacing:.02em}
 h1{font-size:clamp(3.2rem,7.5vw,6.5rem);margin-bottom:1.5rem}
+#hero h1{
+  font-size:clamp(3rem,6.5vw,5.8rem);
+  line-height:.92;
+}
 h2{font-size:clamp(2.6rem,5.5vw,4.8rem);margin-bottom:1.2rem}
 .red{color:var(--red)}.blue{color:var(--blue)}
 p.lead{font-size:clamp(.98rem,1.7vw,1.18rem);color:var(--gray);line-height:1.7;max-width:560px;margin-bottom:2rem;font-weight:300}
@@ -406,6 +410,16 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
 
   .hero-ctas .client-access{
     grid-column:1 / -1;
+  }
+
+    #hero h1{
+    font-size:clamp(3.7rem,14vw,5.2rem);
+    line-height:.90;
+    max-width:620px;
+  }
+
+  #hero h1 .red{
+    font-size:.95em;
   }
 
   .sport-accent{left:0}
