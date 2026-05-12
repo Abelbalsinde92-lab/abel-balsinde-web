@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AB SYSTEM — Klijentska zona</title>
+  <meta name="robots" content="noindex, nofollow">
+  <!-- SECURITY: Enable Supabase RLS on all tables before publishing. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --navy:#020B18; --navy2:#061427; --navy3:#0D1E30; --navy4:#132236;
+      --red:#E20613; --blue:#5EC5F0; --white:#F5F9FF;
+      --gray:#8A9BB0; --green:#22c55e; --yellow:#f59e0b; --wa:#25D366;
+      --font-title:'Bebas Neue',sans-serif;
+      --font-body:'DM Sans',sans-serif;
+      --font-mono:'Space Mono',monospace;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--navy);color:var(--white);font-family:var(--font-body);font-size:15px;line-height:1.6;min-height:100vh}
+    a{color:inherit;text-decoration:none}
+    button{cursor:pointer;border:none;outline:none;font-family:var(--font-body)}
+    input,textarea{outline:none;font-family:var(--font-body)}
+    .hidden{display:none!important}
+
+    /* ─── LOADING ─── */
+    #loadingOverlay{position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999}
+    .spinner{width:40px;height:40px;border:3px solid #1a2e44;border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    #loadingOverlay p{color:var(--gray);font-size:13px}
+
+    /* ─── LOGIN ─── */
+    #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:radial-gradient(ellipse at 60% 0%,#0d1e3080 0%,transparent 60%),var(--navy)}
+    .login-box{width:100%;max-width:400px;background:var(--navy2);border:1px solid #1a2e44;border-radius:16px;padding:40px 32px 36px}
+    .login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+    .login-logo .logo-badge{width:44px;height:44px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--white)}
+    .login-logo .logo-text{font-family:var(--font-title);font-size:22px;letter-spacing:2px}
+    .login-logo .logo-text span{color:var(--red)}
+    .login-title{font-family:var(--font-title);font-size:30px;letter-spacing:2px;margin-bottom:6px}
+    .login-sub{font-size:13px;color:var(--gray);margin-bottom:28px}
+    .field-group{margin-bottom:16px}
+    .field-group label{display:block;font-size:11px;font-family:var(--font-mono);letter-spacing:1px;color:var(--gray);text-transform:uppercase;margin-bottom:6px}
+    .field-group input{width:100%;background:var(--navy3);border:1px solid #1e3450;border-radius:8px;padding:12px 14px;color:var(--white);font-size:15px;transition:border-color .2s}
+    .field-group input:focus{border-color:var(--blue)}
+    .field-group input::placeholder{color:#3a5068}
+    .btn-login{width:100%;background:var(--red);color:var(--white);border-radius:8px;padding:13px;font-size:15px;font-weight:700;letter-spacing:.5px;transition:opacity .2s,transform .1s;margin-top:4px}
+    .btn-login:hover{opacity:.88}
+    .btn-login:active{transform:scale(.98)}
+    .btn-wa-login{width:100%;background:transparent;border:1px solid #1e3450;color:var(--gray);border-radius:8px;padding:11px;font-size:13px;margin-top:12px;transition:border-color .2s,color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+    .btn-wa-login:hover{border-color:var(--wa);color:var(--wa)}
+    .login-error{background:#2a0608;border:1px solid var(--red);color:#f87171;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px}
+    .login-info{background:rgba(94,197,240,.06);border:1px solid rgba(94,197,240,.2);color:var(--blue);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px}
+
+    /* ─── DASHBOARD ─── */
+    #dashboardScreen{min-height:100vh}
+
+    /* Header */
+    .dash-header{background:var(--navy2);border-bottom:1px solid #1a2e44;padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .dash-header-logo{display:flex;align-items:center;gap:9px}
+    .dash-header-logo .logo-badge{width:32px;height:32px;background:var(--red);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:15px;color:var(--white)}
+    .dash-header-logo .logo-text{font-family:var(--font-title);font-size:17px;letter-spacing:2px}
+    .dash-header-logo .logo-text span{color:var(--red)}
+    .dash-header-actions{display:flex;align-items:center;gap:8px}
+    .btn-icon{background:transparent;border:1px solid #1e3450;color:var(--gray);border-radius:7px;padding:7px 12px;font-size:12px;display:flex;align-items:center;gap:6px;transition:border-color .2s,color .2s,background .2s}
+    .btn-icon:hover{border-color:var(--blue);color:var(--blue)}
+    .btn-icon.red:hover{border-color:var(--red);color:var(--red)}
+    #btnHeaderWA{border-color:var(--wa);color:var(--wa);background:rgba(37,211,102,.07)}
+    #btnHeaderWA:hover{color:#fff;background:var(--wa)}
+
+    /* Tab navigation */
+    .client-nav{background:var(--navy2);border-bottom:1px solid #1a2e44;position:sticky;top:56px;z-index:90;display:flex;overflow-x:auto;gap:4px;padding:8px 14px;scrollbar-width:none;-ms-overflow-style:none}
+    .client-nav::-webkit-scrollbar{display:none}
+    .client-nav button{flex:0 0 auto;background:transparent;color:var(--gray);border:1px solid transparent;border-radius:8px;padding:8px 14px;font-family:var(--font-mono);font-size:10px;letter-spacing:.8px;text-transform:uppercase;white-space:nowrap;transition:color .15s,border-color .15s,background .15s}
+    .client-nav button:hover{color:var(--blue)}
+    .client-nav button.active{color:var(--blue);border-color:rgba(94,197,240,.35);background:rgba(94,197,240,.07)}
+
+    /* Main content */
+    .dash-main{max-width:740px;margin:0 auto;padding:22px 16px calc(140px + env(safe-area-inset-bottom))}
+
+    /* Sections */
+    .section{background:var(--navy2);border:1px solid #1a2e44;border-radius:14px;overflow:hidden;animation:sectionFade .18s ease}
+    @keyframes sectionFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .section-hidden{display:none!important}
+    .section-header{padding:16px 20px;border-bottom:1px solid #1a2e44;display:flex;align-items:center;justify-content:space-between}
+    .section-header h2{font-family:var(--font-title);font-size:20px;letter-spacing:2px}
+    .section-header .sec-badge{font-size:10px;font-family:var(--font-mono);background:var(--navy3);border:1px solid #1e3450;color:var(--gray);padding:3px 8px;border-radius:4px}
+    .section-body{padding:18px 20px}
+    .empty-state{color:var(--gray);font-size:13px;font-style:italic;padding:8px 0;line-height:1.7}
+
+    /* Data cards (reservas, pagos, salud) */
+    .data-card{background:var(--navy3);border:1px solid #1e3450;border-radius:10px;padding:14px 16px;margin-bottom:10px}
+    .data-card:last-child{margin-bottom:0}
+    .data-card.next-session{border-color:var(--blue);background:rgba(94,197,240,.05)}
+    .data-card .dc-row{display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:4px}
+    .data-card .dc-title{font-weight:700;font-size:14px;color:var(--white)}
+    .data-card .dc-sub{font-size:12px;color:var(--gray);font-family:var(--font-mono)}
+    .data-card .dc-note{font-size:12px;color:var(--gray);margin-top:6px;font-style:italic}
+    .next-label{font-size:10px;font-family:var(--font-mono);letter-spacing:1px;text-transform:uppercase;color:var(--blue);margin-bottom:8px}
+    .action-box{margin-top:16px;display:grid;gap:10px}
+    .client-action-btn{width:100%;background:rgba(94,197,240,.07);border:1px solid rgba(94,197,240,.35);color:var(--blue);border-radius:10px;padding:12px 14px;font-family:var(--font-mono);font-size:11px;letter-spacing:.8px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px}
+    .client-action-btn:hover{background:rgba(94,197,240,.12)}
+    .client-action-btn.wa{border-color:rgba(37,211,102,.45);color:var(--wa);background:rgba(37,211,102,.07)}
+
+    /* Badges */
+    .badge{display:inline-block;font-size:10px;font-family:var(--font-mono);padding:2px 8px;border-radius:4px;letter-spacing:.5px;font-weight:700}
+    .badge-green{background:#052512;color:var(--green);border:1px solid var(--green)}
+    .badge-yellow{background:#1f1400;color:var(--yellow);border:1px solid var(--yellow)}
+    .badge-red{background:#2a0608;color:#f87171;border:1px solid var(--red)}
+    .badge-blue{background:#031b2a;color:var(--blue);border:1px solid var(--blue)}
+    .badge-gray{background:#0d1e30;color:var(--gray);border:1px solid #2a3e52}
+
+    /* Plan grid */
+    .plan-grid{display:grid;gap:14px 16px;grid-template-columns:1fr 1fr}
+    .plan-item .pi-label{font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;color:var(--gray);margin-bottom:3px}
+    .plan-item .pi-value{font-size:14px;color:var(--white);font-weight:500}
+    .plan-item.full{grid-column:1/-1}
+    .plan-divider{grid-column:1/-1;border:none;border-top:1px solid #1e3450;margin:4px 0}
+    .plan-no-program{background:var(--navy3);border:1px dashed #1e3450;border-radius:10px;padding:16px;color:var(--gray);font-size:13px;font-style:italic;line-height:1.6;margin-top:4px}
+
+    /* Progress circles */
+    .progress-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+    .progress-circle-card{background:var(--navy3);border:1px solid #1e3450;border-radius:12px;padding:16px 12px;text-align:center}
+    .progress-ring{width:88px;height:88px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--blue) calc(var(--p)*1%),#17283b 0);position:relative}
+    .progress-ring::before{content:'';position:absolute;width:66px;height:66px;background:var(--navy3);border-radius:50%}
+    .progress-ring span{position:relative;z-index:1;font-family:var(--font-title);font-size:22px;color:var(--white)}
+    .progress-circle-label{font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray);margin-bottom:3px}
+    .progress-circle-value{font-size:13px;color:var(--white);font-weight:700}
+    .progress-circle-note{font-size:11px;color:var(--gray);margin-top:3px}
+
+    /* Notes */
+    .note-item{background:var(--navy3);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:12px 14px;font-size:14px;color:var(--white);margin-bottom:8px;line-height:1.6}
+    .note-item:last-child{margin-bottom:0}
+
+    /* Accordion */
+    .accordion-block{background:var(--navy3);border:1px solid #1e3450;border-radius:12px;margin-bottom:10px;overflow:hidden}
+    .accordion-block:last-child{margin-bottom:0}
+    .accordion-title{width:100%;background:transparent;color:var(--white);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;font-family:var(--font-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+    .accordion-title span:first-child{color:var(--blue)}
+    .accordion-symbol{color:var(--gray);font-size:18px;line-height:1;flex-shrink:0}
+    .accordion-content{display:none;padding:0 16px 16px;border-top:1px solid rgba(255,255,255,.06)}
+    .accordion-block.open .accordion-content{display:block}
+    .accordion-block.open .accordion-title{background:rgba(94,197,240,.05)}
+
+    /* ═══════════════════════════════════════════════════════
+       TRAINING GUIDE
+    ═══════════════════════════════════════════════════════ */
+    .training-guide-summary{background:var(--navy3);border-left:3px solid var(--red);border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:14px}
+    .training-guide-title{font-family:var(--font-title);font-size:22px;letter-spacing:1px;color:var(--white);margin-bottom:3px}
+    .training-guide-meta{font-family:var(--font-mono);font-size:10px;color:var(--gray);letter-spacing:.8px;margin-bottom:6px}
+    .training-week-objective{font-size:13px;color:var(--gray);line-height:1.6;border-top:1px solid rgba(255,255,255,.06);padding-top:8px;margin-top:6px}
+    .training-day-tabs{display:flex;gap:8px;overflow-x:auto;margin:12px 0 14px;padding-bottom:2px;scrollbar-width:none}
+    .training-day-tabs::-webkit-scrollbar{display:none}
+    .training-day-tab{flex:0 0 auto;background:var(--navy3);border:1px solid #1e3450;color:var(--gray);border-radius:8px;padding:8px 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:.8px;text-transform:uppercase;white-space:nowrap}
+    .training-day-tab.active{color:var(--blue);border-color:rgba(94,197,240,.45);background:rgba(94,197,240,.08)}
+    .training-day-panel{display:none}
+    .training-day-panel.active{display:block}
+    .training-session-separator{font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--blue);padding:12px 2px 4px}
+    .training-step-list{display:flex;flex-direction:column;gap:8px}
+    .training-step-card{background:var(--navy3);border:1px solid #1e3450;border-radius:12px;overflow:hidden;transition:border-color .2s}
+    .training-step-card.open{border-color:rgba(94,197,240,.4)}
+    .training-step-card.completed{border-color:rgba(34,197,94,.3)}
+    .training-step-header{width:100%;background:transparent;padding:14px 16px;display:flex;align-items:center;gap:12px;text-align:left;transition:background .15s}
+    .training-step-card.open .training-step-header{background:rgba(94,197,240,.05)}
+    .training-step-card.completed .training-step-header{background:rgba(34,197,94,.04)}
+    .training-step-number{flex-shrink:0;width:36px;height:36px;border-radius:8px;background:var(--navy2);border:1px solid #1e3450;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--white);transition:background .2s,color .2s,border-color .2s}
+    .training-step-card.open .training-step-number{border-color:var(--blue);color:var(--blue)}
+    .training-step-card.completed .training-step-number{background:rgba(34,197,94,.12);border-color:var(--green);color:var(--green);font-size:15px}
+    .training-step-info{flex:1;min-width:0}
+    .training-step-title{font-size:15px;font-weight:700;color:var(--white);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .training-step-meta{font-family:var(--font-mono);font-size:10px;color:var(--gray);margin-top:3px;letter-spacing:.5px}
+    .training-step-status{flex-shrink:0;font-family:var(--font-mono);font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--gray);padding:3px 8px;border:1px solid #1e3450;border-radius:4px;white-space:nowrap}
+    .training-step-status.done{color:var(--green);border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.08)}
+    .training-step-body{display:none;padding:0 16px 16px;border-top:1px solid rgba(255,255,255,.06)}
+    .training-step-card.open .training-step-body{display:block}
+    .training-step-objective{font-size:13px;color:var(--gray);line-height:1.6;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:12px}
+    .training-exercise-card{background:var(--navy2);border:1px solid #1e3450;border-left:2px solid var(--blue);border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:8px}
+    .training-exercise-card:last-of-type{margin-bottom:0}
+    .training-exercise-title{font-size:15px;font-weight:700;color:var(--white);margin-bottom:10px;line-height:1.3}
+    .training-ex-num{font-family:var(--font-mono);font-size:11px;color:var(--blue);margin-right:4px}
+    .training-exercise-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+    .training-mini-stat{background:var(--navy3);border:1px solid #1e3450;border-radius:8px;padding:8px 6px;text-align:center}
+    .training-mini-label{font-family:var(--font-mono);font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:3px}
+    .training-mini-value{font-family:var(--font-title);font-size:20px;color:var(--white);letter-spacing:.5px;line-height:1}
+    .training-level-tag{display:inline-block;font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid #2a3e52;color:var(--gray);margin-bottom:8px}
+    .training-instruction{font-size:14px;color:var(--white);line-height:1.7;margin-top:8px}
+    .training-instruction strong{display:block;color:var(--blue);font-family:var(--font-mono);font-size:10px;letter-spacing:.8px;text-transform:uppercase;font-weight:400;margin-bottom:4px}
+    .training-coach-note{font-size:13px;color:var(--gray);font-style:italic;line-height:1.6;margin-top:6px}
+    .training-video-btn{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:7px 12px;background:rgba(94,197,240,.08);border:1px solid rgba(94,197,240,.3);border-radius:8px;color:var(--blue);font-family:var(--font-mono);font-size:10px;letter-spacing:.8px;text-transform:uppercase;transition:background .15s}
+    .training-video-btn:hover{background:rgba(94,197,240,.16)}
+    .training-complete-block-btn{width:100%;background:var(--green);color:#fff;border-radius:12px;padding:16px;font-size:16px;font-weight:700;letter-spacing:.3px;margin-top:16px;transition:opacity .2s}
+    .training-complete-block-btn:hover{opacity:.88}
+    .training-complete-block-btn:disabled{opacity:.5;cursor:default}
+    .training-step-done-msg{text-align:center;color:var(--green);font-family:var(--font-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:12px 0 0}
+    .training-finish-card{background:var(--navy3);border:1px solid rgba(34,197,94,.45);border-radius:14px;padding:28px 20px;margin-top:16px;text-align:center}
+    .training-finish-icon{font-size:40px;margin-bottom:10px}
+    .training-finish-title{font-family:var(--font-title);font-size:28px;letter-spacing:2px;color:var(--white);margin-bottom:6px}
+    .training-finish-sub{font-size:13px;color:var(--gray);line-height:1.6;margin-bottom:16px}
+    .training-notes-box{background:var(--navy3);border:1px solid #1e3450;border-radius:14px;padding:20px;margin-top:12px}
+    .training-notes-title{font-family:var(--font-title);font-size:20px;letter-spacing:1px;color:var(--white);margin-bottom:6px}
+    .training-notes-sub{font-size:13px;color:var(--gray);margin-bottom:12px;line-height:1.6}
+    .training-notes-textarea{width:100%;background:var(--navy2);border:1px solid #1e3450;border-radius:8px;padding:12px 14px;color:var(--white);font-size:14px;font-family:var(--font-body);line-height:1.6;resize:vertical;min-height:100px;margin-bottom:10px;display:block}
+    .training-notes-textarea:focus{border-color:var(--blue);outline:none}
+    .training-note-saved{color:var(--green);font-family:var(--font-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:8px 0}
+
+    /* Evaluaciones */
+    .assessment-card{background:var(--navy3);border:1px solid #1e3450;border-radius:12px;margin-bottom:14px;overflow:hidden}
+    .assessment-card-header{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;cursor:pointer}
+    .assessment-card-title{font-family:var(--font-title);font-size:18px;letter-spacing:1px;color:var(--white);margin-bottom:3px}
+    .assessment-card-meta{font-family:var(--font-mono);font-size:10px;color:var(--gray);letter-spacing:.6px}
+    .assessment-card-body{display:none;padding:14px 16px}
+    .assessment-card.open .assessment-card-body{display:block}
+    .assessment-result-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+    .assessment-result-row:last-child{border-bottom:none}
+    .assessment-ex-name{font-size:14px;font-weight:500;color:var(--white);margin-bottom:2px}
+    .assessment-ex-meta{font-family:var(--font-mono);font-size:10px;color:var(--gray);letter-spacing:.5px}
+    .assessment-ex-note{font-size:12px;color:var(--gray);margin-top:4px;font-style:italic}
+    .assessment-result-val{font-family:var(--font-title);font-size:26px;line-height:1;color:var(--white);text-align:right;white-space:nowrap}
+    .assessment-result-unit{font-family:var(--font-mono);font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;text-align:right;margin-top:2px}
+    .mini-chart-wrap{background:rgba(94,197,240,.04);border:1px solid rgba(94,197,240,.12);border-radius:0 0 8px 8px;padding:10px 12px;margin-top:6px}
+    .mini-chart-title{font-family:var(--font-mono);font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}
+    .mini-chart-labels{display:flex;justify-content:space-between;gap:4px;margin-top:4px}
+    .mini-chart-label{font-family:var(--font-mono);font-size:9px;color:var(--gray);text-align:center;flex:1}
+
+    /* Resumen */
+    .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+    .summary-card{background:var(--navy3);border:1px solid #1e3450;border-radius:10px;padding:14px}
+    .summary-card.full{grid-column:1/-1}
+    .summary-label{font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gray);margin-bottom:4px}
+    .summary-value{font-size:14px;color:var(--white);font-weight:500;line-height:1.4}
+    .summary-value.big{font-family:var(--font-title);font-size:22px;letter-spacing:1px}
+    .copy-summary-btn{width:100%;background:rgba(94,197,240,.07);border:1px solid rgba(94,197,240,.35);color:var(--blue);border-radius:10px;padding:14px;font-family:var(--font-mono);font-size:11px;letter-spacing:.8px;text-transform:uppercase;margin-top:4px;transition:background .15s}
+    .copy-summary-btn:hover{background:rgba(94,197,240,.14)}
+
+    /* Responsive */
+    @media(max-width:480px){
+      .login-box{padding:28px 20px}
+      .dash-header{padding:0 12px;height:52px}
+      .dash-header-logo .logo-text{font-size:14px}
+      .btn-icon .btn-label{display:none}
+      .client-nav{top:52px;padding:8px 10px}
+      .section-body{padding:14px}
+      .section-header h2{font-size:17px}
+      .plan-grid{grid-template-columns:1fr;gap:12px}
+      .summary-grid{grid-template-columns:1fr}
+      .dash-main{padding:16px 12px calc(160px + env(safe-area-inset-bottom))}
+      .training-exercise-grid{grid-template-columns:repeat(2,1fr)}
+      .training-mini-value{font-size:18px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <p>Učitavanje...</p>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="hidden">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-badge">AB</div>
+      <div class="logo-text">ABEL <span>BALSINDE</span></div>
+    </div>
+    <h1 class="login-title">KLIJENTSKA ZONA</h1>
+    <p class="login-sub">Pristupite svom ličnom praćenju.</p>
+    <div id="loginError" class="login-error hidden"></div>
+    <div id="loginInfo"  class="login-info  hidden"></div>
+    <div class="field-group">
+      <label for="inputPhone">Telefon</label>
+      <input type="tel" id="inputPhone" placeholder="Npr. +381 63 811 2348" autocomplete="tel" />
+    </div>
+    <div class="field-group">
+      <label for="inputCode">Pristupni kod</label>
+      <input type="text" id="inputCode" placeholder="Npr. AB1234" autocomplete="off" />
+    </div>
+    <button class="btn-login" id="btnLogin">Prijavi se</button>
+    <button class="btn-wa-login" onclick="openWA('Zdravo Abel, potrebna mi je pomoć za pristup klijentskoj zoni.')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/></svg>
+      Potrebna pomoć? Kontaktirajte Abela
+    </button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardScreen" class="hidden">
+
+  <header class="dash-header">
+    <div class="dash-header-logo">
+      <div class="logo-badge">AB</div>
+      <div class="logo-text">AB <span>SYSTEM</span></div>
+    </div>
+    <div class="dash-header-actions">
+      <button class="btn-icon" id="btnHeaderWA">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/></svg>
+        <span class="btn-label">WhatsApp</span>
+      </button>
+      <button class="btn-icon red" id="btnLogout">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span class="btn-label">Odjavi se</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- TAB NAV -->
+  <nav class="client-nav" id="clientNav">
+    <button onclick="goClientSection('section-plan')">Plan</button>
+    <button onclick="goClientSection('section-training')">Trening</button>
+    <button onclick="goClientSection('section-reservations')">Rezervacije</button>
+    <button onclick="goClientSection('section-assessments')">Evaluacije</button>
+    <button onclick="goClientSection('section-health')">Zdravlje</button>
+    <button onclick="goClientSection('section-notes')">Napomene</button>
+    <button onclick="goClientSection('section-progress-circles')">Napredak</button>
+    <button onclick="goClientSection('section-payments')">Plaćanja</button>
+    <button onclick="goClientSection('section-summary')">Rezime</button>
+    <button onclick="goClientSection('section-client-data')">Moji podaci</button>
+  </nav>
+
+  <main class="dash-main">
+
+    <!-- MOJ PLAN -->
+    <div class="section section-hidden" id="section-plan">
+      <div class="section-header"><h2>MOJ PLAN</h2><span class="sec-badge" id="planBadgeStatus">—</span></div>
+      <div class="section-body" id="sectionPlan"></div>
+    </div>
+
+    <!-- TRENING -->
+    <div class="section section-hidden" id="section-training">
+      <div class="section-header"><h2>TRENING</h2><span class="sec-badge" id="trainingClientBadge">—</span></div>
+      <div class="section-body" id="sectionTrainingClient"></div>
+    </div>
+
+    <!-- REZERVACIJE -->
+    <div class="section section-hidden" id="section-reservations">
+      <div class="section-header"><h2>REZERVACIJE</h2><span class="sec-badge" id="reservationsBadge">0</span></div>
+      <div class="section-body" id="sectionReservations"></div>
+    </div>
+
+    <!-- EVALUACIJE -->
+    <div class="section section-hidden" id="section-assessments">
+      <div class="section-header"><h2>EVALUACIJE</h2><span class="sec-badge" id="assessmentsBadge">0</span></div>
+      <div class="section-body" id="sectionAssessments"></div>
+    </div>
+
+    <!-- ZDRAVLJE -->
+    <div class="section section-hidden" id="section-health">
+      <div class="section-header"><h2>ZDRAVLJE</h2><span class="sec-badge" id="alertsBadge">0</span></div>
+      <div class="section-body" id="sectionHealth"></div>
+    </div>
+
+    <!-- NAPOMENE -->
+    <div class="section section-hidden" id="section-notes">
+      <div class="section-header"><h2>NAPOMENE TRENERA</h2></div>
+      <div class="section-body" id="sectionNotes"></div>
+    </div>
+
+    <!-- NAPREDAK -->
+    <div class="section section-hidden" id="section-progress-circles">
+      <div class="section-header"><h2>VIZUELNI NAPREDAK</h2><span class="sec-badge" id="progressCircleBadge">0</span></div>
+      <div class="section-body" id="sectionProgressCircles"></div>
+    </div>
+
+    <!-- PLAĆANJA -->
+    <div class="section section-hidden" id="section-payments">
+      <div class="section-header"><h2>PLAĆANJA</h2><span class="sec-badge" id="paymentsBadge">0</span></div>
+      <div class="section-body" id="sectionPayments"></div>
+    </div>
+
+    <!-- REZIME -->
+    <div class="section section-hidden" id="section-summary">
+      <div class="section-header"><h2>REZIME</h2><span class="sec-badge" id="summaryBadge">Profil</span></div>
+      <div class="section-body" id="sectionSummary"></div>
+    </div>
+
+    <!-- MOJI PODACI -->
+    <div class="section section-hidden" id="section-client-data">
+      <div class="section-header"><h2>MOJI PODACI</h2><span class="sec-badge" id="clientDataBadge">Profil</span></div>
+      <div class="section-body" id="sectionClientData"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Auth module (must be loaded before main script) -->
+<script src="/auth.js"></script>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://icjuuptbcnkpwgsoyiuj.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanV1cHRiY25rcHdnc295aXVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTIzMjQsImV4cCI6MjA5MzcyODMyNH0.L__PcG-5HUkV5hpnsujrWi8mkL1o1lCKRf-mrSeO5V8';
+const WA_NUMBER   = '381638112348';
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ══ GLOBAL STATE ══ */
+let clientData               = null;
+let clientReservations       = [];
+let clientPayments           = [];
+let clientMetrics            = [];
+let clientAlerts             = [];
+let clientPrograms           = [];
+let clientAssessments        = [];
+let clientAssessmentResults  = [];
+let clientTrainingAssignment = null;
+let clientTrainingProgram    = null;
+let clientTrainingWeeks      = [];
+let clientTrainingSessions   = [];
+let clientTrainingBlocks     = [];
+let clientTrainingExercises  = [];
+
+/* Training progress state */
+let completedTrainingBlocks = new Set();
+let activeTrainingBlockKey  = null;
+let currentTrainingLog      = null;
+
+/* ══ LOCAL PROGRESS CACHE (per day) ══ */
+function getTrainingStorageKey() {
+  if (!clientData || !clientTrainingAssignment) return null;
+  return ['ab_tp', clientData.id, clientTrainingAssignment.id, todayISO()].join('_');
+}
+function loadTrainingProgressLocal() {
+  const key = getTrainingStorageKey();
+  if (!key) return null;
+  try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; } catch { return null; }
+}
+function saveTrainingProgressLocal(extra) {
+  const key = getTrainingStorageKey();
+  if (!key) return;
+  const prev = loadTrainingProgressLocal() || {};
+  localStorage.setItem(key, JSON.stringify({
+    ...prev,
+    completed_block_ids: Array.from(completedTrainingBlocks),
+    is_finished: prev.is_finished || false,
+    client_note: prev.client_note || '',
+    updated_at: new Date().toISOString(),
+    ...(extra || {})
+  }));
+}
+
+/* ══ UTILITY ══ */
+function normalizePhone(p) { return String(p).replace(/[\s\-\(\)\+]/g, ''); }
+function openWA(msg) { window.open('https://wa.me/' + normalizePhone(WA_NUMBER) + '?text=' + encodeURIComponent(msg), '_blank'); }
+function clientWA(text) { openWA('Zdravo Abel, ja sam ' + (clientData?.name || 'klijent') + '. ' + text); }
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+function formatDate(d) {
+  if (!d) return '—';
+  try { const [y,m,day] = String(d).slice(0,10).split('-'); return day+'/'+m+'/'+y; } catch { return d; }
+}
+function formatTime(t) { return t ? String(t).slice(0,5) : ''; }
+function formatMoney(amount, currency) {
+  if (amount == null) return '—';
+  const cur = (currency || 'EUR').toUpperCase();
+  try { return new Intl.NumberFormat('sr-Latn-RS', { style:'currency', currency: cur }).format(amount); }
+  catch { return amount + ' ' + cur; }
+}
+function showError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg || 'Telefon ili kod nisu ispravni.';
+  el.classList.remove('hidden');
+}
+function hideError() { document.getElementById('loginError')?.classList.add('hidden'); }
+function showInfo(msg) {
+  const el = document.getElementById('loginInfo');
+  if (el) { el.textContent = msg; el.classList.remove('hidden'); }
+}
+function showLoading(v) { document.getElementById('loadingOverlay')?.classList.toggle('hidden', !v); }
+
+function paymentBadge(s) {
+  if (!s) return '';
+  const v = s.toLowerCase();
+  if (['pagado','paid'].includes(v))       return '<span class="badge badge-green">'+s+'</span>';
+  if (['pendiente','pending'].includes(v)) return '<span class="badge badge-yellow">'+s+'</span>';
+  if (['vencido','overdue'].includes(v))   return '<span class="badge badge-red">'+s+'</span>';
+  return '<span class="badge badge-gray">'+s+'</span>';
+}
+function genericBadge(s) {
+  if (!s) return '';
+  const v = s.toLowerCase();
+  if (['activo','active','confirmada','confirmado','realizada','completado'].includes(v)) return '<span class="badge badge-green">'+s+'</span>';
+  if (['pendiente','pending','reservada'].includes(v)) return '<span class="badge badge-yellow">'+s+'</span>';
+  if (['cancelada','cancelado','vencido','inactivo'].includes(v)) return '<span class="badge badge-red">'+s+'</span>';
+  return '<span class="badge badge-gray">'+s+'</span>';
+}
+
+/* ══ ASSIGNMENT SCOPE HELPERS ══ */
+function getAssignmentScope() { return clientTrainingAssignment?.assignment_scope || 'full'; }
+function getAssignmentScopeLabel() {
+  const s = getAssignmentScope();
+  if (s === 'day')   return clientTrainingAssignment?.commercial_label || 'Dodeljen dan';
+  if (s === 'week')  return clientTrainingAssignment?.commercial_label || 'Dodeljena nedelja';
+  if (s === 'month') return clientTrainingAssignment?.commercial_label || 'Dodeljen mesec';
+  return clientTrainingAssignment?.commercial_label || 'Kompletan plan';
+}
+
+/**
+ * Returns array of week_number values to load.
+ * null = load all (full scope).
+ */
+function getAssignedWeekNumbers() {
+  const scope = getAssignmentScope();
+  if (scope === 'day' || scope === 'week') {
+    const wn = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
+    return [wn];
+  }
+  if (scope === 'month') {
+    const month = Number(clientTrainingAssignment?.assigned_month || 1);
+    const start = (month - 1) * 4 + 1;
+    return [start, start+1, start+2, start+3];
+  }
+  return null; // full = all weeks
+}
+
+function filterSessionsByScope(sessions) {
+  const scope = getAssignmentScope();
+  if (!['day', 'session', 'sesion', 'día', 'dia'].includes(scope)) return sessions;
+
+  const num = Number(clientTrainingAssignment?.assigned_session_number || 1);
+
+  return sessions.filter(s =>
+    Number(s.session_number || s.order_index || 0) === num
+  );
+}
+
+function getAssignedTrainingLevel() {
+  const raw = clientTrainingAssignment?.assigned_level || clientTrainingProgram?.level || 'N1';
+  const lvl = String(raw).trim().toUpperCase();
+  return ['N1','N2','N3','N4'].includes(lvl) ? lvl : 'N1';
+}
+function getExerciseVariantByLevel(ex) {
+  const lvl = getAssignedTrainingLevel();
+  if (lvl === 'N1') return ex.variant_n1 || '';
+  if (lvl === 'N2') return ex.variant_n2 || '';
+  if (lvl === 'N3') return ex.variant_n3 || '';
+  if (lvl === 'N4') return ex.variant_n4 || '';
+  return ex.variant_n1 || '';
+}
+
+/* ══════════════════════════════════════════════════════════
+   AUTH — uses Auth.js module
+══════════════════════════════════════════════════════════ */
+async function loginClient() {
+  hideError();
+
+  const phone = document.getElementById('inputPhone').value.trim();
+  const code  = document.getElementById('inputCode').value.trim();
+
+  if (!phone || !code) {
+    showError('Popunite oba polja.');
+    return;
+  }
+
+  showLoading(true);
+
+  try {
+    const { data, error } = await db.rpc('client_login_by_phone_code', {
+      p_phone: phone,
+      p_access_code: code
+    });
+
+    if (error) throw error;
+
+    const found = Array.isArray(data) ? data[0] : null;
+
+    if (!found) {
+      showLoading(false);
+      showError('Telefon ili kod nisu ispravni.');
+      return;
+    }
+
+    Auth.loginAsClient(found.id);
+
+  } catch (err) {
+    console.error('Login cliente error:', err);
+    showLoading(false);
+    showError('Greška pri proveri pristupa. Pokušajte ponovo.');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   DATA LOADING
+══════════════════════════════════════════════════════════ */
+async function loadClientDashboard(clientId) {
+  showLoading(true);
+  try {
+    const { data: client, error: cErr } = await db.from('clients').select('*').eq('id', clientId).single();
+    if (cErr || !client) { Auth.logout(); return; }
+    clientData = client;
+
+    const [resR, payR, metR, halR, proR, assignR, assR] = await Promise.all([
+      db.from('reservations').select('*').eq('client_id', clientId).order('date', { ascending: true }),
+      db.from('payments').select('*').eq('client_id', clientId).order('due_date', { ascending: false }),
+      db.from('metrics').select('*').eq('client_id', clientId).order('date', { ascending: false }),
+      db.from('health_alerts').select('*').eq('client_id', clientId).order('date', { ascending: false }),
+      db.from('programs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
+      db.from('client_program_assignments').select('*').eq('client_id', clientId).eq('status', 'activo').order('created_at', { ascending: false }).limit(1),
+      db.from('client_assessments').select('*').eq('client_id', clientId).order('assessment_date', { ascending: false }),
+    ]);
+
+    clientReservations       = resR.data  || [];
+    clientPayments           = payR.data  || [];
+    clientMetrics            = metR.data  || [];
+    clientAlerts             = halR.data  || [];
+    clientPrograms           = proR.data  || [];
+    clientTrainingAssignment = assignR.data?.[0] || null;
+    clientAssessments        = assR.data  || [];
+
+    // Load assessment results
+    clientAssessmentResults = [];
+    if (clientAssessments.length) {
+      const ids = clientAssessments.map(a => a.id);
+      const rr = await db.from('client_assessment_results').select('*').in('assessment_id', ids).order('item_order', { ascending: true });
+      clientAssessmentResults = rr.data || [];
+    }
+
+    // Load training data respecting assignment scope
+    clientTrainingProgram   = null;
+    clientTrainingWeeks     = [];
+    clientTrainingSessions  = [];
+    clientTrainingBlocks    = [];
+    clientTrainingExercises = [];
+
+    if (clientTrainingAssignment?.program_id) {
+      const pid = clientTrainingAssignment.program_id;
+      const [progR, weeksR] = await Promise.all([
+        db.from('training_programs').select('*').eq('id', pid).single(),
+        db.from('training_weeks').select('*').eq('program_id', pid).order('week_number', { ascending: true }),
+      ]);
+      clientTrainingProgram = progR.data || null;
+      clientTrainingWeeks   = weeksR.data || [];
+
+      // Select weeks based on scope
+      const weekNums = getAssignedWeekNumbers(); // null = all
+      const weeksToLoad = weekNums === null
+        ? clientTrainingWeeks
+        : clientTrainingWeeks.filter(w => weekNums.includes(Number(w.week_number)));
+
+      const finalWeeks = weeksToLoad.length ? weeksToLoad : clientTrainingWeeks.slice(0, 1);
+
+      if (finalWeeks.length) {
+        const weekIds = finalWeeks.map(w => w.id);
+        const sessR = await db.from('training_sessions').select('*').in('week_id', weekIds).order('session_number', { ascending: true });
+        const allSessions = sessR.data || [];
+        clientTrainingSessions = filterSessionsByScope(allSessions);
+
+        const sessionIds = clientTrainingSessions.map(s => s.id);
+        if (sessionIds.length) {
+          const blocksR = await db.from('training_blocks').select('*').in('session_id', sessionIds).order('block_order', { ascending: true, nullsFirst: false });
+          clientTrainingBlocks = blocksR.data || [];
+          const blockIds = clientTrainingBlocks.map(b => b.id);
+          if (blockIds.length) {
+            const exR = await db.from('training_exercises').select('*').in('block_id', blockIds).order('exercise_order', { ascending: true });
+            clientTrainingExercises = exR.data || [];
+          }
+        }
+      }
+    }
+
+    await renderDashboard();
+    document.getElementById('loginScreen')?.classList.add('hidden');
+    document.getElementById('dashboardScreen')?.classList.remove('hidden');
+    showLoading(false);
+
+  } catch (err) {
+    showLoading(false);
+    console.error('Load error:', err);
+    document.getElementById('loginScreen')?.classList.remove('hidden');
+    document.getElementById('dashboardScreen')?.classList.add('hidden');
+    showError('Greška veze. Pokušajte ponovo.');
+  }
+}
+
+/* ══ RENDER DASHBOARD ══ */
+async function renderDashboard() {
+  renderProgram();
+  await renderClientTraining();
+  renderReservations();
+  renderAssessments();
+  renderHealthAlerts();
+  renderNotes();
+  renderProgressCircles();
+  renderPayments();
+  renderSummary();
+  renderClientData();
+
+  const name = clientData.name || 'klijent';
+  const wa = document.getElementById('btnHeaderWA');
+  if (wa) wa.onclick = () => openWA('Zdravo Abel, ja sam ' + name + '. Imam pitanje o svom planu.');
+
+  goClientSection('section-training');
+}
+
+/* ══ MOJ PLAN ══ */
+function renderProgram() {
+  const el    = document.getElementById('sectionPlan');
+  const badge = document.getElementById('planBadgeStatus');
+  if (!el) return;
+  if (badge) badge.textContent = clientData.status || '—';
+
+  let html = '<div class="plan-grid">';
+  html += '<div class="plan-item"><div class="pi-label">Ugovoreni plan</div><div class="pi-value">' + (clientData.plan || 'Bez dodeljenog plana') + '</div></div>';
+  html += '<div class="plan-item"><div class="pi-label">Status</div><div class="pi-value">' + (clientData.status || '—') + '</div></div>';
+  html += '<div class="plan-item full"><div class="pi-label">Glavni cilj</div><div class="pi-value">' + (clientData.objective || 'Bez registrovanog cilja') + '</div></div>';
+  if (clientData.nutrition_objective) {
+    html += '<div class="plan-item full"><div class="pi-label">Nutritivni cilj</div><div class="pi-value">' + clientData.nutrition_objective + '</div></div>';
+  }
+  html += '<hr class="plan-divider">';
+
+  if (clientTrainingAssignment && clientTrainingProgram) {
+    html += '<div class="plan-item"><div class="pi-label">Aktivan program</div><div class="pi-value">' + (clientTrainingProgram.name || '—') + '</div></div>';
+    html += '<div class="plan-item"><div class="pi-label">Obuhvat</div><div class="pi-value">' + getAssignmentScopeLabel() + '</div></div>';
+    html += '<div class="plan-item"><div class="pi-label">Dodeljeni nivo</div><div class="pi-value">' + (clientTrainingAssignment.assigned_level || 'N1') + '</div></div>';
+    html += '<div class="plan-item"><div class="pi-label">Trenutna nedelja</div><div class="pi-value">' + (clientTrainingAssignment.current_week || 1) + '</div></div>';
+    html += '<div class="plan-item"><div class="pi-label">Početak</div><div class="pi-value">' + formatDate(clientTrainingAssignment.start_date) + '</div></div>';
+    if (clientTrainingProgram.objective) html += '<div class="plan-item full"><div class="pi-label">Cilj programa</div><div class="pi-value">' + clientTrainingProgram.objective + '</div></div>';
+    if (clientTrainingAssignment.coach_notes) html += '<div class="plan-item full"><div class="pi-label">Napomene trenera</div><div class="pi-value">' + clientTrainingAssignment.coach_notes + '</div></div>';
+  } else {
+    const prog = clientPrograms.find(p => (p.status||'').toLowerCase() === 'activo') || clientPrograms[0] || null;
+    if (prog) {
+      html += '<div class="plan-item"><div class="pi-label">Dodeljen program</div><div class="pi-value">' + (prog.name || '—') + '</div></div>';
+      if (prog.type)  html += '<div class="plan-item"><div class="pi-label">Tip</div><div class="pi-value">' + prog.type + '</div></div>';
+      if (prog.level) html += '<div class="plan-item"><div class="pi-label">Nivo</div><div class="pi-value">' + prog.level + '</div></div>';
+      if (prog.description || prog.objective) html += '<div class="plan-item full"><div class="pi-label">Uputstva</div><div class="pi-value">' + (prog.description || prog.objective) + '</div></div>';
+    } else {
+      html += '<div class="plan-item full"><div class="plan-no-program">Još uvek nema dodeljenog programa. Abel će ažurirati ovu sekciju kada bude vaš plan spreman.</div></div>';
+    }
+  }
+  html += '</div><div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Želim da konsultujem prilagođavanje ili novi plan.\')">Konsultovati prilagođavanje plana</button></div>';
+  el.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TRAINING GUIDE — full block-by-block experience
+══════════════════════════════════════════════════════════ */
+
+function getSessionDayLabel(session, index) {
+  const title = String(session.title || session.name || '').toLowerCase();
+  const code  = String(session.session_code || '').toLowerCase();
+  const num   = Number(session.session_number || index + 1);
+  if (title.includes('día a') || title.includes('dia a') || code.includes('a')) return 'Dan A';
+  if (title.includes('día b') || title.includes('dia b') || code.includes('b')) return 'Dan B';
+  if (title.includes('día c') || title.includes('dia c') || code.includes('c')) return 'Dan C';
+  if (num === 1) return 'Dan A';
+  if (num === 2) return 'Dan B';
+  if (num === 3) return 'Dan C';
+  return 'Dan ' + num;
+}
+
+function getSessionDisplayTitle(session, index) {
+  const day   = getSessionDayLabel(session, index);
+  const title = session.title || session.name || '';
+  if (title && !String(title).toLowerCase().includes(day.toLowerCase())) return day + ' · ' + title;
+  return title || day;
+}
+
+function showTrainingDay(sessionId) {
+  document.querySelectorAll('.training-day-tab').forEach(b => b.classList.toggle('active', b.dataset.sessionId === sessionId));
+  document.querySelectorAll('.training-day-panel').forEach(p => p.classList.toggle('active', p.dataset.sessionId === sessionId));
+  const active = document.querySelector('.training-day-panel.active');
+  if (active) active.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function buildTrainingSteps(sessionIdFilter) {
+  const steps = [];
+  const sessions = sessionIdFilter
+    ? clientTrainingSessions.filter(s => String(s.id) === String(sessionIdFilter))
+    : clientTrainingSessions;
+
+  sessions.forEach(function(session, sIdx) {
+    const realIdx = clientTrainingSessions.findIndex(s => String(s.id) === String(session.id));
+    const blocks = clientTrainingBlocks
+      .filter(b => b.session_id === session.id)
+      .slice().sort((a,b) =>
+  Number(a.block_order || a.order_number || a.order_index || 0) -
+  Number(b.block_order || b.order_number || b.order_index || 0)
+);
+
+    blocks.forEach(function(block, bIdx) {
+      const exercises = clientTrainingExercises
+        .filter(e => e.block_id === block.id)
+        .slice().sort((a,b) =>
+  Number(a.exercise_order || a.order_number || a.order_index || 0) -
+  Number(b.exercise_order || b.order_number || b.order_index || 0)
+);
+
+      steps.push({
+        blockId: String(block.id),
+        block, exercises,
+        sessionId: String(session.id),
+        session,
+        sessionSeparator: bIdx === 0 ? getSessionDisplayTitle(session, realIdx >= 0 ? realIdx : sIdx) : null
+      });
+    });
+  });
+  return steps;
+}
+
+function getActiveTrainingWeek() {
+  if (!clientTrainingAssignment) return null;
+  const nums = getAssignedWeekNumbers();
+  if (nums === null) return clientTrainingWeeks[0] || null;
+  return clientTrainingWeeks.find(w => Number(w.week_number) === nums[0]) || clientTrainingWeeks[0] || null;
+}
+
+/* client_session_logs — table used by admin */
+async function loadOrCreateTrainingLog() {
+  if (!clientData || !clientTrainingAssignment || !clientTrainingProgram) return null;
+  const localProgress = loadTrainingProgressLocal();
+  if (localProgress) {
+    completedTrainingBlocks = new Set(localProgress.completed_block_ids || []);
+    currentTrainingLog = { ...(currentTrainingLog || {}), ...localProgress };
+  }
+  const activeWeek = getActiveTrainingWeek();
+  const payload = {
+    client_id: clientData.id,
+    assignment_id: clientTrainingAssignment.id,
+    program_id: clientTrainingProgram.id,
+    week_id: activeWeek ? activeWeek.id : null,
+    training_date: todayISO()
+  };
+  try {
+    const existing = await db.from('client_session_logs').select('*')
+      .eq('client_id', payload.client_id)
+      .eq('assignment_id', payload.assignment_id)
+      .eq('training_date', payload.training_date)
+      .maybeSingle();
+
+    if (existing.error) { console.error('Log read error:', existing.error); return currentTrainingLog; }
+
+    if (existing.data) {
+      completedTrainingBlocks = new Set([
+        ...(existing.data.completed_block_ids || []),
+        ...(localProgress?.completed_block_ids || [])
+      ]);
+      currentTrainingLog = {
+        ...existing.data,
+        completed_block_ids: Array.from(completedTrainingBlocks),
+        is_finished: existing.data.is_finished || localProgress?.is_finished || false,
+        client_note: existing.data.client_note || localProgress?.client_note || ''
+      };
+      saveTrainingProgressLocal(currentTrainingLog);
+      return currentTrainingLog;
+    }
+
+    const created = await db.from('client_session_logs').insert({
+      ...payload,
+      completed_block_ids: Array.from(completedTrainingBlocks),
+      is_finished: localProgress?.is_finished || false,
+      client_note: localProgress?.client_note || '',
+      started_at: new Date().toISOString()
+    }).select().single();
+
+    if (created.error) { console.error('Log create error:', created.error); return currentTrainingLog; }
+    currentTrainingLog = created.data;
+    saveTrainingProgressLocal(currentTrainingLog);
+    return currentTrainingLog;
+  } catch (err) {
+    console.error('Log general error:', err);
+    return currentTrainingLog;
+  }
+}
+
+async function saveTrainingProgress(extra) {
+  saveTrainingProgressLocal(extra);
+  if (!currentTrainingLog?.id) await loadOrCreateTrainingLog();
+  if (!currentTrainingLog?.id) { console.warn('No log ID — saved locally only'); return; }
+  const local = loadTrainingProgressLocal() || {};
+  try {
+    const saved = await db.from('client_session_logs').update({
+      completed_block_ids: Array.from(completedTrainingBlocks),
+      is_finished: local.is_finished || false,
+      client_note: local.client_note || null,
+      updated_at: new Date().toISOString(),
+      ...(extra || {})
+    }).eq('id', currentTrainingLog.id).select().single();
+    if (!saved.error) { currentTrainingLog = saved.data; saveTrainingProgressLocal(currentTrainingLog); }
+  } catch (err) { console.error('Log save error:', err); }
+}
+
+/* ── renderClientTraining ── */
+async function renderClientTraining() {
+  const el    = document.getElementById('sectionTrainingClient');
+  const badge = document.getElementById('trainingClientBadge');
+  if (!el) return;
+
+  completedTrainingBlocks = new Set();
+  activeTrainingBlockKey  = null;
+  currentTrainingLog      = null;
+
+  if (!clientTrainingAssignment || !clientTrainingProgram) {
+    if (badge) badge.textContent = 'Nije dodeljeno';
+    el.innerHTML = '<p class="empty-state">Još uvek nemate dodeljen program treninga. Kada Abel aktivira vaš plan, pojaviće se ovde.</p>';
+    return;
+  }
+
+  await loadOrCreateTrainingLog();
+
+  const activeWeek = getActiveTrainingWeek();
+  const levelStr   = getAssignedTrainingLevel();
+  const scopeLabel = getAssignmentScopeLabel();
+  const metaParts  = [scopeLabel, levelStr].filter(Boolean);
+  const objective  = activeWeek?.objective || clientTrainingProgram.objective || '';
+
+  if (badge) badge.textContent = scopeLabel;
+
+  const summaryHtml = '<div class="training-guide-summary">'
+    + '<div class="training-guide-title">' + (clientTrainingProgram.name || 'Program treninga') + '</div>'
+    + '<div class="training-guide-meta">' + metaParts.join(' · ') + '</div>'
+    + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
+    + '</div>';
+
+  const allSteps = buildTrainingSteps();
+
+  if (!allSteps.length) {
+    el.innerHTML = summaryHtml + '<p class="empty-state">Ovaj program još uvek nema učitanih blokova.</p>';
+    return;
+  }
+
+  if (currentTrainingLog?.is_finished) {
+    el.innerHTML = summaryHtml;
+    renderTrainingCompletedState();
+    return;
+  }
+
+  let html = summaryHtml;
+
+  if (clientTrainingSessions.length > 1) {
+    // Multi-day tabs
+    html += '<div class="training-day-tabs">';
+    clientTrainingSessions.forEach((session, i) => {
+      const sid = String(session.id);
+      html += '<button class="training-day-tab' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' + getSessionDayLabel(session, i) + '</button>';
+    });
+    html += '</div>';
+    clientTrainingSessions.forEach((session, i) => {
+      const sid = String(session.id);
+      const steps = buildTrainingSteps(sid);
+      html += '<div class="training-day-panel' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '"><div class="training-step-list">';
+      steps.forEach((step, j) => { html += buildTrainingStepHTML(step, j); });
+      html += '</div></div>';
+    });
+  } else {
+    html += '<div class="training-step-list">';
+    allSteps.forEach((step, i) => { html += buildTrainingStepHTML(step, i); });
+    html += '</div>';
+  }
+
+  html += '<div id="trainingCompletionArea"></div>';
+  el.innerHTML = html;
+  applySavedTrainingState();
+
+  const firstPending = allSteps.find(s => !completedTrainingBlocks.has(s.blockId));
+  if (firstPending) {
+    activeTrainingBlockKey = firstPending.blockId;
+    const card = document.getElementById('step-' + firstPending.blockId);
+    if (card) card.classList.add('open');
+  } else {
+    renderTrainingCompletionBox(false);
+  }
+}
+
+function buildTrainingStepHTML(step, index) {
+  const blockId  = step.blockId;
+  const block    = step.block;
+  const blockNum = block.block_order || (index + 1);
+  const metaP    = [block.duration, block.type].filter(Boolean);
+  let html = '';
+  if (step.sessionSeparator) html += '<div class="training-session-separator">' + step.sessionSeparator + '</div>';
+  html += '<div class="training-step-card" id="step-' + blockId + '">'
+    + '<button class="training-step-header" onclick="toggleTrainingStep(\'' + blockId + '\')">'
+    + '<div class="training-step-number">' + blockNum + '</div>'
+    + '<div class="training-step-info">'
+    + '<div class="training-step-title">' + (block.title || block.name || 'Blok') + '</div>'
+    + (metaP.length ? '<div class="training-step-meta">' + metaP.join(' · ') + '</div>' : '')
+    + '</div>'
+    + '<div class="training-step-status" id="status-' + blockId + '">Na čekanju</div>'
+    + '</button>'
+    + '<div class="training-step-body">'
+    + (block.objective ? '<div class="training-step-objective">' + block.objective + '</div>' : '');
+  step.exercises.forEach(ex => { html += buildExerciseHTML(ex); });
+  if (!step.exercises.length) html += '<p class="empty-state" style="margin-top:12px;">Ovaj blok još uvek nema registrovanih vežbi.</p>';
+  html += '<button class="training-complete-block-btn" id="completeBtn-' + blockId + '" onclick="completeTrainingStep(\'' + blockId + '\')">Označi blok kao završen</button>'
+    + '</div></div>';
+  return html;
+}
+
+function buildExerciseHTML(ex) {
+  const lvl     = getAssignedTrainingLevel();
+  const variant = getExerciseVariantByLevel(ex);
+  const stats = [
+    ex.sets ? { label:'Serije',      value:ex.sets } : null,
+    ex.reps ? { label:'Ponavljanja', value:ex.reps } : null,
+    (ex.time || ex.duration) ? { label:'Vreme', value:(ex.time || ex.duration) } : null,
+    ex.rest ? { label:'Odmor',       value:ex.rest } : null
+  ].filter(Boolean);
+
+  let html = '<div class="training-exercise-card">'
+    + '<div class="training-exercise-title">'
+    + (ex.exercise_order ? '<span class="training-ex-num">' + ex.exercise_order + '.</span>' : '')
+    + (ex.name || ex.title || 'Vežba') + '</div>';
+  if (stats.length) {
+    html += '<div class="training-exercise-grid">';
+    stats.forEach(s => { html += '<div class="training-mini-stat"><span class="training-mini-label">' + s.label + '</span><div class="training-mini-value">' + s.value + '</div></div>'; });
+    html += '</div>';
+  }
+  html += '<div class="training-level-tag">Nivo ' + lvl + '</div>';
+  if (variant) html += '<div class="training-instruction"><strong>Naznačeni rad</strong>' + variant + '</div>';
+  if (ex.description) html += '<div class="training-instruction"><strong>Kako to uraditi</strong>' + ex.description + '</div>';
+  if (ex.coaching_notes || ex.coach_notes) html += '<div class="training-coach-note">Trener: ' + (ex.coaching_notes || ex.coach_notes) + '</div>';
+  if (ex.video_url) html += '<a href="' + ex.video_url + '" target="_blank" class="training-video-btn">&#9654; Pogledaj referencu</a>';
+  html += '</div>';
+  return html;
+}
+
+function applySavedTrainingState() {
+  completedTrainingBlocks.forEach(id => markStepVisualAsCompleted(id));
+}
+
+function markStepVisualAsCompleted(blockId) {
+  const card = document.getElementById('step-' + blockId);
+  if (!card) return;
+  card.classList.remove('open');
+  card.classList.add('completed');
+  const numEl = card.querySelector('.training-step-number');
+  if (numEl) numEl.textContent = '✓';
+  const statusEl = document.getElementById('status-' + blockId);
+  if (statusEl) { statusEl.textContent = 'Završeno'; statusEl.classList.add('done'); }
+  const btn = document.getElementById('completeBtn-' + blockId);
+  if (btn) {
+    const msg = document.createElement('div');
+    msg.className = 'training-step-done-msg';
+    msg.textContent = '✓ Blok završen';
+    btn.replaceWith(msg);
+  }
+}
+
+function toggleTrainingStep(blockId) {
+  const card = document.getElementById('step-' + blockId);
+  if (!card) return;
+  if (activeTrainingBlockKey === blockId) {
+    card.classList.remove('open');
+    activeTrainingBlockKey = null;
+  } else {
+    if (activeTrainingBlockKey) { document.getElementById('step-' + activeTrainingBlockKey)?.classList.remove('open'); }
+    activeTrainingBlockKey = blockId;
+    card.classList.add('open');
+  }
+}
+
+async function completeTrainingStep(blockId) {
+  completedTrainingBlocks.add(blockId);
+  saveTrainingProgressLocal();
+  markStepVisualAsCompleted(blockId);
+  await saveTrainingProgress();
+  activeTrainingBlockKey = null;
+  if (isTrainingComplete()) { renderTrainingCompletionBox(false); return; }
+  const next = buildTrainingSteps().find(s => !completedTrainingBlocks.has(s.blockId));
+  if (next) {
+    activeTrainingBlockKey = next.blockId;
+    const card = document.getElementById('step-' + next.blockId);
+    if (card) { card.classList.add('open'); setTimeout(() => card.scrollIntoView({ behavior:'smooth', block:'start' }), 180); }
+  }
+}
+
+function isTrainingComplete() {
+  const steps = buildTrainingSteps();
+  return steps.length > 0 && steps.every(s => completedTrainingBlocks.has(s.blockId));
+}
+
+function renderTrainingCompletionBox(scroll) {
+  const area = document.getElementById('trainingCompletionArea');
+  if (!area) return;
+  area.innerHTML = '<div class="training-finish-card"><div class="training-finish-icon">🏁</div><div class="training-finish-title">Trening završen</div><div class="training-finish-sub">Završili ste sve blokove. Odličan rad!</div><button class="training-complete-block-btn" onclick="finishTrainingSession()">Označi trening kao završen</button></div>';
+  if (scroll !== false) area.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+async function finishTrainingSession() {
+  saveTrainingProgressLocal({ is_finished:true, finished_at:new Date().toISOString() });
+  await saveTrainingProgress({ is_finished:true, finished_at:new Date().toISOString() });
+  const el = document.getElementById('sectionTrainingClient');
+  if (el) {
+    const aw = getActiveTrainingWeek();
+    const sp = getAssignmentScopeLabel();
+    const lv = getAssignedTrainingLevel();
+    const obj = aw?.objective || clientTrainingProgram?.objective || '';
+    el.innerHTML = '<div class="training-guide-summary"><div class="training-guide-title">' + (clientTrainingProgram?.name || 'Program') + '</div>'
+      + '<div class="training-guide-meta">' + [sp,lv].filter(Boolean).join(' · ') + '</div>'
+      + (obj ? '<div class="training-week-objective">'+obj+'</div>' : '') + '</div>';
+  }
+  renderTrainingCompletedState();
+}
+
+function renderTrainingCompletedState() {
+  const el = document.getElementById('sectionTrainingClient');
+  if (!el) return;
+  const savedNote = currentTrainingLog?.client_note || '';
+  const finDate   = currentTrainingLog?.finished_at ? formatDate(String(currentTrainingLog.finished_at).slice(0,10)) : formatDate(todayISO());
+
+  let html = '<div class="training-finish-card">'
+    + '<div class="training-finish-icon">🏁</div>'
+    + '<div class="training-finish-title">Trening završen</div>'
+    + '<div class="training-finish-sub">Vaša sesija je zabeležena ' + finDate + '. Abel će pregledati vaše napomene i prilagoditi što je potrebno.</div>';
+
+  if (savedNote) {
+    html += '<div class="training-notes-box" style="text-align:left;margin-top:16px;"><div class="training-notes-title">Napomena poslata</div><div class="training-notes-sub" style="margin-bottom:0;">' + savedNote + '</div></div>';
+  } else {
+    html += '<div class="training-notes-box" style="text-align:left;margin-top:16px;"><div class="training-notes-title">Napomene o treningu</div><div class="training-notes-sub">Niste ostavili napomenu u ovoj sesiji.</div><button class="training-complete-block-btn" onclick="showTrainingNotes(false)">Dodaj napomenu</button></div>';
+  }
+  html += '<button class="client-action-btn" style="margin-top:16px;" onclick="toggleCompletedTrainingDetails()">Pogledaj detalje obavljenog treninga</button>';
+  html += '</div>';
+
+  html += '<div id="trainingCompletedDetails" class="hidden" style="margin-top:14px;"><div class="training-step-list">';
+  const steps = buildTrainingSteps();
+  if (clientTrainingSessions.length > 1) {
+    html += '<div class="training-day-tabs">';
+    clientTrainingSessions.forEach((s, i) => {
+      const sid = String(s.id);
+      html += '<button class="training-day-tab' + (i===0?' active':'') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' + getSessionDayLabel(s,i) + '</button>';
+    });
+    html += '</div>';
+    clientTrainingSessions.forEach((s, i) => {
+      const sid = String(s.id);
+      const ss = buildTrainingSteps(sid);
+      html += '<div class="training-day-panel' + (i===0?' active':'') + '" data-session-id="'+sid+'"><div class="training-step-list">';
+      ss.forEach((step,j) => { html += buildTrainingStepHTML(step, j); });
+      html += '</div></div>';
+    });
+  } else {
+    steps.forEach((step,j) => { html += buildTrainingStepHTML(step, j); });
+  }
+  html += '</div></div><div id="trainingCompletionArea"></div>';
+  el.insertAdjacentHTML('beforeend', html);
+  completedTrainingBlocks = new Set(currentTrainingLog?.completed_block_ids || steps.map(s => s.blockId));
+  applySavedTrainingState();
+}
+
+function toggleCompletedTrainingDetails() {
+  const d = document.getElementById('trainingCompletedDetails');
+  if (!d) return;
+  d.classList.toggle('hidden');
+  if (!d.classList.contains('hidden')) d.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function showTrainingNotes(keepSaved) {
+  const area = document.getElementById('trainingCompletionArea');
+  if (!area) return;
+  document.getElementById('trainingNotesBox')?.remove();
+  const savedNote = currentTrainingLog?.client_note || '';
+  const div = document.createElement('div');
+  div.className = 'training-notes-box';
+  div.id = 'trainingNotesBox';
+  div.innerHTML = '<div class="training-notes-title">Napomene o treningu</div>'
+    + '<div class="training-notes-sub">Ako ste imali bilo kakvu nelagodnost ili nešto što Abel treba da proveri, ostavite ovde.</div>'
+    + '<textarea class="training-notes-textarea" id="trainingNoteText" placeholder="Npr: osetio sam nelagodnost u desnom kolenu…">' + savedNote + '</textarea>'
+    + '<button class="training-complete-block-btn" id="saveNoteBtn" onclick="saveTrainingNote()">Sačuvaj napomenu</button>'
+    + '<div id="trainingNoteSaved" class="training-note-saved ' + (savedNote?'':'hidden') + '">Napomena zabeležena za pregled sa Abelom.</div>';
+  area.appendChild(div);
+  if (keepSaved !== true) div.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+/* ── saveTrainingNote ── */
+async function saveTrainingNote() {
+  const textarea = document.getElementById('trainingNoteText');
+  const savedEl  = document.getElementById('trainingNoteSaved');
+  const btn      = document.getElementById('saveNoteBtn');
+  const note = textarea ? textarea.value.trim() : '';
+  if (!note) { alert('Napišite napomenu pre čuvanja.'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Čuvanje...'; }
+  saveTrainingProgressLocal({ client_note: note });
+  await saveTrainingProgress({ client_note: note });
+  if (savedEl) savedEl.classList.remove('hidden');
+  if (btn) { btn.disabled = false; btn.textContent = 'Sačuvaj napomenu'; }
+  const el = document.getElementById('sectionTrainingClient');
+  if (el) {
+    const aw  = getActiveTrainingWeek();
+    const sp  = getAssignmentScopeLabel();
+    const lv  = getAssignedTrainingLevel();
+    const obj = aw?.objective || clientTrainingProgram?.objective || '';
+    el.innerHTML = '<div class="training-guide-summary"><div class="training-guide-title">' + (clientTrainingProgram?.name || 'Program') + '</div>'
+      + '<div class="training-guide-meta">' + [sp,lv].filter(Boolean).join(' · ') + '</div>'
+      + (obj ? '<div class="training-week-objective">'+obj+'</div>' : '') + '</div>';
+  }
+  renderTrainingCompletedState();
+} /* END saveTrainingNote */
+
+/* ══════════════════════════════════════════════════════════
+   EVALUACIJE
+══════════════════════════════════════════════════════════ */
+function buildMiniChart(pts) {
+  if (!pts || pts.length < 2) return null;
+  const vals = pts.map(d => d.value);
+  const min = Math.min(...vals), max = Math.max(...vals), range = max - min || 1;
+  const W=260, H=50, P=6;
+  const mapped = pts.map((d,i) => ({
+    x: P + (i/(pts.length-1))*(W-P*2),
+    y: P + (H-P*2) - ((d.value-min)/range)*(H-P*2),
+    date: d.date, value: d.value
+  }));
+  const line  = mapped.map(p => p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+  const area  = [mapped[0].x.toFixed(1)+','+(H-P).toFixed(1)].concat(mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1))).concat([mapped[mapped.length-1].x.toFixed(1)+','+(H-P).toFixed(1)]).join(' ');
+  const dots  = mapped.map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="var(--blue)" stroke="var(--navy3)" stroke-width="1.5"/>').join('');
+  const labs  = mapped.map(p=>'<span class="mini-chart-label">'+String(p.date||'').slice(5)+'<br>'+p.value+'</span>').join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="display:block"><polygon points="'+area+'" fill="rgba(94,197,240,0.08)"/><polyline points="'+line+'" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div class="mini-chart-labels">'+labs+'</div>';
+}
+
+function buildExerciseHistory(exerciseName) {
+  return clientAssessmentResults
+    .filter(r => (r.exercise_name||'').trim().toLowerCase() === (exerciseName||'').trim().toLowerCase())
+    .map(r => {
+      const a = clientAssessments.find(x => x.id === r.assessment_id);
+      return { date: a?.assessment_date||'', value: r.result_value, numValue: parseFloat(String(r.result_value||'').replace(',','.')) };
+    })
+    .filter(d => d.date)
+    .sort((a,b) => String(a.date).localeCompare(String(b.date)));
+}
+
+function dLabel(d) { if(d==='higher_better')return'Bolje više';if(d==='lower_better')return'Bolje niže';return'Referenca'; }
+function dColor(d) { if(d==='higher_better')return'var(--green)';if(d==='lower_better')return'#f87171';return'var(--gray)'; }
+
+function toggleAssessmentCard(id) {
+  document.getElementById('ac-'+id)?.classList.toggle('open');
+}
+
+function renderAssessments() {
+  const el    = document.getElementById('sectionAssessments');
+  const badge = document.getElementById('assessmentsBadge');
+  if (!el) return;
+  if (badge) badge.textContent = clientAssessments.length;
+  if (!clientAssessments.length) { el.innerHTML = '<p class="empty-state">Još uvek nema registrovanih evaluacija.</p>'; return; }
+
+  let html = '';
+  clientAssessments.forEach(function(a) {
+    const results = clientAssessmentResults.filter(r => r.assessment_id === a.id).sort((x,y) => Number(x.item_order||0) - Number(y.item_order||0));
+    const sc = a.status === 'realizada' ? 'badge-green' : 'badge-gray';
+    html += '<div class="assessment-card" id="ac-' + a.id + '">';
+    html += '<div class="assessment-card-header" onclick="toggleAssessmentCard(\'' + a.id + '\')">';
+    html += '<div><div class="assessment-card-title">' + (a.assessment_name || 'Test') + '</div>';
+    html += '<div class="assessment-card-meta">' + formatDate(a.assessment_date) + ' · ' + results.length + ' ' + (results.length !== 1 ? 'rezultata' : 'rezultat') + '</div></div>';
+    html += '<span class="badge ' + sc + '">' + (a.status || 'realizovana') + '</span></div>';
+    html += '<div class="assessment-card-body">';
+    if (a.coach_notes) html += '<div style="font-size:13px;color:var(--gray);font-style:italic;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.06)">Trener: ' + a.coach_notes + '</div>';
+    if (!results.length) {
+      html += '<p class="empty-state">Nema registrovanih rezultata.</p>';
+    } else {
+      results.forEach(function(r) {
+        const isNum = r.result_value !== '' && r.result_value != null && !isNaN(parseFloat(String(r.result_value).replace(',','.')));
+        const history = buildExerciseHistory(r.exercise_name);
+        const numHist = history.filter(h => !isNaN(h.numValue));
+        html += '<div class="assessment-result-row">';
+        html += '<div style="flex:1;min-width:0"><div class="assessment-ex-name">' + (r.exercise_name||'—') + '</div>';
+        html += '<div class="assessment-ex-meta">' + (r.metric_type||'') + (r.direction?' · <span style="color:'+dColor(r.direction)+'">'+dLabel(r.direction)+'</span>':'') + '</div>';
+        if (r.note) html += '<div class="assessment-ex-note">✎ ' + r.note + '</div>';
+        html += '</div><div style="text-align:right;flex-shrink:0"><div class="assessment-result-val">' + (r.result_value||'—') + '</div>';
+        if (r.unit) html += '<div class="assessment-result-unit">' + r.unit + '</div>';
+        html += '</div></div>';
+        if (isNum && numHist.length >= 2) {
+          const chart = buildMiniChart(numHist.map(h => ({ date:h.date, value:h.numValue })));
+          if (chart) html += '<div class="mini-chart-wrap"><div class="mini-chart-title">Evolucija · ' + (r.exercise_name||'') + '</div>' + chart + '</div>';
+        }
+      });
+    }
+    html += '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+/* ══ OTHER RENDER FUNCTIONS ══ */
+function renderReservations() {
+  const el    = document.getElementById('sectionReservations');
+  const badge = document.getElementById('reservationsBadge');
+  if (!el) return;
+  if (badge) badge.textContent = clientReservations.length;
+  if (!clientReservations.length) {
+    el.innerHTML = '<p class="empty-state">Još uvek nemate registrovanih rezervacija.</p><div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Želim da zatražim novu rezervaciju treninga.\')">Zatraži novu rezervaciju</button></div>';
+    return;
+  }
+  const today = todayISO();
+  const up  = clientReservations.filter(r => String(r.date).slice(0,10) >= today && !['cancelada','cancelado'].includes((r.status||'').toLowerCase()));
+  const past = clientReservations.filter(r => String(r.date).slice(0,10) < today || ['cancelada','cancelado'].includes((r.status||'').toLowerCase()));
+  let html = '';
+  if (up.length) {
+    const nx = up[0];
+    html += '<div class="data-card next-session"><div class="next-label">Sledeća sesija</div>'
+      + '<div class="dc-row"><span class="dc-title">'+(nx.type||'Sesija')+'</span>'+genericBadge(nx.status)+'</div>'
+      + '<div class="dc-row"><span class="dc-sub">📅 '+formatDate(nx.date)+'</span>'+(nx.time?'<span class="dc-sub">🕐 '+formatTime(nx.time)+'</span>':'')+(nx.place?'<span class="dc-sub">📍 '+nx.place+'</span>':'')+'</div>'
+      + (nx.note?'<div class="dc-note">'+nx.note+'</div>':'')+'</div>';
+    up.slice(1).forEach(r => { html += '<div class="data-card"><div class="dc-row"><span class="dc-title">'+(r.type||'Sesija')+'</span>'+genericBadge(r.status)+'</div><div class="dc-row"><span class="dc-sub">📅 '+formatDate(r.date)+'</span>'+(r.time?'<span class="dc-sub">🕐 '+formatTime(r.time)+'</span>':'')+(r.place?'<span class="dc-sub">📍 '+r.place+'</span>':'')+'</div>'+(r.note?'<div class="dc-note">'+r.note+'</div>':'')+'</div>'; });
+  }
+  past.forEach(r => { html += '<div class="data-card"><div class="dc-row"><span class="dc-title">'+(r.type||'Sesija')+'</span>'+genericBadge(r.status)+'</div><div class="dc-row"><span class="dc-sub">📅 '+formatDate(r.date)+'</span>'+(r.time?'<span class="dc-sub">🕐 '+formatTime(r.time)+'</span>':'')+(r.place?'<span class="dc-sub">📍 '+r.place+'</span>':'')+'</div>'+(r.note?'<div class="dc-note">'+r.note+'</div>':'')+'</div>'; });
+  html += '<div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Želim da zatražim novu rezervaciju treninga.\')">Zatraži novu rezervaciju</button></div>';
+  el.innerHTML = html;
+}
+
+function renderPayments() {
+  const el    = document.getElementById('sectionPayments');
+  const badge = document.getElementById('paymentsBadge');
+  if (!el) return;
+  if (badge) badge.textContent = clientPayments.length;
+  if (!clientPayments.length) { el.innerHTML = '<p class="empty-state">Nema registrovanih plaćanja.</p>'; return; }
+  el.innerHTML = clientPayments.map(p =>
+    '<div class="data-card"><div class="dc-row"><span class="dc-title">'+(p.concept||'Plaćanje')+'</span>'+paymentBadge(p.status)+'</div>'
+    + '<div class="dc-row"><span class="dc-sub">'+formatMoney(p.amount,p.currency)+'</span>'+(p.due_date?'<span class="dc-sub">Ističe: '+formatDate(p.due_date)+'</span>':'')+(p.method?'<span class="dc-meta">'+p.method+'</span>':'')+'</div>'
+    + (p.note?'<div class="dc-note">'+p.note+'</div>':'')+'</div>'
+  ).join('');
+}
+
+function renderHealthAlerts() {
+  const el    = document.getElementById('sectionHealth');
+  const badge = document.getElementById('alertsBadge');
+  if (!el) return;
+  if (badge) badge.textContent = clientAlerts.length;
+  if (!clientAlerts.length) { el.innerHTML = '<p class="empty-state">Nema registrovanih zdravstvenih uputstava.</p>'; return; }
+  el.innerHTML = clientAlerts.map(a =>
+    '<div class="data-card"><div class="dc-row">'+genericBadge(a.status)+'<span class="dc-sub">'+formatDate(a.date)+'</span></div>'
+    + (a.detail?'<div style="margin-top:8px;font-size:14px;color:var(--white);line-height:1.6;">'+a.detail+'</div>':'')+'</div>'
+  ).join('');
+}
+
+function renderNotes() {
+  const el = document.getElementById('sectionNotes');
+  if (!el) return;
+  const raw = clientData.notes;
+  if (!raw || raw === '' || raw === '[]' || raw === 'null') { el.innerHTML = '<p class="empty-state">Još uvek nema napomena trenera.</p>'; return; }
+  let notes = [];
+  if (Array.isArray(raw)) notes = raw;
+  else if (typeof raw === 'string') { try { const p = JSON.parse(raw); notes = Array.isArray(p) ? p : [raw]; } catch { notes = [raw]; } }
+  notes = notes.map(n => { if (typeof n === 'string') return n.trim(); if (typeof n === 'object' && n) return String(n.text||n.note||n.message||'').trim(); return ''; }).filter(Boolean);
+  el.innerHTML = notes.length ? notes.map(n => '<div class="note-item">'+n+'</div>').join('') : '<p class="empty-state">Još uvek nema napomena trenera.</p>';
+}
+
+function renderProgressCircles() {
+  const el    = document.getElementById('sectionProgressCircles');
+  const badge = document.getElementById('progressCircleBadge');
+  if (!el) return;
+  if (!clientMetrics.length) { if(badge)badge.textContent='0'; el.innerHTML='<p class="empty-state">Još uvek nema dovoljno metrika za prikaz vizuelnog napretka.</p>'; return; }
+  const grouped = {};
+  clientMetrics.forEach(m => { const k=String(m.type||'Metrika').trim(); if(!grouped[k])grouped[k]=[]; grouped[k].push({value:m.value,unit:m.unit,numericValue:Number(m.value||0),dateKey:String(m.date||'').slice(0,10)}); });
+  const circles = Object.keys(grouped).map(type => {
+    const list=grouped[type].slice().sort((a,b)=>String(b.dateKey).localeCompare(String(a.dateKey)));
+    const latest=list[0],first=list[list.length-1];
+    const current=Number(latest.numericValue||0),start=Number(first.numericValue||0);
+    let percent=0,note='';
+    const t=type.toLowerCase();
+    if(t.includes('peso')){const diff=start-current;percent=Math.round(Math.min(100,Math.max(0,(diff/Math.max(Math.abs(start*.05),1))*100)));note=diff>0?'Pao za '+Math.abs(diff).toFixed(1)+' '+(latest.unit||'kg'):diff<0?'Porastao za '+Math.abs(diff).toFixed(1)+' '+(latest.unit||'kg'):'Bez promene još uvek';}
+    else if(t.includes('asistencia')||t.includes('adherencia')||t.includes('%')){percent=Math.round(Math.min(100,Math.max(0,current)));note=percent+'% zabeleženo';}
+    else if(['fuerza','movilidad','resistencia'].some(k=>t.includes(k))){percent=Math.round(Math.min(100,Math.max(0,(current/10)*100)));note=current+'/10';}
+    else{if(start>0){const d2=current-start;percent=Math.round(Math.min(100,Math.max(0,(current/start)*100)));note=d2>=0?'+'+d2.toFixed(1)+' od početka':d2.toFixed(1)+' od početka';}else{percent=Math.round(Math.min(100,Math.max(0,current)));note='Poslednji zapis';}}
+    return {type,current,unit:latest.unit||'',percent,note};
+  });
+  if(badge)badge.textContent=circles.length;
+  el.innerHTML='<div class="progress-grid">'+circles.map(c=>'<div class="progress-circle-card"><div class="progress-ring" style="--p:'+c.percent+'"><span>'+c.percent+'%</span></div><div class="progress-circle-label">'+c.type+'</div><div class="progress-circle-value">'+c.current+(c.unit?' '+c.unit:'')+'</div><div class="progress-circle-note">'+c.note+'</div></div>').join('')+'</div>';
+}
+
+function renderSummary() {
+  const el = document.getElementById('sectionSummary');
+  if (!el) return;
+  const today = todayISO();
+  const nextRes = clientReservations.find(r => String(r.date).slice(0,10) >= today && !['cancelada','cancelado'].includes((r.status||'').toLowerCase()));
+  const lastAss = clientAssessments[0] || null;
+  const hasPending = clientPayments.some(p => ['pendiente','vencido'].includes((p.status||'').toLowerCase()));
+  const hasOverdue = clientPayments.some(p => p.status === 'vencido');
+  const payStatus  = hasOverdue ? 'Isteklo' : hasPending ? 'Na čekanju' : 'Uredno';
+  const payClass   = hasOverdue ? 'badge-red' : hasPending ? 'badge-yellow' : 'badge-green';
+
+  let rawNotes = clientData.notes, lastNote = '';
+  if (rawNotes && rawNotes !== '[]' && rawNotes !== 'null') {
+    if (Array.isArray(rawNotes) && rawNotes.length) lastNote = typeof rawNotes[0]==='string'?rawNotes[0]:(rawNotes[0].text||'');
+    else if (typeof rawNotes === 'string') { try { const p=JSON.parse(rawNotes); if(Array.isArray(p)&&p.length)lastNote=typeof p[0]==='string'?p[0]:(p[0].text||''); }catch{} }
+  }
+
+  let html = '<div class="summary-grid">';
+  html += '<div class="summary-card full"><div class="summary-label">Klijent</div><div class="summary-value big">'+(clientData.name||'—')+'</div></div>';
+  html += '<div class="summary-card"><div class="summary-label">Plan</div><div class="summary-value">'+(clientData.plan||'—')+'</div></div>';
+  html += '<div class="summary-card"><div class="summary-label">Status</div><div class="summary-value">'+(clientData.status||'—')+'</div></div>';
+  html += '<div class="summary-card"><div class="summary-label">Aktivan program</div><div class="summary-value">'+(clientTrainingProgram?.name||clientPrograms[0]?.name||'—')+'</div></div>';
+  html += '<div class="summary-card"><div class="summary-label">Obuhvat</div><div class="summary-value">'+(clientTrainingAssignment?getAssignmentScopeLabel():'—')+'</div></div>';
+  html += '<div class="summary-card"><div class="summary-label">Sledeća sesija</div><div class="summary-value">'+(nextRes?formatDate(nextRes.date)+(nextRes.time?' · '+formatTime(nextRes.time):''):'Bez rezervacija')+'</div></div>';
+  html += '<div class="summary-card"><div class="summary-label">Plaćanja</div><div class="summary-value"><span class="badge '+payClass+'">'+payStatus+'</span></div></div>';
+  html += '<div class="summary-card"><div class="summary-label">Obavljeni testovi</div><div class="summary-value">'+clientAssessments.length+'</div></div>';
+  html += '<div class="summary-card"><div class="summary-label">Registrovane metrike</div><div class="summary-value">'+clientMetrics.length+'</div></div>';
+  if (lastAss) html += '<div class="summary-card full"><div class="summary-label">Poslednja evaluacija</div><div class="summary-value">'+(lastAss.assessment_name||'Test')+' · '+formatDate(lastAss.assessment_date)+'</div></div>';
+  if (lastNote) html += '<div class="summary-card full"><div class="summary-label">Poslednja napomena trenera</div><div class="summary-value" style="font-style:italic;color:var(--gray)">'+lastNote+'</div></div>';
+  html += '</div>';
+  html += '<button class="copy-summary-btn" onclick="copySummaryToClipboard()">Kopiraj rezime u clipboard</button>';
+  el.innerHTML = html;
+}
+
+function copySummaryToClipboard() {
+  const today = todayISO();
+  const nextRes = clientReservations.find(r => String(r.date).slice(0,10) >= today && !['cancelada','cancelado'].includes((r.status||'').toLowerCase()));
+  const lastAss = clientAssessments[0] || null;
+  const hasPending = clientPayments.some(p => ['pendiente','vencido'].includes((p.status||'').toLowerCase()));
+  const hasOverdue = clientPayments.some(p => p.status === 'vencido');
+  const payStatus  = hasOverdue ? 'Isteklo' : hasPending ? 'Na čekanju' : 'Uredno';
+  let rawNotes = clientData.notes, lastNote = '';
+  if (rawNotes && rawNotes !== '[]') {
+    if (Array.isArray(rawNotes) && rawNotes.length) lastNote = typeof rawNotes[0]==='string'?rawNotes[0]:(rawNotes[0].text||'');
+    else if (typeof rawNotes === 'string') { try { const p=JSON.parse(rawNotes); if(Array.isArray(p)&&p.length)lastNote=typeof p[0]==='string'?p[0]:(p[0].text||''); }catch{} }
+  }
+  const text = [
+    'Rezime AB Coach',
+    'Klijent: '+(clientData.name||'—'),
+    'Plan: '+(clientData.plan||'—'),
+    'Trening: '+(clientTrainingProgram?.name||clientPrograms[0]?.name||'—'),
+    'Obuhvat: '+(clientTrainingAssignment?getAssignmentScopeLabel():'—'),
+    'Nivo: '+(clientTrainingAssignment?.assigned_level||'—'),
+    'Sledeća sesija: '+(nextRes?formatDate(nextRes.date)+(nextRes.time?' u '+formatTime(nextRes.time):''):'Bez rezervacija'),
+    'Poslednja evaluacija: '+(lastAss?(lastAss.assessment_name||'Test')+' · '+formatDate(lastAss.assessment_date):'—'),
+    'Plaćanja: '+payStatus,
+    lastNote?'Napomene: '+lastNote:''
+  ].filter(Boolean).join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-summary-btn');
+    if (btn) { btn.textContent='✓ Kopirano'; setTimeout(()=>{btn.textContent='Kopiraj rezime u clipboard';},2000); }
+  }).catch(() => { alert('Kopiranje nije uspelo.'); });
+}
+
+function renderClientData() {
+  const el    = document.getElementById('sectionClientData');
+  const badge = document.getElementById('clientDataBadge');
+  if (!el || !clientData) return;
+  if (badge) badge.textContent = clientData.status || 'Profil';
+  const totalRes     = clientReservations.length;
+  const completedRes = clientReservations.filter(r => ['realizada','completada','confirmada'].includes((r.status||'').toLowerCase())).length;
+  const pendingPay   = clientPayments.filter(p => ['pendiente','vencido'].includes((p.status||'').toLowerCase())).length;
+  const lastMetric   = clientMetrics[0];
+  el.innerHTML = '<div class="accordion-block open">'
+    + '<button class="accordion-title" onclick="toggleAccordion(this)"><span>Osnovni profil</span><span class="accordion-symbol">−</span></button>'
+    + '<div class="accordion-content"><div class="plan-grid" style="margin-top:12px;">'
+    + '<div class="plan-item"><div class="pi-label">Ime</div><div class="pi-value">'+(clientData.name||'—')+'</div></div>'
+    + '<div class="plan-item"><div class="pi-label">Telefon</div><div class="pi-value">'+(clientData.phone||'—')+'</div></div>'
+    + '<div class="plan-item"><div class="pi-label">Email</div><div class="pi-value">'+(clientData.email||'—')+'</div></div>'
+    + '<div class="plan-item"><div class="pi-label">Grad</div><div class="pi-value">'+(clientData.city||'—')+'</div></div>'
+    + '</div></div></div>'
+    + '<div class="accordion-block"><button class="accordion-title" onclick="toggleAccordion(this)"><span>Trening</span><span class="accordion-symbol">+</span></button>'
+    + '<div class="accordion-content"><div class="plan-grid" style="margin-top:12px;">'
+    + '<div class="plan-item"><div class="pi-label">Status</div><div class="pi-value">'+(clientData.status||'—')+'</div></div>'
+    + '<div class="plan-item"><div class="pi-label">Plan</div><div class="pi-value">'+(clientData.plan||'—')+'</div></div>'
+    + '<div class="plan-item full"><div class="pi-label">Glavni cilj</div><div class="pi-value">'+(clientData.objective||'Bez registrovanog cilja')+'</div></div>'
+    + '<div class="plan-item full"><div class="pi-label">Nutritivni cilj</div><div class="pi-value">'+(clientData.nutrition_objective||'Bez registrovanog nutritivnog cilja')+'</div></div>'
+    + '</div></div></div>'
+    + '<div class="accordion-block"><button class="accordion-title" onclick="toggleAccordion(this)"><span>Rezime procesa</span><span class="accordion-symbol">+</span></button>'
+    + '<div class="accordion-content"><div class="plan-grid" style="margin-top:12px;">'
+    + '<div class="plan-item"><div class="pi-label">Registrovane rezervacije</div><div class="pi-value">'+totalRes+'</div></div>'
+    + '<div class="plan-item"><div class="pi-label">Obavljene sesije</div><div class="pi-value">'+completedRes+'</div></div>'
+    + '<div class="plan-item"><div class="pi-label">Plaćanja na čekanju</div><div class="pi-value">'+pendingPay+'</div></div>'
+    + '<div class="plan-item"><div class="pi-label">Poslednja metrika</div><div class="pi-value">'+(lastMetric?(lastMetric.type||'Metrika')+': '+lastMetric.value+(lastMetric.unit?' '+lastMetric.unit:''):'Bez metrika')+'</div></div>'
+    + '</div></div></div>';
+}
+
+/* ══ NAVIGATION ══ */
+function goClientSection(sectionId) {
+  document.querySelectorAll('.dash-main .section').forEach(s => s.classList.add('section-hidden'));
+  const target = document.getElementById(sectionId);
+  if (!target) return;
+  target.classList.remove('section-hidden');
+  document.querySelectorAll('.client-nav button').forEach(b => b.classList.remove('active'));
+  const activeBtn = Array.from(document.querySelectorAll('.client-nav button')).find(b => b.getAttribute('onclick')?.includes(sectionId));
+  if (activeBtn) { activeBtn.classList.add('active'); activeBtn.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' }); }
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function toggleAccordion(button) {
+  const block = button.closest('.accordion-block');
+  if (!block) return;
+  const symbol = block.querySelector('.accordion-symbol');
+  const isOpen = block.classList.contains('open');
+  block.classList.toggle('open', !isOpen);
+  if (symbol) symbol.textContent = isOpen ? '+' : '−';
+}
+
+/* ══ EVENTS ══ */
+document.getElementById('btnLogin') ?.addEventListener('click', loginClient);
+document.getElementById('btnLogout')?.addEventListener('click', () => Auth.logout());
+['inputPhone','inputCode'].forEach(id => {
+  document.getElementById(id)?.addEventListener('keydown', e => { if (e.key === 'Enter') loginClient(); });
+});
+
+/* ══════════════════════════════════════════════════════════
+   INIT — Auth.js session check
+══════════════════════════════════════════════════════════ */
+(async function init() {
+  const params = new URLSearchParams(location.search);
+  if (params.has('auth') || params.has('logged_out')) {
+    history.replaceState({}, '', location.pathname);
+  }
+
+  /* Direct-access link: cliente-sr.html?client=UUID */
+  const urlClientId = params.get('client');
+  if (urlClientId) {
+    Auth.loginAsClient(urlClientId);
+    return;
+  }
+
+  /* Active client session */
+  if (Auth.isClient()) {
+    await loadClientDashboard(Auth.getClientId());
+    return;
+  }
+
+  /* Admin viewing as client */
+  if (Auth.isAdmin()) {
+    showLoading(false);
+    document.getElementById('loginScreen')?.classList.remove('hidden');
+    showInfo('Vi ste admin. Unesite akreditive klijenta da biste ga videli.');
+    return;
+  }
+
+  /* No session */
+  showLoading(false);
+  document.getElementById('loginScreen')?.classList.remove('hidden');
+})();
+</script>
+</body>
+</html>
