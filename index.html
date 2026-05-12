@@ -337,19 +337,10 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   }
 
   .hero-bg::after{
-    background:
-      linear-gradient(180deg, rgba(2,11,24,.82) 0%, rgba(2,11,24,.56) 48%, rgba(2,11,24,.28) 100%),
-      linear-gradient(90deg, rgba(2,11,24,.58) 0%, rgba(2,11,24,.22) 100%);
-  }
-
-  .hero-grid{
-    grid-template-columns:1fr;
-    gap:2rem;
-  }
-
-  .hero-visual{
-    min-height:120px;
-  }
+  background:
+    linear-gradient(180deg, rgba(2,11,24,.48) 0%, rgba(2,11,24,.28) 48%, rgba(2,11,24,.10) 100%),
+    linear-gradient(90deg, rgba(2,11,24,.42) 0%, rgba(2,11,24,.12) 100%);
+}
 
   .hero-grid{
     grid-template-columns:1fr;
@@ -375,18 +366,26 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   .footer-inner,.footer-bottom{flex-direction:column;align-items:flex-start}
 
   #hero{
-    min-height:88svh;
-    padding-top:86px;
-    background:
-      linear-gradient(180deg, rgba(2,11,24,.58) 0%, rgba(2,11,24,.36) 52%, rgba(2,11,24,.10) 100%),
-      url('/hero-gym-red.jpeg') 100% top / cover no-repeat;
-  }
+  min-height:88svh;
+  padding-top:86px;
+}
 
+  .hero-bg img{
+  object-position:76% top;
+  filter:contrast(1.03) brightness(1.22) saturate(1.05);
+}
+
+.hero-bg::after{
+  background:
+    linear-gradient(180deg, rgba(2,11,24,.38) 0%, rgba(2,11,24,.20) 45%, rgba(2,11,24,.06) 100%),
+    linear-gradient(90deg, rgba(2,11,24,.42) 0%, rgba(2,11,24,.12) 100%);
+}
+  
   #hero h1{
-    font-size:3.45rem;
-    line-height:.92;
-    margin-bottom:1.1rem;
-  }
+  font-size:3.25rem;
+  line-height:.91;
+  margin-bottom:1rem;
+}
 
   #hero .lead{
     max-width:100%;
