@@ -7,10 +7,11 @@ const Auth = (() => {
   const K_ROLE      = 'ab_role';
   const K_CLIENT_ID = 'ab_client_id';
   const K_ADMIN_OK  = 'ab_admin_ok';
-  const K_CLIENT_PATH = 'ab_client_path';
+  const K_CLIENT_LANG = 'ab_client_lang';
 
   const PATH_INDEX  = '/index.html';
-  const PATH_CLIENT = '/cliente.html';
+  const PATH_CLIENT_ES = '/cliente.html';
+  const PATH_CLIENT_SR = '/cliente-sr.html';
   const PATH_ADMIN  = '/admin.html';
 
   function _get(key)      { return sessionStorage.getItem(key); }
@@ -20,20 +21,19 @@ const Auth = (() => {
     sessionStorage.removeItem(K_ROLE);
     sessionStorage.removeItem(K_CLIENT_ID);
     sessionStorage.removeItem(K_ADMIN_OK);
-    sessionStorage.removeItem(K_CLIENT_PATH);
+    sessionStorage.removeItem(K_CLIENT_LANG);
   }
 
-  function _currentClientPath() {
-    const path = window.location.pathname;
-
-    if (path.endsWith('/cliente-sr.html')) return '/cliente-sr.html';
-    if (path.endsWith('/cliente.html')) return '/cliente.html';
-
-    return _get(K_CLIENT_PATH) || PATH_CLIENT;
+  function getCurrentClientPath() {
+    return window.location.pathname.includes('cliente-sr')
+      ? PATH_CLIENT_SR
+      : PATH_CLIENT_ES;
   }
 
-  function _savedClientPath() {
-    return _get(K_CLIENT_PATH) || PATH_CLIENT;
+  function getSavedClientPath() {
+    return _get(K_CLIENT_LANG) === 'sr'
+      ? PATH_CLIENT_SR
+      : PATH_CLIENT_ES;
   }
 
   function init(expectedRole) {
@@ -47,11 +47,8 @@ const Auth = (() => {
     }
 
     if (expectedRole === 'client') {
-      const clientPath = _currentClientPath();
-      _set(K_CLIENT_PATH, clientPath);
-
       if (role !== 'client' || !_get(K_CLIENT_ID)) {
-        window.location.replace(clientPath + '?auth=required');
+        window.location.replace(getCurrentClientPath() + '?auth=required');
         return false;
       }
     }
@@ -60,27 +57,27 @@ const Auth = (() => {
   }
 
   function loginAsClient(clientId) {
-    const clientPath = _currentClientPath();
+    const currentPath = getCurrentClientPath();
+    const lang = currentPath.includes('cliente-sr') ? 'sr' : 'es';
 
     _clear();
     _set(K_ROLE, 'client');
     _set(K_CLIENT_ID, clientId);
-    _set(K_CLIENT_PATH, clientPath);
+    _set(K_CLIENT_LANG, lang);
 
-    window.location.replace(clientPath);
+    window.location.replace(currentPath);
   }
 
   function loginAsAdmin() {
     _clear();
     _set(K_ROLE, 'admin');
     _set(K_ADMIN_OK, 'true');
-
     window.location.replace(PATH_ADMIN);
   }
 
   function logout() {
     const role = _get(K_ROLE);
-    const clientPath = _savedClientPath();
+    const clientPath = getSavedClientPath();
 
     _clear();
 
