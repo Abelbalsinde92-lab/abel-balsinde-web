@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AB Coach | Entrenamiento funcional en Belgrado</title>
+<title>AB SYSTEM | Entrenamiento funcional en Belgrado</title>
 <meta name="description" content="Entrenamiento funcional con bases de lucha en Belgrado. Fuerza, movilidad, resistencia y condición física con seguimiento personal. Sesiones individuales y grupos reducidos.">
 <link rel="canonical" href="https://abeltrainer.vercel.app/">
 <link rel="alternate" hreflang="es" href="https://abeltrainer.vercel.app/">
@@ -16,7 +16,7 @@
 <meta name="theme-color" content="#020B18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="AB Coach">
+<meta name="apple-mobile-web-app-title" content="AB SYSTEM">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -45,6 +45,18 @@ header{
 .logo{display:flex;align-items:baseline;gap:2px}
 .logo-main{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.05em}
 .logo-sub{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--blue);letter-spacing:.18em;text-transform:uppercase;padding-left:4px}
+.logo-img-link{
+  display:flex;
+  align-items:center;
+  height:100%;
+}
+
+.site-logo-img{
+  height:46px;
+  width:auto;
+  display:block;
+  object-fit:contain;
+}
 nav.desktop{display:flex;align-items:center;gap:2rem}
 nav.desktop a{font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);transition:color .15s}
 nav.desktop a:hover{color:var(--white)}
@@ -463,6 +475,10 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
     min-height:90px;
   }
 
+  .site-logo-img{
+  height:48px;
+}
+  
   .hero-badge{
     right:0;
     bottom:0;
@@ -490,13 +506,22 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
   .sport-accent{left:0}
   .about-accent{left:0}
 }
+
+.footer-logo-img{
+  height:70px;
+  width:auto;
+  display:block;
+  object-fit:contain;
+}
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <header id="site-header">
-  <a href="#hero" class="logo"><span class="logo-main">AB</span><span class="logo-sub">coach</span></a>
+  <a href="#hero" class="logo logo-img-link" aria-label="AB System">
+  <img src="/ab-system-logo.png.PNG" alt="AB System" class="site-logo-img">
+</a>
   <nav class="desktop">
     <a href="#system">Sistema</a>
     <a href="#plans">Planes</a>
@@ -592,7 +617,7 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
         <div class="comp-line">Resultados impredecibles</div>
       </div>
       <div class="box bluebox">
-        <h4>Con sistema AB coach</h4>
+        <h4>Con AB SYSTEM</h4>
         <div class="comp-line">Evaluación inicial del punto de partida</div>
         <div class="comp-line">Plan claro adaptado a tu objetivo</div>
         <div class="comp-line">Métricas reales de progreso</div>
@@ -897,8 +922,10 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,.06);padding
 <footer>
   <div class="footer-inner">
     <div>
-      <a href="#hero" class="logo"><span class="logo-main">AB</span><span class="logo-sub">coach</span></a>
-      <p class="footer-link" style="margin-top:8px">Training System</p>
+      <a href="#hero" class="logo logo-img-link" aria-label="AB System">
+  <img src="/ab-system-logo.png.PNG" alt="AB System" class="footer-logo-img">
+</a>
+      <p class="footer-link" style="margin-top:8px">AB Training System</p>
     </div>
     <div class="footer-links">
   <a href="#system" class="footer-link">Sistema</a>
