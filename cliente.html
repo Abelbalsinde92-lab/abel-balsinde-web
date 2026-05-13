@@ -1490,7 +1490,18 @@ async function finishTrainingSession() {
     client_feedback_tags: checkedTags,
     client_feedback_summary: feedbackSummary || null
   });
-
+  
+  const local = loadTrainingProgressLocal() || {};
+currentTrainingLog = {
+  ...(currentTrainingLog || {}),
+  ...local,
+  is_finished: true,
+  finished_at: new Date().toISOString(),
+  client_note: note,
+  client_feedback_tags: checkedTags,
+  client_feedback_summary: feedbackSummary
+};
+  
   const el = document.getElementById('sectionTrainingClient');
   if (el) {
     const aw = getActiveTrainingWeek();
@@ -1514,24 +1525,32 @@ function renderTrainingCompletedState() {
   const el = document.getElementById('sectionTrainingClient');
   if (!el) return;
   const savedNote = currentTrainingLog?.client_note || '';
-  const feedbackSummary = currentTrainingLog?.client_feedback_summary || '';
-  const finDate   = currentTrainingLog?.finished_at ? formatDate(String(currentTrainingLog.finished_at).slice(0,10)) : formatDate(todayISO());
-
+const feedbackSummary = currentTrainingLog?.client_feedback_summary || '';
+const finDate = currentTrainingLog?.finished_at
+  ? formatDate(String(currentTrainingLog.finished_at).slice(0,10))
+  : formatDate(todayISO());
   let html = '<div class="training-finish-card">'
     + '<div class="training-finish-icon">🏁</div>'
     + '<div class="training-finish-title">Entrenamiento completado</div>'
     + '<div class="training-finish-sub">Tu sesión quedó registrada el ' + finDate + '. Abel revisará tus notas y ajustará lo necesario.</div>';
 
-  if (savedNote) {
-    html += '<div class="training-notes-box" style="text-align:left;margin-top:16px;"><div class="training-notes-title">Nota enviada</div><div class="training-notes-sub" style="margin-bottom:0;">' + savedNote + '</div></div>';
-  } else {
-    html += '<div class="training-notes-box" style="text-align:left;margin-top:16px;"><div class="training-notes-title">Notas del entrenamiento</div><div class="training-notes-sub">No dejaste nota en esta sesión.</div><button class="training-complete-block-btn" onclick="showTrainingNotes(false)">Agregar nota</button></div>';
-  }
-  
   if (feedbackSummary) {
-  html += '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
+  html += '<div class="training-notes-box" style="text-align:left;margin-top:16px;">' +
     '<div class="training-notes-title">Observaciones rápidas</div>' +
     '<div class="training-notes-sub" style="margin-bottom:0;">' + feedbackSummary + '</div>' +
+  '</div>';
+}
+
+if (savedNote) {
+  html += '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
+    '<div class="training-notes-title">Nota enviada</div>' +
+    '<div class="training-notes-sub" style="margin-bottom:0;">' + savedNote + '</div>' +
+  '</div>';
+} else {
+  html += '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
+    '<div class="training-notes-title">Notas del entrenamiento</div>' +
+    '<div class="training-notes-sub">No dejaste nota escrita en esta sesión.</div>' +
+    '<button class="training-complete-block-btn" onclick="showTrainingNotes(false)">Agregar nota</button>' +
   '</div>';
 }
   html += '<button class="client-action-btn" style="margin-top:16px;" onclick="toggleCompletedTrainingDetails()">Ver detalles del entrenamiento realizado</button>';
