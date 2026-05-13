@@ -665,23 +665,28 @@ const visibleR = await q;
 
 console.log('CLIENT TRAINING ASSIGNMENT:', clientTrainingAssignment);
 console.log('VISIBLE VIEW ERROR:', visibleR.error);
+console.log('VISIBLE VIEW ERROR MESSAGE:', visibleR.error?.message);
+console.log('VISIBLE VIEW ERROR DETAILS:', visibleR.error?.details);
+console.log('VISIBLE VIEW ERROR HINT:', visibleR.error?.hint);
 console.log('VISIBLE ROWS RAW:', visibleR.data?.length || 0);
-console.log('VISIBLE ROWS DATA:', visibleR.data);
+console.log('VISIBLE FIRST ROW RAW:', visibleR.data?.[0] || null);
 
 if (visibleR.error) {
   console.error('Visible training view error:', visibleR.error);
 
   clientTrainingProgram = {
     id: pid || clientTrainingAssignment?.program_id || 'error',
-    name: 'ERROR CARGANDO VISTA',
-    description: visibleR.error.message || '',
-    objective: visibleR.error.details || visibleR.error.hint || 'Revisar permisos de client_training_plan_visible'
+    name: 'Error cargando vista',
+    description: '',
+    objective: visibleR.error.message || 'Error leyendo client_training_plan_visible'
   };
 
   clientTrainingWeeks = [];
   clientTrainingSessions = [];
   clientTrainingBlocks = [];
   clientTrainingExercises = [];
+
+  return;
 }
 
 let rows = visibleR.data || [];
