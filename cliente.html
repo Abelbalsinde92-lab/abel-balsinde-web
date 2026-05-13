@@ -956,9 +956,42 @@ if (visibleR.error) {
             });
           });
 
-          clientTrainingWeeks    = Array.from(weeksMap.values()).sort((a,b) => Number(a.week_number||0) - Number(b.week_number||0));
-          clientTrainingSessions = Array.from(sessionsMap.values()).sort((a,b) => Number(a.session_number||0) - Number(b.session_number||0));
-          clientTrainingBlocks   = Array.from(blocksMap.values()).sort((a,b) => Number(a.block_order||0) - Number(b.block_order||0));
+          clientTrainingWeeks = Array.from(weeksMap.values())
+  .sort((a,b) => Number(a.week_number || 0) - Number(b.week_number || 0));
+
+clientTrainingSessions = Array.from(sessionsMap.values())
+  .sort((a,b) => {
+    const wa = clientTrainingWeeks.find(w => String(w.id) === String(a.week_id));
+    const wb = clientTrainingWeeks.find(w => String(w.id) === String(b.week_id));
+
+    const weekA = Number(wa?.week_number || 0);
+    const weekB = Number(wb?.week_number || 0);
+
+    if (weekA !== weekB) return weekA - weekB;
+
+    return Number(a.session_number || 0) - Number(b.session_number || 0);
+  });
+
+clientTrainingBlocks = Array.from(blocksMap.values())
+  .sort((a,b) => {
+    const sa = clientTrainingSessions.find(s => String(s.id) === String(a.session_id));
+    const sb = clientTrainingSessions.find(s => String(s.id) === String(b.session_id));
+
+    const wa = clientTrainingWeeks.find(w => String(w.id) === String(sa?.week_id));
+    const wb = clientTrainingWeeks.find(w => String(w.id) === String(sb?.week_id));
+
+    const weekA = Number(wa?.week_number || 0);
+    const weekB = Number(wb?.week_number || 0);
+
+    if (weekA !== weekB) return weekA - weekB;
+
+    const sessionA = Number(sa?.session_number || 0);
+    const sessionB = Number(sb?.session_number || 0);
+
+    if (sessionA !== sessionB) return sessionA - sessionB;
+
+    return Number(a.block_order || 0) - Number(b.block_order || 0);
+  });
         }
       }
     }
@@ -1324,7 +1357,7 @@ async function renderClientTraining() {
   if (badge) badge.textContent = 'Diagnóstico';
 
   el.innerHTML =
-    '<p class="empty-state">No se pudo construir el programa desde cliente.html.</p>' +
+    '<p class="empty-state">No hay entrenamiento visible para este alcance comercial. Revisa si el programa tiene semanas, sesiones, bloques y ejercicios cargados para la semana/día asignado.</p>' +
     '<div class="data-card">' +
       '<div class="dc-row"><span class="dc-title">Diagnóstico cliente</span></div>' +
       '<div class="dc-note">Cliente ID: ' + (clientData?.id || '—') + '</div>' +
