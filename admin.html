@@ -850,40 +850,96 @@ function buildClientTrainingHistory(clientId){
 
   const latest = logs[0];
 
+  const attentionLogs = logs.filter(log => getTrainingFeedbackLevel(log) === 'red');
+  const reviewLogs = logs.filter(log => getTrainingFeedbackLevel(log) === 'yellow');
+
+  const latestDateRaw = getTrainingLogDate(latest);
+  const latestDate = latestDateRaw ? formatDate(String(latestDateRaw).slice(0,10)) : '—';
+
+  const latestFeedback =
+    latest.clientFeedbackSummary ||
+    latest.client_feedback_summary ||
+    latest.clientNote ||
+    latest.client_note ||
+    'Sin observación';
+
   const historyRows = logs.map(log => {
-    const { session, week, program } = getTrainingPathBySessionId(log.sessionId);
+    const { session, week, program } = getTrainingPathBySessionId(log.sessionId || log.session_id);
 
     const sessionLabel = getTrainingSessionDayLabel(session);
     const weekLabel = week?.weekNumber ? 'Semana ' + week.weekNumber : '—';
     const programName = program?.name || program?.nameEs || '—';
+
     const dateRaw = getTrainingLogDate(log);
     const dateText = dateRaw ? formatDate(String(dateRaw).slice(0,10)) : '—';
-    const feedback = log.clientFeedbackSummary || '—';
-    const note = log.clientNote || '—';
+
+    const feedback = log.clientFeedbackSummary || log.client_feedback_summary || '—';
+    const note = log.clientNote || log.client_note || '—';
 
     return `
       <tr>
-        <td>${dateText}</td>
+        <td>${esc(dateText)}</td>
+
         <td>
           <div class="name-text">${esc(sessionLabel)}</div>
           <div class="name-sub">${esc(session?.title || session?.name || '')}</div>
         </td>
+
         <td>${esc(weekLabel)}</td>
         <td>${esc(programName)}</td>
-        <td style="white-space:normal;min-width:220px;color:var(--blue)">${esc(feedback)}</td>
-        <td style="white-space:normal;min-width:220px;color:var(--gray)">${esc(note)}</td>
+
+        <td>
+          ${getTrainingFeedbackBadge(log)}
+        </td>
+
+        <td style="white-space:normal;min-width:220px;color:var(--blue)">
+          ${esc(feedback)}
+        </td>
+
+        <td style="white-space:normal;min-width:220px;color:var(--gray)">
+          ${esc(note)}
+        </td>
       </tr>
     `;
   }).join('');
 
   return `
-    <div class="page-eyebrow" style="margin-bottom:10px">Último entrenamiento</div>
+    <div class="metrics-row">
+      <div class="metric-card green">
+        <span class="metric-num">${logs.length}</span>
+        <span class="metric-label">Completados</span>
+      </div>
+
+      <div class="metric-card blue">
+        <span class="metric-num" style="font-size:1.5rem">${esc(latestDate)}</span>
+        <span class="metric-label">Último entrenamiento</span>
+      </div>
+
+      <div class="metric-card red">
+        <span class="metric-num">${attentionLogs.length}</span>
+        <span class="metric-label">Requieren atención</span>
+      </div>
+
+      <div class="metric-card yellow">
+        <span class="metric-num">${reviewLogs.length}</span>
+        <span class="metric-label">Para revisar</span>
+      </div>
+    </div>
+
     ${buildClientTrainingLogCard(latest)}
+
+    <div class="card">
+      <div class="card-title">Última observación</div>
+      <div style="color:var(--gray);font-size:.85rem;line-height:1.7;">
+        ${esc(latestFeedback)}
+      </div>
+    </div>
 
     <div class="table-wrap">
       <div class="table-header">
         <div class="table-title">Historial de entrenamientos completados</div>
       </div>
+
       <table>
         <thead>
           <tr>
@@ -891,10 +947,12 @@ function buildClientTrainingHistory(clientId){
             <th>Sesión</th>
             <th>Semana</th>
             <th>Programa</th>
+            <th>Estado</th>
             <th>Observaciones</th>
             <th>Nota cliente</th>
           </tr>
         </thead>
+
         <tbody>
           ${historyRows}
         </tbody>
@@ -907,11 +965,25 @@ function injectClientTrainingTab(clientId){
   const tabs = document.querySelector('#profileContent .profile-tabs');
   if(!tabs) return;
 
-  tabs.insertAdjacentHTML(
-    'beforeend',
-    `<div class="tab" onclick="switchProfileTab(this,'pf-entrenamiento')">Entrenamiento</div>`
-  );
+  // Evita duplicar la pestaña si renderProfile se vuelve a ejecutar
+  const existingTab = tabs.querySelector('[data-profile-tab="pf-entrenamiento"]');
 
+  if(!existingTab){
+    tabs.insertAdjacentHTML(
+      'beforeend',
+      `<div class="tab" data-profile-tab="pf-entrenamiento" onclick="switchProfileTab(this,'pf-entrenamiento')">Entrenamiento</div>`
+    );
+  }
+
+  // Si ya existe el contenido, lo actualiza
+  const existingContent = document.getElementById('pf-entrenamiento');
+
+  if(existingContent){
+    existingContent.innerHTML = buildClientTrainingHistory(clientId);
+    return;
+  }
+
+  // Si no existe, lo crea después del último tab-content
   const lastContent = document.querySelector('#profileContent .profile-tab-content:last-of-type');
   if(!lastContent) return;
 
@@ -919,6 +991,154 @@ function injectClientTrainingTab(clientId){
     'afterend',
     `<div id="pf-entrenamiento" class="profile-tab-content">${buildClientTrainingHistory(clientId)}</div>`
   );
+}
+
+function getClientTrainingLogs(clientId){
+  return state.clientSessionLogs
+    .filter(log =>
+      String(log.clientId || log.client_id) === String(clientId) &&
+      (log.isFinished === true || log.is_finished === true)
+    )
+    .sort((a,b) =>
+      String(getTrainingLogDate(b) || '').localeCompare(String(getTrainingLogDate(a) || ''))
+    );
+}
+
+function getTrainingLogDate(log){
+  return log.finishedAt || log.finished_at || log.updatedAt || log.updated_at || log.createdAt || log.created_at || '';
+}
+
+function getTrainingPathBySessionId(sessionId){
+  if(!sessionId){
+    return { session:null, week:null, program:null };
+  }
+
+  const session = state.trainingSessions.find(s =>
+    String(s.id) === String(sessionId)
+  );
+
+  const week = session
+    ? state.trainingWeeks.find(w => String(w.id) === String(session.weekId))
+    : null;
+
+  const program = week
+    ? state.trainingPrograms.find(p => String(p.id) === String(week.programId))
+    : null;
+
+  return { session, week, program };
+}
+
+function getTrainingSessionDayLabel(session){
+  if(!session) return 'Entrenamiento sin sesión vinculada';
+
+  const num = Number(session.sessionNumber || session.session_number || 0);
+
+  if(num === 1) return 'Día A';
+  if(num === 2) return 'Día B';
+  if(num === 3) return 'Día C';
+
+  return num ? 'Día ' + num : 'Sesión';
+}
+
+function getTrainingFeedbackLevel(log){
+  const tags = log.clientFeedbackTags || log.client_feedback_tags || [];
+  const summary = String(log.clientFeedbackSummary || log.client_feedback_summary || '').toLowerCase();
+  const note = String(log.clientNote || log.client_note || '').toLowerCase();
+
+  const text = [...tags, summary, note].join(' ').toLowerCase();
+
+  if(
+    text.includes('dolor') ||
+    text.includes('pare') ||
+    text.includes('paré') ||
+    text.includes('molestia') ||
+    text.includes('molestias')
+  ){
+    return 'red';
+  }
+
+  if(
+    text.includes('cansado') ||
+    text.includes('faltó tiempo') ||
+    text.includes('falto tiempo') ||
+    text.includes('no entend') ||
+    text.includes('baje_peso') ||
+    text.includes('bajé') ||
+    text.includes('no complete')
+  ){
+    return 'yellow';
+  }
+
+  return 'green';
+}
+
+function getTrainingFeedbackBadge(log){
+  const level = getTrainingFeedbackLevel(log);
+
+  if(level === 'red'){
+    return '<span class="badge badge-alerta">Requiere atención</span>';
+  }
+
+  if(level === 'yellow'){
+    return '<span class="badge badge-pendiente">Revisar</span>';
+  }
+
+  return '<span class="badge badge-pagado">Todo bien</span>';
+}
+
+function buildClientTrainingLogCard(log){
+  if(!log) return '';
+
+  const { session, week, program } = getTrainingPathBySessionId(log.sessionId || log.session_id);
+
+  const sessionLabel = getTrainingSessionDayLabel(session);
+  const weekLabel = week?.weekNumber ? 'Semana ' + week.weekNumber : '—';
+  const programName = program?.name || program?.nameEs || '—';
+
+  const dateRaw = getTrainingLogDate(log);
+  const dateText = dateRaw ? formatDate(String(dateRaw).slice(0,10)) : '—';
+
+  const feedback = log.clientFeedbackSummary || log.client_feedback_summary || 'Sin observaciones rápidas';
+  const note = log.clientNote || log.client_note || 'Sin nota escrita';
+
+  return `
+    <div class="card">
+      <div class="card-title">
+        Último entrenamiento
+        ${getTrainingFeedbackBadge(log)}
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Fecha</span>
+        <span class="data-val">${esc(dateText)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Sesión</span>
+        <span class="data-val">${esc(sessionLabel)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Semana</span>
+        <span class="data-val">${esc(weekLabel)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Programa</span>
+        <span class="data-val">${esc(programName)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Observación</span>
+        <span class="data-val" style="color:var(--blue);white-space:normal;max-width:360px">${esc(feedback)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Nota cliente</span>
+        <span class="data-val" style="color:var(--gray);white-space:normal;max-width:360px">${esc(note)}</span>
+      </div>
+    </div>
+  `;
 }
 
 function showPage(id){
