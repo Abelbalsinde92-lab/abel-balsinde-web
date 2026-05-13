@@ -1480,14 +1480,273 @@ function openTrainingWeekDetail(weekId){const week=state.trainingWeeks.find(w=>w
 function openTrainingProgramDetail(programId){const program=state.trainingPrograms.find(p=>p.id===programId);if(!program){showToast('Programa no encontrado');return;}state.selectedTrainingProgramId=programId;showPage('training-detail');}
 
 function renderProfile(){
-  const el=document.getElementById('profileContent');const c=clientById(state.selectedClientId);
-  if(!c){document.getElementById('profileTitle').textContent='Perfil cliente';document.getElementById('profileActions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="openModal('client')">+ Nuevo cliente</button>`;el.innerHTML=emptyBlock('Selecciona o crea un cliente para ver su perfil.');return;}
-  document.getElementById('profileTitle').textContent=c.name;
-  document.getElementById('profileActions').innerHTML=`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone||state.settings.coachPhone)}','Hola ${esc(c.name.split(' ')[0]||c.name)}.')">WhatsApp</button><button class="btn btn-secondary btn-sm" onclick="openModal('reservation')">+ Sesión</button><button class="btn btn-secondary btn-sm" onclick="openModal('metric')">+ Métrica</button><button class="btn btn-primary btn-sm" onclick="openModal('payment')">+ Pago</button>`;
-  const clientPayments=state.payments.filter(p=>p.clientId===c.id);const clientReservations=state.reservations.filter(r=>r.clientId===c.id);const clientMetrics=state.metrics.filter(m=>m.clientId===c.id);const clientAlerts=state.healthAlerts.filter(h=>h.clientId===c.id);
-  el.innerHTML=`<div class="card"><div class="td-name"><div class="avatar" style="width:56px;height:56px;font-size:1.4rem">${initials(c.name)}</div><div><div class="name-text" style="font-size:1.2rem">${esc(c.name)}</div><div class="name-sub">${esc(c.plan||'Sin plan')} · ${esc(c.phone||'Sin teléfono')} · ${esc(c.email||'Sin email')}</div><div class="name-sub">Código acceso: <code style="font-family:'Space Mono',monospace;color:var(--blue)">${esc(c.accessCode||'—')}</code></div></div></div></div><div class="profile-tabs"><div class="tab active" onclick="switchProfileTab(this,'pf-resumen')">Resumen</div><div class="tab" onclick="switchProfileTab(this,'pf-reservas')">Reservas</div><div class="tab" onclick="switchProfileTab(this,'pf-pagos')">Pagos</div><div class="tab" onclick="switchProfileTab(this,'pf-progreso')">Progreso</div><div class="tab" onclick="switchProfileTab(this,'pf-salud')">Salud</div><div class="tab" onclick="switchProfileTab(this,'pf-notas')">Notas</div></div><div id="pf-resumen" class="profile-tab-content active"><div class="three-col"><div class="card"><div class="card-title">Datos personales</div><div class="data-row"><span class="data-key">Nombre</span><span class="data-val">${esc(c.name)}</span></div><div class="data-row"><span class="data-key">Teléfono</span><span class="data-val">${esc(c.phone||'—')}</span></div><div class="data-row"><span class="data-key">Email</span><span class="data-val">${esc(c.email||'—')}</span></div></div><div class="card"><div class="card-title">Estado</div><div class="data-row"><span class="data-key">Plan</span><span class="data-val">${esc(c.plan||'—')}</span></div><div class="data-row"><span class="data-key">Estado</span><span class="badge badge-${esc(c.status)}">${esc(c.status)}</span></div></div><div class="card"><div class="card-title">Actividad</div><div class="data-row"><span class="data-key">Reservas</span><span class="data-val">${clientReservations.length}</span></div><div class="data-row"><span class="data-key">Métricas</span><span class="data-val">${clientMetrics.length}</span></div><div class="data-row"><span class="data-key">Alertas</span><span class="data-val">${clientAlerts.length}</span></div></div></div></div><div id="pf-reservas" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Estado</th></tr></thead><tbody>${clientReservations.length?clientReservations.map(r=>`<tr><td>${formatDate(r.date)}</td><td>${formatTime(r.time)}</td><td>${esc(r.type)}</td><td><span class="badge badge-${r.status}">${esc(r.status)}</span></td></tr>`).join(''):emptyRow(4,'Sin reservas.')}</tbody></table></div></div><div id="pf-pagos" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Concepto</th><th>Importe</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${clientPayments.length?clientPayments.map(p=>`<tr><td>${esc(p.concept)}</td><td>${money(p.amount)}</td><td><span class="badge badge-${p.status}">${esc(p.status)}</span></td><td>${p.status!=='pagado'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Marcar pagado</button>`:''}</td></tr>`).join(''):emptyRow(4,'Sin pagos.')}</tbody></table></div></div><div id="pf-progreso" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Métrica</th><th>Valor</th><th>Fecha</th><th>Nota</th></tr></thead><tbody>${clientMetrics.length?clientMetrics.map(m=>`<tr><td>${esc(m.type)}</td><td>${esc(m.value)}</td><td>${esc(m.date)}</td><td>${esc(m.note||'—')}</td></tr>`).join(''):emptyRow(4,'Sin métricas.')}</tbody></table></div></div><div id="pf-salud" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Estado</th><th>Detalle</th><th>Fecha</th></tr></thead><tbody>${clientAlerts.length?clientAlerts.map(h=>`<tr><td>${esc(h.status)}</td><td>${esc(h.detail)}</td><td>${esc(h.date)}</td></tr>`).join(''):emptyRow(3,'Sin chequeos.')}</tbody></table></div></div><div id="pf-notas" class="profile-tab-content"><div class="card"><div class="card-title">Notas del coach <button class="btn btn-primary btn-sm" onclick="openModal('note')">+ Nueva nota</button></div>${(c.notes||[]).length?(c.notes||[]).map(n=>`<div class="data-row"><span>${esc(n.text)}</span><span class="name-sub">${esc(n.date)}</span></div>`).join(''):emptyBlock('No hay notas registradas.')}</div></div>`;
+  const el=document.getElementById('profileContent');
+  const c=clientById(state.selectedClientId);
 
-injectClientTrainingTab(c.id);
+  if(!c){
+    document.getElementById('profileTitle').textContent='Perfil cliente';
+    document.getElementById('profileActions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="openModal('client')">+ Nuevo cliente</button>`;
+    el.innerHTML=emptyBlock('Selecciona o crea un cliente para ver su perfil.');
+    return;
+  }
+
+  document.getElementById('profileTitle').textContent=c.name;
+
+  document.getElementById('profileActions').innerHTML=`
+    <button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone||state.settings.coachPhone)}','Hola ${esc(c.name.split(' ')[0]||c.name)}.')">WhatsApp</button>
+    <button class="btn btn-secondary btn-sm" onclick="openModal('reservation')">+ Sesión</button>
+    <button class="btn btn-secondary btn-sm" onclick="openModal('metric')">+ Métrica</button>
+    <button class="btn btn-primary btn-sm" onclick="openModal('payment')">+ Pago</button>
+  `;
+
+  const clientPayments=state.payments.filter(p=>p.clientId===c.id);
+  const clientReservations=state.reservations.filter(r=>r.clientId===c.id);
+  const clientMetrics=state.metrics.filter(m=>m.clientId===c.id);
+  const clientAlerts=state.healthAlerts.filter(h=>h.clientId===c.id);
+
+  const clientAdminAlerts = state.alertas
+    .filter(a =>
+      String(a.clientsId || a.clienteId || a.clientesId || '') === String(c.id)
+    )
+    .sort((a,b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+
+  el.innerHTML=`
+    <div class="card">
+      <div class="td-name">
+        <div class="avatar" style="width:56px;height:56px;font-size:1.4rem">${initials(c.name)}</div>
+        <div>
+          <div class="name-text" style="font-size:1.2rem">${esc(c.name)}</div>
+          <div class="name-sub">${esc(c.plan||'Sin plan')} · ${esc(c.phone||'Sin teléfono')} · ${esc(c.email||'Sin email')}</div>
+          <div class="name-sub">Código acceso: <code style="font-family:'Space Mono',monospace;color:var(--blue)">${esc(c.accessCode||'—')}</code></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-tabs">
+      <div class="tab active" onclick="switchProfileTab(this,'pf-resumen')">Resumen</div>
+      <div class="tab" onclick="switchProfileTab(this,'pf-reservas')">Reservas</div>
+      <div class="tab" onclick="switchProfileTab(this,'pf-pagos')">Pagos</div>
+      <div class="tab" onclick="switchProfileTab(this,'pf-progreso')">Progreso</div>
+      <div class="tab" onclick="switchProfileTab(this,'pf-salud')">Salud</div>
+      <div class="tab" onclick="switchProfileTab(this,'pf-alertas')">Alertas</div>
+      <div class="tab" onclick="switchProfileTab(this,'pf-notas')">Notas</div>
+    </div>
+
+    <div id="pf-resumen" class="profile-tab-content active">
+      <div class="three-col">
+        <div class="card">
+          <div class="card-title">Datos personales</div>
+          <div class="data-row"><span class="data-key">Nombre</span><span class="data-val">${esc(c.name)}</span></div>
+          <div class="data-row"><span class="data-key">Teléfono</span><span class="data-val">${esc(c.phone||'—')}</span></div>
+          <div class="data-row"><span class="data-key">Email</span><span class="data-val">${esc(c.email||'—')}</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Estado</div>
+          <div class="data-row"><span class="data-key">Plan</span><span class="data-val">${esc(c.plan||'—')}</span></div>
+          <div class="data-row"><span class="data-key">Estado</span><span class="badge badge-${esc(c.status)}">${esc(c.status)}</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Actividad</div>
+          <div class="data-row"><span class="data-key">Reservas</span><span class="data-val">${clientReservations.length}</span></div>
+          <div class="data-row"><span class="data-key">Métricas</span><span class="data-val">${clientMetrics.length}</span></div>
+          <div class="data-row"><span class="data-key">Alertas</span><span class="data-val">${clientAlerts.length + clientAdminAlerts.length}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="pf-reservas" class="profile-tab-content">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              clientReservations.length
+                ? clientReservations.map(r=>`
+                  <tr>
+                    <td>${formatDate(r.date)}</td>
+                    <td>${formatTime(r.time)}</td>
+                    <td>${esc(r.type)}</td>
+                    <td><span class="badge badge-${r.status}">${esc(r.status)}</span></td>
+                  </tr>
+                `).join('')
+                : emptyRow(4,'Sin reservas.')
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="pf-pagos" class="profile-tab-content">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Concepto</th>
+              <th>Importe</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              clientPayments.length
+                ? clientPayments.map(p=>`
+                  <tr>
+                    <td>${esc(p.concept)}</td>
+                    <td>${money(p.amount)}</td>
+                    <td><span class="badge badge-${p.status}">${esc(p.status)}</span></td>
+                    <td>${p.status!=='pagado'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Marcar pagado</button>`:''}</td>
+                  </tr>
+                `).join('')
+                : emptyRow(4,'Sin pagos.')
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="pf-progreso" class="profile-tab-content">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Métrica</th>
+              <th>Valor</th>
+              <th>Fecha</th>
+              <th>Nota</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              clientMetrics.length
+                ? clientMetrics.map(m=>`
+                  <tr>
+                    <td>${esc(m.type)}</td>
+                    <td>${esc(m.value)}</td>
+                    <td>${esc(m.date)}</td>
+                    <td>${esc(m.note||'—')}</td>
+                  </tr>
+                `).join('')
+                : emptyRow(4,'Sin métricas.')
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="pf-salud" class="profile-tab-content">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Estado</th>
+              <th>Detalle</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              clientAlerts.length
+                ? clientAlerts.map(h=>`
+                  <tr>
+                    <td>${esc(h.status)}</td>
+                    <td>${esc(h.detail)}</td>
+                    <td>${esc(h.date)}</td>
+                  </tr>
+                `).join('')
+                : emptyRow(3,'Sin chequeos.')
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="pf-alertas" class="profile-tab-content">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Tipo</th>
+              <th>Mensaje</th>
+              <th>Nivel</th>
+              <th>Estado</th>
+              <th>Nota coach</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              clientAdminAlerts.length
+                ? clientAdminAlerts.map(a => {
+                    const estado = a.leidaAt ? (a.estado || 'leida') : (a.estado || 'pendiente');
+
+                    const badgeEstado =
+                      estado === 'pendiente' ? 'pendiente' :
+                      estado === 'resuelta' ? 'pagado' :
+                      estado === 'leida' ? 'plantilla' :
+                      'inactivo';
+
+                    const badgeNivel =
+                      a.nivel === 'critica' || a.nivel === 'alerta' ? 'alerta' :
+                      a.nivel === 'precaucion' ? 'pendiente' :
+                      'plantilla';
+
+                    return `
+                      <tr>
+                        <td>${formatDate(String(a.createdAt || '').slice(0,10))}</td>
+                        <td>${esc(a.tipoAlerta || 'alerta')}</td>
+                        <td style="white-space:normal;min-width:280px">${esc(a.mensaje || '')}</td>
+                        <td><span class="badge badge-${badgeNivel}">${esc(a.nivel || 'info')}</span></td>
+                        <td><span class="badge badge-${badgeEstado}">${esc(estado)}</span></td>
+                        <td style="white-space:normal;min-width:180px">${esc(a.notaAdmin || '—')}</td>
+                        <td>
+                          <div class="td-actions">
+                            ${!a.leidaAt ? `<button class="btn btn-secondary btn-sm" onclick="marcarAlertaLeida('${a.id}')">Leída</button>` : ''}
+                            ${a.estado !== 'resuelta' ? `<button class="btn btn-blue btn-sm" onclick="resolverAlerta('${a.id}')">Resolver</button>` : ''}
+                            ${c.phone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc((c.name||'').split(' ')[0]||'')}, vi tu nota del entrenamiento. ¿Cómo te sientes ahora?')">WA</button>` : ''}
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')
+                : emptyRow(7,'Este cliente todavía no tiene alertas registradas.')
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="pf-notas" class="profile-tab-content">
+      <div class="card">
+        <div class="card-title">
+          Notas del coach
+          <button class="btn btn-primary btn-sm" onclick="openModal('note')">+ Nueva nota</button>
+        </div>
+        ${
+          (c.notes||[]).length
+            ? (c.notes||[]).map(n=>`
+              <div class="data-row">
+                <span>${esc(n.text)}</span>
+                <span class="name-sub">${esc(n.date)}</span>
+              </div>
+            `).join('')
+            : emptyBlock('No hay notas registradas.')
+        }
+      </div>
+    </div>
+  `;
+
+  injectClientTrainingTab(c.id);
 }
 
 function switchProfileTab(btn,id){ document.querySelectorAll('.profile-tabs .tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.profile-tab-content').forEach(x=>x.classList.remove('active'));document.getElementById(id)?.classList.add('active'); }
