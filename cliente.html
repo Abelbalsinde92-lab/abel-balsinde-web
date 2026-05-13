@@ -661,7 +661,14 @@ q = q
   .order('block_order', { ascending: true })
   .order('exercise_order', { ascending: true });
 
-const visibleR = await q;
+let visibleR = { data: [], error: null };
+
+try {
+  visibleR = await q;
+} catch (viewErr) {
+  console.error('Error JS leyendo vista:', viewErr);
+  visibleR = { data: [], error: viewErr };
+}
 
 console.log('CLIENT TRAINING ASSIGNMENT:', clientTrainingAssignment);
 console.log('VISIBLE VIEW ERROR:', visibleR.error);
@@ -671,23 +678,28 @@ console.log('VISIBLE VIEW ERROR HINT:', visibleR.error?.hint);
 console.log('VISIBLE ROWS RAW:', visibleR.data?.length || 0);
 console.log('VISIBLE FIRST ROW RAW:', visibleR.data?.[0] || null);
 
-if (visibleR.error) {
-  console.error('Visible training view error:', visibleR.error);
-
-  window.__AB_DEBUG_CLIENT__ = {
+window.__AB_DEBUG_CLIENT__ = {
   clientId,
   clientData,
   clientTrainingAssignment,
   visibleError: visibleR.error,
-  visibleRowsBeforeFilter: rows.length,
-  visibleFirstRowBeforeFilter: rows[0] || null
+  visibleRows: visibleR.data?.length || 0,
+  visibleFirstRow: visibleR.data?.[0] || null
 };
+
+let rows = [];
+
+if (visibleR.error) {
+  console.error('Visible training view error:', visibleR.error);
 
   clientTrainingProgram = null;
   clientTrainingWeeks = [];
   clientTrainingSessions = [];
   clientTrainingBlocks = [];
   clientTrainingExercises = [];
+} else {
+  rows = visibleR.data || [];
+}
 
   await renderDashboard();
   document.getElementById('loginScreen')?.classList.add('hidden');
@@ -698,15 +710,6 @@ if (visibleR.error) {
 }
 
 let rows = visibleR.data || [];
-
-window.__AB_DEBUG_CLIENT__ = {
-  clientId,
-  clientData,
-  clientTrainingAssignment,
-  visibleError: visibleR.error,
-  visibleRows: rows.length,
-  visibleFirstRow: rows[0] || null
-};
 
 if (rows.length) {
   if (!pid) {
