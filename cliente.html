@@ -200,6 +200,36 @@
     .training-complete-block-btn:disabled{opacity:.5;cursor:default}
     .training-step-done-msg{text-align:center;color:var(--green);font-family:var(--font-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:12px 0 0}
     .training-finish-card{background:var(--navy3);border:1px solid rgba(34,197,94,.45);border-radius:14px;padding:28px 20px;margin-top:16px;text-align:center}
+    .training-finish-card.compact{
+  padding:18px 16px;
+  margin-top:12px;
+  text-align:left;
+}
+
+.training-finish-card.compact .training-finish-icon{
+  font-size:24px;
+  margin-bottom:6px;
+}
+
+.training-finish-card.compact .training-finish-title{
+  font-size:22px;
+  line-height:1.1;
+  margin-bottom:6px;
+}
+
+.training-finish-card.compact .training-finish-sub{
+  font-size:12px;
+  margin-bottom:10px;
+}
+
+.training-finish-card.compact .training-notes-box{
+  padding:14px;
+  margin-top:10px;
+}
+
+.training-finish-card.compact .training-notes-title{
+  font-size:17px;
+}
     .training-finish-icon{font-size:40px;margin-bottom:10px}
     .training-finish-title{font-family:var(--font-title);font-size:28px;letter-spacing:2px;color:var(--white);margin-bottom:6px}
     .training-finish-sub{font-size:13px;color:var(--gray);line-height:1.6;margin-bottom:16px}
@@ -426,9 +456,18 @@ let activeTrainingBlockKey  = null;
 let currentTrainingLog      = null;
 
 /* ══ LOCAL PROGRESS CACHE (per day) ══ */
-function getTrainingStorageKey() {
+function getTrainingStorageKey(sessionId) {
   if (!clientData || !clientTrainingAssignment) return null;
-  return ['ab_tp', clientData.id, clientTrainingAssignment.id, todayISO()].join('_');
+
+  const sid = sessionId || getCurrentVisibleSessionId() || 'general';
+
+  return [
+    'ab_tp',
+    clientData.id,
+    clientTrainingAssignment.id,
+    sid,
+    todayISO()
+  ].join('_');
 }
 function loadTrainingProgressLocal() {
   const key = getTrainingStorageKey();
@@ -1019,19 +1058,29 @@ async function loadOrCreateTrainingLog() {
     currentTrainingLog = { ...(currentTrainingLog || {}), ...localProgress };
   }
   const activeWeek = getActiveTrainingWeek();
-  const payload = {
-    client_id: clientData.id,
-    assignment_id: clientTrainingAssignment.id,
-    program_id: clientTrainingProgram.id,
-    week_id: activeWeek ? activeWeek.id : null,
-    training_date: todayISO()
-  };
+  const activeSessionId = getCurrentVisibleSessionId();
+
+const payload = {
+  client_id: clientData.id,
+  assignment_id: clientTrainingAssignment.id,
+  program_id: clientTrainingProgram.id,
+  week_id: activeWeek ? activeWeek.id : null,
+  session_id: activeSessionId || null,
+  training_date: todayISO()
+};
   try {
-    const existing = await db.from('client_session_logs').select('*')
-      .eq('client_id', payload.client_id)
-      .eq('assignment_id', payload.assignment_id)
-      .eq('training_date', payload.training_date)
-      .maybeSingle();
+    let logQuery = db.from('client_session_logs').select('*')
+  .eq('client_id', payload.client_id)
+  .eq('assignment_id', payload.assignment_id)
+  .eq('training_date', payload.training_date);
+
+if (payload.session_id) {
+  logQuery = logQuery.eq('session_id', payload.session_id);
+} else {
+  logQuery = logQuery.is('session_id', null);
+}
+
+const existing = await logQuery.maybeSingle();
 
     if (existing.error) { console.error('Log read error:', existing.error); return currentTrainingLog; }
 
@@ -1145,12 +1194,6 @@ async function renderClientTraining() {
 
   if (!allSteps.length) {
     el.innerHTML = summaryHtml + '<p class="empty-state">Este programa todavía no tiene bloques cargados.</p>';
-    return;
-  }
-
-  if (currentTrainingLog?.is_finished) {
-    el.innerHTML = summaryHtml;
-    renderTrainingCompletedState();
     return;
   }
 
@@ -1529,7 +1572,7 @@ const feedbackSummary = currentTrainingLog?.client_feedback_summary || '';
 const finDate = currentTrainingLog?.finished_at
   ? formatDate(String(currentTrainingLog.finished_at).slice(0,10))
   : formatDate(todayISO());
-  let html = '<div class="training-finish-card">'
+  let html = '<div class="training-finish-card compact">'
     + '<div class="training-finish-icon">🏁</div>'
     + '<div class="training-finish-title">Entrenamiento completado</div>'
     + '<div class="training-finish-sub">Tu sesión quedó registrada el ' + finDate + '. Abel revisará tus notas y ajustará lo necesario.</div>';
