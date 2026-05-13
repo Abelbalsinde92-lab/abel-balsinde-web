@@ -776,48 +776,210 @@ function buildWAUrl(phone,msg){ const clean=String(phone||state.settings.coachPh
 function openWA(phone,msg){ window.open(buildWAUrl(phone,msg),'_blank'); }
 function openCoachWA(){ openWA(state.settings.coachPhone||COACH_DEFAULT_PHONE,'Hola Abel.'); }
 
+/* ════════════════════════════════════════════════════════════
+   TRAINING / FEEDBACK / ALERTAS CLIENTE — CLEAN HELPERS
+════════════════════════════════════════════════════════════ */
+
+function normalizeArray(value){
+  if(Array.isArray(value)) return value;
+  if(!value) return [];
+  return [value];
+}
+
+function getAlertClientId(alerta){
+  return (
+    alerta.clientsId ||
+    alerta.clientesId ||
+    alerta.clienteId ||
+    alerta.clientId ||
+    alerta.clients_id ||
+    alerta.clientes_id ||
+    alerta.cliente_id ||
+    alerta.client_id ||
+    ''
+  );
+}
+
+function getAlertType(alerta){
+  return alerta.tipoAlerta || alerta.tipo_alerta || '';
+}
+
+function getAlertCreatedAt(alerta){
+  return alerta.createdAt || alerta.created_at || '';
+}
+
+function getAlertReadAt(alerta){
+  return alerta.leidaAt || alerta.leida_at || '';
+}
+
+function getAlertResolvedAt(alerta){
+  return alerta.resueltaAt || alerta.resuelta_at || '';
+}
+
+function getAlertAdminNote(alerta){
+  return alerta.notaAdmin || alerta.nota_admin || '';
+}
+
+function getAlertStatus(alerta){
+  if(getAlertResolvedAt(alerta) || alerta.estado === 'resuelta') return 'resuelta';
+  if(getAlertReadAt(alerta) || alerta.estado === 'leida') return 'leida';
+  return alerta.estado || 'pendiente';
+}
+
+function isPendingAlert(alerta){
+  return getAlertStatus(alerta) === 'pendiente';
+}
+
+function isTrainingAlert(alerta){
+  return ['feedback_entrenamiento', 'molestia_entrenamiento'].includes(getAlertType(alerta));
+}
+
+function getTrainingLogClientId(log){
+  return log.clientId || log.client_id || '';
+}
+
+function getTrainingLogSessionId(log){
+  return log.sessionId || log.session_id || '';
+}
+
+function getTrainingLogDate(log){
+  return (
+    log.finishedAt ||
+    log.finished_at ||
+    log.completedAt ||
+    log.completed_at ||
+    log.updatedAt ||
+    log.updated_at ||
+    log.trainingDate ||
+    log.training_date ||
+    log.createdAt ||
+    log.created_at ||
+    ''
+  );
+}
+
+function isTrainingLogFinished(log){
+  return (
+    log.isFinished === true ||
+    log.is_finished === true ||
+    log.status === 'completed' ||
+    Boolean(log.finishedAt || log.finished_at || log.completedAt || log.completed_at)
+  );
+}
+
+function getTrainingPathBySessionId(sessionId){
+  if(!sessionId){
+    return { session:null, week:null, program:null };
+  }
+
+  const session = state.trainingSessions.find(s =>
+    String(s.id) === String(sessionId)
+  );
+
+  const week = session
+    ? state.trainingWeeks.find(w =>
+        String(w.id) === String(session.weekId || session.week_id)
+      )
+    : null;
+
+  const program = week
+    ? state.trainingPrograms.find(p =>
+        String(p.id) === String(week.programId || week.program_id)
+      )
+    : null;
+
+  return { session, week, program };
+}
+
+function getTrainingSessionDayLabel(session){
+  if(!session) return 'Entrenamiento sin sesión vinculada';
+
+  const num = Number(session.sessionNumber || session.session_number || 0);
+
+  if(num === 1) return 'Día A';
+  if(num === 2) return 'Día B';
+  if(num === 3) return 'Día C';
+
+  return num ? 'Día ' + num : 'Sesión';
+}
+
+function getClientTrainingLogs(clientId){
+  return (state.clientSessionLogs || [])
+    .filter(log =>
+      String(getTrainingLogClientId(log)) === String(clientId) &&
+      isTrainingLogFinished(log)
+    )
+    .sort((a,b) =>
+      String(getTrainingLogDate(b) || '').localeCompare(String(getTrainingLogDate(a) || ''))
+    );
+}
+
+function getTrainingFeedbackLevel(log){
+  const tags = normalizeArray(log.clientFeedbackTags || log.client_feedback_tags);
+  const summary = String(log.clientFeedbackSummary || log.client_feedback_summary || '').toLowerCase();
+  const note = String(log.clientNote || log.client_note || '').toLowerCase();
+
+  const text = [...tags, summary, note].join(' ').toLowerCase();
+
+  if(
+    text.includes('dolor') ||
+    text.includes('pare') ||
+    text.includes('paré') ||
+    text.includes('molestia') ||
+    text.includes('molestias') ||
+    text.includes('rodilla') ||
+    text.includes('hombro') ||
+    text.includes('espalda') ||
+    text.includes('mareo')
+  ){
+    return 'red';
+  }
+
+  if(
+    text.includes('cansado') ||
+    text.includes('muy_cansado') ||
+    text.includes('faltó tiempo') ||
+    text.includes('falto tiempo') ||
+    text.includes('no entend') ||
+    text.includes('baje_peso') ||
+    text.includes('bajé') ||
+    text.includes('no complete') ||
+    text.includes('no pude') ||
+    text.includes('revisar')
+  ){
+    return 'yellow';
+  }
+
+  return 'green';
+}
+
+function getTrainingFeedbackBadge(log){
+  const level = getTrainingFeedbackLevel(log);
+
+  if(level === 'red'){
+    return '<span class="badge badge-alerta">Requiere atención</span>';
+  }
+
+  if(level === 'yellow'){
+    return '<span class="badge badge-pendiente">Revisar</span>';
+  }
+
+  return '<span class="badge badge-pagado">Todo bien</span>';
+}
+
 function getTrainingLogsForReview(){
   return (state.clientSessionLogs || [])
     .filter(log => {
-      const tags = log.clientFeedbackTags || log.client_feedback_tags || [];
-      const summary = String(log.clientFeedbackSummary || log.client_feedback_summary || '').toLowerCase();
-      const note = String(log.clientNote || log.client_note || '').toLowerCase();
+      if(!isTrainingLogFinished(log)) return false;
 
-      const sensitiveTags = [
-        'molestias',
-        'dolor_pare',
-        'muy_cansado',
-        'no_complete',
-        'falto_tiempo',
-        'no_entendi',
-        'revisar'
-      ];
+      const level = getTrainingFeedbackLevel(log);
+      const note = String(log.clientNote || log.client_note || '').trim();
 
-      const hasSensitiveTag = Array.isArray(tags) && tags.some(t => sensitiveTags.includes(t));
-
-      const hasSensitiveText =
-        summary.includes('molestia') ||
-        summary.includes('dolor') ||
-        summary.includes('cansado') ||
-        summary.includes('no pude') ||
-        summary.includes('no entend') ||
-        note.includes('molestia') ||
-        note.includes('dolor') ||
-        note.includes('rodilla') ||
-        note.includes('hombro') ||
-        note.includes('espalda') ||
-        note.includes('mareo') ||
-        note.includes('cansado');
-
-      return log.isFinished === true || log.is_finished === true
-        ? hasSensitiveTag || hasSensitiveText || note.length > 0
-        : false;
+      return level === 'red' || level === 'yellow' || note.length > 0;
     })
-    .sort((a,b) => {
-      const da = getTrainingLogDate(a) || '';
-      const db = getTrainingLogDate(b) || '';
-      return String(db).localeCompare(String(da));
-    });
+    .sort((a,b) =>
+      String(getTrainingLogDate(b) || '').localeCompare(String(getTrainingLogDate(a) || ''))
+    );
 }
 
 function buildTrainingReviewBlock(){
@@ -828,8 +990,8 @@ function buildTrainingReviewBlock(){
   }
 
   return logs.slice(0,6).map(log => {
-    const client = clientById(log.clientId || log.client_id);
-    const { session, week, program } = getTrainingPathBySessionId(log.sessionId || log.session_id);
+    const client = clientById(getTrainingLogClientId(log));
+    const { session, week, program } = getTrainingPathBySessionId(getTrainingLogSessionId(log));
 
     const dateRaw = getTrainingLogDate(log);
     const dateText = dateRaw ? formatDate(String(dateRaw).slice(0,10)) : '—';
@@ -838,7 +1000,7 @@ function buildTrainingReviewBlock(){
     const note = log.clientNote || log.client_note || '';
 
     const sessionLabel = getTrainingSessionDayLabel(session);
-    const weekLabel = week?.weekNumber ? 'Semana ' + week.weekNumber : '—';
+    const weekLabel = week?.weekNumber || week?.week_number ? 'Semana ' + (week.weekNumber || week.week_number) : '—';
     const programName = program?.name || program?.nameEs || '—';
 
     return `
@@ -861,7 +1023,7 @@ function buildTrainingReviewBlock(){
         </span>
 
         <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-          <button class="btn btn-blue btn-sm" onclick="openProfile('${esc(client?.id || log.clientId || log.client_id)}')">Perfil</button>
+          <button class="btn btn-blue btn-sm" onclick="openProfile('${esc(client?.id || getTrainingLogClientId(log))}')">Perfil</button>
           ${
             client?.phone
               ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(client.phone)}','Hola ${esc((client.name||'').split(' ')[0]||'')}, vi tu comentario del entrenamiento. ¿Cómo te sientes ahora?')">WA</button>`
@@ -873,119 +1035,23 @@ function buildTrainingReviewBlock(){
   }).join('');
 }
 
-function getTrainingSessionDayLabel(session){
-  const num = Number(session?.sessionNumber || 0);
-
-  if(num === 1) return 'Día A';
-  if(num === 2) return 'Día B';
-  if(num === 3) return 'Día C';
-
-  return num ? 'Día ' + num : 'Sesión';
-}
-
-function getTrainingLogDate(log){
-  return log.finishedAt || log.completedAt || log.updatedAt || log.trainingDate || '';
-}
-
-function getTrainingPathBySessionId(sessionId){
-  const session = state.trainingSessions.find(s => String(s.id) === String(sessionId));
-  const week = session ? state.trainingWeeks.find(w => String(w.id) === String(session.weekId)) : null;
-  const program = week ? state.trainingPrograms.find(p => String(p.id) === String(week.programId)) : null;
-
-  return { session, week, program };
-}
-
-function getClientTrainingLogs(clientId){
-  return state.clientSessionLogs
-    .filter(log => String(log.clientId) === String(clientId))
-    .filter(log => log.isFinished || log.finishedAt || log.completedAt || log.status === 'completed')
-    .sort((a,b) => String(getTrainingLogDate(b)).localeCompare(String(getTrainingLogDate(a))));
-}
-
-function buildClientTrainingLogCard(log, compact=false){
-  const { session, week, program } = getTrainingPathBySessionId(log.sessionId);
-
-  const sessionLabel = getTrainingSessionDayLabel(session);
-  const sessionTitle = session?.title || session?.name || '';
-  const weekLabel = week?.weekNumber ? 'Semana ' + week.weekNumber : 'Semana —';
-  const programName = program?.name || program?.nameEs || 'Programa';
-
-  const dateRaw = getTrainingLogDate(log);
-  const dateText = dateRaw ? formatDate(String(dateRaw).slice(0,10)) : '—';
-
-  const completedBlocks = Array.isArray(log.completedBlockIds)
-    ? log.completedBlockIds.length
-    : 0;
-
-  const feedback = log.clientFeedbackSummary || '';
-  const note = log.clientNote || '';
-
-  return `
-    <div class="card" style="${compact ? 'margin-bottom:12px;padding:16px;' : ''}">
-      <div class="card-title">
-        <span>${esc(sessionLabel)}${sessionTitle ? ' · ' + esc(sessionTitle) : ''}</span>
-        <span class="badge badge-pagado">Completado</span>
-      </div>
-
-      <div class="data-row">
-        <span class="data-key">Programa</span>
-        <span class="data-val">${esc(programName)}</span>
-      </div>
-
-      <div class="data-row">
-        <span class="data-key">Semana</span>
-        <span class="data-val">${esc(weekLabel)}</span>
-      </div>
-
-      <div class="data-row">
-        <span class="data-key">Fecha</span>
-        <span class="data-val">${dateText}</span>
-      </div>
-
-      <div class="data-row">
-        <span class="data-key">Bloques completados</span>
-        <span class="data-val">${completedBlocks}</span>
-      </div>
-
-      ${feedback ? `
-        <div class="data-row">
-          <span class="data-key">Observaciones</span>
-          <span class="data-val" style="white-space:normal;max-width:360px;color:var(--blue);line-height:1.5">
-            ${esc(feedback)}
-          </span>
-        </div>
-      ` : ''}
-
-      ${note ? `
-        <div class="data-row">
-          <span class="data-key">Nota cliente</span>
-          <span class="data-val" style="white-space:normal;max-width:360px;color:var(--gray);line-height:1.5">
-            ${esc(note)}
-          </span>
-        </div>
-      ` : ''}
-    </div>
-  `;
+function getClientAlertsForCoachTracking(clientId){
+  return (state.alertas || [])
+    .filter(a => String(getAlertClientId(a)) === String(clientId))
+    .sort((a,b) =>
+      String(getAlertCreatedAt(b) || '').localeCompare(String(getAlertCreatedAt(a) || ''))
+    );
 }
 
 function getClientTrainingAlerts(clientId){
-  return (state.alertas || [])
-    .filter(a => {
-      const sameClient =
-        String(a.clientsId || a.clients_id || a.clientesId || a.clienteId || a.cliente_id || '') === String(clientId);
-
-      const isTrainingAlert =
-        ['feedback_entrenamiento', 'molestia_entrenamiento'].includes(a.tipoAlerta || a.tipo_alerta);
-
-      return sameClient && isTrainingAlert;
-    })
-    .sort((a,b) => String(b.createdAt || b.created_at || '').localeCompare(String(a.createdAt || a.created_at || '')));
+  return getClientAlertsForCoachTracking(clientId)
+    .filter(a => isTrainingAlert(a));
 }
 
 function getAlertStatusBadge(alert){
   if(!alert) return '<span class="badge badge-pagado">Sin alerta</span>';
 
-  const estado = alert.estado || 'pendiente';
+  const estado = getAlertStatus(alert);
 
   if(estado === 'pendiente'){
     return '<span class="badge badge-alerta">Pendiente</span>';
@@ -1015,10 +1081,10 @@ function buildClientTrainingAlertCard(clientId){
     `;
   }
 
-  const estado = latestAlert.estado || 'pendiente';
+  const estado = getAlertStatus(latestAlert);
   const mensaje = latestAlert.mensaje || '';
-  const notaAdmin = latestAlert.notaAdmin || latestAlert.nota_admin || '';
-  const createdRaw = latestAlert.createdAt || latestAlert.created_at || '';
+  const notaAdmin = getAlertAdminNote(latestAlert);
+  const createdRaw = getAlertCreatedAt(latestAlert);
   const createdDate = createdRaw ? formatDate(String(createdRaw).slice(0,10)) : '—';
   const phone = latestAlert.clientPhone || latestAlert.client_phone || clientById(clientId)?.phone || state.settings.coachPhone;
   const clientName = latestAlert.clientName || latestAlert.client_name || clientById(clientId)?.name || 'cliente';
@@ -1037,7 +1103,7 @@ function buildClientTrainingAlertCard(clientId){
 
       <div class="data-row">
         <span class="data-key">Tipo</span>
-        <span class="data-val">${esc(latestAlert.titulo || latestAlert.tipoAlerta || latestAlert.tipo_alerta || 'Alerta')}</span>
+        <span class="data-val">${esc(latestAlert.titulo || getAlertType(latestAlert) || 'Alerta')}</span>
       </div>
 
       <div style="margin-top:12px;color:var(--gray);font-size:.85rem;line-height:1.7;">
@@ -1056,6 +1122,113 @@ function buildClientTrainingAlertCard(clientId){
         <button class="btn btn-blue btn-sm" onclick="showPage('alertas')">Ver alertas</button>
         <button class="btn btn-wa btn-sm" onclick="openWA('${esc(phone)}','Hola ${esc((clientName || '').split(' ')[0] || '')}, vi tu comentario del entrenamiento. ¿Cómo te sientes ahora?')">WhatsApp</button>
       </div>
+    </div>
+  `;
+}
+
+function buildClientTrainingLogCard(log){
+  if(!log) return '';
+
+  const { session, week, program } = getTrainingPathBySessionId(getTrainingLogSessionId(log));
+
+  const sessionLabel = getTrainingSessionDayLabel(session);
+  const weekNumber = week?.weekNumber || week?.week_number;
+  const weekLabel = weekNumber ? 'Semana ' + weekNumber : '—';
+  const programName = program?.name || program?.nameEs || '—';
+
+  const dateRaw = getTrainingLogDate(log);
+  const dateText = dateRaw ? formatDate(String(dateRaw).slice(0,10)) : '—';
+
+  const feedback = log.clientFeedbackSummary || log.client_feedback_summary || 'Sin observaciones rápidas';
+  const note = log.clientNote || log.client_note || 'Sin nota escrita';
+
+  return `
+    <div class="card">
+      <div class="card-title">
+        Último entrenamiento
+        ${getTrainingFeedbackBadge(log)}
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Fecha</span>
+        <span class="data-val">${esc(dateText)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Sesión</span>
+        <span class="data-val">${esc(sessionLabel)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Semana</span>
+        <span class="data-val">${esc(weekLabel)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Programa</span>
+        <span class="data-val">${esc(programName)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Observación</span>
+        <span class="data-val" style="color:var(--blue);white-space:normal;max-width:360px">${esc(feedback)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Nota cliente</span>
+        <span class="data-val" style="color:var(--gray);white-space:normal;max-width:360px">${esc(note)}</span>
+      </div>
+    </div>
+  `;
+}
+
+function buildClientAlertsHistory(clientId){
+  const alerts = getClientAlertsForCoachTracking(clientId);
+
+  if(!alerts.length){
+    return emptyBlock('No hay alertas registradas para este cliente.');
+  }
+
+  const rows = alerts.map(a => {
+    const estado = getAlertStatus(a);
+
+    const badgeEstado =
+      estado === 'pendiente' ? 'pendiente' :
+      estado === 'resuelta' ? 'pagado' :
+      estado === 'leida' ? 'plantilla' :
+      'prospecto';
+
+    const badgeNivel =
+      a.nivel === 'critica' || a.nivel === 'alerta' ? 'alerta' :
+      a.nivel === 'precaucion' ? 'pendiente' :
+      'prospecto';
+
+    return `
+      <tr>
+        <td>${formatDate(String(getAlertCreatedAt(a) || '').slice(0,10))}</td>
+        <td><span class="badge badge-${badgeNivel}">${esc(a.nivel || 'info')}</span></td>
+        <td style="white-space:normal;min-width:220px">${esc(a.mensaje || '')}</td>
+        <td><span class="badge badge-${badgeEstado}">${esc(estado)}</span></td>
+      </tr>
+    `;
+  }).join('');
+
+  return `
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">Alertas del cliente</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Nivel</th>
+            <th>Mensaje</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
     </div>
   `;
 }
@@ -1083,10 +1256,11 @@ function buildClientTrainingHistory(clientId){
     'Sin observación';
 
   const historyRows = logs.map(log => {
-    const { session, week, program } = getTrainingPathBySessionId(log.sessionId || log.session_id);
+    const { session, week, program } = getTrainingPathBySessionId(getTrainingLogSessionId(log));
 
     const sessionLabel = getTrainingSessionDayLabel(session);
-    const weekLabel = week?.weekNumber ? 'Semana ' + week.weekNumber : '—';
+    const weekNumber = week?.weekNumber || week?.week_number;
+    const weekLabel = weekNumber ? 'Semana ' + weekNumber : '—';
     const programName = program?.name || program?.nameEs || '—';
 
     const dateRaw = getTrainingLogDate(log);
@@ -1107,9 +1281,7 @@ function buildClientTrainingHistory(clientId){
         <td>${esc(weekLabel)}</td>
         <td>${esc(programName)}</td>
 
-        <td>
-          ${getTrainingFeedbackBadge(log)}
-        </td>
+        <td>${getTrainingFeedbackBadge(log)}</td>
 
         <td style="white-space:normal;min-width:220px;color:var(--blue)">
           ${esc(feedback)}
@@ -1182,11 +1354,69 @@ function buildClientTrainingHistory(clientId){
   `;
 }
 
+function buildClientCoachTracking(clientId){
+  const logs = getClientTrainingLogs(clientId);
+  const alerts = getClientAlertsForCoachTracking(clientId);
+
+  const pendingAlerts = alerts.filter(a => getAlertStatus(a) === 'pendiente');
+  const trainingAlerts = alerts.filter(a => isTrainingAlert(a));
+  const criticalAlerts = alerts.filter(a => a.nivel === 'critica' || a.nivel === 'alerta');
+
+  return `
+    <div class="three-col">
+      <div class="card">
+        <div class="card-title">Entrenamientos</div>
+        <div class="data-row">
+          <span class="data-key">Completados</span>
+          <span class="data-val">${logs.length}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Último</span>
+          <span class="data-val">${logs[0] ? formatDate(String(getTrainingLogDate(logs[0])).slice(0,10)) : '—'}</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Alertas</div>
+        <div class="data-row">
+          <span class="data-key">Pendientes</span>
+          <span class="data-val">${pendingAlerts.length}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Total</span>
+          <span class="data-val">${alerts.length}</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Estado rápido</div>
+        <div class="data-row">
+          <span class="data-key">Entrenamiento</span>
+          <span class="data-val">${trainingAlerts.length}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Críticas</span>
+          <span class="data-val">${criticalAlerts.length}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        ${buildClientAlertsHistory(clientId)}
+      </div>
+
+      <div>
+        ${buildClientTrainingHistory(clientId)}
+      </div>
+    </div>
+  `;
+}
+
 function injectClientTrainingTab(clientId){
   const tabs = document.querySelector('#profileContent .profile-tabs');
   if(!tabs) return;
 
-  // Evita duplicar la pestaña si renderProfile se vuelve a ejecutar
   if(document.getElementById('pf-seguimiento-coach')) return;
 
   tabs.insertAdjacentHTML(
@@ -1203,276 +1433,6 @@ function injectClientTrainingTab(clientId){
       ${buildClientCoachTracking(clientId)}
     </div>`
   );
-}
-
-function buildClientCoachTracking(clientId){
-  const logs = getClientTrainingLogs(clientId);
-  const alerts = getClientAlertsForCoachTracking(clientId);
-
-  const latestLog = logs[0] || null;
-
-  return `
-    <div class="three-col">
-      <div class="card">
-        <div class="card-title">Entrenamientos</div>
-        <div class="data-row">
-          <span class="data-key">Completados</span>
-          <span class="data-val">${logs.length}</span>
-        </div>
-        <div class="data-row">
-          <span class="data-key">Último</span>
-          <span class="data-val">${latestLog ? formatDate(String(getTrainingLogDate(latestLog)).slice(0,10)) : '—'}</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Alertas</div>
-        <div class="data-row">
-          <span class="data-key">Pendientes</span>
-          <span class="data-val">${alerts.filter(a => a.estado === 'pendiente' && !a.leidaAt).length}</span>
-        </div>
-        <div class="data-row">
-          <span class="data-key">Total</span>
-          <span class="data-val">${alerts.length}</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Estado rápido</div>
-        <div class="data-row">
-          <span class="data-key">Molestias</span>
-          <span class="data-val">${alerts.filter(a => String(a.tipoAlerta || '').includes('molestia') || String(a.tipoAlerta || '').includes('feedback')).length}</span>
-        </div>
-        <div class="data-row">
-          <span class="data-key">Críticas</span>
-          <span class="data-val">${alerts.filter(a => a.nivel === 'critica').length}</span>
-        </div>
-      </div>
-    </div>
-
-    ${latestLog ? `
-      <div class="page-eyebrow" style="margin-bottom:10px">Último entrenamiento</div>
-      ${buildClientTrainingLogCard(latestLog)}
-    ` : emptyBlock('Este cliente todavía no tiene entrenamientos completados.')}
-
-    <div class="two-col">
-      <div>
-        ${buildClientAlertsHistory(clientId)}
-      </div>
-
-      <div>
-        ${buildClientTrainingHistory(clientId)}
-      </div>
-    </div>
-  `;
-}
-
-function getClientAlertsForCoachTracking(clientId){
-  return state.alertas
-    .filter(a =>
-      String(a.clientsId || '') === String(clientId) ||
-      String(a.clientesId || '') === String(clientId) ||
-      String(a.clienteId || '') === String(clientId)
-    )
-    .sort((a,b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
-}
-
-function buildClientAlertsHistory(clientId){
-  const alerts = getClientAlertsForCoachTracking(clientId);
-
-  if(!alerts.length){
-    return emptyBlock('No hay alertas registradas para este cliente.');
-  }
-
-  const rows = alerts.map(a => {
-    const estado = a.leidaAt ? (a.estado || 'leida') : (a.estado || 'pendiente');
-    const badgeEstado =
-      estado === 'pendiente' ? 'pendiente' :
-      estado === 'resuelta' ? 'pagado' :
-      estado === 'leida' ? 'plantilla' :
-      'prospecto';
-
-    const badgeNivel =
-      a.nivel === 'critica' || a.nivel === 'alerta' ? 'alerta' :
-      a.nivel === 'precaucion' ? 'pendiente' :
-      'prospecto';
-
-    return `
-      <tr>
-        <td>${formatDate(String(a.createdAt || '').slice(0,10))}</td>
-        <td><span class="badge badge-${badgeNivel}">${esc(a.nivel || 'info')}</span></td>
-        <td style="white-space:normal;min-width:220px">${esc(a.mensaje || '')}</td>
-        <td><span class="badge badge-${badgeEstado}">${esc(estado)}</span></td>
-      </tr>
-    `;
-  }).join('');
-
-  return `
-    <div class="table-wrap">
-      <div class="table-header">
-        <div class="table-title">Alertas del cliente</div>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Nivel</th>
-            <th>Mensaje</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-  `;
-}
-
-function getClientTrainingLogs(clientId){
-  return state.clientSessionLogs
-    .filter(log =>
-      String(log.clientId || log.client_id) === String(clientId) &&
-      (log.isFinished === true || log.is_finished === true)
-    )
-    .sort((a,b) =>
-      String(getTrainingLogDate(b) || '').localeCompare(String(getTrainingLogDate(a) || ''))
-    );
-}
-
-function getTrainingLogDate(log){
-  return log.finishedAt || log.finished_at || log.updatedAt || log.updated_at || log.createdAt || log.created_at || '';
-}
-
-function getTrainingPathBySessionId(sessionId){
-  if(!sessionId){
-    return { session:null, week:null, program:null };
-  }
-
-  const session = state.trainingSessions.find(s =>
-    String(s.id) === String(sessionId)
-  );
-
-  const week = session
-    ? state.trainingWeeks.find(w => String(w.id) === String(session.weekId))
-    : null;
-
-  const program = week
-    ? state.trainingPrograms.find(p => String(p.id) === String(week.programId))
-    : null;
-
-  return { session, week, program };
-}
-
-function getTrainingSessionDayLabel(session){
-  if(!session) return 'Entrenamiento sin sesión vinculada';
-
-  const num = Number(session.sessionNumber || session.session_number || 0);
-
-  if(num === 1) return 'Día A';
-  if(num === 2) return 'Día B';
-  if(num === 3) return 'Día C';
-
-  return num ? 'Día ' + num : 'Sesión';
-}
-
-function getTrainingFeedbackLevel(log){
-  const tags = log.clientFeedbackTags || log.client_feedback_tags || [];
-  const summary = String(log.clientFeedbackSummary || log.client_feedback_summary || '').toLowerCase();
-  const note = String(log.clientNote || log.client_note || '').toLowerCase();
-
-  const text = [...tags, summary, note].join(' ').toLowerCase();
-
-  if(
-    text.includes('dolor') ||
-    text.includes('pare') ||
-    text.includes('paré') ||
-    text.includes('molestia') ||
-    text.includes('molestias')
-  ){
-    return 'red';
-  }
-
-  if(
-    text.includes('cansado') ||
-    text.includes('faltó tiempo') ||
-    text.includes('falto tiempo') ||
-    text.includes('no entend') ||
-    text.includes('baje_peso') ||
-    text.includes('bajé') ||
-    text.includes('no complete')
-  ){
-    return 'yellow';
-  }
-
-  return 'green';
-}
-
-function getTrainingFeedbackBadge(log){
-  const level = getTrainingFeedbackLevel(log);
-
-  if(level === 'red'){
-    return '<span class="badge badge-alerta">Requiere atención</span>';
-  }
-
-  if(level === 'yellow'){
-    return '<span class="badge badge-pendiente">Revisar</span>';
-  }
-
-  return '<span class="badge badge-pagado">Todo bien</span>';
-}
-
-function buildClientTrainingLogCard(log){
-  if(!log) return '';
-
-  const { session, week, program } = getTrainingPathBySessionId(log.sessionId || log.session_id);
-
-  const sessionLabel = getTrainingSessionDayLabel(session);
-  const weekLabel = week?.weekNumber ? 'Semana ' + week.weekNumber : '—';
-  const programName = program?.name || program?.nameEs || '—';
-
-  const dateRaw = getTrainingLogDate(log);
-  const dateText = dateRaw ? formatDate(String(dateRaw).slice(0,10)) : '—';
-
-  const feedback = log.clientFeedbackSummary || log.client_feedback_summary || 'Sin observaciones rápidas';
-  const note = log.clientNote || log.client_note || 'Sin nota escrita';
-
-  return `
-    <div class="card">
-      <div class="card-title">
-        Último entrenamiento
-        ${getTrainingFeedbackBadge(log)}
-      </div>
-
-      <div class="data-row">
-        <span class="data-key">Fecha</span>
-        <span class="data-val">${esc(dateText)}</span>
-      </div>
-
-      <div class="data-row">
-        <span class="data-key">Sesión</span>
-        <span class="data-val">${esc(sessionLabel)}</span>
-      </div>
-
-      <div class="data-row">
-        <span class="data-key">Semana</span>
-        <span class="data-val">${esc(weekLabel)}</span>
-      </div>
-
-      <div class="data-row">
-        <span class="data-key">Programa</span>
-        <span class="data-val">${esc(programName)}</span>
-      </div>
-
-      <div class="data-row">
-        <span class="data-key">Observación</span>
-        <span class="data-val" style="color:var(--blue);white-space:normal;max-width:360px">${esc(feedback)}</span>
-      </div>
-
-      <div class="data-row">
-        <span class="data-key">Nota cliente</span>
-        <span class="data-val" style="color:var(--gray);white-space:normal;max-width:360px">${esc(note)}</span>
-      </div>
-    </div>
-  `;
 }
 
 function showPage(id){
@@ -1564,10 +1524,7 @@ function renderAlertas(){
 
   if(!metricsEl || !tableEl) return;
 
-  const pendientes = state.alertas.filter(a => {
-    const estado = a.estado || 'pendiente';
-    return estado === 'pendiente' && !a.leidaAt;
-  });
+  const pendientes = state.alertas.filter(a => isPendingAlert(a));
 
   const criticas = state.alertas.filter(a =>
     a.nivel === 'critica' || a.nivel === 'alerta'
@@ -1620,11 +1577,8 @@ function renderAlertas(){
   let rows = [...state.alertas];
 
   if(activeAlertasFilter === 'pendientes'){
-    rows = rows.filter(a => {
-      const estado = a.estado || 'pendiente';
-      return estado === 'pendiente' && !a.leidaAt;
-    });
-  }
+  rows = rows.filter(a => isPendingAlert(a));
+}
 
   if(activeAlertasFilter === 'criticas'){
     rows = rows.filter(a =>
@@ -1805,7 +1759,7 @@ function renderDashboard(){
   const pendingPayments=state.payments.filter(p=>p.status!=='pagado').length;
   const income=state.payments.filter(p=>p.status==='pagado').reduce((s,p)=>s+Number(p.amount||0),0);
   const upcoming=state.reservations.filter(r=>r.date>=today).length;
-  const alerts = state.alertas.filter(a => a.estado === 'pendiente' && !a.leidaAt).length;
+  const alerts = state.alertas.filter(a => isPendingAlert(a)).length;
   document.getElementById('dashboardMetrics').innerHTML=`<div class="metric-card blue"><span class="metric-num">${activeClients}</span><span class="metric-label">Clientes activos</span></div><div class="metric-card red"><span class="metric-num">${todaySessions}</span><span class="metric-label">Sesiones hoy</span></div><div class="metric-card yellow"><span class="metric-num">${pendingPayments}</span><span class="metric-label">Pagos pendientes</span></div><div class="metric-card green"><span class="metric-num">${money(income)}</span><span class="metric-label">Ingresos del mes</span></div><div class="metric-card blue"><span class="metric-num">${upcoming}</span><span class="metric-label">Reservas próximos 7d</span></div><div class="metric-card red"><span class="metric-num">${alerts}</span><span class="metric-label">Alertas salud</span></div>`;
   const agenda=state.reservations.filter(r=>r.date===today);
   document.getElementById('agendaToday').innerHTML=agenda.length?agenda.map(r=>{const c=clientById(r.clientId);return`<div class="data-row"><span><strong>${formatTime(r.time)}</strong> · ${esc(c?.name||'Cliente eliminado')}</span><span class="badge badge-${r.status}">${esc(r.status)}</span></div>`;}).join(''):emptyBlock('No hay reservas para hoy.');
