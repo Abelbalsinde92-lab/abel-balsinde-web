@@ -674,17 +674,25 @@ console.log('VISIBLE FIRST ROW RAW:', visibleR.data?.[0] || null);
 if (visibleR.error) {
   console.error('Visible training view error:', visibleR.error);
 
-  clientTrainingProgram = {
-    id: pid || clientTrainingAssignment?.program_id || 'error',
-    name: 'Error cargando vista',
-    description: '',
-    objective: visibleR.error.message || 'Error leyendo client_training_plan_visible'
+  window.__AB_DEBUG_CLIENT__ = {
+    clientId,
+    clientData,
+    clientTrainingAssignment,
+    visibleError: visibleR.error,
+    visibleRows: 0,
+    visibleFirstRow: null
   };
 
+  clientTrainingProgram = null;
   clientTrainingWeeks = [];
   clientTrainingSessions = [];
   clientTrainingBlocks = [];
   clientTrainingExercises = [];
+
+  await renderDashboard();
+  document.getElementById('loginScreen')?.classList.add('hidden');
+  document.getElementById('dashboardScreen')?.classList.remove('hidden');
+  showLoading(false);
 
   return;
 }
