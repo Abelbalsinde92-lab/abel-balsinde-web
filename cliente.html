@@ -158,6 +158,10 @@
     .training-day-tab.active{color:var(--blue);border-color:rgba(94,197,240,.45);background:rgba(94,197,240,.08)}
     .training-day-panel{display:none}
     .training-day-panel.active{display:block}
+    .training-session-panel{display:none}
+.training-session-panel.active{display:block}
+.training-week-panel{display:none}
+.training-week-panel.active{display:block}
     .training-session-separator{font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--blue);padding:12px 2px 4px}
     .training-step-list{display:flex;flex-direction:column;gap:8px}
     .training-step-card{background:var(--navy3);border:1px solid #1e3450;border-radius:12px;overflow:hidden;transition:border-color .2s}
@@ -922,22 +926,34 @@ function getSessionDisplayTitle(session, index) {
 }
 
 function showTrainingDay(sessionId) {
-  document.querySelectorAll('.training-day-tab').forEach(b => b.classList.toggle('active', b.dataset.sessionId === sessionId));
-  document.querySelectorAll('.training-day-panel').forEach(p => p.classList.toggle('active', p.dataset.sessionId === sessionId));
-  const active = document.querySelector('.training-day-panel.active');
-  if (active) active.scrollIntoView({ behavior:'smooth', block:'start' });
+  const btn = document.querySelector('.training-day-tab[data-session-id="' + sessionId + '"]');
+  const scope = btn?.closest('.training-week-panel') || document;
+
+  scope.querySelectorAll('.training-day-tab').forEach(b => {
+    const isWeekTab = String(b.dataset.sessionId || '').startsWith('week-');
+    if (!isWeekTab) {
+      b.classList.toggle('active', b.dataset.sessionId === sessionId);
+    }
+  });
+
+  scope.querySelectorAll('.training-session-panel').forEach(p => {
+    p.classList.toggle('active', p.dataset.sessionId === sessionId);
+  });
+
+  const active = scope.querySelector('.training-session-panel.active');
+  if (active) active.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
 function showTrainingWeekPanel(weekId) {
-  // Pestañas de semana
-  document.querySelectorAll('.training-day-tab[data-session-id^="week-"]').forEach(b => {
-    b.classList.toggle('active', b.dataset.sessionId === 'week-' + weekId);
+  document.querySelectorAll('.training-week-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.weekId === String(weekId));
   });
-  // Paneles de semana
-  document.querySelectorAll('.training-day-panel[data-session-id^="week-"]').forEach(p => {
-    p.classList.toggle('active', p.dataset.sessionId === 'week-' + weekId);
+
+  document.querySelectorAll('.training-week-panel').forEach(p => {
+    p.classList.toggle('active', p.dataset.weekId === String(weekId));
   });
-  const active = document.querySelector('.training-day-panel[data-session-id="week-' + weekId + '"]');
+
+  const active = document.querySelector('.training-week-panel[data-week-id="' + weekId + '"]');
   if (active) active.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -1166,13 +1182,13 @@ async function renderClientTraining() {
       weeks.forEach(([wid, sessions], wi) => {
         const week = clientTrainingWeeks.find(w => String(w.id) === wid);
         const weekLabel = 'Semana ' + (week?.week_number || (wi + 1));
-        html += '<button class="training-day-tab' + (wi === 0 ? ' active' : '') + '" data-session-id="week-' + wid + '" onclick="showTrainingWeekPanel(\'' + wid + '\')">' + weekLabel + '</button>';
+        html += '<button class="training-day-tab training-week-tab' + (wi === 0 ? ' active' : '') + '" data-week-id="' + wid + '" onclick="showTrainingWeekPanel(\'' + wid + '\')">' + weekLabel + '</button>';
       });
       html += '</div>';
       weeks.forEach(([wid, sessions], wi) => {
         const week = clientTrainingWeeks.find(w => String(w.id) === wid);
         const weekObj = pickLang(week, 'objective', lg);
-        html += '<div class="training-day-panel' + (wi === 0 ? ' active' : '') + '" data-session-id="week-' + wid + '">';
+        html += '<div class="training-day-panel training-week-panel' + (wi === 0 ? ' active' : '') + '" data-week-id="' + wid + '">';
         if (weekObj) html += '<div class="training-week-objective" style="margin-bottom:12px">' + weekObj + '</div>';
         // Sub-pestañas de días dentro de la semana
         html += '<div class="training-day-tabs" style="margin-top:0">';
@@ -1184,7 +1200,7 @@ async function renderClientTraining() {
         sessions.forEach((session, si) => {
           const sid = String(session.id);
           const steps = buildTrainingSteps(sid);
-          html += '<div class="training-day-panel' + (si === 0 ? ' active' : '') + '" data-session-id="' + sid + '"><div class="training-step-list">';
+          html += '<div class="training-session-panel' + (si === 0 ? ' active' : '') + '" data-session-id="' + sid + '"><div class="training-step-list">';
           steps.forEach((step, j) => { html += buildTrainingStepHTML(step, j); });
           html += '</div></div>';
         });
