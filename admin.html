@@ -344,14 +344,42 @@ tr:hover td{background:rgba(255,255,255,.02)}
           </div>
         </div>
         <div class="metrics-row" id="dashboardMetrics"></div>
-        <div class="two-col">
-          <div class="card"><div class="card-title">Agenda hoy <button class="btn btn-secondary btn-sm btn-icon" onclick="showPage('reservas')">→</button></div><div id="agendaToday"></div></div>
-          <div>
-            <div class="card"><div class="card-title">Alertas importantes <button class="btn btn-secondary btn-sm btn-icon" onclick="showPage('salud')">→</button></div><div id="dashboardAlerts"></div></div>
-            <div class="card"><div class="card-title">Pagos pendientes <button class="btn btn-secondary btn-sm btn-icon" onclick="showPage('pagos')">→</button></div><div id="dashboardPayments"></div></div>
-          </div>
-        </div>
+
+<div class="two-col">
+  <div class="card">
+    <div class="card-title">
+      Agenda hoy
+      <button class="btn btn-secondary btn-sm btn-icon" onclick="showPage('reservas')">→</button>
+    </div>
+    <div id="agendaToday"></div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-title">
+        Alertas importantes
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="showPage('alertas')">→</button>
       </div>
+      <div id="dashboardAlerts"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Feedback de entrenamientos
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="showPage('alertas')">→</button>
+      </div>
+      <div id="dashboardTrainingFeedback"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Pagos pendientes
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="showPage('pagos')">→</button>
+      </div>
+      <div id="dashboardPayments"></div>
+    </div>
+  </div>
+</div>
 
       <div class="page" id="page-alertas">
   <div class="page-header">
@@ -745,6 +773,103 @@ function showToast(msg){ const t=document.getElementById('toast');t.textContent=
 function buildWAUrl(phone,msg){ const clean=String(phone||state.settings.coachPhone||COACH_DEFAULT_PHONE).replace(/[\s+\-()]/g,'');return'https://wa.me/'+clean+'?text='+encodeURIComponent(msg||'Hola Abel.'); }
 function openWA(phone,msg){ window.open(buildWAUrl(phone,msg),'_blank'); }
 function openCoachWA(){ openWA(state.settings.coachPhone||COACH_DEFAULT_PHONE,'Hola Abel.'); }
+
+function getTrainingLogsForReview(){
+  return (state.clientSessionLogs || [])
+    .filter(log => {
+      const tags = log.clientFeedbackTags || log.client_feedback_tags || [];
+      const summary = String(log.clientFeedbackSummary || log.client_feedback_summary || '').toLowerCase();
+      const note = String(log.clientNote || log.client_note || '').toLowerCase();
+
+      const sensitiveTags = [
+        'molestias',
+        'dolor_pare',
+        'muy_cansado',
+        'no_complete',
+        'falto_tiempo',
+        'no_entendi',
+        'revisar'
+      ];
+
+      const hasSensitiveTag = Array.isArray(tags) && tags.some(t => sensitiveTags.includes(t));
+
+      const hasSensitiveText =
+        summary.includes('molestia') ||
+        summary.includes('dolor') ||
+        summary.includes('cansado') ||
+        summary.includes('no pude') ||
+        summary.includes('no entend') ||
+        note.includes('molestia') ||
+        note.includes('dolor') ||
+        note.includes('rodilla') ||
+        note.includes('hombro') ||
+        note.includes('espalda') ||
+        note.includes('mareo') ||
+        note.includes('cansado');
+
+      return log.isFinished === true || log.is_finished === true
+        ? hasSensitiveTag || hasSensitiveText || note.length > 0
+        : false;
+    })
+    .sort((a,b) => {
+      const da = getTrainingLogDate(a) || '';
+      const db = getTrainingLogDate(b) || '';
+      return String(db).localeCompare(String(da));
+    });
+}
+
+function buildTrainingReviewBlock(){
+  const logs = getTrainingLogsForReview();
+
+  if(!logs.length){
+    return emptyBlock('No hay entrenamientos pendientes de revisión.');
+  }
+
+  return logs.slice(0,6).map(log => {
+    const client = clientById(log.clientId || log.client_id);
+    const { session, week, program } = getTrainingPathBySessionId(log.sessionId || log.session_id);
+
+    const dateRaw = getTrainingLogDate(log);
+    const dateText = dateRaw ? formatDate(String(dateRaw).slice(0,10)) : '—';
+
+    const feedback = log.clientFeedbackSummary || log.client_feedback_summary || 'Sin feedback';
+    const note = log.clientNote || log.client_note || '';
+
+    const sessionLabel = getTrainingSessionDayLabel(session);
+    const weekLabel = week?.weekNumber ? 'Semana ' + week.weekNumber : '—';
+    const programName = program?.name || program?.nameEs || '—';
+
+    return `
+      <div class="data-row" style="align-items:flex-start">
+        <span style="white-space:normal">
+          <strong>${esc(client?.name || 'Cliente')}</strong>
+          <br>
+          <span style="color:var(--blue);font-size:.78rem">
+            ${esc(dateText)} · ${esc(sessionLabel)} · ${esc(weekLabel)}
+          </span>
+          <br>
+          <span style="color:var(--gray);font-size:.78rem">
+            ${esc(programName)}
+          </span>
+          <br>
+          <span style="color:var(--yellow);font-size:.78rem">
+            ${esc(feedback)}
+          </span>
+          ${note ? `<br><span style="color:var(--gray);font-size:.78rem">Nota: ${esc(note)}</span>` : ''}
+        </span>
+
+        <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+          <button class="btn btn-blue btn-sm" onclick="openProfile('${esc(client?.id || log.clientId || log.client_id)}')">Perfil</button>
+          ${
+            client?.phone
+              ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(client.phone)}','Hola ${esc((client.name||'').split(' ')[0]||'')}, vi tu comentario del entrenamiento. ¿Cómo te sientes ahora?')">WA</button>`
+              : ''
+          }
+        </span>
+      </div>
+    `;
+  }).join('');
+}
 
 function getTrainingSessionDayLabel(session){
   const num = Number(session?.sessionNumber || 0);
@@ -1694,6 +1819,36 @@ document.getElementById('dashboardAlerts').innerHTML = alertList.length
   : emptyBlock('No hay alertas.');
   const payList=state.payments.filter(p=>p.status!=='pagado');
   document.getElementById('dashboardPayments').innerHTML=payList.length?payList.slice(0,4).map(p=>{const c=clientById(p.clientId);return`<div class="data-row"><span>${esc(c?.name||'Sin cliente')} · ${esc(p.concept)}</span><span style="color:var(--yellow)">${money(p.amount)}</span></div>`;}).join(''):emptyBlock('Sin pagos pendientes.');
+}
+
+const trainingFeedbackEl = document.getElementById('dashboardTrainingFeedback');
+
+if (trainingFeedbackEl) {
+  const trainingFeedbackAlerts = state.alertas
+    .filter(a =>
+      ['feedback_entrenamiento', 'molestia_entrenamiento'].includes(a.tipoAlerta || a.tipo_alerta) &&
+      a.estado !== 'resuelta'
+    )
+    .sort((a, b) => String(b.createdAt || b.created_at || '').localeCompare(String(a.createdAt || a.created_at || '')));
+
+  trainingFeedbackEl.innerHTML = trainingFeedbackAlerts.length
+    ? trainingFeedbackAlerts.slice(0, 4).map(a => `
+        <div class="data-row">
+          <span>
+            <strong>${esc(a.clientName || a.client_name || 'Cliente')}</strong><br>
+            <span style="color:var(--gray);font-size:.78rem;line-height:1.5">
+              ${esc(a.mensaje || '')}
+            </span>
+          </span>
+          <button class="btn btn-secondary btn-sm" onclick="showPage('alertas')">Ver</button>
+        </div>
+      `).join('')
+    : emptyBlock('Sin feedback pendiente.');
+}
+
+const reviewBox = document.getElementById('dashboardTrainingReview');
+if(reviewBox){
+  reviewBox.innerHTML = buildTrainingReviewBlock();
 }
 
 function renderClients(){
