@@ -1596,6 +1596,80 @@ function getCurrentVisibleSessionId() {
   return clientTrainingSessions[0]?.id || null;
 }
 
+function getSessionById(sessionId) {
+  return clientTrainingSessions.find(s => String(s.id) === String(sessionId)) || null;
+}
+
+function getNextSessionId(currentSessionId) {
+  const sessions = clientTrainingSessions.slice().sort((a, b) => {
+    const wa = clientTrainingWeeks.find(w => String(w.id) === String(a.week_id));
+    const wb = clientTrainingWeeks.find(w => String(w.id) === String(b.week_id));
+
+    const weekA = Number(wa?.week_number || 0);
+    const weekB = Number(wb?.week_number || 0);
+
+    if (weekA !== weekB) return weekA - weekB;
+
+    return Number(a.session_number || 0) - Number(b.session_number || 0);
+  });
+
+  const idx = sessions.findIndex(s => String(s.id) === String(currentSessionId));
+
+  if (idx >= 0 && sessions[idx + 1]) {
+    return String(sessions[idx + 1].id);
+  }
+
+  return null;
+}
+
+function getWeekIdBySessionId(sessionId) {
+  const session = getSessionById(sessionId);
+  return session ? String(session.week_id) : null;
+}
+
+function showCompletedToastAndGoNext(currentSessionId) {
+  const area = document.getElementById('trainingCompletionArea');
+
+  if (area) {
+    area.innerHTML =
+      '<div class="training-finish-card" style="padding:22px 18px;">' +
+        '<div class="training-finish-icon" style="font-size:30px;">🏁</div>' +
+        '<div class="training-finish-title" style="font-size:24px;">Entrenamiento guardado</div>' +
+        '<div class="training-finish-sub">Pasando al siguiente día...</div>' +
+      '</div>';
+  }
+
+  setTimeout(() => {
+    renderClientTraining().then(() => {
+      const nextSessionId = getNextSessionId(currentSessionId);
+
+      if (nextSessionId) {
+        const nextWeekId = getWeekIdBySessionId(nextSessionId);
+
+        if (nextWeekId) {
+          showTrainingWeekPanel(nextWeekId);
+        }
+
+        showTrainingDay(nextSessionId);
+
+        const nextSteps = buildTrainingSteps(nextSessionId);
+        const firstPending = nextSteps.find(s => !completedTrainingBlocks.has(s.blockId));
+
+        if (firstPending) {
+          activeTrainingBlockKey = firstPending.blockId;
+          const card = document.getElementById('step-' + firstPending.blockId);
+          if (card) {
+            card.classList.add('open');
+            setTimeout(() => {
+              card.scrollIntoView({ behavior:'smooth', block:'start' });
+            }, 200);
+          }
+        }
+      }
+    });
+  }, 3000);
+}
+
 function isTrainingComplete(sessionId) {
   const sid = sessionId || getCurrentVisibleSessionId();
   const steps = sid ? buildTrainingSteps(sid) : buildTrainingSteps();
@@ -1649,6 +1723,8 @@ function buildFeedbackTag(value, label) {
 }
 
 async function finishTrainingSession() {
+  const currentSessionId = getCurrentVisibleSessionId();
+
   const checkedTags = Array.from(document.querySelectorAll('.training-feedback-check:checked'))
     .map(input => input.value);
 
@@ -1672,21 +1748,6 @@ async function finishTrainingSession() {
     .map(t => feedbackLabels[t] || t)
     .join(' · ');
 
-  const finishedSessionId = getCurrentVisibleSessionId();
-
-const finishedKey = getTrainingStorageKey(finishedSessionId);
-if (finishedKey) {
-  localStorage.setItem(finishedKey, JSON.stringify({
-    completed_block_ids: Array.from(completedTrainingBlocks),
-    is_finished: true,
-    finished_at: new Date().toISOString(),
-    client_note: note,
-    client_feedback_tags: checkedTags,
-    client_feedback_summary: feedbackSummary,
-    updated_at: new Date().toISOString()
-  }));
-}
-  
   saveTrainingProgressLocal({
     is_finished: true,
     finished_at: new Date().toISOString(),
@@ -1696,42 +1757,14 @@ if (finishedKey) {
   });
 
   await saveTrainingProgress({
-  session_id: finishedSessionId,
-  is_finished: true,
-  finished_at: new Date().toISOString(),
-  client_note: note || null,
-  client_feedback_tags: checkedTags,
-  client_feedback_summary: feedbackSummary || null
-});
-  
-  const local = loadTrainingProgressLocal() || {};
-currentTrainingLog = {
-  ...(currentTrainingLog || {}),
-  ...local,
-  is_finished: true,
-  finished_at: new Date().toISOString(),
-  client_note: note,
-  client_feedback_tags: checkedTags,
-  client_feedback_summary: feedbackSummary
-};
-  
-  const el = document.getElementById('sectionTrainingClient');
-  if (el) {
-    const aw = getActiveTrainingWeek();
-    const sp = getAssignmentScopeLabel();
-    const lv = getAssignedTrainingLevel();
-    const obj = aw?.objective || clientTrainingProgram?.objective || '';
-    const _lg = getLang();
+    is_finished: true,
+    finished_at: new Date().toISOString(),
+    client_note: note || null,
+    client_feedback_tags: checkedTags,
+    client_feedback_summary: feedbackSummary || null
+  });
 
-    el.innerHTML =
-      '<div class="training-guide-summary">' +
-        '<div class="training-guide-title">' + (pickLang(clientTrainingProgram, 'name', _lg) || 'Programa') + '</div>' +
-        '<div class="training-guide-meta">' + [sp, lv].filter(Boolean).join(' · ') + '</div>' +
-        (obj ? '<div class="training-week-objective">' + obj + '</div>' : '') +
-      '</div>';
-  }
-
-  renderTrainingCompletedState();
+  showCompletedToastAndGoNext(currentSessionId);
 }
 
 function renderTrainingCompletedState() {
