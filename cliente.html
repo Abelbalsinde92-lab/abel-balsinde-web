@@ -656,18 +656,6 @@ q = q
 
 const visibleR = await q;
 
-if (pid) {
-  q = q.eq('program_id', pid);
-}
-
-q = q
-  .order('week_order', { ascending: true })
-  .order('session_order', { ascending: true })
-  .order('block_order', { ascending: true })
-  .order('exercise_order', { ascending: true });
-
-const visibleR = await q;
-
 console.log('CLIENT TRAINING ASSIGNMENT:', clientTrainingAssignment);
 console.log('VISIBLE VIEW ERROR:', visibleR.error);
 console.log('VISIBLE ROWS RAW:', visibleR.data?.length || 0);
