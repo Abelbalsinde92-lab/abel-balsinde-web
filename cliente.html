@@ -1052,22 +1052,46 @@ function getSessionDisplayTitle(session, index) {
   return day + ' · ' + title;
 }
 
-function showTrainingDay(sessionId) {
+async function showTrainingDay(sessionId) {
   const btn = document.querySelector('.training-day-tab[data-session-id="' + sessionId + '"]');
   const scope = btn?.closest('.training-week-panel') || document;
 
   scope.querySelectorAll('.training-day-tab').forEach(b => {
-    const isWeekTab = String(b.dataset.sessionId || '').startsWith('week-');
+    const isWeekTab = b.classList.contains('training-week-tab');
     if (!isWeekTab) {
       b.classList.toggle('active', b.dataset.sessionId === sessionId);
     }
   });
 
-  scope.querySelectorAll('.training-session-panel').forEach(p => {
-    p.classList.toggle('active', p.dataset.sessionId === sessionId);
+  scope.querySelectorAll('.training-session-panel, .training-day-panel').forEach(p => {
+    if (p.dataset.sessionId) {
+      p.classList.toggle('active', p.dataset.sessionId === sessionId);
+    }
   });
 
-  const active = scope.querySelector('.training-session-panel.active');
+  completedTrainingBlocks = new Set();
+  currentTrainingLog = null;
+  activeTrainingBlockKey = null;
+
+  await loadOrCreateTrainingLog(sessionId);
+  applySavedTrainingState();
+
+  const steps = buildTrainingSteps(sessionId);
+  const firstPending = steps.find(s => !completedTrainingBlocks.has(s.blockId));
+
+  if (firstPending) {
+    activeTrainingBlockKey = firstPending.blockId;
+    const card = document.getElementById('step-' + firstPending.blockId);
+
+    if (card) {
+      card.classList.add('open');
+      setTimeout(() => {
+        card.scrollIntoView({ behavior:'smooth', block:'start' });
+      }, 120);
+    }
+  }
+
+  const active = scope.querySelector('[data-session-id="' + sessionId + '"].active');
   if (active) active.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
@@ -1289,10 +1313,12 @@ async function renderClientTraining() {
   return;
 }
 
-  if (clientTrainingAssignment) {
-  await loadOrCreateTrainingLog();
+  const initialSessionId = getFirstAvailableSessionId();
+
+if (clientTrainingAssignment && initialSessionId) {
+  await loadOrCreateTrainingLog(initialSessionId);
 } else {
-  const localProgress = loadTrainingProgressLocal();
+  const localProgress = loadTrainingProgressLocal(initialSessionId);
   if (localProgress) {
     completedTrainingBlocks = new Set(localProgress.completed_block_ids || []);
     currentTrainingLog = localProgress;
@@ -1335,33 +1361,36 @@ async function renderClientTraining() {
     const weeks = Array.from(sessionsByWeek.entries());
 
     if (weeks.length === 1) {
-      // Una sola semana — mostrar pestañas por día normalmente
-      const sessions = weeks[0][1];
-      html += '<div class="training-day-tabs">';
-      sessions.forEach((session, i) => {
-  const sid = String(session.id);
+  const sessions = weeks[0][1];
+  const initialSessionId = getFirstAvailableSessionId();
 
-  html += '<div class="training-day-panel' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '">';
+  html += '<div class="training-day-tabs">';
 
-  if (isSessionFinished(sid)) {
-    html += buildCompletedSessionCard(session, i);
-  } else {
-    const steps = buildTrainingSteps(sid);
-    html += '<div class="training-step-list">';
-    steps.forEach((step, j) => { html += buildTrainingStepHTML(step, j); });
-    html += '</div>';
-  }
+  sessions.forEach((session, i) => {
+    const sid = String(session.id);
+    const active = sid === String(initialSessionId);
+    html += '<button class="training-day-tab' + (active ? ' active' : '') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' + getSessionDayLabel(session, i) + '</button>';
+  });
 
   html += '</div>';
-});
+
+  sessions.forEach((session, i) => {
+    const sid = String(session.id);
+    const active = sid === String(initialSessionId);
+
+    html += '<div class="training-day-panel' + (active ? ' active' : '') + '" data-session-id="' + sid + '">';
+
+    if (isSessionFinished(sid)) {
+      html += buildCompletedSessionCard(session, i);
+    } else {
+      const steps = buildTrainingSteps(sid);
+      html += '<div class="training-step-list">';
+      steps.forEach((step, j) => { html += buildTrainingStepHTML(step, j); });
       html += '</div>';
-      sessions.forEach((session, i) => {
-        const sid = String(session.id);
-        const steps = buildTrainingSteps(sid);
-        html += '<div class="training-day-panel' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '"><div class="training-step-list">';
-        steps.forEach((step, j) => { html += buildTrainingStepHTML(step, j); });
-        html += '</div></div>';
-      });
+    }
+
+    html += '</div>';
+  });
     } else {
       // Múltiples semanas — pestañas por semana, sesiones dentro de cada una
       html += '<div class="training-day-tabs">';
@@ -1545,14 +1574,16 @@ function getSessionIdByBlockId(blockId) {
 }
 
 async function completeTrainingStep(blockId) {
+  const sessionId = getSessionIdByBlockId(blockId);
+
   completedTrainingBlocks.add(blockId);
-  saveTrainingProgressLocal();
+
+  saveTrainingProgressLocal({}, sessionId);
   markStepVisualAsCompleted(blockId);
-  await saveTrainingProgress();
+  await saveTrainingProgress({}, sessionId);
 
   activeTrainingBlockKey = null;
 
-  const sessionId = getSessionIdByBlockId(blockId);
   const sessionSteps = sessionId ? buildTrainingSteps(sessionId) : buildTrainingSteps();
 
   const sessionIsComplete =
@@ -1622,6 +1653,24 @@ function getNextSessionId(currentSessionId) {
   return null;
 }
 
+function getFirstAvailableSessionId() {
+  const sessions = clientTrainingSessions.slice().sort((a, b) => {
+    const wa = clientTrainingWeeks.find(w => String(w.id) === String(a.week_id));
+    const wb = clientTrainingWeeks.find(w => String(w.id) === String(b.week_id));
+
+    const weekA = Number(wa?.week_number || 0);
+    const weekB = Number(wb?.week_number || 0);
+
+    if (weekA !== weekB) return weekA - weekB;
+
+    return Number(a.session_number || 0) - Number(b.session_number || 0);
+  });
+
+  const firstNotFinished = sessions.find(s => !isSessionFinished(String(s.id)));
+
+  return String((firstNotFinished || sessions[0])?.id || '');
+}
+
 function getWeekIdBySessionId(sessionId) {
   const session = getSessionById(sessionId);
   return session ? String(session.week_id) : null;
@@ -1640,9 +1689,9 @@ function showCompletedToastAndGoNext(currentSessionId) {
   }
 
   setTimeout(() => {
-    renderClientTraining().then(() => {
-      const nextSessionId = getNextSessionId(currentSessionId);
+    const nextSessionId = getNextSessionId(currentSessionId);
 
+    renderClientTraining().then(async () => {
       if (nextSessionId) {
         const nextWeekId = getWeekIdBySessionId(nextSessionId);
 
@@ -1650,21 +1699,7 @@ function showCompletedToastAndGoNext(currentSessionId) {
           showTrainingWeekPanel(nextWeekId);
         }
 
-        showTrainingDay(nextSessionId);
-
-        const nextSteps = buildTrainingSteps(nextSessionId);
-        const firstPending = nextSteps.find(s => !completedTrainingBlocks.has(s.blockId));
-
-        if (firstPending) {
-          activeTrainingBlockKey = firstPending.blockId;
-          const card = document.getElementById('step-' + firstPending.blockId);
-          if (card) {
-            card.classList.add('open');
-            setTimeout(() => {
-              card.scrollIntoView({ behavior:'smooth', block:'start' });
-            }, 200);
-          }
-        }
+        await showTrainingDay(nextSessionId);
       }
     });
   }, 3000);
@@ -1749,20 +1784,20 @@ async function finishTrainingSession() {
     .join(' · ');
 
   saveTrainingProgressLocal({
-    is_finished: true,
-    finished_at: new Date().toISOString(),
-    client_note: note,
-    client_feedback_tags: checkedTags,
-    client_feedback_summary: feedbackSummary
-  });
+  is_finished: true,
+  finished_at: new Date().toISOString(),
+  client_note: note,
+  client_feedback_tags: checkedTags,
+  client_feedback_summary: feedbackSummary
+}, currentSessionId);
 
   await saveTrainingProgress({
-    is_finished: true,
-    finished_at: new Date().toISOString(),
-    client_note: note || null,
-    client_feedback_tags: checkedTags,
-    client_feedback_summary: feedbackSummary || null
-  });
+  is_finished: true,
+  finished_at: new Date().toISOString(),
+  client_note: note || null,
+  client_feedback_tags: checkedTags,
+  client_feedback_summary: feedbackSummary || null
+}, currentSessionId);
 
   showCompletedToastAndGoNext(currentSessionId);
 }
