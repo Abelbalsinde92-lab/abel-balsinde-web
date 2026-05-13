@@ -363,7 +363,9 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
   <div class="metrics-row" id="alertasMetrics"></div>
 
-  <div class="table-wrap">
+<div class="table-filters" style="margin-bottom:16px" id="alertasFilters"></div>
+
+<div class="table-wrap">
     <div class="table-header">
       <div class="table-title">Alertas recientes</div>
     </div>
@@ -635,6 +637,7 @@ let currentPage='dashboard';
 let activeClientFilter='todos';
 let activeReservationFilter='todas';
 let activePaymentFilter='todos';
+let activeAlertasFilter='pendientes';
 let activeModal=null;
 
 /* ── INIT PAGE ──────────────────────────────────────────── */
@@ -999,12 +1002,27 @@ Te confirmo en breve los detalles de la sesión.`;
 
 function renderAlertas(){
   const metricsEl = document.getElementById('alertasMetrics');
+  const filtersEl = document.getElementById('alertasFilters');
   const tableEl = document.getElementById('alertasTable');
+
   if(!metricsEl || !tableEl) return;
 
-  const pendientes = state.alertas.filter(a => a.estado === 'pendiente' && !a.leidaAt);
-  const criticas = state.alertas.filter(a => a.nivel === 'critica');
-  const molestias = state.alertas.filter(a => a.tipoAlerta === 'molestia_entrenamiento');
+  const pendientes = state.alertas.filter(a => {
+    const estado = a.estado || 'pendiente';
+    return estado === 'pendiente' && !a.leidaAt;
+  });
+
+  const criticas = state.alertas.filter(a =>
+    a.nivel === 'critica' || a.nivel === 'alerta'
+  );
+
+  const leidas = state.alertas.filter(a =>
+    a.estado === 'leida' || a.leidaAt
+  );
+
+  const resueltas = state.alertas.filter(a =>
+    a.estado === 'resuelta' || a.resueltaAt
+  );
 
   metricsEl.innerHTML = `
     <div class="metric-card red">
@@ -1013,33 +1031,85 @@ function renderAlertas(){
     </div>
     <div class="metric-card yellow">
       <span class="metric-num">${criticas.length}</span>
-      <span class="metric-label">Críticas</span>
+      <span class="metric-label">Críticas / alertas</span>
     </div>
     <div class="metric-card blue">
-      <span class="metric-num">${molestias.length}</span>
-      <span class="metric-label">Molestias</span>
+      <span class="metric-num">${leidas.length}</span>
+      <span class="metric-label">Leídas</span>
     </div>
     <div class="metric-card green">
-      <span class="metric-num">${state.alertas.length}</span>
-      <span class="metric-label">Total</span>
+      <span class="metric-num">${resueltas.length}</span>
+      <span class="metric-label">Resueltas</span>
     </div>
   `;
 
-  const rows = [...state.alertas].sort((a,b) =>
+  if(filtersEl){
+    const filters = [
+      ['pendientes', 'Pendientes'],
+      ['criticas', 'Críticas'],
+      ['leidas', 'Leídas'],
+      ['resueltas', 'Resueltas'],
+      ['todas', 'Historial completo']
+    ];
+
+    filtersEl.innerHTML = filters.map(([key,label]) => `
+      <button class="filter-pill ${activeAlertasFilter === key ? 'active' : ''}"
+        onclick="activeAlertasFilter='${key}';renderAlertas()">
+        ${label}
+      </button>
+    `).join('');
+  }
+
+  let rows = [...state.alertas];
+
+  if(activeAlertasFilter === 'pendientes'){
+    rows = rows.filter(a => {
+      const estado = a.estado || 'pendiente';
+      return estado === 'pendiente' && !a.leidaAt;
+    });
+  }
+
+  if(activeAlertasFilter === 'criticas'){
+    rows = rows.filter(a =>
+      a.nivel === 'critica' || a.nivel === 'alerta'
+    );
+  }
+
+  if(activeAlertasFilter === 'leidas'){
+    rows = rows.filter(a =>
+      a.estado === 'leida' || a.leidaAt
+    );
+  }
+
+  if(activeAlertasFilter === 'resueltas'){
+    rows = rows.filter(a =>
+      a.estado === 'resuelta' || a.resueltaAt
+    );
+  }
+
+  rows.sort((a,b) =>
     String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
   );
 
   tableEl.innerHTML = rows.length ? rows.map(a => {
-    const estado = a.leidaAt ? 'leida' : (a.estado || 'pendiente');
-    const badgeEstado = estado === 'pendiente' ? 'pendiente' : 'pagado';
+    const estado = a.resueltaAt
+      ? 'resuelta'
+      : a.leidaAt
+        ? 'leida'
+        : (a.estado || 'pendiente');
+
+    const badgeEstado =
+      estado === 'pendiente' ? 'pendiente' :
+      estado === 'resuelta' ? 'pagado' :
+      estado === 'leida' ? 'prospecto' :
+      'pendiente';
+
     const badgeNivel =
-  a.nivel === 'critica'
-    ? 'alerta'
-    : a.nivel === 'alerta'
-      ? 'vencido'
-      : a.nivel === 'precaucion'
-        ? 'pendiente'
-        : 'prospecto';
+      a.nivel === 'critica' || a.nivel === 'alerta'
+        ? 'alerta'
+        : a.nivel === 'precaucion'
+          ? 'pendiente'
+          : 'prospecto';
 
     return `
       <tr>
@@ -1052,24 +1122,54 @@ function renderAlertas(){
             </div>
           </div>
         </td>
+
         <td>${esc(a.tipoAlerta || 'alerta')}</td>
+
         <td style="white-space:normal;min-width:280px">
-  ${esc(a.mensaje || '')}
-  ${a.notaAdmin ? `<div class="name-sub" style="margin-top:6px;color:var(--blue)">Nota coach: ${esc(a.notaAdmin)}</div>` : ''}
-</td>
+          <strong>${esc(a.titulo || '')}</strong><br>
+          ${esc(a.mensaje || '')}
+          ${a.notaAdmin ? `
+            <div class="name-sub" style="margin-top:6px;color:var(--blue)">
+              Nota coach: ${esc(a.notaAdmin)}
+            </div>
+          ` : ''}
+        </td>
+
         <td><span class="badge badge-${badgeNivel}">${esc(a.nivel || 'info')}</span></td>
+
         <td><span class="badge badge-${badgeEstado}">${esc(estado)}</span></td>
-        <td>${formatDate(String(a.createdAt || '').slice(0,10))}</td>
+
         <td>
-  <div class="td-actions">
-    ${!a.leidaAt ? `<button class="btn btn-primary btn-sm" onclick="marcarAlertaLeida('${a.id}')">Marcar leída</button>` : ''}
-    ${a.estado !== 'resuelta' ? `<button class="btn btn-blue btn-sm" onclick="resolverAlerta('${a.id}')">Resolver</button>` : ''}
-    ${a.clientPhone ? `<button class="btn btn-wa btn-sm" onclick="openAlertWA('${a.id}')">WA</button>` : ''}
-  </div>
-</td>
+          <div>${formatDate(String(a.createdAt || '').slice(0,10))}</div>
+          ${a.leidaAt ? `<div class="name-sub">Leída: ${formatDate(String(a.leidaAt).slice(0,10))}</div>` : ''}
+          ${a.resueltaAt ? `<div class="name-sub">Resuelta: ${formatDate(String(a.resueltaAt).slice(0,10))}</div>` : ''}
+        </td>
+
+        <td>
+          <div class="td-actions">
+            ${!a.leidaAt && estado !== 'resuelta' ? `
+              <button class="btn btn-secondary btn-sm" onclick="marcarAlertaLeida('${a.id}')">
+                Marcar leída
+              </button>
+            ` : ''}
+
+            ${estado !== 'resuelta' ? `
+              <button class="btn btn-blue btn-sm" onclick="resolverAlerta('${a.id}')">
+                Resolver
+              </button>
+            ` : ''}
+
+            ${a.clientPhone ? `
+              <button class="btn btn-wa btn-sm"
+                onclick="openWA('${esc(a.clientPhone)}','Hola ${esc((a.clientName||'').split(' ')[0]||'')}, vi tu nota sobre el entrenamiento. ¿Cómo te sientes ahora?')">
+                WA
+              </button>
+            ` : ''}
+          </div>
+        </td>
       </tr>
     `;
-  }).join('') : emptyRow(7,'No hay alertas registradas todavía.');
+  }).join('') : emptyRow(7,'No hay alertas en este filtro.');
 }
 
 function openAlertWA(alertaId){
