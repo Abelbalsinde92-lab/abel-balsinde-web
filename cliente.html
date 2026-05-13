@@ -621,15 +621,9 @@ async function loadClientDashboard(clientId) {
     clientAlerts             = halR.data  || [];
     clientPrograms           = proR.data  || [];
     clientTrainingAssignment = assignR.data?.[0] || null;
-    
-    console.log('CLIENT ID:', clientId);
-console.log('ASSIGN ERROR:', assignR.error);
-console.log('ASSIGN DATA:', assignR.data);
-console.log('ACTIVE ASSIGNMENT:', clientTrainingAssignment);
-    
     clientAssessments        = assR.data  || [];
 
-    // Load assessment results
+    // Assessment results
     clientAssessmentResults = [];
     if (clientAssessments.length) {
       const ids = clientAssessments.map(a => a.id);
@@ -637,223 +631,161 @@ console.log('ACTIVE ASSIGNMENT:', clientTrainingAssignment);
       clientAssessmentResults = rr.data || [];
     }
 
-    // Load visible training data from final multilingual view
-clientTrainingProgram   = null;
-clientTrainingWeeks     = [];
-clientTrainingSessions  = [];
-clientTrainingBlocks    = [];
-clientTrainingExercises = [];
+    // Training data
+    clientTrainingProgram   = null;
+    clientTrainingWeeks     = [];
+    clientTrainingSessions  = [];
+    clientTrainingBlocks    = [];
+    clientTrainingExercises = [];
 
-let pid = clientTrainingAssignment?.program_id || null;
+    const pid = clientTrainingAssignment?.program_id || null;
 
-let q = db
-  .from('client_training_plan_visible')
-  .select('*')
-  .eq('client_id', clientId);
+    if (pid) {
+      let q = db
+        .from('client_training_plan_visible')
+        .select('*')
+        .eq('client_id', clientId)
+        .eq('program_id', pid)
+        .order('week_order',    { ascending: true })
+        .order('session_order', { ascending: true })
+        .order('block_order',   { ascending: true })
+        .order('exercise_order',{ ascending: true });
 
-if (pid) {
-  q = q.eq('program_id', pid);
-}
+      const visibleR = await q.catch(e => ({ data: [], error: e }));
 
-q = q
-  .order('week_order', { ascending: true })
-  .order('session_order', { ascending: true })
-  .order('block_order', { ascending: true })
-  .order('exercise_order', { ascending: true });
+      if (visibleR.error) {
+        console.error('Vista entrenamiento error:', visibleR.error);
+      } else {
+        let rows = visibleR.data || [];
 
-let visibleR = { data: [], error: null };
+        // Filtrar por alcance
+        const scope = getAssignmentScope();
 
-try {
-  visibleR = await q;
-} catch (viewErr) {
-  console.error('Error JS leyendo vista:', viewErr);
-  visibleR = { data: [], error: viewErr };
-}
+        if (scope === 'day') {
+          const assignedWeek    = Number(clientTrainingAssignment?.assigned_week    || clientTrainingAssignment?.current_week || 1);
+          const assignedSession = Number(clientTrainingAssignment?.assigned_session_number || 1);
+          rows = rows.filter(r => Number(r.week_order) === assignedWeek && Number(r.session_order) === assignedSession);
+        } else if (scope === 'week') {
+          const assignedWeek = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
+          rows = rows.filter(r => Number(r.week_order) === assignedWeek);
+        } else if (scope === 'month') {
+          const assignedMonth = Number(clientTrainingAssignment?.assigned_month || 1);
+          const startWeek = (assignedMonth - 1) * 4 + 1;
+          rows = rows.filter(r => Number(r.week_order) >= startWeek && Number(r.week_order) <= startWeek + 3);
+        }
 
-console.log('CLIENT TRAINING ASSIGNMENT:', clientTrainingAssignment);
-console.log('VISIBLE VIEW ERROR:', visibleR.error);
-console.log('VISIBLE VIEW ERROR MESSAGE:', visibleR.error?.message);
-console.log('VISIBLE VIEW ERROR DETAILS:', visibleR.error?.details);
-console.log('VISIBLE VIEW ERROR HINT:', visibleR.error?.hint);
-console.log('VISIBLE ROWS RAW:', visibleR.data?.length || 0);
-console.log('VISIBLE FIRST ROW RAW:', visibleR.data?.[0] || null);
+        if (rows.length) {
+          const first = rows[0];
+          clientTrainingProgram = {
+            id:          first.program_id,
+            name:        first.program_name,
+            name_es:     first.program_name_es   || first.program_name,
+            name_sr:     first.program_name_sr   || '',
+            description: first.program_description,
+            description_es: first.program_description_es || first.program_description,
+            description_sr: first.program_description_sr || '',
+            objective:   first.program_objective,
+            objective_es: first.program_objective_es || first.program_objective,
+            objective_sr: first.program_objective_sr || '',
+          };
 
-window.__AB_DEBUG_CLIENT__ = {
-  clientId,
-  clientData,
-  clientTrainingAssignment,
-  visibleError: visibleR.error,
-  visibleRows: visibleR.data?.length || 0,
-  visibleFirstRow: visibleR.data?.[0] || null
-};
+          const weeksMap    = new Map();
+          const sessionsMap = new Map();
+          const blocksMap   = new Map();
 
-let rows = [];
+          rows.forEach(r => {
+            if (!weeksMap.has(r.week_id)) {
+              weeksMap.set(r.week_id, {
+                id:           r.week_id,
+                week_number:  r.week_order,
+                name:         r.week_name,
+                name_es:      r.week_name_es      || r.week_name,
+                name_sr:      r.week_name_sr      || '',
+                objective:    r.week_objective,
+                objective_es: r.week_objective_es || r.week_objective,
+                objective_sr: r.week_objective_sr || '',
+                focus:        r.week_focus,
+                focus_es:     r.week_focus_es     || r.week_focus,
+                focus_sr:     r.week_focus_sr     || '',
+              });
+            }
 
-if (visibleR.error) {
-  console.error('Visible training view error:', visibleR.error);
+            if (!sessionsMap.has(r.session_id)) {
+              sessionsMap.set(r.session_id, {
+                id:             r.session_id,
+                week_id:        r.week_id,
+                session_number: r.session_order,
+                title:          r.session_title,
+                title_es:       r.session_title_es  || r.session_title,
+                title_sr:       r.session_title_sr  || '',
+                objective:      r.session_objective,
+                objective_es:   r.session_objective_es || r.session_objective,
+                objective_sr:   r.session_objective_sr || '',
+                description:    r.session_description,
+                description_es: r.session_description_es || r.session_description,
+                description_sr: r.session_description_sr || '',
+                intensity:      r.session_intensity,
+              });
+            }
 
-  clientTrainingProgram = null;
-  clientTrainingWeeks = [];
-  clientTrainingSessions = [];
-  clientTrainingBlocks = [];
-  clientTrainingExercises = [];
-} else {
-  rows = visibleR.data || [];
-}
+            if (!blocksMap.has(r.block_id)) {
+              blocksMap.set(r.block_id, {
+                id:           r.block_id,
+                session_id:   r.session_id,
+                block_order:  r.block_order,
+                title:        r.block_title,
+                title_es:     r.block_title_es    || r.block_title,
+                title_sr:     r.block_title_sr    || '',
+                objective:    r.block_objective,
+                objective_es: r.block_objective_es || r.block_objective,
+                objective_sr: r.block_objective_sr || '',
+                description:  r.block_description,
+                description_es: r.block_description_es || r.block_description,
+                description_sr: r.block_description_sr || '',
+                type:         r.block_type,
+                duration:     r.block_duration,
+              });
+            }
 
-  await renderDashboard();
-  document.getElementById('loginScreen')?.classList.add('hidden');
-  document.getElementById('dashboardScreen')?.classList.remove('hidden');
-  showLoading(false);
+            clientTrainingExercises.push({
+              id:             r.exercise_id,
+              block_id:       r.block_id,
+              exercise_order: r.exercise_order,
+              name:           r.exercise_name,
+              name_es:        r.exercise_name_es        || r.exercise_name,
+              name_sr:        r.exercise_name_sr        || '',
+              description:    r.exercise_description,
+              description_es: r.exercise_description_es || r.exercise_description,
+              description_sr: r.exercise_description_sr || '',
+              sets:           r.sets,
+              reps:           r.reps,
+              time:           r.time,
+              rest:           r.rest,
+              variant_n1:     r.variant_n1,
+              variant_n1_es:  r.variant_n1_es || r.variant_n1,
+              variant_n1_sr:  r.variant_n1_sr || '',
+              variant_n2:     r.variant_n2,
+              variant_n2_es:  r.variant_n2_es || r.variant_n2,
+              variant_n2_sr:  r.variant_n2_sr || '',
+              variant_n3:     r.variant_n3,
+              variant_n3_es:  r.variant_n3_es || r.variant_n3,
+              variant_n3_sr:  r.variant_n3_sr || '',
+              variant_n4:     r.variant_n4,
+              variant_n4_es:  r.variant_n4_es || r.variant_n4,
+              variant_n4_sr:  r.variant_n4_sr || '',
+              coaching_notes:    r.coaching_notes,
+              coaching_notes_es: r.coaching_notes_es || r.coaching_notes,
+              coaching_notes_sr: r.coaching_notes_sr || '',
+              video_url:      r.video_url || '',
+            });
+          });
 
-  return;
-}
-
-let rows = visibleR.data || [];
-
-if (rows.length) {
-  if (!pid) {
-    pid = rows[0].program_id;
-  }
-
-  const scope = getAssignmentScope();
-
-  console.log('ASSIGNMENT SCOPE:', scope);
-  console.log('ASSIGNED WEEK:', clientTrainingAssignment?.assigned_week);
-  console.log('CURRENT WEEK:', clientTrainingAssignment?.current_week);
-  console.log('ASSIGNED MONTH:', clientTrainingAssignment?.assigned_month);
-  console.log('ASSIGNED SESSION:', clientTrainingAssignment?.assigned_session_number);
-
-  if (clientTrainingAssignment) {
-    if (scope === 'day') {
-      const assignedWeek = Number(
-        clientTrainingAssignment?.assigned_week ||
-        clientTrainingAssignment?.current_week ||
-        1
-      );
-
-      const assignedSession = Number(
-        clientTrainingAssignment?.assigned_session_number ||
-        1
-      );
-
-      rows = rows.filter(r =>
-        Number(r.week_order) === assignedWeek &&
-        Number(r.session_order) === assignedSession
-      );
-    }
-
-    else if (scope === 'week') {
-      const assignedWeek = Number(
-        clientTrainingAssignment?.assigned_week ||
-        clientTrainingAssignment?.current_week ||
-        1
-      );
-
-      rows = rows.filter(r =>
-        Number(r.week_order) === assignedWeek
-      );
-    }
-
-    else if (scope === 'month') {
-      const assignedMonth = Number(clientTrainingAssignment?.assigned_month || 1);
-      const startWeek = (assignedMonth - 1) * 4 + 1;
-      const endWeek = startWeek + 3;
-
-      rows = rows.filter(r =>
-        Number(r.week_order) >= startWeek &&
-        Number(r.week_order) <= endWeek
-      );
-    }
-  }
-
-  console.log('VISIBLE ROWS AFTER FILTER:', rows.length);
-  console.log('FIRST VISIBLE ROW:', rows[0]);
-
-  window.__AB_DEBUG_CLIENT__.visibleRowsAfterFilter = rows.length;
-window.__AB_DEBUG_CLIENT__.visibleFirstRowAfterFilter = rows[0] || null;
-  
-  if (rows.length) {
-    const first = rows[0];
-
-    clientTrainingProgram = {
-      id: first.program_id,
-      name: first.program_name,
-      description: first.program_description,
-      objective: first.program_objective
-    };
-
-    const weeksMap = new Map();
-    const sessionsMap = new Map();
-    const blocksMap = new Map();
-
-    rows.forEach(r => {
-      if (!weeksMap.has(r.week_id)) {
-        weeksMap.set(r.week_id, {
-          id: r.week_id,
-          week_number: r.week_order,
-          order_index: r.week_order,
-          name: r.week_name,
-          description: r.week_description,
-          objective: r.week_objective,
-          focus: r.week_focus
-        });
+          clientTrainingWeeks    = Array.from(weeksMap.values()).sort((a,b) => Number(a.week_number||0) - Number(b.week_number||0));
+          clientTrainingSessions = Array.from(sessionsMap.values()).sort((a,b) => Number(a.session_number||0) - Number(b.session_number||0));
+          clientTrainingBlocks   = Array.from(blocksMap.values()).sort((a,b) => Number(a.block_order||0) - Number(b.block_order||0));
+        }
       }
-
-      if (!sessionsMap.has(r.session_id)) {
-        sessionsMap.set(r.session_id, {
-          id: r.session_id,
-          week_id: r.week_id,
-          session_number: r.session_order,
-          order_index: r.session_order,
-          title: r.session_title,
-          description: r.session_description,
-          objective: r.session_objective,
-          intensity: r.session_intensity
-        });
-      }
-
-      if (!blocksMap.has(r.block_id)) {
-        blocksMap.set(r.block_id, {
-          id: r.block_id,
-          session_id: r.session_id,
-          block_order: r.block_order,
-          order_index: r.block_order,
-          title: r.block_title,
-          description: r.block_description,
-          objective: r.block_objective,
-          type: r.block_type
-        });
-      }
-
-      clientTrainingExercises.push({
-        id: r.exercise_id,
-        block_id: r.block_id,
-        exercise_order: r.exercise_order,
-        order_index: r.exercise_order,
-        name: r.exercise_name,
-        description: r.exercise_description,
-        variant_n1: r.variant_n1,
-        variant_n2: r.variant_n2,
-        variant_n3: r.variant_n3,
-        variant_n4: r.variant_n4,
-        coaching_notes: r.coaching_notes
-      });
-    });
-
-    clientTrainingWeeks = Array.from(weeksMap.values()).sort(
-      (a, b) => Number(a.week_number || 0) - Number(b.week_number || 0)
-    );
-
-    clientTrainingSessions = Array.from(sessionsMap.values()).sort(
-      (a, b) => Number(a.session_number || 0) - Number(b.session_number || 0)
-    );
-
-    clientTrainingBlocks = Array.from(blocksMap.values()).sort(
-      (a, b) => Number(a.block_order || 0) - Number(b.block_order || 0)
-    );
-  }
-}
+    }
 
     await renderDashboard();
     document.getElementById('loginScreen')?.classList.add('hidden');
