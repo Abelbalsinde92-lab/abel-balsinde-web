@@ -949,6 +949,54 @@ function renderBadges(){
   set('badge-partners',state.partners.length);
 }
 
+function buildAlertWhatsAppMessage(alerta){
+  const nombre = (alerta.clientName || 'cliente').split(' ')[0] || 'cliente';
+  const tipo = alerta.tipoAlerta || alerta.tipo_alerta || '';
+  const nivel = alerta.nivel || '';
+  const mensaje = alerta.mensaje || '';
+
+  const isCritica =
+    nivel === 'critica' ||
+    mensaje.toLowerCase().includes('dolor') ||
+    mensaje.toLowerCase().includes('paré') ||
+    mensaje.toLowerCase().includes('pare') ||
+    mensaje.toLowerCase().includes('molestia');
+
+  if (tipo === 'feedback_entrenamiento' || tipo === 'molestia_entrenamiento') {
+    if (isCritica) {
+      return `Hola ${nombre}, vi tu reporte del entrenamiento.
+
+Me aparece que tuviste molestia o dolor.
+
+Dime ahora mismo:
+1. ¿Dónde exactamente lo sientes?
+2. ¿El dolor sigue, aumentó o bajó?
+3. ¿Pudiste caminar/moverte normal después?
+
+Por ahora no hagas ejercicios de impacto ni trabajo fuerte de esa zona hasta que lo revise.`;
+    }
+
+    return `Hola ${nombre}, vi tu feedback del entrenamiento.
+
+Quiero confirmar cómo te sientes después de la sesión:
+¿todo quedó bien o hay alguna molestia que deba revisar?`;
+  }
+
+  if (tipo === 'resultado_medico_nuevo') {
+    return `Hola ${nombre}, vi que subiste un resultado médico.
+
+Lo voy a revisar. Mientras tanto, dime si tienes alguna indicación médica importante que deba tener en cuenta para ajustar el entrenamiento.`;
+  }
+
+  if (tipo === 'reserva_nueva') {
+    return `Hola ${nombre}, vi tu reserva.
+
+Te confirmo en breve los detalles de la sesión.`;
+  }
+
+  return `Hola ${nombre}, vi una alerta en tu perfil y quiero revisar cómo estás.`;
+}
+
 function renderAlertas(){
   const metricsEl = document.getElementById('alertasMetrics');
   const tableEl = document.getElementById('alertasTable');
@@ -984,8 +1032,11 @@ function renderAlertas(){
   tableEl.innerHTML = rows.length ? rows.map(a => {
     const estado = a.leidaAt ? 'leida' : (a.estado || 'pendiente');
     const badgeEstado = estado === 'pendiente' ? 'pendiente' : 'pagado';
-    const badgeNivel = a.nivel === 'critica' || a.nivel === 'alerta'
-      ? 'alerta'
+    const badgeNivel =
+  a.nivel === 'critica'
+    ? 'alerta'
+    : a.nivel === 'alerta'
+      ? 'vencido'
       : a.nivel === 'precaucion'
         ? 'pendiente'
         : 'prospecto';
@@ -1013,12 +1064,26 @@ function renderAlertas(){
   <div class="td-actions">
     ${!a.leidaAt ? `<button class="btn btn-primary btn-sm" onclick="marcarAlertaLeida('${a.id}')">Marcar leída</button>` : ''}
     ${a.estado !== 'resuelta' ? `<button class="btn btn-blue btn-sm" onclick="resolverAlerta('${a.id}')">Resolver</button>` : ''}
-    ${a.clientPhone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(a.clientPhone)}','Hola ${esc((a.clientName||'').split(' ')[0]||'')}, vi tu nota sobre el entrenamiento. ¿Cómo te sientes ahora?')">WA</button>` : ''}
+    ${a.clientPhone ? `<button class="btn btn-wa btn-sm" onclick="openAlertWA('${a.id}')">WA</button>` : ''}
   </div>
 </td>
       </tr>
     `;
   }).join('') : emptyRow(7,'No hay alertas registradas todavía.');
+}
+
+function openAlertWA(alertaId){
+  const alerta = state.alertas.find(a => a.id === alertaId);
+
+  if(!alerta){
+    showToast('Alerta no encontrada');
+    return;
+  }
+
+  const phone = alerta.clientPhone || alerta.client_phone || state.settings.coachPhone;
+  const msg = buildAlertWhatsAppMessage(alerta);
+
+  openWA(phone, msg);
 }
 
 async function marcarAlertaLeida(id){
