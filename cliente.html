@@ -1505,14 +1505,25 @@ html += '<div class="training-day-panel training-week-panel' + (isActiveWeekPane
   el.innerHTML = html;
   applySavedTrainingState();
 
-  const firstPending = allSteps.find(s => !completedTrainingBlocks.has(s.blockId));
-  if (firstPending) {
-    activeTrainingBlockKey = firstPending.blockId;
-    const card = document.getElementById('step-' + firstPending.blockId);
-    if (card) card.classList.add('open');
-  } else {
-    renderTrainingCompletionBox(false);
-  }
+  const activeSessionId = getCurrentVisibleSessionId() || initialActiveSessionId;
+const activeSessionFinished = isSessionFinished(activeSessionId);
+const activeSessionSteps = activeSessionId ? buildTrainingSteps(activeSessionId) : allSteps;
+
+if (activeSessionFinished) {
+  const area = document.getElementById('trainingCompletionArea');
+  if (area) area.innerHTML = '';
+  return;
+}
+
+const firstPending = activeSessionSteps.find(s => !completedTrainingBlocks.has(s.blockId));
+
+if (firstPending) {
+  activeTrainingBlockKey = firstPending.blockId;
+  const card = document.getElementById('step-' + firstPending.blockId);
+  if (card) card.classList.add('open');
+} else {
+  renderTrainingCompletionBox(false);
+}
 }
 
 function buildTrainingStepHTML(step, index) {
