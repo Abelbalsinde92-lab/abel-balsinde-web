@@ -3,7 +3,7 @@
   "trailingSlash": false,
   "headers": [
     {
-      "source": "/cliente",
+      "source": "/(.*).html",
       "headers": [
         {
           "key": "Cache-Control",
@@ -12,7 +12,7 @@
       ]
     },
     {
-      "source": "/cliente.html",
+      "source": "/cliente",
       "headers": [
         {
           "key": "Cache-Control",
@@ -30,7 +30,7 @@
       ]
     },
     {
-      "source": "/cliente-sr.html",
+      "source": "/admin",
       "headers": [
         {
           "key": "Cache-Control",
@@ -48,16 +48,7 @@
       ]
     },
     {
-      "source": "/admin",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/admin.html",
+      "source": "/sw.js",
       "headers": [
         {
           "key": "Cache-Control",
