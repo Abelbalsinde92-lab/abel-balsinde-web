@@ -1075,12 +1075,14 @@ async function saveTrainingProgress(extra) {
   const local = loadTrainingProgressLocal() || {};
   try {
     const saved = await db.from('client_session_logs').update({
-      completed_block_ids: Array.from(completedTrainingBlocks),
-      is_finished: local.is_finished || false,
-      client_note: local.client_note || null,
-      updated_at: new Date().toISOString(),
-      ...(extra || {})
-    }).eq('id', currentTrainingLog.id).select().single();
+  completed_block_ids: Array.from(completedTrainingBlocks),
+  is_finished: local.is_finished || false,
+  client_note: local.client_note || null,
+  client_feedback_tags: local.client_feedback_tags || extra?.client_feedback_tags || [],
+  client_feedback_summary: local.client_feedback_summary || extra?.client_feedback_summary || null,
+  updated_at: new Date().toISOString(),
+  ...(extra || {})
+}).eq('id', currentTrainingLog.id).select().single();
     if (!saved.error) { currentTrainingLog = saved.data; saveTrainingProgressLocal(currentTrainingLog); }
   } catch (err) { console.error('Log save error:', err); }
 }
@@ -1372,13 +1374,88 @@ function isTrainingComplete() {
 function renderTrainingCompletionBox(scroll) {
   const area = document.getElementById('trainingCompletionArea');
   if (!area) return;
-  area.innerHTML = '<div class="training-finish-card"><div class="training-finish-icon">🏁</div><div class="training-finish-title">Entrenamiento completado</div><div class="training-finish-sub">Has completado todos los bloques. ¡Buen trabajo!</div><button class="training-complete-block-btn" onclick="finishTrainingSession()">Marcar entrenamiento terminado</button></div>';
+
+  area.innerHTML =
+    '<div class="training-finish-card">' +
+      '<div class="training-finish-icon">🏁</div>' +
+      '<div class="training-finish-title">Entrenamiento completado</div>' +
+      '<div class="training-finish-sub">Has completado todos los bloques. Antes de cerrar, marca cómo fue la sesión.</div>' +
+
+      '<div class="training-notes-box" style="text-align:left;margin-top:16px;">' +
+        '<div class="training-notes-title">Observaciones rápidas</div>' +
+        '<div class="training-notes-sub">Esto ayuda a Abel a ajustar cargas, molestias y dificultad del próximo entrenamiento.</div>' +
+
+        '<div id="trainingFeedbackTags" style="display:grid;gap:8px;margin:12px 0;">' +
+          buildFeedbackTag('ok', 'Todo bien, sin molestias') +
+          buildFeedbackTag('molestias', 'Tuve molestias') +
+          buildFeedbackTag('dolor_pare', 'Sentí dolor y paré') +
+          buildFeedbackTag('baje_peso', 'Tuve que bajar el peso') +
+          buildFeedbackTag('subi_peso', 'Tuve que subir el peso') +
+          buildFeedbackTag('muy_cansado', 'Me sentí muy cansado') +
+          buildFeedbackTag('no_complete', 'No pude completar todos los bloques') +
+          buildFeedbackTag('falto_tiempo', 'Me faltó tiempo') +
+          buildFeedbackTag('no_entendi', 'No entendí bien un ejercicio') +
+          buildFeedbackTag('revisar', 'Necesito que Abel revise este entrenamiento') +
+        '</div>' +
+
+        '<textarea class="training-notes-textarea" id="trainingFinishNote" placeholder="Comentario opcional para Abel..."></textarea>' +
+
+        '<button class="training-complete-block-btn" onclick="finishTrainingSession()">Cerrar entrenamiento</button>' +
+      '</div>' +
+    '</div>';
+
   if (scroll !== false) area.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
+function buildFeedbackTag(value, label) {
+  return (
+    '<label style="display:flex;align-items:center;gap:10px;background:var(--navy2);border:1px solid #1e3450;border-radius:8px;padding:10px 12px;color:var(--white);font-size:13px;">' +
+      '<input type="checkbox" class="training-feedback-check" value="' + value + '" style="width:18px;height:18px;accent-color:var(--blue);">' +
+      '<span>' + label + '</span>' +
+    '</label>'
+  );
+}
+
 async function finishTrainingSession() {
-  saveTrainingProgressLocal({ is_finished:true, finished_at:new Date().toISOString() });
-  await saveTrainingProgress({ is_finished:true, finished_at:new Date().toISOString() });
+  const checkedTags = Array.from(document.querySelectorAll('.training-feedback-check:checked'))
+    .map(input => input.value);
+
+  const noteEl = document.getElementById('trainingFinishNote');
+  const note = noteEl ? noteEl.value.trim() : '';
+
+  const feedbackLabels = {
+    ok: 'Todo bien, sin molestias',
+    molestias: 'Tuve molestias',
+    dolor_pare: 'Sentí dolor y paré',
+    baje_peso: 'Tuve que bajar el peso',
+    subi_peso: 'Tuve que subir el peso',
+    muy_cansado: 'Me sentí muy cansado',
+    no_complete: 'No pude completar todos los bloques',
+    falto_tiempo: 'Me faltó tiempo',
+    no_entendi: 'No entendí bien un ejercicio',
+    revisar: 'Necesito que Abel revise este entrenamiento'
+  };
+
+  const feedbackSummary = checkedTags
+    .map(t => feedbackLabels[t] || t)
+    .join(' · ');
+
+  saveTrainingProgressLocal({
+    is_finished: true,
+    finished_at: new Date().toISOString(),
+    client_note: note,
+    client_feedback_tags: checkedTags,
+    client_feedback_summary: feedbackSummary
+  });
+
+  await saveTrainingProgress({
+    is_finished: true,
+    finished_at: new Date().toISOString(),
+    client_note: note || null,
+    client_feedback_tags: checkedTags,
+    client_feedback_summary: feedbackSummary || null
+  });
+
   const el = document.getElementById('sectionTrainingClient');
   if (el) {
     const aw = getActiveTrainingWeek();
@@ -1386,10 +1463,15 @@ async function finishTrainingSession() {
     const lv = getAssignedTrainingLevel();
     const obj = aw?.objective || clientTrainingProgram?.objective || '';
     const _lg = getLang();
-    el.innerHTML = '<div class="training-guide-summary"><div class="training-guide-title">' + (pickLang(clientTrainingProgram, 'name', _lg) || 'Programa') + '</div>'
-      + '<div class="training-guide-meta">' + [sp,lv].filter(Boolean).join(' · ') + '</div>'
-      + (obj ? '<div class="training-week-objective">'+obj+'</div>' : '') + '</div>';
+
+    el.innerHTML =
+      '<div class="training-guide-summary">' +
+        '<div class="training-guide-title">' + (pickLang(clientTrainingProgram, 'name', _lg) || 'Programa') + '</div>' +
+        '<div class="training-guide-meta">' + [sp, lv].filter(Boolean).join(' · ') + '</div>' +
+        (obj ? '<div class="training-week-objective">' + obj + '</div>' : '') +
+      '</div>';
   }
+
   renderTrainingCompletedState();
 }
 
