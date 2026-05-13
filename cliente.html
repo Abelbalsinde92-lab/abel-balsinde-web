@@ -904,12 +904,8 @@ function renderProgram() {
 ══════════════════════════════════════════════════════════ */
 
 function getSessionDayLabel(session, index) {
-  const title = String(session.title || session.name || '').toLowerCase();
-  const code  = String(session.session_code || '').toLowerCase();
-  const num   = Number(session.session_number || index + 1);
-  if (title.includes('día a') || title.includes('dia a') || code.includes('a')) return 'Día A';
-  if (title.includes('día b') || title.includes('dia b') || code.includes('b')) return 'Día B';
-  if (title.includes('día c') || title.includes('dia c') || code.includes('c')) return 'Día C';
+  const num = Number(session.session_number || index + 1);
+  // Usar solo el número de sesión, nunca el título (evita mezcla de idiomas)
   if (num === 1) return 'Día A';
   if (num === 2) return 'Día B';
   if (num === 3) return 'Día C';
@@ -920,8 +916,9 @@ function getSessionDisplayTitle(session, index) {
   const day   = getSessionDayLabel(session, index);
   const _lg   = getLang();
   const title = pickLang(session, 'title', _lg) || pickLang(session, 'name', _lg) || '';
-  if (title && !String(title).toLowerCase().includes(day.toLowerCase())) return day + ' · ' + title;
-  return title || day;
+  // Si el título ya contiene la etiqueta del día, no duplicar
+  if (!title || title.toLowerCase() === day.toLowerCase()) return day;
+  return day + ' · ' + title;
 }
 
 function showTrainingDay(sessionId) {
@@ -929,6 +926,19 @@ function showTrainingDay(sessionId) {
   document.querySelectorAll('.training-day-panel').forEach(p => p.classList.toggle('active', p.dataset.sessionId === sessionId));
   const active = document.querySelector('.training-day-panel.active');
   if (active) active.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function showTrainingWeekPanel(weekId) {
+  // Pestañas de semana
+  document.querySelectorAll('.training-day-tab[data-session-id^="week-"]').forEach(b => {
+    b.classList.toggle('active', b.dataset.sessionId === 'week-' + weekId);
+  });
+  // Paneles de semana
+  document.querySelectorAll('.training-day-panel[data-session-id^="week-"]').forEach(p => {
+    p.classList.toggle('active', p.dataset.sessionId === 'week-' + weekId);
+  });
+  const active = document.querySelector('.training-day-panel[data-session-id="week-' + weekId + '"]');
+  if (active) active.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function buildTrainingSteps(sessionIdFilter) {
@@ -1124,20 +1134,63 @@ async function renderClientTraining() {
   let html = summaryHtml;
 
   if (clientTrainingSessions.length > 1) {
-    // Multi-day tabs
-    html += '<div class="training-day-tabs">';
-    clientTrainingSessions.forEach((session, i) => {
-      const sid = String(session.id);
-      html += '<button class="training-day-tab' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' + getSessionDayLabel(session, i) + '</button>';
+    // Agrupar sesiones por semana para mostrar pestañas correctas
+    const sessionsByWeek = new Map();
+    clientTrainingSessions.forEach(session => {
+      const wid = String(session.week_id);
+      if (!sessionsByWeek.has(wid)) sessionsByWeek.set(wid, []);
+      sessionsByWeek.get(wid).push(session);
     });
-    html += '</div>';
-    clientTrainingSessions.forEach((session, i) => {
-      const sid = String(session.id);
-      const steps = buildTrainingSteps(sid);
-      html += '<div class="training-day-panel' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '"><div class="training-step-list">';
-      steps.forEach((step, j) => { html += buildTrainingStepHTML(step, j); });
-      html += '</div></div>';
-    });
+
+    const weeks = Array.from(sessionsByWeek.entries());
+
+    if (weeks.length === 1) {
+      // Una sola semana — mostrar pestañas por día normalmente
+      const sessions = weeks[0][1];
+      html += '<div class="training-day-tabs">';
+      sessions.forEach((session, i) => {
+        const sid = String(session.id);
+        html += '<button class="training-day-tab' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' + getSessionDayLabel(session, i) + '</button>';
+      });
+      html += '</div>';
+      sessions.forEach((session, i) => {
+        const sid = String(session.id);
+        const steps = buildTrainingSteps(sid);
+        html += '<div class="training-day-panel' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '"><div class="training-step-list">';
+        steps.forEach((step, j) => { html += buildTrainingStepHTML(step, j); });
+        html += '</div></div>';
+      });
+    } else {
+      // Múltiples semanas — pestañas por semana, sesiones dentro de cada una
+      html += '<div class="training-day-tabs">';
+      weeks.forEach(([wid, sessions], wi) => {
+        const week = clientTrainingWeeks.find(w => String(w.id) === wid);
+        const weekLabel = 'Semana ' + (week?.week_number || (wi + 1));
+        html += '<button class="training-day-tab' + (wi === 0 ? ' active' : '') + '" data-session-id="week-' + wid + '" onclick="showTrainingWeekPanel(\'' + wid + '\')">' + weekLabel + '</button>';
+      });
+      html += '</div>';
+      weeks.forEach(([wid, sessions], wi) => {
+        const week = clientTrainingWeeks.find(w => String(w.id) === wid);
+        const weekObj = pickLang(week, 'objective', lg);
+        html += '<div class="training-day-panel' + (wi === 0 ? ' active' : '') + '" data-session-id="week-' + wid + '">';
+        if (weekObj) html += '<div class="training-week-objective" style="margin-bottom:12px">' + weekObj + '</div>';
+        // Sub-pestañas de días dentro de la semana
+        html += '<div class="training-day-tabs" style="margin-top:0">';
+        sessions.forEach((session, si) => {
+          const sid = String(session.id);
+          html += '<button class="training-day-tab' + (si === 0 ? ' active' : '') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' + getSessionDayLabel(session, si) + '</button>';
+        });
+        html += '</div>';
+        sessions.forEach((session, si) => {
+          const sid = String(session.id);
+          const steps = buildTrainingSteps(sid);
+          html += '<div class="training-day-panel' + (si === 0 ? ' active' : '') + '" data-session-id="' + sid + '"><div class="training-step-list">';
+          steps.forEach((step, j) => { html += buildTrainingStepHTML(step, j); });
+          html += '</div></div>';
+        });
+        html += '</div>';
+      });
+    }
   } else {
     html += '<div class="training-step-list">';
     allSteps.forEach((step, i) => { html += buildTrainingStepHTML(step, i); });
