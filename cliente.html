@@ -666,12 +666,34 @@ const visibleR = await q;
 console.log('CLIENT TRAINING ASSIGNMENT:', clientTrainingAssignment);
 console.log('VISIBLE VIEW ERROR:', visibleR.error);
 console.log('VISIBLE ROWS RAW:', visibleR.data?.length || 0);
+console.log('VISIBLE ROWS DATA:', visibleR.data);
 
 if (visibleR.error) {
   console.error('Visible training view error:', visibleR.error);
+
+  clientTrainingProgram = {
+    id: pid || clientTrainingAssignment?.program_id || 'error',
+    name: 'ERROR CARGANDO VISTA',
+    description: visibleR.error.message || '',
+    objective: visibleR.error.details || visibleR.error.hint || 'Revisar permisos de client_training_plan_visible'
+  };
+
+  clientTrainingWeeks = [];
+  clientTrainingSessions = [];
+  clientTrainingBlocks = [];
+  clientTrainingExercises = [];
 }
 
 let rows = visibleR.data || [];
+
+window.__AB_DEBUG_CLIENT__ = {
+  clientId,
+  clientData,
+  clientTrainingAssignment,
+  visibleError: visibleR.error,
+  visibleRows: rows.length,
+  visibleFirstRow: rows[0] || null
+};
 
 if (rows.length) {
   if (!pid) {
@@ -1086,8 +1108,21 @@ async function renderClientTraining() {
   currentTrainingLog      = null;
 
   if (!clientTrainingProgram) {
-  if (badge) badge.textContent = 'Sin asignar';
-  el.innerHTML = '<p class="empty-state">Todavía no tienes un programa de entrenamiento asignado. Cuando Abel active tu plan, aparecerá aquí.</p>';
+  if (badge) badge.textContent = 'Diagnóstico';
+
+  el.innerHTML =
+    '<p class="empty-state">No se pudo construir el programa desde cliente.html.</p>' +
+    '<div class="data-card">' +
+      '<div class="dc-row"><span class="dc-title">Diagnóstico cliente</span></div>' +
+      '<div class="dc-note">Cliente ID: ' + (clientData?.id || '—') + '</div>' +
+      '<div class="dc-note">Asignación activa: ' + (clientTrainingAssignment?.id || 'NO') + '</div>' +
+      '<div class="dc-note">Programa ID: ' + (clientTrainingAssignment?.program_id || 'NO') + '</div>' +
+      '<div class="dc-note">Alcance: ' + (clientTrainingAssignment?.assignment_scope || 'NO') + '</div>' +
+      '<div class="dc-note">Nivel: ' + (clientTrainingAssignment?.assigned_level || 'NO') + '</div>' +
+      '<div class="dc-note">Debug visible rows: ' + (window.__AB_DEBUG_CLIENT__?.visibleRows ?? 'NO DEBUG') + '</div>' +
+      '<div class="dc-note">Error vista: ' + (window.__AB_DEBUG_CLIENT__?.visibleError?.message || 'Sin error visible') + '</div>' +
+    '</div>';
+
   return;
 }
 
