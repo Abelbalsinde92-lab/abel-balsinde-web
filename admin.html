@@ -2831,7 +2831,85 @@ async function saveModal(e){
 
   const scope = data.assignmentScope || 'full';
 
+  let assignedMonth = null;
+  let assignedWeek = null;
+  let assignedSessionNumber = null;
+
+  if(scope === 'month'){
+    assignedMonth = data.assignedMonth || 1;
+  }
+
+  if(scope === 'week'){
+    assignedWeek = data.assignedWeek || data.currentWeek || 1;
+  }
+
+  if(scope === 'day'){
+    assignedWeek = data.assignedWeek || data.currentWeek || 1;
+    assignedSessionNumber = data.assignedSessionNumber || 1;
+  }
+
   let automaticLabel = 'Plan completo';
+
+  if(scope === 'month'){
+    automaticLabel = assignedMonth
+      ? `Mes ${assignedMonth}`
+      : 'Mes completo';
+  }
+
+  if(scope === 'week'){
+    automaticLabel = assignedWeek
+      ? `Semana ${assignedWeek}`
+      : 'Semana completa';
+  }
+
+  if(scope === 'day'){
+    const dayLetter =
+      String(assignedSessionNumber) === '1' ? 'A' :
+      String(assignedSessionNumber) === '2' ? 'B' :
+      String(assignedSessionNumber) === '3' ? 'C' :
+      assignedSessionNumber || '';
+
+    automaticLabel = assignedWeek
+      ? `Día ${dayLetter} · Semana ${assignedWeek}`
+      : `Día ${dayLetter}`;
+  }
+
+  const cleanAssignment = {
+    clientId: data.clientId,
+    programId: data.programId,
+    status: 'activo',
+    assignmentScope: scope,
+    assignedLevel: data.assignedLevel || 'N1',
+    currentWeek: data.currentWeek || 1,
+
+    assignedMonth: assignedMonth,
+    assignedWeek: assignedWeek,
+    assignedSessionNumber: assignedSessionNumber,
+
+    commercialLabel: data.commercialLabel || automaticLabel,
+    startDate: data.startDate || todayISO(),
+    coachNotes: data.coachNotes || ''
+  };
+
+  const { error: deErr } = await db
+    .from('client_program_assignments')
+    .update({ status: 'inactivo' })
+    .eq('client_id', cleanAssignment.clientId)
+    .eq('status', 'activo');
+
+  if(deErr) throw deErr;
+
+  state.clientProgramAssignments = state.clientProgramAssignments.map(a => {
+    if(a.clientId === cleanAssignment.clientId && a.status === 'activo' && a.id !== id){
+      return { ...a, status:'inactivo' };
+    }
+    return a;
+  });
+
+  await upsert('clientProgramAssignments', cleanAssignment);
+
+  showToast('Entrenamiento asignado al cliente');
+}
 
   if(scope === 'month'){
     automaticLabel = data.assignedMonth
