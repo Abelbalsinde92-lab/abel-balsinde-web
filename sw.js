@@ -1,11 +1,6 @@
-const CACHE_NAME = 'ab-system-v15';
+const CACHE_NAME = 'ab-system-v16';
 
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/cliente.html',
-  '/cliente-sr.html',
-  '/admin.html',
   '/manifest.json',
   '/hero-ab-system.png.PNG',
   '/hero-gym-red.jpeg',
@@ -25,11 +20,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
-      )
+      Promise.all(keys.map(key => caches.delete(key)))
     )
   );
   self.clients.claim();
@@ -39,27 +30,42 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
   const request = event.request;
+  const url = new URL(request.url);
 
-  // Para páginas HTML: primero red, luego caché.
-  if (
+  if (url.origin !== location.origin) return;
+
+  const path = url.pathname;
+
+  const isHtmlNavigation =
     request.mode === 'navigate' ||
-    request.headers.get('accept')?.includes('text/html')
-  ) {
+    request.headers.get('accept')?.includes('text/html');
+
+  const noCachePaths = [
+    '/',
+    '/index',
+    '/index.html',
+    '/cliente',
+    '/cliente.html',
+    '/cliente-sr',
+    '/cliente-sr.html',
+    '/admin',
+    '/admin.html',
+    '/auth.js',
+    '/sw.js'
+  ];
+
+  if (isHtmlNavigation || noCachePaths.includes(path)) {
     event.respondWith(
-      fetch(request)
-        .then(response => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
-          return response;
-        })
-        .catch(() =>
-          caches.match(request).then(cached => cached || caches.match('/'))
-        )
+      fetch(request, { cache: 'no-store' }).catch(() => {
+        return new Response(
+          '<h1>Sin conexión</h1><p>Actualiza cuando tengas internet.</p>',
+          { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+        );
+      })
     );
     return;
   }
 
-  // Para assets: primero caché, luego red.
   event.respondWith(
     caches.match(request).then(cachedResponse => {
       return cachedResponse || fetch(request).then(response => {
