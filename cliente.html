@@ -239,7 +239,50 @@
     .training-notes-textarea{width:100%;background:var(--navy2);border:1px solid #1e3450;border-radius:8px;padding:12px 14px;color:var(--white);font-size:14px;font-family:var(--font-body);line-height:1.6;resize:vertical;min-height:100px;margin-bottom:10px;display:block}
     .training-notes-textarea:focus{border-color:var(--blue);outline:none}
     .training-note-saved{color:var(--green);font-family:var(--font-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:8px 0}
+    .training-session-completed-card{
+  background:rgba(34,197,94,.06);
+  border:1px solid rgba(34,197,94,.35);
+  border-radius:14px;
+  padding:16px;
+  margin:10px 0 14px;
+}
 
+.training-session-completed-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.training-session-completed-icon{
+  width:36px;
+  height:36px;
+  border-radius:8px;
+  background:rgba(34,197,94,.12);
+  border:1px solid var(--green);
+  color:var(--green);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  flex-shrink:0;
+}
+
+.training-session-completed-title{
+  font-size:15px;
+  font-weight:700;
+  color:var(--white);
+  line-height:1.3;
+}
+
+.training-session-completed-sub{
+  font-family:var(--font-mono);
+  font-size:10px;
+  color:var(--green);
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  margin-top:3px;
+}
+    
     /* Evaluaciones */
     .assessment-card{background:var(--navy3);border:1px solid #1e3450;border-radius:12px;margin-bottom:14px;overflow:hidden}
     .assessment-card-header{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;cursor:pointer}
@@ -459,15 +502,43 @@ let currentTrainingLog      = null;
 function getTrainingStorageKey(sessionId) {
   if (!clientData || !clientTrainingAssignment) return null;
 
-  const sid = sessionId || getCurrentVisibleSessionId() || 'general';
+  const sid =
+    sessionId ||
+    getCurrentVisibleSessionId?.() ||
+    'general';
 
-  return [
-    'ab_tp',
-    clientData.id,
-    clientTrainingAssignment.id,
-    sid,
-    todayISO()
-  ].join('_');
+  return ['ab_tp', clientData.id, clientTrainingAssignment.id, sid, todayISO()].join('_');
+}
+
+function isSessionFinished(sessionId) {
+  const key = getTrainingStorageKey(sessionId);
+  if (!key) return false;
+
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return false;
+
+    const data = JSON.parse(raw);
+    return data?.is_finished === true;
+  } catch {
+    return false;
+  }
+}
+
+function buildCompletedSessionCard(session, index) {
+  const title = getSessionDisplayTitle(session, index);
+
+  return (
+    '<div class="training-session-completed-card">' +
+      '<div class="training-session-completed-row">' +
+        '<div class="training-session-completed-icon">✓</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div class="training-session-completed-title">' + title + '</div>' +
+          '<div class="training-session-completed-sub">Entrenamiento completado</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
 }
 function loadTrainingProgressLocal(sessionId) {
   const key = getTrainingStorageKey(sessionId);
@@ -1268,9 +1339,21 @@ async function renderClientTraining() {
       const sessions = weeks[0][1];
       html += '<div class="training-day-tabs">';
       sessions.forEach((session, i) => {
-        const sid = String(session.id);
-        html += '<button class="training-day-tab' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' + getSessionDayLabel(session, i) + '</button>';
-      });
+  const sid = String(session.id);
+
+  html += '<div class="training-day-panel' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '">';
+
+  if (isSessionFinished(sid)) {
+    html += buildCompletedSessionCard(session, i);
+  } else {
+    const steps = buildTrainingSteps(sid);
+    html += '<div class="training-step-list">';
+    steps.forEach((step, j) => { html += buildTrainingStepHTML(step, j); });
+    html += '</div>';
+  }
+
+  html += '</div>';
+});
       html += '</div>';
       sessions.forEach((session, i) => {
         const sid = String(session.id);
@@ -1301,12 +1384,21 @@ async function renderClientTraining() {
         });
         html += '</div>';
         sessions.forEach((session, si) => {
-          const sid = String(session.id);
-          const steps = buildTrainingSteps(sid);
-          html += '<div class="training-session-panel' + (si === 0 ? ' active' : '') + '" data-session-id="' + sid + '"><div class="training-step-list">';
-          steps.forEach((step, j) => { html += buildTrainingStepHTML(step, j); });
-          html += '</div></div>';
-        });
+  const sid = String(session.id);
+
+  html += '<div class="training-session-panel' + (si === 0 ? ' active' : '') + '" data-session-id="' + sid + '">';
+
+  if (isSessionFinished(sid)) {
+    html += buildCompletedSessionCard(session, si);
+  } else {
+    const steps = buildTrainingSteps(sid);
+    html += '<div class="training-step-list">';
+    steps.forEach((step, j) => { html += buildTrainingStepHTML(step, j); });
+    html += '</div>';
+  }
+
+  html += '</div>';
+});
         html += '</div>';
       });
     }
@@ -1562,6 +1654,21 @@ async function finishTrainingSession() {
     .map(t => feedbackLabels[t] || t)
     .join(' · ');
 
+  const finishedSessionId = getCurrentVisibleSessionId();
+
+const finishedKey = getTrainingStorageKey(finishedSessionId);
+if (finishedKey) {
+  localStorage.setItem(finishedKey, JSON.stringify({
+    completed_block_ids: Array.from(completedTrainingBlocks),
+    is_finished: true,
+    finished_at: new Date().toISOString(),
+    client_note: note,
+    client_feedback_tags: checkedTags,
+    client_feedback_summary: feedbackSummary,
+    updated_at: new Date().toISOString()
+  }));
+}
+  
   saveTrainingProgressLocal({
     is_finished: true,
     finished_at: new Date().toISOString(),
@@ -1571,12 +1678,13 @@ async function finishTrainingSession() {
   });
 
   await saveTrainingProgress({
-    is_finished: true,
-    finished_at: new Date().toISOString(),
-    client_note: note || null,
-    client_feedback_tags: checkedTags,
-    client_feedback_summary: feedbackSummary || null
-  });
+  session_id: finishedSessionId,
+  is_finished: true,
+  finished_at: new Date().toISOString(),
+  client_note: note || null,
+  client_feedback_tags: checkedTags,
+  client_feedback_summary: feedbackSummary || null
+});
   
   const local = loadTrainingProgressLocal() || {};
 currentTrainingLog = {
