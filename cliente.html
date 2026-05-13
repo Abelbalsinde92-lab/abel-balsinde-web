@@ -675,13 +675,13 @@ if (visibleR.error) {
   console.error('Visible training view error:', visibleR.error);
 
   window.__AB_DEBUG_CLIENT__ = {
-    clientId,
-    clientData,
-    clientTrainingAssignment,
-    visibleError: visibleR.error,
-    visibleRows: 0,
-    visibleFirstRow: null
-  };
+  clientId,
+  clientData,
+  clientTrainingAssignment,
+  visibleError: visibleR.error,
+  visibleRowsBeforeFilter: rows.length,
+  visibleFirstRowBeforeFilter: rows[0] || null
+};
 
   clientTrainingProgram = null;
   clientTrainingWeeks = [];
@@ -767,6 +767,9 @@ if (rows.length) {
   console.log('VISIBLE ROWS AFTER FILTER:', rows.length);
   console.log('FIRST VISIBLE ROW:', rows[0]);
 
+  window.__AB_DEBUG_CLIENT__.visibleRowsAfterFilter = rows.length;
+window.__AB_DEBUG_CLIENT__.visibleFirstRowAfterFilter = rows[0] || null;
+  
   if (rows.length) {
     const first = rows[0];
 
