@@ -1357,8 +1357,15 @@ async function completeTrainingStep(blockId) {
   markStepVisualAsCompleted(blockId);
   await saveTrainingProgress();
   activeTrainingBlockKey = null;
-  if (isTrainingComplete()) { renderTrainingCompletionBox(false); return; }
-  const next = buildTrainingSteps().find(s => !completedTrainingBlocks.has(s.blockId));
+  const currentSessionId = getCurrentVisibleSessionId();
+
+if (isTrainingComplete(currentSessionId)) {
+  renderTrainingCompletionBox(false);
+  return;
+}
+
+const next = (currentSessionId ? buildTrainingSteps(currentSessionId) : buildTrainingSteps())
+  .find(s => !completedTrainingBlocks.has(s.blockId));
   if (next) {
     activeTrainingBlockKey = next.blockId;
     const card = document.getElementById('step-' + next.blockId);
@@ -1366,8 +1373,24 @@ async function completeTrainingStep(blockId) {
   }
 }
 
-function isTrainingComplete() {
-  const steps = buildTrainingSteps();
+function getCurrentVisibleSessionId() {
+  const activeSession = document.querySelector('.training-session-panel.active');
+  if (activeSession?.dataset?.sessionId) {
+    return activeSession.dataset.sessionId;
+  }
+
+  const activeDay = document.querySelector('.training-day-panel.active');
+  if (activeDay?.dataset?.sessionId && !String(activeDay.dataset.sessionId).startsWith('week-')) {
+    return activeDay.dataset.sessionId;
+  }
+
+  return null;
+}
+
+function isTrainingComplete(sessionId) {
+  const sid = sessionId || getCurrentVisibleSessionId();
+  const steps = sid ? buildTrainingSteps(sid) : buildTrainingSteps();
+
   return steps.length > 0 && steps.every(s => completedTrainingBlocks.has(s.blockId));
 }
 
