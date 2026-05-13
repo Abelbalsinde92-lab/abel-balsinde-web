@@ -651,7 +651,13 @@ async function loadClientDashboard(clientId) {
         .order('block_order',   { ascending: true })
         .order('exercise_order',{ ascending: true });
 
-      const visibleR = await q.catch(e => ({ data: [], error: e }));
+      let visibleR;
+try {
+  visibleR = await q;
+} catch(e) {
+  visibleR = { data: [], error: e };
+}
+if (!visibleR) visibleR = { data: [], error: null };
 
       if (visibleR.error) {
         console.error('Vista entrenamiento error:', visibleR.error);
