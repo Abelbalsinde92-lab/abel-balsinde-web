@@ -1804,12 +1804,12 @@ async function finishTrainingSession() {
 }, currentSessionId);
 
     await saveTrainingProgress({
-    is_finished: true,
-    finished_at: new Date().toISOString(),
-    client_note: note || null,
-    client_feedback_tags: checkedTags,
-    client_feedback_summary: feedbackSummary || null
-  });
+  is_finished: true,
+  finished_at: new Date().toISOString(),
+  client_note: note || null,
+  client_feedback_tags: checkedTags,
+  client_feedback_summary: feedbackSummary || null
+}, currentSessionId);
 
   const nextSessionId = getNextSessionId(currentSessionId);
   if (nextSessionId) saveLastActiveSession(nextSessionId);
