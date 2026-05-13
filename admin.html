@@ -2570,7 +2570,7 @@ function openModal(type,id=null){
       ${actions}`;
   }
 
-  else if(type==='trainingAssignment'){
+else if(type==='trainingAssignment'){
   title.textContent='Asignar entrenamiento a cliente';
 
   form.innerHTML=`
@@ -2603,7 +2603,7 @@ function openModal(type,id=null){
 
       <div class="form-row">
         <label class="form-label">Alcance comercial</label>
-        <select name="assignmentScope" class="form-input">
+        <select name="assignmentScope" class="form-input" id="assignmentScopeSelect" onchange="updateAssignmentScopeFields()">
           <option value="full" selected>Plan completo</option>
           <option value="month">Mes completo</option>
           <option value="week">Semana completa</option>
@@ -2624,32 +2624,39 @@ function openModal(type,id=null){
       </div>
     </div>
 
-    <div class="form-row-2">
-      <div class="form-row">
+    <div class="form-row-2" id="assignmentMonthWeekRow">
+      <div class="form-row" id="assignmentMonthField">
         <label class="form-label">Mes asignado</label>
         <input name="assignedMonth" class="form-input" type="number" min="1" placeholder="Ej: 1">
       </div>
 
-      <div class="form-row">
+      <div class="form-row" id="assignmentWeekField">
         <label class="form-label">Semana asignada</label>
         <input name="assignedWeek" class="form-input" type="number" min="1" placeholder="Ej: 1">
       </div>
     </div>
 
-    <div class="form-row">
+    <div class="form-row" id="assignmentDayField">
       <label class="form-label">Día / sesión asignada</label>
-      <input name="assignedSessionNumber" class="form-input" type="number" min="1" placeholder="Ej: 1 para Día A, 2 para Día B, 3 para Día C">
+      <select name="assignedSessionNumber" class="form-input">
+        <option value="">Seleccionar día</option>
+        <option value="1">Día A / Sesión 1</option>
+        <option value="2">Día B / Sesión 2</option>
+        <option value="3">Día C / Sesión 3</option>
+      </select>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Etiqueta comercial</label>
-      <input name="commercialLabel" class="form-input" placeholder="Ej: Día B · Semana 1 / Semana 1 / Mes 1 / Plan completo">
+      <label class="form-label">Etiqueta comercial opcional</label>
+      <input name="commercialLabel" class="form-input" placeholder="Se genera automática si lo dejas vacío">
     </div>
 
     <input type="hidden" name="status" value="activo">
 
     ${actions}
   `;
+
+  setTimeout(updateAssignmentScopeFields, 0);
 }
   else if(type==='assessment'){
     title.textContent='Registrar test inicial';
@@ -2669,6 +2676,46 @@ function openModal(type,id=null){
 
   form.onsubmit=saveModal;
   document.getElementById('modalOverlay').classList.add('open');
+}
+
+function updateAssignmentScopeFields(){
+  const scope = document.getElementById('assignmentScopeSelect')?.value || 'full';
+
+  const monthRow = document.getElementById('assignmentMonthWeekRow');
+  const monthField = document.getElementById('assignmentMonthField');
+  const weekField = document.getElementById('assignmentWeekField');
+  const dayField = document.getElementById('assignmentDayField');
+
+  const monthInput = document.querySelector('[name="assignedMonth"]');
+  const weekInput = document.querySelector('[name="assignedWeek"]');
+  const dayInput = document.querySelector('[name="assignedSessionNumber"]');
+
+  if(!monthRow || !monthField || !weekField || !dayField) return;
+
+  monthRow.classList.add('hidden');
+  monthField.classList.add('hidden');
+  weekField.classList.add('hidden');
+  dayField.classList.add('hidden');
+
+  if(monthInput) monthInput.value = '';
+  if(weekInput) weekInput.value = '';
+  if(dayInput) dayInput.value = '';
+
+  if(scope === 'month'){
+    monthRow.classList.remove('hidden');
+    monthField.classList.remove('hidden');
+  }
+
+  if(scope === 'week'){
+    monthRow.classList.remove('hidden');
+    weekField.classList.remove('hidden');
+  }
+
+  if(scope === 'day'){
+    monthRow.classList.remove('hidden');
+    weekField.classList.remove('hidden');
+    dayField.classList.remove('hidden');
+  }
 }
 
 function closeModal(){
