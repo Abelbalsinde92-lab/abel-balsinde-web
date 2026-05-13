@@ -1506,10 +1506,7 @@ function renderAll(){
 function renderBadges(){
   const set=(id,n)=>{const el=document.getElementById(id);if(!el)return;el.textContent=n;el.classList.toggle('show',Number(n)>0);};
 
-  set('badge-alertas', state.alertas.filter(a => {
-  const estado = a.estado || 'pendiente';
-  return estado === 'pendiente' && !a.leidaAt && !a.resueltaAt;
-}).length);
+  set('badge-alertas', state.alertas.filter(a => isPendingAlert(a)).length);
   set('badge-clientes',state.clients.length);
   set('badge-reservas',state.reservations.length);
   set('badge-pagos',state.payments.filter(p=>p.status!=='pagado').length);
@@ -1582,13 +1579,9 @@ function renderAlertas(){
     a.nivel === 'critica' || a.nivel === 'alerta'
   );
 
-  const leidas = state.alertas.filter(a =>
-    a.estado === 'leida' || a.leidaAt
-  );
+  const leidas = state.alertas.filter(a => getAlertStatus(a) === 'leida');
 
-  const resueltas = state.alertas.filter(a =>
-    a.estado === 'resuelta' || a.resueltaAt
-  );
+const resueltas = state.alertas.filter(a => getAlertStatus(a) === 'resuelta');
 
   metricsEl.innerHTML = `
     <div class="metric-card red">
@@ -1651,8 +1644,8 @@ function renderAlertas(){
   }
 
   rows.sort((a,b) =>
-    String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
-  );
+  String(getAlertCreatedAt(b) || '').localeCompare(String(getAlertCreatedAt(a) || ''))
+);
 
   tableEl.innerHTML = rows.length ? rows.map(a => {
     const estado = a.resueltaAt
@@ -1815,7 +1808,7 @@ function renderDashboard(){
   document.getElementById('dashboardMetrics').innerHTML=`<div class="metric-card blue"><span class="metric-num">${activeClients}</span><span class="metric-label">Clientes activos</span></div><div class="metric-card red"><span class="metric-num">${todaySessions}</span><span class="metric-label">Sesiones hoy</span></div><div class="metric-card yellow"><span class="metric-num">${pendingPayments}</span><span class="metric-label">Pagos pendientes</span></div><div class="metric-card green"><span class="metric-num">${money(income)}</span><span class="metric-label">Ingresos del mes</span></div><div class="metric-card blue"><span class="metric-num">${upcoming}</span><span class="metric-label">Reservas próximos 7d</span></div><div class="metric-card red"><span class="metric-num">${alerts}</span><span class="metric-label">Alertas salud</span></div>`;
   const agenda=state.reservations.filter(r=>r.date===today);
   document.getElementById('agendaToday').innerHTML=agenda.length?agenda.map(r=>{const c=clientById(r.clientId);return`<div class="data-row"><span><strong>${formatTime(r.time)}</strong> · ${esc(c?.name||'Cliente eliminado')}</span><span class="badge badge-${r.status}">${esc(r.status)}</span></div>`;}).join(''):emptyBlock('No hay reservas para hoy.');
-  const alertList = state.alertas.filter(a => a.estado === 'pendiente' && !a.leidaAt);
+  const alertList = state.alertas.filter(a => isPendingAlert(a));
 
 document.getElementById('dashboardAlerts').innerHTML = alertList.length
   ? alertList.slice(0,4).map(a => `
@@ -1835,13 +1828,7 @@ document.getElementById('dashboardAlerts').innerHTML = alertList.length
   if (trainingFeedbackEl) {
     const trainingFeedbackAlerts = state.alertas
       .filter(a => {
-        const tipo = a.tipoAlerta || a.tipo_alerta;
-        const estado = a.estado || 'pendiente';
-
-        return ['feedback_entrenamiento', 'molestia_entrenamiento'].includes(tipo) &&
-          !['resuelta', 'leida'].includes(estado) &&
-          !a.leidaAt &&
-          !a.resueltaAt;
+        return isTrainingAlert(a) && isPendingAlert(a);
       })
       .sort((a, b) =>
         String(b.createdAt || b.created_at || '').localeCompare(String(a.createdAt || a.created_at || ''))
@@ -2098,11 +2085,7 @@ function renderProfile(){
   const clientMetrics=state.metrics.filter(m=>m.clientId===c.id);
   const clientAlerts=state.healthAlerts.filter(h=>h.clientId===c.id);
 
-  const clientAdminAlerts = state.alertas
-    .filter(a =>
-      String(a.clientsId || a.clienteId || a.clientesId || '') === String(c.id)
-    )
-    .sort((a,b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+  const clientAdminAlerts = getClientAlertsForCoachTracking(c.id);
 
   el.innerHTML=`
     <div class="card">
