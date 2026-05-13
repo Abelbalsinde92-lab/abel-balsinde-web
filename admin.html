@@ -841,6 +841,98 @@ function buildClientTrainingLogCard(log, compact=false){
   `;
 }
 
+function getClientTrainingAlerts(clientId){
+  return (state.alertas || [])
+    .filter(a => {
+      const sameClient =
+        String(a.clientsId || a.clients_id || a.clientesId || a.clienteId || a.cliente_id || '') === String(clientId);
+
+      const isTrainingAlert =
+        ['feedback_entrenamiento', 'molestia_entrenamiento'].includes(a.tipoAlerta || a.tipo_alerta);
+
+      return sameClient && isTrainingAlert;
+    })
+    .sort((a,b) => String(b.createdAt || b.created_at || '').localeCompare(String(a.createdAt || a.created_at || '')));
+}
+
+function getAlertStatusBadge(alert){
+  if(!alert) return '<span class="badge badge-pagado">Sin alerta</span>';
+
+  const estado = alert.estado || 'pendiente';
+
+  if(estado === 'pendiente'){
+    return '<span class="badge badge-alerta">Pendiente</span>';
+  }
+
+  if(estado === 'resuelta'){
+    return '<span class="badge badge-pagado">Resuelta</span>';
+  }
+
+  if(estado === 'leida'){
+    return '<span class="badge badge-pendiente">Leída</span>';
+  }
+
+  return '<span class="badge badge-plantilla">' + esc(estado) + '</span>';
+}
+
+function buildClientTrainingAlertCard(clientId){
+  const alerts = getClientTrainingAlerts(clientId);
+  const latestAlert = alerts[0];
+
+  if(!latestAlert){
+    return `
+      <div class="card">
+        <div class="card-title">Seguimiento coach</div>
+        <div class="empty small">No hay alertas de entrenamiento para este cliente.</div>
+      </div>
+    `;
+  }
+
+  const estado = latestAlert.estado || 'pendiente';
+  const mensaje = latestAlert.mensaje || '';
+  const notaAdmin = latestAlert.notaAdmin || latestAlert.nota_admin || '';
+  const createdRaw = latestAlert.createdAt || latestAlert.created_at || '';
+  const createdDate = createdRaw ? formatDate(String(createdRaw).slice(0,10)) : '—';
+  const phone = latestAlert.clientPhone || latestAlert.client_phone || clientById(clientId)?.phone || state.settings.coachPhone;
+  const clientName = latestAlert.clientName || latestAlert.client_name || clientById(clientId)?.name || 'cliente';
+
+  return `
+    <div class="card" style="border-color:${estado === 'pendiente' ? 'rgba(226,6,19,.35)' : 'var(--border2)'}">
+      <div class="card-title">
+        Seguimiento coach
+        ${getAlertStatusBadge(latestAlert)}
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Fecha alerta</span>
+        <span class="data-val">${esc(createdDate)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Tipo</span>
+        <span class="data-val">${esc(latestAlert.titulo || latestAlert.tipoAlerta || latestAlert.tipo_alerta || 'Alerta')}</span>
+      </div>
+
+      <div style="margin-top:12px;color:var(--gray);font-size:.85rem;line-height:1.7;">
+        ${esc(mensaje)}
+      </div>
+
+      ${
+        notaAdmin
+          ? `<div style="margin-top:12px;background:var(--navy3);border-left:2px solid var(--blue);padding:10px 12px;color:var(--gray);font-size:.82rem;line-height:1.6;">
+              <strong style="color:var(--blue)">Nota coach:</strong> ${esc(notaAdmin)}
+            </div>`
+          : ''
+      }
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+        <button class="btn btn-blue btn-sm" onclick="showPage('alertas')">Ver alertas</button>
+        <button class="btn btn-wa btn-sm" onclick="openWA('${esc(phone)}','Hola ${esc((clientName || '').split(' ')[0] || '')}, vi tu comentario del entrenamiento. ¿Cómo te sientes ahora?')">WhatsApp</button>
+      </div>
+    </div>
+  `;
+}
+
 function buildClientTrainingHistory(clientId){
   const logs = getClientTrainingLogs(clientId);
 
@@ -925,6 +1017,8 @@ function buildClientTrainingHistory(clientId){
         <span class="metric-label">Para revisar</span>
       </div>
     </div>
+
+    ${buildClientTrainingAlertCard(clientId)}
 
     ${buildClientTrainingLogCard(latest)}
 
