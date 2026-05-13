@@ -966,31 +966,144 @@ function injectClientTrainingTab(clientId){
   if(!tabs) return;
 
   // Evita duplicar la pestaña si renderProfile se vuelve a ejecutar
-  const existingTab = tabs.querySelector('[data-profile-tab="pf-entrenamiento"]');
+  if(document.getElementById('pf-seguimiento-coach')) return;
 
-  if(!existingTab){
-    tabs.insertAdjacentHTML(
-      'beforeend',
-      `<div class="tab" data-profile-tab="pf-entrenamiento" onclick="switchProfileTab(this,'pf-entrenamiento')">Entrenamiento</div>`
-    );
-  }
+  tabs.insertAdjacentHTML(
+    'beforeend',
+    `<div class="tab" onclick="switchProfileTab(this,'pf-seguimiento-coach')">Seguimiento coach</div>`
+  );
 
-  // Si ya existe el contenido, lo actualiza
-  const existingContent = document.getElementById('pf-entrenamiento');
-
-  if(existingContent){
-    existingContent.innerHTML = buildClientTrainingHistory(clientId);
-    return;
-  }
-
-  // Si no existe, lo crea después del último tab-content
   const lastContent = document.querySelector('#profileContent .profile-tab-content:last-of-type');
   if(!lastContent) return;
 
   lastContent.insertAdjacentHTML(
     'afterend',
-    `<div id="pf-entrenamiento" class="profile-tab-content">${buildClientTrainingHistory(clientId)}</div>`
+    `<div id="pf-seguimiento-coach" class="profile-tab-content">
+      ${buildClientCoachTracking(clientId)}
+    </div>`
   );
+}
+
+function buildClientCoachTracking(clientId){
+  const logs = getClientTrainingLogs(clientId);
+  const alerts = getClientAlertsForCoachTracking(clientId);
+
+  const latestLog = logs[0] || null;
+
+  return `
+    <div class="three-col">
+      <div class="card">
+        <div class="card-title">Entrenamientos</div>
+        <div class="data-row">
+          <span class="data-key">Completados</span>
+          <span class="data-val">${logs.length}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Último</span>
+          <span class="data-val">${latestLog ? formatDate(String(getTrainingLogDate(latestLog)).slice(0,10)) : '—'}</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Alertas</div>
+        <div class="data-row">
+          <span class="data-key">Pendientes</span>
+          <span class="data-val">${alerts.filter(a => a.estado === 'pendiente' && !a.leidaAt).length}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Total</span>
+          <span class="data-val">${alerts.length}</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Estado rápido</div>
+        <div class="data-row">
+          <span class="data-key">Molestias</span>
+          <span class="data-val">${alerts.filter(a => String(a.tipoAlerta || '').includes('molestia') || String(a.tipoAlerta || '').includes('feedback')).length}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Críticas</span>
+          <span class="data-val">${alerts.filter(a => a.nivel === 'critica').length}</span>
+        </div>
+      </div>
+    </div>
+
+    ${latestLog ? `
+      <div class="page-eyebrow" style="margin-bottom:10px">Último entrenamiento</div>
+      ${buildClientTrainingLogCard(latestLog)}
+    ` : emptyBlock('Este cliente todavía no tiene entrenamientos completados.')}
+
+    <div class="two-col">
+      <div>
+        ${buildClientAlertsHistory(clientId)}
+      </div>
+
+      <div>
+        ${buildClientTrainingHistory(clientId)}
+      </div>
+    </div>
+  `;
+}
+
+function getClientAlertsForCoachTracking(clientId){
+  return state.alertas
+    .filter(a =>
+      String(a.clientsId || '') === String(clientId) ||
+      String(a.clientesId || '') === String(clientId) ||
+      String(a.clienteId || '') === String(clientId)
+    )
+    .sort((a,b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+}
+
+function buildClientAlertsHistory(clientId){
+  const alerts = getClientAlertsForCoachTracking(clientId);
+
+  if(!alerts.length){
+    return emptyBlock('No hay alertas registradas para este cliente.');
+  }
+
+  const rows = alerts.map(a => {
+    const estado = a.leidaAt ? (a.estado || 'leida') : (a.estado || 'pendiente');
+    const badgeEstado =
+      estado === 'pendiente' ? 'pendiente' :
+      estado === 'resuelta' ? 'pagado' :
+      estado === 'leida' ? 'plantilla' :
+      'prospecto';
+
+    const badgeNivel =
+      a.nivel === 'critica' || a.nivel === 'alerta' ? 'alerta' :
+      a.nivel === 'precaucion' ? 'pendiente' :
+      'prospecto';
+
+    return `
+      <tr>
+        <td>${formatDate(String(a.createdAt || '').slice(0,10))}</td>
+        <td><span class="badge badge-${badgeNivel}">${esc(a.nivel || 'info')}</span></td>
+        <td style="white-space:normal;min-width:220px">${esc(a.mensaje || '')}</td>
+        <td><span class="badge badge-${badgeEstado}">${esc(estado)}</span></td>
+      </tr>
+    `;
+  }).join('');
+
+  return `
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">Alertas del cliente</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Nivel</th>
+            <th>Mensaje</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
 }
 
 function getClientTrainingLogs(clientId){
