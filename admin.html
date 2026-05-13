@@ -1184,13 +1184,18 @@ function buildClientTrainingLogCard(log){
 
 function buildClientAlertsHistory(clientId){
   const alerts = getClientAlertsForCoachTracking(clientId);
+  const c = clientById(clientId);
 
   if(!alerts.length){
     return emptyBlock('No hay alertas registradas para este cliente.');
   }
 
   const rows = alerts.map(a => {
-    const estado = getAlertStatus(a);
+    const estado = a.resueltaAt
+      ? 'resuelta'
+      : a.leidaAt
+        ? 'leida'
+        : (a.estado || 'pendiente');
 
     const badgeEstado =
       estado === 'pendiente' ? 'pendiente' :
@@ -1205,10 +1210,54 @@ function buildClientAlertsHistory(clientId){
 
     return `
       <tr>
-        <td>${formatDate(String(getAlertCreatedAt(a) || '').slice(0,10))}</td>
-        <td><span class="badge badge-${badgeNivel}">${esc(a.nivel || 'info')}</span></td>
-        <td style="white-space:normal;min-width:220px">${esc(a.mensaje || '')}</td>
-        <td><span class="badge badge-${badgeEstado}">${esc(estado)}</span></td>
+        <td>${formatDate(String(a.createdAt || '').slice(0,10))}</td>
+
+        <td>
+          <span class="badge badge-${badgeNivel}">
+            ${esc(a.nivel || 'info')}
+          </span>
+        </td>
+
+        <td style="white-space:normal;min-width:260px">
+          <strong>${esc(a.titulo || a.tipoAlerta || 'Alerta')}</strong><br>
+          ${esc(a.mensaje || '')}
+
+          ${
+            a.notaAdmin
+              ? `<div class="name-sub" style="margin-top:6px;color:var(--blue)">
+                  Nota coach: ${esc(a.notaAdmin)}
+                </div>`
+              : ''
+          }
+        </td>
+
+        <td>
+          <span class="badge badge-${badgeEstado}">
+            ${esc(estado)}
+          </span>
+        </td>
+
+        <td>
+          <div class="td-actions">
+            ${
+              !a.leidaAt && estado !== 'resuelta'
+                ? `<button class="btn btn-secondary btn-sm" onclick="marcarAlertaLeida('${a.id}')">Leída</button>`
+                : ''
+            }
+
+            ${
+              estado !== 'resuelta'
+                ? `<button class="btn btn-blue btn-sm" onclick="resolverAlerta('${a.id}')">Resolver</button>`
+                : ''
+            }
+
+            ${
+              c?.phone
+                ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc((c.name||'').split(' ')[0]||'')}, vi tu nota del entrenamiento. ¿Cómo te sientes ahora?')">WA</button>`
+                : ''
+            }
+          </div>
+        </td>
       </tr>
     `;
   }).join('');
@@ -1218,6 +1267,7 @@ function buildClientAlertsHistory(clientId){
       <div class="table-header">
         <div class="table-title">Alertas del cliente</div>
       </div>
+
       <table>
         <thead>
           <tr>
@@ -1225,8 +1275,10 @@ function buildClientAlertsHistory(clientId){
             <th>Nivel</th>
             <th>Mensaje</th>
             <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
+
         <tbody>${rows}</tbody>
       </table>
     </div>
