@@ -492,9 +492,16 @@ function genericBadge(s) {
 
 /* ══ ASSIGNMENT SCOPE HELPERS ══ */
 function getAssignmentScope() {
-  return String(clientTrainingAssignment?.assignment_scope || 'full')
+  const raw = String(clientTrainingAssignment?.assignment_scope || 'full')
     .trim()
     .toLowerCase();
+
+  if (['day', 'dia', 'día', 'session', 'sesion', 'sesión'].includes(raw)) return 'day';
+  if (['week', 'semana'].includes(raw)) return 'week';
+  if (['month', 'mes'].includes(raw)) return 'month';
+  if (['full', 'complete', 'completo', 'plan'].includes(raw)) return 'full';
+
+  return 'full';
 }
 function getAssignmentScopeLabel() {
   const s = getAssignmentScope();
