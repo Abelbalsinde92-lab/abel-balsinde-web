@@ -1192,12 +1192,17 @@ function buildExerciseHTML(ex) {
 
   // Variante por nivel con soporte bilingüe
   function pickVariant(ex, lvl, lang) {
-    const base = 'variant_' + lvl.toLowerCase(); // variant_n1, variant_n2…
-    return pickLang(ex, base.replace('_', ''), lang) || // variantN1Es / variantN1Sr
-           ex[base + '_' + lang] ||                      // variant_n1_sr
-           ex[base + '_es']      ||                      // variant_n1_es
-           ex[base]              ||                      // variant_n1
-           getExerciseVariantByLevel(ex);                // fallback original
+    const l = (lang || 'es').toLowerCase();
+    // variant_n3_sr / variant_n3_es (snake_case directo)
+    if (ex['variant_' + lvl.toLowerCase() + '_' + l])
+      return ex['variant_' + lvl.toLowerCase() + '_' + l];
+    // variant_n3_es como fallback español
+    if (ex['variant_' + lvl.toLowerCase() + '_es'])
+      return ex['variant_' + lvl.toLowerCase() + '_es'];
+    // variant_n3 campo base
+    if (ex['variant_' + lvl.toLowerCase()])
+      return ex['variant_' + lvl.toLowerCase()];
+    return '';
   }
 
   const variant = pickVariant(ex, lvl, _lg);
