@@ -1719,11 +1719,17 @@ document.getElementById('btnLogout')?.addEventListener('click', () => Auth.logou
   }
 
   /* Direct-access link: cliente.html?client=UUID */
-  const urlClientId = params.get('client');
-  if (urlClientId) {
-    Auth.loginAsClient(urlClientId); // saves + redirects → init runs again cleanly
-    return;
+const urlClientId = params.get('client');
+if (urlClientId) {
+  try {
+    Auth.loginAsClient(urlClientId);
+  } catch (e) {
+    console.warn('No se pudo guardar sesión cliente, cargando directo:', e);
   }
+
+  await loadClientDashboard(urlClientId);
+  return;
+}
 
   /* Active client session */
   if (Auth.isClient()) {
