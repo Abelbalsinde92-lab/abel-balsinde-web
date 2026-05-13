@@ -1539,25 +1539,43 @@ function toggleTrainingStep(blockId) {
   }
 }
 
+function getSessionIdByBlockId(blockId) {
+  const step = buildTrainingSteps().find(s => String(s.blockId) === String(blockId));
+  return step ? String(step.sessionId) : null;
+}
+
 async function completeTrainingStep(blockId) {
   completedTrainingBlocks.add(blockId);
   saveTrainingProgressLocal();
   markStepVisualAsCompleted(blockId);
   await saveTrainingProgress();
+
   activeTrainingBlockKey = null;
-  const currentSessionId = getCurrentVisibleSessionId();
 
-if (isTrainingComplete(currentSessionId)) {
-  renderTrainingCompletionBox(false);
-  return;
-}
+  const sessionId = getSessionIdByBlockId(blockId);
+  const sessionSteps = sessionId ? buildTrainingSteps(sessionId) : buildTrainingSteps();
 
-const next = (currentSessionId ? buildTrainingSteps(currentSessionId) : buildTrainingSteps())
-  .find(s => !completedTrainingBlocks.has(s.blockId));
+  const sessionIsComplete =
+    sessionSteps.length > 0 &&
+    sessionSteps.every(s => completedTrainingBlocks.has(s.blockId));
+
+  if (sessionIsComplete) {
+    renderTrainingCompletionBox(false);
+    return;
+  }
+
+  const next = sessionSteps.find(s => !completedTrainingBlocks.has(s.blockId));
+
   if (next) {
     activeTrainingBlockKey = next.blockId;
     const card = document.getElementById('step-' + next.blockId);
-    if (card) { card.classList.add('open'); setTimeout(() => card.scrollIntoView({ behavior:'smooth', block:'start' }), 180); }
+
+    if (card) {
+      card.classList.add('open');
+      setTimeout(() => {
+        card.scrollIntoView({ behavior:'smooth', block:'start' });
+      }, 180);
+    }
   }
 }
 
