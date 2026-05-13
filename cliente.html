@@ -469,20 +469,32 @@ function getTrainingStorageKey(sessionId) {
     todayISO()
   ].join('_');
 }
-function loadTrainingProgressLocal() {
-  const key = getTrainingStorageKey();
+function loadTrainingProgressLocal(sessionId) {
+  const key = getTrainingStorageKey(sessionId);
   if (!key) return null;
-  try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; } catch { return null; }
+
+  try {
+    const r = localStorage.getItem(key);
+    return r ? JSON.parse(r) : null;
+  } catch {
+    return null;
+  }
 }
-function saveTrainingProgressLocal(extra) {
-  const key = getTrainingStorageKey();
+
+function saveTrainingProgressLocal(extra, sessionId) {
+  const key = getTrainingStorageKey(sessionId);
   if (!key) return;
-  const prev = loadTrainingProgressLocal() || {};
+
+  const prev = loadTrainingProgressLocal(sessionId) || {};
+
   localStorage.setItem(key, JSON.stringify({
     ...prev,
+    session_id: sessionId || getCurrentVisibleSessionId(),
     completed_block_ids: Array.from(completedTrainingBlocks),
     is_finished: prev.is_finished || false,
     client_note: prev.client_note || '',
+    client_feedback_tags: prev.client_feedback_tags || [],
+    client_feedback_summary: prev.client_feedback_summary || '',
     updated_at: new Date().toISOString(),
     ...(extra || {})
   }));
@@ -1050,52 +1062,63 @@ function getActiveTrainingWeek() {
 }
 
 /* client_session_logs — table used by admin */
-async function loadOrCreateTrainingLog() {
+async function loadOrCreateTrainingLog(sessionId) {
   if (!clientData || !clientTrainingAssignment || !clientTrainingProgram) return null;
-  const localProgress = loadTrainingProgressLocal();
+
+  const sid = sessionId || getCurrentVisibleSessionId();
+  if (!sid) return null;
+
+  const localProgress = loadTrainingProgressLocal(sid);
+
   if (localProgress) {
     completedTrainingBlocks = new Set(localProgress.completed_block_ids || []);
     currentTrainingLog = { ...(currentTrainingLog || {}), ...localProgress };
   }
-  const activeWeek = getActiveTrainingWeek();
-  const activeSessionId = getCurrentVisibleSessionId();
 
-const payload = {
-  client_id: clientData.id,
-  assignment_id: clientTrainingAssignment.id,
-  program_id: clientTrainingProgram.id,
-  week_id: activeWeek ? activeWeek.id : null,
-  session_id: activeSessionId || null,
-  training_date: todayISO()
-};
+  const session = clientTrainingSessions.find(s => String(s.id) === String(sid));
+  const week = session
+    ? clientTrainingWeeks.find(w => String(w.id) === String(session.week_id))
+    : getActiveTrainingWeek();
+
+  const payload = {
+    client_id: clientData.id,
+    assignment_id: clientTrainingAssignment.id,
+    program_id: clientTrainingProgram.id,
+    week_id: week ? week.id : null,
+    session_id: sid,
+    training_date: todayISO()
+  };
+
   try {
-    let logQuery = db.from('client_session_logs').select('*')
-  .eq('client_id', payload.client_id)
-  .eq('assignment_id', payload.assignment_id)
-  .eq('training_date', payload.training_date);
+    const existing = await db.from('client_session_logs')
+      .select('*')
+      .eq('client_id', payload.client_id)
+      .eq('assignment_id', payload.assignment_id)
+      .eq('session_id', payload.session_id)
+      .eq('training_date', payload.training_date)
+      .maybeSingle();
 
-if (payload.session_id) {
-  logQuery = logQuery.eq('session_id', payload.session_id);
-} else {
-  logQuery = logQuery.is('session_id', null);
-}
-
-const existing = await logQuery.maybeSingle();
-
-    if (existing.error) { console.error('Log read error:', existing.error); return currentTrainingLog; }
+    if (existing.error) {
+      console.error('Log read error:', existing.error);
+      return currentTrainingLog;
+    }
 
     if (existing.data) {
       completedTrainingBlocks = new Set([
         ...(existing.data.completed_block_ids || []),
         ...(localProgress?.completed_block_ids || [])
       ]);
+
       currentTrainingLog = {
         ...existing.data,
         completed_block_ids: Array.from(completedTrainingBlocks),
         is_finished: existing.data.is_finished || localProgress?.is_finished || false,
-        client_note: existing.data.client_note || localProgress?.client_note || ''
+        client_note: existing.data.client_note || localProgress?.client_note || '',
+        client_feedback_tags: existing.data.client_feedback_tags || localProgress?.client_feedback_tags || [],
+        client_feedback_summary: existing.data.client_feedback_summary || localProgress?.client_feedback_summary || ''
       };
-      saveTrainingProgressLocal(currentTrainingLog);
+
+      saveTrainingProgressLocal(currentTrainingLog, sid);
       return currentTrainingLog;
     }
 
@@ -1104,36 +1127,66 @@ const existing = await logQuery.maybeSingle();
       completed_block_ids: Array.from(completedTrainingBlocks),
       is_finished: localProgress?.is_finished || false,
       client_note: localProgress?.client_note || '',
+      client_feedback_tags: localProgress?.client_feedback_tags || [],
+      client_feedback_summary: localProgress?.client_feedback_summary || '',
       started_at: new Date().toISOString()
     }).select().single();
 
-    if (created.error) { console.error('Log create error:', created.error); return currentTrainingLog; }
+    if (created.error) {
+      console.error('Log create error:', created.error);
+      return currentTrainingLog;
+    }
+
     currentTrainingLog = created.data;
-    saveTrainingProgressLocal(currentTrainingLog);
+    saveTrainingProgressLocal(currentTrainingLog, sid);
     return currentTrainingLog;
+
   } catch (err) {
     console.error('Log general error:', err);
     return currentTrainingLog;
   }
 }
 
-async function saveTrainingProgress(extra) {
-  saveTrainingProgressLocal(extra);
-  if (!currentTrainingLog?.id) await loadOrCreateTrainingLog();
-  if (!currentTrainingLog?.id) { console.warn('No log ID — saved locally only'); return; }
-  const local = loadTrainingProgressLocal() || {};
+async function saveTrainingProgress(extra, sessionId) {
+  const sid = sessionId || getCurrentVisibleSessionId();
+
+  saveTrainingProgressLocal(extra, sid);
+
+  if (!currentTrainingLog?.id || String(currentTrainingLog.session_id) !== String(sid)) {
+    await loadOrCreateTrainingLog(sid);
+  }
+
+  if (!currentTrainingLog?.id) {
+    console.warn('No log ID — saved locally only');
+    return;
+  }
+
+  const local = loadTrainingProgressLocal(sid) || {};
+
   try {
     const saved = await db.from('client_session_logs').update({
-  completed_block_ids: Array.from(completedTrainingBlocks),
-  is_finished: local.is_finished || false,
-  client_note: local.client_note || null,
-  client_feedback_tags: local.client_feedback_tags || extra?.client_feedback_tags || [],
-  client_feedback_summary: local.client_feedback_summary || extra?.client_feedback_summary || null,
-  updated_at: new Date().toISOString(),
-  ...(extra || {})
-}).eq('id', currentTrainingLog.id).select().single();
-    if (!saved.error) { currentTrainingLog = saved.data; saveTrainingProgressLocal(currentTrainingLog); }
-  } catch (err) { console.error('Log save error:', err); }
+      completed_block_ids: Array.from(completedTrainingBlocks),
+      is_finished: local.is_finished || false,
+      client_note: local.client_note || null,
+      client_feedback_tags: local.client_feedback_tags || extra?.client_feedback_tags || [],
+      client_feedback_summary: local.client_feedback_summary || extra?.client_feedback_summary || null,
+      updated_at: new Date().toISOString(),
+      ...(extra || {})
+    })
+    .eq('id', currentTrainingLog.id)
+    .select()
+    .single();
+
+    if (!saved.error) {
+      currentTrainingLog = saved.data;
+      saveTrainingProgressLocal(currentTrainingLog, sid);
+    } else {
+      console.error('Log save error:', saved.error);
+    }
+
+  } catch (err) {
+    console.error('Log save error:', err);
+  }
 }
 
 /* ── renderClientTraining: NO duplicate var declarations ── */
@@ -1417,15 +1470,6 @@ const next = (currentSessionId ? buildTrainingSteps(currentSessionId) : buildTra
 }
 
 function getCurrentVisibleSessionId() {
-  const activeWeek = document.querySelector('.training-week-panel.active');
-
-  if (activeWeek) {
-    const activeSession = activeWeek.querySelector('.training-session-panel.active');
-    if (activeSession?.dataset?.sessionId) {
-      return activeSession.dataset.sessionId;
-    }
-  }
-
   const activeSession = document.querySelector('.training-session-panel.active');
   if (activeSession?.dataset?.sessionId) {
     return activeSession.dataset.sessionId;
@@ -1439,7 +1483,7 @@ function getCurrentVisibleSessionId() {
     return activeDay.dataset.sessionId;
   }
 
-  return null;
+  return clientTrainingSessions[0]?.id || null;
 }
 
 function isTrainingComplete(sessionId) {
