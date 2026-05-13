@@ -743,6 +743,181 @@ function buildWAUrl(phone,msg){ const clean=String(phone||state.settings.coachPh
 function openWA(phone,msg){ window.open(buildWAUrl(phone,msg),'_blank'); }
 function openCoachWA(){ openWA(state.settings.coachPhone||COACH_DEFAULT_PHONE,'Hola Abel.'); }
 
+function getTrainingSessionDayLabel(session){
+  const num = Number(session?.sessionNumber || 0);
+
+  if(num === 1) return 'Día A';
+  if(num === 2) return 'Día B';
+  if(num === 3) return 'Día C';
+
+  return num ? 'Día ' + num : 'Sesión';
+}
+
+function getTrainingLogDate(log){
+  return log.finishedAt || log.completedAt || log.updatedAt || log.trainingDate || '';
+}
+
+function getTrainingPathBySessionId(sessionId){
+  const session = state.trainingSessions.find(s => String(s.id) === String(sessionId));
+  const week = session ? state.trainingWeeks.find(w => String(w.id) === String(session.weekId)) : null;
+  const program = week ? state.trainingPrograms.find(p => String(p.id) === String(week.programId)) : null;
+
+  return { session, week, program };
+}
+
+function getClientTrainingLogs(clientId){
+  return state.clientSessionLogs
+    .filter(log => String(log.clientId) === String(clientId))
+    .filter(log => log.isFinished || log.finishedAt || log.completedAt || log.status === 'completed')
+    .sort((a,b) => String(getTrainingLogDate(b)).localeCompare(String(getTrainingLogDate(a))));
+}
+
+function buildClientTrainingLogCard(log, compact=false){
+  const { session, week, program } = getTrainingPathBySessionId(log.sessionId);
+
+  const sessionLabel = getTrainingSessionDayLabel(session);
+  const sessionTitle = session?.title || session?.name || '';
+  const weekLabel = week?.weekNumber ? 'Semana ' + week.weekNumber : 'Semana —';
+  const programName = program?.name || program?.nameEs || 'Programa';
+
+  const dateRaw = getTrainingLogDate(log);
+  const dateText = dateRaw ? formatDate(String(dateRaw).slice(0,10)) : '—';
+
+  const completedBlocks = Array.isArray(log.completedBlockIds)
+    ? log.completedBlockIds.length
+    : 0;
+
+  const feedback = log.clientFeedbackSummary || '';
+  const note = log.clientNote || '';
+
+  return `
+    <div class="card" style="${compact ? 'margin-bottom:12px;padding:16px;' : ''}">
+      <div class="card-title">
+        <span>${esc(sessionLabel)}${sessionTitle ? ' · ' + esc(sessionTitle) : ''}</span>
+        <span class="badge badge-pagado">Completado</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Programa</span>
+        <span class="data-val">${esc(programName)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Semana</span>
+        <span class="data-val">${esc(weekLabel)}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Fecha</span>
+        <span class="data-val">${dateText}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Bloques completados</span>
+        <span class="data-val">${completedBlocks}</span>
+      </div>
+
+      ${feedback ? `
+        <div class="data-row">
+          <span class="data-key">Observaciones</span>
+          <span class="data-val" style="white-space:normal;max-width:360px;color:var(--blue);line-height:1.5">
+            ${esc(feedback)}
+          </span>
+        </div>
+      ` : ''}
+
+      ${note ? `
+        <div class="data-row">
+          <span class="data-key">Nota cliente</span>
+          <span class="data-val" style="white-space:normal;max-width:360px;color:var(--gray);line-height:1.5">
+            ${esc(note)}
+          </span>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function buildClientTrainingHistory(clientId){
+  const logs = getClientTrainingLogs(clientId);
+
+  if(!logs.length){
+    return emptyBlock('Este cliente todavía no tiene entrenamientos completados.');
+  }
+
+  const latest = logs[0];
+
+  const historyRows = logs.map(log => {
+    const { session, week, program } = getTrainingPathBySessionId(log.sessionId);
+
+    const sessionLabel = getTrainingSessionDayLabel(session);
+    const weekLabel = week?.weekNumber ? 'Semana ' + week.weekNumber : '—';
+    const programName = program?.name || program?.nameEs || '—';
+    const dateRaw = getTrainingLogDate(log);
+    const dateText = dateRaw ? formatDate(String(dateRaw).slice(0,10)) : '—';
+    const feedback = log.clientFeedbackSummary || '—';
+    const note = log.clientNote || '—';
+
+    return `
+      <tr>
+        <td>${dateText}</td>
+        <td>
+          <div class="name-text">${esc(sessionLabel)}</div>
+          <div class="name-sub">${esc(session?.title || session?.name || '')}</div>
+        </td>
+        <td>${esc(weekLabel)}</td>
+        <td>${esc(programName)}</td>
+        <td style="white-space:normal;min-width:220px;color:var(--blue)">${esc(feedback)}</td>
+        <td style="white-space:normal;min-width:220px;color:var(--gray)">${esc(note)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  return `
+    <div class="page-eyebrow" style="margin-bottom:10px">Último entrenamiento</div>
+    ${buildClientTrainingLogCard(latest)}
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">Historial de entrenamientos completados</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Sesión</th>
+            <th>Semana</th>
+            <th>Programa</th>
+            <th>Observaciones</th>
+            <th>Nota cliente</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${historyRows}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function injectClientTrainingTab(clientId){
+  const tabs = document.querySelector('#profileContent .profile-tabs');
+  if(!tabs) return;
+
+  tabs.insertAdjacentHTML(
+    'beforeend',
+    `<div class="tab" onclick="switchProfileTab(this,'pf-entrenamiento')">Entrenamiento</div>`
+  );
+
+  const lastContent = document.querySelector('#profileContent .profile-tab-content:last-of-type');
+  if(!lastContent) return;
+
+  lastContent.insertAdjacentHTML(
+    'afterend',
+    `<div id="pf-entrenamiento" class="profile-tab-content">${buildClientTrainingHistory(clientId)}</div>`
+  );
+}
+
 function showPage(id){
   currentPage=id;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1146,6 +1321,8 @@ function renderProfile(){
   document.getElementById('profileActions').innerHTML=`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone||state.settings.coachPhone)}','Hola ${esc(c.name.split(' ')[0]||c.name)}.')">WhatsApp</button><button class="btn btn-secondary btn-sm" onclick="openModal('reservation')">+ Sesión</button><button class="btn btn-secondary btn-sm" onclick="openModal('metric')">+ Métrica</button><button class="btn btn-primary btn-sm" onclick="openModal('payment')">+ Pago</button>`;
   const clientPayments=state.payments.filter(p=>p.clientId===c.id);const clientReservations=state.reservations.filter(r=>r.clientId===c.id);const clientMetrics=state.metrics.filter(m=>m.clientId===c.id);const clientAlerts=state.healthAlerts.filter(h=>h.clientId===c.id);
   el.innerHTML=`<div class="card"><div class="td-name"><div class="avatar" style="width:56px;height:56px;font-size:1.4rem">${initials(c.name)}</div><div><div class="name-text" style="font-size:1.2rem">${esc(c.name)}</div><div class="name-sub">${esc(c.plan||'Sin plan')} · ${esc(c.phone||'Sin teléfono')} · ${esc(c.email||'Sin email')}</div><div class="name-sub">Código acceso: <code style="font-family:'Space Mono',monospace;color:var(--blue)">${esc(c.accessCode||'—')}</code></div></div></div></div><div class="profile-tabs"><div class="tab active" onclick="switchProfileTab(this,'pf-resumen')">Resumen</div><div class="tab" onclick="switchProfileTab(this,'pf-reservas')">Reservas</div><div class="tab" onclick="switchProfileTab(this,'pf-pagos')">Pagos</div><div class="tab" onclick="switchProfileTab(this,'pf-progreso')">Progreso</div><div class="tab" onclick="switchProfileTab(this,'pf-salud')">Salud</div><div class="tab" onclick="switchProfileTab(this,'pf-notas')">Notas</div></div><div id="pf-resumen" class="profile-tab-content active"><div class="three-col"><div class="card"><div class="card-title">Datos personales</div><div class="data-row"><span class="data-key">Nombre</span><span class="data-val">${esc(c.name)}</span></div><div class="data-row"><span class="data-key">Teléfono</span><span class="data-val">${esc(c.phone||'—')}</span></div><div class="data-row"><span class="data-key">Email</span><span class="data-val">${esc(c.email||'—')}</span></div></div><div class="card"><div class="card-title">Estado</div><div class="data-row"><span class="data-key">Plan</span><span class="data-val">${esc(c.plan||'—')}</span></div><div class="data-row"><span class="data-key">Estado</span><span class="badge badge-${esc(c.status)}">${esc(c.status)}</span></div></div><div class="card"><div class="card-title">Actividad</div><div class="data-row"><span class="data-key">Reservas</span><span class="data-val">${clientReservations.length}</span></div><div class="data-row"><span class="data-key">Métricas</span><span class="data-val">${clientMetrics.length}</span></div><div class="data-row"><span class="data-key">Alertas</span><span class="data-val">${clientAlerts.length}</span></div></div></div></div><div id="pf-reservas" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Estado</th></tr></thead><tbody>${clientReservations.length?clientReservations.map(r=>`<tr><td>${formatDate(r.date)}</td><td>${formatTime(r.time)}</td><td>${esc(r.type)}</td><td><span class="badge badge-${r.status}">${esc(r.status)}</span></td></tr>`).join(''):emptyRow(4,'Sin reservas.')}</tbody></table></div></div><div id="pf-pagos" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Concepto</th><th>Importe</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${clientPayments.length?clientPayments.map(p=>`<tr><td>${esc(p.concept)}</td><td>${money(p.amount)}</td><td><span class="badge badge-${p.status}">${esc(p.status)}</span></td><td>${p.status!=='pagado'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Marcar pagado</button>`:''}</td></tr>`).join(''):emptyRow(4,'Sin pagos.')}</tbody></table></div></div><div id="pf-progreso" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Métrica</th><th>Valor</th><th>Fecha</th><th>Nota</th></tr></thead><tbody>${clientMetrics.length?clientMetrics.map(m=>`<tr><td>${esc(m.type)}</td><td>${esc(m.value)}</td><td>${esc(m.date)}</td><td>${esc(m.note||'—')}</td></tr>`).join(''):emptyRow(4,'Sin métricas.')}</tbody></table></div></div><div id="pf-salud" class="profile-tab-content"><div class="table-wrap"><table><thead><tr><th>Estado</th><th>Detalle</th><th>Fecha</th></tr></thead><tbody>${clientAlerts.length?clientAlerts.map(h=>`<tr><td>${esc(h.status)}</td><td>${esc(h.detail)}</td><td>${esc(h.date)}</td></tr>`).join(''):emptyRow(3,'Sin chequeos.')}</tbody></table></div></div><div id="pf-notas" class="profile-tab-content"><div class="card"><div class="card-title">Notas del coach <button class="btn btn-primary btn-sm" onclick="openModal('note')">+ Nueva nota</button></div>${(c.notes||[]).length?(c.notes||[]).map(n=>`<div class="data-row"><span>${esc(n.text)}</span><span class="name-sub">${esc(n.date)}</span></div>`).join(''):emptyBlock('No hay notas registradas.')}</div></div>`;
+
+injectClientTrainingTab(c.id);
 }
 
 function switchProfileTab(btn,id){ document.querySelectorAll('.profile-tabs .tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.profile-tab-content').forEach(x=>x.classList.remove('active'));document.getElementById(id)?.classList.add('active'); }
