@@ -1885,20 +1885,22 @@ body {
 
 /* Resumen compacto del entrenamiento */
 #section-training .compact-training-summary{
-  padding:22px 24px;
-  border-radius:26px;
+  padding:20px 22px;
+  border-radius:24px;
   margin-bottom:18px;
 }
 
 #section-training .compact-training-summary .training-guide-title{
-  font-size:30px;
-  line-height:1.1;
-  margin-bottom:8px;
+  font-size:42px;
+  line-height:1;
+  margin-bottom:10px;
 }
 
 #section-training .compact-training-summary .training-guide-meta{
   font-size:12px;
-  margin-bottom:6px;
+  line-height:1.5;
+  letter-spacing:2px;
+  margin-bottom:8px;
 }
 
 #section-training .compact-training-summary .training-week-objective{
@@ -3352,9 +3354,13 @@ const compactObjective =
 
 const summaryHtml =
   '<div class="training-guide-summary compact-training-summary">' +
-    '<div class="training-guide-title">Entrenamiento de hoy</div>' +
+    '<div class="training-guide-title">' + getSessionDayLabel(firstSession, firstSessionIndex >= 0 ? firstSessionIndex : 0) + '</div>'
     '<div class="training-guide-meta">' +
-      [sessionShortTitle, 'Semana ' + (activeWeek?.week_number || 1), levelStr].filter(Boolean).join(' · ') +
+       [
+  pickLang(firstSession, 'title', lg) || 'Entrenamiento',
+  'Semana ' + (activeWeek?.week_number || 1),
+  levelStr
+].filter(Boolean).join(' · ') +
     '</div>' +
     (compactObjective ? '<div class="training-week-objective">' + compactObjective + '</div>' : '') +
   '</div>';
