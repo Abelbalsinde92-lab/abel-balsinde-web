@@ -327,6 +327,770 @@
       .training-exercise-grid{grid-template-columns:repeat(2,1fr)}
       .training-mini-value{font-size:18px}
     }
+    
+    /* ═══════════════════════════════════════════════════════
+   AB SYSTEM — BASE VISUAL MINIMALISTA v1
+   Pegar al final del <style>
+═══════════════════════════════════════════════════════ */
+
+:root {
+  --navy:#F5F7FA;
+  --navy2:#FFFFFF;
+  --navy3:#FFFFFF;
+  --navy4:#EEF2F6;
+
+  --red:#FF2A2A;
+  --blue:#08BFF2;
+  --white:#101423;
+  --gray:#6B7280;
+  --green:#22C55E;
+  --yellow:#F59E0B;
+  --wa:#25D366;
+
+  --ink:#101423;
+  --muted:#6B7280;
+  --line:#E5EAF0;
+  --soft:#F3F6FA;
+  --card:#FFFFFF;
+  --shadow:0 12px 30px rgba(15,23,42,.08);
+
+  --radius-lg:24px;
+  --radius-md:18px;
+  --radius-sm:14px;
+}
+
+/* Base */
+body {
+  background:
+    radial-gradient(circle at top right, rgba(8,191,242,.10), transparent 34%),
+    linear-gradient(180deg, #F7F9FC 0%, #EEF3F8 100%);
+  color:var(--ink);
+}
+
+a {
+  color:inherit;
+}
+
+/* Loading */
+#loadingOverlay {
+  background:#F7F9FC;
+}
+
+.spinner {
+  border-color:#DDE5EE;
+  border-top-color:var(--blue);
+}
+
+#loadingOverlay p {
+  color:var(--muted);
+}
+
+/* Login */
+#loginScreen {
+  background:
+    radial-gradient(circle at 80% 0%, rgba(8,191,242,.14), transparent 34%),
+    linear-gradient(180deg, #F7F9FC 0%, #EEF3F8 100%);
+}
+
+.login-box {
+  background:rgba(255,255,255,.92);
+  border:1px solid var(--line);
+  border-radius:28px;
+  box-shadow:var(--shadow);
+}
+
+.login-logo .logo-badge,
+.dash-header-logo .logo-badge {
+  background:#071225;
+  color:#fff;
+  border-radius:14px;
+  box-shadow:0 10px 24px rgba(7,18,37,.18);
+}
+
+.login-logo .logo-text,
+.dash-header-logo .logo-text {
+  color:var(--ink);
+}
+
+.login-logo .logo-text span,
+.dash-header-logo .logo-text span {
+  color:var(--red);
+}
+
+.login-title {
+  color:var(--ink);
+}
+
+.login-sub {
+  color:var(--muted);
+}
+
+.field-group label {
+  color:var(--muted);
+}
+
+.field-group input {
+  background:#F8FAFC;
+  border:1px solid var(--line);
+  border-radius:16px;
+  color:var(--ink);
+}
+
+.field-group input:focus {
+  border-color:var(--blue);
+  box-shadow:0 0 0 4px rgba(8,191,242,.12);
+}
+
+.field-group input::placeholder {
+  color:#A0AAB7;
+}
+
+.btn-login {
+  background:#071225;
+  color:#fff;
+  border-radius:999px;
+  box-shadow:0 12px 28px rgba(7,18,37,.18);
+}
+
+.btn-wa-login {
+  border:1px solid var(--line);
+  color:var(--muted);
+  border-radius:999px;
+  background:#fff;
+}
+
+.login-error {
+  background:#FFF1F1;
+  border-color:#FECACA;
+  color:#B91C1C;
+}
+
+.login-info {
+  background:#EAF8FF;
+  border-color:#BAEAFE;
+  color:#027EA5;
+}
+
+/* Header */
+.dash-header {
+  background:rgba(255,255,255,.86);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  height:64px;
+  padding:0 18px;
+}
+
+.dash-header-logo {
+  gap:10px;
+}
+
+.dash-header-logo .logo-badge {
+  width:38px;
+  height:38px;
+  font-size:17px;
+}
+
+.dash-header-logo .logo-text {
+  font-size:18px;
+  letter-spacing:2px;
+}
+
+.dash-header-actions {
+  gap:10px;
+}
+
+.btn-icon {
+  background:#fff;
+  border:1px solid var(--line);
+  color:var(--ink);
+  border-radius:999px;
+  padding:9px 13px;
+  box-shadow:0 6px 18px rgba(15,23,42,.05);
+}
+
+.btn-icon:hover {
+  border-color:var(--blue);
+  color:#0284A8;
+  background:#F0FAFF;
+}
+
+.btn-icon.red:hover {
+  border-color:#FECACA;
+  color:#DC2626;
+  background:#FFF1F1;
+}
+
+#btnHeaderWA {
+  border-color:rgba(37,211,102,.35);
+  color:#128C3A;
+  background:#ECFDF3;
+}
+
+#btnHeaderWA:hover {
+  background:#DCFCE7;
+  color:#128C3A;
+}
+
+/* Navegación */
+.client-nav {
+  top:64px;
+  background:rgba(255,255,255,.88);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  gap:8px;
+  padding:10px 14px;
+}
+
+.client-nav button {
+  background:#F5F7FA;
+  color:var(--muted);
+  border:1px solid transparent;
+  border-radius:999px;
+  padding:9px 16px;
+  font-size:10px;
+  letter-spacing:.7px;
+}
+
+.client-nav button:hover {
+  color:var(--ink);
+  background:#EEF3F8;
+}
+
+.client-nav button.active {
+  color:#071225;
+  border-color:rgba(8,191,242,.30);
+  background:#EAF8FF;
+  box-shadow:inset 0 0 0 1px rgba(8,191,242,.10);
+}
+
+/* Layout */
+.dash-main {
+  max-width:760px;
+  padding:22px 14px calc(150px + env(safe-area-inset-bottom));
+}
+
+/* Sections */
+.section {
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:28px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+
+.section-header {
+  padding:18px 20px;
+  border-bottom:1px solid var(--line);
+  background:#fff;
+}
+
+.section-header h2 {
+  color:var(--ink);
+  font-size:22px;
+  letter-spacing:1.5px;
+}
+
+.section-header .sec-badge {
+  background:#F5F7FA;
+  border:1px solid var(--line);
+  color:var(--muted);
+  border-radius:999px;
+  padding:4px 10px;
+}
+
+.section-body {
+  padding:18px;
+}
+
+.empty-state {
+  color:var(--muted);
+}
+
+/* Cards */
+.data-card,
+.summary-card,
+.progress-circle-card,
+.assessment-card,
+.accordion-block {
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:22px;
+  box-shadow:0 8px 22px rgba(15,23,42,.05);
+}
+
+.data-card {
+  padding:16px;
+  margin-bottom:12px;
+}
+
+.data-card.next-session {
+  border-color:rgba(8,191,242,.30);
+  background:linear-gradient(180deg, #FFFFFF 0%, #F0FAFF 100%);
+}
+
+.data-card .dc-title {
+  color:var(--ink);
+  font-size:15px;
+}
+
+.data-card .dc-sub,
+.data-card .dc-note {
+  color:var(--muted);
+}
+
+.next-label {
+  color:#0284A8;
+}
+
+/* Summary grid */
+.summary-grid {
+  gap:12px;
+}
+
+.summary-card {
+  padding:16px;
+}
+
+.summary-label {
+  color:var(--muted);
+}
+
+.summary-value {
+  color:var(--ink);
+}
+
+.summary-value.big {
+  color:var(--ink);
+}
+
+/* Botones principales */
+.client-action-btn,
+.copy-summary-btn {
+  background:#071225;
+  border:1px solid #071225;
+  color:#fff;
+  border-radius:999px;
+  padding:14px 16px;
+  font-weight:700;
+  box-shadow:0 12px 26px rgba(7,18,37,.14);
+}
+
+.client-action-btn:hover,
+.copy-summary-btn:hover {
+  background:#0D1B33;
+}
+
+.client-action-btn.wa {
+  background:#ECFDF3;
+  border-color:rgba(37,211,102,.35);
+  color:#128C3A;
+  box-shadow:none;
+}
+
+.client-action-btn.wa:hover {
+  background:#DCFCE7;
+}
+
+/* Badges */
+.badge {
+  border-radius:999px;
+  padding:4px 9px;
+}
+
+.badge-green {
+  background:#ECFDF3;
+  color:#15803D;
+  border-color:#BBF7D0;
+}
+
+.badge-yellow {
+  background:#FFFBEB;
+  color:#B45309;
+  border-color:#FDE68A;
+}
+
+.badge-red {
+  background:#FFF1F1;
+  color:#B91C1C;
+  border-color:#FECACA;
+}
+
+.badge-blue {
+  background:#EAF8FF;
+  color:#027EA5;
+  border-color:#BAEAFE;
+}
+
+.badge-gray {
+  background:#F3F4F6;
+  color:#6B7280;
+  border-color:#E5E7EB;
+}
+
+/* Inicio / resumen entrenamiento */
+.training-guide-summary {
+  background:
+    linear-gradient(135deg, #071225 0%, #0B1C35 64%, #073247 100%);
+  border:none;
+  border-radius:26px;
+  padding:22px 20px;
+  margin-bottom:16px;
+  box-shadow:0 18px 36px rgba(7,18,37,.18);
+}
+
+.training-guide-title {
+  color:#fff;
+  font-size:30px;
+  letter-spacing:1.5px;
+}
+
+.training-guide-meta {
+  color:rgba(255,255,255,.66);
+}
+
+.training-week-objective {
+  color:rgba(255,255,255,.72);
+  border-top:1px solid rgba(255,255,255,.12);
+}
+
+/* Entrenamiento */
+.training-day-tabs {
+  gap:9px;
+}
+
+.training-day-tab {
+  background:#F5F7FA;
+  border:1px solid var(--line);
+  color:var(--muted);
+  border-radius:999px;
+  padding:9px 14px;
+}
+
+.training-day-tab.active {
+  background:#EAF8FF;
+  border-color:rgba(8,191,242,.35);
+  color:#027EA5;
+}
+
+.training-session-separator {
+  color:#027EA5;
+}
+
+.training-step-card {
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:22px;
+  box-shadow:0 8px 20px rgba(15,23,42,.05);
+}
+
+.training-step-card.open {
+  border-color:rgba(8,191,242,.40);
+}
+
+.training-step-card.completed {
+  border-color:rgba(34,197,94,.35);
+  background:#FBFEFC;
+}
+
+.training-step-header {
+  padding:16px;
+}
+
+.training-step-card.open .training-step-header {
+  background:#F0FAFF;
+}
+
+.training-step-card.completed .training-step-header {
+  background:#F0FDF4;
+}
+
+.training-step-number {
+  background:#F5F7FA;
+  border:1px solid var(--line);
+  color:var(--ink);
+  border-radius:16px;
+}
+
+.training-step-card.open .training-step-number {
+  border-color:rgba(8,191,242,.40);
+  color:#027EA5;
+  background:#EAF8FF;
+}
+
+.training-step-card.completed .training-step-number {
+  background:#ECFDF3;
+  border-color:#BBF7D0;
+  color:#15803D;
+}
+
+.training-step-title {
+  color:var(--ink);
+}
+
+.training-step-meta {
+  color:var(--muted);
+}
+
+.training-step-status {
+  border-color:var(--line);
+  color:var(--muted);
+  background:#F8FAFC;
+  border-radius:999px;
+}
+
+.training-step-status.done {
+  color:#15803D;
+  border-color:#BBF7D0;
+  background:#ECFDF3;
+}
+
+.training-step-body {
+  border-top:1px solid var(--line);
+}
+
+.training-step-objective {
+  color:var(--muted);
+  border-bottom:1px solid var(--line);
+}
+
+.training-exercise-card {
+  background:#F8FAFC;
+  border:1px solid var(--line);
+  border-left:4px solid var(--blue);
+  border-radius:18px;
+}
+
+.training-exercise-title {
+  color:var(--ink);
+}
+
+.training-ex-num {
+  color:#027EA5;
+}
+
+.training-mini-stat {
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+}
+
+.training-mini-label {
+  color:var(--muted);
+}
+
+.training-mini-value {
+  color:var(--ink);
+}
+
+.training-level-tag {
+  background:#fff;
+  border-color:var(--line);
+  color:var(--muted);
+  border-radius:999px;
+}
+
+.training-instruction {
+  color:var(--ink);
+}
+
+.training-instruction strong {
+  color:#027EA5;
+}
+
+.training-coach-note {
+  color:var(--muted);
+}
+
+.training-video-btn {
+  background:#EAF8FF;
+  border-color:#BAEAFE;
+  color:#027EA5;
+  border-radius:999px;
+}
+
+.training-complete-block-btn {
+  background:#071225;
+  color:#fff;
+  border-radius:999px;
+  box-shadow:0 12px 26px rgba(7,18,37,.14);
+}
+
+.training-step-done-msg {
+  color:#15803D;
+}
+
+.training-finish-card,
+.training-session-completed-card {
+  background:#F0FDF4;
+  border:1px solid #BBF7D0;
+  border-radius:24px;
+}
+
+.training-finish-title,
+.training-notes-title,
+.training-session-completed-title {
+  color:var(--ink);
+}
+
+.training-finish-sub,
+.training-notes-sub,
+.training-session-completed-sub {
+  color:var(--muted);
+}
+
+.training-notes-box {
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:22px;
+}
+
+.training-notes-textarea {
+  background:#F8FAFC;
+  border:1px solid var(--line);
+  border-radius:18px;
+  color:var(--ink);
+}
+
+.training-notes-textarea:focus {
+  border-color:var(--blue);
+  box-shadow:0 0 0 4px rgba(8,191,242,.12);
+}
+
+.training-session-completed-icon {
+  background:#ECFDF3;
+  border-color:#BBF7D0;
+  color:#15803D;
+  border-radius:14px;
+}
+
+/* Evaluaciones */
+.assessment-card-header {
+  border-bottom:1px solid var(--line);
+}
+
+.assessment-card-title,
+.assessment-ex-name,
+.assessment-result-val {
+  color:var(--ink);
+}
+
+.assessment-card-meta,
+.assessment-ex-meta,
+.assessment-ex-note,
+.assessment-result-unit {
+  color:var(--muted);
+}
+
+.assessment-card.open .assessment-card-body {
+  background:#fff;
+}
+
+.mini-chart-wrap {
+  background:#F8FAFC;
+  border-color:var(--line);
+  border-radius:18px;
+}
+
+.mini-chart-title {
+  color:#027EA5;
+}
+
+/* Accordion */
+.accordion-title {
+  color:var(--ink);
+}
+
+.accordion-title span:first-child {
+  color:#027EA5;
+}
+
+.accordion-symbol {
+  color:var(--muted);
+}
+
+.accordion-content {
+  border-top:1px solid var(--line);
+}
+
+.accordion-block.open .accordion-title {
+  background:#F0FAFF;
+}
+
+/* Notas */
+.note-item {
+  background:#F8FAFC;
+  border-left:4px solid var(--blue);
+  color:var(--ink);
+  border-radius:18px;
+}
+
+/* Progress */
+.progress-ring {
+  background:conic-gradient(var(--blue) calc(var(--p)*1%), #E5EAF0 0);
+}
+
+.progress-ring::before {
+  background:#fff;
+}
+
+.progress-ring span {
+  color:var(--ink);
+}
+
+.progress-circle-label,
+.progress-circle-note {
+  color:var(--muted);
+}
+
+.progress-circle-value {
+  color:var(--ink);
+}
+
+/* Mobile */
+@media(max-width:480px) {
+  .dash-header {
+    height:58px;
+    padding:0 12px;
+  }
+
+  .client-nav {
+    top:58px;
+    padding:9px 10px;
+  }
+
+  .dash-main {
+    padding:16px 12px calc(150px + env(safe-area-inset-bottom));
+  }
+
+  .section {
+    border-radius:24px;
+  }
+
+  .section-body {
+    padding:14px;
+  }
+
+  .training-guide-summary {
+    border-radius:24px;
+    padding:20px 18px;
+  }
+
+  .training-guide-title {
+    font-size:28px;
+  }
+
+  .data-card,
+  .summary-card,
+  .training-step-card {
+    border-radius:20px;
+  }
+
+  .client-action-btn {
+    padding:14px;
+  }
+}
   </style>
 </head>
 <body>
