@@ -12,37 +12,26 @@
 
 <style>
 /* ═══════════════════════════════════════════════════════
-   AB SYSTEM — REBRANDING DARK v2.0
-   Modo Oscuro Estricto · Minimalista Técnico
+   AB SYSTEM — DARK v2.1 + MÉTRICAS COMBATE
 ═══════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Paleta base ── */
   --bg:          #000000;
   --card:        #121214;
   --card-border: #1F1F24;
   --divider:     #16161A;
-
-  /* ── Texto ── */
   --text-primary:   #FFFFFF;
   --text-secondary: #8E8E93;
-
-  /* ── Colores funcionales (sin iconos) ── */
-  --sport:   #00A3FF;  /* Azul  — Entrenamiento */
-  --medical: #FF5A5A;  /* Coral — Salud */
-  --streak:  #00E676;  /* Verde — Constancia */
-  --warn:    #FFB340;  /* Ámbar — Atención */
-
-  /* ── Tipografía ── */
+  --sport:   #00A3FF;
+  --medical: #FF5A5A;
+  --streak:  #00E676;
+  --warn:    #FFB340;
   --font-display: 'Bebas Neue', sans-serif;
   --font-body:    'Syne', sans-serif;
   --font-mono:    'DM Mono', monospace;
-
-  /* ── Tab indicator ── */
   --tab-indicator: var(--sport);
 }
 
-/* ── RESET ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
@@ -61,17 +50,13 @@ button { cursor: pointer; border: none; outline: none; font-family: var(--font-b
 input, textarea { outline: none; font-family: var(--font-body); }
 .hidden { display: none !important; }
 
-/* ═══════════════════════════════════════════════════════
-   LOADING
-═══════════════════════════════════════════════════════ */
+/* ═══ LOADING ═══════════════════════════════════════ */
 #loadingOverlay {
-  position: fixed; inset: 0;
-  background: var(--bg);
+  position: fixed; inset: 0; background: var(--bg);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 16px; z-index: 999;
 }
-
 .spinner {
   width: 32px; height: 32px;
   border: 2px solid var(--divider);
@@ -80,547 +65,359 @@ input, textarea { outline: none; font-family: var(--font-body); }
   animation: spin .7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
 #loadingOverlay p {
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+  font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;
 }
 
-/* ═══════════════════════════════════════════════════════
-   LOGIN
-═══════════════════════════════════════════════════════ */
+/* ═══ LOGIN ══════════════════════════════════════════ */
 #loginScreen {
   min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
-  padding: 24px 16px;
-  background: var(--bg);
+  padding: 24px 16px; background: var(--bg);
 }
-
 .login-box {
   width: 100%; max-width: 380px;
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  padding: 40px 32px 36px;
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 16px; padding: 40px 32px 36px;
 }
-
 .login-logo {
   display: flex; align-items: center;
-  justify-content: center;
-  margin-bottom: 32px;
+  justify-content: center; margin-bottom: 32px;
 }
-
 .brand-logo { display: block; object-fit: contain; flex-shrink: 0; }
-.brand-logo-login {
-  width: 56px; height: 56px;
-  border-radius: 14px;
-}
-.brand-logo-header {
-  width: 36px; height: 36px;
-  border-radius: 10px;
-}
-
-/* Oculta restos del logo antiguo */
+.brand-logo-login  { width: 56px; height: 56px; border-radius: 14px; }
+.brand-logo-header { width: 36px; height: 36px; border-radius: 10px; }
 .logo-badge, .logo-text { display: none !important; }
-
 .login-title {
   font-family: var(--font-display);
-  color: var(--text-primary);
-  font-size: 28px;
-  letter-spacing: 3px;
-  margin-bottom: 4px;
-  text-align: center;
+  color: var(--text-primary); font-size: 28px;
+  letter-spacing: 3px; margin-bottom: 4px; text-align: center;
 }
-
 .login-sub {
-  font-size: 12px;
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  letter-spacing: 0.4px;
-  margin-bottom: 32px;
-  text-align: center;
+  font-size: 12px; color: var(--text-secondary);
+  font-family: var(--font-mono); letter-spacing: 0.4px;
+  margin-bottom: 32px; text-align: center;
 }
-
-/* ── Campos ── */
 .field-group { margin-bottom: 14px; }
-
 .field-group label {
-  display: block;
-  font-size: 10px;
-  font-family: var(--font-mono);
-  letter-spacing: 1.4px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  margin-bottom: 8px;
+  display: block; font-size: 10px; font-family: var(--font-mono);
+  letter-spacing: 1.4px; color: var(--text-secondary);
+  text-transform: uppercase; margin-bottom: 8px;
 }
-
 .field-group input {
-  width: 100%;
-  background: var(--bg);
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 12px 14px;
-  color: var(--text-primary);
-  font-size: 15px;
-  font-family: var(--font-body);
+  width: 100%; background: var(--bg); border: 1px solid var(--card-border);
+  border-radius: 8px; padding: 12px 14px;
+  color: var(--text-primary); font-size: 15px; font-family: var(--font-body);
   transition: border-color .2s;
 }
 .field-group input:focus { border-color: var(--sport); }
 .field-group input::placeholder { color: var(--text-secondary); opacity: .5; }
-
-/* ── Botones login ── */
 .btn-login {
-  width: 100%;
-  background: var(--text-primary);
-  color: var(--bg);
-  border-radius: 8px;
-  padding: 13px;
-  font-size: 13px;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  margin-top: 4px;
+  width: 100%; background: var(--text-primary); color: var(--bg);
+  border-radius: 8px; padding: 13px;
+  font-size: 13px; font-weight: 700; font-family: var(--font-mono);
+  letter-spacing: 1.2px; text-transform: uppercase; margin-top: 4px;
   transition: opacity .2s, transform .1s;
 }
 .btn-login:hover { opacity: .9; }
 .btn-login:active { transform: scale(.98); }
-
 .btn-wa-login {
-  width: 100%;
-  background: transparent;
-  border: 1px solid var(--card-border);
-  color: var(--text-secondary);
-  border-radius: 8px;
-  padding: 11px;
-  font-size: 12px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.6px;
-  margin-top: 10px;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; background: transparent; border: 1px solid var(--card-border);
+  color: var(--text-secondary); border-radius: 8px; padding: 11px;
+  font-size: 12px; font-family: var(--font-mono); letter-spacing: 0.6px;
+  margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
   transition: border-color .2s, color .2s;
 }
 .btn-wa-login:hover { border-color: var(--streak); color: var(--streak); }
-
-/* ── Mensajes ── */
 .login-error {
-  background: rgba(255,90,90,.08);
-  border: 1px solid rgba(255,90,90,.3);
-  color: var(--medical);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 12px;
-  font-family: var(--font-mono);
-  margin-bottom: 14px;
+  background: rgba(255,90,90,.08); border: 1px solid rgba(255,90,90,.3);
+  color: var(--medical); border-radius: 8px; padding: 10px 14px;
+  font-size: 12px; font-family: var(--font-mono); margin-bottom: 14px;
 }
 .login-info {
-  background: rgba(0,163,255,.08);
-  border: 1px solid rgba(0,163,255,.25);
-  color: var(--sport);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 12px;
-  font-family: var(--font-mono);
-  margin-bottom: 14px;
+  background: rgba(0,163,255,.08); border: 1px solid rgba(0,163,255,.25);
+  color: var(--sport); border-radius: 8px; padding: 10px 14px;
+  font-size: 12px; font-family: var(--font-mono); margin-bottom: 14px;
 }
 
-/* ═══════════════════════════════════════════════════════
-   HEADER
-═══════════════════════════════════════════════════════ */
+/* ═══ HEADER ═════════════════════════════════════════ */
 #dashboardScreen { min-height: 100vh; }
-
 .dash-header {
-  background: rgba(0,0,0,.92);
-  border-bottom: 1px solid var(--divider);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  padding: 0 20px;
-  height: 60px;
+  background: rgba(0,0,0,.92); border-bottom: 1px solid var(--divider);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  padding: 0 20px; height: 60px;
   display: flex; align-items: center; justify-content: space-between;
   position: sticky; top: 0; z-index: 100;
 }
-
 .dash-header-logo { display: flex; align-items: center; gap: 10px; }
-
-.dash-header-wordmark {
-  font-family: var(--font-display);
-  font-size: 18px;
-  letter-spacing: 3px;
-  color: var(--text-primary);
-}
-.dash-header-wordmark span { color: var(--sport); }
-
 .dash-header-actions { display: flex; align-items: center; gap: 8px; }
-
 .btn-icon {
-  background: transparent;
-  border: 1px solid var(--card-border);
-  color: var(--text-secondary);
-  border-radius: 6px;
-  padding: 7px 12px;
-  font-size: 11px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.8px;
+  background: transparent; border: 1px solid var(--card-border);
+  color: var(--text-secondary); border-radius: 6px; padding: 7px 12px;
+  font-size: 11px; font-family: var(--font-mono); letter-spacing: 0.8px;
   display: flex; align-items: center; gap: 6px;
   transition: border-color .2s, color .2s;
 }
 .btn-icon:hover { border-color: var(--sport); color: var(--sport); }
 .btn-icon.red:hover { border-color: var(--medical); color: var(--medical); }
-
 #btnHeaderWA { border-color: rgba(0,230,118,.2); color: var(--streak); }
 #btnHeaderWA:hover { border-color: var(--streak); }
 
-/* ═══════════════════════════════════════════════════════
-   NAV — TRES PESTAÑAS DE TEXTO PLANO
-═══════════════════════════════════════════════════════ */
+/* ═══ NAV ════════════════════════════════════════════ */
 .client-nav {
-  background: rgba(0,0,0,.95);
-  border-bottom: 1px solid var(--divider);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(0,0,0,.95); border-bottom: 1px solid var(--divider);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   position: sticky; top: 60px; z-index: 90;
-  display: flex;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  display: flex; overflow-x: auto;
+  scrollbar-width: none; -ms-overflow-style: none;
 }
 .client-nav::-webkit-scrollbar { display: none; }
-
-/* ── Botones de nav: texto plano, sin fondo ni óvalos ── */
 .client-nav button {
-  flex: 0 0 auto;
-  background: transparent;
-  color: var(--text-secondary);
-  border: none;
+  flex: 0 0 auto; background: transparent;
+  color: var(--text-secondary); border: none;
   border-bottom: 2px solid transparent;
-  padding: 14px 18px 12px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  white-space: nowrap;
-  transition: color .15s, border-color .15s;
-  position: relative;
+  padding: 14px 18px 12px; font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase;
+  white-space: nowrap; transition: color .15s, border-color .15s;
 }
 .client-nav button:hover { color: var(--text-primary); }
-.client-nav button.active {
-  color: var(--text-primary);
-  border-bottom-color: var(--tab-indicator);
-}
+.client-nav button.active { color: var(--text-primary); border-bottom-color: var(--tab-indicator); }
 
-/* ═══════════════════════════════════════════════════════
-   LAYOUT
-═══════════════════════════════════════════════════════ */
+/* ═══ LAYOUT ══════════════════════════════════════════ */
 .dash-main {
-  max-width: 720px;
-  margin: 0 auto;
+  max-width: 720px; margin: 0 auto;
   padding: 20px 16px calc(120px + env(safe-area-inset-bottom));
 }
-
-/* Secciones — sin card global, cada bloque es su propio card */
 .section { animation: fadein .16s ease; }
 @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .section-hidden { display: none !important; }
-
 .section-header {
-  padding: 0 0 16px;
-  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 0 16px; display: flex;
+  align-items: center; justify-content: space-between;
 }
 .section-header h2 {
-  font-family: var(--font-display);
-  color: var(--text-primary);
-  font-size: 22px;
-  letter-spacing: 3px;
+  font-family: var(--font-display); color: var(--text-primary);
+  font-size: 22px; letter-spacing: 3px;
 }
 .section-header .sec-badge {
-  font-size: 10px;
-  font-family: var(--font-mono);
-  color: var(--text-secondary);
-  letter-spacing: 0.6px;
+  font-size: 10px; font-family: var(--font-mono);
+  color: var(--text-secondary); letter-spacing: 0.6px;
 }
-
-.section-body { /* contenedor neutro */ }
-
 .empty-state {
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.3px;
-  line-height: 1.8;
+  color: var(--text-secondary); font-size: 13px;
+  font-family: var(--font-mono); letter-spacing: 0.3px; line-height: 1.8;
 }
 
-/* ═══════════════════════════════════════════════════════
-   CARD BASE
-═══════════════════════════════════════════════════════ */
-.data-card,
-.summary-card,
-.progress-circle-card,
-.assessment-card,
-.accordion-block {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
+/* ═══ CARD BASE ════════════════════════════════════════ */
+.data-card, .summary-card, .progress-circle-card, .assessment-card, .accordion-block {
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
 }
-
-.data-card {
-  padding: 18px;
-  margin-bottom: 10px;
-}
+.data-card { padding: 18px; margin-bottom: 10px; }
 .data-card:last-child { margin-bottom: 0; }
-
-/* Próxima sesión — borde acento azul */
-.data-card.next-session {
-  border-color: rgba(0,163,255,.25);
-  background: var(--card);
-}
-
-.data-card .dc-row {
-  display: flex; flex-wrap: wrap;
-  align-items: center; gap: 6px 10px;
-  margin-bottom: 4px;
-}
-.data-card .dc-title {
-  font-weight: 700; font-size: 17px;
-  line-height: 1.3; color: var(--text-primary);
-}
-.data-card .dc-sub {
-  font-size: 12px; color: var(--text-secondary);
-  font-family: var(--font-mono);
-}
-.data-card .dc-note {
-  margin-top: 8px; font-size: 13px;
-  color: var(--text-secondary); font-style: italic;
-}
-
+.data-card.next-session { border-color: rgba(0,163,255,.25); }
+.data-card .dc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 4px; }
+.data-card .dc-title { font-weight: 700; font-size: 17px; line-height: 1.3; color: var(--text-primary); }
+.data-card .dc-sub { font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono); }
+.data-card .dc-note { margin-top: 8px; font-size: 13px; color: var(--text-secondary); font-style: italic; }
 .next-label {
   font-size: 10px; font-family: var(--font-mono);
   letter-spacing: 1.6px; text-transform: uppercase;
-  font-weight: 500; color: var(--sport);
-  margin-bottom: 10px;
+  font-weight: 500; color: var(--sport); margin-bottom: 10px;
 }
 
-/* ═══════════════════════════════════════════════════════
-   BOTONES DE ACCIÓN
-═══════════════════════════════════════════════════════ */
+/* ═══ BOTONES ══════════════════════════════════════════ */
 .action-box { margin-top: 16px; display: grid; gap: 8px; }
-
-.client-action-btn,
-.copy-summary-btn {
+.client-action-btn, .copy-summary-btn {
   width: 100%; min-height: 46px;
-  background: var(--text-primary);
-  border: none;
-  color: var(--bg);
-  border-radius: 8px;
-  padding: 12px 16px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+  background: var(--text-primary); border: none; color: var(--bg);
+  border-radius: 8px; padding: 12px 16px;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 1.2px; text-transform: uppercase;
   display: flex; align-items: center; justify-content: center; gap: 8px;
   transition: opacity .15s, transform .1s;
 }
 .client-action-btn:hover, .copy-summary-btn:hover { opacity: .88; }
 .client-action-btn:active { transform: scale(.98); }
-
-/* Variante WhatsApp */
 .client-action-btn.wa {
-  background: transparent;
-  border: 1px solid rgba(0,230,118,.25);
-  color: var(--streak);
+  background: transparent; border: 1px solid rgba(0,230,118,.25); color: var(--streak);
 }
 .client-action-btn.wa:hover { border-color: var(--streak); background: rgba(0,230,118,.05); }
 
-/* ═══════════════════════════════════════════════════════
-   BADGES — formato [Texto] con su color funcional
-═══════════════════════════════════════════════════════ */
+/* ═══ BADGES ═══════════════════════════════════════════ */
 .badge {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.8px;
-  font-weight: 500;
-  padding: 3px 0;
+  display: inline-block; font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.8px; font-weight: 500; padding: 3px 0;
 }
-/* Sin fondos, puro texto con color funcional */
 .badge-green  { color: var(--streak); }
 .badge-yellow { color: var(--warn); }
 .badge-red    { color: var(--medical); }
 .badge-blue   { color: var(--sport); }
 .badge-gray   { color: var(--text-secondary); }
+.badge-green::before,  .badge-green::after  { content: '['; }
+.badge-green::after,   .badge-yellow::after { content: ']'; }
+.badge-yellow::before, .badge-red::before   { content: '['; }
+.badge-red::after,     .badge-blue::after   { content: ']'; }
+.badge-blue::before,   .badge-gray::before  { content: '['; }
+.badge-gray::after     { content: ']'; }
 
-/* ─── badge como texto entre corchetes ─── */
-.badge-green::before  { content: '['; }
-.badge-green::after   { content: ']'; }
-.badge-yellow::before { content: '['; }
-.badge-yellow::after  { content: ']'; }
-.badge-red::before    { content: '['; }
-.badge-red::after     { content: ']'; }
-.badge-blue::before   { content: '['; }
-.badge-blue::after    { content: ']'; }
-.badge-gray::before   { content: '['; }
-.badge-gray::after    { content: ']'; }
-
-/* ═══════════════════════════════════════════════════════
-   HOME — DASHBOARD PRINCIPAL
+/* ═══ MÉTRICAS COMBATE — ESTADOS VISUALES ═══════════════
+   Sistema de alertas fisiológicas para luchadores
 ═══════════════════════════════════════════════════════ */
-#section-home .section-body { padding: 0; }
+#dashboard-atleta-combate {
+  margin-bottom: 16px;
+}
 
-/* Cabecera saludo */
-#section-home .training-guide-summary {
-  background: transparent;
-  border: none; box-shadow: none;
-  padding: 0 0 20px;
-  margin-bottom: 0;
-}
-#section-home .training-guide-title {
-  font-family: var(--font-display);
-  color: var(--text-primary);
-  font-size: 32px;
-  line-height: 1;
-  letter-spacing: 1.5px;
-  margin-bottom: 4px;
-}
-#section-home .training-guide-meta {
+#dashboard-atleta-combate .combate-header {
   font-family: var(--font-mono);
-  color: var(--text-secondary);
-  font-size: 12px;
-  letter-spacing: 0.4px;
+  font-size: 10px; letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--sport); margin-bottom: 12px;
 }
 
-/* ═══════════════════════════════════════════════════════
-   HOME RINGS — MICRO-GRÁFICAS PLANAS
-   (3 tarjetas tappables: Barras / Línea / Puntos)
-═══════════════════════════════════════════════════════ */
-.home-rings-grid {
+#dashboard-atleta-combate .combate-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin: 18px 0;
 }
 
-.home-ring-card {
+.card-metrica {
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: 12px;
-  padding: 16px 12px 14px;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color .2s;
-  min-width: 0;
+  padding: 16px;
+  transition: border-color .25s, background .25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-metrica span {
+  font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--text-secondary); font-family: var(--font-mono);
+  display: block; margin-bottom: 8px;
+}
+
+.card-metrica strong {
+  font-family: var(--font-display);
+  font-size: 32px; letter-spacing: 1px;
+  color: var(--text-primary); line-height: 1; display: block;
+}
+
+.card-metrica .metrica-unit {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-secondary); letter-spacing: 0.6px;
+  display: block; margin-top: 4px;
+}
+
+.estado-tag {
+  display: inline-block; font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase;
+  margin-top: 8px; padding: 3px 8px;
+  border-radius: 4px; border: 1px solid currentColor;
+  opacity: .9;
+}
+
+/* Indicador de barra lateral */
+.card-metrica::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; border-radius: 12px 0 0 12px;
+  background: var(--card-border);
+  transition: background .25s;
+}
+
+/* ── Óptimo ── */
+.status-ok {
+  border-color: rgba(0, 230, 118, .3);
+  background: rgba(0, 230, 118, .04);
+}
+.status-ok::before     { background: var(--streak); }
+.status-ok strong      { color: var(--streak); }
+.status-ok .estado-tag { color: var(--streak); }
+
+/* ── Precaución ── */
+.status-warning {
+  border-color: rgba(255, 179, 64, .35);
+  background: rgba(255, 179, 64, .04);
+}
+.status-warning::before     { background: var(--warn); }
+.status-warning strong      { color: var(--warn); }
+.status-warning .estado-tag { color: var(--warn); }
+
+/* ── Peligro ── */
+.status-danger {
+  border-color: rgba(255, 90, 90, .35);
+  background: rgba(255, 90, 90, .04);
+}
+.status-danger::before     { background: var(--medical); }
+.status-danger strong      { color: var(--medical); }
+.status-danger .estado-tag { color: var(--medical); }
+
+/* Fecha de última actualización */
+.combate-update {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-secondary); letter-spacing: 0.4px;
+  margin-top: 10px; text-align: right;
+}
+
+/* ═══ HOME RINGS ════════════════════════════════════════ */
+.home-rings-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px; margin: 18px 0;
+}
+.home-ring-card {
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 12px; padding: 16px 12px 14px; text-align: center;
+  cursor: pointer; transition: border-color .2s; min-width: 0;
 }
 .home-ring-card:hover { border-color: rgba(255,255,255,.15); }
-
-/* Label encima de la gráfica */
 .home-ring-label {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  margin-bottom: 10px;
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--text-secondary); margin-bottom: 10px;
 }
-
-/* Valor numérico grande */
 .home-ring-value {
-  font-family: var(--font-display);
-  font-size: 24px;
-  letter-spacing: 0.5px;
-  line-height: 1;
-  margin-bottom: 2px;
+  font-family: var(--font-display); font-size: 24px;
+  letter-spacing: 0.5px; line-height: 1; margin-bottom: 2px;
 }
-
-/* Sub-label debajo */
 .home-ring-note {
-  font-size: 10px;
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  letter-spacing: 0.4px;
-  margin-top: 6px;
+  font-size: 10px; color: var(--text-secondary);
+  font-family: var(--font-mono); letter-spacing: 0.4px; margin-top: 6px;
 }
-
-/* Wrapper SVG de micro-gráfica */
 .home-ring-svg-wrap {
   width: 100%; height: 40px;
-  display: flex; align-items: flex-end;
-  justify-content: center;
-  margin: 8px 0 4px;
-  overflow: visible;
+  display: flex; align-items: flex-end; justify-content: center;
+  margin: 8px 0 4px; overflow: visible;
 }
-
-/* SVG nativo para las 3 gráficas */
-.home-ring-svg-wrap svg {
-  width: 100%; height: 40px;
-  overflow: visible;
-}
-
-/* ─── Barras (sport azul) ─── */
-.bar-chart-bar { fill: var(--sport); rx: 2; }
-
-/* ─── Spline (medical coral) ─── */
-.spline-line { fill: none; stroke: var(--medical); stroke-width: 1.5px; stroke-linecap: round; stroke-linejoin: round; }
-.spline-dot  { fill: var(--medical); }
-
-/* ─── Puntos de racha (streak verde / apagado) ─── */
-.streak-dot-on  { fill: var(--streak); }
-.streak-dot-off { fill: var(--divider); }
-
-/* ─── Anillos SVG legacy — ocultar ─── */
+.home-ring-svg-wrap svg { width: 100%; height: 40px; overflow: visible; }
 .home-ring, .home-ring-svg, .home-ring-track, .home-ring-progress, .home-ring-percent { display: none !important; }
 
-/* ═══════════════════════════════════════════════════════
-   PLAN GRID
-═══════════════════════════════════════════════════════ */
-.plan-grid {
-  display: grid; gap: 14px 16px;
-  grid-template-columns: 1fr 1fr;
-}
+/* ═══ PLAN GRID ═════════════════════════════════════════ */
+.plan-grid { display: grid; gap: 14px 16px; grid-template-columns: 1fr 1fr; }
 .plan-item .pi-label {
-  font-size: 10px; font-family: var(--font-mono);
-  text-transform: uppercase; letter-spacing: 1.2px;
-  color: var(--text-secondary); margin-bottom: 4px;
+  font-size: 10px; font-family: var(--font-mono); text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--text-secondary); margin-bottom: 4px;
 }
-.plan-item .pi-value {
-  font-size: 14px; color: var(--text-primary); font-weight: 600;
-}
+.plan-item .pi-value { font-size: 14px; color: var(--text-primary); font-weight: 600; }
 .plan-item.full { grid-column: 1 / -1; }
 .plan-divider { grid-column: 1/-1; border: none; border-top: 1px solid var(--divider); margin: 4px 0; }
-
 .plan-no-program {
   background: var(--card); border: 1px dashed var(--card-border);
   border-radius: 10px; padding: 16px;
-  color: var(--text-secondary); font-size: 13px; line-height: 1.7;
-  margin-top: 4px;
+  color: var(--text-secondary); font-size: 13px; line-height: 1.7; margin-top: 4px;
 }
 
-/* ═══════════════════════════════════════════════════════
-   SUMMARY GRID — CARDS OSCURAS
-═══════════════════════════════════════════════════════ */
-.summary-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 10px; margin-bottom: 16px;
-}
+/* ═══ SUMMARY GRID ══════════════════════════════════════ */
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
 .summary-card { padding: 16px; border-radius: 12px; }
 .summary-card.full { grid-column: 1/-1; }
 .summary-label {
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: 1.4px; text-transform: uppercase;
-  color: var(--text-secondary); margin-bottom: 6px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;
 }
-.summary-value {
-  font-size: 15px; color: var(--text-primary); font-weight: 700;
-}
-.summary-value.big {
-  font-family: var(--font-display); font-size: 24px;
-  letter-spacing: 1px; color: var(--text-primary);
-}
+.summary-value { font-size: 15px; color: var(--text-primary); font-weight: 700; }
+.summary-value.big { font-family: var(--font-display); font-size: 24px; letter-spacing: 1px; }
 
-/* ═══════════════════════════════════════════════════════
-   QUICK CARDS
-═══════════════════════════════════════════════════════ */
+/* ═══ QUICK CARDS ════════════════════════════════════════ */
 .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
 .quick-card {
   background: var(--card); border: 1px solid var(--card-border);
@@ -629,522 +426,257 @@ input, textarea { outline: none; font-family: var(--font-body); }
 }
 .quick-card:hover { border-color: rgba(0,163,255,.3); }
 .quick-card-label {
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: 1px; text-transform: uppercase;
-  color: var(--text-secondary); margin-bottom: 6px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;
 }
 .quick-card-title {
-  font-size: 14px; font-weight: 700;
-  color: var(--text-primary);
+  font-size: 14px; font-weight: 700; color: var(--text-primary);
   display: flex; align-items: center; justify-content: space-between;
 }
 .quick-card-arrow { color: var(--sport); font-size: 16px; }
 
-/* ═══════════════════════════════════════════════════════
-   ENTRENAMIENTO
-═══════════════════════════════════════════════════════ */
+/* ═══ ENTRENAMIENTO ══════════════════════════════════════ */
 #section-training { background: transparent; border: none; box-shadow: none; }
 #section-training .section-header { background: transparent; border-bottom: none; padding: 0 0 16px; }
-#section-training .section-header h2 { color: var(--text-primary); }
-
 #sectionTrainingClient { padding: 0; }
-
-/* Hero de entrenamiento */
 #section-training .training-guide-summary {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 20px; margin: 0 0 14px;
-  box-shadow: none;
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 12px; padding: 20px; margin: 0 0 14px;
 }
 #section-training .training-guide-title {
-  font-family: var(--font-display);
-  color: var(--text-primary);
-  font-size: 28px; letter-spacing: 2px;
-  margin-bottom: 6px;
+  font-family: var(--font-display); color: var(--text-primary);
+  font-size: 28px; letter-spacing: 2px; margin-bottom: 6px;
 }
 #section-training .training-guide-meta {
-  font-family: var(--font-mono);
-  color: var(--text-secondary);
+  font-family: var(--font-mono); color: var(--text-secondary);
   font-size: 11px; letter-spacing: 1px;
 }
 #section-training .training-week-objective {
-  border-top: 1px solid var(--divider);
-  color: var(--text-secondary); font-size: 13px;
-  line-height: 1.6; padding-top: 12px; margin-top: 12px;
+  border-top: 1px solid var(--divider); color: var(--text-secondary);
+  font-size: 13px; line-height: 1.6; padding-top: 12px; margin-top: 12px;
 }
-
-/* Mini hero de sesión */
 .training-mini-hero {
   background: var(--card); border: 1px solid var(--card-border);
   border-radius: 12px; padding: 18px; margin: 0 0 14px;
 }
-.training-mini-hero-top {
-  display: flex; align-items: center;
-  justify-content: space-between; gap: 12px; margin-bottom: 6px;
-}
-.training-mini-day {
-  font-family: var(--font-display);
-  font-size: 28px; line-height: 1;
-  color: var(--text-primary); letter-spacing: 2px;
-}
-.training-mini-meta {
-  font-size: 11px; color: var(--text-secondary);
-  font-family: var(--font-mono); letter-spacing: 0.6px;
-}
-.training-mini-title {
-  color: var(--text-secondary); font-size: 13px; line-height: 1.4;
-}
+.training-mini-hero-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.training-mini-day { font-family: var(--font-display); font-size: 28px; line-height: 1; color: var(--text-primary); letter-spacing: 2px; }
+.training-mini-meta { font-size: 11px; color: var(--text-secondary); font-family: var(--font-mono); letter-spacing: 0.6px; }
+.training-mini-title { color: var(--text-secondary); font-size: 13px; line-height: 1.4; }
 
-/* Tabs de días */
 .training-day-tabs {
-  display: flex; gap: 0;
-  overflow-x: auto; margin: 0 0 14px;
-  border-bottom: 1px solid var(--divider);
-  scrollbar-width: none;
+  display: flex; gap: 0; overflow-x: auto; margin: 0 0 14px;
+  border-bottom: 1px solid var(--divider); scrollbar-width: none;
 }
 .training-day-tabs::-webkit-scrollbar { display: none; }
-
 .training-day-tab {
-  flex: 0 0 auto;
-  background: transparent;
-  color: var(--text-secondary);
+  flex: 0 0 auto; background: transparent; color: var(--text-secondary);
   border: none; border-bottom: 2px solid transparent;
-  padding: 10px 16px 8px;
-  font-family: var(--font-mono);
-  font-size: 10px; letter-spacing: 1.2px;
-  text-transform: uppercase; white-space: nowrap;
-  transition: color .15s, border-color .15s;
-  margin-bottom: -1px;
+  padding: 10px 16px 8px; font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase;
+  white-space: nowrap; transition: color .15s, border-color .15s; margin-bottom: -1px;
 }
 .training-day-tab:hover { color: var(--text-primary); }
-.training-day-tab.active {
-  color: var(--text-primary);
-  border-bottom-color: var(--sport);
-}
+.training-day-tab.active { color: var(--text-primary); border-bottom-color: var(--sport); }
 
-/* Paneles */
 .training-day-panel, .training-session-panel, .training-week-panel { display: none; }
 .training-day-panel.active, .training-session-panel.active, .training-week-panel.active { display: block; }
 .training-session-separator { display: none; }
 
-/* Step cards */
 .training-step-list { display: flex; flex-direction: column; gap: 10px; }
-
 .training-step-card {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 12px; overflow: hidden;
-  transition: border-color .2s;
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 12px; overflow: hidden; transition: border-color .2s;
 }
-.training-step-card.open { border-color: rgba(0,163,255,.3); }
-.training-step-card.completed { border-color: rgba(0,230,118,.25); }
-
+.training-step-card.open     { border-color: rgba(0,163,255,.3); }
+.training-step-card.completed{ border-color: rgba(0,230,118,.25); }
 .training-step-header {
-  width: 100%; background: transparent;
-  padding: 16px; display: flex; align-items: center; gap: 14px;
+  width: 100%; background: transparent; padding: 16px;
+  display: flex; align-items: center; gap: 14px;
   text-align: left; transition: background .15s;
 }
-.training-step-card.open .training-step-header { background: rgba(0,163,255,.04); }
+.training-step-card.open .training-step-header      { background: rgba(0,163,255,.04); }
 .training-step-card.completed .training-step-header { background: rgba(0,230,118,.04); }
-
 .training-step-number {
-  flex-shrink: 0; width: 40px; height: 40px;
-  border-radius: 10px;
+  flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px;
   background: var(--bg); border: 1px solid var(--card-border);
   color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-mono); font-weight: 500; font-size: 18px;
 }
-.training-step-card.open .training-step-number {
-  border-color: var(--sport); color: var(--sport);
-  background: rgba(0,163,255,.08);
-}
-.training-step-card.completed .training-step-number {
-  border-color: var(--streak); color: var(--streak);
-  background: rgba(0,230,118,.08); font-size: 16px;
-}
-
+.training-step-card.open .training-step-number      { border-color: var(--sport); color: var(--sport); background: rgba(0,163,255,.08); }
+.training-step-card.completed .training-step-number { border-color: var(--streak); color: var(--streak); background: rgba(0,230,118,.08); font-size: 16px; }
 .training-step-info { flex: 1; min-width: 0; }
 .training-step-title {
-  color: var(--text-primary); font-size: 16px;
-  font-weight: 700; line-height: 1.2;
+  color: var(--text-primary); font-size: 16px; font-weight: 700; line-height: 1.2;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .training-step-meta { color: var(--text-secondary); font-size: 12px; margin-top: 3px; font-family: var(--font-mono); }
-
-/* Status en formato [Texto] */
 .training-step-status {
-  flex-shrink: 0;
-  font-family: var(--font-mono);
-  font-size: 10px; letter-spacing: 0.8px;
-  text-transform: uppercase; color: var(--text-secondary);
-  white-space: nowrap;
+  flex-shrink: 0; font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase;
+  color: var(--text-secondary); white-space: nowrap;
 }
 .training-step-status::before { content: '['; }
 .training-step-status::after  { content: ']'; }
 .training-step-status.done { color: var(--streak); }
-
-.training-step-body {
-  display: none; border-top: 1px solid var(--divider);
-  padding: 0 16px 16px;
-}
+.training-step-body { display: none; border-top: 1px solid var(--divider); padding: 0 16px 16px; }
 .training-step-card.open .training-step-body { display: block; }
-
 .training-step-objective {
   color: var(--text-secondary); font-size: 13px; line-height: 1.7;
-  border-bottom: 1px solid var(--divider);
-  padding: 14px 0; margin-bottom: 14px;
+  border-bottom: 1px solid var(--divider); padding: 14px 0; margin-bottom: 14px;
 }
-
-/* Ejercicios */
 .training-exercise-card {
   background: var(--bg); border: 1px solid var(--card-border);
   border-radius: 10px; padding: 14px; margin-bottom: 10px;
 }
 .training-exercise-card:last-of-type { margin-bottom: 0; }
-
-.training-exercise-title {
-  color: var(--text-primary); font-size: 15px;
-  font-weight: 700; margin-bottom: 12px; line-height: 1.3;
-}
-.training-ex-num {
-  font-family: var(--font-mono); font-size: 11px;
-  color: var(--sport); margin-right: 4px;
-}
-
-/* Grid 4 cols de stats */
-.training-exercise-grid {
-  display: grid; grid-template-columns: repeat(4,1fr);
-  gap: 6px; margin-bottom: 12px;
-}
-.training-mini-stat {
-  background: var(--card); border: 1px solid var(--card-border);
-  border-radius: 8px; padding: 10px 6px; text-align: center;
-}
-.training-mini-label {
-  font-family: var(--font-mono); font-size: 9px;
-  color: var(--text-secondary); text-transform: uppercase;
-  letter-spacing: 0.8px; display: block; margin-bottom: 4px;
-}
-.training-mini-value {
-  font-family: var(--font-display); font-size: 20px;
-  color: var(--text-primary); letter-spacing: 0.5px; line-height: 1;
-}
-
+.training-exercise-title { color: var(--text-primary); font-size: 15px; font-weight: 700; margin-bottom: 12px; line-height: 1.3; }
+.training-ex-num { font-family: var(--font-mono); font-size: 11px; color: var(--sport); margin-right: 4px; }
+.training-exercise-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 12px; }
+.training-mini-stat { background: var(--card); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 6px; text-align: center; }
+.training-mini-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; display: block; margin-bottom: 4px; }
+.training-mini-value { font-family: var(--font-display); font-size: 20px; color: var(--text-primary); letter-spacing: 0.5px; line-height: 1; }
 .training-level-tag {
-  display: inline-block;
-  background: transparent; color: var(--text-secondary);
-  border: 1px solid var(--card-border);
-  border-radius: 4px; padding: 3px 10px;
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 10px;
-}
-
-.training-instruction {
-  color: var(--text-primary); font-size: 14px;
-  line-height: 1.6; margin-top: 8px;
-}
-.training-instruction strong {
-  display: block; color: var(--sport);
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: 1px; text-transform: uppercase;
-  font-weight: 500; margin-bottom: 4px;
-}
-.training-coach-note {
-  color: var(--text-secondary); font-size: 13px;
-  font-style: italic; line-height: 1.6; margin-top: 8px;
-}
-.training-video-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 10px; padding: 7px 12px;
-  background: transparent; border: 1px solid rgba(0,163,255,.3);
-  border-radius: 6px; color: var(--sport);
+  display: inline-block; background: transparent; color: var(--text-secondary);
+  border: 1px solid var(--card-border); border-radius: 4px; padding: 3px 10px;
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.8px;
-  text-transform: uppercase; transition: border-color .2s;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.training-instruction { color: var(--text-primary); font-size: 14px; line-height: 1.6; margin-top: 8px; }
+.training-instruction strong {
+  display: block; color: var(--sport); font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 1px; text-transform: uppercase; font-weight: 500; margin-bottom: 4px;
+}
+.training-coach-note { color: var(--text-secondary); font-size: 13px; font-style: italic; line-height: 1.6; margin-top: 8px; }
+.training-video-btn {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 7px 12px;
+  background: transparent; border: 1px solid rgba(0,163,255,.3); border-radius: 6px;
+  color: var(--sport); font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.8px; text-transform: uppercase; transition: border-color .2s;
 }
 .training-video-btn:hover { border-color: var(--sport); }
-
-/* Botón completar bloque */
 .training-complete-block-btn {
-  width: 100%; background: var(--text-primary);
-  color: var(--bg); border-radius: 8px;
-  padding: 13px 18px;
-  font-family: var(--font-mono); font-size: 11px;
-  font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase;
-  margin-top: 16px; transition: opacity .15s;
+  width: 100%; background: var(--text-primary); color: var(--bg); border-radius: 8px;
+  padding: 13px 18px; font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 1.2px; text-transform: uppercase; margin-top: 16px; transition: opacity .15s;
 }
 .training-complete-block-btn:hover { opacity: .88; }
 .training-complete-block-btn:disabled { opacity: .3; cursor: default; }
-
 .training-step-done-msg {
-  text-align: center; color: var(--streak);
-  font-family: var(--font-mono); font-size: 11px;
-  letter-spacing: 1.2px; text-transform: uppercase;
-  padding: 12px; margin-top: 16px;
+  text-align: center; color: var(--streak); font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; padding: 12px; margin-top: 16px;
 }
 .training-step-done-msg::before { content: '['; }
 .training-step-done-msg::after  { content: ']'; }
-
-/* Cards de fin de sesión */
-.training-finish-card,
-.training-session-completed-card {
-  background: var(--card);
-  border: 1px solid rgba(0,230,118,.2);
+.training-finish-card, .training-session-completed-card {
+  background: var(--card); border: 1px solid rgba(0,230,118,.2);
   border-radius: 12px; padding: 20px; margin-top: 16px;
 }
-.training-finish-card.compact {
-  padding: 18px 16px; margin-top: 12px; text-align: left;
-}
+.training-finish-card.compact { padding: 18px 16px; margin-top: 12px; text-align: left; }
 .training-finish-icon { font-size: 28px; margin-bottom: 8px; }
-.training-finish-title,
-.training-notes-title,
-.training-session-completed-title {
-  font-family: var(--font-display);
-  color: var(--text-primary); font-size: 22px;
-  letter-spacing: 1px; margin-bottom: 6px;
+.training-finish-title, .training-notes-title, .training-session-completed-title {
+  font-family: var(--font-display); color: var(--text-primary);
+  font-size: 22px; letter-spacing: 1px; margin-bottom: 6px;
 }
-.training-finish-sub,
-.training-notes-sub,
-.training-session-completed-sub {
+.training-finish-sub, .training-notes-sub, .training-session-completed-sub {
   color: var(--text-secondary); font-size: 13px; line-height: 1.7;
 }
-
-/* Notes textarea */
 .training-notes-box {
   background: var(--bg); border: 1px solid var(--card-border);
   border-radius: 10px; padding: 16px; margin-top: 14px;
 }
 .training-notes-textarea {
-  width: 100%; background: var(--card);
-  border: 1px solid var(--card-border);
-  color: var(--text-primary); border-radius: 8px;
-  padding: 12px 14px; font-size: 14px; line-height: 1.6;
-  resize: vertical; min-height: 90px;
-  margin-bottom: 10px; display: block;
-  font-family: var(--font-body);
+  width: 100%; background: var(--card); border: 1px solid var(--card-border);
+  color: var(--text-primary); border-radius: 8px; padding: 12px 14px;
+  font-size: 14px; line-height: 1.6; resize: vertical; min-height: 90px;
+  margin-bottom: 10px; display: block; font-family: var(--font-body);
   transition: border-color .2s;
 }
 .training-notes-textarea:focus { border-color: var(--sport); }
 .training-notes-textarea::placeholder { color: var(--text-secondary); opacity: .5; }
-
 .training-note-saved {
-  color: var(--streak); font-family: var(--font-mono);
-  font-size: 11px; letter-spacing: 1px;
-  text-transform: uppercase; padding: 8px 0;
+  color: var(--streak); font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 1px; text-transform: uppercase; padding: 8px 0;
 }
-
-/* Completado row */
 .training-session-completed-row { display: flex; align-items: center; gap: 12px; }
 .training-session-completed-icon {
   width: 32px; height: 32px; border-radius: 8px;
-  background: rgba(0,230,118,.1);
-  border: 1px solid rgba(0,230,118,.25);
-  color: var(--streak); display: flex;
-  align-items: center; justify-content: center;
+  background: rgba(0,230,118,.1); border: 1px solid rgba(0,230,118,.25);
+  color: var(--streak); display: flex; align-items: center; justify-content: center;
   font-weight: 700; flex-shrink: 0;
 }
-
-/* ═══════════════════════════════════════════════════════
-   SALUD — FORMULARIOS OSCUROS + DIAGNÓSTICO CLÍNICO
-═══════════════════════════════════════════════════════ */
-.health-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--divider);
-}
-.health-row:last-child { border-bottom: none; }
-
-.health-metric {
-  font-size: 13px; color: var(--text-secondary);
-  font-family: var(--font-mono); letter-spacing: 0.3px;
-}
-.health-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-.health-value {
-  font-size: 16px; font-weight: 700;
-  color: var(--text-primary);
-}
-.health-status {
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: 0.8px; text-transform: uppercase;
-}
-.health-status::before { content: '['; }
-.health-status::after  { content: ']'; }
-
-/* Vista diagnóstico — texto clínico continuo */
-.clinical-text {
-  font-size: 15px; color: var(--text-primary);
-  line-height: 24px; font-weight: 400;
-  padding: 16px; margin-bottom: 0;
-}
-.clinical-rec-idx {
-  font-family: var(--font-mono); font-size: 11px;
-  color: var(--sport); min-width: 24px;
-  margin-top: 2px; letter-spacing: 0;
-}
-
-/* ═══════════════════════════════════════════════════════
-   MÉTRICAS — SELECTOR + GRÁFICA VECTORIAL
-═══════════════════════════════════════════════════════ */
-.metrics-selector {
-  display: flex; gap: 0;
-  overflow-x: auto; scrollbar-width: none;
-  border-bottom: 1px solid var(--divider);
-  margin-bottom: 20px;
-}
-.metrics-selector::-webkit-scrollbar { display: none; }
-
-.metrics-var-btn {
-  flex: 0 0 auto;
-  background: transparent; border: none;
-  border-bottom: 2px solid transparent;
-  padding: 10px 18px 8px;
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: 1.4px; text-transform: uppercase;
-  color: var(--text-secondary); white-space: nowrap;
-  transition: color .15s, border-color .15s;
-  margin-bottom: -1px;
-}
-.metrics-var-btn:hover { color: var(--text-primary); }
-.metrics-var-btn.active { color: var(--text-primary); }
-
-/* SVG chart */
-.metrics-chart-card {
-  background: var(--card); border: 1px solid var(--card-border);
-  border-radius: 12px; overflow: hidden; margin-bottom: 10px;
-  padding: 16px 12px 12px;
-}
-
-/* ═══════════════════════════════════════════════════════
-   EVALUACIONES
-═══════════════════════════════════════════════════════ */
-.assessment-card { margin-bottom: 10px; overflow: hidden; }
-.assessment-card-header {
-  padding: 14px 16px; border-bottom: 1px solid var(--divider);
-  display: flex; align-items: flex-start;
-  justify-content: space-between; gap: 12px; cursor: pointer;
-  transition: background .15s;
-}
-.assessment-card-header:hover { background: rgba(255,255,255,.02); }
-.assessment-card-title {
-  font-family: var(--font-display); font-size: 18px;
-  letter-spacing: 1px; color: var(--text-primary); margin-bottom: 3px;
-}
-.assessment-card-meta {
-  font-family: var(--font-mono); font-size: 10px;
-  color: var(--text-secondary); letter-spacing: 0.6px;
-}
-.assessment-card-body { display: none; padding: 14px 16px; }
-.assessment-card.open .assessment-card-body { display: block; }
-
-.assessment-result-row {
-  display: flex; justify-content: space-between;
-  align-items: flex-start; gap: 12px;
-  padding: 12px 0; border-bottom: 1px solid var(--divider);
-}
-.assessment-result-row:last-child { border-bottom: none; }
-.assessment-ex-name { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
-.assessment-ex-meta, .assessment-result-unit {
-  font-family: var(--font-mono); font-size: 10px;
-  color: var(--text-secondary); letter-spacing: 0.5px;
-}
-.assessment-ex-note { font-size: 12px; margin-top: 4px; font-style: italic; color: var(--text-secondary); }
-.assessment-result-val {
-  font-family: var(--font-display); font-size: 26px;
-  line-height: 1; color: var(--text-primary); text-align: right;
-}
-
-/* Mini chart */
-.mini-chart-wrap {
-  background: var(--bg); border: 1px solid var(--card-border);
-  border-radius: 10px; padding: 10px 12px; margin-top: 8px;
-}
-.mini-chart-title {
-  font-family: var(--font-mono); font-size: 9px;
-  letter-spacing: 0.8px; text-transform: uppercase;
-  color: var(--sport); margin-bottom: 8px;
-}
-.mini-chart-labels { display: flex; justify-content: space-between; gap: 4px; margin-top: 4px; }
-.mini-chart-label {
-  font-family: var(--font-mono); font-size: 9px;
-  color: var(--text-secondary); text-align: center; flex: 1;
-}
-
-/* ═══════════════════════════════════════════════════════
-   NOTAS / ACORDEÓN / PROGRESO
-═══════════════════════════════════════════════════════ */
-.note-item {
-  background: var(--card);
-  border-left: 3px solid var(--sport);
-  border-radius: 10px; padding: 14px 16px;
-  font-size: 14px; color: var(--text-primary);
-  margin-bottom: 8px; line-height: 1.7;
-}
-.note-item:last-child { margin-bottom: 0; }
-
-.accordion-block { margin-bottom: 8px; overflow: hidden; border-radius: 12px; }
-.accordion-block:last-child { margin-bottom: 0; }
-
-.accordion-title {
-  width: 100%; background: transparent;
-  color: var(--text-primary);
-  padding: 14px 16px;
-  display: flex; align-items: center; justify-content: space-between;
-  font-family: var(--font-mono); font-size: 11px;
-  letter-spacing: 1.2px; text-transform: uppercase;
-}
-.accordion-title span:first-child { color: var(--sport); }
-.accordion-symbol { color: var(--text-secondary); font-size: 18px; flex-shrink: 0; }
-.accordion-content {
-  display: none; padding: 0 16px 16px;
-  border-top: 1px solid var(--divider);
-}
-.accordion-block.open .accordion-content { display: block; }
-.accordion-block.open .accordion-title { background: rgba(0,163,255,.04); }
-
-/* Progreso círculos → ahora barras simples */
-.progress-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 10px; }
-.progress-circle-card { padding: 16px; text-align: center; }
-
-.progress-ring {
-  width: 80px; height: 80px; margin: 0 auto 10px;
-  border-radius: 50%; display: grid; place-items: center;
-  background: conic-gradient(var(--sport) calc(var(--p)*1%),var(--divider) 0);
-  position: relative;
-}
-.progress-ring::before {
-  content: ''; position: absolute;
-  width: 60px; height: 60px;
-  background: var(--card); border-radius: 50%;
-}
-.progress-ring span {
-  position: relative; z-index: 1;
-  font-family: var(--font-display); font-size: 20px; color: var(--text-primary);
-}
-.progress-circle-label {
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: 1.2px; text-transform: uppercase;
-  color: var(--text-secondary); margin-bottom: 3px;
-}
-.progress-circle-value { font-size: 13px; color: var(--text-primary); font-weight: 700; }
-.progress-circle-note  { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
-
-/* ═══════════════════════════════════════════════════════
-   FEEDBACK TAGS
-═══════════════════════════════════════════════════════ */
 .training-feedback-row {
   display: flex; align-items: center; gap: 10px;
   background: var(--bg); border: 1px solid var(--card-border);
-  border-radius: 8px; padding: 10px 12px;
-  color: var(--text-primary); font-size: 13px;
-  transition: border-color .15s;
+  border-radius: 8px; padding: 10px 12px; color: var(--text-primary);
+  font-size: 13px; transition: border-color .15s;
 }
 .training-feedback-row:hover { border-color: var(--sport); }
 .training-feedback-check { width: 16px; height: 16px; accent-color: var(--sport); }
 
-/* ═══════════════════════════════════════════════════════
-   RESPONSIVE
-═══════════════════════════════════════════════════════ */
+/* ═══ EVALUACIONES ══════════════════════════════════════ */
+.assessment-card { margin-bottom: 10px; overflow: hidden; }
+.assessment-card-header {
+  padding: 14px 16px; border-bottom: 1px solid var(--divider);
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; cursor: pointer; transition: background .15s;
+}
+.assessment-card-header:hover { background: rgba(255,255,255,.02); }
+.assessment-card-title { font-family: var(--font-display); font-size: 18px; letter-spacing: 1px; color: var(--text-primary); margin-bottom: 3px; }
+.assessment-card-meta { font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); letter-spacing: 0.6px; }
+.assessment-card-body { display: none; padding: 14px 16px; }
+.assessment-card.open .assessment-card-body { display: block; }
+.assessment-result-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--divider);
+}
+.assessment-result-row:last-child { border-bottom: none; }
+.assessment-ex-name { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+.assessment-ex-meta, .assessment-result-unit { font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); letter-spacing: 0.5px; }
+.assessment-ex-note { font-size: 12px; margin-top: 4px; font-style: italic; color: var(--text-secondary); }
+.assessment-result-val { font-family: var(--font-display); font-size: 26px; line-height: 1; color: var(--text-primary); text-align: right; }
+.mini-chart-wrap { background: var(--bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; margin-top: 8px; }
+.mini-chart-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--sport); margin-bottom: 8px; }
+.mini-chart-labels { display: flex; justify-content: space-between; gap: 4px; margin-top: 4px; }
+.mini-chart-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary); text-align: center; flex: 1; }
+
+/* ═══ NOTAS / ACORDEÓN ═══════════════════════════════════ */
+.note-item {
+  background: var(--card); border-left: 3px solid var(--sport);
+  border-radius: 10px; padding: 14px 16px; font-size: 14px;
+  color: var(--text-primary); margin-bottom: 8px; line-height: 1.7;
+}
+.note-item:last-child { margin-bottom: 0; }
+.accordion-block { margin-bottom: 8px; overflow: hidden; border-radius: 12px; }
+.accordion-block:last-child { margin-bottom: 0; }
+.accordion-title {
+  width: 100%; background: transparent; color: var(--text-primary);
+  padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;
+}
+.accordion-title span:first-child { color: var(--sport); }
+.accordion-symbol { color: var(--text-secondary); font-size: 18px; flex-shrink: 0; }
+.accordion-content { display: none; padding: 0 16px 16px; border-top: 1px solid var(--divider); }
+.accordion-block.open .accordion-content { display: block; }
+.accordion-block.open .accordion-title { background: rgba(0,163,255,.04); }
+
+/* ═══ PROGRESO ════════════════════════════════════════════ */
+.progress-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 10px; }
+.progress-circle-card { padding: 16px; text-align: center; }
+.progress-ring {
+  width: 80px; height: 80px; margin: 0 auto 10px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: conic-gradient(var(--sport) calc(var(--p)*1%),var(--divider) 0);
+  position: relative;
+}
+.progress-ring::before { content: ''; position: absolute; width: 60px; height: 60px; background: var(--card); border-radius: 50%; }
+.progress-ring span { position: relative; z-index: 1; font-family: var(--font-display); font-size: 20px; color: var(--text-primary); }
+.progress-circle-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 3px; }
+.progress-circle-value { font-size: 13px; color: var(--text-primary); font-weight: 700; }
+.progress-circle-note  { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+
+/* ═══ RESPONSIVE ══════════════════════════════════════════ */
 @media (max-width: 480px) {
   .dash-header { height: 54px; padding: 0 14px; }
   .btn-icon .btn-label { display: none; }
@@ -1152,24 +684,25 @@ input, textarea { outline: none; font-family: var(--font-body); }
   .dash-main { padding: 16px 14px calc(120px + env(safe-area-inset-bottom)); }
   .plan-grid { grid-template-columns: 1fr; gap: 12px; }
   .summary-grid { grid-template-columns: 1fr; }
+  #dashboard-atleta-combate .combate-grid { grid-template-columns: 1fr; }
   .home-rings-grid { gap: 8px; }
   .training-exercise-grid { grid-template-columns: repeat(2,1fr); }
   .training-mini-value { font-size: 18px; }
   .login-box { padding: 28px 20px; }
   .section-header h2 { font-size: 20px; }
-  #section-home .training-guide-title { font-size: 28px; }
+  .card-metrica strong { font-size: 26px; }
 }
 </style>
 </head>
 <body>
 
-<!-- ══ LOADING ══════════════════════════════════════ -->
+<!-- ══ LOADING ═══════════════════════════════════════════ -->
 <div id="loadingOverlay">
   <div class="spinner"></div>
   <p>Cargando sesión</p>
 </div>
 
-<!-- ══ LOGIN ════════════════════════════════════════ -->
+<!-- ══ LOGIN ═════════════════════════════════════════════ -->
 <div id="loginScreen" class="hidden">
   <div class="login-box">
     <div class="login-logo">
@@ -1195,14 +728,13 @@ input, textarea { outline: none; font-family: var(--font-body); }
   </div>
 </div>
 
-<!-- ══ DASHBOARD ═════════════════════════════════════ -->
+<!-- ══ DASHBOARD ══════════════════════════════════════════ -->
 <div id="dashboardScreen" class="hidden">
 
-  <!-- HEADER -->
   <header class="dash-header">
     <div class="dash-header-logo">
-  <img src="/icon-512.png" alt="AB Coach" class="brand-logo brand-logo-header">
-</div>
+      <img src="/icon-512.png" alt="AB Coach" class="brand-logo brand-logo-header">
+    </div>
     <div class="dash-header-actions">
       <button class="btn-icon" id="btnHeaderWA">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/></svg>
@@ -1215,14 +747,13 @@ input, textarea { outline: none; font-family: var(--font-body); }
     </div>
   </header>
 
-  <!-- NAV -->
- <nav class="client-nav" id="clientNav">
-  <button onclick="goClientSection('section-home')">Inicio</button>
-  <button onclick="goClientSection('section-training')">Entrenar</button>
-  <button onclick="goClientSection('section-assessments')">Evaluaciones</button>
-  <button onclick="goClientSection('section-health')">Salud</button>
-  <button onclick="goClientSection('section-client-data')">Perfil</button>
-</nav>
+  <nav class="client-nav" id="clientNav">
+    <button onclick="goClientSection('section-home')">Inicio</button>
+    <button onclick="goClientSection('section-training')">Entrenar</button>
+    <button onclick="goClientSection('section-assessments')">Evaluaciones</button>
+    <button onclick="goClientSection('section-health')">Salud</button>
+    <button onclick="goClientSection('section-client-data')">Perfil</button>
+  </nav>
 
   <main class="dash-main">
 
@@ -1235,7 +766,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
       <div class="section-body" id="sectionHome"></div>
     </div>
 
-    <!-- MI PLAN -->
+    <!-- MI PLAN (oculto en nav pero accesible via goClientSection) -->
     <div class="section section-hidden" id="section-plan">
       <div class="section-header"><h2>MI PLAN</h2><span class="sec-badge" id="planBadgeStatus">—</span></div>
       <div class="section-body" id="sectionPlan"></div>
@@ -1247,7 +778,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
       <div class="section-body" id="sectionTrainingClient"></div>
     </div>
 
-    <!-- RESERVAS -->
+    <!-- RESERVAS (accesible via link) -->
     <div class="section section-hidden" id="section-reservations">
       <div class="section-header"><h2>RESERVAS</h2><span class="sec-badge" id="reservationsBadge">0</span></div>
       <div class="section-body" id="sectionReservations"></div>
@@ -1259,7 +790,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
       <div class="section-body" id="sectionAssessments"></div>
     </div>
 
-    <!-- SALUD -->
+    <!-- SALUD + MÉTRICAS COMBATE -->
     <div class="section section-hidden" id="section-health">
       <div class="section-header"><h2>SALUD</h2><span class="sec-badge" id="alertsBadge">0</span></div>
       <div class="section-body" id="sectionHealth"></div>
@@ -1296,9 +827,8 @@ input, textarea { outline: none; font-family: var(--font-body); }
     </div>
 
   </main>
-</div><!-- /#dashboardScreen -->
+</div>
 
-<!-- Auth module -->
 <script src="/auth.js?v=20260513-02"></script>
 
 <script>
@@ -1327,12 +857,136 @@ let clientTrainingWeeks      = [];
 let clientTrainingSessions   = [];
 let clientTrainingBlocks     = [];
 let clientTrainingExercises  = [];
+let completedTrainingBlocks  = new Set();
+let activeTrainingBlockKey   = null;
+let currentTrainingLog       = null;
 
-let completedTrainingBlocks = new Set();
-let activeTrainingBlockKey  = null;
-let currentTrainingLog      = null;
+/* ══════════════════════════════════════════════════════════
+   MÉTRICAS DE COMBATE — Lógica de evaluación fisiológica
+══════════════════════════════════════════════════════════ */
 
-/* ══ LOCAL PROGRESS CACHE ══ */
+/**
+ * Creatina Quinasa (U/L)
+ * <400 → ok | 400–800 → warning | >800 → danger
+ */
+function evaluarCK(v) {
+  if (v == null) return { clase: null, label: '' };
+  if (v < 400)  return { clase: 'status-ok',      label: 'Óptimo' };
+  if (v <= 800) return { clase: 'status-warning',  label: 'Precaución' };
+  return              { clase: 'status-danger',   label: 'Peligro' };
+}
+
+/**
+ * Cortisol (µg/dL)
+ * <15 → ok | 15–22 → warning | >22 → danger
+ */
+function evaluarCortisol(v) {
+  if (v == null) return { clase: null, label: '' };
+  if (v < 15)  return { clase: 'status-ok',      label: 'Óptimo' };
+  if (v <= 22) return { clase: 'status-warning',  label: 'Elevado' };
+  return              { clase: 'status-danger',   label: 'Peligro' };
+}
+
+/**
+ * FC Recuperación 1 min
+ * caída = fc_max - fc_al_minuto
+ * >30 ppm → ok | 18–30 → warning | <18 → danger
+ * fc_max se lee de clientData.fc_max (campo en tabla clients)
+ */
+function evaluarFCRecuperacion(fcAlMinuto, fcMax) {
+  if (fcAlMinuto == null) return { clase: null, label: '', caida: null };
+  const fc    = Number(fcMax) || 190;
+  const caida = fc - Number(fcAlMinuto);
+  if (caida > 30)  return { clase: 'status-ok',      label: `↓${caida} ppm · Óptimo`,    caida };
+  if (caida >= 18) return { clase: 'status-warning',  label: `↓${caida} ppm · Regular`,   caida };
+  return              { clase: 'status-danger',   label: `↓${caida} ppm · Peligro`,  caida };
+}
+
+/**
+ * Inyecta valor + clase de estado en una card-metrica
+ */
+function inyectarMetrica(cardId, displayId, valor, estado, etiqueta) {
+  const card    = document.getElementById(cardId);
+  const display = document.getElementById(displayId);
+  if (!card || !display) return;
+
+  display.textContent = valor != null ? valor : '--';
+
+  // Quitar etiqueta previa
+  card.querySelector('.estado-tag')?.remove();
+
+  if (estado && etiqueta) {
+    const tag = document.createElement('div');
+    tag.className = 'estado-tag';
+    tag.textContent = etiqueta;
+    display.insertAdjacentElement('afterend', tag);
+  }
+
+  card.classList.remove('status-ok', 'status-warning', 'status-danger');
+  if (estado) card.classList.add(estado);
+}
+
+/**
+ * Carga el registro más reciente de metricas_combate
+ * usando el clientData.id como atleta_id
+ */
+async function cargarMetricasCombate() {
+  if (!clientData?.id) return;
+
+  const { data, error } = await db
+    .from('metricas_combate')
+    .select('*')
+    .eq('atleta_id', clientData.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error || !data) {
+    // Sin datos aún — las cards ya muestran '--' por defecto
+    return;
+  }
+
+  // fc_max viene de clientData (campo en tabla clients)
+  const fcMax = clientData.fc_max || 190;
+
+  const ck       = evaluarCK(data.creatina_quinasa);
+  const cortisol = evaluarCortisol(data.cortisol);
+  const fcRec    = evaluarFCRecuperacion(data.fc_recuperacion_1min, fcMax);
+
+  inyectarMetrica('card-ck', 'display-ck',
+    data.creatina_quinasa,
+    ck.clase, ck.label
+  );
+
+  inyectarMetrica('card-cortisol', 'display-cortisol',
+    data.cortisol != null ? Number(data.cortisol).toFixed(1) : null,
+    cortisol.clase, cortisol.label
+  );
+
+  inyectarMetrica('card-recuperacion', 'display-fc-rec',
+    data.fc_recuperacion_1min,
+    fcRec.clase, fcRec.label
+  );
+
+  inyectarMetrica('card-peso', 'display-peso',
+    data.peso_corporal != null ? Number(data.peso_corporal).toFixed(1) : null,
+    null, null
+  );
+
+  // Fecha última actualización
+  const fechaEl = document.getElementById('display-fecha');
+  if (fechaEl && data.created_at) {
+    const d = new Date(data.created_at);
+    fechaEl.textContent = d.toLocaleDateString('es-ES', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   LOCAL PROGRESS CACHE
+══════════════════════════════════════════════════════════ */
 function getTrainingStorageKey(sessionId) {
   if (!clientData || !clientTrainingAssignment) return null;
   const sid = sessionId || getCurrentVisibleSessionId?.() || 'general';
@@ -1407,7 +1061,6 @@ function hideError() { document.getElementById('loginError')?.classList.add('hid
 function showInfo(msg) { const el=document.getElementById('loginInfo'); if(el){el.textContent=msg;el.classList.remove('hidden');} }
 function showLoading(v) { document.getElementById('loadingOverlay')?.classList.toggle('hidden',!v); }
 
-/* Badges como [texto] con color funcional — sin fondo */
 function paymentBadge(s) {
   if (!s) return '';
   const v=s.toLowerCase();
@@ -1445,14 +1098,6 @@ function getAssignedTrainingLevel() {
   const lvl=String(raw).trim().toUpperCase();
   return ['N1','N2','N3','N4'].includes(lvl)?lvl:'N1';
 }
-function getExerciseVariantByLevel(ex) {
-  const lvl=getAssignedTrainingLevel();
-  if (lvl==='N1') return ex.variant_n1||'';
-  if (lvl==='N2') return ex.variant_n2||'';
-  if (lvl==='N3') return ex.variant_n3||'';
-  if (lvl==='N4') return ex.variant_n4||'';
-  return ex.variant_n1||'';
-}
 
 /* ══ AUTH ══ */
 async function loginClient() {
@@ -1472,10 +1117,13 @@ async function loginClient() {
   }
 }
 
-/* ══ DATA LOADING ══ */
+/* ══════════════════════════════════════════════════════════
+   DATA LOADING — incluye fc_max de tabla clients
+══════════════════════════════════════════════════════════ */
 async function loadClientDashboard(clientId) {
   showLoading(true);
   try {
+    /* clients con select('*') ya incluye fc_max si existe el campo */
     const {data:client,error:cErr}=await db.from('clients').select('*').eq('id',clientId).single();
     if (cErr||!client){Auth.logout();return;}
     clientData=client;
@@ -1505,10 +1153,13 @@ async function loadClientDashboard(clientId) {
 
     const pid=clientTrainingAssignment?.program_id||null;
     if (pid) {
-      let q=db.from('client_training_plan_visible').select('*').eq('client_id',clientId).eq('program_id',pid)
-        .order('week_order',{ascending:true}).order('session_order',{ascending:true})
-        .order('block_order',{ascending:true}).order('exercise_order',{ascending:true});
-      let visibleR; try{visibleR=await q;}catch(e){visibleR={data:[],error:e};}
+      let visibleR;
+      try {
+        visibleR = await db.from('client_training_plan_visible').select('*')
+          .eq('client_id',clientId).eq('program_id',pid)
+          .order('week_order',{ascending:true}).order('session_order',{ascending:true})
+          .order('block_order',{ascending:true}).order('exercise_order',{ascending:true});
+      } catch(e) { visibleR={data:[],error:e}; }
       if (!visibleR) visibleR={data:[],error:null};
       window.__AB_DEBUG_CLIENT__={visibleRows:visibleR.data?.length||0,visibleError:visibleR.error||null,assignment:clientTrainingAssignment||null};
 
@@ -1534,7 +1185,7 @@ async function loadClientDashboard(clientId) {
 
           const weeksMap=new Map(),sessionsMap=new Map(),blocksMap=new Map();
           rows.forEach(r=>{
-            if (!weeksMap.has(r.week_id)) weeksMap.set(r.week_id,{id:r.week_id,week_number:r.week_order,name:r.week_name,name_es:r.week_name_es||r.week_name,name_sr:r.week_name_sr||'',objective:r.week_objective,objective_es:r.week_objective_es||r.week_objective,objective_sr:r.week_objective_sr||'',focus:r.week_focus,focus_es:r.week_focus_es||r.week_focus});
+            if (!weeksMap.has(r.week_id)) weeksMap.set(r.week_id,{id:r.week_id,week_number:r.week_order,name:r.week_name,name_es:r.week_name_es||r.week_name,name_sr:r.week_name_sr||'',objective:r.week_objective,objective_es:r.week_objective_es||r.week_objective,focus:r.week_focus,focus_es:r.week_focus_es||r.week_focus});
             if (!sessionsMap.has(r.session_id)) sessionsMap.set(r.session_id,{id:r.session_id,week_id:r.week_id,session_number:r.session_order,title:r.session_title,title_es:r.session_title_es||r.session_title,title_sr:r.session_title_sr||'',objective:r.session_objective,objective_es:r.session_objective_es||r.session_objective,description:r.session_description,description_es:r.session_description_es||r.session_description,intensity:r.session_intensity});
             if (!blocksMap.has(r.block_id)) blocksMap.set(r.block_id,{id:r.block_id,session_id:r.session_id,block_order:r.block_order,title:r.block_title,title_es:r.block_title_es||r.block_title,title_sr:r.block_title_sr||'',objective:r.block_objective,objective_es:r.block_objective_es||r.block_objective,description:r.block_description,description_es:r.block_description_es||r.block_description,type:r.block_type,duration:r.block_duration});
             clientTrainingExercises.push({id:r.exercise_id,block_id:r.block_id,exercise_order:r.exercise_order,name:r.exercise_name,name_es:r.exercise_name_es||r.exercise_name,name_sr:r.exercise_name_sr||'',description:r.exercise_description,description_es:r.exercise_description_es||r.exercise_description,sets:r.sets,reps:r.reps,time:r.time,rest:r.rest,variant_n1:r.variant_n1,variant_n1_es:r.variant_n1_es||r.variant_n1,variant_n2:r.variant_n2,variant_n2_es:r.variant_n2_es||r.variant_n2,variant_n3:r.variant_n3,variant_n3_es:r.variant_n3_es||r.variant_n3,variant_n4:r.variant_n4,variant_n4_es:r.variant_n4_es||r.variant_n4,coaching_notes:r.coaching_notes,coaching_notes_es:r.coaching_notes_es||r.coaching_notes,video_url:r.video_url||''});
@@ -1567,6 +1218,7 @@ async function loadClientDashboard(clientId) {
     document.getElementById('loginScreen')?.classList.add('hidden');
     document.getElementById('dashboardScreen')?.classList.remove('hidden');
     showLoading(false);
+
   } catch(err) {
     showLoading(false);console.error('Load error:',err);
     document.getElementById('loginScreen')?.classList.remove('hidden');
@@ -1599,123 +1251,43 @@ function pickLang(obj,base,lang) {
 }
 function getLang() { return (clientData?.preferred_lang||'es').toLowerCase(); }
 
-/* ══ MICRO-GRÁFICAS PLANAS (SVG inline) ══ */
-
-/* Barras verticales azules — Carga / Plan */
-function buildMicroBars(data, color, w, h) {
-  const gap=3, n=data.length;
-  const bw=(w-gap*(n-1))/n;
-  const max=Math.max(...data,1);
-  return data.map((v,i)=>{
-    const bh=(v/max)*h;
-    const x=i*(bw+gap), y=h-bh;
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${color}" opacity=".9"/>`;
-  }).join('');
-}
-
-/* Spline coral — Pulso */
-function buildMicroSpline(data, color, w, h) {
-  const min=Math.min(...data), max=Math.max(...data), range=max-min||1;
-  const pad=4;
-  const pts=data.map((v,i)=>({x:(i/(data.length-1))*w,y:pad+((max-v)/range)*(h-pad*2)}));
-  let d=`M${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
-  for (let i=0;i<pts.length-1;i++) {
-    const cp=(pts[i].x+pts[i+1].x)/2;
-    d+=` C${cp.toFixed(1)} ${pts[i].y.toFixed(1)} ${cp.toFixed(1)} ${pts[i+1].y.toFixed(1)} ${pts[i+1].x.toFixed(1)} ${pts[i+1].y.toFixed(1)}`;
-  }
-  const last=pts[pts.length-1];
-  return `<path d="${d}" class="spline-line" stroke="${color}"/><circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3" class="spline-dot" fill="${color}"/>`;
-}
-
-/* Matriz de puntos verdes — Constancia */
-function buildMicroDots(data, color, w, h) {
-  const cols=10, rows=Math.ceil(data.length/cols);
-  const ds=Math.min((w-3*(cols-1))/cols,(h-3*(rows-1))/rows);
-  return data.slice(0,cols*rows).map((on,idx)=>{
-    const col=idx%cols, row=Math.floor(idx/cols);
-    const cx=col*(ds+3)+ds/2, cy=row*(ds+3)+ds/2;
-    return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(ds/2).toFixed(1)}" fill="${on?color:'var(--divider)'}" opacity="${on?1:.5}"/>`;
-  }).join('');
-}
-
-function buildHomeRing_v2(label, value, unit, svgContent, note, color, targetSection) {
-  return (
-    `<div class="home-ring-card" onclick="goClientSection('${targetSection}')" title="Ir a ${label}">` +
-      `<div class="home-ring-label">${label}</div>` +
-      `<div class="home-ring-value" style="color:${color}">${value}<span style="font-size:14px;color:var(--text-secondary);margin-left:2px;font-family:var(--font-mono)">${unit}</span></div>` +
-      `<div class="home-ring-svg-wrap"><svg viewBox="0 0 100 40" preserveAspectRatio="none">${svgContent}</svg></div>` +
-      `<div class="home-ring-note">${note}</div>` +
-    `</div>`
-  );
-}
-
-function clampPercent(n) { return Math.max(0,Math.min(100,Math.round(Number(n||0)))); }
-
-function getFinishedSessionCountFromStorage() {
-  if (!clientData||!clientTrainingAssignment) return 0;
+/* ══ HOME RINGS ══ */
+function buildMicroBars(data,color,w,h){const gap=3,n=data.length;const bw=(w-gap*(n-1))/n;const max=Math.max(...data,1);return data.map((v,i)=>{const bh=(v/max)*h;const x=i*(bw+gap),y=h-bh;return`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${color}" opacity=".9"/>`;}).join('');}
+function buildMicroSpline(data,color,w,h){const min=Math.min(...data),max=Math.max(...data),range=max-min||1;const pad=4;const pts=data.map((v,i)=>({x:(i/(data.length-1))*w,y:pad+((max-v)/range)*(h-pad*2)}));let d=`M${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;for(let i=0;i<pts.length-1;i++){const cp=(pts[i].x+pts[i+1].x)/2;d+=` C${cp.toFixed(1)} ${pts[i].y.toFixed(1)} ${cp.toFixed(1)} ${pts[i+1].y.toFixed(1)} ${pts[i+1].x.toFixed(1)} ${pts[i+1].y.toFixed(1)}`;}const last=pts[pts.length-1];return`<path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/><circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3" fill="${color}"/>`;}
+function buildMicroDots(data,color,w,h){const cols=10,rows=Math.ceil(data.length/cols);const ds=Math.min((w-3*(cols-1))/cols,(h-3*(rows-1))/rows);return data.slice(0,cols*rows).map((on,idx)=>{const col=idx%cols,row=Math.floor(idx/cols);const cx=col*(ds+3)+ds/2,cy=row*(ds+3)+ds/2;return`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(ds/2).toFixed(1)}" fill="${on?color:'var(--divider)'}" opacity="${on?1:.5}"/>`;}).join('');}
+function clampPercent(n){return Math.max(0,Math.min(100,Math.round(Number(n||0))));}
+function getFinishedSessionCountFromStorage(){
+  if(!clientData||!clientTrainingAssignment)return 0;
   const prefix=['ab_tp',clientData.id,clientTrainingAssignment.id].join('_');
   const finished=new Set();
-  try {
-    for (let i=0;i<localStorage.length;i++) {
-      const key=localStorage.key(i);
-      if (!key||!key.startsWith(prefix)) continue;
-      const raw=localStorage.getItem(key);
-      if (!raw) continue;
-      const d=JSON.parse(raw);
-      if (d?.is_finished===true&&d?.session_id) finished.add(String(d.session_id));
-    }
-  } catch {}
+  try{for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key||!key.startsWith(prefix))continue;const raw=localStorage.getItem(key);if(!raw)continue;const d=JSON.parse(raw);if(d?.is_finished===true&&d?.session_id)finished.add(String(d.session_id));}}catch{}
   return finished.size;
 }
-
-function buildHomeProgressRings() {
+function buildHomeRing_v2(label,value,unit,svgContent,note,color,targetSection){
+  return`<div class="home-ring-card" onclick="goClientSection('${targetSection}')" title="Ir a ${label}"><div class="home-ring-label">${label}</div><div class="home-ring-value" style="color:${color}">${value}<span style="font-size:14px;color:var(--text-secondary);margin-left:2px;font-family:var(--font-mono)">${unit}</span></div><div class="home-ring-svg-wrap"><svg viewBox="0 0 100 40" preserveAspectRatio="none">${svgContent}</svg></div><div class="home-ring-note">${note}</div></div>`;
+}
+function buildHomeProgressRings(){
   const finishedSessions=getFinishedSessionCountFromStorage();
   const totalSessions=clientTrainingSessions.length||1;
   const planPct=clampPercent((finishedSessions/totalSessions)*100);
-
   const testPct=clientAssessments.length===0?0:clientAssessments.length===1?35:clientAssessments.length===2?55:clientAssessments.length===3?70:85;
-
-  const constanciaFinished=getFinishedSessionCountFromStorage();
-  const constanciaPct=clampPercent((constanciaFinished/Math.max(totalSessions,1))*70+Math.min(30,clientReservations.length*10));
-
-  /* Datos mock para demos — se reemplazarán por datos reales cuando existan */
+  const constanciaPct=clampPercent((finishedSessions/Math.max(totalSessions,1))*70+Math.min(30,clientReservations.length*10));
   const barData=[40,65,55,80,70,90,60,75,85,95,50,clampPercent(planPct)];
   const splineData=[72,78,74,80,76,82,79,85,88,83,77,81];
-  const dotData = Array.from({ length: 30 }, (_, i) => {
-  const activeDots = Math.round((constanciaPct / 100) * 30);
-  return i < activeDots;
-});
-
-  const card1=buildHomeRing_v2(
-    'Plan',planPct+'%','',
-    buildMicroBars(barData,'var(--sport)',100,40),
-    `${finishedSessions} de ${totalSessions} sesiones`,'var(--sport)','section-training'
-  );
-  const card2=buildHomeRing_v2(
-    'Salud',clientAlerts.length,'alerts',
-    buildMicroSpline(splineData,'var(--medical)',100,40),
-    `${clientAlerts.length} indicaciones activas`,'var(--medical)','section-health'
-  );
-  const card3=buildHomeRing_v2(
-    'Constancia',constanciaPct+'%','',
-    buildMicroDots(dotData,'var(--streak)',100,40),
-    `${constanciaPct}% continuidad`,'var(--streak)','section-progress-circles'
-  );
-
-  return `<div class="home-rings-grid">${card1}${card2}${card3}</div>`;
+  const dotData=Array.from({length:30},(_,i)=>i<Math.round((constanciaPct/100)*30));
+  const card1=buildHomeRing_v2('Plan',planPct+'%','',buildMicroBars(barData,'var(--sport)',100,40),`${finishedSessions} de ${totalSessions} sesiones`,'var(--sport)','section-training');
+  const card2=buildHomeRing_v2('Salud',clientAlerts.length,'alerts',buildMicroSpline(splineData,'var(--medical)',100,40),`${clientAlerts.length} indicaciones activas`,'var(--medical)','section-health');
+  const card3=buildHomeRing_v2('Constancia',constanciaPct+'%','',buildMicroDots(dotData,'var(--streak)',100,40),`${constanciaPct}% continuidad`,'var(--streak)','section-progress-circles');
+  return`<div class="home-rings-grid">${card1}${card2}${card3}</div>`;
 }
 
 /* ══ RENDER HOME ══ */
-function renderHome() {
-  const el=document.getElementById('sectionHome');
-  const badge=document.getElementById('homeBadge');
-  if (!el||!clientData) return;
-  if (badge) badge.textContent='Hoy';
-
+function renderHome(){
+  const el=document.getElementById('sectionHome');const badge=document.getElementById('homeBadge');
+  if(!el||!clientData)return;
+  if(badge)badge.textContent='Hoy';
   const firstName=String(clientData.name||'cliente').split(' ')[0]||'cliente';
-  const today=todayISO();
-  const dateStr=todayFormatted();
-
+  const today=todayISO();const dateStr=todayFormatted();
   const nextReservation=clientReservations.find(r=>String(r.date).slice(0,10)>=today&&!['cancelada','cancelado'].includes(String(r.status||'').toLowerCase()));
   const hasTraining=Boolean(clientTrainingProgram&&clientTrainingSessions.length);
   const activeSessionId=hasTraining?getFirstAvailableSessionId():null;
@@ -1726,476 +1298,220 @@ function renderHome() {
   const sessionLabel=activeSession?getSessionDisplayTitle(activeSession,sessionIndex>=0?sessionIndex:0):'Entrenamiento asignado';
   const trainingFinished=activeSessionId?isSessionFinished(activeSessionId):false;
   const activeProgramName=clientTrainingProgram?(pickLang(clientTrainingProgram,'name',getLang())||clientTrainingProgram.name||''):'';
-  const fallbackPlanName=clientTrainingAssignment?.commercial_label||clientData.plan_variant||clientData.variant||clientData.plan||'Sin plan activo';
-  const homePlanName=activeProgramName||fallbackPlanName;
   const metaLine=[weekLabel,getAssignmentScopeLabel(),'Nivel '+getAssignedTrainingLevel()].filter(Boolean).join(' · ');
   const reservationMain=nextReservation?formatDate(nextReservation.date)+(nextReservation.time?' · '+formatTime(nextReservation.time):''):'Sin reserva próxima';
   const reservationSub=nextReservation?((nextReservation.type||'Reserva')+(nextReservation.place?' · '+nextReservation.place:'')):'Toca para ver el calendario';
 
   let html='';
+  html+='<div style="padding:4px 0 24px;"><div style="font-family:var(--font-display);font-size:32px;letter-spacing:1.5px;color:var(--text-primary);line-height:1;margin-bottom:6px;">Hola, '+firstName+'.</div><div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);letter-spacing:0.4px;text-transform:capitalize;">'+dateStr+'</div></div>';
 
-  /* Cabecera — fondo negro puro, fecha en gris */
-  html+=
-    '<div style="padding:4px 0 24px;">' +
-      '<div style="font-family:var(--font-display);font-size:32px;letter-spacing:1.5px;color:var(--text-primary);line-height:1;margin-bottom:6px;">Hola, '+firstName+'.</div>'+
-      '<div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);letter-spacing:0.4px;text-transform:capitalize;">'+dateStr+'</div>'+
-    '</div>';
-
-  /* Entrenamiento principal */
-  if (hasTraining) {
-    html+=
-      '<div class="data-card next-session">'+
-        '<div class="next-label">Entrenamiento principal</div>'+
-        '<div class="dc-row">'+
-          '<span class="dc-title">'+sessionLabel+'</span>'+
-          (trainingFinished?'<span class="badge badge-green">Completado</span>':'<span class="badge badge-blue">Disponible</span>')+
-        '</div>'+
-        '<div class="dc-row"><span class="dc-sub">'+metaLine+'</span></div>'+
-        '<div class="action-box">'+
-          '<button class="client-action-btn" onclick="goClientSection(\'section-training\')">'+(trainingFinished?'Ver entrenamiento realizado':'Empezar entrenamiento')+'</button>'+
-        '</div>'+
-      '</div>';
+  if(hasTraining){
+    html+='<div class="data-card next-session"><div class="next-label">Entrenamiento principal</div><div class="dc-row"><span class="dc-title">'+sessionLabel+'</span>'+(trainingFinished?'<span class="badge badge-green">Completado</span>':'<span class="badge badge-blue">Disponible</span>')+'</div><div class="dc-row"><span class="dc-sub">'+metaLine+'</span></div><div class="action-box"><button class="client-action-btn" onclick="goClientSection(\'section-training\')">'+(trainingFinished?'Ver entrenamiento realizado':'Empezar entrenamiento')+'</button></div></div>';
   } else {
     html+='<div class="data-card"><div class="dc-row"><span class="dc-title">Entrenamiento</span><span class="badge badge-gray">Pendiente</span></div><div class="dc-note">Todavía no hay entrenamiento visible para tu cuenta.</div></div>';
   }
 
-  /* Micro-gráficas */
   html+=buildHomeProgressRings();
 
-  /* Cards de plan y reserva */
-  html+='<div class="summary-grid" style="margin-top:0;">';
-
-html+=
-  '<div class="summary-card full" onclick="goClientSection(\'section-reservations\')" style="cursor:pointer;">'+
-    '<div class="summary-label">Próxima reserva</div>'+
-    '<div class="summary-value" style="font-size:16px;font-weight:700;">'+reservationMain+'</div>'+
-    '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;letter-spacing:0.3px;">'+reservationSub+'</div>'+
-  '</div>';
-
-html+='</div>';
-
+  html+='<div class="summary-grid" style="margin-top:0;"><div class="summary-card full" onclick="goClientSection(\'section-reservations\')" style="cursor:pointer;"><div class="summary-label">Próxima reserva</div><div class="summary-value" style="font-size:16px;font-weight:700;">'+reservationMain+'</div><div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;letter-spacing:0.3px;">'+reservationSub+'</div></div></div>';
   html+='<div class="action-box" style="margin-top:12px;"><button class="client-action-btn wa" onclick="clientWA(\'Hola, necesito ayuda con mi área cliente.\')">Contactar a Abel</button></div>';
 
   el.innerHTML=html;
 }
 
 /* ══ RENDER PROGRAM ══ */
-function renderProgram() {
-  const el=document.getElementById('sectionPlan');
-  const badge=document.getElementById('planBadgeStatus');
-  if (!el) return;
-  if (badge) badge.textContent=clientData?.status||'—';
+function renderProgram(){
+  const el=document.getElementById('sectionPlan');const badge=document.getElementById('planBadgeStatus');
+  if(!el)return;
+  if(badge)badge.textContent=clientData?.status||'—';
   const lg=getLang();
   let html='<div style="background:var(--card);border:1px solid var(--card-border);border-radius:12px;overflow:hidden;"><div class="plan-grid" style="padding:18px;">';
   html+='<div class="plan-item"><div class="pi-label">Plan</div><div class="pi-value">'+(clientData?.plan||'Sin plan asignado')+'</div></div>';
   html+='<div class="plan-item"><div class="pi-label">Estado</div><div class="pi-value">'+(clientData?.status||'—')+'</div></div>';
   html+='<div class="plan-item full"><div class="pi-label">Objetivo principal</div><div class="pi-value">'+(clientData?.objective||'Sin objetivo registrado')+'</div></div>';
-  if (clientData?.nutrition_objective) html+='<div class="plan-item full"><div class="pi-label">Objetivo nutricional</div><div class="pi-value">'+clientData.nutrition_objective+'</div></div>';
+  if(clientData?.nutrition_objective)html+='<div class="plan-item full"><div class="pi-label">Objetivo nutricional</div><div class="pi-value">'+clientData.nutrition_objective+'</div></div>';
   html+='<hr class="plan-divider">';
-  if (clientTrainingAssignment&&clientTrainingProgram) {
+  if(clientTrainingAssignment&&clientTrainingProgram){
     const programName=pickLang(clientTrainingProgram,'name',lg)||'Programa activo';
     const programObj=pickLang(clientTrainingProgram,'objective',lg);
     html+='<div class="plan-item"><div class="pi-label">Programa activo</div><div class="pi-value">'+programName+'</div></div>';
     html+='<div class="plan-item"><div class="pi-label">Alcance</div><div class="pi-value">'+getAssignmentScopeLabel()+'</div></div>';
-    html+='<div class="plan-item"><div class="pi-label">Nivel</div><div class="pi-value">'+( clientTrainingAssignment.assigned_level||'N1')+'</div></div>';
+    html+='<div class="plan-item"><div class="pi-label">Nivel</div><div class="pi-value">'+(clientTrainingAssignment.assigned_level||'N1')+'</div></div>';
     html+='<div class="plan-item"><div class="pi-label">Semana actual</div><div class="pi-value">'+(clientTrainingAssignment.current_week||1)+'</div></div>';
     html+='<div class="plan-item"><div class="pi-label">Inicio</div><div class="pi-value">'+formatDate(clientTrainingAssignment.start_date)+'</div></div>';
-    if (programObj) html+='<div class="plan-item full"><div class="pi-label">Objetivo del programa</div><div class="pi-value">'+programObj+'</div></div>';
-    if (clientTrainingAssignment.coach_notes) html+='<div class="plan-item full"><div class="pi-label">Notas del coach</div><div class="pi-value">'+clientTrainingAssignment.coach_notes+'</div></div>';
+    if(programObj)html+='<div class="plan-item full"><div class="pi-label">Objetivo del programa</div><div class="pi-value">'+programObj+'</div></div>';
+    if(clientTrainingAssignment.coach_notes)html+='<div class="plan-item full"><div class="pi-label">Notas del coach</div><div class="pi-value">'+clientTrainingAssignment.coach_notes+'</div></div>';
   } else {
     html+='<div class="plan-item full"><div class="plan-no-program">Todavía no hay programa asignado. Abel actualizará esta sección cuando tu plan esté listo.</div></div>';
   }
-  html+='</div></div>';
-  html+='<div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero consultar un ajuste o nuevo plan.\')">Consultar ajuste de plan</button></div>';
+  html+='</div></div><div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero consultar un ajuste o nuevo plan.\')">Consultar ajuste de plan</button></div>';
   el.innerHTML=html;
 }
 
+/* ══════════════════════════════════════════════════════════
+   RENDER HEALTH — Alertas generales + Métricas Combate
+══════════════════════════════════════════════════════════ */
+function renderHealthAlerts(){
+  const el=document.getElementById('sectionHealth');const badge=document.getElementById('alertsBadge');
+  if(!el)return;
+  if(badge)badge.textContent=clientAlerts.length;
+
+  let html='';
+
+  /* ── Dashboard métricas combate ── */
+  html+=
+    '<div id="dashboard-atleta-combate">'+
+      '<div class="combate-header">Métricas de rendimiento</div>'+
+      '<div class="combate-grid">'+
+
+        '<div class="card-metrica" id="card-ck">'+
+          '<span>Fatiga muscular (CK)</span>'+
+          '<strong id="display-ck">--</strong>'+
+          '<div class="metrica-unit">U/L</div>'+
+        '</div>'+
+
+        '<div class="card-metrica" id="card-cortisol">'+
+          '<span>Cortisol</span>'+
+          '<strong id="display-cortisol">--</strong>'+
+          '<div class="metrica-unit">µg/dL</div>'+
+        '</div>'+
+
+        '<div class="card-metrica" id="card-recuperacion">'+
+          '<span>Recuperación cardíaca 1 min</span>'+
+          '<strong id="display-fc-rec">--</strong>'+
+          '<div class="metrica-unit">ppm al minuto</div>'+
+        '</div>'+
+
+        '<div class="card-metrica" id="card-peso">'+
+          '<span>Peso de combate</span>'+
+          '<strong id="display-peso">--</strong>'+
+          '<div class="metrica-unit">kg</div>'+
+        '</div>'+
+
+      '</div>'+
+      '<p class="combate-update">Última actualización: <span id="display-fecha">--/--/----</span></p>'+
+    '</div>';
+
+  /* ── Separador ── */
+  if(clientAlerts.length){
+    html+='<div style="margin:18px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">Indicaciones de salud</div>';
+    html+=clientAlerts.map(a=>'<div class="data-card"><div class="dc-row">'+genericBadge(a.status)+'<span class="dc-sub" style="font-family:var(--font-mono);">'+formatDate(a.date)+'</span></div>'+(a.detail?'<div style="margin-top:10px;font-size:14px;color:var(--text-primary);line-height:1.7;">'+a.detail+'</div>':'')+'</div>').join('');
+  } else {
+    html+='<div style="margin-top:16px;"><p class="empty-state">No hay indicaciones de salud registradas.</p></div>';
+  }
+
+  el.innerHTML=html;
+
+  /* Cargar métricas combate asíncronamente después de renderizar el HTML */
+  cargarMetricasCombate();
+}
+
 /* ══ TRAINING ══ */
-function getSessionDayLabel(session,index) {
-  const num=Number(session.session_number||index+1);
-  if (num===1) return 'Día A';if (num===2) return 'Día B';if (num===3) return 'Día C';
-  return 'Día '+num;
-}
-function getSessionDisplayTitle(session,index) {
-  const day=getSessionDayLabel(session,index);
-  const lg=getLang();
-  let title=lg==='sr'?session.title_sr||session.title||'':session.title_es||session.title||'';
-  title=String(title||'').trim();
-  if (!title||title.toLowerCase()===day.toLowerCase()) return day;
-  if (title.toLowerCase().startsWith('dan ')||title.toLowerCase().startsWith('día ')||title.toLowerCase().startsWith('dia ')) return title;
-  return day+' · '+title;
-}
-function showTrainingDay(sessionId) {
-  saveLastActiveSession(sessionId);
-  const btn=document.querySelector('.training-day-tab[data-session-id="'+sessionId+'"]');
-  const scope=btn?.closest('.training-week-panel')||document;
-  scope.querySelectorAll('.training-day-tab').forEach(b=>{ if (!String(b.dataset.weekId||'').length) b.classList.toggle('active',String(b.dataset.sessionId)===String(sessionId)); });
-  scope.querySelectorAll('.training-session-panel,.training-day-panel').forEach(p=>{ if (p.dataset.sessionId) p.classList.toggle('active',String(p.dataset.sessionId)===String(sessionId)); });
-  const active=scope.querySelector('.training-session-panel.active[data-session-id="'+sessionId+'"],.training-day-panel.active[data-session-id="'+sessionId+'"]');
-  if (active) active.scrollIntoView({behavior:'smooth',block:'nearest'});
-  loadOrCreateTrainingLog(sessionId);
-}
-function showTrainingWeekPanel(weekId) {
-  document.querySelectorAll('.training-week-tab').forEach(b=>b.classList.toggle('active',b.dataset.weekId===String(weekId)));
-  document.querySelectorAll('.training-week-panel').forEach(p=>p.classList.toggle('active',p.dataset.weekId===String(weekId)));
-  document.querySelector('.training-week-panel[data-week-id="'+weekId+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});
-}
-function buildTrainingSteps(sessionIdFilter) {
-  const steps=[];
-  const sessions=sessionIdFilter?clientTrainingSessions.filter(s=>String(s.id)===String(sessionIdFilter)):clientTrainingSessions;
-  sessions.forEach((session,sIdx)=>{
-    const realIdx=clientTrainingSessions.findIndex(s=>String(s.id)===String(session.id));
-    const blocks=clientTrainingBlocks.filter(b=>b.session_id===session.id).slice().sort((a,b)=>Number(a.block_order||0)-Number(b.block_order||0));
-    blocks.forEach((block,bIdx)=>{
-      const exercises=clientTrainingExercises.filter(e=>e.block_id===block.id).slice().sort((a,b)=>Number(a.exercise_order||0)-Number(b.exercise_order||0));
-      steps.push({blockId:String(block.id),block,exercises,sessionId:String(session.id),session,sessionSeparator:bIdx===0?getSessionDisplayTitle(session,realIdx>=0?realIdx:sIdx):null});
-    });
-  });
-  return steps;
-}
-function getActiveTrainingWeek() {
-  if (!clientTrainingAssignment) return null;
-  const currentWeek=Number(clientTrainingAssignment?.current_week||1);
-  return clientTrainingWeeks.find(w=>Number(w.week_number)===currentWeek)||clientTrainingWeeks[0]||null;
-}
-async function loadOrCreateTrainingLog(sessionId) {
-  if (!clientData||!clientTrainingAssignment||!clientTrainingProgram) return null;
-  const sid=sessionId||getCurrentVisibleSessionId();
-  if (!sid) return null;
+function getSessionDayLabel(session,index){const num=Number(session.session_number||index+1);if(num===1)return'Día A';if(num===2)return'Día B';if(num===3)return'Día C';return'Día '+num;}
+function getSessionDisplayTitle(session,index){const day=getSessionDayLabel(session,index);const lg=getLang();let title=lg==='sr'?session.title_sr||session.title||'':session.title_es||session.title||'';title=String(title||'').trim();if(!title||title.toLowerCase()===day.toLowerCase())return day;if(title.toLowerCase().startsWith('dan ')||title.toLowerCase().startsWith('día ')||title.toLowerCase().startsWith('dia '))return title;return day+' · '+title;}
+function showTrainingDay(sessionId){saveLastActiveSession(sessionId);const btn=document.querySelector('.training-day-tab[data-session-id="'+sessionId+'"]');const scope=btn?.closest('.training-week-panel')||document;scope.querySelectorAll('.training-day-tab').forEach(b=>{if(!String(b.dataset.weekId||'').length)b.classList.toggle('active',String(b.dataset.sessionId)===String(sessionId));});scope.querySelectorAll('.training-session-panel,.training-day-panel').forEach(p=>{if(p.dataset.sessionId)p.classList.toggle('active',String(p.dataset.sessionId)===String(sessionId));});const active=scope.querySelector('.training-session-panel.active[data-session-id="'+sessionId+'"],.training-day-panel.active[data-session-id="'+sessionId+'"]');if(active)active.scrollIntoView({behavior:'smooth',block:'nearest'});loadOrCreateTrainingLog(sessionId);}
+function showTrainingWeekPanel(weekId){document.querySelectorAll('.training-week-tab').forEach(b=>b.classList.toggle('active',b.dataset.weekId===String(weekId)));document.querySelectorAll('.training-week-panel').forEach(p=>p.classList.toggle('active',p.dataset.weekId===String(weekId)));document.querySelector('.training-week-panel[data-week-id="'+weekId+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});}
+function buildTrainingSteps(sessionIdFilter){const steps=[];const sessions=sessionIdFilter?clientTrainingSessions.filter(s=>String(s.id)===String(sessionIdFilter)):clientTrainingSessions;sessions.forEach((session,sIdx)=>{const realIdx=clientTrainingSessions.findIndex(s=>String(s.id)===String(session.id));const blocks=clientTrainingBlocks.filter(b=>b.session_id===session.id).slice().sort((a,b)=>Number(a.block_order||0)-Number(b.block_order||0));blocks.forEach((block,bIdx)=>{const exercises=clientTrainingExercises.filter(e=>e.block_id===block.id).slice().sort((a,b)=>Number(a.exercise_order||0)-Number(b.exercise_order||0));steps.push({blockId:String(block.id),block,exercises,sessionId:String(session.id),session,sessionSeparator:bIdx===0?getSessionDisplayTitle(session,realIdx>=0?realIdx:sIdx):null});});});return steps;}
+function getActiveTrainingWeek(){if(!clientTrainingAssignment)return null;const currentWeek=Number(clientTrainingAssignment?.current_week||1);return clientTrainingWeeks.find(w=>Number(w.week_number)===currentWeek)||clientTrainingWeeks[0]||null;}
+async function loadOrCreateTrainingLog(sessionId){
+  if(!clientData||!clientTrainingAssignment||!clientTrainingProgram)return null;
+  const sid=sessionId||getCurrentVisibleSessionId();if(!sid)return null;
   const localProgress=loadTrainingProgressLocal(sid);
-  if (localProgress) { completedTrainingBlocks=new Set(localProgress.completed_block_ids||[]); currentTrainingLog={...(currentTrainingLog||{}),...localProgress}; }
+  if(localProgress){completedTrainingBlocks=new Set(localProgress.completed_block_ids||[]);currentTrainingLog={...(currentTrainingLog||{}),...localProgress};}
   const session=clientTrainingSessions.find(s=>String(s.id)===String(sid));
   const week=session?clientTrainingWeeks.find(w=>String(w.id)===String(session.week_id)):getActiveTrainingWeek();
   const payload={client_id:clientData.id,assignment_id:clientTrainingAssignment.id,program_id:clientTrainingProgram.id,week_id:week?week.id:null,session_id:sid,training_date:todayISO()};
-  try {
+  try{
     const existing=await db.from('client_session_logs').select('*').eq('client_id',payload.client_id).eq('assignment_id',payload.assignment_id).eq('session_id',payload.session_id).eq('training_date',payload.training_date).maybeSingle();
-    if (existing.error){console.error('Log read error:',existing.error);return currentTrainingLog;}
-    if (existing.data) {
-      completedTrainingBlocks=new Set([...(existing.data.completed_block_ids||[]),...(localProgress?.completed_block_ids||[])]);
-      currentTrainingLog={...existing.data,completed_block_ids:Array.from(completedTrainingBlocks),is_finished:existing.data.is_finished||localProgress?.is_finished||false,client_note:existing.data.client_note||localProgress?.client_note||'',client_feedback_tags:existing.data.client_feedback_tags||localProgress?.client_feedback_tags||[],client_feedback_summary:existing.data.client_feedback_summary||localProgress?.client_feedback_summary||''};
-      saveTrainingProgressLocal(currentTrainingLog,sid);return currentTrainingLog;
-    }
+    if(existing.error){console.error('Log read error:',existing.error);return currentTrainingLog;}
+    if(existing.data){completedTrainingBlocks=new Set([...(existing.data.completed_block_ids||[]),...(localProgress?.completed_block_ids||[])]);currentTrainingLog={...existing.data,completed_block_ids:Array.from(completedTrainingBlocks),is_finished:existing.data.is_finished||localProgress?.is_finished||false,client_note:existing.data.client_note||localProgress?.client_note||'',client_feedback_tags:existing.data.client_feedback_tags||localProgress?.client_feedback_tags||[],client_feedback_summary:existing.data.client_feedback_summary||localProgress?.client_feedback_summary||''};saveTrainingProgressLocal(currentTrainingLog,sid);return currentTrainingLog;}
     const created=await db.from('client_session_logs').insert({...payload,completed_block_ids:Array.from(completedTrainingBlocks),is_finished:localProgress?.is_finished||false,client_note:localProgress?.client_note||'',client_feedback_tags:localProgress?.client_feedback_tags||[],client_feedback_summary:localProgress?.client_feedback_summary||'',started_at:new Date().toISOString()}).select().single();
-    if (created.error){console.error('Log create error:',created.error);return currentTrainingLog;}
+    if(created.error){console.error('Log create error:',created.error);return currentTrainingLog;}
     currentTrainingLog=created.data;saveTrainingProgressLocal(currentTrainingLog,sid);return currentTrainingLog;
-  } catch(err){console.error('Log error:',err);return currentTrainingLog;}
+  }catch(err){console.error('Log error:',err);return currentTrainingLog;}
 }
-async function saveTrainingProgress(extra,sessionId) {
-  const sid=sessionId||getCurrentVisibleSessionId();
-  saveTrainingProgressLocal(extra,sid);
-  if (!currentTrainingLog?.id||String(currentTrainingLog.session_id)!==String(sid)) await loadOrCreateTrainingLog(sid);
-  if (!currentTrainingLog?.id){console.warn('No log ID');return;}
+async function saveTrainingProgress(extra,sessionId){
+  const sid=sessionId||getCurrentVisibleSessionId();saveTrainingProgressLocal(extra,sid);
+  if(!currentTrainingLog?.id||String(currentTrainingLog.session_id)!==String(sid))await loadOrCreateTrainingLog(sid);
+  if(!currentTrainingLog?.id){console.warn('No log ID');return;}
   const local=loadTrainingProgressLocal(sid)||{};
-  try {
-    const saved=await db.from('client_session_logs').update({completed_block_ids:Array.from(completedTrainingBlocks),is_finished:local.is_finished||false,client_note:local.client_note||null,client_feedback_tags:local.client_feedback_tags||extra?.client_feedback_tags||[],client_feedback_summary:local.client_feedback_summary||extra?.client_feedback_summary||null,updated_at:new Date().toISOString(),...(extra||{})}).eq('id',currentTrainingLog.id).select().single();
-    if (!saved.error){currentTrainingLog=saved.data;saveTrainingProgressLocal(currentTrainingLog,sid);}else console.error('Log save error:',saved.error);
-  } catch(err){console.error('Log save error:',err);}
+  try{const saved=await db.from('client_session_logs').update({completed_block_ids:Array.from(completedTrainingBlocks),is_finished:local.is_finished||false,client_note:local.client_note||null,client_feedback_tags:local.client_feedback_tags||extra?.client_feedback_tags||[],client_feedback_summary:local.client_feedback_summary||extra?.client_feedback_summary||null,updated_at:new Date().toISOString(),...(extra||{})}).eq('id',currentTrainingLog.id).select().single();if(!saved.error){currentTrainingLog=saved.data;saveTrainingProgressLocal(currentTrainingLog,sid);}else console.error('Log save error:',saved.error);}catch(err){console.error('Log save error:',err);}
 }
 
-function buildCompletedSessionCard(session,index) {
-  const title=getSessionDisplayTitle(session,index);
-  const week=clientTrainingWeeks.find(w=>String(w.id)===String(session.week_id));
-  const weekLabel=week?.week_number?'Semana '+week.week_number:'Semana';
-  return '<div class="training-session-completed-card">'+
-    '<div class="training-session-completed-row">'+
-      '<div class="training-session-completed-icon">✓</div>'+
-      '<div style="flex:1;min-width:0;">'+
-        '<div class="training-session-completed-title">Entrenamiento completado</div>'+
-        '<div class="training-session-completed-sub">'+title+' · '+weekLabel+'</div>'+
-        '<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;line-height:1.5;font-family:var(--font-mono);">Tus observaciones ya fueron enviadas a Abel.</div>'+
-      '</div>'+
-    '</div>'+
-    '<button class="client-action-btn" style="margin-top:14px;" onclick="toggleCompletedTrainingDetails()">Ver detalles del entrenamiento</button>'+
-  '</div>';
-}
+function buildCompletedSessionCard(session,index){const title=getSessionDisplayTitle(session,index);const week=clientTrainingWeeks.find(w=>String(w.id)===String(session.week_id));const weekLabel=week?.week_number?'Semana '+week.week_number:'Semana';return'<div class="training-session-completed-card"><div class="training-session-completed-row"><div class="training-session-completed-icon">✓</div><div style="flex:1;min-width:0;"><div class="training-session-completed-title">Entrenamiento completado</div><div class="training-session-completed-sub">'+title+' · '+weekLabel+'</div><div style="font-size:12px;color:var(--text-secondary);margin-top:6px;line-height:1.5;font-family:var(--font-mono);">Tus observaciones ya fueron enviadas a Abel.</div></div></div><button class="client-action-btn" style="margin-top:14px;" onclick="toggleCompletedTrainingDetails()">Ver detalles del entrenamiento</button></div>';}
 
-async function renderClientTraining() {
-  const el=document.getElementById('sectionTrainingClient');
-  const badge=document.getElementById('trainingClientBadge');
-  if (!el) return;
+async function renderClientTraining(){
+  const el=document.getElementById('sectionTrainingClient');const badge=document.getElementById('trainingClientBadge');
+  if(!el)return;
   completedTrainingBlocks=new Set();activeTrainingBlockKey=null;currentTrainingLog=null;
-
-  if (!clientTrainingProgram) {
-    if (badge) badge.textContent='Sin datos';
-    el.innerHTML='<p class="empty-state">No hay entrenamiento visible para este alcance. Revisa la configuración de la asignación.</p>'+
-      '<div class="data-card" style="margin-top:10px;"><div class="dc-row"><span class="dc-title" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.8px;">Diagnóstico</span></div>'+
-      '<div class="dc-note">Cliente ID: '+(clientData?.id||'—')+'</div>'+
-      '<div class="dc-note">Asignación: '+(clientTrainingAssignment?.id||'NO')+'</div>'+
-      '<div class="dc-note">Programa ID: '+(clientTrainingAssignment?.program_id||'NO')+'</div>'+
-      '<div class="dc-note">Alcance: '+(clientTrainingAssignment?.assignment_scope||'NO')+'</div>'+
-      '<div class="dc-note">Rows visibles: '+(window.__AB_DEBUG_CLIENT__?.visibleRows??'—')+'</div>'+
-      '<div class="dc-note">Error: '+(window.__AB_DEBUG_CLIENT__?.visibleError?.message||'Ninguno')+'</div>'+
-      '</div>';
+  if(!clientTrainingProgram){
+    if(badge)badge.textContent='Sin datos';
+    el.innerHTML='<p class="empty-state">No hay entrenamiento visible para este alcance.</p><div class="data-card" style="margin-top:10px;"><div class="dc-row"><span class="dc-title" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.8px;">Diagnóstico</span></div><div class="dc-note">Cliente ID: '+(clientData?.id||'—')+'</div><div class="dc-note">Asignación: '+(clientTrainingAssignment?.id||'NO')+'</div><div class="dc-note">Programa ID: '+(clientTrainingAssignment?.program_id||'NO')+'</div><div class="dc-note">Alcance: '+(clientTrainingAssignment?.assignment_scope||'NO')+'</div><div class="dc-note">Rows visibles: '+(window.__AB_DEBUG_CLIENT__?.visibleRows??'—')+'</div><div class="dc-note">Error: '+(window.__AB_DEBUG_CLIENT__?.visibleError?.message||'Ninguno')+'</div></div>';
     return;
   }
-
   const initialActiveSessionId=getInitialActiveSessionId();
-  if (clientTrainingAssignment&&initialActiveSessionId) await loadOrCreateTrainingLog(initialActiveSessionId);
-  else { const lp=loadTrainingProgressLocal(initialActiveSessionId); if (lp){completedTrainingBlocks=new Set(lp.completed_block_ids||[]);currentTrainingLog=lp;} }
-
+  if(clientTrainingAssignment&&initialActiveSessionId)await loadOrCreateTrainingLog(initialActiveSessionId);
+  else{const lp=loadTrainingProgressLocal(initialActiveSessionId);if(lp){completedTrainingBlocks=new Set(lp.completed_block_ids||[]);currentTrainingLog=lp;}}
   const lg=getLang();const levelStr=getAssignedTrainingLevel();const scopeLabel=getAssignmentScopeLabel();
-  if (badge) badge.textContent=scopeLabel;
+  if(badge)badge.textContent=scopeLabel;
   const allSteps=buildTrainingSteps();
-  if (!allSteps.length){el.innerHTML='<p class="empty-state">Este programa todavía no tiene bloques cargados.</p>';return;}
+  if(!allSteps.length){el.innerHTML='<p class="empty-state">Este programa todavía no tiene bloques cargados.</p>';return;}
 
-  function buildSessionMiniHeader(session,index) {
-    const week=clientTrainingWeeks.find(w=>String(w.id)===String(session.week_id));
-    const weekLabel=week?.week_number?'Semana '+week.week_number:'Semana';
-    const dayLabel=getSessionDayLabel(session,index);
-    let sessionTitle=lg==='sr'?session.title_sr||session.title||'':session.title_es||session.title||'';
-    sessionTitle=String(sessionTitle||'').trim();
-    const cleanTitle=sessionTitle.replace(/^(día|dia|dan)\s+[a-z]\s*[-–—·]?\s*/i,'').trim();
-    return '<div class="training-mini-hero">'+
-      '<div class="training-mini-hero-top">'+
-        '<div class="training-mini-day">'+dayLabel+'</div>'+
-        '<div class="training-mini-meta">'+weekLabel+' · '+levelStr+'</div>'+
-      '</div>'+(cleanTitle?'<div class="training-mini-title">'+cleanTitle+'</div>':'')+
-    '</div>';
-  }
+  function buildSessionMiniHeader(session,index){const week=clientTrainingWeeks.find(w=>String(w.id)===String(session.week_id));const weekLabel=week?.week_number?'Semana '+week.week_number:'Semana';const dayLabel=getSessionDayLabel(session,index);let sessionTitle=lg==='sr'?session.title_sr||session.title||'':session.title_es||session.title||'';sessionTitle=String(sessionTitle||'').trim();const cleanTitle=sessionTitle.replace(/^(día|dia|dan)\s+[a-z]\s*[-–—·]?\s*/i,'').trim();return'<div class="training-mini-hero"><div class="training-mini-hero-top"><div class="training-mini-day">'+dayLabel+'</div><div class="training-mini-meta">'+weekLabel+' · '+levelStr+'</div></div>'+(cleanTitle?'<div class="training-mini-title">'+cleanTitle+'</div>':'')+' </div>';}
 
   let html='';
-  if (clientTrainingSessions.length>1) {
-    const sessionsByWeek=new Map();
-    clientTrainingSessions.forEach(s=>{const wid=String(s.week_id);if (!sessionsByWeek.has(wid))sessionsByWeek.set(wid,[]);sessionsByWeek.get(wid).push(s);});
+  if(clientTrainingSessions.length>1){
+    const sessionsByWeek=new Map();clientTrainingSessions.forEach(s=>{const wid=String(s.week_id);if(!sessionsByWeek.has(wid))sessionsByWeek.set(wid,[]);sessionsByWeek.get(wid).push(s);});
     const weeks=Array.from(sessionsByWeek.entries());
-    if (weeks.length===1) {
-      const sessions=weeks[0][1];const initialSessionId=getFirstAvailableSessionId();
-      html+='<div class="training-day-tabs">';
-      sessions.forEach((s,i)=>{const sid=String(s.id);html+='<button class="training-day-tab'+(sid===String(initialSessionId)?' active':'')+'" data-session-id="'+sid+'" onclick="showTrainingDay(\''+sid+'\')">'+getSessionDayLabel(s,i)+'</button>';});
-      html+='</div>';
-      sessions.forEach((s,i)=>{const sid=String(s.id);html+='<div class="training-day-panel'+(sid===String(initialSessionId)?' active':'')+'" data-session-id="'+sid+'">';html+=buildSessionMiniHeader(s,i);if (isSessionFinished(sid)){html+=buildCompletedSessionCard(s,i);}else{const steps=buildTrainingSteps(sid);html+='<div class="training-step-list">';steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div>';}html+='</div>';});
-    } else {
-      const initialActiveWeekId=getWeekIdBySessionId(initialActiveSessionId)||weeks[0]?.[0];
-      html+='<div class="training-day-tabs training-week-tabs">';
-      weeks.forEach(([wid,sessions],wi)=>{const week=clientTrainingWeeks.find(w=>String(w.id)===wid);html+='<button class="training-day-tab training-week-tab'+(String(wid)===String(initialActiveWeekId)?' active':'')+'" data-week-id="'+wid+'" onclick="showTrainingWeekPanel(\''+wid+'\')">Semana '+(week?.week_number||(wi+1))+'</button>';});
-      html+='</div>';
-      weeks.forEach(([wid,sessions])=>{const isAW=String(wid)===String(initialActiveWeekId);html+='<div class="training-day-panel training-week-panel'+(isAW?' active':'')+'" data-week-id="'+wid+'">';html+='<div class="training-day-tabs">';sessions.forEach((s,si)=>{const sid=String(s.id);html+='<button class="training-day-tab'+(String(s.id)===String(initialActiveSessionId)?' active':'')+'" data-session-id="'+sid+'" onclick="showTrainingDay(\''+sid+'\')">'+getSessionDayLabel(s,si)+'</button>';});html+='</div>';sessions.forEach((s,si)=>{const sid=String(s.id);html+='<div class="training-session-panel'+(String(s.id)===String(initialActiveSessionId)?' active':'')+'" data-session-id="'+sid+'">';html+=buildSessionMiniHeader(s,si);if (isSessionFinished(sid)){html+=buildCompletedSessionCard(s,si);}else{const steps=buildTrainingSteps(sid);html+='<div class="training-step-list">';steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div>';}html+='</div>';});html+='</div>';});
-    }
+    if(weeks.length===1){const sessions=weeks[0][1];const initialSessionId=getFirstAvailableSessionId();html+='<div class="training-day-tabs">';sessions.forEach((s,i)=>{const sid=String(s.id);html+='<button class="training-day-tab'+(sid===String(initialSessionId)?' active':'')+'" data-session-id="'+sid+'" onclick="showTrainingDay(\''+sid+'\')">'+getSessionDayLabel(s,i)+'</button>';});html+='</div>';sessions.forEach((s,i)=>{const sid=String(s.id);html+='<div class="training-day-panel'+(sid===String(initialSessionId)?' active':'')+'" data-session-id="'+sid+'">';html+=buildSessionMiniHeader(s,i);if(isSessionFinished(sid)){html+=buildCompletedSessionCard(s,i);}else{const steps=buildTrainingSteps(sid);html+='<div class="training-step-list">';steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div>';}html+='</div>';});}
+    else{const initialActiveWeekId=getWeekIdBySessionId(initialActiveSessionId)||weeks[0]?.[0];html+='<div class="training-day-tabs training-week-tabs">';weeks.forEach(([wid,sessions],wi)=>{const week=clientTrainingWeeks.find(w=>String(w.id)===wid);html+='<button class="training-day-tab training-week-tab'+(String(wid)===String(initialActiveWeekId)?' active':'')+'" data-week-id="'+wid+'" onclick="showTrainingWeekPanel(\''+wid+'\')">Semana '+(week?.week_number||(wi+1))+'</button>';});html+='</div>';weeks.forEach(([wid,sessions])=>{const isAW=String(wid)===String(initialActiveWeekId);html+='<div class="training-day-panel training-week-panel'+(isAW?' active':'')+'" data-week-id="'+wid+'">';html+='<div class="training-day-tabs">';sessions.forEach((s,si)=>{const sid=String(s.id);html+='<button class="training-day-tab'+(String(s.id)===String(initialActiveSessionId)?' active':'')+'" data-session-id="'+sid+'" onclick="showTrainingDay(\''+sid+'\')">'+getSessionDayLabel(s,si)+'</button>';});html+='</div>';sessions.forEach((s,si)=>{const sid=String(s.id);html+='<div class="training-session-panel'+(String(s.id)===String(initialActiveSessionId)?' active':'')+'" data-session-id="'+sid+'">';html+=buildSessionMiniHeader(s,si);if(isSessionFinished(sid)){html+=buildCompletedSessionCard(s,si);}else{const steps=buildTrainingSteps(sid);html+='<div class="training-step-list">';steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div>';}html+='</div>';});html+='</div>';});}
   } else {
     const session=clientTrainingSessions[0];const sid=String(session?.id||initialActiveSessionId||'');
     html+='<div class="training-day-panel active" data-session-id="'+sid+'">';html+=buildSessionMiniHeader(session,0);
-    if (sid&&isSessionFinished(sid)){html+=buildCompletedSessionCard(session,0);}else{html+='<div class="training-step-list">';allSteps.forEach((step,i)=>{html+=buildTrainingStepHTML(step,i);});html+='</div>';}
+    if(sid&&isSessionFinished(sid)){html+=buildCompletedSessionCard(session,0);}else{html+='<div class="training-step-list">';allSteps.forEach((step,i)=>{html+=buildTrainingStepHTML(step,i);});html+='</div>';}
     html+='</div>';
   }
   html+='<div id="trainingCompletionArea"></div>';
   el.innerHTML=html;
   applySavedTrainingState();
-
   const activeSessionId=getCurrentVisibleSessionId()||initialActiveSessionId;
   const activeSessionFinished=activeSessionId?isSessionFinished(activeSessionId):false;
   const visibleSteps=activeSessionId?buildTrainingSteps(activeSessionId):allSteps;
-  if (activeSessionFinished){const area=document.getElementById('trainingCompletionArea');if(area)area.innerHTML='';return;}
+  if(activeSessionFinished){const area=document.getElementById('trainingCompletionArea');if(area)area.innerHTML='';return;}
   const firstPending=visibleSteps.find(s=>!completedTrainingBlocks.has(s.blockId));
-  if (firstPending){activeTrainingBlockKey=firstPending.blockId;const card=document.getElementById('step-'+firstPending.blockId);if(card)card.classList.add('open');}else{renderTrainingCompletionBox(false);}
+  if(firstPending){activeTrainingBlockKey=firstPending.blockId;const card=document.getElementById('step-'+firstPending.blockId);if(card)card.classList.add('open');}else{renderTrainingCompletionBox(false);}
 }
 
-function buildTrainingStepHTML(step,index) {
-  const blockId=step.blockId,block=step.block;
-  const blockNum=block.block_order||(index+1);
-  const _lg=getLang();
-  const blockTitle=pickLang(block,'title',_lg)||pickLang(block,'name',_lg)||'Bloque';
-  const blockObj=pickLang(block,'objective',_lg);
-  const metaP=[block.duration,block.type].filter(Boolean);
-  let html='';
-  if (step.sessionSeparator) html+='<div class="training-session-separator">'+step.sessionSeparator+'</div>';
-  html+='<div class="training-step-card" id="step-'+blockId+'">'+
-    '<button class="training-step-header" onclick="toggleTrainingStep(\''+blockId+'\')">'+
-      '<div class="training-step-number">'+blockNum+'</div>'+
-      '<div class="training-step-info">'+
-        '<div class="training-step-title">'+blockTitle+'</div>'+
-        (metaP.length?'<div class="training-step-meta">'+metaP.join(' · ')+'</div>':'')+
-      '</div>'+
-      '<div class="training-step-status" id="status-'+blockId+'">Pendiente</div>'+
-    '</button>'+
-    '<div class="training-step-body">'+
-      (blockObj?'<div class="training-step-objective">'+blockObj+'</div>':'');
-  step.exercises.forEach(ex=>{html+=buildExerciseHTML(ex);});
-  if (!step.exercises.length) html+='<p class="empty-state" style="margin-top:12px;">Este bloque todavía no tiene ejercicios.</p>';
-  html+='<button class="training-complete-block-btn" id="completeBtn-'+blockId+'" onclick="completeTrainingStep(\''+blockId+'\')">Marcar bloque terminado</button>'+
-    '</div></div>';
-  return html;
-}
-
-function buildExerciseHTML(ex) {
-  const lvl=getAssignedTrainingLevel();const _lg=getLang();
-  function pickVariant(ex,lvl,lang){const l=(lang||'es').toLowerCase();return ex['variant_'+lvl.toLowerCase()+'_'+l]||ex['variant_'+lvl.toLowerCase()+'_es']||ex['variant_'+lvl.toLowerCase()]||'';}
-  const variant=pickVariant(ex,lvl,_lg);
-  const exName=pickLang(ex,'name',_lg)||pickLang(ex,'title',_lg)||'Ejercicio';
-  const exDesc=pickLang(ex,'description',_lg);
-  const exNotes=pickLang(ex,'coachingNotes',_lg)||pickLang(ex,'coachNotes',_lg)||ex.coaching_notes||ex.coach_notes||'';
-  const stats=[ex.sets?{label:'Series',value:ex.sets}:null,ex.reps?{label:'Reps',value:ex.reps}:null,(ex.time||ex.duration)?{label:'Tiempo',value:(ex.time||ex.duration)}:null,ex.rest?{label:'Descanso',value:ex.rest}:null].filter(Boolean);
-  let html='<div class="training-exercise-card">'+
-    '<div class="training-exercise-title">'+(ex.exercise_order?'<span class="training-ex-num">'+ex.exercise_order+'.</span>':'')+exName+'</div>';
-  if (stats.length){html+='<div class="training-exercise-grid">';stats.forEach(s=>{html+='<div class="training-mini-stat"><span class="training-mini-label">'+s.label+'</span><div class="training-mini-value">'+s.value+'</div></div>';});html+='</div>';}
-  html+='<div class="training-level-tag">Nivel '+lvl+'</div>';
-  if (variant) html+='<div class="training-instruction"><strong>Trabajo indicado</strong>'+variant+'</div>';
-  if (exDesc) html+='<div class="training-instruction"><strong>Cómo hacerlo</strong>'+exDesc+'</div>';
-  if (exNotes) html+='<div class="training-coach-note">Coach: '+exNotes+'</div>';
-  if (ex.video_url) html+='<a href="'+ex.video_url+'" target="_blank" class="training-video-btn">&#9654; Ver referencia</a>';
-  html+='</div>';return html;
-}
+function buildTrainingStepHTML(step,index){const blockId=step.blockId,block=step.block;const blockNum=block.block_order||(index+1);const _lg=getLang();const blockTitle=pickLang(block,'title',_lg)||pickLang(block,'name',_lg)||'Bloque';const blockObj=pickLang(block,'objective',_lg);const metaP=[block.duration,block.type].filter(Boolean);let html='';if(step.sessionSeparator)html+='<div class="training-session-separator">'+step.sessionSeparator+'</div>';html+='<div class="training-step-card" id="step-'+blockId+'"><button class="training-step-header" onclick="toggleTrainingStep(\''+blockId+'\')"><div class="training-step-number">'+blockNum+'</div><div class="training-step-info"><div class="training-step-title">'+blockTitle+'</div>'+(metaP.length?'<div class="training-step-meta">'+metaP.join(' · ')+'</div>':'')+'</div><div class="training-step-status" id="status-'+blockId+'">Pendiente</div></button><div class="training-step-body">'+(blockObj?'<div class="training-step-objective">'+blockObj+'</div>':'');step.exercises.forEach(ex=>{html+=buildExerciseHTML(ex);});if(!step.exercises.length)html+='<p class="empty-state" style="margin-top:12px;">Este bloque todavía no tiene ejercicios.</p>';html+='<button class="training-complete-block-btn" id="completeBtn-'+blockId+'" onclick="completeTrainingStep(\''+blockId+'\')">Marcar bloque terminado</button></div></div>';return html;}
+function buildExerciseHTML(ex){const lvl=getAssignedTrainingLevel();const _lg=getLang();function pickVariant(ex,lvl,lang){const l=(lang||'es').toLowerCase();return ex['variant_'+lvl.toLowerCase()+'_'+l]||ex['variant_'+lvl.toLowerCase()+'_es']||ex['variant_'+lvl.toLowerCase()]||'';}const variant=pickVariant(ex,lvl,_lg);const exName=pickLang(ex,'name',_lg)||pickLang(ex,'title',_lg)||'Ejercicio';const exDesc=pickLang(ex,'description',_lg);const exNotes=pickLang(ex,'coachingNotes',_lg)||pickLang(ex,'coachNotes',_lg)||ex.coaching_notes||ex.coach_notes||'';const stats=[ex.sets?{label:'Series',value:ex.sets}:null,ex.reps?{label:'Reps',value:ex.reps}:null,(ex.time||ex.duration)?{label:'Tiempo',value:(ex.time||ex.duration)}:null,ex.rest?{label:'Descanso',value:ex.rest}:null].filter(Boolean);let html='<div class="training-exercise-card"><div class="training-exercise-title">'+(ex.exercise_order?'<span class="training-ex-num">'+ex.exercise_order+'.</span>':'')+exName+'</div>';if(stats.length){html+='<div class="training-exercise-grid">';stats.forEach(s=>{html+='<div class="training-mini-stat"><span class="training-mini-label">'+s.label+'</span><div class="training-mini-value">'+s.value+'</div></div>';});html+='</div>';}html+='<div class="training-level-tag">Nivel '+lvl+'</div>';if(variant)html+='<div class="training-instruction"><strong>Trabajo indicado</strong>'+variant+'</div>';if(exDesc)html+='<div class="training-instruction"><strong>Cómo hacerlo</strong>'+exDesc+'</div>';if(exNotes)html+='<div class="training-coach-note">Coach: '+exNotes+'</div>';if(ex.video_url)html+='<a href="'+ex.video_url+'" target="_blank" class="training-video-btn">&#9654; Ver referencia</a>';html+='</div>';return html;}
 
 function applySavedTrainingState(){completedTrainingBlocks.forEach(id=>markStepVisualAsCompleted(id));}
-function markStepVisualAsCompleted(blockId){
-  const card=document.getElementById('step-'+blockId);if(!card)return;
-  card.classList.remove('open');card.classList.add('completed');
-  const numEl=card.querySelector('.training-step-number');if(numEl)numEl.textContent='✓';
-  const statusEl=document.getElementById('status-'+blockId);if(statusEl){statusEl.textContent='Completado';statusEl.classList.add('done');}
-  const btn=document.getElementById('completeBtn-'+blockId);
-  if(btn){const msg=document.createElement('div');msg.className='training-step-done-msg';msg.textContent='Bloque completado';btn.replaceWith(msg);}
-}
-function toggleTrainingStep(blockId){
-  const card=document.getElementById('step-'+blockId);if(!card)return;
-  if(activeTrainingBlockKey===blockId){card.classList.remove('open');activeTrainingBlockKey=null;}
-  else{if(activeTrainingBlockKey)document.getElementById('step-'+activeTrainingBlockKey)?.classList.remove('open');activeTrainingBlockKey=blockId;card.classList.add('open');}
-}
+function markStepVisualAsCompleted(blockId){const card=document.getElementById('step-'+blockId);if(!card)return;card.classList.remove('open');card.classList.add('completed');const numEl=card.querySelector('.training-step-number');if(numEl)numEl.textContent='✓';const statusEl=document.getElementById('status-'+blockId);if(statusEl){statusEl.textContent='Completado';statusEl.classList.add('done');}const btn=document.getElementById('completeBtn-'+blockId);if(btn){const msg=document.createElement('div');msg.className='training-step-done-msg';msg.textContent='Bloque completado';btn.replaceWith(msg);}}
+function toggleTrainingStep(blockId){const card=document.getElementById('step-'+blockId);if(!card)return;if(activeTrainingBlockKey===blockId){card.classList.remove('open');activeTrainingBlockKey=null;}else{if(activeTrainingBlockKey)document.getElementById('step-'+activeTrainingBlockKey)?.classList.remove('open');activeTrainingBlockKey=blockId;card.classList.add('open');}}
 function getSessionIdByBlockId(blockId){const step=buildTrainingSteps().find(s=>String(s.blockId)===String(blockId));return step?String(step.sessionId):null;}
-
-async function completeTrainingStep(blockId) {
-  const sessionId=getSessionIdByBlockId(blockId);
-  completedTrainingBlocks.add(blockId);saveTrainingProgressLocal({},sessionId);markStepVisualAsCompleted(blockId);await saveTrainingProgress({},sessionId);activeTrainingBlockKey=null;
-  const sessionSteps=sessionId?buildTrainingSteps(sessionId):buildTrainingSteps();
-  const sessionIsComplete=sessionSteps.length>0&&sessionSteps.every(s=>completedTrainingBlocks.has(s.blockId));
-  if(sessionIsComplete){renderTrainingCompletionBox(false);return;}
-  const next=sessionSteps.find(s=>!completedTrainingBlocks.has(s.blockId));
-  if(next){activeTrainingBlockKey=next.blockId;const card=document.getElementById('step-'+next.blockId);if(card){card.classList.add('open');setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'start'}),180);}}
-}
-
-function getCurrentVisibleSessionId(){
-  const as=document.querySelector('.training-session-panel.active');if(as?.dataset?.sessionId)return as.dataset.sessionId;
-  const ad=document.querySelector('.training-day-panel.active');if(ad?.dataset?.sessionId&&!String(ad.dataset.sessionId).startsWith('week-'))return ad.dataset.sessionId;
-  return clientTrainingSessions[0]?.id||null;
-}
+async function completeTrainingStep(blockId){const sessionId=getSessionIdByBlockId(blockId);completedTrainingBlocks.add(blockId);saveTrainingProgressLocal({},sessionId);markStepVisualAsCompleted(blockId);await saveTrainingProgress({},sessionId);activeTrainingBlockKey=null;const sessionSteps=sessionId?buildTrainingSteps(sessionId):buildTrainingSteps();const sessionIsComplete=sessionSteps.length>0&&sessionSteps.every(s=>completedTrainingBlocks.has(s.blockId));if(sessionIsComplete){renderTrainingCompletionBox(false);return;}const next=sessionSteps.find(s=>!completedTrainingBlocks.has(s.blockId));if(next){activeTrainingBlockKey=next.blockId;const card=document.getElementById('step-'+next.blockId);if(card){card.classList.add('open');setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'start'}),180);}}}
+function getCurrentVisibleSessionId(){const as=document.querySelector('.training-session-panel.active');if(as?.dataset?.sessionId)return as.dataset.sessionId;const ad=document.querySelector('.training-day-panel.active');if(ad?.dataset?.sessionId&&!String(ad.dataset.sessionId).startsWith('week-'))return ad.dataset.sessionId;return clientTrainingSessions[0]?.id||null;}
 function getSessionById(sessionId){return clientTrainingSessions.find(s=>String(s.id)===String(sessionId))||null;}
-function getNextSessionId(currentSessionId){
-  const sessions=clientTrainingSessions.slice().sort((a,b)=>{const wa=clientTrainingWeeks.find(w=>String(w.id)===String(a.week_id));const wb=clientTrainingWeeks.find(w=>String(w.id)===String(b.week_id));const wA=Number(wa?.week_number||0),wB=Number(wb?.week_number||0);if(wA!==wB)return wA-wB;return Number(a.session_number||0)-Number(b.session_number||0);});
-  const idx=sessions.findIndex(s=>String(s.id)===String(currentSessionId));
-  return idx>=0&&sessions[idx+1]?String(sessions[idx+1].id):null;
-}
-function getFirstAvailableSessionId(){
-  const sessions=clientTrainingSessions.slice().sort((a,b)=>{const wa=clientTrainingWeeks.find(w=>String(w.id)===String(a.week_id));const wb=clientTrainingWeeks.find(w=>String(w.id)===String(b.week_id));const wA=Number(wa?.week_number||0),wB=Number(wb?.week_number||0);if(wA!==wB)return wA-wB;return Number(a.session_number||0)-Number(b.session_number||0);});
-  return String((sessions.find(s=>!isSessionFinished(String(s.id)))||sessions[0])?.id||'');
-}
+function getNextSessionId(currentSessionId){const sessions=clientTrainingSessions.slice().sort((a,b)=>{const wa=clientTrainingWeeks.find(w=>String(w.id)===String(a.week_id));const wb=clientTrainingWeeks.find(w=>String(w.id)===String(b.week_id));const wA=Number(wa?.week_number||0),wB=Number(wb?.week_number||0);if(wA!==wB)return wA-wB;return Number(a.session_number||0)-Number(b.session_number||0);});const idx=sessions.findIndex(s=>String(s.id)===String(currentSessionId));return idx>=0&&sessions[idx+1]?String(sessions[idx+1].id):null;}
+function getFirstAvailableSessionId(){const sessions=clientTrainingSessions.slice().sort((a,b)=>{const wa=clientTrainingWeeks.find(w=>String(w.id)===String(a.week_id));const wb=clientTrainingWeeks.find(w=>String(w.id)===String(b.week_id));const wA=Number(wa?.week_number||0),wB=Number(wb?.week_number||0);if(wA!==wB)return wA-wB;return Number(a.session_number||0)-Number(b.session_number||0);});return String((sessions.find(s=>!isSessionFinished(String(s.id)))||sessions[0])?.id||'');}
 function getWeekIdBySessionId(sessionId){const s=getSessionById(sessionId);return s?String(s.week_id):null;}
 
-function renderTrainingCompletionBox(scroll) {
+function renderTrainingCompletionBox(scroll){
   const area=document.getElementById('trainingCompletionArea');if(!area)return;
   const currentSessionId=getCurrentVisibleSessionId();const localProgress=loadTrainingProgressLocal(currentSessionId);
   const alreadyFinished=localProgress?.is_finished===true||currentTrainingLog?.is_finished===true;
-  if(alreadyFinished){
-    const finishedAt=localProgress?.finished_at||currentTrainingLog?.finished_at||new Date().toISOString();
-    const feedbackSummary=localProgress?.client_feedback_summary||currentTrainingLog?.client_feedback_summary||'';
-    const note=localProgress?.client_note||currentTrainingLog?.client_note||'';
-    area.innerHTML='<div class="training-finish-card compact">'+
-      '<div class="training-finish-icon">🏁</div>'+
-      '<div class="training-finish-title">Entrenamiento completado</div>'+
-      '<div class="training-finish-sub">Sesión registrada el '+formatDate(String(finishedAt).slice(0,10))+'. Abel revisará tus notas.</div>'+
-      (feedbackSummary?'<div class="training-notes-box" style="text-align:left;margin-top:12px;"><div class="training-notes-title">Observaciones</div><div class="training-finish-sub" style="margin-bottom:0;">'+feedbackSummary+'</div></div>':'')+
-      (note?'<div class="training-notes-box" style="text-align:left;margin-top:12px;"><div class="training-notes-title">Nota enviada</div><div class="training-finish-sub" style="margin-bottom:0;">'+note+'</div></div>':'')+
-    '</div>';
-    if(scroll!==false)area.scrollIntoView({behavior:'smooth',block:'start'});return;
-  }
-  area.innerHTML='<div class="training-finish-card">'+
-    '<div class="training-finish-icon">🏁</div>'+
-    '<div class="training-finish-title">¿Todo completado?</div>'+
-    '<div class="training-finish-sub">Antes de cerrar, marca cómo fue la sesión.</div>'+
-    '<div class="training-notes-box" style="text-align:left;margin-top:16px;">'+
-      '<div class="training-notes-title">Observaciones rápidas</div>'+
-      '<div class="training-finish-sub" style="margin-bottom:12px;">Ayuda a Abel a ajustar cargas y dificultad del próximo entrenamiento.</div>'+
-      '<div id="trainingFeedbackTags" style="display:grid;gap:8px;margin:12px 0;">'+
-        buildFeedbackTag('ok','Todo bien, sin molestias')+
-        buildFeedbackTag('molestias','Tuve molestias')+
-        buildFeedbackTag('dolor_pare','Sentí dolor y paré')+
-        buildFeedbackTag('baje_peso','Tuve que bajar el peso')+
-        buildFeedbackTag('subi_peso','Tuve que subir el peso')+
-        buildFeedbackTag('muy_cansado','Me sentí muy cansado')+
-        buildFeedbackTag('no_complete','No pude completar todos los bloques')+
-        buildFeedbackTag('falto_tiempo','Me faltó tiempo')+
-        buildFeedbackTag('no_entendi','No entendí bien un ejercicio')+
-        buildFeedbackTag('revisar','Necesito que Abel revise este entrenamiento')+
-      '</div>'+
-      '<textarea class="training-notes-textarea" id="trainingFinishNote" placeholder="Comentario opcional para Abel..."></textarea>'+
-      '<button class="training-complete-block-btn" onclick="finishTrainingSession()">Cerrar entrenamiento</button>'+
-    '</div>'+
-  '</div>';
+  if(alreadyFinished){const finishedAt=localProgress?.finished_at||currentTrainingLog?.finished_at||new Date().toISOString();const feedbackSummary=localProgress?.client_feedback_summary||currentTrainingLog?.client_feedback_summary||'';const note=localProgress?.client_note||currentTrainingLog?.client_note||'';area.innerHTML='<div class="training-finish-card compact"><div class="training-finish-icon">🏁</div><div class="training-finish-title">Entrenamiento completado</div><div class="training-finish-sub">Sesión registrada el '+formatDate(String(finishedAt).slice(0,10))+'. Abel revisará tus notas.</div>'+(feedbackSummary?'<div class="training-notes-box" style="text-align:left;margin-top:12px;"><div class="training-notes-title">Observaciones</div><div class="training-finish-sub" style="margin-bottom:0;">'+feedbackSummary+'</div></div>':'')+(note?'<div class="training-notes-box" style="text-align:left;margin-top:12px;"><div class="training-notes-title">Nota enviada</div><div class="training-finish-sub" style="margin-bottom:0;">'+note+'</div></div>':'')+' </div>';if(scroll!==false)area.scrollIntoView({behavior:'smooth',block:'start'});return;}
+  area.innerHTML='<div class="training-finish-card"><div class="training-finish-icon">🏁</div><div class="training-finish-title">¿Todo completado?</div><div class="training-finish-sub">Antes de cerrar, marca cómo fue la sesión.</div><div class="training-notes-box" style="text-align:left;margin-top:16px;"><div class="training-notes-title">Observaciones rápidas</div><div class="training-finish-sub" style="margin-bottom:12px;">Ayuda a Abel a ajustar cargas y dificultad del próximo entrenamiento.</div><div id="trainingFeedbackTags" style="display:grid;gap:8px;margin:12px 0;">'+buildFeedbackTag('ok','Todo bien, sin molestias')+buildFeedbackTag('molestias','Tuve molestias')+buildFeedbackTag('dolor_pare','Sentí dolor y paré')+buildFeedbackTag('baje_peso','Tuve que bajar el peso')+buildFeedbackTag('subi_peso','Tuve que subir el peso')+buildFeedbackTag('muy_cansado','Me sentí muy cansado')+buildFeedbackTag('no_complete','No pude completar todos los bloques')+buildFeedbackTag('falto_tiempo','Me faltó tiempo')+buildFeedbackTag('no_entendi','No entendí bien un ejercicio')+buildFeedbackTag('revisar','Necesito que Abel revise este entrenamiento')+'</div><textarea class="training-notes-textarea" id="trainingFinishNote" placeholder="Comentario opcional para Abel..."></textarea><button class="training-complete-block-btn" onclick="finishTrainingSession()">Cerrar entrenamiento</button></div></div>';
   if(scroll!==false)area.scrollIntoView({behavior:'smooth',block:'start'});
 }
-
-function buildFeedbackTag(value,label){
-  return '<label class="training-feedback-row"><input type="checkbox" class="training-feedback-check" value="'+value+'"><span>'+label+'</span></label>';
-}
-
-async function finishTrainingSession(){
-  const currentSessionId=getCurrentVisibleSessionId();
-  const checkedTags=Array.from(document.querySelectorAll('.training-feedback-check:checked')).map(i=>i.value);
-  const noteEl=document.getElementById('trainingFinishNote');const note=noteEl?noteEl.value.trim():'';
-  const feedbackLabels={ok:'Todo bien, sin molestias',molestias:'Tuve molestias',dolor_pare:'Sentí dolor y paré',baje_peso:'Tuve que bajar el peso',subi_peso:'Tuve que subir el peso',muy_cansado:'Me sentí muy cansado',no_complete:'No pude completar todos los bloques',falto_tiempo:'Me faltó tiempo',no_entendi:'No entendí bien un ejercicio',revisar:'Necesito que Abel revise este entrenamiento'};
-  const feedbackSummary=checkedTags.map(t=>feedbackLabels[t]||t).join(' · ');
-  saveTrainingProgressLocal({is_finished:true,finished_at:new Date().toISOString(),client_note:note,client_feedback_tags:checkedTags,client_feedback_summary:feedbackSummary},currentSessionId);
-  await saveTrainingProgress({is_finished:true,finished_at:new Date().toISOString(),client_note:note||null,client_feedback_tags:checkedTags,client_feedback_summary:feedbackSummary||null},currentSessionId);
-  const nextSessionId=getNextSessionId(currentSessionId);
-  if(nextSessionId)saveLastActiveSession(nextSessionId);
-  showCompletedToastAndGoNext(currentSessionId);
-}
-function showCompletedToastAndGoNext(currentSessionId){
-  const area=document.getElementById('trainingCompletionArea');const nextSessionId=getNextSessionId(currentSessionId);
-  if(area)area.innerHTML='<div class="training-finish-card" style="padding:22px 18px;"><div class="training-finish-icon">🏁</div><div class="training-finish-title">Entrenamiento guardado</div><div class="training-finish-sub">'+(nextSessionId?'Pasando al siguiente día...':'Sesión completada. Abel revisará tus notas.')+'</div></div>';
-  setTimeout(()=>{if(!nextSessionId){renderClientTraining();return;}saveLastActiveSession(nextSessionId);renderClientTraining().then(async()=>{const nwid=getWeekIdBySessionId(nextSessionId);if(nwid)showTrainingWeekPanel(nwid);await showTrainingDay(nextSessionId);});},3000);
-}
-function toggleCompletedTrainingDetails(){
-  const d=document.getElementById('trainingCompletedDetails');
-  if(!d){
-    const ap=document.querySelector('.training-session-panel.active')||document.querySelector('.training-day-panel.active');if(!ap)return;
-    const sid=ap.dataset.sessionId;if(!sid)return;
-    const steps=buildTrainingSteps(sid);let html='<div id="trainingCompletedDetails" style="margin-top:14px;"><div class="training-step-list">';
-    steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div></div>';
-    ap.insertAdjacentHTML('beforeend',html);steps.forEach(step=>markStepVisualAsCompleted(step.blockId));return;
-  }
-  d.classList.toggle('hidden');if(!d.classList.contains('hidden'))d.scrollIntoView({behavior:'smooth',block:'start'});
-}
-function renderTrainingCompletedState(){
-  const el=document.getElementById('sectionTrainingClient');if(!el)return;
-  const savedNote=currentTrainingLog?.client_note||'';const feedbackSummary=currentTrainingLog?.client_feedback_summary||'';
-  const finDate=currentTrainingLog?.finished_at?formatDate(String(currentTrainingLog.finished_at).slice(0,10)):formatDate(todayISO());
-  let html='<div class="training-finish-card compact"><div class="training-finish-icon">🏁</div><div class="training-finish-title">Entrenamiento completado</div><div class="training-finish-sub">Tu sesión quedó registrada el '+finDate+'. Abel revisará tus notas.</div>';
-  if(feedbackSummary)html+='<div class="training-notes-box" style="text-align:left;margin-top:16px;"><div class="training-notes-title">Observaciones rápidas</div><div class="training-finish-sub" style="margin-bottom:0;">'+feedbackSummary+'</div></div>';
-  if(savedNote)html+='<div class="training-notes-box" style="text-align:left;margin-top:12px;"><div class="training-notes-title">Nota enviada</div><div class="training-finish-sub" style="margin-bottom:0;">'+savedNote+'</div></div>';
-  html+='<button class="client-action-btn" style="margin-top:16px;" onclick="toggleCompletedTrainingDetails()">Ver detalles del entrenamiento</button></div>';
-  html+='<div id="trainingCompletedDetails" class="hidden" style="margin-top:14px;"><div class="training-step-list">';
-  const steps=buildTrainingSteps();
-  if(clientTrainingSessions.length>1){html+='<div class="training-day-tabs">';clientTrainingSessions.forEach((s,i)=>{const sid=String(s.id);html+='<button class="training-day-tab'+(i===0?' active':'')+'" data-session-id="'+sid+'" onclick="showTrainingDay(\''+sid+'\')">'+getSessionDayLabel(s,i)+'</button>';});html+='</div>';clientTrainingSessions.forEach((s,i)=>{const sid=String(s.id);const ss=buildTrainingSteps(sid);html+='<div class="training-day-panel'+(i===0?' active':'')+'" data-session-id="'+sid+'"><div class="training-step-list">';ss.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div></div>';});}else{steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});}
-  html+='</div></div><div id="trainingCompletionArea"></div>';
-  el.insertAdjacentHTML('beforeend',html);completedTrainingBlocks=new Set(currentTrainingLog?.completed_block_ids||steps.map(s=>s.blockId));applySavedTrainingState();
-}
-function showTrainingNotes(keepSaved){
-  const area=document.getElementById('trainingCompletionArea');if(!area)return;
-  document.getElementById('trainingNotesBox')?.remove();
-  const savedNote=currentTrainingLog?.client_note||'';
-  const div=document.createElement('div');div.className='training-notes-box';div.id='trainingNotesBox';
-  div.innerHTML='<div class="training-notes-title">Notas del entrenamiento</div><div class="training-finish-sub">Si tuviste alguna molestia o algo que Abel deba revisar, déjalo aquí.</div><textarea class="training-notes-textarea" id="trainingNoteText" placeholder="Ej: sentí molestia en la rodilla derecha…">'+savedNote+'</textarea><button class="training-complete-block-btn" id="saveNoteBtn" onclick="saveTrainingNote()">Guardar nota</button><div id="trainingNoteSaved" class="training-note-saved '+(savedNote?'':'hidden')+'">Nota registrada para Abel.</div>';
-  area.appendChild(div);if(keepSaved!==true)div.scrollIntoView({behavior:'smooth',block:'start'});
-}
-async function saveTrainingNote(){
-  const textarea=document.getElementById('trainingNoteText');const savedEl=document.getElementById('trainingNoteSaved');const btn=document.getElementById('saveNoteBtn');
-  const note=textarea?textarea.value.trim():'';if(!note){alert('Escribe una nota antes de guardar.');return;}
-  if(btn){btn.disabled=true;btn.textContent='Guardando...';}
-  saveTrainingProgressLocal({client_note:note});await saveTrainingProgress({client_note:note});
-  if(savedEl)savedEl.classList.remove('hidden');if(btn){btn.disabled=false;btn.textContent='Guardar nota';}
-  renderTrainingCompletedState();
-}
+function buildFeedbackTag(value,label){return'<label class="training-feedback-row"><input type="checkbox" class="training-feedback-check" value="'+value+'"><span>'+label+'</span></label>';}
+async function finishTrainingSession(){const currentSessionId=getCurrentVisibleSessionId();const checkedTags=Array.from(document.querySelectorAll('.training-feedback-check:checked')).map(i=>i.value);const noteEl=document.getElementById('trainingFinishNote');const note=noteEl?noteEl.value.trim():'';const feedbackLabels={ok:'Todo bien, sin molestias',molestias:'Tuve molestias',dolor_pare:'Sentí dolor y paré',baje_peso:'Tuve que bajar el peso',subi_peso:'Tuve que subir el peso',muy_cansado:'Me sentí muy cansado',no_complete:'No pude completar todos los bloques',falto_tiempo:'Me faltó tiempo',no_entendi:'No entendí bien un ejercicio',revisar:'Necesito que Abel revise este entrenamiento'};const feedbackSummary=checkedTags.map(t=>feedbackLabels[t]||t).join(' · ');saveTrainingProgressLocal({is_finished:true,finished_at:new Date().toISOString(),client_note:note,client_feedback_tags:checkedTags,client_feedback_summary:feedbackSummary},currentSessionId);await saveTrainingProgress({is_finished:true,finished_at:new Date().toISOString(),client_note:note||null,client_feedback_tags:checkedTags,client_feedback_summary:feedbackSummary||null},currentSessionId);const nextSessionId=getNextSessionId(currentSessionId);if(nextSessionId)saveLastActiveSession(nextSessionId);showCompletedToastAndGoNext(currentSessionId);}
+function showCompletedToastAndGoNext(currentSessionId){const area=document.getElementById('trainingCompletionArea');const nextSessionId=getNextSessionId(currentSessionId);if(area)area.innerHTML='<div class="training-finish-card" style="padding:22px 18px;"><div class="training-finish-icon">🏁</div><div class="training-finish-title">Entrenamiento guardado</div><div class="training-finish-sub">'+(nextSessionId?'Pasando al siguiente día...':'Sesión completada. Abel revisará tus notas.')+'</div></div>';setTimeout(()=>{if(!nextSessionId){renderClientTraining();return;}saveLastActiveSession(nextSessionId);renderClientTraining().then(async()=>{const nwid=getWeekIdBySessionId(nextSessionId);if(nwid)showTrainingWeekPanel(nwid);await showTrainingDay(nextSessionId);});},3000);}
+function toggleCompletedTrainingDetails(){const d=document.getElementById('trainingCompletedDetails');if(!d){const ap=document.querySelector('.training-session-panel.active')||document.querySelector('.training-day-panel.active');if(!ap)return;const sid=ap.dataset.sessionId;if(!sid)return;const steps=buildTrainingSteps(sid);let html='<div id="trainingCompletedDetails" style="margin-top:14px;"><div class="training-step-list">';steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div></div>';ap.insertAdjacentHTML('beforeend',html);steps.forEach(step=>markStepVisualAsCompleted(step.blockId));return;}d.classList.toggle('hidden');if(!d.classList.contains('hidden'))d.scrollIntoView({behavior:'smooth',block:'start'});}
+function renderTrainingCompletedState(){const el=document.getElementById('sectionTrainingClient');if(!el)return;const savedNote=currentTrainingLog?.client_note||'';const feedbackSummary=currentTrainingLog?.client_feedback_summary||'';const finDate=currentTrainingLog?.finished_at?formatDate(String(currentTrainingLog.finished_at).slice(0,10)):formatDate(todayISO());let html='<div class="training-finish-card compact"><div class="training-finish-icon">🏁</div><div class="training-finish-title">Entrenamiento completado</div><div class="training-finish-sub">Tu sesión quedó registrada el '+finDate+'. Abel revisará tus notas.</div>';if(feedbackSummary)html+='<div class="training-notes-box" style="text-align:left;margin-top:16px;"><div class="training-notes-title">Observaciones rápidas</div><div class="training-finish-sub" style="margin-bottom:0;">'+feedbackSummary+'</div></div>';if(savedNote)html+='<div class="training-notes-box" style="text-align:left;margin-top:12px;"><div class="training-notes-title">Nota enviada</div><div class="training-finish-sub" style="margin-bottom:0;">'+savedNote+'</div></div>';html+='<button class="client-action-btn" style="margin-top:16px;" onclick="toggleCompletedTrainingDetails()">Ver detalles del entrenamiento</button></div>';html+='<div id="trainingCompletedDetails" class="hidden" style="margin-top:14px;"><div class="training-step-list">';const steps=buildTrainingSteps();if(clientTrainingSessions.length>1){html+='<div class="training-day-tabs">';clientTrainingSessions.forEach((s,i)=>{const sid=String(s.id);html+='<button class="training-day-tab'+(i===0?' active':'')+'" data-session-id="'+sid+'" onclick="showTrainingDay(\''+sid+'\')">'+getSessionDayLabel(s,i)+'</button>';});html+='</div>';clientTrainingSessions.forEach((s,i)=>{const sid=String(s.id);const ss=buildTrainingSteps(sid);html+='<div class="training-day-panel'+(i===0?' active':'')+'" data-session-id="'+sid+'"><div class="training-step-list">';ss.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div></div>';});}else{steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});}html+='</div></div><div id="trainingCompletionArea"></div>';el.insertAdjacentHTML('beforeend',html);completedTrainingBlocks=new Set(currentTrainingLog?.completed_block_ids||steps.map(s=>s.blockId));applySavedTrainingState();}
 
 /* ══ EVALUACIONES ══ */
-function buildMiniChart(pts){
-  if(!pts||pts.length<2)return null;
-  const vals=pts.map(d=>d.value),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;
-  const W=260,H=50,P=6;
-  const mapped=pts.map((d,i)=>({x:P+(i/(pts.length-1))*(W-P*2),y:P+(H-P*2)-((d.value-min)/range)*(H-P*2),date:d.date,value:d.value}));
-  const line=mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
-  const area=[mapped[0].x.toFixed(1)+','+(H-P).toFixed(1)].concat(mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1))).concat([mapped[mapped.length-1].x.toFixed(1)+','+(H-P).toFixed(1)]).join(' ');
-  const dots=mapped.map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="var(--sport)" stroke="var(--card)" stroke-width="1.5"/>').join('');
-  const labs=mapped.map(p=>'<span class="mini-chart-label">'+String(p.date||'').slice(5)+'<br>'+p.value+'</span>').join('');
-  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="display:block"><polygon points="'+area+'" fill="rgba(0,163,255,0.06)"/><polyline points="'+line+'" fill="none" stroke="var(--sport)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div class="mini-chart-labels">'+labs+'</div>';
-}
+function buildMiniChart(pts){if(!pts||pts.length<2)return null;const vals=pts.map(d=>d.value),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;const W=260,H=50,P=6;const mapped=pts.map((d,i)=>({x:P+(i/(pts.length-1))*(W-P*2),y:P+(H-P*2)-((d.value-min)/range)*(H-P*2),date:d.date,value:d.value}));const line=mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');const area=[mapped[0].x.toFixed(1)+','+(H-P).toFixed(1)].concat(mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1))).concat([mapped[mapped.length-1].x.toFixed(1)+','+(H-P).toFixed(1)]).join(' ');const dots=mapped.map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="var(--sport)" stroke="var(--card)" stroke-width="1.5"/>').join('');const labs=mapped.map(p=>'<span class="mini-chart-label">'+String(p.date||'').slice(5)+'<br>'+p.value+'</span>').join('');return'<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="display:block"><polygon points="'+area+'" fill="rgba(0,163,255,0.06)"/><polyline points="'+line+'" fill="none" stroke="var(--sport)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div class="mini-chart-labels">'+labs+'</div>';}
 function buildExerciseHistory(exerciseName){return clientAssessmentResults.filter(r=>(r.exercise_name||'').trim().toLowerCase()===(exerciseName||'').trim().toLowerCase()).map(r=>{const a=clientAssessments.find(x=>x.id===r.assessment_id);return{date:a?.assessment_date||'',value:r.result_value,numValue:parseFloat(String(r.result_value||'').replace(',','.'))}}).filter(d=>d.date).sort((a,b)=>String(a.date).localeCompare(String(b.date)));}
 function dLabel(d){if(d==='higher_better')return'Mejor más alto';if(d==='lower_better')return'Mejor más bajo';return'Referencia';}
 function dColor(d){if(d==='higher_better')return'var(--streak)';if(d==='lower_better')return'var(--medical)';return'var(--text-secondary)';}
@@ -2205,251 +1521,40 @@ function renderAssessments(){
   if(badge)badge.textContent=clientAssessments.length;
   if(!clientAssessments.length){el.innerHTML='<p class="empty-state">Todavía no hay evaluaciones registradas.</p>';return;}
   let html='';
-  clientAssessments.forEach(a=>{
-    const results=clientAssessmentResults.filter(r=>r.assessment_id===a.id).sort((x,y)=>Number(x.item_order||0)-Number(y.item_order||0));
-    html+='<div class="assessment-card" id="ac-'+a.id+'"><div class="assessment-card-header" onclick="toggleAssessmentCard(\''+a.id+'\')"><div><div class="assessment-card-title">'+(a.assessment_name||'Test')+'</div><div class="assessment-card-meta">'+formatDate(a.assessment_date)+' · '+results.length+' resultado'+(results.length!==1?'s':'')+'</div></div><span class="badge '+(a.status==='realizada'?'badge-green':'badge-gray')+'">'+(a.status||'realizada')+'</span></div><div class="assessment-card-body">';
-    if(a.coach_notes)html+='<div style="font-size:13px;color:var(--text-secondary);font-style:italic;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--divider);">Coach: '+a.coach_notes+'</div>';
-    if(!results.length){html+='<p class="empty-state">Sin resultados registrados.</p>';}else{
-      results.forEach(r=>{
-        const isNum=r.result_value!==''&&r.result_value!=null&&!isNaN(parseFloat(String(r.result_value).replace(',','.')));
-        const history=buildExerciseHistory(r.exercise_name);const numHist=history.filter(h=>!isNaN(h.numValue));
-        html+='<div class="assessment-result-row"><div style="flex:1;min-width:0"><div class="assessment-ex-name">'+(r.exercise_name||'—')+'</div><div class="assessment-ex-meta">'+(r.metric_type||'')+(r.direction?' · <span style="color:'+dColor(r.direction)+'">'+dLabel(r.direction)+'</span>':'')+'</div>'+(r.note?'<div class="assessment-ex-note">'+r.note+'</div>':'')+'</div><div style="text-align:right;flex-shrink:0"><div class="assessment-result-val">'+(r.result_value||'—')+'</div>'+(r.unit?'<div class="assessment-result-unit">'+r.unit+'</div>':'')+'</div></div>';
-        if(isNum&&numHist.length>=2){const chart=buildMiniChart(numHist.map(h=>({date:h.date,value:h.numValue})));if(chart)html+='<div class="mini-chart-wrap"><div class="mini-chart-title">Evolución · '+(r.exercise_name||'')+'</div>'+chart+'</div>';}
-      });
-    }
-    html+='</div></div>';
-  });
+  clientAssessments.forEach(a=>{const results=clientAssessmentResults.filter(r=>r.assessment_id===a.id).sort((x,y)=>Number(x.item_order||0)-Number(y.item_order||0));html+='<div class="assessment-card" id="ac-'+a.id+'"><div class="assessment-card-header" onclick="toggleAssessmentCard(\''+a.id+'\')"><div><div class="assessment-card-title">'+(a.assessment_name||'Test')+'</div><div class="assessment-card-meta">'+formatDate(a.assessment_date)+' · '+results.length+' resultado'+(results.length!==1?'s':'')+'</div></div><span class="badge '+(a.status==='realizada'?'badge-green':'badge-gray')+'">'+(a.status||'realizada')+'</span></div><div class="assessment-card-body">';if(a.coach_notes)html+='<div style="font-size:13px;color:var(--text-secondary);font-style:italic;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--divider);">Coach: '+a.coach_notes+'</div>';if(!results.length){html+='<p class="empty-state">Sin resultados registrados.</p>';}else{results.forEach(r=>{const isNum=r.result_value!==''&&r.result_value!=null&&!isNaN(parseFloat(String(r.result_value).replace(',','.')));const history=buildExerciseHistory(r.exercise_name);const numHist=history.filter(h=>!isNaN(h.numValue));html+='<div class="assessment-result-row"><div style="flex:1;min-width:0"><div class="assessment-ex-name">'+(r.exercise_name||'—')+'</div><div class="assessment-ex-meta">'+(r.metric_type||'')+(r.direction?' · <span style="color:'+dColor(r.direction)+'">'+dLabel(r.direction)+'</span>':'')+'</div>'+(r.note?'<div class="assessment-ex-note">'+r.note+'</div>':'')+'</div><div style="text-align:right;flex-shrink:0"><div class="assessment-result-val">'+(r.result_value||'—')+'</div>'+(r.unit?'<div class="assessment-result-unit">'+r.unit+'</div>':'')+'</div></div>';if(isNum&&numHist.length>=2){const chart=buildMiniChart(numHist.map(h=>({date:h.date,value:h.numValue})));if(chart)html+='<div class="mini-chart-wrap"><div class="mini-chart-title">Evolución · '+(r.exercise_name||'')+'</div>'+chart+'</div>';}});}html+='</div></div>';});
   el.innerHTML=html;
 }
 
 /* ══ OTRAS SECCIONES ══ */
-function renderReservations(){
-  const el=document.getElementById('sectionReservations');const badge=document.getElementById('reservationsBadge');if(!el)return;
-  if(badge)badge.textContent=clientReservations.length;
-  if(!clientReservations.length){el.innerHTML='<p class="empty-state">Todavía no tienes reservas registradas.</p><div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero solicitar una nueva reserva de entrenamiento.\')">Solicitar nueva reserva</button></div>';return;}
-  const today=todayISO();
-  const up=clientReservations.filter(r=>String(r.date).slice(0,10)>=today&&!['cancelada','cancelado'].includes((r.status||'').toLowerCase()));
-  const past=clientReservations.filter(r=>String(r.date).slice(0,10)<today||['cancelada','cancelado'].includes((r.status||'').toLowerCase()));
-  let html='';
-  if(up.length){const nx=up[0];html+='<div class="data-card next-session"><div class="next-label">Próxima sesión</div><div class="dc-row"><span class="dc-title">'+(nx.type||'Sesión')+'</span>'+genericBadge(nx.status)+'</div><div class="dc-row"><span class="dc-sub">'+formatDate(nx.date)+'</span>'+(nx.time?'<span class="dc-sub">'+formatTime(nx.time)+'</span>':'')+(nx.place?'<span class="dc-sub">'+nx.place+'</span>':'')+'</div>'+(nx.note?'<div class="dc-note">'+nx.note+'</div>':'')+'</div>';up.slice(1).forEach(r=>{html+='<div class="data-card"><div class="dc-row"><span class="dc-title">'+(r.type||'Sesión')+'</span>'+genericBadge(r.status)+'</div><div class="dc-row"><span class="dc-sub">'+formatDate(r.date)+'</span>'+(r.time?'<span class="dc-sub">'+formatTime(r.time)+'</span>':'')+(r.place?'<span class="dc-sub">'+r.place+'</span>':'')+'</div>'+(r.note?'<div class="dc-note">'+r.note+'</div>':'')+'</div>';});}
-  past.forEach(r=>{html+='<div class="data-card"><div class="dc-row"><span class="dc-title">'+(r.type||'Sesión')+'</span>'+genericBadge(r.status)+'</div><div class="dc-row"><span class="dc-sub">'+formatDate(r.date)+'</span>'+(r.time?'<span class="dc-sub">'+formatTime(r.time)+'</span>':'')+(r.place?'<span class="dc-sub">'+r.place+'</span>':'')+'</div>'+(r.note?'<div class="dc-note">'+r.note+'</div>':'')+'</div>';});
-  html+='<div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero solicitar una nueva reserva de entrenamiento.\')">Solicitar nueva reserva</button></div>';
-  el.innerHTML=html;
-}
-function renderPayments(){
-  const el=document.getElementById('sectionPayments');const badge=document.getElementById('paymentsBadge');if(!el)return;
-  if(badge)badge.textContent=clientPayments.length;
-  if(!clientPayments.length){el.innerHTML='<p class="empty-state">No hay pagos registrados.</p>';return;}
-  el.innerHTML=clientPayments.map(p=>'<div class="data-card"><div class="dc-row"><span class="dc-title">'+(p.concept||'Pago')+'</span>'+paymentBadge(p.status)+'</div><div class="dc-row"><span class="dc-sub">'+formatMoney(p.amount,p.currency)+'</span>'+(p.due_date?'<span class="dc-sub">Vence: '+formatDate(p.due_date)+'</span>':'')+(p.method?'<span class="dc-sub">'+p.method+'</span>':'')+'</div>'+(p.note?'<div class="dc-note">'+p.note+'</div>':'')+'</div>').join('');
-}
-function renderHealthAlerts(){
-  const el=document.getElementById('sectionHealth');const badge=document.getElementById('alertsBadge');if(!el)return;
-  if(badge)badge.textContent=clientAlerts.length;
-  if(!clientAlerts.length){el.innerHTML='<p class="empty-state">No hay indicaciones de salud registradas.</p>';return;}
-  el.innerHTML=clientAlerts.map(a=>'<div class="data-card"><div class="dc-row">'+genericBadge(a.status)+'<span class="dc-sub" style="font-family:var(--font-mono);">'+formatDate(a.date)+'</span></div>'+(a.detail?'<div style="margin-top:10px;font-size:14px;color:var(--text-primary);line-height:1.7;">'+a.detail+'</div>':'')+'</div>').join('');
-}
-function renderNotes(){
-  const el=document.getElementById('sectionNotes');if(!el)return;
-  const raw=clientData.notes;
-  if(!raw||raw===''||raw==='[]'||raw==='null'){el.innerHTML='<p class="empty-state">Todavía no hay notas del coach.</p>';return;}
-  let notes=[];
-  if(Array.isArray(raw))notes=raw;
-  else if(typeof raw==='string'){try{const p=JSON.parse(raw);notes=Array.isArray(p)?p:[raw];}catch{notes=[raw];}}
-  notes=notes.map(n=>{if(typeof n==='string')return n.trim();if(typeof n==='object'&&n)return String(n.text||n.note||n.message||'').trim();return'';}).filter(Boolean);
-  el.innerHTML=notes.length?notes.map(n=>'<div class="note-item">'+n+'</div>').join(''):'<p class="empty-state">Todavía no hay notas del coach.</p>';
-}
-function renderProgressCircles(){
-  const el=document.getElementById('sectionProgressCircles');const badge=document.getElementById('progressCircleBadge');if(!el)return;
-  if(!clientMetrics.length){if(badge)badge.textContent='0';el.innerHTML='<p class="empty-state">Todavía no hay métricas suficientes para mostrar progreso visual.</p>';return;}
-  const grouped={};clientMetrics.forEach(m=>{const k=String(m.type||'Métrica').trim();if(!grouped[k])grouped[k]=[];grouped[k].push({value:m.value,unit:m.unit,numericValue:Number(m.value||0),dateKey:String(m.date||'').slice(0,10)});});
-  const circles=Object.keys(grouped).map(type=>{
-    const list=grouped[type].slice().sort((a,b)=>String(b.dateKey).localeCompare(String(a.dateKey)));
-    const latest=list[0],first=list[list.length-1];const current=Number(latest.numericValue||0),start=Number(first.numericValue||0);
-    let percent=0,note='';const t=type.toLowerCase();
-    if(t.includes('peso')){const diff=start-current;percent=Math.round(Math.min(100,Math.max(0,(diff/Math.max(Math.abs(start*.05),1))*100)));note=diff>0?'Bajó '+Math.abs(diff).toFixed(1)+' '+(latest.unit||'kg'):diff<0?'Subió '+Math.abs(diff).toFixed(1)+' '+(latest.unit||'kg'):'Sin cambio todavía';}
-    else if(t.includes('asistencia')||t.includes('adherencia')||t.includes('%')){percent=Math.round(Math.min(100,Math.max(0,current)));note=percent+'% registrado';}
-    else if(['fuerza','movilidad','resistencia'].some(k=>t.includes(k))){percent=Math.round(Math.min(100,Math.max(0,(current/10)*100)));note=current+'/10';}
-    else{if(start>0){const d2=current-start;percent=Math.round(Math.min(100,Math.max(0,(current/start)*100)));note=d2>=0?'+'+d2.toFixed(1)+' desde inicio':d2.toFixed(1)+' desde inicio';}else{percent=Math.round(Math.min(100,Math.max(0,current)));note='Último registro';}}
-    return{type,current,unit:latest.unit||'',percent,note};
-  });
-  if(badge)badge.textContent=circles.length;
-  el.innerHTML='<div class="progress-grid">'+circles.map(c=>'<div class="progress-circle-card"><div class="progress-ring" style="--p:'+c.percent+'"><span>'+c.percent+'%</span></div><div class="progress-circle-label">'+c.type+'</div><div class="progress-circle-value">'+c.current+(c.unit?' '+c.unit:'')+'</div><div class="progress-circle-note">'+c.note+'</div></div>').join('')+'</div>';
-}
-function renderSummary(){
-  const el=document.getElementById('sectionSummary');if(!el)return;
-  const today=todayISO();const nextRes=clientReservations.find(r=>String(r.date).slice(0,10)>=today&&!['cancelada','cancelado'].includes((r.status||'').toLowerCase()));
-  const lastAss=clientAssessments[0]||null;const hasPending=clientPayments.some(p=>['pendiente','vencido'].includes((p.status||'').toLowerCase()));const hasOverdue=clientPayments.some(p=>p.status==='vencido');
-  const payStatus=hasOverdue?'Vencido':hasPending?'Pendiente':'Al día';const payClass=hasOverdue?'badge-red':hasPending?'badge-yellow':'badge-green';
-  let rawNotes=clientData.notes,lastNote='';
-  if(rawNotes&&rawNotes!=='[]'&&rawNotes!=='null'){if(Array.isArray(rawNotes)&&rawNotes.length)lastNote=typeof rawNotes[0]==='string'?rawNotes[0]:(rawNotes[0].text||'');else if(typeof rawNotes==='string'){try{const p=JSON.parse(rawNotes);if(Array.isArray(p)&&p.length)lastNote=typeof p[0]==='string'?p[0]:(p[0].text||'');}catch{}}}
-  let html='<div style="background:var(--card);border:1px solid var(--card-border);border-radius:12px;overflow:hidden;"><div class="summary-grid" style="padding:18px;">';
-  html+='<div class="summary-card full"><div class="summary-label">Cliente</div><div class="summary-value big">'+(clientData.name||'—')+'</div></div>';
-  html+='<div class="summary-card"><div class="summary-label">Plan</div><div class="summary-value">'+(clientData.plan||'—')+'</div></div>';
-  html+='<div class="summary-card"><div class="summary-label">Estado</div><div class="summary-value">'+(clientData.status||'—')+'</div></div>';
-  html+='<div class="summary-card"><div class="summary-label">Programa activo</div><div class="summary-value">'+(clientTrainingProgram?.name||clientPrograms[0]?.name||'—')+'</div></div>';
-  html+='<div class="summary-card"><div class="summary-label">Alcance</div><div class="summary-value">'+(clientTrainingAssignment?getAssignmentScopeLabel():'—')+'</div></div>';
-  html+='<div class="summary-card"><div class="summary-label">Próxima sesión</div><div class="summary-value">'+(nextRes?formatDate(nextRes.date)+(nextRes.time?' · '+formatTime(nextRes.time):''):'Sin reservas')+'</div></div>';
-  html+='<div class="summary-card"><div class="summary-label">Pagos</div><div class="summary-value"><span class="badge '+payClass+'">'+payStatus+'</span></div></div>';
-  html+='<div class="summary-card"><div class="summary-label">Tests realizados</div><div class="summary-value">'+clientAssessments.length+'</div></div>';
-  html+='<div class="summary-card"><div class="summary-label">Métricas</div><div class="summary-value">'+clientMetrics.length+'</div></div>';
-  if(lastAss)html+='<div class="summary-card full"><div class="summary-label">Última evaluación</div><div class="summary-value">'+(lastAss.assessment_name||'Test')+' · '+formatDate(lastAss.assessment_date)+'</div></div>';
-  if(lastNote)html+='<div class="summary-card full"><div class="summary-label">Última nota del coach</div><div class="summary-value" style="font-style:italic;color:var(--text-secondary);">'+lastNote+'</div></div>';
-  html+='</div></div>';
-  html+='<div class="action-box"><button class="copy-summary-btn" onclick="copySummaryToClipboard()">Copiar resumen al portapapeles</button></div>';
-  el.innerHTML=html;
-}
-function copySummaryToClipboard(){
-  const today=todayISO();const nextRes=clientReservations.find(r=>String(r.date).slice(0,10)>=today&&!['cancelada','cancelado'].includes((r.status||'').toLowerCase()));
-  const lastAss=clientAssessments[0]||null;const hasPending=clientPayments.some(p=>['pendiente','vencido'].includes((p.status||'').toLowerCase()));const hasOverdue=clientPayments.some(p=>p.status==='vencido');const payStatus=hasOverdue?'Vencido':hasPending?'Pendiente':'Al día';
-  let rawNotes=clientData.notes,lastNote='';if(rawNotes&&rawNotes!=='[]'){if(Array.isArray(rawNotes)&&rawNotes.length)lastNote=typeof rawNotes[0]==='string'?rawNotes[0]:(rawNotes[0].text||'');else if(typeof rawNotes==='string'){try{const p=JSON.parse(rawNotes);if(Array.isArray(p)&&p.length)lastNote=typeof p[0]==='string'?p[0]:(p[0].text||'');}catch{}}}
-  const text=['Resumen AB Coach','Cliente: '+(clientData.name||'—'),'Plan: '+(clientData.plan||'—'),'Entrenamiento: '+(clientTrainingProgram?.name||clientPrograms[0]?.name||'—'),'Alcance: '+(clientTrainingAssignment?getAssignmentScopeLabel():'—'),'Nivel: '+(clientTrainingAssignment?.assigned_level||'—'),'Próxima sesión: '+(nextRes?formatDate(nextRes.date)+(nextRes.time?' a las '+formatTime(nextRes.time):''):'Sin reservas'),'Última evaluación: '+(lastAss?(lastAss.assessment_name||'Test')+' · '+formatDate(lastAss.assessment_date):'—'),'Pagos: '+payStatus,lastNote?'Notas: '+lastNote:''].filter(Boolean).join('\n');
-  navigator.clipboard.writeText(text).then(()=>{const btn=document.querySelector('.copy-summary-btn');if(btn){btn.textContent='Copiado';setTimeout(()=>{btn.textContent='Copiar resumen al portapapeles';},2000);}}).catch(()=>alert('No se pudo copiar.'));
-}
+function renderReservations(){const el=document.getElementById('sectionReservations');const badge=document.getElementById('reservationsBadge');if(!el)return;if(badge)badge.textContent=clientReservations.length;if(!clientReservations.length){el.innerHTML='<p class="empty-state">Todavía no tienes reservas registradas.</p><div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero solicitar una nueva reserva de entrenamiento.\')">Solicitar nueva reserva</button></div>';return;}const today=todayISO();const up=clientReservations.filter(r=>String(r.date).slice(0,10)>=today&&!['cancelada','cancelado'].includes((r.status||'').toLowerCase()));const past=clientReservations.filter(r=>String(r.date).slice(0,10)<today||['cancelada','cancelado'].includes((r.status||'').toLowerCase()));let html='';if(up.length){const nx=up[0];html+='<div class="data-card next-session"><div class="next-label">Próxima sesión</div><div class="dc-row"><span class="dc-title">'+(nx.type||'Sesión')+'</span>'+genericBadge(nx.status)+'</div><div class="dc-row"><span class="dc-sub">'+formatDate(nx.date)+'</span>'+(nx.time?'<span class="dc-sub">'+formatTime(nx.time)+'</span>':'')+(nx.place?'<span class="dc-sub">'+nx.place+'</span>':'')+'</div>'+(nx.note?'<div class="dc-note">'+nx.note+'</div>':'')+'</div>';up.slice(1).forEach(r=>{html+='<div class="data-card"><div class="dc-row"><span class="dc-title">'+(r.type||'Sesión')+'</span>'+genericBadge(r.status)+'</div><div class="dc-row"><span class="dc-sub">'+formatDate(r.date)+'</span>'+(r.time?'<span class="dc-sub">'+formatTime(r.time)+'</span>':'')+(r.place?'<span class="dc-sub">'+r.place+'</span>':'')+'</div>'+(r.note?'<div class="dc-note">'+r.note+'</div>':'')+'</div>';});}past.forEach(r=>{html+='<div class="data-card"><div class="dc-row"><span class="dc-title">'+(r.type||'Sesión')+'</span>'+genericBadge(r.status)+'</div><div class="dc-row"><span class="dc-sub">'+formatDate(r.date)+'</span>'+(r.time?'<span class="dc-sub">'+formatTime(r.time)+'</span>':'')+(r.place?'<span class="dc-sub">'+r.place+'</span>':'')+'</div>'+(r.note?'<div class="dc-note">'+r.note+'</div>':'')+'</div>';});html+='<div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero solicitar una nueva reserva de entrenamiento.\')">Solicitar nueva reserva</button></div>';el.innerHTML=html;}
+function renderPayments(){const el=document.getElementById('sectionPayments');const badge=document.getElementById('paymentsBadge');if(!el)return;if(badge)badge.textContent=clientPayments.length;if(!clientPayments.length){el.innerHTML='<p class="empty-state">No hay pagos registrados.</p>';return;}el.innerHTML=clientPayments.map(p=>'<div class="data-card"><div class="dc-row"><span class="dc-title">'+(p.concept||'Pago')+'</span>'+paymentBadge(p.status)+'</div><div class="dc-row"><span class="dc-sub">'+formatMoney(p.amount,p.currency)+'</span>'+(p.due_date?'<span class="dc-sub">Vence: '+formatDate(p.due_date)+'</span>':'')+(p.method?'<span class="dc-sub">'+p.method+'</span>':'')+'</div>'+(p.note?'<div class="dc-note">'+p.note+'</div>':'')+'</div>').join('');}
+function renderNotes(){const el=document.getElementById('sectionNotes');if(!el)return;const raw=clientData.notes;if(!raw||raw===''||raw==='[]'||raw==='null'){el.innerHTML='<p class="empty-state">Todavía no hay notas del coach.</p>';return;}let notes=[];if(Array.isArray(raw))notes=raw;else if(typeof raw==='string'){try{const p=JSON.parse(raw);notes=Array.isArray(p)?p:[raw];}catch{notes=[raw];}}notes=notes.map(n=>{if(typeof n==='string')return n.trim();if(typeof n==='object'&&n)return String(n.text||n.note||n.message||'').trim();return'';}).filter(Boolean);el.innerHTML=notes.length?notes.map(n=>'<div class="note-item">'+n+'</div>').join(''):'<p class="empty-state">Todavía no hay notas del coach.</p>';}
+function renderProgressCircles(){const el=document.getElementById('sectionProgressCircles');const badge=document.getElementById('progressCircleBadge');if(!el)return;if(!clientMetrics.length){if(badge)badge.textContent='0';el.innerHTML='<p class="empty-state">Todavía no hay métricas suficientes para mostrar progreso visual.</p>';return;}const grouped={};clientMetrics.forEach(m=>{const k=String(m.type||'Métrica').trim();if(!grouped[k])grouped[k]=[];grouped[k].push({value:m.value,unit:m.unit,numericValue:Number(m.value||0),dateKey:String(m.date||'').slice(0,10)});});const circles=Object.keys(grouped).map(type=>{const list=grouped[type].slice().sort((a,b)=>String(b.dateKey).localeCompare(String(a.dateKey)));const latest=list[0],first=list[list.length-1];const current=Number(latest.numericValue||0),start=Number(first.numericValue||0);let percent=0,note='';const t=type.toLowerCase();if(t.includes('peso')){const diff=start-current;percent=Math.round(Math.min(100,Math.max(0,(diff/Math.max(Math.abs(start*.05),1))*100)));note=diff>0?'Bajó '+Math.abs(diff).toFixed(1)+' '+(latest.unit||'kg'):diff<0?'Subió '+Math.abs(diff).toFixed(1)+' '+(latest.unit||'kg'):'Sin cambio todavía';}else if(t.includes('asistencia')||t.includes('adherencia')||t.includes('%')){percent=Math.round(Math.min(100,Math.max(0,current)));note=percent+'% registrado';}else if(['fuerza','movilidad','resistencia'].some(k=>t.includes(k))){percent=Math.round(Math.min(100,Math.max(0,(current/10)*100)));note=current+'/10';}else{if(start>0){const d2=current-start;percent=Math.round(Math.min(100,Math.max(0,(current/start)*100)));note=d2>=0?'+'+d2.toFixed(1)+' desde inicio':d2.toFixed(1)+' desde inicio';}else{percent=Math.round(Math.min(100,Math.max(0,current)));note='Último registro';}}return{type,current,unit:latest.unit||'',percent,note};});if(badge)badge.textContent=circles.length;el.innerHTML='<div class="progress-grid">'+circles.map(c=>'<div class="progress-circle-card"><div class="progress-ring" style="--p:'+c.percent+'"><span>'+c.percent+'%</span></div><div class="progress-circle-label">'+c.type+'</div><div class="progress-circle-value">'+c.current+(c.unit?' '+c.unit:'')+'</div><div class="progress-circle-note">'+c.note+'</div></div>').join('')+'</div>';}
+function renderSummary(){const el=document.getElementById('sectionSummary');if(!el)return;const today=todayISO();const nextRes=clientReservations.find(r=>String(r.date).slice(0,10)>=today&&!['cancelada','cancelado'].includes((r.status||'').toLowerCase()));const lastAss=clientAssessments[0]||null;const hasPending=clientPayments.some(p=>['pendiente','vencido'].includes((p.status||'').toLowerCase()));const hasOverdue=clientPayments.some(p=>p.status==='vencido');const payStatus=hasOverdue?'Vencido':hasPending?'Pendiente':'Al día';const payClass=hasOverdue?'badge-red':hasPending?'badge-yellow':'badge-green';let rawNotes=clientData.notes,lastNote='';if(rawNotes&&rawNotes!=='[]'&&rawNotes!=='null'){if(Array.isArray(rawNotes)&&rawNotes.length)lastNote=typeof rawNotes[0]==='string'?rawNotes[0]:(rawNotes[0].text||'');else if(typeof rawNotes==='string'){try{const p=JSON.parse(rawNotes);if(Array.isArray(p)&&p.length)lastNote=typeof p[0]==='string'?p[0]:(p[0].text||'');}catch{}}}let html='<div style="background:var(--card);border:1px solid var(--card-border);border-radius:12px;overflow:hidden;"><div class="summary-grid" style="padding:18px;">';html+='<div class="summary-card full"><div class="summary-label">Cliente</div><div class="summary-value big">'+(clientData.name||'—')+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Plan</div><div class="summary-value">'+(clientData.plan||'—')+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Estado</div><div class="summary-value">'+(clientData.status||'—')+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Programa activo</div><div class="summary-value">'+(clientTrainingProgram?.name||clientPrograms[0]?.name||'—')+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Alcance</div><div class="summary-value">'+(clientTrainingAssignment?getAssignmentScopeLabel():'—')+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Próxima sesión</div><div class="summary-value">'+(nextRes?formatDate(nextRes.date)+(nextRes.time?' · '+formatTime(nextRes.time):''):'Sin reservas')+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Pagos</div><div class="summary-value"><span class="badge '+payClass+'">'+payStatus+'</span></div></div>';html+='<div class="summary-card"><div class="summary-label">Tests realizados</div><div class="summary-value">'+clientAssessments.length+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Métricas</div><div class="summary-value">'+clientMetrics.length+'</div></div>';if(lastAss)html+='<div class="summary-card full"><div class="summary-label">Última evaluación</div><div class="summary-value">'+(lastAss.assessment_name||'Test')+' · '+formatDate(lastAss.assessment_date)+'</div></div>';if(lastNote)html+='<div class="summary-card full"><div class="summary-label">Última nota del coach</div><div class="summary-value" style="font-style:italic;color:var(--text-secondary);">'+lastNote+'</div></div>';html+='</div></div><div class="action-box"><button class="copy-summary-btn" onclick="copySummaryToClipboard()">Copiar resumen al portapapeles</button></div>';el.innerHTML=html;}
+function copySummaryToClipboard(){const today=todayISO();const nextRes=clientReservations.find(r=>String(r.date).slice(0,10)>=today&&!['cancelada','cancelado'].includes((r.status||'').toLowerCase()));const lastAss=clientAssessments[0]||null;const hasPending=clientPayments.some(p=>['pendiente','vencido'].includes((p.status||'').toLowerCase()));const hasOverdue=clientPayments.some(p=>p.status==='vencido');const payStatus=hasOverdue?'Vencido':hasPending?'Pendiente':'Al día';let rawNotes=clientData.notes,lastNote='';if(rawNotes&&rawNotes!=='[]'){if(Array.isArray(rawNotes)&&rawNotes.length)lastNote=typeof rawNotes[0]==='string'?rawNotes[0]:(rawNotes[0].text||'');else if(typeof rawNotes==='string'){try{const p=JSON.parse(rawNotes);if(Array.isArray(p)&&p.length)lastNote=typeof p[0]==='string'?p[0]:(p[0].text||'');}catch{}}}const text=['Resumen AB Coach','Cliente: '+(clientData.name||'—'),'Plan: '+(clientData.plan||'—'),'Entrenamiento: '+(clientTrainingProgram?.name||clientPrograms[0]?.name||'—'),'Alcance: '+(clientTrainingAssignment?getAssignmentScopeLabel():'—'),'Nivel: '+(clientTrainingAssignment?.assigned_level||'—'),'Próxima sesión: '+(nextRes?formatDate(nextRes.date)+(nextRes.time?' a las '+formatTime(nextRes.time):''):'Sin reservas'),'Última evaluación: '+(lastAss?(lastAss.assessment_name||'Test')+' · '+formatDate(lastAss.assessment_date):'—'),'Pagos: '+payStatus,lastNote?'Notas: '+lastNote:''].filter(Boolean).join('\n');navigator.clipboard.writeText(text).then(()=>{const btn=document.querySelector('.copy-summary-btn');if(btn){btn.textContent='Copiado';setTimeout(()=>{btn.textContent='Copiar resumen al portapapeles';},2000);}}).catch(()=>alert('No se pudo copiar.'));}
+
 function renderClientData(){
-  const el = document.getElementById('sectionClientData');
-  const badge = document.getElementById('clientDataBadge');
-
-  if (!el || !clientData) return;
-
-  if (badge) badge.textContent = 'Perfil';
-
-  const totalRes = clientReservations.length;
-
-  const nextReservation = clientReservations.find(r =>
-    String(r.date).slice(0,10) >= todayISO() &&
-    !['cancelada','cancelado'].includes(String(r.status || '').toLowerCase())
-  );
-
-  const pendingPay = clientPayments.filter(p =>
-    ['pendiente','vencido'].includes(String(p.status || '').toLowerCase())
-  ).length;
-
-  const notesCount = (() => {
-    const raw = clientData.notes;
-    if (!raw || raw === '' || raw === '[]' || raw === 'null') return 0;
-
-    if (Array.isArray(raw)) return raw.length;
-
-    if (typeof raw === 'string') {
-      try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed.length : 1;
-      } catch {
-        return 1;
-      }
-    }
-
-    return 0;
-  })();
-
-  const programName =
-    clientTrainingProgram?.name ||
-    clientPrograms?.[0]?.name ||
-    clientData.plan ||
-    'Sin plan activo';
-
-  let html = '';
-
-  html +=
-    '<div style="padding:4px 0 20px;">' +
-      '<div style="font-family:var(--font-display);font-size:30px;letter-spacing:1.5px;color:var(--text-primary);line-height:1;margin-bottom:6px;">Perfil</div>' +
-      '<div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);letter-spacing:0.4px;">Gestión de tu plan, reservas, pagos y datos personales.</div>' +
-    '</div>';
-
-  html += '<div class="summary-grid">';
-
-  html +=
-    '<div class="summary-card full" onclick="goClientSection(\'section-plan\')" style="cursor:pointer;">' +
-      '<div class="summary-label">Plan activo</div>' +
-      '<div class="summary-value">' + programName + '</div>' +
-      '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">Ver detalles del plan</div>' +
-    '</div>';
-
-  html +=
-    '<div class="summary-card" onclick="goClientSection(\'section-reservations\')" style="cursor:pointer;">' +
-      '<div class="summary-label">Reservas</div>' +
-      '<div class="summary-value">' + totalRes + '</div>' +
-      '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">' +
-        (nextReservation ? 'Próxima: ' + formatDate(nextReservation.date) : 'Sin próxima reserva') +
-      '</div>' +
-    '</div>';
-
-  html +=
-    '<div class="summary-card" onclick="goClientSection(\'section-payments\')" style="cursor:pointer;">' +
-      '<div class="summary-label">Pagos</div>' +
-      '<div class="summary-value">' +
-        (pendingPay ? '<span class="badge badge-yellow">' + pendingPay + ' pendiente' + (pendingPay !== 1 ? 's' : '') + '</span>' : '<span class="badge badge-green">Al día</span>') +
-      '</div>' +
-      '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">Estado de pagos</div>' +
-    '</div>';
-
-  html +=
-    '<div class="summary-card" onclick="goClientSection(\'section-notes\')" style="cursor:pointer;">' +
-      '<div class="summary-label">Notas</div>' +
-      '<div class="summary-value">' + notesCount + '</div>' +
-      '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">Notas del coach</div>' +
-    '</div>';
-
-  html +=
-    '<div class="summary-card" onclick="goClientSection(\'section-summary\')" style="cursor:pointer;">' +
-      '<div class="summary-label">Resumen</div>' +
-      '<div class="summary-value">Proceso</div>' +
-      '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">Vista general</div>' +
-    '</div>';
-
-  html += '</div>';
-
-  html +=
-    '<div class="accordion-block open" style="margin-top:12px;">' +
-      '<button class="accordion-title" onclick="toggleAccordion(this)">' +
-        '<span>Datos personales</span>' +
-        '<span class="accordion-symbol">−</span>' +
-      '</button>' +
-      '<div class="accordion-content">' +
-        '<div class="plan-grid" style="margin-top:12px;">' +
-          '<div class="plan-item">' +
-            '<div class="pi-label">Nombre</div>' +
-            '<div class="pi-value">' + (clientData.name || '—') + '</div>' +
-          '</div>' +
-          '<div class="plan-item">' +
-            '<div class="pi-label">Teléfono</div>' +
-            '<div class="pi-value">' + (clientData.phone || '—') + '</div>' +
-          '</div>' +
-          '<div class="plan-item">' +
-            '<div class="pi-label">Email</div>' +
-            '<div class="pi-value">' + (clientData.email || '—') + '</div>' +
-          '</div>' +
-          '<div class="plan-item">' +
-            '<div class="pi-label">Ciudad</div>' +
-            '<div class="pi-value">' + (clientData.city || '—') + '</div>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-
-  html +=
-    '<div class="action-box" style="margin-top:12px;">' +
-      '<button class="client-action-btn wa" onclick="clientWA(\'Necesito ayuda con mi perfil o mi plan.\')">Contactar a Abel</button>' +
-    '</div>';
-
-  el.innerHTML = html;
+  const el=document.getElementById('sectionClientData');const badge=document.getElementById('clientDataBadge');if(!el||!clientData)return;if(badge)badge.textContent='Perfil';
+  const totalRes=clientReservations.length;const nextReservation=clientReservations.find(r=>String(r.date).slice(0,10)>=todayISO()&&!['cancelada','cancelado'].includes(String(r.status||'').toLowerCase()));const pendingPay=clientPayments.filter(p=>['pendiente','vencido'].includes(String(p.status||'').toLowerCase())).length;
+  const notesCount=(()=>{const raw=clientData.notes;if(!raw||raw===''||raw==='[]'||raw==='null')return 0;if(Array.isArray(raw))return raw.length;if(typeof raw==='string'){try{const p=JSON.parse(raw);return Array.isArray(p)?p.length:1;}catch{return 1;}}return 0;})();
+  const programName=clientTrainingProgram?.name||clientPrograms?.[0]?.name||clientData.plan||'Sin plan activo';
+  let html='';
+  html+='<div style="padding:4px 0 20px;"><div style="font-family:var(--font-display);font-size:30px;letter-spacing:1.5px;color:var(--text-primary);line-height:1;margin-bottom:6px;">Perfil</div><div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);letter-spacing:0.4px;">Gestión de tu plan, reservas, pagos y datos personales.</div></div>';
+  html+='<div class="summary-grid">';
+  html+='<div class="summary-card full" onclick="goClientSection(\'section-plan\')" style="cursor:pointer;"><div class="summary-label">Plan activo</div><div class="summary-value">'+programName+'</div><div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">Ver detalles del plan</div></div>';
+  html+='<div class="summary-card" onclick="goClientSection(\'section-reservations\')" style="cursor:pointer;"><div class="summary-label">Reservas</div><div class="summary-value">'+totalRes+'</div><div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">'+(nextReservation?'Próxima: '+formatDate(nextReservation.date):'Sin próxima reserva')+'</div></div>';
+  html+='<div class="summary-card" onclick="goClientSection(\'section-payments\')" style="cursor:pointer;"><div class="summary-label">Pagos</div><div class="summary-value">'+(pendingPay?'<span class="badge badge-yellow">'+pendingPay+' pendiente'+(pendingPay!==1?'s':'')+'</span>':'<span class="badge badge-green">Al día</span>')+'</div><div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">Estado de pagos</div></div>';
+  html+='<div class="summary-card" onclick="goClientSection(\'section-notes\')" style="cursor:pointer;"><div class="summary-label">Notas</div><div class="summary-value">'+notesCount+'</div><div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">Notas del coach</div></div>';
+  html+='<div class="summary-card" onclick="goClientSection(\'section-summary\')" style="cursor:pointer;"><div class="summary-label">Resumen</div><div class="summary-value">Proceso</div><div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">Vista general</div></div>';
+  html+='</div>';
+  html+='<div class="accordion-block open" style="margin-top:12px;"><button class="accordion-title" onclick="toggleAccordion(this)"><span>Datos personales</span><span class="accordion-symbol">−</span></button><div class="accordion-content"><div class="plan-grid" style="margin-top:12px;"><div class="plan-item"><div class="pi-label">Nombre</div><div class="pi-value">'+(clientData.name||'—')+'</div></div><div class="plan-item"><div class="pi-label">Teléfono</div><div class="pi-value">'+(clientData.phone||'—')+'</div></div><div class="plan-item"><div class="pi-label">Email</div><div class="pi-value">'+(clientData.email||'—')+'</div></div><div class="plan-item"><div class="pi-label">Ciudad</div><div class="pi-value">'+(clientData.city||'—')+'</div></div>'+(clientData.fc_max?'<div class="plan-item"><div class="pi-label">FC Máxima</div><div class="pi-value">'+clientData.fc_max+' ppm</div></div>':'')+'</div></div></div>';
+  html+='<div class="action-box" style="margin-top:12px;"><button class="client-action-btn wa" onclick="clientWA(\'Necesito ayuda con mi perfil o mi plan.\')">Contactar a Abel</button></div>';
+  el.innerHTML=html;
 }
 
 /* ══ NAVIGATION ══ */
-function goClientSection(sectionId){
-  document.querySelectorAll('.dash-main .section').forEach(s=>s.classList.add('section-hidden'));
-  const target=document.getElementById(sectionId);if(!target)return;
-  target.classList.remove('section-hidden');
-  document.querySelectorAll('.client-nav button').forEach(b=>b.classList.remove('active'));
-  const activeBtn=Array.from(document.querySelectorAll('.client-nav button')).find(b=>b.getAttribute('onclick')?.includes(sectionId));
-  if(activeBtn){activeBtn.classList.add('active');activeBtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-function toggleAccordion(button){
-  const block=button.closest('.accordion-block');if(!block)return;
-  const symbol=block.querySelector('.accordion-symbol');const isOpen=block.classList.contains('open');
-  block.classList.toggle('open',!isOpen);if(symbol)symbol.textContent=isOpen?'+':'−';
-}
+function goClientSection(sectionId){document.querySelectorAll('.dash-main .section').forEach(s=>s.classList.add('section-hidden'));const target=document.getElementById(sectionId);if(!target)return;target.classList.remove('section-hidden');document.querySelectorAll('.client-nav button').forEach(b=>b.classList.remove('active'));const activeBtn=Array.from(document.querySelectorAll('.client-nav button')).find(b=>b.getAttribute('onclick')?.includes(sectionId));if(activeBtn){activeBtn.classList.add('active');activeBtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}window.scrollTo({top:0,behavior:'smooth'});}
+function toggleAccordion(button){const block=button.closest('.accordion-block');if(!block)return;const symbol=block.querySelector('.accordion-symbol');const isOpen=block.classList.contains('open');block.classList.toggle('open',!isOpen);if(symbol)symbol.textContent=isOpen?'+':'−';}
 
 /* ══ EVENTOS ══ */
 document.getElementById('btnLogin')?.addEventListener('click',loginClient);
