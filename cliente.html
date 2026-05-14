@@ -386,8 +386,9 @@
 
   <!-- TAB NAV — replicates screenshot exactly -->
   <nav class="client-nav" id="clientNav">
-    <button onclick="goClientSection('section-plan')">Plan</button>
-    <button onclick="goClientSection('section-training')">Entrenamiento</button>
+  <button onclick="goClientSection('section-home')">Inicio</button>
+  <button onclick="goClientSection('section-plan')">Plan</button>
+  <button onclick="goClientSection('section-training')">Entrenamiento</button>
     <button onclick="goClientSection('section-reservations')">Reservas</button>
     <button onclick="goClientSection('section-assessments')">Evaluaciones</button>
     <button onclick="goClientSection('section-health')">Salud</button>
@@ -399,6 +400,15 @@
   </nav>
 
   <main class="dash-main">
+
+<!-- INICIO -->
+<div class="section section-hidden" id="section-home">
+  <div class="section-header">
+    <h2>INICIO</h2>
+    <span class="sec-badge" id="homeBadge">Hoy</span>
+  </div>
+  <div class="section-body" id="sectionHome"></div>
+</div>
 
     <!-- MI PLAN -->
     <div class="section section-hidden" id="section-plan">
@@ -1026,6 +1036,7 @@ clientTrainingBlocks = Array.from(blocksMap.values())
 async function renderDashboard() {
   renderProgram();
   await renderClientTraining();
+  renderHome();
   renderReservations();
   renderAssessments();
   renderHealthAlerts();
@@ -1039,7 +1050,7 @@ async function renderDashboard() {
   const wa = document.getElementById('btnHeaderWA');
   if (wa) wa.onclick = () => openWA('Hola Abel, soy ' + name + '. Tengo una duda sobre mi plan.');
 
-  goClientSection('section-training'); // open training tab by default (as in screenshot)
+  goClientSection('section-home');
 }
 
 /* ══ BILINGUAL HELPER ══════════════════════════════════════
@@ -1074,6 +1085,124 @@ function getLang() {
 }
 
 /* ══ MI PLAN ══ */
+function renderHome() {
+  const el = document.getElementById('sectionHome');
+  const badge = document.getElementById('homeBadge');
+  if (!el || !clientData) return;
+
+  if (badge) badge.textContent = 'Hoy';
+
+  const name = clientData.name || 'cliente';
+  const firstName = String(name).split(' ')[0] || 'cliente';
+
+  const today = todayISO();
+
+  const nextReservation = clientReservations.find(r =>
+    String(r.date).slice(0,10) >= today &&
+    !['cancelada','cancelado'].includes((r.status || '').toLowerCase())
+  );
+
+  const pendingPayments = clientPayments.filter(p =>
+    ['pendiente','vencido'].includes((p.status || '').toLowerCase())
+  );
+
+  const activeTrainingName =
+    clientTrainingProgram?.name ||
+    clientTrainingProgram?.name_es ||
+    clientPrograms[0]?.name ||
+    'Entrenamiento asignado';
+
+  const scopeLabel = clientTrainingAssignment
+    ? getAssignmentScopeLabel()
+    : 'Sin entrenamiento activo';
+
+  const levelLabel = clientTrainingAssignment?.assigned_level || '—';
+
+  const activeSessionId =
+    typeof getFirstAvailableSessionId === 'function'
+      ? getFirstAvailableSessionId()
+      : null;
+
+  const hasTraining = Boolean(clientTrainingProgram && clientTrainingSessions.length);
+
+  const trainingStatusText = hasTraining
+    ? 'Tienes entrenamiento disponible'
+    : 'Todavía no hay entrenamiento cargado';
+
+  const trainingButton = hasTraining
+    ? '<button class="client-action-btn" onclick="goClientSection(\'section-training\')">Empezar entrenamiento</button>'
+    : '<button class="client-action-btn wa" onclick="clientWA(\'Quiero consultar cuándo estará listo mi entrenamiento.\')">Consultar entrenamiento</button>';
+
+  const paymentAlert = pendingPayments.length
+    ? '<div class="data-card" style="border-color:rgba(245,158,11,.45);background:rgba(245,158,11,.06);">' +
+        '<div class="dc-row"><span class="dc-title">Pago pendiente</span><span class="badge badge-yellow">' + pendingPayments.length + '</span></div>' +
+        '<div class="dc-note">Tienes pagos pendientes o vencidos. Puedes revisarlos en la sección Pagos.</div>' +
+        '<div class="action-box"><button class="client-action-btn" onclick="goClientSection(\'section-payments\')">Ver pagos</button></div>' +
+      '</div>'
+    : '';
+
+  const reservationHtml = nextReservation
+    ? '<div class="data-card next-session">' +
+        '<div class="next-label">Próxima reserva</div>' +
+        '<div class="dc-row"><span class="dc-title">' + (nextReservation.type || 'Sesión') + '</span>' + genericBadge(nextReservation.status) + '</div>' +
+        '<div class="dc-row">' +
+          '<span class="dc-sub">📅 ' + formatDate(nextReservation.date) + '</span>' +
+          (nextReservation.time ? '<span class="dc-sub">🕐 ' + formatTime(nextReservation.time) + '</span>' : '') +
+          (nextReservation.place ? '<span class="dc-sub">📍 ' + nextReservation.place + '</span>' : '') +
+        '</div>' +
+      '</div>'
+    : '<div class="data-card">' +
+        '<div class="dc-row"><span class="dc-title">Sin reserva próxima</span></div>' +
+        '<div class="dc-note">Puedes escribir a Abel para coordinar tu próxima sesión.</div>' +
+      '</div>';
+
+  el.innerHTML =
+    '<div class="training-guide-summary">' +
+      '<div class="training-guide-title">Hola, ' + firstName + '</div>' +
+      '<div class="training-guide-meta">AB SYSTEM · Área cliente</div>' +
+      '<div class="training-week-objective">Aquí tienes lo más importante de tu proceso: entrenamiento, reservas, pagos y seguimiento.</div>' +
+    '</div>' +
+
+    '<div class="data-card" style="border-color:rgba(94,197,240,.45);background:rgba(94,197,240,.05);">' +
+      '<div class="next-label">Qué toca ahora</div>' +
+      '<div class="dc-row"><span class="dc-title">' + trainingStatusText + '</span></div>' +
+      '<div class="dc-note">' + activeTrainingName + ' · ' + scopeLabel + ' · Nivel ' + levelLabel + '</div>' +
+      '<div class="action-box">' +
+        trainingButton +
+      '</div>' +
+    '</div>' +
+
+    reservationHtml +
+
+    paymentAlert +
+
+    '<div class="summary-grid" style="margin-top:16px;">' +
+      '<div class="summary-card">' +
+        '<div class="summary-label">Plan</div>' +
+        '<div class="summary-value">' + (clientData.plan || '—') + '</div>' +
+      '</div>' +
+      '<div class="summary-card">' +
+        '<div class="summary-label">Estado</div>' +
+        '<div class="summary-value">' + (clientData.status || '—') + '</div>' +
+      '</div>' +
+      '<div class="summary-card">' +
+        '<div class="summary-label">Entrenamiento</div>' +
+        '<div class="summary-value">' + scopeLabel + '</div>' +
+      '</div>' +
+      '<div class="summary-card">' +
+        '<div class="summary-label">Pagos</div>' +
+        '<div class="summary-value">' + (pendingPayments.length ? pendingPayments.length + ' pendiente(s)' : 'Al día') + '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="action-box">' +
+      '<button class="client-action-btn wa" onclick="clientWA(\'Tengo una duda sobre mi entrenamiento o mi plan.\')">Escribir a Abel</button>' +
+      '<button class="client-action-btn" onclick="goClientSection(\'section-reservations\')">Ver reservas</button>' +
+      '<button class="client-action-btn" onclick="goClientSection(\'section-progress-circles\')">Ver progreso</button>' +
+      '<button class="client-action-btn" onclick="goClientSection(\'section-summary\')">Ver resumen</button>' +
+    '</div>';
+}
+
 function renderProgram() {
   const el    = document.getElementById('sectionPlan');
   const badge = document.getElementById('planBadgeStatus');
