@@ -1219,7 +1219,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
  <nav class="client-nav" id="clientNav">
   <button onclick="goClientSection('section-home')">Inicio</button>
   <button onclick="goClientSection('section-training')">Entrenar</button>
-  <button onclick="goClientSection('section-progress-circles')">Evolución</button>
+  <button onclick="goClientSection('section-assessments')">Evaluaciones</button>
   <button onclick="goClientSection('section-health')">Salud</button>
   <button onclick="goClientSection('section-client-data')">Perfil</button>
 </nav>
@@ -1764,19 +1764,15 @@ function renderHome() {
 
   /* Cards de plan y reserva */
   html+='<div class="summary-grid" style="margin-top:0;">';
-  html+=
-    '<div class="summary-card full" onclick="goClientSection(\'section-plan\')" style="cursor:pointer;">'+
-      '<div class="summary-label">'+(activeProgramName?'Programa activo':'Plan')+'</div>'+
-      '<div class="summary-value" style="font-size:16px;font-weight:700;">'+homePlanName+'</div>'+
-      '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;letter-spacing:0.3px;">Toca para ver tu plan</div>'+
-    '</div>';
-  html+=
-    '<div class="summary-card full" onclick="goClientSection(\'section-reservations\')" style="cursor:pointer;">'+
-      '<div class="summary-label">Próxima reserva</div>'+
-      '<div class="summary-value" style="font-size:16px;font-weight:700;">'+reservationMain+'</div>'+
-      '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;letter-spacing:0.3px;">'+reservationSub+'</div>'+
-    '</div>';
-  html+='</div>';
+
+html+=
+  '<div class="summary-card full" onclick="goClientSection(\'section-reservations\')" style="cursor:pointer;">'+
+    '<div class="summary-label">Próxima reserva</div>'+
+    '<div class="summary-value" style="font-size:16px;font-weight:700;">'+reservationMain+'</div>'+
+    '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;letter-spacing:0.3px;">'+reservationSub+'</div>'+
+  '</div>';
+
+html+='</div>';
 
   html+='<div class="action-box" style="margin-top:12px;"><button class="client-action-btn wa" onclick="clientWA(\'Hola, necesito ayuda con mi área cliente.\')">Contactar a Abel</button></div>';
 
