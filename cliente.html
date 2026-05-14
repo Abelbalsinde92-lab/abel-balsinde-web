@@ -387,6 +387,7 @@
   <!-- TAB NAV — replicates screenshot exactly -->
   <nav class="client-nav" id="clientNav">
   <button onclick="goClientSection('section-home')">Inicio</button>
+  <button onclick="goClientSection('section-home')">Inicio</button>
   <button onclick="goClientSection('section-plan')">Plan</button>
   <button onclick="goClientSection('section-training')">Entrenamiento</button>
     <button onclick="goClientSection('section-reservations')">Reservas</button>
@@ -1034,9 +1035,9 @@ clientTrainingBlocks = Array.from(blocksMap.values())
 
 /* ══ RENDER DASHBOARD ══ */
 async function renderDashboard() {
+  renderHome();
   renderProgram();
   await renderClientTraining();
-  renderHome();
   renderReservations();
   renderAssessments();
   renderHealthAlerts();
@@ -1203,43 +1204,151 @@ function renderHome() {
     '</div>';
 }
 
-function renderProgram() {
-  const el    = document.getElementById('sectionPlan');
-  const badge = document.getElementById('planBadgeStatus');
-  if (!el) return;
-  if (badge) badge.textContent = clientData.status || '—';
+function renderHome() {
+  const el = document.getElementById('sectionHome');
+  const badge = document.getElementById('homeBadge');
 
-  let html = '<div class="plan-grid">';
-  html += '<div class="plan-item"><div class="pi-label">Plan contratado</div><div class="pi-value">' + (clientData.plan || 'Sin plan asignado') + '</div></div>';
-  html += '<div class="plan-item"><div class="pi-label">Estado</div><div class="pi-value">' + (clientData.status || '—') + '</div></div>';
-  html += '<div class="plan-item full"><div class="pi-label">Objetivo principal</div><div class="pi-value">' + (clientData.objective || 'Sin objetivo registrado') + '</div></div>';
-  if (clientData.nutrition_objective) {
-    html += '<div class="plan-item full"><div class="pi-label">Objetivo nutricional</div><div class="pi-value">' + clientData.nutrition_objective + '</div></div>';
-  }
-  html += '<hr class="plan-divider">';
+  if (!el || !clientData) return;
 
-  if (clientTrainingAssignment && clientTrainingProgram) {
-    const lg = getLang();
-    html += '<div class="plan-item"><div class="pi-label">Programa activo</div><div class="pi-value">' + (pickLang(clientTrainingProgram, 'name', lg) || '—') + '</div></div>';
-    html += '<div class="plan-item"><div class="pi-label">Alcance</div><div class="pi-value">' + getAssignmentScopeLabel() + '</div></div>';
-    html += '<div class="plan-item"><div class="pi-label">Nivel asignado</div><div class="pi-value">' + (clientTrainingAssignment.assigned_level || 'N1') + '</div></div>';
-    html += '<div class="plan-item"><div class="pi-label">Semana actual</div><div class="pi-value">' + (clientTrainingAssignment.current_week || 1) + '</div></div>';
-    html += '<div class="plan-item"><div class="pi-label">Inicio</div><div class="pi-value">' + formatDate(clientTrainingAssignment.start_date) + '</div></div>';
-    const progObj = pickLang(clientTrainingProgram, 'objective', lg);
-    if (progObj) html += '<div class="plan-item full"><div class="pi-label">Objetivo del programa</div><div class="pi-value">' + progObj + '</div></div>';
-    if (clientTrainingAssignment.coach_notes) html += '<div class="plan-item full"><div class="pi-label">Notas del coach</div><div class="pi-value">' + clientTrainingAssignment.coach_notes + '</div></div>';
+  if (badge) badge.textContent = 'Hoy';
+
+  const firstName = String(clientData.name || 'cliente').split(' ')[0] || 'cliente';
+
+  const today = todayISO();
+
+  const nextReservation = clientReservations.find(r =>
+    String(r.date).slice(0,10) >= today &&
+    !['cancelada','cancelado'].includes(String(r.status || '').toLowerCase())
+  );
+
+  const pendingPayments = clientPayments.filter(p =>
+    ['pendiente','vencido'].includes(String(p.status || '').toLowerCase())
+  );
+
+  const hasTraining = Boolean(clientTrainingProgram && clientTrainingSessions.length);
+
+  const activeSessionId = hasTraining ? getFirstAvailableSessionId() : null;
+  const activeSession = activeSessionId ? getSessionById(activeSessionId) : null;
+
+  const activeWeek = activeSession
+    ? clientTrainingWeeks.find(w => String(w.id) === String(activeSession.week_id))
+    : getActiveTrainingWeek();
+
+  const weekLabel = activeWeek?.week_number
+    ? 'Semana ' + activeWeek.week_number
+    : 'Semana actual';
+
+  const sessionIndex = activeSession
+    ? clientTrainingSessions.findIndex(s => String(s.id) === String(activeSession.id))
+    : 0;
+
+  const sessionLabel = activeSession
+    ? getSessionDisplayTitle(activeSession, sessionIndex >= 0 ? sessionIndex : 0)
+    : 'Entrenamiento asignado';
+
+  const trainingFinished = activeSessionId ? isSessionFinished(activeSessionId) : false;
+
+  const planName = clientTrainingProgram
+    ? (pickLang(clientTrainingProgram, 'name', getLang()) || clientTrainingProgram.name || 'Programa activo')
+    : (clientData.plan || 'Sin plan');
+
+  let html = '';
+
+  html +=
+    '<div class="training-guide-summary">' +
+      '<div class="training-guide-title">Hola, ' + firstName + '</div>' +
+      '<div class="training-guide-meta">Tu panel personal AB SYSTEM</div>' +
+      '<div class="training-week-objective">Aquí tienes lo más importante para continuar tu proceso sin perder tiempo.</div>' +
+    '</div>';
+
+  if (hasTraining) {
+    html +=
+      '<div class="data-card next-session">' +
+        '<div class="next-label">Entrenamiento principal</div>' +
+        '<div class="dc-row">' +
+          '<span class="dc-title">' + sessionLabel + '</span>' +
+          (trainingFinished ? '<span class="badge badge-green">Completado</span>' : '<span class="badge badge-blue">Disponible</span>') +
+        '</div>' +
+        '<div class="dc-row">' +
+          '<span class="dc-sub">' + weekLabel + '</span>' +
+          '<span class="dc-sub">' + getAssignmentScopeLabel() + '</span>' +
+          '<span class="dc-sub">Nivel ' + getAssignedTrainingLevel() + '</span>' +
+        '</div>' +
+        '<div class="action-box">' +
+          '<button class="client-action-btn" onclick="goClientSection(\'section-training\')">' +
+            (trainingFinished ? 'Ver entrenamiento realizado' : 'Empezar entrenamiento') +
+          '</button>' +
+        '</div>' +
+      '</div>';
   } else {
-    const prog = clientPrograms.find(p => (p.status||'').toLowerCase() === 'activo') || clientPrograms[0] || null;
-    if (prog) {
-      html += '<div class="plan-item"><div class="pi-label">Programa asignado</div><div class="pi-value">' + (prog.name || '—') + '</div></div>';
-      if (prog.type)  html += '<div class="plan-item"><div class="pi-label">Tipo</div><div class="pi-value">' + prog.type + '</div></div>';
-      if (prog.level) html += '<div class="plan-item"><div class="pi-label">Nivel</div><div class="pi-value">' + prog.level + '</div></div>';
-      if (prog.description || prog.objective) html += '<div class="plan-item full"><div class="pi-label">Indicaciones</div><div class="pi-value">' + (prog.description || prog.objective) + '</div></div>';
-    } else {
-      html += '<div class="plan-item full"><div class="plan-no-program">Todavía no hay programa asignado. Abel actualizará esta sección cuando tu plan esté listo.</div></div>';
-    }
+    html +=
+      '<div class="data-card">' +
+        '<div class="dc-row"><span class="dc-title">Entrenamiento</span><span class="badge badge-gray">Pendiente</span></div>' +
+        '<div class="dc-note">Todavía no hay entrenamiento visible para tu cuenta.</div>' +
+      '</div>';
   }
-  html += '</div><div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero consultar un ajuste o nuevo plan.\')">Consultar ajuste de plan</button></div>';
+
+  html += '<div class="summary-grid">';
+
+  html +=
+    '<div class="summary-card">' +
+      '<div class="summary-label">Plan</div>' +
+      '<div class="summary-value">' + (clientData.plan || 'Sin plan') + '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="summary-card">' +
+      '<div class="summary-label">Programa</div>' +
+      '<div class="summary-value">' + planName + '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="summary-card">' +
+      '<div class="summary-label">Próxima reserva</div>' +
+      '<div class="summary-value">' +
+        (nextReservation
+          ? formatDate(nextReservation.date) + (nextReservation.time ? ' · ' + formatTime(nextReservation.time) : '')
+          : 'Sin reserva') +
+      '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="summary-card">' +
+      '<div class="summary-label">Pagos</div>' +
+      '<div class="summary-value">' +
+        (pendingPayments.length
+          ? '<span class="badge badge-yellow">' + pendingPayments.length + ' pendiente' + (pendingPayments.length !== 1 ? 's' : '') + '</span>'
+          : '<span class="badge badge-green">Al día</span>') +
+      '</div>' +
+    '</div>';
+
+  html += '</div>';
+
+  html += '<div class="action-box">';
+
+  if (pendingPayments.length) {
+    html +=
+      '<button class="client-action-btn" onclick="goClientSection(\'section-payments\')">Ver pagos pendientes</button>';
+  }
+
+  if (!nextReservation) {
+    html +=
+      '<button class="client-action-btn" onclick="goClientSection(\'section-reservations\')">Solicitar o revisar reservas</button>';
+  }
+
+  html +=
+    '<button class="client-action-btn wa" onclick="clientWA(\'Tengo una duda sobre mi plan.\')">Escribir a Abel</button>';
+
+  html += '</div>';
+
+  html +=
+    '<div class="action-box" style="grid-template-columns:1fr 1fr;margin-top:18px;">' +
+      '<button class="client-action-btn" onclick="goClientSection(\'section-plan\')">Plan</button>' +
+      '<button class="client-action-btn" onclick="goClientSection(\'section-training\')">Entrenar</button>' +
+      '<button class="client-action-btn" onclick="goClientSection(\'section-progress-circles\')">Progreso</button>' +
+      '<button class="client-action-btn" onclick="goClientSection(\'section-summary\')">Resumen</button>' +
+    '</div>';
+
   el.innerHTML = html;
 }
 
