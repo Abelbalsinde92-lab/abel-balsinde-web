@@ -313,9 +313,28 @@
     .copy-summary-btn:hover{background:rgba(94,197,240,.14)}
 
     /* ─── HOME PROGRESS RINGS ─── */
+.home-rings-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:10px;
+  margin:16px 0 14px;
+  align-items:stretch;
+}
+
+.home-ring-card{
+  width:100%;
+  min-width:0;
+  background:#fff;
+  border:1px solid #e5eaf1;
+  border-radius:24px;
+  padding:16px 8px 14px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(2,11,24,.06);
+}
+
 .home-ring-svg-wrap{
-  width:96px;
-  height:96px;
+  width:84px;
+  height:84px;
   margin:0 auto 10px;
   display:flex;
   align-items:center;
@@ -323,8 +342,8 @@
 }
 
 .home-ring-svg{
-  width:96px;
-  height:96px;
+  width:84px;
+  height:84px;
   transform:rotate(-90deg);
   overflow:visible;
 }
@@ -332,46 +351,80 @@
 .home-ring-track{
   fill:none;
   stroke:#edf1f5;
-  stroke-width:15;
-  filter:drop-shadow(0 5px 8px rgba(15,23,42,.08));
+  stroke-width:14;
 }
 
 .home-ring-progress{
   fill:none;
-  stroke-width:15;
+  stroke-width:14;
   stroke-linecap:round;
   transition:stroke-dashoffset .5s ease;
-  filter:drop-shadow(0 7px 9px rgba(15,23,42,.16));
 }
 
 .home-ring-percent{
   transform:rotate(90deg);
   transform-origin:55px 55px;
   font-family:var(--font-body);
-  font-size:22px;
+  font-size:20px;
   font-weight:800;
   fill:#101525;
-  letter-spacing:-1px;
+  letter-spacing:-.5px;
+}
+
+.home-ring-label{
+  font-family:var(--font-mono);
+  font-size:9px;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+  color:#778293;
+  margin-bottom:4px;
+}
+
+.home-ring-note{
+  font-size:11px;
+  color:#101525;
+  font-weight:600;
+  line-height:1.3;
 }
 
 @media(max-width:480px){
+  .home-rings-grid{
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:8px;
+  }
+
+  .home-ring-card{
+    padding:12px 6px 10px;
+    border-radius:20px;
+  }
+
   .home-ring-svg-wrap{
-    width:86px;
-    height:86px;
+    width:68px;
+    height:68px;
   }
 
   .home-ring-svg{
-    width:86px;
-    height:86px;
+    width:68px;
+    height:68px;
   }
 
   .home-ring-track,
   .home-ring-progress{
-    stroke-width:14;
+    stroke-width:12;
   }
 
   .home-ring-percent{
-    font-size:20px;
+    font-size:17px;
+  }
+
+  .home-ring-label{
+    font-size:8px;
+    letter-spacing:1px;
+  }
+
+  .home-ring-note{
+    font-size:10px;
+    line-height:1.2;
   }
 }
     
