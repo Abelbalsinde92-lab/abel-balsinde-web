@@ -1882,6 +1882,31 @@ body {
   color:#101525;
   border-radius:18px;
 }
+
+/* Resumen compacto del entrenamiento */
+#section-training .compact-training-summary{
+  padding:22px 24px;
+  border-radius:26px;
+  margin-bottom:18px;
+}
+
+#section-training .compact-training-summary .training-guide-title{
+  font-size:30px;
+  line-height:1.1;
+  margin-bottom:8px;
+}
+
+#section-training .compact-training-summary .training-guide-meta{
+  font-size:12px;
+  margin-bottom:6px;
+}
+
+#section-training .compact-training-summary .training-week-objective{
+  font-size:14px;
+  line-height:1.45;
+  padding-top:10px;
+  margin-top:8px;
+}
   </style>
 </head>
 <body>
@@ -3309,11 +3334,30 @@ if (clientTrainingAssignment && initialActiveSessionId) {
 
   if (badge) badge.textContent = scopeLabel;
 
-  const summaryHtml = '<div class="training-guide-summary">'
-    + '<div class="training-guide-title">' + (pickLang(clientTrainingProgram, 'name', lg) || 'Programa de entrenamiento') + '</div>'
-    + '<div class="training-guide-meta">' + metaParts.join(' · ') + '</div>'
-    + (objective ? '<div class="training-week-objective">' + objective + '</div>' : '')
-    + '</div>';
+  const firstSessionId = getInitialActiveSessionId();
+const firstSession = firstSessionId ? getSessionById(firstSessionId) : null;
+
+const firstSessionIndex = firstSession
+  ? clientTrainingSessions.findIndex(s => String(s.id) === String(firstSession.id))
+  : 0;
+
+const sessionShortTitle = firstSession
+  ? getSessionDisplayTitle(firstSession, firstSessionIndex >= 0 ? firstSessionIndex : 0)
+  : 'Entrenamiento';
+
+const compactObjective =
+  pickLang(firstSession, 'objective', lg) ||
+  pickLang(activeWeek, 'objective', lg) ||
+  '';
+
+const summaryHtml =
+  '<div class="training-guide-summary compact-training-summary">' +
+    '<div class="training-guide-title">Entrenamiento de hoy</div>' +
+    '<div class="training-guide-meta">' +
+      [sessionShortTitle, 'Semana ' + (activeWeek?.week_number || 1), levelStr].filter(Boolean).join(' · ') +
+    '</div>' +
+    (compactObjective ? '<div class="training-week-objective">' + compactObjective + '</div>' : '') +
+  '</div>';
 
   const allSteps = buildTrainingSteps();
 
