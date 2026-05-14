@@ -1211,7 +1211,6 @@ function renderHome() {
   if (badge) badge.textContent = 'Hoy';
 
   const firstName = String(clientData.name || 'cliente').split(' ')[0] || 'cliente';
-
   const today = todayISO();
 
   const nextReservation = clientReservations.find(r =>
@@ -1250,6 +1249,14 @@ function renderHome() {
     ? (pickLang(clientTrainingProgram, 'name', getLang()) || clientTrainingProgram.name || 'Programa activo')
     : (clientData.plan || 'Sin plan');
 
+  const scopeText = hasTraining ? getAssignmentScopeLabel() : '';
+  const levelText = hasTraining ? 'Nivel ' + getAssignedTrainingLevel() : '';
+
+  const metaLine = [weekLabel, scopeText, levelText]
+    .filter(Boolean)
+    .filter((v, i, arr) => arr.indexOf(v) === i)
+    .join(' · ');
+
   let html = '';
 
   html +=
@@ -1265,12 +1272,12 @@ function renderHome() {
         '<div class="next-label">Entrenamiento principal</div>' +
         '<div class="dc-row">' +
           '<span class="dc-title">' + sessionLabel + '</span>' +
-          (trainingFinished ? '<span class="badge badge-green">Completado</span>' : '<span class="badge badge-blue">Disponible</span>') +
+          (trainingFinished
+            ? '<span class="badge badge-green">Completado</span>'
+            : '<span class="badge badge-blue">Disponible</span>') +
         '</div>' +
         '<div class="dc-row">' +
-          '<span class="dc-sub">' + weekLabel + '</span>' +
-          '<span class="dc-sub">' + getAssignmentScopeLabel() + '</span>' +
-          '<span class="dc-sub">Nivel ' + getAssignedTrainingLevel() + '</span>' +
+          '<span class="dc-sub">' + metaLine + '</span>' +
         '</div>' +
         '<div class="action-box">' +
           '<button class="client-action-btn" onclick="goClientSection(\'section-training\')">' +
@@ -1364,11 +1371,30 @@ function getSessionDayLabel(session, index) {
 }
 
 function getSessionDisplayTitle(session, index) {
-  const day   = getSessionDayLabel(session, index);
-  const _lg   = getLang();
-  const title = pickLang(session, 'title', _lg) || pickLang(session, 'name', _lg) || '';
-  // Si el título ya contiene la etiqueta del día, no duplicar
+  const day = getSessionDayLabel(session, index);
+  const lg = getLang();
+
+  let title = '';
+
+  if (lg === 'sr') {
+    title = session.title_sr || session.title || '';
+  } else {
+    title = session.title_es || session.title || '';
+  }
+
+  title = String(title || '').trim();
+
   if (!title || title.toLowerCase() === day.toLowerCase()) return day;
+
+  // Evita: Día B · Dan B...
+  if (
+    title.toLowerCase().startsWith('dan ') ||
+    title.toLowerCase().startsWith('día ') ||
+    title.toLowerCase().startsWith('dia ')
+  ) {
+    return title;
+  }
+
   return day + ' · ' + title;
 }
 
