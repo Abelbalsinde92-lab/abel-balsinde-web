@@ -1455,7 +1455,7 @@ async function renderClientTraining(){
   const allSteps=buildTrainingSteps();
   if(!allSteps.length){el.innerHTML='<p class="empty-state">Este programa todavía no tiene bloques cargados.</p>';return;}
 
-  function buildSessionMiniHeader(session,index){const week=clientTrainingWeeks.find(w=>String(w.id)===String(session.week_id));const weekLabel=week?.week_number?'Semana '+week.week_number:'Semana';const dayLabel=getSessionDayLabel(session,index);let sessionTitle=lg==='sr'?session.title_sr||session.title||'':session.title_es||session.title||'';sessionTitle=String(sessionTitle||'').trim();const cleanTitle=sessionTitle.replace(/^(día|dia|dan)\s+[a-z]\s*[-–—·]?\s*/i,'').trim();return'<div class="training-mini-hero"><div class="training-mini-hero-top"><div class="training-mini-day">'+dayLabel+'</div><div class="training-mini-meta">'+weekLabel+' · '+levelStr+'</div></div>'+(cleanTitle?'<div class="training-mini-title">'+cleanTitle+'</div>':'')+' </div>';}
+  function buildSessionMiniHeader(session,index){const week=clientTrainingWeeks.find(w=>String(w.id)===String(session.week_id));const weekLabel=week?.week_number?'Semana '+week.week_number:'Semana';const dayLabel=getSessionDayLabel(session,index);let sessionTitle=lg==='sr'?session.title_sr||session.title||'':session.title_es||session.title||'';sessionTitle=String(sessionTitle||'').trim();const cleanTitle=sessionTitle.replace(/^(día|dia|dan)\s+[a-z]\s*[-–—·]?\s*/i,'').trim();return'<div class="training-mini-hero"><div class="training-mini-hero-top"><div class="training-mini-day">'+dayLabel+'</div></div>'<div class="training-mini-meta">Nivel '+levelStr+'</div>'+(cleanTitle?'<div class="training-mini-title">'+cleanTitle+'</div>':'')+' </div>';}
 
   let html='';
   if(clientTrainingSessions.length>1){
