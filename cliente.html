@@ -1455,29 +1455,28 @@ async function renderClientTraining(){
   const allSteps=buildTrainingSteps();
   if(!allSteps.length){el.innerHTML='<p class="empty-state">Este programa todavía no tiene bloques cargados.</p>';return;}
 
-  function buildSessionMiniHeader(session,index){const week=clientTrainingWeeks.find(w=>String(w.id)===String(session.week_id));const weekLabel=week?.week_number?'Semana '+week.week_number:'Semana';const dayLabel=getSessionDayLabel(session,index);let sessionTitle=lg==='sr'?session.title_sr||session.title||'':session.title_es||session.title||'';sessionTitle=String(sessionTitle||'').trim();const cleanTitle=sessionTitle.replace(/^(día|dia|dan)\s+[a-z]\s*[-–—·]?\s*/i,'').trim();return'<div class="training-mini-hero"><div class="training-mini-hero-top"><div class="training-mini-day">'+dayLabel+'</div></div>'<div class="training-mini-meta">Nivel '+levelStr+'</div>'+(cleanTitle?'<div class="training-mini-title">'+cleanTitle+'</div>':'')+' </div>';}
+  function buildSessionMiniHeader(session,index){
+  const dayLabel = getSessionDayLabel(session,index);
 
-  let html='';
-  if(clientTrainingSessions.length>1){
-    const sessionsByWeek=new Map();clientTrainingSessions.forEach(s=>{const wid=String(s.week_id);if(!sessionsByWeek.has(wid))sessionsByWeek.set(wid,[]);sessionsByWeek.get(wid).push(s);});
-    const weeks=Array.from(sessionsByWeek.entries());
-    if(weeks.length===1){const sessions=weeks[0][1];const initialSessionId=getFirstAvailableSessionId();html+='<div class="training-day-tabs">';sessions.forEach((s,i)=>{const sid=String(s.id);html+='<button class="training-day-tab'+(sid===String(initialSessionId)?' active':'')+'" data-session-id="'+sid+'" onclick="showTrainingDay(\''+sid+'\')">'+getSessionDayLabel(s,i)+'</button>';});html+='</div>';sessions.forEach((s,i)=>{const sid=String(s.id);html+='<div class="training-day-panel'+(sid===String(initialSessionId)?' active':'')+'" data-session-id="'+sid+'">';html+=buildSessionMiniHeader(s,i);if(isSessionFinished(sid)){html+=buildCompletedSessionCard(s,i);}else{const steps=buildTrainingSteps(sid);html+='<div class="training-step-list">';steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div>';}html+='</div>';});}
-    else{const initialActiveWeekId=getWeekIdBySessionId(initialActiveSessionId)||weeks[0]?.[0];html+='<div class="training-day-tabs training-week-tabs">';weeks.forEach(([wid,sessions],wi)=>{const week=clientTrainingWeeks.find(w=>String(w.id)===wid);html+='<button class="training-day-tab training-week-tab'+(String(wid)===String(initialActiveWeekId)?' active':'')+'" data-week-id="'+wid+'" onclick="showTrainingWeekPanel(\''+wid+'\')">Semana '+(week?.week_number||(wi+1))+'</button>';});html+='</div>';weeks.forEach(([wid,sessions])=>{const isAW=String(wid)===String(initialActiveWeekId);html+='<div class="training-day-panel training-week-panel'+(isAW?' active':'')+'" data-week-id="'+wid+'">';html+='<div class="training-day-tabs">';sessions.forEach((s,si)=>{const sid=String(s.id);html+='<button class="training-day-tab'+(String(s.id)===String(initialActiveSessionId)?' active':'')+'" data-session-id="'+sid+'" onclick="showTrainingDay(\''+sid+'\')">'+getSessionDayLabel(s,si)+'</button>';});html+='</div>';sessions.forEach((s,si)=>{const sid=String(s.id);html+='<div class="training-session-panel'+(String(s.id)===String(initialActiveSessionId)?' active':'')+'" data-session-id="'+sid+'">';html+=buildSessionMiniHeader(s,si);if(isSessionFinished(sid)){html+=buildCompletedSessionCard(s,si);}else{const steps=buildTrainingSteps(sid);html+='<div class="training-step-list">';steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div>';}html+='</div>';});html+='</div>';});}
-  } else {
-    const session=clientTrainingSessions[0];const sid=String(session?.id||initialActiveSessionId||'');
-    html+='<div class="training-day-panel active" data-session-id="'+sid+'">';html+=buildSessionMiniHeader(session,0);
-    if(sid&&isSessionFinished(sid)){html+=buildCompletedSessionCard(session,0);}else{html+='<div class="training-step-list">';allSteps.forEach((step,i)=>{html+=buildTrainingStepHTML(step,i);});html+='</div>';}
-    html+='</div>';
-  }
-  html+='<div id="trainingCompletionArea"></div>';
-  el.innerHTML=html;
-  applySavedTrainingState();
-  const activeSessionId=getCurrentVisibleSessionId()||initialActiveSessionId;
-  const activeSessionFinished=activeSessionId?isSessionFinished(activeSessionId):false;
-  const visibleSteps=activeSessionId?buildTrainingSteps(activeSessionId):allSteps;
-  if(activeSessionFinished){const area=document.getElementById('trainingCompletionArea');if(area)area.innerHTML='';return;}
-  const firstPending=visibleSteps.find(s=>!completedTrainingBlocks.has(s.blockId));
-  if(firstPending){activeTrainingBlockKey=firstPending.blockId;const card=document.getElementById('step-'+firstPending.blockId);if(card)card.classList.add('open');}else{renderTrainingCompletionBox(false);}
+  let sessionTitle = lg === 'sr'
+    ? session.title_sr || session.title || ''
+    : session.title_es || session.title || '';
+
+  sessionTitle = String(sessionTitle || '').trim();
+
+  const cleanTitle = sessionTitle
+    .replace(/^(día|dia|dan)\s+[a-z]\s*[-–—·]?\s*/i,'')
+    .trim();
+
+  return (
+    '<div class="training-mini-hero">' +
+      '<div class="training-mini-hero-top">' +
+        '<div class="training-mini-day">' + dayLabel + '</div>' +
+      '</div>' +
+      '<div class="training-mini-meta">Nivel ' + levelStr + '</div>' +
+      (cleanTitle ? '<div class="training-mini-title">' + cleanTitle + '</div>' : '') +
+    '</div>'
+  );
 }
 
 function buildTrainingStepHTML(step,index){const blockId=step.blockId,block=step.block;const blockNum=block.block_order||(index+1);const _lg=getLang();const blockTitle=pickLang(block,'title',_lg)||pickLang(block,'name',_lg)||'Bloque';const blockObj=pickLang(block,'objective',_lg);const metaP=[block.duration,block.type].filter(Boolean);let html='';if(step.sessionSeparator)html+='<div class="training-session-separator">'+step.sessionSeparator+'</div>';html+='<div class="training-step-card" id="step-'+blockId+'"><button class="training-step-header" onclick="toggleTrainingStep(\''+blockId+'\')"><div class="training-step-number">'+blockNum+'</div><div class="training-step-info"><div class="training-step-title">'+blockTitle+'</div>'+(metaP.length?'<div class="training-step-meta">'+metaP.join(' · ')+'</div>':'')+'</div><div class="training-step-status" id="status-'+blockId+'">Pendiente</div></button><div class="training-step-body">'+(blockObj?'<div class="training-step-objective">'+blockObj+'</div>':'');step.exercises.forEach(ex=>{html+=buildExerciseHTML(ex);});if(!step.exercises.length)html+='<p class="empty-state" style="margin-top:12px;">Este bloque todavía no tiene ejercicios.</p>';html+='<button class="training-complete-block-btn" id="completeBtn-'+blockId+'" onclick="completeTrainingStep(\''+blockId+'\')">Marcar bloque terminado</button></div></div>';return html;}
