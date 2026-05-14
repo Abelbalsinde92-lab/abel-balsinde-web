@@ -1514,24 +1514,19 @@ html += '<div class="training-day-panel training-week-panel' + (isActiveWeekPane
   }
 
   html += '<div id="trainingCompletionArea"></div>';
-  el.innerHTML = html;
-  applySavedTrainingState();
 
-  const activeSessionId = getCurrentVisibleSessionId() || initialActiveSessionId;
-const activeSessionFinished = isSessionFinished(activeSessionId);
-const activeSessionSteps = activeSessionId ? buildTrainingSteps(activeSessionId) : allSteps;
+el.innerHTML = html;
+applySavedTrainingState();
+
+const activeSessionId = getCurrentVisibleSessionId() || initialActiveSessionId;
+const activeSessionFinished = activeSessionId ? isSessionFinished(activeSessionId) : false;
+const visibleSteps = activeSessionId ? buildTrainingSteps(activeSessionId) : allSteps;
 
 if (activeSessionFinished) {
   const area = document.getElementById('trainingCompletionArea');
   if (area) area.innerHTML = '';
   return;
 }
-
-el.innerHTML = html;
-applySavedTrainingState();
-
-const activeSessionId = getCurrentVisibleSessionId() || initialActiveSessionId;
-const visibleSteps = activeSessionId ? buildTrainingSteps(activeSessionId) : allSteps;
 
 const firstPending = visibleSteps.find(s => !completedTrainingBlocks.has(s.blockId));
 
@@ -1543,11 +1538,8 @@ if (firstPending) {
     card.classList.add('open');
   }
 } else {
-  const sessionAlreadyFinished = activeSessionId ? isSessionFinished(activeSessionId) : false;
-
-  if (!sessionAlreadyFinished) {
-    renderTrainingCompletionBox(false);
-  }
+  renderTrainingCompletionBox(false);
+}
 }
 
 function buildTrainingStepHTML(step, index) {
