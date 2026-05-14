@@ -528,18 +528,30 @@ function isSessionFinished(sessionId) {
 function buildCompletedSessionCard(session, index) {
   const title = getSessionDisplayTitle(session, index);
 
+  const week = clientTrainingWeeks.find(w =>
+    String(w.id) === String(session.week_id)
+  );
+
+  const weekLabel = week?.week_number
+    ? 'Semana ' + week.week_number
+    : 'Semana';
+
   return (
     '<div class="training-session-completed-card">' +
       '<div class="training-session-completed-row">' +
         '<div class="training-session-completed-icon">✓</div>' +
         '<div style="flex:1;min-width:0;">' +
-          '<div class="training-session-completed-title">' + title + '</div>' +
-          '<div class="training-session-completed-sub">Entrenamiento completado</div>' +
+          '<div class="training-session-completed-title">Entrenamiento completado</div>' +
+          '<div class="training-session-completed-sub">' + title + ' · ' + weekLabel + '</div>' +
+          '<div style="font-size:12px;color:var(--gray);margin-top:6px;line-height:1.5;">Tus observaciones ya fueron enviadas a Abel.</div>' +
         '</div>' +
       '</div>' +
+
+      '<button class="client-action-btn" style="margin-top:14px;" onclick="toggleCompletedTrainingDetails()">Ver detalles del entrenamiento realizado</button>' +
     '</div>'
   );
 }
+
 function loadTrainingProgressLocal(sessionId) {
   const key = getTrainingStorageKey(sessionId);
   if (!key) return null;
@@ -1999,9 +2011,40 @@ if (savedNote) {
 
 function toggleCompletedTrainingDetails() {
   const d = document.getElementById('trainingCompletedDetails');
-  if (!d) return;
+
+  if (!d) {
+    const activePanel =
+      document.querySelector('.training-session-panel.active') ||
+      document.querySelector('.training-day-panel.active');
+
+    if (!activePanel) return;
+
+    const sessionId = activePanel.dataset.sessionId;
+    if (!sessionId) return;
+
+    const steps = buildTrainingSteps(sessionId);
+
+    let html = '<div id="trainingCompletedDetails" style="margin-top:14px;">';
+    html += '<div class="training-step-list">';
+
+    steps.forEach((step, j) => {
+      html += buildTrainingStepHTML(step, j);
+    });
+
+    html += '</div></div>';
+
+    activePanel.insertAdjacentHTML('beforeend', html);
+
+    steps.forEach(step => markStepVisualAsCompleted(step.blockId));
+
+    return;
+  }
+
   d.classList.toggle('hidden');
-  if (!d.classList.contains('hidden')) d.scrollIntoView({ behavior:'smooth', block:'start' });
+
+  if (!d.classList.contains('hidden')) {
+    d.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
 }
 
 function showTrainingNotes(keepSaved) {
