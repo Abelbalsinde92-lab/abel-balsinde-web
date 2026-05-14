@@ -1527,15 +1527,27 @@ if (activeSessionFinished) {
   return;
 }
 
-const firstPending = activeSessionSteps.find(s => !completedTrainingBlocks.has(s.blockId));
+el.innerHTML = html;
+applySavedTrainingState();
+
+const activeSessionId = getCurrentVisibleSessionId() || initialActiveSessionId;
+const visibleSteps = activeSessionId ? buildTrainingSteps(activeSessionId) : allSteps;
+
+const firstPending = visibleSteps.find(s => !completedTrainingBlocks.has(s.blockId));
 
 if (firstPending) {
   activeTrainingBlockKey = firstPending.blockId;
+
   const card = document.getElementById('step-' + firstPending.blockId);
-  if (card) card.classList.add('open');
+  if (card) {
+    card.classList.add('open');
+  }
 } else {
-  renderTrainingCompletionBox(false);
-}
+  const sessionAlreadyFinished = activeSessionId ? isSessionFinished(activeSessionId) : false;
+
+  if (!sessionAlreadyFinished) {
+    renderTrainingCompletionBox(false);
+  }
 }
 
 function buildTrainingStepHTML(step, index) {
