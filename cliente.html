@@ -1296,7 +1296,13 @@ function renderHome(){
   const sessionLabel=activeSession?getSessionDisplayTitle(activeSession,sessionIndex>=0?sessionIndex:0):'Entrenamiento asignado';
   const trainingFinished=activeSessionId?isSessionFinished(activeSessionId):false;
   const activeProgramName=clientTrainingProgram?(pickLang(clientTrainingProgram,'name',getLang())||clientTrainingProgram.name||''):'';
-  const metaLine=[weekLabel,getAssignmentScopeLabel(),'Nivel '+getAssignedTrainingLevel()].filter(Boolean).join(' · ');
+  
+  const metaParts = [weekLabel, getAssignmentScopeLabel(), 'Nivel ' + getAssignedTrainingLevel()]
+  .filter(Boolean)
+  .filter((v, i, arr) => arr.indexOf(v) === i);
+
+const metaLine = metaParts.join(' · ');
+
   const reservationMain=nextReservation?formatDate(nextReservation.date)+(nextReservation.time?' · '+formatTime(nextReservation.time):''):'Sin reserva próxima';
   const reservationSub=nextReservation?((nextReservation.type||'Reserva')+(nextReservation.place?' · '+nextReservation.place:'')):'Toca para ver el calendario';
 
