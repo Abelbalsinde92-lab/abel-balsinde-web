@@ -1035,7 +1035,11 @@ clientTrainingBlocks = Array.from(blocksMap.values())
 /* ══ RENDER DASHBOARD ══ */
 async function renderDashboard() {
   renderHome();
-  renderProgram();
+
+  if (typeof renderProgram === 'function') {
+    renderProgram();
+  }
+
   await renderClientTraining();
   renderReservations();
   renderAssessments();
