@@ -2471,12 +2471,29 @@ function renderHome() {
   html += '</div>';
 
   html +=
-    '<div class="action-box" style="grid-template-columns:1fr 1fr;margin-top:18px;">' +
-      '<button class="client-action-btn" onclick="goClientSection(\'section-plan\')">Plan</button>' +
-      '<button class="client-action-btn" onclick="goClientSection(\'section-training\')">Entrenar</button>' +
-      '<button class="client-action-btn" onclick="goClientSection(\'section-progress-circles\')">Progreso</button>' +
-      '<button class="client-action-btn" onclick="goClientSection(\'section-summary\')">Resumen</button>' +
-    '</div>';
+  '<div class="quick-grid">' +
+
+    '<button class="quick-card" onclick="goClientSection(\'section-plan\')">' +
+      '<div class="quick-card-label">Mi proceso</div>' +
+      '<div class="quick-card-title">Plan <span class="quick-card-arrow">→</span></div>' +
+    '</button>' +
+
+    '<button class="quick-card" onclick="goClientSection(\'section-training\')">' +
+      '<div class="quick-card-label">Hoy</div>' +
+      '<div class="quick-card-title">Entrenar <span class="quick-card-arrow">→</span></div>' +
+    '</button>' +
+
+    '<button class="quick-card" onclick="goClientSection(\'section-progress-circles\')">' +
+      '<div class="quick-card-label">Seguimiento</div>' +
+      '<div class="quick-card-title">Progreso <span class="quick-card-arrow">→</span></div>' +
+    '</button>' +
+
+    '<button class="quick-card" onclick="goClientSection(\'section-summary\')">' +
+      '<div class="quick-card-label">General</div>' +
+      '<div class="quick-card-title">Resumen <span class="quick-card-arrow">→</span></div>' +
+    '</button>' +
+
+  '</div>';
 
   el.innerHTML = html;
 }
