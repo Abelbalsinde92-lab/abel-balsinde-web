@@ -1088,6 +1088,119 @@ function getLang() {
   return (clientData?.preferred_lang || 'es').toLowerCase();
 }
 
+function renderProgram() {
+  const el    = document.getElementById('sectionPlan');
+  const badge = document.getElementById('planBadgeStatus');
+
+  if (!el) return;
+
+  if (badge) {
+    badge.textContent = clientData?.status || '—';
+  }
+
+  const lg = getLang();
+
+  let html = '<div class="plan-grid">';
+
+  html +=
+    '<div class="plan-item">' +
+      '<div class="pi-label">Plan contratado</div>' +
+      '<div class="pi-value">' + (clientData?.plan || 'Sin plan asignado') + '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="plan-item">' +
+      '<div class="pi-label">Estado</div>' +
+      '<div class="pi-value">' + (clientData?.status || '—') + '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="plan-item full">' +
+      '<div class="pi-label">Objetivo principal</div>' +
+      '<div class="pi-value">' + (clientData?.objective || 'Sin objetivo registrado') + '</div>' +
+    '</div>';
+
+  if (clientData?.nutrition_objective) {
+    html +=
+      '<div class="plan-item full">' +
+        '<div class="pi-label">Objetivo nutricional</div>' +
+        '<div class="pi-value">' + clientData.nutrition_objective + '</div>' +
+      '</div>';
+  }
+
+  html += '<hr class="plan-divider">';
+
+  if (clientTrainingAssignment && clientTrainingProgram) {
+    const programName = pickLang(clientTrainingProgram, 'name', lg) || 'Programa activo';
+    const programObj  = pickLang(clientTrainingProgram, 'objective', lg);
+
+    html +=
+      '<div class="plan-item">' +
+        '<div class="pi-label">Programa activo</div>' +
+        '<div class="pi-value">' + programName + '</div>' +
+      '</div>';
+
+    html +=
+      '<div class="plan-item">' +
+        '<div class="pi-label">Alcance</div>' +
+        '<div class="pi-value">' + getAssignmentScopeLabel() + '</div>' +
+      '</div>';
+
+    html +=
+      '<div class="plan-item">' +
+        '<div class="pi-label">Nivel asignado</div>' +
+        '<div class="pi-value">' + (clientTrainingAssignment.assigned_level || 'N1') + '</div>' +
+      '</div>';
+
+    html +=
+      '<div class="plan-item">' +
+        '<div class="pi-label">Semana actual</div>' +
+        '<div class="pi-value">' + (clientTrainingAssignment.current_week || 1) + '</div>' +
+      '</div>';
+
+    html +=
+      '<div class="plan-item">' +
+        '<div class="pi-label">Inicio</div>' +
+        '<div class="pi-value">' + formatDate(clientTrainingAssignment.start_date) + '</div>' +
+      '</div>';
+
+    if (programObj) {
+      html +=
+        '<div class="plan-item full">' +
+          '<div class="pi-label">Objetivo del programa</div>' +
+          '<div class="pi-value">' + programObj + '</div>' +
+        '</div>';
+    }
+
+    if (clientTrainingAssignment.coach_notes) {
+      html +=
+        '<div class="plan-item full">' +
+          '<div class="pi-label">Notas del coach</div>' +
+          '<div class="pi-value">' + clientTrainingAssignment.coach_notes + '</div>' +
+        '</div>';
+    }
+
+  } else {
+    html +=
+      '<div class="plan-item full">' +
+        '<div class="plan-no-program">' +
+          'Todavía no hay programa asignado. Abel actualizará esta sección cuando tu plan esté listo.' +
+        '</div>' +
+      '</div>';
+  }
+
+  html += '</div>';
+
+  html +=
+    '<div class="action-box">' +
+      '<button class="client-action-btn wa" onclick="clientWA(\'Quiero consultar un ajuste o nuevo plan.\')">' +
+        'Consultar ajuste de plan' +
+      '</button>' +
+    '</div>';
+
+  el.innerHTML = html;
+}
+
 /* ══ MI PLAN ══ */
 function renderHome() {
   const el = document.getElementById('sectionHome');
