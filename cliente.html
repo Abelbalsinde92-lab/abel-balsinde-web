@@ -1917,6 +1917,323 @@ input,textarea{
     min-height:47px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   AB SYSTEM — HOME DARK FITNESS CLEAN v1
+   Pegar al final del <style>
+═══════════════════════════════════════════════════════ */
+
+:root {
+  --bg-app:#030712;
+  --bg-card:#0b1329;
+  --bg-card-soft:#111c3a;
+  --text-main:#f8fafc;
+  --text-muted:#94a3b8;
+
+  --color-train:#38bdf8;
+  --color-nutri:#10b981;
+  --color-med:#0ea5e9;
+
+  --border-subtle:rgba(255,255,255,.07);
+  --shadow-dark:0 14px 34px rgba(0,0,0,.35);
+
+  --navy:#030712;
+  --navy2:#0b1329;
+  --navy3:#111c3a;
+  --white:#f8fafc;
+  --gray:#94a3b8;
+  --blue:#38bdf8;
+  --green:#10b981;
+}
+
+/* Fondo general */
+body {
+  background:
+    radial-gradient(circle at 90% 0%, rgba(56,189,248,.12), transparent 28%),
+    linear-gradient(180deg, #030712 0%, #060b18 100%);
+  color:var(--text-main);
+}
+
+/* Header superior */
+.dash-header {
+  background:rgba(3,7,18,.86);
+  border-bottom:1px solid var(--border-subtle);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+
+.dash-header-logo .logo-text {
+  color:var(--text-main);
+}
+
+.dash-header-logo .logo-badge {
+  background:#f8fafc;
+  color:#030712;
+  border-radius:14px;
+  box-shadow:none;
+}
+
+/* Navegación */
+.client-nav {
+  background:rgba(3,7,18,.9);
+  border-bottom:1px solid var(--border-subtle);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+
+.client-nav button {
+  background:rgba(255,255,255,.04);
+  color:var(--text-muted);
+  border:1px solid transparent;
+  border-radius:999px;
+}
+
+.client-nav button.active {
+  background:rgba(56,189,248,.12);
+  color:var(--color-train);
+  border-color:rgba(56,189,248,.28);
+}
+
+/* Contenedor general */
+.section {
+  background:transparent;
+  border:none;
+  box-shadow:none;
+  border-radius:0;
+}
+
+.section-header {
+  background:transparent;
+  border-bottom:none;
+  padding:6px 4px 12px;
+}
+
+.section-header h2 {
+  color:var(--text-main);
+  font-size:24px;
+  letter-spacing:1.4px;
+}
+
+.section-header .sec-badge {
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border-subtle);
+  color:var(--text-muted);
+  border-radius:999px;
+}
+
+/* Inicio */
+#section-home .section-body {
+  padding:0;
+}
+
+/* Saludo */
+#section-home .training-guide-summary {
+  background:transparent;
+  box-shadow:none;
+  border:none;
+  padding:2px 0 6px;
+  margin-bottom:14px;
+}
+
+#section-home .training-guide-title {
+  color:var(--text-main);
+  font-size:30px;
+  line-height:1.05;
+  letter-spacing:1.2px;
+}
+
+#section-home .training-guide-meta {
+  color:var(--text-muted);
+  font-family:var(--font-body);
+  font-size:13px;
+  letter-spacing:.2px;
+  margin-top:4px;
+}
+
+/* Tarjeta entrenamiento principal */
+#section-home .data-card.next-session {
+  background:linear-gradient(135deg, #0b1329 0%, #070d1e 100%);
+  border:1px solid rgba(56,189,248,.22);
+  border-radius:22px;
+  padding:22px;
+  box-shadow:var(--shadow-dark);
+}
+
+#section-home .next-label {
+  color:var(--color-train);
+  font-size:11px;
+  letter-spacing:1.5px;
+  margin-bottom:8px;
+}
+
+#section-home .data-card .dc-title {
+  color:var(--text-main);
+  font-size:20px;
+  font-weight:800;
+  line-height:1.25;
+}
+
+#section-home .data-card .dc-sub {
+  color:var(--text-muted);
+  font-family:var(--font-body);
+  font-size:13px;
+}
+
+/* Botón principal */
+#section-home .client-action-btn {
+  background:var(--color-train);
+  border:none;
+  color:#030712;
+  border-radius:14px;
+  min-height:50px;
+  font-weight:800;
+  font-size:13px;
+  letter-spacing:.6px;
+  box-shadow:0 14px 28px rgba(56,189,248,.18);
+}
+
+#section-home .client-action-btn:active {
+  transform:scale(.98);
+}
+
+/* Métricas circulares */
+.home-rings-grid {
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:12px;
+  margin:18px 0;
+}
+
+.home-ring-card {
+  background:var(--bg-card);
+  border:1px solid var(--border-subtle);
+  border-radius:18px;
+  padding:16px 8px 14px;
+  text-align:center;
+  box-shadow:var(--shadow-dark);
+  min-width:0;
+}
+
+.home-ring-svg-wrap {
+  width:70px;
+  height:70px;
+  margin:0 auto 10px;
+}
+
+.home-ring-svg {
+  width:70px;
+  height:70px;
+}
+
+.home-ring-track {
+  stroke:rgba(255,255,255,.08);
+}
+
+.home-ring-progress {
+  stroke-linecap:round;
+}
+
+.home-ring-percent {
+  fill:var(--text-main);
+  font-family:var(--font-body);
+  font-weight:800;
+  font-size:18px;
+}
+
+.home-ring-label {
+  color:var(--text-muted);
+  font-size:9px;
+  letter-spacing:1.1px;
+}
+
+.home-ring-note {
+  color:var(--text-main);
+  font-size:11px;
+  font-weight:600;
+}
+
+/* Tarjetas inferiores: plan y reserva */
+#section-home .summary-grid {
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+  margin-top:14px;
+}
+
+#section-home .summary-card {
+  background:var(--bg-card);
+  border:1px solid var(--border-subtle);
+  border-radius:18px;
+  padding:16px;
+  box-shadow:var(--shadow-dark);
+}
+
+#section-home .summary-label {
+  color:var(--text-muted);
+  font-size:10px;
+  letter-spacing:1.3px;
+}
+
+#section-home .summary-value {
+  color:var(--text-main);
+}
+
+/* Contactar admin al final */
+#section-home .client-action-btn.wa {
+  background:rgba(16,185,129,.12);
+  border:1px solid rgba(16,185,129,.28);
+  color:var(--color-nutri);
+  box-shadow:none;
+}
+
+/* Ajustes móviles */
+@media(max-width:480px) {
+  .dash-main {
+    padding:16px 14px calc(150px + env(safe-area-inset-bottom));
+  }
+
+  #section-home .training-guide-title {
+    font-size:28px;
+  }
+
+  #section-home .data-card.next-session {
+    padding:20px;
+    border-radius:20px;
+  }
+
+  #section-home .data-card .dc-title {
+    font-size:18px;
+  }
+
+  .home-rings-grid {
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:8px;
+  }
+
+  .home-ring-card {
+    border-radius:16px;
+    padding:13px 5px 11px;
+  }
+
+  .home-ring-svg-wrap {
+    width:62px;
+    height:62px;
+  }
+
+  .home-ring-svg {
+    width:62px;
+    height:62px;
+  }
+
+  .home-ring-percent {
+    font-size:16px;
+  }
+
+  .home-ring-note {
+    font-size:10px;
+  }
+}
 </style>
 </head>
 <body>
