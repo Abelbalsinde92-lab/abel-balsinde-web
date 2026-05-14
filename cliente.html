@@ -1769,29 +1769,35 @@ function getWeekIdBySessionId(sessionId) {
 
 function showCompletedToastAndGoNext(currentSessionId) {
   const area = document.getElementById('trainingCompletionArea');
+  const nextSessionId = getNextSessionId(currentSessionId);
 
   if (area) {
     area.innerHTML =
       '<div class="training-finish-card" style="padding:22px 18px;">' +
         '<div class="training-finish-icon" style="font-size:30px;">🏁</div>' +
         '<div class="training-finish-title" style="font-size:24px;">Entrenamiento guardado</div>' +
-        '<div class="training-finish-sub">Pasando al siguiente día...</div>' +
+        '<div class="training-finish-sub">' +
+          (nextSessionId ? 'Pasando al siguiente día...' : 'Entrenamiento completado. Tus observaciones ya fueron enviadas a Abel.') +
+        '</div>' +
       '</div>';
   }
 
   setTimeout(() => {
-    const nextSessionId = getNextSessionId(currentSessionId);
+    if (!nextSessionId) {
+      renderClientTraining();
+      return;
+    }
+
+    saveLastActiveSession(nextSessionId);
 
     renderClientTraining().then(async () => {
-      if (nextSessionId) {
-        const nextWeekId = getWeekIdBySessionId(nextSessionId);
+      const nextWeekId = getWeekIdBySessionId(nextSessionId);
 
-        if (nextWeekId) {
-          showTrainingWeekPanel(nextWeekId);
-        }
-
-        await showTrainingDay(nextSessionId);
+      if (nextWeekId) {
+        showTrainingWeekPanel(nextWeekId);
       }
+
+      await showTrainingDay(nextSessionId);
     });
   }, 3000);
 }
