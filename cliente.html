@@ -1097,6 +1097,11 @@ function getAssignedTrainingLevel() {
   return ['N1','N2','N3','N4'].includes(lvl)?lvl:'N1';
 }
 
+function hasCombatMetricsEnabled() {
+  return clientData?.enable_combat_metrics === true ||
+         String(clientData?.athlete_profile || '').toLowerCase() === 'combat';
+}
+
 /* ══ AUTH ══ */
 async function loginClient() {
   hideError();
@@ -1356,58 +1361,82 @@ function renderProgram(){
    RENDER HEALTH — Alertas generales + Métricas Combate
 ══════════════════════════════════════════════════════════ */
 function renderHealthAlerts(){
-  const el=document.getElementById('sectionHealth');const badge=document.getElementById('alertsBadge');
-  if(!el)return;
-  if(badge)badge.textContent=clientAlerts.length;
+  const el = document.getElementById('sectionHealth');
+  const badge = document.getElementById('alertsBadge');
 
-  let html='';
+  if (!el) return;
 
-  /* ── Dashboard métricas combate ── */
-  html+=
-    '<div id="dashboard-atleta-combate">'+
-      '<div class="combate-header">Métricas de rendimiento</div>'+
-      '<div class="combate-grid">'+
+  if (badge) badge.textContent = clientAlerts.length;
 
-        '<div class="card-metrica" id="card-ck">'+
-          '<span>Fatiga muscular (CK)</span>'+
-          '<strong id="display-ck">--</strong>'+
-          '<div class="metrica-unit">U/L</div>'+
+  let html = '';
+
+  if (hasCombatMetricsEnabled()) {
+    html +=
+      '<div id="dashboard-atleta-combate">'+
+        '<div class="combate-header">Métricas de rendimiento</div>'+
+        '<div class="combate-grid">'+
+
+          '<div class="card-metrica" id="card-ck">'+
+            '<span>Fatiga muscular (CK)</span>'+
+            '<strong id="display-ck">--</strong>'+
+            '<div class="metrica-unit">U/L</div>'+
+          '</div>'+
+
+          '<div class="card-metrica" id="card-cortisol">'+
+            '<span>Cortisol</span>'+
+            '<strong id="display-cortisol">--</strong>'+
+            '<div class="metrica-unit">µg/dL</div>'+
+          '</div>'+
+
+          '<div class="card-metrica" id="card-recuperacion">'+
+            '<span>Recuperación cardíaca 1 min</span>'+
+            '<strong id="display-fc-rec">--</strong>'+
+            '<div class="metrica-unit">ppm al minuto</div>'+
+          '</div>'+
+
+          '<div class="card-metrica" id="card-peso">'+
+            '<span>Peso de combate</span>'+
+            '<strong id="display-peso">--</strong>'+
+            '<div class="metrica-unit">kg</div>'+
+          '</div>'+
+
         '</div>'+
+        '<p class="combate-update">Última actualización: <span id="display-fecha">--/--/----</span></p>'+
+      '</div>';
 
-        '<div class="card-metrica" id="card-cortisol">'+
-          '<span>Cortisol</span>'+
-          '<strong id="display-cortisol">--</strong>'+
-          '<div class="metrica-unit">µg/dL</div>'+
-        '</div>'+
-
-        '<div class="card-metrica" id="card-recuperacion">'+
-          '<span>Recuperación cardíaca 1 min</span>'+
-          '<strong id="display-fc-rec">--</strong>'+
-          '<div class="metrica-unit">ppm al minuto</div>'+
-        '</div>'+
-
-        '<div class="card-metrica" id="card-peso">'+
-          '<span>Peso de combate</span>'+
-          '<strong id="display-peso">--</strong>'+
-          '<div class="metrica-unit">kg</div>'+
-        '</div>'+
-
-      '</div>'+
-      '<p class="combate-update">Última actualización: <span id="display-fecha">--/--/----</span></p>'+
-    '</div>';
-
-  /* ── Separador ── */
-  if(clientAlerts.length){
-    html+='<div style="margin:18px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">Indicaciones de salud</div>';
-    html+=clientAlerts.map(a=>'<div class="data-card"><div class="dc-row">'+genericBadge(a.status)+'<span class="dc-sub" style="font-family:var(--font-mono);">'+formatDate(a.date)+'</span></div>'+(a.detail?'<div style="margin-top:10px;font-size:14px;color:var(--text-primary);line-height:1.7;">'+a.detail+'</div>':'')+'</div>').join('');
   } else {
-    html+='<div style="margin-top:16px;"><p class="empty-state">No hay indicaciones de salud registradas.</p></div>';
+    html +=
+      '<div class="data-card">'+
+        '<div class="dc-row">'+
+          '<span class="dc-title">Seguimiento general</span>'+
+          '<span class="badge badge-blue">Activo</span>'+
+        '</div>'+
+        '<div class="dc-note">Aquí aparecerán indicaciones importantes del coach, molestias reportadas o recomendaciones de seguimiento.</div>'+
+      '</div>';
   }
 
-  el.innerHTML=html;
+  if (clientAlerts.length) {
+    html += '<div style="margin:18px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">Indicaciones de salud</div>';
 
-  /* Cargar métricas combate asíncronamente después de renderizar el HTML */
-  cargarMetricasCombate();
+    html += clientAlerts.map(a =>
+      '<div class="data-card">'+
+        '<div class="dc-row">'+
+          genericBadge(a.status)+
+          '<span class="dc-sub" style="font-family:var(--font-mono);">'+formatDate(a.date)+'</span>'+
+        '</div>'+
+        (a.detail ? '<div style="margin-top:10px;font-size:14px;color:var(--text-primary);line-height:1.7;">'+a.detail+'</div>' : '')+
+      '</div>'
+    ).join('');
+
+  } else {
+    html += '<div style="margin-top:16px;"><p class="empty-state">No hay indicaciones registradas.</p></div>';
+  }
+
+  el.innerHTML = html;
+
+  if (hasCombatMetricsEnabled()) {
+    cargarMetricasCombate();
+  }
 }
 
 /* ══ TRAINING ══ */
