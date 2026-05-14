@@ -1217,6 +1217,58 @@ body {
   color:#667085;
 }
 
+.quick-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:18px;
+}
+
+.quick-card{
+  background:#fff;
+  border:1px solid #E3E8EF;
+  border-radius:18px;
+  padding:14px 14px;
+  color:var(--navy);
+  text-align:left;
+  box-shadow:0 8px 24px rgba(2,11,24,.04);
+  transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.quick-card:active{
+  transform:scale(.98);
+}
+
+.quick-card:hover{
+  border-color:rgba(94,197,240,.55);
+  box-shadow:0 10px 28px rgba(2,11,24,.08);
+}
+
+.quick-card-label{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:#7B8492;
+  margin-bottom:5px;
+}
+
+.quick-card-title{
+  font-size:15px;
+  font-weight:800;
+  color:var(--navy);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.quick-card-arrow{
+  color:var(--blue);
+  font-size:17px;
+  line-height:1;
+}
+
 /* Cards del inicio más limpias */
 .summary-grid {
   gap:10px;
