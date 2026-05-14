@@ -934,12 +934,10 @@ async function cargarMetricasCombate() {
   if (!clientData?.id) return;
 
   const { data, error } = await db
-    .from('metricas_combate')
-    .select('*')
-    .eq('atleta_id', clientData.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
+  .rpc('get_latest_metricas_combate', {
+    p_atleta_id: clientData.id
+  })
+  .maybeSingle();
 
   if (error || !data) {
     // Sin datos aún — las cards ya muestran '--' por defecto
