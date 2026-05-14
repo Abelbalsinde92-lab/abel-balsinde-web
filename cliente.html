@@ -313,98 +313,65 @@
     .copy-summary-btn:hover{background:rgba(94,197,240,.14)}
 
     /* ─── HOME PROGRESS RINGS ─── */
-.home-rings-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  margin:16px 0 14px;
-}
-
-.home-ring-card{
-  background:#fff;
-  border:1px solid #e5eaf1;
-  border-radius:24px;
-  padding:16px 8px 14px;
-  text-align:center;
-  box-shadow:0 10px 30px rgba(2,11,24,.06);
-}
-
-.home-ring{
-  width:86px;
-  height:86px;
+.home-ring-svg-wrap{
+  width:96px;
+  height:96px;
   margin:0 auto 10px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:
-    conic-gradient(
-      var(--ring-color, #5EC5F0) calc(var(--p, 0) * 1%),
-      #edf1f5 0
-    );
-  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
-.home-ring::before{
-  content:'';
-  position:absolute;
-  width:62px;
-  height:62px;
-  background:#fff;
-  border-radius:50%;
-  box-shadow:inset 0 4px 12px rgba(2,11,24,.05);
+.home-ring-svg{
+  width:96px;
+  height:96px;
+  transform:rotate(-90deg);
+  overflow:visible;
 }
 
-.home-ring span{
-  position:relative;
-  z-index:1;
-  font-size:19px;
-  font-weight:700;
-  color:#101525;
-  letter-spacing:-.5px;
+.home-ring-track{
+  fill:none;
+  stroke:#edf1f5;
+  stroke-width:15;
+  filter:drop-shadow(0 5px 8px rgba(15,23,42,.08));
 }
 
-.home-ring-label{
-  font-family:var(--font-mono);
-  font-size:9px;
-  letter-spacing:1.4px;
-  text-transform:uppercase;
-  color:#778293;
-  margin-bottom:4px;
+.home-ring-progress{
+  fill:none;
+  stroke-width:15;
+  stroke-linecap:round;
+  transition:stroke-dashoffset .5s ease;
+  filter:drop-shadow(0 7px 9px rgba(15,23,42,.16));
 }
 
-.home-ring-note{
-  font-size:11px;
-  color:#101525;
-  font-weight:600;
-  line-height:1.3;
+.home-ring-percent{
+  transform:rotate(90deg);
+  transform-origin:55px 55px;
+  font-family:var(--font-body);
+  font-size:22px;
+  font-weight:800;
+  fill:#101525;
+  letter-spacing:-1px;
 }
 
 @media(max-width:480px){
-  .home-rings-grid{
-    gap:8px;
+  .home-ring-svg-wrap{
+    width:86px;
+    height:86px;
   }
 
-  .home-ring-card{
-    border-radius:20px;
-    padding:14px 6px 12px;
+  .home-ring-svg{
+    width:86px;
+    height:86px;
   }
 
-  .home-ring{
-    width:76px;
-    height:76px;
+  .home-ring-track,
+  .home-ring-progress{
+    stroke-width:14;
   }
 
-  .home-ring::before{
-    width:54px;
-    height:54px;
-  }
-
-  .home-ring span{
-    font-size:17px;
-  }
-
-  .home-ring-note{
-    font-size:10px;
+  .home-ring-percent{
+    font-size:20px;
   }
 }
     
@@ -3219,11 +3186,32 @@ function getHomeConstanciaPercent() {
 }
 
 function buildHomeRing(label, percent, note, color) {
+  const p = clampPercent(percent);
+  const radius = 42;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (p / 100) * circumference;
+
   return (
     '<div class="home-ring-card">' +
-      '<div class="home-ring" style="--p:' + clampPercent(percent) + ';--ring-color:' + color + ';">' +
-        '<span>' + clampPercent(percent) + '%</span>' +
+      '<div class="home-ring-svg-wrap">' +
+        '<svg class="home-ring-svg" viewBox="0 0 110 110">' +
+          '<defs>' +
+            '<filter id="ringShadow" x="-20%" y="-20%" width="140%" height="140%">' +
+              '<feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="rgba(15,23,42,.18)"/>' +
+            '</filter>' +
+          '</defs>' +
+
+          '<circle class="home-ring-track" cx="55" cy="55" r="' + radius + '"></circle>' +
+
+          '<circle class="home-ring-progress" ' +
+            'cx="55" cy="55" r="' + radius + '" ' +
+            'style="stroke:' + color + ';stroke-dasharray:' + circumference + ';stroke-dashoffset:' + offset + ';">' +
+          '</circle>' +
+
+          '<text x="55" y="61" text-anchor="middle" class="home-ring-percent">' + p + '%</text>' +
+        '</svg>' +
       '</div>' +
+
       '<div class="home-ring-label">' + label + '</div>' +
       '<div class="home-ring-note">' + note + '</div>' +
     '</div>'
