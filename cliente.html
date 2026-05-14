@@ -802,12 +802,6 @@ input, textarea { outline: none; font-family: var(--font-body); }
       <div class="section-body" id="sectionNotes"></div>
     </div>
 
-    <!-- PROGRESO -->
-    <div class="section section-hidden" id="section-progress-circles">
-      <div class="section-header"><h2>PROGRESO VISUAL</h2><span class="sec-badge" id="progressCircleBadge">0</span></div>
-      <div class="section-body" id="sectionProgressCircles"></div>
-    </div>
-
     <!-- PAGOS -->
     <div class="section section-hidden" id="section-payments">
       <div class="section-header"><h2>PAGOS</h2><span class="sec-badge" id="paymentsBadge">0</span></div>
@@ -1235,7 +1229,13 @@ async function renderDashboard() {
   renderHome();
   if (typeof renderProgram==='function') renderProgram();
   await renderClientTraining();
-  renderReservations();renderAssessments();renderHealthAlerts();renderNotes();renderProgressCircles();renderPayments();renderSummary();renderClientData();
+  renderReservations();
+renderAssessments();
+renderHealthAlerts();
+renderNotes();
+renderPayments();
+renderSummary();
+renderClientData();
   const name=clientData.name||'cliente';
   const wa=document.getElementById('btnHeaderWA');
   if (wa) wa.onclick=()=>openWA('Hola Abel, soy '+name+'. Tengo una duda sobre mi plan.');
@@ -1280,7 +1280,15 @@ function buildHomeProgressRings(){
   const dotData=Array.from({length:30},(_,i)=>i<Math.round((constanciaPct/100)*30));
   const card1=buildHomeRing_v2('Plan',planPct+'%','',buildMicroBars(barData,'var(--sport)',100,40),`${finishedSessions} de ${totalSessions} sesiones`,'var(--sport)','section-training');
   const card2=buildHomeRing_v2('Salud',clientAlerts.length,'alerts',buildMicroSpline(splineData,'var(--medical)',100,40),`${clientAlerts.length} indicaciones activas`,'var(--medical)','section-health');
-  const card3=buildHomeRing_v2('Constancia',constanciaPct+'%','',buildMicroDots(dotData,'var(--streak)',100,40),`${constanciaPct}% continuidad`,'var(--streak)','section-progress-circles');
+  const card3=buildHomeRing_v2(
+  'Constancia',
+  constanciaPct+'%',
+  '',
+  buildMicroDots(dotData,'var(--streak)',100,40),
+  `${constanciaPct}% continuidad`,
+  'var(--streak)',
+  'section-assessments'
+);
   return`<div class="home-rings-grid">${card1}${card2}${card3}</div>`;
 }
 
