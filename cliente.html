@@ -1791,6 +1791,61 @@ function renderTrainingCompletionBox(scroll) {
   const area = document.getElementById('trainingCompletionArea');
   if (!area) return;
 
+  const currentSessionId = getCurrentVisibleSessionId();
+  const localProgress = loadTrainingProgressLocal(currentSessionId);
+
+  const alreadyFinished =
+    localProgress?.is_finished === true ||
+    currentTrainingLog?.is_finished === true;
+
+  if (alreadyFinished) {
+    const finishedAt =
+      localProgress?.finished_at ||
+      currentTrainingLog?.finished_at ||
+      new Date().toISOString();
+
+    const feedbackSummary =
+      localProgress?.client_feedback_summary ||
+      currentTrainingLog?.client_feedback_summary ||
+      '';
+
+    const note =
+      localProgress?.client_note ||
+      currentTrainingLog?.client_note ||
+      '';
+
+    area.innerHTML =
+      '<div class="training-finish-card compact">' +
+        '<div class="training-finish-icon">🏁</div>' +
+        '<div class="training-finish-title">Entrenamiento completado</div>' +
+        '<div class="training-finish-sub">Tu sesión quedó registrada el ' + formatDate(String(finishedAt).slice(0,10)) + '. Abel revisará tus notas y ajustará lo necesario.</div>' +
+
+        (
+          feedbackSummary
+            ? '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
+                '<div class="training-notes-title">Observaciones rápidas</div>' +
+                '<div class="training-notes-sub" style="margin-bottom:0;">' + feedbackSummary + '</div>' +
+              '</div>'
+            : ''
+        ) +
+
+        (
+          note
+            ? '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
+                '<div class="training-notes-title">Nota enviada</div>' +
+                '<div class="training-notes-sub" style="margin-bottom:0;">' + note + '</div>' +
+              '</div>'
+            : ''
+        ) +
+      '</div>';
+
+    if (scroll !== false) {
+      area.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+
+    return;
+  }
+
   area.innerHTML =
     '<div class="training-finish-card">' +
       '<div class="training-finish-icon">🏁</div>' +
@@ -1820,7 +1875,9 @@ function renderTrainingCompletionBox(scroll) {
       '</div>' +
     '</div>';
 
-  if (scroll !== false) area.scrollIntoView({ behavior:'smooth', block:'start' });
+  if (scroll !== false) {
+    area.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
 }
 
 function buildFeedbackTag(value, label) {
