@@ -1843,69 +1843,135 @@ const planPct = progressStats.percent;
 
 /* ══ RENDER HOME ══ */
 function renderHome(){
-  const el=document.getElementById('sectionHome');const badge=document.getElementById('homeBadge');
-  if(!el||!clientData)return;
-  if(badge)badge.textContent='Hoy · v20260515-02';
-  const firstName=String(clientData.name||'cliente').split(' ')[0]||'cliente';
-  const today=todayISO();const dateStr=todayFormatted();
-  const nextReservation=clientReservations.find(r=>String(r.date).slice(0,10)>=today&&!['cancelada','cancelado'].includes(String(r.status||'').toLowerCase()));
-  const hasTraining=Boolean(clientTrainingProgram&&clientTrainingSessions.length);
-  const activeSessionId=hasTraining?getFirstAvailableSessionId():null;
-  const activeSession=activeSessionId?getSessionById(activeSessionId):null;
-  const activeWeek=activeSession?clientTrainingWeeks.find(w=>String(w.id)===String(activeSession.week_id)):getActiveTrainingWeek();
+  const el = document.getElementById('sectionHome');
+  const badge = document.getElementById('homeBadge');
+
+  if(!el || !clientData) return;
+
+  if(badge) badge.textContent = uiText('today') + ' · v20260515-02';
+
+  const firstName = String(clientData.name || 'cliente').split(' ')[0] || 'cliente';
+  const today = todayISO();
+  const dateStr = todayFormatted();
+
+  const nextReservation = clientReservations.find(r =>
+    String(r.date).slice(0,10) >= today &&
+    !['cancelada','cancelado'].includes(String(r.status || '').toLowerCase())
+  );
+
+  const hasTraining = Boolean(clientTrainingProgram && clientTrainingSessions.length);
+
+  const activeSessionId = hasTraining ? getFirstAvailableSessionId() : null;
+  const activeSession = activeSessionId ? getSessionById(activeSessionId) : null;
+
+  const activeWeek = activeSession
+    ? clientTrainingWeeks.find(w => String(w.id) === String(activeSession.week_id))
+    : getActiveTrainingWeek();
+
   const weekLabel = activeWeek?.week_number
-  ? tClient('week') + ' ' + activeWeek.week_number
-  : tClient('currentWeek');
-  const sessionIndex=activeSession?clientTrainingSessions.findIndex(s=>String(s.id)===String(activeSession.id)):0;
-  const sessionLabel=activeSession?getSessionDisplayTitle(activeSession,sessionIndex>=0?sessionIndex:0):'Entrenamiento asignado';
-  const trainingFinished=activeSessionId?isSessionFinished(activeSessionId):false;
-  const activeProgramName=clientTrainingProgram?(pickLang(clientTrainingProgram,'name',getLang())||clientTrainingProgram.name||''):'';
-  
-  const metaParts = [weekLabel, getAssignmentScopeLabel(), tClient('level') + ' ' + getAssignedTrainingLevel()]
-  .filter(Boolean)
-  .filter((v, i, arr) => arr.indexOf(v) === i);
+    ? tClient('week') + ' ' + activeWeek.week_number
+    : tClient('currentWeek');
 
-const metaLine = metaParts.join(' · ');
+  const sessionIndex = activeSession
+    ? clientTrainingSessions.findIndex(s => String(s.id) === String(activeSession.id))
+    : 0;
 
-  const reservationMain=nextReservation?formatDate(nextReservation.date)+(nextReservation.time?' · '+formatTime(nextReservation.time):''):'Sin reserva próxima';
-  const reservationSub=nextReservation?((nextReservation.type||'Reserva')+(nextReservation.place?' · '+nextReservation.place:'')):'Toca para ver el calendario';
+  const sessionLabel = activeSession
+    ? getSessionDisplayTitle(activeSession, sessionIndex >= 0 ? sessionIndex : 0)
+    : uiText('training');
 
-  let html='';
-  html+='<div style="padding:4px 0 24px;"><div style="font-family:var(--font-display);font-size:32px;letter-spacing:1.5px;color:var(--text-primary);line-height:1;margin-bottom:6px;">'+uiText('hello')+', '+firstName+'.</div><div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);letter-spacing:0.4px;text-transform:capitalize;">'+dateStr+'</div></div>';
+  const trainingFinished = activeSessionId ? isSessionFinished(activeSessionId) : false;
+
+  const metaParts = [
+    weekLabel,
+    getAssignmentScopeLabel(),
+    tClient('level') + ' ' + getAssignedTrainingLevel()
+  ]
+    .filter(Boolean)
+    .filter((v, i, arr) => arr.indexOf(v) === i);
+
+  const metaLine = metaParts.join(' · ');
+
+  const reservationMain = nextReservation
+    ? formatDate(nextReservation.date) + (nextReservation.time ? ' · ' + formatTime(nextReservation.time) : '')
+    : uiText('noNextReservation');
+
+  const reservationSub = nextReservation
+    ? ((nextReservation.type || 'Reserva') + (nextReservation.place ? ' · ' + nextReservation.place : ''))
+    : uiText('tapCalendar');
+
+  let html = '';
+
+  html +=
+    '<div style="padding:4px 0 24px;">' +
+      '<div style="font-family:var(--font-display);font-size:32px;letter-spacing:1.5px;color:var(--text-primary);line-height:1;margin-bottom:6px;">' +
+        uiText('hello') + ', ' + firstName + '.' +
+      '</div>' +
+      '<div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);letter-spacing:0.4px;text-transform:capitalize;">' +
+        dateStr +
+      '</div>' +
+    '</div>';
 
   if(hasTraining){
+    html +=
+      '<div class="data-card next-session">' +
+        '<div class="next-label">' + uiText('mainTraining') + '</div>' +
+
+        '<div class="dc-row">' +
+          '<span class="dc-title">' + sessionLabel + '</span>' +
+          (
+            trainingFinished
+              ? '<span class="badge badge-green">' + uiText('completed') + '</span>'
+              : '<span class="badge badge-blue">' + uiText('available') + '</span>'
+          ) +
+        '</div>' +
+
+        '<div class="dc-row">' +
+          '<span class="dc-sub">' + metaLine + '</span>' +
+        '</div>' +
+
+        '<div class="action-box">' +
+          '<button class="client-action-btn" onclick="goClientSection(\'section-training\')">' +
+            (trainingFinished ? uiText('viewCompletedTraining') : uiText('startTraining')) +
+          '</button>' +
+        '</div>' +
+      '</div>';
+  } else {
+    html +=
+      '<div class="data-card">' +
+        '<div class="dc-row">' +
+          '<span class="dc-title">' + uiText('training') + '</span>' +
+          '<span class="badge badge-gray">' + uiText('pending') + '</span>' +
+        '</div>' +
+        '<div class="dc-note">' + uiText('noTrainingVisible') + '</div>' +
+      '</div>';
+  }
+
+  html += buildHomeCombatSummary();
+
+  html += buildHomeProgressRings();
+
   html +=
-    '<div class="data-card next-session">' +
-      '<div class="next-label">' + uiText('mainTraining') + '</div>' +
-
-      '<div class="dc-row">' +
-        '<span class="dc-title">' + sessionLabel + '</span>' +
-        (
-          trainingFinished
-            ? '<span class="badge badge-green">' + uiText('completed') + '</span>'
-            : '<span class="badge badge-blue">' + uiText('available') + '</span>'
-        ) +
-      '</div>' +
-
-      '<div class="dc-row">' +
-        '<span class="dc-sub">' + metaLine + '</span>' +
-      '</div>' +
-
-      '<div class="action-box">' +
-        '<button class="client-action-btn" onclick="goClientSection(\'section-training\')">' +
-          (trainingFinished ? uiText('viewCompletedTraining') : uiText('startTraining')) +
-        '</button>' +
+    '<div class="summary-grid" style="margin-top:0;">' +
+      '<div class="summary-card full" onclick="goClientSection(\'section-reservations\')" style="cursor:pointer;">' +
+        '<div class="summary-label">' + uiText('nextReservation') + '</div>' +
+        '<div class="summary-value" style="font-size:16px;font-weight:700;">' +
+          reservationMain +
+        '</div>' +
+        '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;letter-spacing:0.3px;">' +
+          reservationSub +
+        '</div>' +
       '</div>' +
     '</div>';
-} else {
+
   html +=
-    '<div class="data-card">' +
-      '<div class="dc-row">' +
-        '<span class="dc-title">' + uiText('training') + '</span>' +
-        '<span class="badge badge-gray">' + uiText('pending') + '</span>' +
-      '</div>' +
-      '<div class="dc-note">' + uiText('noTrainingVisible') + '</div>' +
+    '<div class="action-box" style="margin-top:12px;">' +
+      '<button class="client-action-btn wa" onclick="clientWA(\'Hola, necesito ayuda con mi área cliente.\')">' +
+        uiText('contactAbel') +
+      '</button>' +
     '</div>';
+
+  el.innerHTML = html;
 }
 
 /* ══ RENDER PROGRAM ══ */
