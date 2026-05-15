@@ -1911,18 +1911,229 @@ function getFirstAvailableSessionId(){const sessions=clientTrainingSessions.slic
 function getWeekIdBySessionId(sessionId){const s=getSessionById(sessionId);return s?String(s.week_id):null;}
 
 function renderTrainingCompletionBox(scroll){
-  const area=document.getElementById('trainingCompletionArea');if(!area)return;
-  const currentSessionId=getCurrentVisibleSessionId();const localProgress=loadTrainingProgressLocal(currentSessionId);
-  const alreadyFinished=localProgress?.is_finished===true||currentTrainingLog?.is_finished===true;
-  if(alreadyFinished){const finishedAt=localProgress?.finished_at||currentTrainingLog?.finished_at||new Date().toISOString();const feedbackSummary=localProgress?.client_feedback_summary||currentTrainingLog?.client_feedback_summary||'';const note=localProgress?.client_note||currentTrainingLog?.client_note||'';area.innerHTML='<div class="training-finish-card compact"><div class="training-finish-icon">🏁</div><div class="training-finish-title">Entrenamiento completado</div><div class="training-finish-sub">Sesión registrada el '+formatDate(String(finishedAt).slice(0,10))+'. Abel revisará tus notas.</div>'+(feedbackSummary?'<div class="training-notes-box" style="text-align:left;margin-top:12px;"><div class="training-notes-title">Observaciones</div><div class="training-finish-sub" style="margin-bottom:0;">'+feedbackSummary+'</div></div>':'')+(note?'<div class="training-notes-box" style="text-align:left;margin-top:12px;"><div class="training-notes-title">Nota enviada</div><div class="training-finish-sub" style="margin-bottom:0;">'+note+'</div></div>':'')+' </div>';if(scroll!==false)area.scrollIntoView({behavior:'smooth',block:'start'});return;}
-  area.innerHTML='<div class="training-finish-card"><div class="training-finish-icon">🏁</div><div class="training-finish-title">¿Todo completado?</div><div class="training-finish-sub">Antes de cerrar, marca cómo fue la sesión.</div><div class="training-notes-box" style="text-align:left;margin-top:16px;"><div class="training-notes-title">Observaciones rápidas</div><div class="training-finish-sub" style="margin-bottom:12px;">Ayuda a Abel a ajustar cargas y dificultad del próximo entrenamiento.</div><div id="trainingFeedbackTags" style="display:grid;gap:8px;margin:12px 0;">'+buildFeedbackTag('ok','Todo bien, sin molestias')+buildFeedbackTag('molestias','Tuve molestias')+buildFeedbackTag('dolor_pare','Sentí dolor y paré')+buildFeedbackTag('baje_peso','Tuve que bajar el peso')+buildFeedbackTag('subi_peso','Tuve que subir el peso')+buildFeedbackTag('muy_cansado','Me sentí muy cansado')+buildFeedbackTag('no_complete','No pude completar todos los bloques')+buildFeedbackTag('falto_tiempo','Me faltó tiempo')+buildFeedbackTag('no_entendi','No entendí bien un ejercicio')+buildFeedbackTag('revisar','Necesito que Abel revise este entrenamiento')+'</div><textarea class="training-notes-textarea" id="trainingFinishNote" placeholder="Comentario opcional para Abel..."></textarea><button class="training-complete-block-btn" onclick="finishTrainingSession()">Cerrar entrenamiento</button></div></div>';
-  if(scroll!==false)area.scrollIntoView({behavior:'smooth',block:'start'});
+  const area = document.getElementById('trainingCompletionArea');
+  if(!area) return;
+
+  const currentSessionId = getCurrentVisibleSessionId();
+  const localProgress = loadTrainingProgressLocal(currentSessionId);
+
+  const alreadyFinished =
+    localProgress?.is_finished === true ||
+    currentTrainingLog?.is_finished === true;
+
+  if(alreadyFinished){
+    const finishedAt =
+      localProgress?.finished_at ||
+      currentTrainingLog?.finished_at ||
+      new Date().toISOString();
+
+    const feedbackSummary =
+      localProgress?.client_feedback_summary ||
+      currentTrainingLog?.client_feedback_summary ||
+      '';
+
+    const note =
+      localProgress?.client_note ||
+      currentTrainingLog?.client_note ||
+      '';
+
+    area.innerHTML =
+      '<div class="training-finish-card compact">' +
+        '<div class="training-finish-title">Entrenamiento completado</div>' +
+        '<div class="training-finish-sub">Sesión registrada el ' +
+          formatDate(String(finishedAt).slice(0,10)) +
+          '. Abel revisará tus notas.</div>' +
+
+        (feedbackSummary
+          ? '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
+              '<div class="training-notes-title">Observaciones</div>' +
+              '<div class="training-finish-sub" style="margin-bottom:0;">' +
+                feedbackSummary +
+              '</div>' +
+            '</div>'
+          : ''
+        ) +
+
+        (note
+          ? '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
+              '<div class="training-notes-title">Nota enviada</div>' +
+              '<div class="training-finish-sub" style="margin-bottom:0;">' +
+                note +
+              '</div>' +
+            '</div>'
+          : ''
+        ) +
+      '</div>';
+
+    if(scroll !== false){
+      area.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+
+    return;
+  }
+
+  area.innerHTML =
+    '<div class="training-finish-card">' +
+      '<div class="training-finish-title">¿Todo completado?</div>' +
+      '<div class="training-finish-sub">Antes de cerrar, marca cómo fue la sesión.</div>' +
+
+      '<div class="training-notes-box" style="text-align:left;margin-top:16px;">' +
+        '<div class="training-notes-title">Observaciones rápidas</div>' +
+        '<div class="training-finish-sub" style="margin-bottom:12px;">Ayuda a Abel a ajustar cargas y dificultad del próximo entrenamiento.</div>' +
+
+        '<div id="trainingFeedbackTags" style="display:grid;gap:8px;margin:12px 0;">' +
+          buildFeedbackTag('ok','Todo bien, sin molestias') +
+          buildFeedbackTag('molestias','Tuve molestias') +
+          buildFeedbackTag('dolor_pare','Sentí dolor y paré') +
+          buildFeedbackTag('baje_peso','Tuve que bajar el peso') +
+          buildFeedbackTag('subi_peso','Tuve que subir el peso') +
+          buildFeedbackTag('muy_cansado','Me sentí muy cansado') +
+          buildFeedbackTag('no_complete','No pude completar todos los bloques') +
+          buildFeedbackTag('falto_tiempo','Me faltó tiempo') +
+          buildFeedbackTag('no_entendi','No entendí bien un ejercicio') +
+          buildFeedbackTag('revisar','Necesito que Abel revise este entrenamiento') +
+        '</div>' +
+
+        '<textarea class="training-notes-textarea" id="trainingFinishNote" placeholder="Comentario opcional para Abel..."></textarea>' +
+        '<button class="training-complete-block-btn" onclick="finishTrainingSession()">Cerrar entrenamiento</button>' +
+      '</div>' +
+    '</div>';
+
+  if(scroll !== false){
+    area.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
 }
 function buildFeedbackTag(value,label){return'<label class="training-feedback-row"><input type="checkbox" class="training-feedback-check" value="'+value+'"><span>'+label+'</span></label>';}
 async function finishTrainingSession(){const currentSessionId=getCurrentVisibleSessionId();const checkedTags=Array.from(document.querySelectorAll('.training-feedback-check:checked')).map(i=>i.value);const noteEl=document.getElementById('trainingFinishNote');const note=noteEl?noteEl.value.trim():'';const feedbackLabels={ok:'Todo bien, sin molestias',molestias:'Tuve molestias',dolor_pare:'Sentí dolor y paré',baje_peso:'Tuve que bajar el peso',subi_peso:'Tuve que subir el peso',muy_cansado:'Me sentí muy cansado',no_complete:'No pude completar todos los bloques',falto_tiempo:'Me faltó tiempo',no_entendi:'No entendí bien un ejercicio',revisar:'Necesito que Abel revise este entrenamiento'};const feedbackSummary=checkedTags.map(t=>feedbackLabels[t]||t).join(' · ');saveTrainingProgressLocal({is_finished:true,finished_at:new Date().toISOString(),client_note:note,client_feedback_tags:checkedTags,client_feedback_summary:feedbackSummary},currentSessionId);await saveTrainingProgress({is_finished:true,finished_at:new Date().toISOString(),client_note:note||null,client_feedback_tags:checkedTags,client_feedback_summary:feedbackSummary||null},currentSessionId);const nextSessionId=getNextSessionId(currentSessionId);if(nextSessionId)saveLastActiveSession(nextSessionId);showCompletedToastAndGoNext(currentSessionId);}
-function showCompletedToastAndGoNext(currentSessionId){const area=document.getElementById('trainingCompletionArea');const nextSessionId=getNextSessionId(currentSessionId);if(area)area.innerHTML='<div class="training-finish-card" style="padding:22px 18px;"><div class="training-finish-icon">🏁</div><div class="training-finish-title">Entrenamiento guardado</div><div class="training-finish-sub">'+(nextSessionId?'Pasando al siguiente día...':'Sesión completada. Abel revisará tus notas.')+'</div></div>';setTimeout(()=>{if(!nextSessionId){renderClientTraining();return;}saveLastActiveSession(nextSessionId);renderClientTraining().then(async()=>{const nwid=getWeekIdBySessionId(nextSessionId);if(nwid)showTrainingWeekPanel(nwid);await showTrainingDay(nextSessionId);});},3000);}
+function showCompletedToastAndGoNext(currentSessionId){
+  const area = document.getElementById('trainingCompletionArea');
+  const nextSessionId = getNextSessionId(currentSessionId);
+
+  if(area){
+    area.innerHTML =
+      '<div class="training-finish-card" style="padding:22px 18px;">' +
+        '<div class="training-finish-title">Entrenamiento guardado</div>' +
+        '<div class="training-finish-sub">' +
+          (nextSessionId
+            ? 'Pasando al siguiente día...'
+            : 'Sesión completada. Abel revisará tus notas.'
+          ) +
+        '</div>' +
+      '</div>';
+  }
+
+  setTimeout(() => {
+    if(!nextSessionId){
+      renderClientTraining();
+      return;
+    }
+
+    saveLastActiveSession(nextSessionId);
+
+    renderClientTraining().then(async () => {
+      const nwid = getWeekIdBySessionId(nextSessionId);
+      if(nwid) showTrainingWeekPanel(nwid);
+      await showTrainingDay(nextSessionId);
+    });
+  }, 3000);
+}
 function toggleCompletedTrainingDetails(){const d=document.getElementById('trainingCompletedDetails');if(!d){const ap=document.querySelector('.training-session-panel.active')||document.querySelector('.training-day-panel.active');if(!ap)return;const sid=ap.dataset.sessionId;if(!sid)return;const steps=buildTrainingSteps(sid);let html='<div id="trainingCompletedDetails" style="margin-top:14px;"><div class="training-step-list">';steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div></div>';ap.insertAdjacentHTML('beforeend',html);steps.forEach(step=>markStepVisualAsCompleted(step.blockId));return;}d.classList.toggle('hidden');if(!d.classList.contains('hidden'))d.scrollIntoView({behavior:'smooth',block:'start'});}
-function renderTrainingCompletedState(){const el=document.getElementById('sectionTrainingClient');if(!el)return;const savedNote=currentTrainingLog?.client_note||'';const feedbackSummary=currentTrainingLog?.client_feedback_summary||'';const finDate=currentTrainingLog?.finished_at?formatDate(String(currentTrainingLog.finished_at).slice(0,10)):formatDate(todayISO());let html='<div class="training-finish-card compact"><div class="training-finish-icon">🏁</div><div class="training-finish-title">Entrenamiento completado</div><div class="training-finish-sub">Tu sesión quedó registrada el '+finDate+'. Abel revisará tus notas.</div>';if(feedbackSummary)html+='<div class="training-notes-box" style="text-align:left;margin-top:16px;"><div class="training-notes-title">Observaciones rápidas</div><div class="training-finish-sub" style="margin-bottom:0;">'+feedbackSummary+'</div></div>';if(savedNote)html+='<div class="training-notes-box" style="text-align:left;margin-top:12px;"><div class="training-notes-title">Nota enviada</div><div class="training-finish-sub" style="margin-bottom:0;">'+savedNote+'</div></div>';html+='<button class="client-action-btn" style="margin-top:16px;" onclick="toggleCompletedTrainingDetails()">Ver detalles del entrenamiento</button></div>';html+='<div id="trainingCompletedDetails" class="hidden" style="margin-top:14px;"><div class="training-step-list">';const steps=buildTrainingSteps();if(clientTrainingSessions.length>1){html+='<div class="training-day-tabs">';clientTrainingSessions.forEach((s,i)=>{const sid=String(s.id);html+='<button class="training-day-tab'+(i===0?' active':'')+'" data-session-id="'+sid+'" onclick="showTrainingDay(\''+sid+'\')">'+getSessionDayLabel(s,i)+'</button>';});html+='</div>';clientTrainingSessions.forEach((s,i)=>{const sid=String(s.id);const ss=buildTrainingSteps(sid);html+='<div class="training-day-panel'+(i===0?' active':'')+'" data-session-id="'+sid+'"><div class="training-step-list">';ss.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div></div>';});}else{steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});}html+='</div></div><div id="trainingCompletionArea"></div>';el.insertAdjacentHTML('beforeend',html);completedTrainingBlocks=new Set(currentTrainingLog?.completed_block_ids||steps.map(s=>s.blockId));applySavedTrainingState();}
+function renderTrainingCompletedState(){
+  const el = document.getElementById('sectionTrainingClient');
+  if(!el) return;
+
+  const savedNote = currentTrainingLog?.client_note || '';
+  const feedbackSummary = currentTrainingLog?.client_feedback_summary || '';
+  const finDate = currentTrainingLog?.finished_at
+    ? formatDate(String(currentTrainingLog.finished_at).slice(0,10))
+    : formatDate(todayISO());
+
+  let html =
+    '<div class="training-finish-card compact">' +
+      '<div class="training-finish-title">Entrenamiento completado</div>' +
+      '<div class="training-finish-sub">Tu sesión quedó registrada el ' +
+        finDate +
+        '. Abel revisará tus notas.</div>';
+
+  if(feedbackSummary){
+    html +=
+      '<div class="training-notes-box" style="text-align:left;margin-top:16px;">' +
+        '<div class="training-notes-title">Observaciones rápidas</div>' +
+        '<div class="training-finish-sub" style="margin-bottom:0;">' +
+          feedbackSummary +
+        '</div>' +
+      '</div>';
+  }
+
+  if(savedNote){
+    html +=
+      '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
+        '<div class="training-notes-title">Nota enviada</div>' +
+        '<div class="training-finish-sub" style="margin-bottom:0;">' +
+          savedNote +
+        '</div>' +
+      '</div>';
+  }
+
+  html +=
+      '<button class="client-action-btn" style="margin-top:16px;" onclick="toggleCompletedTrainingDetails()">Ver detalles del entrenamiento</button>' +
+    '</div>';
+
+  html +=
+    '<div id="trainingCompletedDetails" class="hidden" style="margin-top:14px;">' +
+      '<div class="training-step-list">';
+
+  const steps = buildTrainingSteps();
+
+  if(clientTrainingSessions.length > 1){
+    html += '<div class="training-day-tabs">';
+
+    clientTrainingSessions.forEach((s,i) => {
+      const sid = String(s.id);
+      html +=
+        '<button class="training-day-tab' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' +
+          getSessionDayLabel(s,i) +
+        '</button>';
+    });
+
+    html += '</div>';
+
+    clientTrainingSessions.forEach((s,i) => {
+      const sid = String(s.id);
+      const ss = buildTrainingSteps(sid);
+
+      html +=
+        '<div class="training-day-panel' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '">' +
+          '<div class="training-step-list">';
+
+      ss.forEach((step,j) => {
+        html += buildTrainingStepHTML(step,j);
+      });
+
+      html +=
+          '</div>' +
+        '</div>';
+    });
+
+  } else {
+    steps.forEach((step,j) => {
+      html += buildTrainingStepHTML(step,j);
+    });
+  }
+
+  html +=
+      '</div>' +
+    '</div>' +
+    '<div id="trainingCompletionArea"></div>';
+
+  el.insertAdjacentHTML('beforeend', html);
+
+  completedTrainingBlocks = new Set(
+    currentTrainingLog?.completed_block_ids || steps.map(s => s.blockId)
+  );
+
+  applySavedTrainingState();
+}
 
 /* ══ EVALUACIONES ══ */
 function buildMiniChart(pts){if(!pts||pts.length<2)return null;const vals=pts.map(d=>d.value),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;const W=260,H=50,P=6;const mapped=pts.map((d,i)=>({x:P+(i/(pts.length-1))*(W-P*2),y:P+(H-P*2)-((d.value-min)/range)*(H-P*2),date:d.date,value:d.value}));const line=mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');const area=[mapped[0].x.toFixed(1)+','+(H-P).toFixed(1)].concat(mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1))).concat([mapped[mapped.length-1].x.toFixed(1)+','+(H-P).toFixed(1)]).join(' ');const dots=mapped.map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="var(--sport)" stroke="var(--card)" stroke-width="1.5"/>').join('');const labs=mapped.map(p=>'<span class="mini-chart-label">'+String(p.date||'').slice(5)+'<br>'+p.value+'</span>').join('');return'<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="display:block"><polygon points="'+area+'" fill="rgba(0,163,255,0.06)"/><polyline points="'+line+'" fill="none" stroke="var(--sport)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div class="mini-chart-labels">'+labs+'</div>';}
