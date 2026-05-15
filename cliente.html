@@ -886,7 +886,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   </main>
 </div>
 
-<script src="/auth.js?v=20260513-02"></script>
+<script src="/auth.js?v=20260515-02"></script>
 
 <script>
 /* ══════════════════════════════════════════════════════════
@@ -918,7 +918,7 @@ let completedTrainingBlocks  = new Set();
 let activeTrainingBlockKey   = null;
 let currentTrainingLog       = null;
 let clientSessionLogs        = [];
-let AB_LANG = localStorage.getItem("ab_lang") || "es";
+let AB_LANG = "es";
 
 function updateLangButtons() {
   document.querySelectorAll(".lang-switch button").forEach(btn => {
@@ -1246,6 +1246,9 @@ async function loadClientDashboard(clientId) {
     if (cErr||!client){Auth.logout();return;}
     clientData=client;
 
+    AB_LANG = (clientData.preferred_lang || 'es').toLowerCase();
+document.documentElement.lang = AB_LANG === 'sr' ? 'sr' : 'es';
+    
     const [resR,payR,metR,halR,proR,assignR,assR,logsR]=await Promise.all([
   db.from('reservations').select('*').eq('client_id',clientId).order('date',{ascending:true}),
   db.from('payments').select('*').eq('client_id',clientId).order('due_date',{ascending:false}),
@@ -1269,174 +1272,77 @@ async function loadClientDashboard(clientId) {
       clientAssessmentResults=rr.data||[];
     }
 
-    clientTrainingProgram=null;clientTrainingWeeks=[];clientTrainingSessions=[];clientTrainingBlocks=[];clientTrainingExercises=[];
-
-    const pid=clientTrainingAssignment?.program_id||null;
-    if (pid) {
-      let visibleR;
-      try {
-        visibleR = await db.from('client_training_plan_visible').select('*')
-          .eq('client_id',clientId).eq('program_id',pid)
-          .order('week_order',{ascending:true}).order('session_order',{ascending:true})
-          .order('block_order',{ascending:true}).order('exercise_order',{ascending:true});
-      } catch(e) { visibleR={data:[],error:e}; }
-      if (!visibleR) visibleR={data:[],error:null};
-      window.__AB_DEBUG_CLIENT__={visibleRows:visibleR.data?.length||0,visibleError:visibleR.error||null,assignment:clientTrainingAssignment||null};
-
-      if (!visibleR.error) {
-        let rows=visibleR.data||[];
-        const scope=getAssignmentScope();
-        if (scope==='day') {
-          const aw=Number(clientTrainingAssignment?.assigned_week||clientTrainingAssignment?.current_week||1);
-          const as=Number(clientTrainingAssignment?.assigned_session_number||1);
-          rows=rows.filter(r=>Number(r.week_order)===aw&&Number(r.session_order)===as);
-        } else if (scope==='week') {
-          const aw=Number(clientTrainingAssignment?.assigned_week||clientTrainingAssignment?.current_week||1);
-          rows=rows.filter(r=>Number(r.week_order)===aw);
-        } else if (scope==='month') {
-          const am=Number(clientTrainingAssignment?.assigned_month||1);
-          const sw=(am-1)*4+1;
-          rows=rows.filter(r=>Number(r.week_order)>=sw&&Number(r.week_order)<=sw+3);
-        }
-
-        if (rows.length) {
-          const first=rows[0];
-          clientTrainingProgram = {
+    clientTrainingProgram = {
   id: first.program_id,
-
-  name: valRow(first, 'program_name_es', 'program_name'),
-  name_es: valRow(first, 'program_name_es', 'program_name'),
-  name_sr: valRow(first, 'program_name_sr'),
-
-  description: valRow(first, 'program_description_es', 'program_description'),
-  description_es: valRow(first, 'program_description_es', 'program_description'),
-  description_sr: valRow(first, 'program_description_sr'),
-
-  objective: valRow(first, 'program_objective_es', 'program_objective'),
-  objective_es: valRow(first, 'program_objective_es', 'program_objective'),
-  objective_sr: valRow(first, 'program_objective_sr'),
-
-  type: valRow(first, 'program_type_es', 'program_type'),
-  type_es: valRow(first, 'program_type_es', 'program_type'),
-  type_sr: valRow(first, 'program_type_sr'),
-
-  level: valRow(first, 'program_level_es', 'program_level'),
-  level_es: valRow(first, 'program_level_es', 'program_level'),
-  level_sr: valRow(first, 'program_level_sr')
+  name: first.program_name || '',
+  description: first.program_description || '',
+  objective: first.program_objective || '',
+  type: first.program_type || '',
+  level: first.program_level || ''
 };
-          
-          const weeksMap=new Map(),sessionsMap=new Map(),blocksMap=new Map();
-          rows.forEach(r=>{
-            if (!weeksMap.has(r.week_id)) {
-  weeksMap.set(r.week_id, {
-  id: r.week_id,
-  week_number: r.week_order,
 
-  name: valRow(r, 'week_name_es', 'week_name'),
-  name_es: valRow(r, 'week_name_es', 'week_name'),
-  name_sr: valRow(r, 'week_name_sr'),
+const weeksMap = new Map();
+const sessionsMap = new Map();
+const blocksMap = new Map();
 
-  description: valRow(r, 'week_description_es', 'week_description'),
-  description_es: valRow(r, 'week_description_es', 'week_description'),
-  description_sr: valRow(r, 'week_description_sr'),
+rows.forEach(r => {
+  if (!weeksMap.has(r.week_id)) {
+    weeksMap.set(r.week_id, {
+      id: r.week_id,
+      week_number: r.week_order,
+      name: r.week_name || '',
+      description: r.week_description || '',
+      objective: r.week_objective || '',
+      focus: r.week_focus || ''
+    });
+  }
 
-  objective: valRow(r, 'week_objective_es', 'week_objective'),
-  objective_es: valRow(r, 'week_objective_es', 'week_objective'),
-  objective_sr: valRow(r, 'week_objective_sr'),
+  if (!sessionsMap.has(r.session_id)) {
+    sessionsMap.set(r.session_id, {
+      id: r.session_id,
+      week_id: r.week_id,
+      session_number: r.session_order,
+      title: r.session_title || '',
+      description: r.session_description || '',
+      objective: r.session_objective || '',
+      intensity: r.session_intensity || ''
+    });
+  }
 
-  focus: valRow(r, 'week_focus_es', 'week_focus'),
-  focus_es: valRow(r, 'week_focus_es', 'week_focus'),
-  focus_sr: valRow(r, 'week_focus_sr')
-});
-}
-            if (!sessionsMap.has(r.session_id)) {
-  sessionsMap.set(r.session_id, {
-  id: r.session_id,
-  week_id: r.week_id,
-  session_number: r.session_order,
+  if (!blocksMap.has(r.block_id)) {
+    blocksMap.set(r.block_id, {
+      id: r.block_id,
+      session_id: r.session_id,
+      block_order: r.block_order,
+      title: r.block_title || '',
+      description: r.block_description || '',
+      objective: r.block_objective || '',
+      type: r.block_type || '',
+      duration: r.block_duration || ''
+    });
+  }
 
-  title: valRow(r, 'session_title_es', 'session_title'),
-  title_es: valRow(r, 'session_title_es', 'session_title'),
-  title_sr: valRow(r, 'session_title_sr'),
+  clientTrainingExercises.push({
+    id: r.exercise_id,
+    block_id: r.block_id,
+    exercise_order: r.exercise_order,
 
-  objective: valRow(r, 'session_objective_es', 'session_objective'),
-  objective_es: valRow(r, 'session_objective_es', 'session_objective'),
-  objective_sr: valRow(r, 'session_objective_sr'),
+    name: r.exercise_name || '',
+    description: r.exercise_description || '',
 
-  description: valRow(r, 'session_description_es', 'session_description'),
-  description_es: valRow(r, 'session_description_es', 'session_description'),
-  description_sr: valRow(r, 'session_description_sr'),
+    sets: r.sets || '',
+    reps: r.reps || '',
+    time: r.time || '',
+    rest: r.rest || '',
 
-  intensity: valRow(r, 'session_intensity_es', 'session_intensity'),
-  intensity_es: valRow(r, 'session_intensity_es', 'session_intensity'),
-  intensity_sr: valRow(r, 'session_intensity_sr')
-});
-}
-            if (!blocksMap.has(r.block_id)) {
-  blocksMap.set(r.block_id, {
-  id: r.block_id,
-  session_id: r.session_id,
-  block_order: r.block_order,
+    variant_n1: r.variant_n1 || '',
+    variant_n2: r.variant_n2 || '',
+    variant_n3: r.variant_n3 || '',
+    variant_n4: r.variant_n4 || '',
 
-  title: valRow(r, 'block_title_es', 'block_title'),
-  title_es: valRow(r, 'block_title_es', 'block_title'),
-  title_sr: valRow(r, 'block_title_sr'),
-
-  objective: valRow(r, 'block_objective_es', 'block_objective'),
-  objective_es: valRow(r, 'block_objective_es', 'block_objective'),
-  objective_sr: valRow(r, 'block_objective_sr'),
-
-  description: valRow(r, 'block_description_es', 'block_description'),
-  description_es: valRow(r, 'block_description_es', 'block_description'),
-  description_sr: valRow(r, 'block_description_sr'),
-
-  type: valRow(r, 'block_type_es', 'block_type'),
-  type_es: valRow(r, 'block_type_es', 'block_type'),
-  type_sr: valRow(r, 'block_type_sr'),
-
-  duration: r.block_duration
-});
-}
-            clientTrainingExercises.push({
-  id: r.exercise_id,
-  block_id: r.block_id,
-  exercise_order: r.exercise_order,
-
-  name: valRow(r, 'exercise_name_es', 'exercise_name'),
-  name_es: valRow(r, 'exercise_name_es', 'exercise_name'),
-  name_sr: valRow(r, 'exercise_name_sr'),
-
-  description: valRow(r, 'exercise_description_es', 'exercise_description'),
-  description_es: valRow(r, 'exercise_description_es', 'exercise_description'),
-  description_sr: valRow(r, 'exercise_description_sr'),
-
-  sets: r.sets,
-  reps: r.reps,
-  time: r.time,
-  rest: r.rest,
-
-  variant_n1: valRow(r, 'variant_n1_es', 'variant_n1'),
-  variant_n1_es: valRow(r, 'variant_n1_es', 'variant_n1'),
-  variant_n1_sr: valRow(r, 'variant_n1_sr'),
-
-  variant_n2: valRow(r, 'variant_n2_es', 'variant_n2'),
-  variant_n2_es: valRow(r, 'variant_n2_es', 'variant_n2'),
-  variant_n2_sr: valRow(r, 'variant_n2_sr'),
-
-  variant_n3: valRow(r, 'variant_n3_es', 'variant_n3'),
-  variant_n3_es: valRow(r, 'variant_n3_es', 'variant_n3'),
-  variant_n3_sr: valRow(r, 'variant_n3_sr'),
-
-  variant_n4: valRow(r, 'variant_n4_es', 'variant_n4'),
-  variant_n4_es: valRow(r, 'variant_n4_es', 'variant_n4'),
-  variant_n4_sr: valRow(r, 'variant_n4_sr'),
-
-  coaching_notes: valRow(r, 'coaching_notes_es', 'coaching_notes'),
-  coaching_notes_es: valRow(r, 'coaching_notes_es', 'coaching_notes'),
-  coaching_notes_sr: valRow(r, 'coaching_notes_sr'),
-
-  video_url: r.video_url || ''
-});
+    coaching_notes: r.coaching_notes || '',
+    video_url: r.video_url || ''
+  });
 });
           clientTrainingWeeks=Array.from(weeksMap.values()).sort((a,b)=>Number(a.week_number||0)-Number(b.week_number||0));
           clientTrainingSessions=Array.from(sessionsMap.values()).sort((a,b)=>{
@@ -1505,17 +1411,12 @@ function valRow(r, ...keys) {
 }
 
 /* ══ LANG ══ */
-function pickLang(obj,base,lang) {
+function pickLang(obj, base) {
   if (!obj) return '';
-  const l=(lang||clientData?.preferred_lang||'es').toLowerCase();
-  const camelLang=base+l.charAt(0).toUpperCase()+l.slice(1);
-  const snakeLang=base+'_'+l;
-  const camelEs=base+'Es';
-  const snakeEs=base+'_es';
-  return String(obj[camelLang]||obj[snakeLang]||obj[camelEs]||obj[snakeEs]||obj[base]||'').trim();
+  return String(obj[base] || '').trim();
 }
 function getLang() {
-  return AB_LANG || (clientData?.preferred_lang || 'es').toLowerCase();
+  return (clientData?.preferred_lang || AB_LANG || 'es').toLowerCase();
 }
 
 /* ══ HOME RINGS ══ */
@@ -1739,7 +1640,7 @@ const planPct = progressStats.percent;
 function renderHome(){
   const el=document.getElementById('sectionHome');const badge=document.getElementById('homeBadge');
   if(!el||!clientData)return;
-  if(badge)badge.textContent='Hoy';
+  if(badge)badge.textContent='Hoy · v20260515-02';
   const firstName=String(clientData.name||'cliente').split(' ')[0]||'cliente';
   const today=todayISO();const dateStr=todayFormatted();
   const nextReservation=clientReservations.find(r=>String(r.date).slice(0,10)>=today&&!['cancelada','cancelado'].includes(String(r.status||'').toLowerCase()));
@@ -1747,13 +1648,15 @@ function renderHome(){
   const activeSessionId=hasTraining?getFirstAvailableSessionId():null;
   const activeSession=activeSessionId?getSessionById(activeSessionId):null;
   const activeWeek=activeSession?clientTrainingWeeks.find(w=>String(w.id)===String(activeSession.week_id)):getActiveTrainingWeek();
-  const weekLabel=activeWeek?.week_number?'Semana '+activeWeek.week_number:'Semana actual';
+  const weekLabel = activeWeek?.week_number
+  ? tClient('week') + ' ' + activeWeek.week_number
+  : tClient('currentWeek');
   const sessionIndex=activeSession?clientTrainingSessions.findIndex(s=>String(s.id)===String(activeSession.id)):0;
   const sessionLabel=activeSession?getSessionDisplayTitle(activeSession,sessionIndex>=0?sessionIndex:0):'Entrenamiento asignado';
   const trainingFinished=activeSessionId?isSessionFinished(activeSessionId):false;
   const activeProgramName=clientTrainingProgram?(pickLang(clientTrainingProgram,'name',getLang())||clientTrainingProgram.name||''):'';
   
-  const metaParts = [weekLabel, getAssignmentScopeLabel(), 'Nivel ' + getAssignedTrainingLevel()]
+  const metaParts = [weekLabel, getAssignmentScopeLabel(), tClient('level') + ' ' + getAssignedTrainingLevel()]
   .filter(Boolean)
   .filter((v, i, arr) => arr.indexOf(v) === i);
 
@@ -1884,377 +1787,7 @@ function tClient(key) {
 
   const txt = {
     es: {
-      week: "Semana",
-      currentWeek: "Semana actual",
-      level: "Nivel",
-      pending: "Pendiente",
-      completed: "Completado",
-      blockCompleted: "Bloque completado",
-      completeBlock: "Marcar bloque terminado",
-      noExercises: "Este bloque todavía no tiene ejercicios.",
-      sets: "Series",
-      reps: "Reps",
-      time: "Tiempo",
-      rest: "Descanso",
-      indicatedWork: "Trabajo indicado",
-      howTo: "Cómo hacerlo",
-      coach: "Coach",
-      dayA: "Día A",
-      dayB: "Día B",
-      dayC: "Día C",
-      day: "Día"
-    },
-    sr: {
-      week: "Nedelja",
-      currentWeek: "Trenutna nedelja",
-      level: "Nivo",
-      pending: "Na čekanju",
-      completed: "Završeno",
-      blockCompleted: "Blok završen",
-      completeBlock: "Označi blok kao završen",
-      noExercises: "Ovaj blok još nema vežbe.",
-      sets: "Serije",
-      reps: "Ponavljanja",
-      time: "Vreme",
-      rest: "Odmor",
-      indicatedWork: "Zadatak",
-      howTo: "Kako se radi",
-      coach: "Trener",
-      dayA: "Dan A",
-      dayB: "Dan B",
-      dayC: "Dan C",
-      day: "Dan"
-    }
-  };
-
-  return txt[lang]?.[key] || txt.es[key] || key;
-}
-
-/* ══ TRAINING ══ */
-function getSessionDayLabel(session,index){
-  const num = Number(session.session_number || index + 1);
-
-  if(num === 1) return tClient('dayA');
-  if(num === 2) return tClient('dayB');
-  if(num === 3) return tClient('dayC');
-
-  return tClient('day') + ' ' + num;
-}
-function getSessionDisplayTitle(session,index){const day=getSessionDayLabel(session,index);const lg=getLang();let title=lg==='sr'?session.title_sr||session.title||'':session.title_es||session.title||'';title=String(title||'').trim();if(!title||title.toLowerCase()===day.toLowerCase())return day;if(title.toLowerCase().startsWith('dan ')||title.toLowerCase().startsWith('día ')||title.toLowerCase().startsWith('dia '))return title;return day+' · '+title;}
-function showTrainingDay(sessionId){saveLastActiveSession(sessionId);const btn=document.querySelector('.training-day-tab[data-session-id="'+sessionId+'"]');const scope=btn?.closest('.training-week-panel')||document;scope.querySelectorAll('.training-day-tab').forEach(b=>{if(!String(b.dataset.weekId||'').length)b.classList.toggle('active',String(b.dataset.sessionId)===String(sessionId));});scope.querySelectorAll('.training-session-panel,.training-day-panel').forEach(p=>{if(p.dataset.sessionId)p.classList.toggle('active',String(p.dataset.sessionId)===String(sessionId));});const active=scope.querySelector('.training-session-panel.active[data-session-id="'+sessionId+'"],.training-day-panel.active[data-session-id="'+sessionId+'"]');if(active)active.scrollIntoView({behavior:'smooth',block:'nearest'});loadOrCreateTrainingLog(sessionId);}
-function showTrainingWeekPanel(weekId){document.querySelectorAll('.training-week-tab').forEach(b=>b.classList.toggle('active',b.dataset.weekId===String(weekId)));document.querySelectorAll('.training-week-panel').forEach(p=>p.classList.toggle('active',p.dataset.weekId===String(weekId)));document.querySelector('.training-week-panel[data-week-id="'+weekId+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});}
-function buildTrainingSteps(sessionIdFilter){const steps=[];const sessions=sessionIdFilter?clientTrainingSessions.filter(s=>String(s.id)===String(sessionIdFilter)):clientTrainingSessions;sessions.forEach((session,sIdx)=>{const realIdx=clientTrainingSessions.findIndex(s=>String(s.id)===String(session.id));const blocks=clientTrainingBlocks.filter(b=>b.session_id===session.id).slice().sort((a,b)=>Number(a.block_order||0)-Number(b.block_order||0));blocks.forEach((block,bIdx)=>{const exercises=clientTrainingExercises.filter(e=>e.block_id===block.id).slice().sort((a,b)=>Number(a.exercise_order||0)-Number(b.exercise_order||0));steps.push({blockId:String(block.id),block,exercises,sessionId:String(session.id),session,sessionSeparator:bIdx===0?getSessionDisplayTitle(session,realIdx>=0?realIdx:sIdx):null});});});return steps;}
-function getActiveTrainingWeek(){if(!clientTrainingAssignment)return null;const currentWeek=Number(clientTrainingAssignment?.current_week||1);return clientTrainingWeeks.find(w=>Number(w.week_number)===currentWeek)||clientTrainingWeeks[0]||null;}
-async function loadOrCreateTrainingLog(sessionId){
-  if(!clientData||!clientTrainingAssignment||!clientTrainingProgram)return null;
-  const sid=sessionId||getCurrentVisibleSessionId();if(!sid)return null;
-  const localProgress=loadTrainingProgressLocal(sid);
-  if(localProgress){completedTrainingBlocks=new Set(localProgress.completed_block_ids||[]);currentTrainingLog={...(currentTrainingLog||{}),...localProgress};}
-  const session=clientTrainingSessions.find(s=>String(s.id)===String(sid));
-  const week=session?clientTrainingWeeks.find(w=>String(w.id)===String(session.week_id)):getActiveTrainingWeek();
-  const payload={client_id:clientData.id,assignment_id:clientTrainingAssignment.id,program_id:clientTrainingProgram.id,week_id:week?week.id:null,session_id:sid,training_date:todayISO()};
-  try{
-    const existing=await db.from('client_session_logs').select('*').eq('client_id',payload.client_id).eq('assignment_id',payload.assignment_id).eq('session_id',payload.session_id).eq('training_date',payload.training_date).maybeSingle();
-    if(existing.error){console.error('Log read error:',existing.error);return currentTrainingLog;}
-    if(existing.data){completedTrainingBlocks=new Set([...(existing.data.completed_block_ids||[]),...(localProgress?.completed_block_ids||[])]);currentTrainingLog={...existing.data,completed_block_ids:Array.from(completedTrainingBlocks),is_finished:existing.data.is_finished||localProgress?.is_finished||false,client_note:existing.data.client_note||localProgress?.client_note||'',client_feedback_tags:existing.data.client_feedback_tags||localProgress?.client_feedback_tags||[],client_feedback_summary:existing.data.client_feedback_summary||localProgress?.client_feedback_summary||''};saveTrainingProgressLocal(currentTrainingLog,sid);return currentTrainingLog;}
-    const created=await db.from('client_session_logs').insert({...payload,completed_block_ids:Array.from(completedTrainingBlocks),is_finished:localProgress?.is_finished||false,client_note:localProgress?.client_note||'',client_feedback_tags:localProgress?.client_feedback_tags||[],client_feedback_summary:localProgress?.client_feedback_summary||'',started_at:new Date().toISOString()}).select().single();
-    if(created.error){console.error('Log create error:',created.error);return currentTrainingLog;}
-    currentTrainingLog=created.data;saveTrainingProgressLocal(currentTrainingLog,sid);return currentTrainingLog;
-  }catch(err){console.error('Log error:',err);return currentTrainingLog;}
-}
-async function saveTrainingProgress(extra,sessionId){
-  const sid=sessionId||getCurrentVisibleSessionId();saveTrainingProgressLocal(extra,sid);
-  if(!currentTrainingLog?.id||String(currentTrainingLog.session_id)!==String(sid))await loadOrCreateTrainingLog(sid);
-  if(!currentTrainingLog?.id){console.warn('No log ID');return;}
-  const local=loadTrainingProgressLocal(sid)||{};
-  try{const saved=await db.from('client_session_logs').update({completed_block_ids:Array.from(completedTrainingBlocks),is_finished:local.is_finished||false,client_note:local.client_note||null,client_feedback_tags:local.client_feedback_tags||extra?.client_feedback_tags||[],client_feedback_summary:local.client_feedback_summary||extra?.client_feedback_summary||null,updated_at:new Date().toISOString(),...(extra||{})}).eq('id',currentTrainingLog.id).select().single();if(!saved.error){currentTrainingLog=saved.data;saveTrainingProgressLocal(currentTrainingLog,sid);}else console.error('Log save error:',saved.error);}catch(err){console.error('Log save error:',err);}
-}
-
-function buildCompletedSessionCard(session,index){
-  const title = getSessionDisplayTitle(session,index);
-  const week = clientTrainingWeeks.find(w => String(w.id) === String(session.week_id));
-  const weekLabel = week?.week_number
-  ? tClient('week') + ' ' + week.week_number
-  : tClient('week');
-
-  return (
-    '<div class="training-session-completed-card">' +
-      '<div class="training-session-completed-row">' +
-
-        '<div style="flex:1;min-width:0;">' +
-          '<div class="training-session-completed-title">Entrenamiento completado</div>' +
-          '<div class="training-session-completed-sub">' + title + ' · ' + weekLabel + '</div>' +
-          '<div style="font-size:12px;color:var(--text-secondary);margin-top:8px;line-height:1.6;font-family:var(--font-mono);">' +
-            'Buen trabajo. Tu sesión quedó registrada y Abel podrá revisar tus observaciones.' +
-          '</div>' +
-        '</div>' +
-
-      '</div>' +
-
-      '<button class="client-action-btn" style="margin-top:14px;" onclick="toggleCompletedTrainingDetails()">Ver detalles del entrenamiento</button>' +
-    '</div>'
-  );
-}
-
-async function renderClientTraining(){
-  const el = document.getElementById('sectionTrainingClient');
-  const badge = document.getElementById('trainingClientBadge');
-
-  if(!el) return;
-
-  completedTrainingBlocks = new Set();
-  activeTrainingBlockKey = null;
-  currentTrainingLog = null;
-
-  if(!clientTrainingProgram){
-    if(badge) badge.textContent = 'Sin datos';
-
-    el.innerHTML =
-      '<p class="empty-state">No hay entrenamiento visible para este alcance.</p>' +
-      '<div class="data-card" style="margin-top:10px;">' +
-        '<div class="dc-row">' +
-          '<span class="dc-title" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.8px;">Diagnóstico</span>' +
-        '</div>' +
-        '<div class="dc-note">Cliente ID: ' + (clientData?.id || '—') + '</div>' +
-        '<div class="dc-note">Asignación: ' + (clientTrainingAssignment?.id || 'NO') + '</div>' +
-        '<div class="dc-note">Programa ID: ' + (clientTrainingAssignment?.program_id || 'NO') + '</div>' +
-        '<div class="dc-note">Alcance: ' + (clientTrainingAssignment?.assignment_scope || 'NO') + '</div>' +
-        '<div class="dc-note">Rows visibles: ' + (window.__AB_DEBUG_CLIENT__?.visibleRows ?? '—') + '</div>' +
-        '<div class="dc-note">Error: ' + (window.__AB_DEBUG_CLIENT__?.visibleError?.message || 'Ninguno') + '</div>' +
-      '</div>';
-
-    return;
-  }
-
-  const initialActiveSessionId = getInitialActiveSessionId();
-
-  if(clientTrainingAssignment && initialActiveSessionId){
-    await loadOrCreateTrainingLog(initialActiveSessionId);
-  } else {
-    const lp = loadTrainingProgressLocal(initialActiveSessionId);
-    if(lp){
-      completedTrainingBlocks = new Set(lp.completed_block_ids || []);
-      currentTrainingLog = lp;
-    }
-  }
-
-  const lg = getLang();
-  const levelStr = getAssignedTrainingLevel();
-  const scopeLabel = getAssignmentScopeLabel();
-
-  if(badge) badge.textContent = scopeLabel;
-
-  const allSteps = buildTrainingSteps();
-
-  if(!allSteps.length){
-    el.innerHTML = '<p class="empty-state">Este programa todavía no tiene bloques cargados.</p>';
-    return;
-  }
-
-  function buildSessionMiniHeader(session, index){
-    const dayLabel = getSessionDayLabel(session, index);
-
-    let sessionTitle = lg === 'sr'
-      ? session.title_sr || session.title || ''
-      : session.title_es || session.title || '';
-
-    sessionTitle = String(sessionTitle || '').trim();
-
-    const cleanTitle = sessionTitle
-      .replace(/^(día|dia|dan)\s+[a-z]\s*[-–—·]?\s*/i,'')
-      .replace(/^entrenamiento\s*/i,'')
-      .trim();
-
-    const week = clientTrainingWeeks.find(w =>
-      String(w.id) === String(session?.week_
-
-    const weekLabel = week?.week_number
-  ? tClient('week') + ' ' + week.week_number
-  : tClient('currentWeek');
-
-    return (
-      '<div class="training-mini-hero">' +
-
-        '<div class="training-mini-hero-top">' +
-          '<div class="training-mini-day">' + dayLabel + '</div>' +
-          '<div class="training-mini-week">' + weekLabel + '</div>' +
-        '</div>' +
-
-        '<div class="training-mini-meta">Nivel ' + levelStr + '</div>' +
-
-        (
-          cleanTitle
-            ? '<div class="training-mini-title">' + cleanTitle + '</div>'
-            : ''
-        ) +
-
-      '</div>'
-    );
-  }
-
-  let html = '';
-
-  if(clientTrainingSessions.length > 1){
-    const sessionsByWeek = new Map();
-
-    clientTrainingSessions.forEach(s => {
-      const wid = String(s.week_id);
-      if(!sessionsByWeek.has(wid)) sessionsByWeek.set(wid, []);
-      sessionsByWeek.get(wid).push(s);
-    });
-
-    const weeks = Array.from(sessionsByWeek.entries());
-
-    if(weeks.length === 1){
-      const sessions = weeks[0][1];
-      const initialSessionId = getFirstAvailableSessionId();
-
-      html += '<div class="training-day-tabs">';
-
-      sessions.forEach((s,i) => {
-        const sid = String(s.id);
-
-        html +=
-          '<button class="training-day-tab' + (sid === String(initialSessionId) ? ' active' : '') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' +
-            getSessionDayLabel(s,i) +
-          '</button>';
-      });
-
-      html += '</div>';
-
-      sessions.forEach((s,i) => {
-        const sid = String(s.id);
-
-        html += '<div class="training-day-panel' + (sid === String(initialSessionId) ? ' active' : '') + '" data-session-id="' + sid + '">';
-        html += buildSessionMiniHeader(s,i);
-
-        if(isSessionFinished(sid)){
-          html += buildCompletedSessionCard(s,i);
-        } else {
-          const steps = buildTrainingSteps(sid);
-
-          html += '<div class="training-step-list">';
-          steps.forEach((step,j) => {
-            html += buildTrainingStepHTML(step,j);
-          });
-          html += '</div>';
-        }
-
-        html += '</div>';
-      });
-
-    } else {
-      const initialActiveWeekId = getWeekIdBySessionId(initialActiveSessionId) || weeks[0]?.[0];
-
-      html += '<div class="training-day-tabs training-week-tabs">';
-
-      weeks.forEach(([wid,sessions],wi) => {
-        const week = clientTrainingWeeks.find(w => String(w.id) === wid);
-
-        html +=
-          '<button class="training-day-tab training-week-tab' + (String(wid) === String(initialActiveWeekId) ? ' active' : '') + '" data-week-id="' + wid + '" onclick="showTrainingWeekPanel(\'' + wid + '\')">' +
-            'Semana ' + (week?.week_number || (wi + 1)) +
-          '</button>';
-      });
-
-      html += '</div>';
-
-      weeks.forEach(([wid,sessions]) => {
-        const isAW = String(wid) === String(initialActiveWeekId);
-
-        html += '<div class="training-day-panel training-week-panel' + (isAW ? ' active' : '') + '" data-week-id="' + wid + '">';
-
-        html += '<div class="training-day-tabs">';
-
-        sessions.forEach((s,si) => {
-          const sid = String(s.id);
-
-          html +=
-            '<button class="training-day-tab' + (String(s.id) === String(initialActiveSessionId) ? ' active' : '') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' +
-              getSessionDayLabel(s,si) +
-            '</button>';
-        });
-
-        html += '</div>';
-
-        sessions.forEach((s,si) => {
-          const sid = String(s.id);
-
-          html += '<div class="training-session-panel' + (String(s.id) === String(initialActiveSessionId) ? ' active' : '') + '" data-session-id="' + sid + '">';
-          html += buildSessionMiniHeader(s,si);
-
-          if(isSessionFinished(sid)){
-            html += buildCompletedSessionCard(s,si);
-          } else {
-            const steps = buildTrainingSteps(sid);
-
-            html += '<div class="training-step-list">';
-            steps.forEach((step,j) => {
-              html += buildTrainingStepHTML(step,j);
-            });
-            html += '</div>';
-          }
-
-          html += '</div>';
-        });
-
-        html += '</div>';
-      });
-    }
-
-  } else {
-    const session = clientTrainingSessions[0];
-    const sid = String(session?.id || initialActiveSessionId || '');
-
-    html += '<div class="training-day-panel active" data-session-id="' + sid + '">';
-    html += buildSessionMiniHeader(session,0);
-
-    if(sid && isSessionFinished(sid)){
-      html += buildCompletedSessionCard(session,0);
-    } else {
-      html += '<div class="training-step-list">';
-      allSteps.forEach((step,i) => {
-        html += buildTrainingStepHTML(step,i);
-      });
-      html += '</div>';
-    }
-
-    html += '</div>';
-  }
-
-  html += '<div id="trainingCompletionArea"></div>';
-
-  el.innerHTML = html;
-
-  applySavedTrainingState();
-
-  const activeSessionId = getCurrentVisibleSessionId() || initialActiveSessionId;
-  const activeSessionFinished = activeSessionId ? isSessionFinished(activeSessionId) : false;
-  const visibleSteps = activeSessionId ? buildTrainingSteps(activeSessionId) : allSteps;
-
-  if(activeSessionFinished){
-    const area = document.getElementById('trainingCompletionArea');
-    if(area) area.innerHTML = '';
-    return;
-  }
-
-  const firstPending = visibleSteps.find(s => !completedTrainingBlocks.has(s.blockId));
-
-  if(firstPending){
-    activeTrainingBlockKey = firstPending.blockId;
-
-    const card = document.getElementById('step-' + firstPending.blockId);
-    if(card) card.classList.add('open');
-  } else {
-    renderTrainingCompletionBox(false);
-  }
-}
-
-function tClient(key) {
-  const lang = getLang();
-
-  const txt = {
-    es: {
+      block: "Bloque",
       week: "Semana",
       currentWeek: "Semana actual",
       level: "Nivel",
@@ -2281,6 +1814,7 @@ function tClient(key) {
       details: "Ver detalles del entrenamiento"
     },
     sr: {
+      block: "Blok",
       week: "Nedelja",
       currentWeek: "Trenutna nedelja",
       level: "Nivo",
@@ -2326,9 +1860,7 @@ function getSessionDisplayTitle(session,index){
   const day = getSessionDayLabel(session,index);
   const lg = getLang();
 
-  let title = lg === 'sr'
-    ? session.title_sr || session.title || ''
-    : session.title_es || session.title || '';
+  let title = session.title || '';
 
   title = String(title || '').trim();
 
@@ -2567,6 +2099,256 @@ async function saveTrainingProgress(extra,sessionId){
   }
 }
 
+async function renderClientTraining(){
+  const el = document.getElementById('sectionTrainingClient');
+  const badge = document.getElementById('trainingClientBadge');
+
+  if(!el) return;
+
+  completedTrainingBlocks = new Set();
+  activeTrainingBlockKey = null;
+  currentTrainingLog = null;
+
+  if(!clientTrainingProgram){
+    if(badge) badge.textContent = 'Sin datos';
+
+    el.innerHTML =
+      '<p class="empty-state">No hay entrenamiento visible para este alcance.</p>' +
+      '<div class="data-card" style="margin-top:10px;">' +
+        '<div class="dc-row">' +
+          '<span class="dc-title" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.8px;">Diagnóstico</span>' +
+        '</div>' +
+        '<div class="dc-note">Cliente ID: ' + (clientData?.id || '—') + '</div>' +
+        '<div class="dc-note">Asignación: ' + (clientTrainingAssignment?.id || 'NO') + '</div>' +
+        '<div class="dc-note">Programa ID: ' + (clientTrainingAssignment?.program_id || 'NO') + '</div>' +
+        '<div class="dc-note">Alcance: ' + (clientTrainingAssignment?.assignment_scope || 'NO') + '</div>' +
+        '<div class="dc-note">Rows visibles: ' + (window.__AB_DEBUG_CLIENT__?.visibleRows ?? '—') + '</div>' +
+        '<div class="dc-note">Error: ' + (window.__AB_DEBUG_CLIENT__?.visibleError?.message || 'Ninguno') + '</div>' +
+      '</div>';
+
+    return;
+  }
+
+  const initialActiveSessionId = getInitialActiveSessionId();
+
+  if(clientTrainingAssignment && initialActiveSessionId){
+    await loadOrCreateTrainingLog(initialActiveSessionId);
+  } else {
+    const lp = loadTrainingProgressLocal(initialActiveSessionId);
+    if(lp){
+      completedTrainingBlocks = new Set(lp.completed_block_ids || []);
+      currentTrainingLog = lp;
+    }
+  }
+
+  const levelStr = getAssignedTrainingLevel();
+  const scopeLabel = getAssignmentScopeLabel();
+
+  if(badge) badge.textContent = scopeLabel;
+
+  const allSteps = buildTrainingSteps();
+
+  if(!allSteps.length){
+    el.innerHTML = '<p class="empty-state">Este programa todavía no tiene bloques cargados.</p>';
+    return;
+  }
+
+  function buildSessionMiniHeader(session, index){
+    const dayLabel = getSessionDayLabel(session, index);
+
+    let sessionTitle = session.title || '';
+
+    sessionTitle = String(sessionTitle || '').trim();
+
+    const cleanTitle = sessionTitle
+      .replace(/^(día|dia|dan)\s+[a-z]\s*[-–—·]?\s*/i,'')
+      .replace(/^entrenamiento\s*/i,'')
+      .trim();
+
+    const week = clientTrainingWeeks.find(w =>
+      String(w.id) === String(session?.week_id)
+    );
+
+    const weekLabel = week?.week_number
+      ? tClient('week') + ' ' + week.week_number
+      : tClient('currentWeek');
+
+    return (
+      '<div class="training-mini-hero">' +
+        '<div class="training-mini-hero-top">' +
+          '<div class="training-mini-day">' + dayLabel + '</div>' +
+          '<div class="training-mini-week">' + weekLabel + '</div>' +
+        '</div>' +
+
+        '<div class="training-mini-meta">' + tClient('level') + ' ' + levelStr + '</div>' +
+
+        (
+          cleanTitle
+            ? '<div class="training-mini-title">' + cleanTitle + '</div>'
+            : ''
+        ) +
+      '</div>'
+    );
+  }
+
+  let html = '';
+
+  if(clientTrainingSessions.length > 1){
+    const sessionsByWeek = new Map();
+
+    clientTrainingSessions.forEach(s => {
+      const wid = String(s.week_id);
+      if(!sessionsByWeek.has(wid)) sessionsByWeek.set(wid, []);
+      sessionsByWeek.get(wid).push(s);
+    });
+
+    const weeks = Array.from(sessionsByWeek.entries());
+
+    if(weeks.length === 1){
+      const sessions = weeks[0][1];
+      const initialSessionId = getFirstAvailableSessionId();
+
+      html += '<div class="training-day-tabs">';
+
+      sessions.forEach((s,i) => {
+        const sid = String(s.id);
+
+        html +=
+          '<button class="training-day-tab' + (sid === String(initialSessionId) ? ' active' : '') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' +
+            getSessionDayLabel(s,i) +
+          '</button>';
+      });
+
+      html += '</div>';
+
+      sessions.forEach((s,i) => {
+        const sid = String(s.id);
+
+        html += '<div class="training-day-panel' + (sid === String(initialSessionId) ? ' active' : '') + '" data-session-id="' + sid + '">';
+        html += buildSessionMiniHeader(s,i);
+
+        if(isSessionFinished(sid)){
+          html += buildCompletedSessionCard(s,i);
+        } else {
+          const steps = buildTrainingSteps(sid);
+
+          html += '<div class="training-step-list">';
+          steps.forEach((step,j) => {
+            html += buildTrainingStepHTML(step,j);
+          });
+          html += '</div>';
+        }
+
+        html += '</div>';
+      });
+
+    } else {
+      const initialActiveWeekId = getWeekIdBySessionId(initialActiveSessionId) || weeks[0]?.[0];
+
+      html += '<div class="training-day-tabs training-week-tabs">';
+
+      weeks.forEach(([wid,sessions],wi) => {
+        const week = clientTrainingWeeks.find(w => String(w.id) === wid);
+
+        html +=
+          '<button class="training-day-tab training-week-tab' + (String(wid) === String(initialActiveWeekId) ? ' active' : '') + '" data-week-id="' + wid + '" onclick="showTrainingWeekPanel(\'' + wid + '\')">' +
+            tClient('week') + ' ' + (week?.week_number || (wi + 1)) +
+          '</button>';
+      });
+
+      html += '</div>';
+
+      weeks.forEach(([wid,sessions]) => {
+        const isAW = String(wid) === String(initialActiveWeekId);
+
+        html += '<div class="training-day-panel training-week-panel' + (isAW ? ' active' : '') + '" data-week-id="' + wid + '">';
+
+        html += '<div class="training-day-tabs">';
+
+        sessions.forEach((s,si) => {
+          const sid = String(s.id);
+
+          html +=
+            '<button class="training-day-tab' + (String(s.id) === String(initialActiveSessionId) ? ' active' : '') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' +
+              getSessionDayLabel(s,si) +
+            '</button>';
+        });
+
+        html += '</div>';
+
+        sessions.forEach((s,si) => {
+          const sid = String(s.id);
+
+          html += '<div class="training-session-panel' + (String(s.id) === String(initialActiveSessionId) ? ' active' : '') + '" data-session-id="' + sid + '">';
+          html += buildSessionMiniHeader(s,si);
+
+          if(isSessionFinished(sid)){
+            html += buildCompletedSessionCard(s,si);
+          } else {
+            const steps = buildTrainingSteps(sid);
+
+            html += '<div class="training-step-list">';
+            steps.forEach((step,j) => {
+              html += buildTrainingStepHTML(step,j);
+            });
+            html += '</div>';
+          }
+
+          html += '</div>';
+        });
+
+        html += '</div>';
+      });
+    }
+
+  } else {
+    const session = clientTrainingSessions[0];
+    const sid = String(session?.id || initialActiveSessionId || '');
+
+    html += '<div class="training-day-panel active" data-session-id="' + sid + '">';
+    html += buildSessionMiniHeader(session,0);
+
+    if(sid && isSessionFinished(sid)){
+      html += buildCompletedSessionCard(session,0);
+    } else {
+      html += '<div class="training-step-list">';
+      allSteps.forEach((step,i) => {
+        html += buildTrainingStepHTML(step,i);
+      });
+      html += '</div>';
+    }
+
+    html += '</div>';
+  }
+
+  html += '<div id="trainingCompletionArea"></div>';
+
+  el.innerHTML = html;
+
+  applySavedTrainingState();
+
+  const activeSessionId = getCurrentVisibleSessionId() || initialActiveSessionId;
+  const activeSessionFinished = activeSessionId ? isSessionFinished(activeSessionId) : false;
+  const visibleSteps = activeSessionId ? buildTrainingSteps(activeSessionId) : allSteps;
+
+  if(activeSessionFinished){
+    const area = document.getElementById('trainingCompletionArea');
+    if(area) area.innerHTML = '';
+    return;
+  }
+
+  const firstPending = visibleSteps.find(s => !completedTrainingBlocks.has(s.blockId));
+
+  if(firstPending){
+    activeTrainingBlockKey = firstPending.blockId;
+
+    const card = document.getElementById('step-' + firstPending.blockId);
+    if(card) card.classList.add('open');
+  } else {
+    renderTrainingCompletionBox(false);
+  }
+}
+
 function buildCompletedSessionCard(session,index){
   const title = getSessionDisplayTitle(session,index);
   const week = clientTrainingWeeks.find(w => String(w.id) === String(session.week_id));
@@ -2658,18 +2440,11 @@ function buildExerciseHTML(ex){
   const lvl = getAssignedTrainingLevel();
   const _lg = getLang();
 
-  function pickVariant(ex,lvl,lang){
-    const l = (lang || 'es').toLowerCase();
+  function pickVariant(ex,lvl){
+  return ex['variant_' + lvl.toLowerCase()] || '';
+}
 
-    return (
-      ex['variant_' + lvl.toLowerCase() + '_' + l] ||
-      ex['variant_' + lvl.toLowerCase() + '_es'] ||
-      ex['variant_' + lvl.toLowerCase()] ||
-      ''
-    );
-  }
-
-  const variant = pickVariant(ex,lvl,_lg);
+  const variant = pickVariant(ex,lvl);
 
   const exName =
     pickLang(ex,'name',_lg) ||
