@@ -1404,49 +1404,68 @@ function getConstanciaState(finishedSessions, totalSessions){
   };
 }
 
+function getHealthHomeState(){
+  const totalAlerts = Number(clientAlerts.length || 0);
+
+  if(totalAlerts <= 0){
+    return {
+      value: 'OK',
+      unit: '',
+      note: 'Sin indicaciones activas',
+      color: 'var(--streak)'
+    };
+  }
+
+  if(totalAlerts === 1){
+    return {
+      value: '1',
+      unit: '',
+      note: 'Indicación pendiente',
+      color: 'var(--warn)'
+    };
+  }
+
+  return {
+    value: String(totalAlerts),
+    unit: '',
+    note: 'Indicaciones activas',
+    color: 'var(--medical)'
+  };
+}
+
 function buildHomeProgressRings(){
   const finishedSessions = getFinishedSessionCountFromStorage();
-  const totalSessions = clientTrainingSessions.length;
+  const totalSessions = clientTrainingSessions.length || 1;
 
-  const planPct = totalSessions > 0
-    ? clampPercent((finishedSessions / totalSessions) * 100)
-    : 0;
-
+  const planPct = clampPercent((finishedSessions / totalSessions) * 100);
   const constancia = getConstanciaState(finishedSessions, totalSessions);
+  const healthState = getHealthHomeState();
 
   const barData = [
     40, 65, 55, 80, 70, 90, 60, 75, 85, 95, 50, clampPercent(planPct)
   ];
 
-  const splineData = [
-    72, 78, 74, 80, 76, 82, 79, 85, 88, 83, 77, 81
-  ];
-
-  const healthNote = clientAlerts.length === 1
-    ? '1 indicación activa'
-    : clientAlerts.length + ' indicaciones activas';
-
-  const planNote = totalSessions > 0
-    ? finishedSessions + ' de ' + totalSessions + ' sesiones'
-    : 'Sin sesiones asignadas';
+  const splineData = clientAlerts.length > 0
+    ? [72, 78, 74, 80, 76, 82, 79, 85, 88, 83, 77, 81]
+    : [60, 61, 60, 62, 61, 60, 61, 60, 62, 61, 60, 61];
 
   const card1 = buildHomeRing_v2(
     'Plan',
     planPct + '%',
     '',
     buildMicroBars(barData, 'var(--sport)', 100, 40),
-    planNote,
+    finishedSessions + ' de ' + totalSessions + ' sesiones',
     'var(--sport)',
     'section-training'
   );
 
   const card2 = buildHomeRing_v2(
     'Salud',
-    clientAlerts.length,
-    '',
-    buildMicroSpline(splineData, 'var(--medical)', 100, 40),
-    healthNote,
-    'var(--medical)',
+    healthState.value,
+    healthState.unit,
+    buildMicroSpline(splineData, healthState.color, 100, 40),
+    healthState.note,
+    healthState.color,
     'section-health'
   );
 
