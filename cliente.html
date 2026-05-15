@@ -1852,8 +1852,67 @@ function buildCombatMetricsHTML(){
   );
 }
 
+function tClient(key) {
+  const lang = getLang();
+
+  const txt = {
+    es: {
+      week: "Semana",
+      currentWeek: "Semana actual",
+      level: "Nivel",
+      pending: "Pendiente",
+      completed: "Completado",
+      blockCompleted: "Bloque completado",
+      completeBlock: "Marcar bloque terminado",
+      noExercises: "Este bloque todavía no tiene ejercicios.",
+      sets: "Series",
+      reps: "Reps",
+      time: "Tiempo",
+      rest: "Descanso",
+      indicatedWork: "Trabajo indicado",
+      howTo: "Cómo hacerlo",
+      coach: "Coach",
+      dayA: "Día A",
+      dayB: "Día B",
+      dayC: "Día C",
+      day: "Día"
+    },
+    sr: {
+      week: "Nedelja",
+      currentWeek: "Trenutna nedelja",
+      level: "Nivo",
+      pending: "Na čekanju",
+      completed: "Završeno",
+      blockCompleted: "Blok završen",
+      completeBlock: "Označi blok kao završen",
+      noExercises: "Ovaj blok još nema vežbe.",
+      sets: "Serije",
+      reps: "Ponavljanja",
+      time: "Vreme",
+      rest: "Odmor",
+      indicatedWork: "Zadatak",
+      howTo: "Kako se radi",
+      coach: "Trener",
+      dayA: "Dan A",
+      dayB: "Dan B",
+      dayC: "Dan C",
+      day: "Dan"
+    }
+  };
+
+  return txt[lang]?.[key] || txt.es[key] || key;
+}
+
 /* ══ TRAINING ══ */
-function getSessionDayLabel(session,index){const num=Number(session.session_number||index+1);if(num===1)return'Día A';if(num===2)return'Día B';if(num===3)return'Día C';return'Día '+num;}
+function getSessionDayLabel(session,index){
+  const num = Number(session.session_number || index + 1);
+
+  if(num === 1) return tClient('dayA');
+  if(num === 2) return tClient('dayB');
+  if(num === 3) return tClient('dayC');
+
+  return tClient('day') + ' ' + num;
+}
 function getSessionDisplayTitle(session,index){const day=getSessionDayLabel(session,index);const lg=getLang();let title=lg==='sr'?session.title_sr||session.title||'':session.title_es||session.title||'';title=String(title||'').trim();if(!title||title.toLowerCase()===day.toLowerCase())return day;if(title.toLowerCase().startsWith('dan ')||title.toLowerCase().startsWith('día ')||title.toLowerCase().startsWith('dia '))return title;return day+' · '+title;}
 function showTrainingDay(sessionId){saveLastActiveSession(sessionId);const btn=document.querySelector('.training-day-tab[data-session-id="'+sessionId+'"]');const scope=btn?.closest('.training-week-panel')||document;scope.querySelectorAll('.training-day-tab').forEach(b=>{if(!String(b.dataset.weekId||'').length)b.classList.toggle('active',String(b.dataset.sessionId)===String(sessionId));});scope.querySelectorAll('.training-session-panel,.training-day-panel').forEach(p=>{if(p.dataset.sessionId)p.classList.toggle('active',String(p.dataset.sessionId)===String(sessionId));});const active=scope.querySelector('.training-session-panel.active[data-session-id="'+sessionId+'"],.training-day-panel.active[data-session-id="'+sessionId+'"]');if(active)active.scrollIntoView({behavior:'smooth',block:'nearest'});loadOrCreateTrainingLog(sessionId);}
 function showTrainingWeekPanel(weekId){document.querySelectorAll('.training-week-tab').forEach(b=>b.classList.toggle('active',b.dataset.weekId===String(weekId)));document.querySelectorAll('.training-week-panel').forEach(p=>p.classList.toggle('active',p.dataset.weekId===String(weekId)));document.querySelector('.training-week-panel[data-week-id="'+weekId+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});}
@@ -2213,11 +2272,11 @@ function buildTrainingStepHTML(step,index){
   const blockTitle =
     pickLang(block,'title',_lg) ||
     pickLang(block,'name',_lg) ||
-    tClient('block');
+    'Bloque';
 
   const blockObj = pickLang(block,'objective',_lg);
+  const blockType = pickLang(block,'type',_lg) || block.type || '';
 
-  const blockType = pickLang(block,'type',_lg) || block.type;
   const metaP = [block.duration, blockType].filter(Boolean);
 
   let html = '';
@@ -2228,8 +2287,10 @@ function buildTrainingStepHTML(step,index){
 
   html +=
     '<div class="training-step-card" id="step-' + blockId + '">' +
+
       '<button class="training-step-header" onclick="toggleTrainingStep(\'' + blockId + '\')">' +
         '<div class="training-step-number">' + blockNum + '</div>' +
+
         '<div class="training-step-info">' +
           '<div class="training-step-title">' + blockTitle + '</div>' +
           (
@@ -2238,6 +2299,7 @@ function buildTrainingStepHTML(step,index){
               : ''
           ) +
         '</div>' +
+
         '<div class="training-step-status" id="status-' + blockId + '">' + tClient('pending') + '</div>' +
       '</button>' +
 
@@ -2258,7 +2320,7 @@ function buildTrainingStepHTML(step,index){
 
   html +=
         '<button class="training-complete-block-btn" id="completeBtn-' + blockId + '" onclick="completeTrainingStep(\'' + blockId + '\')">' +
-          tClient('markBlockDone') +
+          tClient('completeBlock') +
         '</button>' +
       '</div>' +
     '</div>';
@@ -2269,6 +2331,100 @@ function buildTrainingStepHTML(step,index){
 function buildExerciseHTML(ex){
   const lvl = getAssignedTrainingLevel();
   const _lg = getLang();
+
+  function pickVariant(ex,lvl,lang){
+    const l = (lang || 'es').toLowerCase();
+
+    return (
+      ex['variant_' + lvl.toLowerCase() + '_' + l] ||
+      ex['variant_' + lvl.toLowerCase() + '_es'] ||
+      ex['variant_' + lvl.toLowerCase()] ||
+      ''
+    );
+  }
+
+  const variant = pickVariant(ex,lvl,_lg);
+
+  const exName =
+    pickLang(ex,'name',_lg) ||
+    pickLang(ex,'title',_lg) ||
+    'Ejercicio';
+
+  const exDesc = pickLang(ex,'description',_lg);
+
+  const exNotes =
+    pickLang(ex,'coaching_notes',_lg) ||
+    pickLang(ex,'coach_notes',_lg) ||
+    ex.coaching_notes ||
+    ex.coach_notes ||
+    '';
+
+  const stats = [
+    ex.sets ? { label: tClient('sets'), value: ex.sets } : null,
+    ex.reps ? { label: tClient('reps'), value: ex.reps } : null,
+    (ex.time || ex.duration) ? { label: tClient('time'), value: (ex.time || ex.duration) } : null,
+    ex.rest ? { label: tClient('rest'), value: ex.rest } : null
+  ].filter(Boolean);
+
+  let html =
+    '<div class="training-exercise-card">' +
+      '<div class="training-exercise-title">' +
+        (
+          ex.exercise_order
+            ? '<span class="training-ex-num">' + ex.exercise_order + '.</span>'
+            : ''
+        ) +
+        exName +
+      '</div>';
+
+  if(stats.length){
+    html += '<div class="training-exercise-grid">';
+
+    stats.forEach(s => {
+      html +=
+        '<div class="training-mini-stat">' +
+          '<span class="training-mini-label">' + s.label + '</span>' +
+          '<div class="training-mini-value">' + s.value + '</div>' +
+        '</div>';
+    });
+
+    html += '</div>';
+  }
+
+  html += '<div class="training-level-tag">' + tClient('level') + ' ' + lvl + '</div>';
+
+  if(variant){
+    html +=
+      '<div class="training-instruction">' +
+        '<strong>' + tClient('indicatedWork') + '</strong>' +
+        variant +
+      '</div>';
+  }
+
+  if(exDesc){
+    html +=
+      '<div class="training-instruction">' +
+        '<strong>' + tClient('howTo') + '</strong>' +
+        exDesc +
+      '</div>';
+  }
+
+  if(exNotes){
+    html +=
+      '<div class="training-coach-note">' +
+        tClient('coach') + ': ' + exNotes +
+      '</div>';
+  }
+
+  if(ex.video_url){
+    html +=
+      '<a href="' + ex.video_url + '" target="_blank" class="training-video-btn">&#9654; Ver referencia</a>';
+  }
+
+  html += '</div>';
+
+  return html;
+}
 
   function pickVariant(ex,lvl,lang){
     const l = (lang || 'es').toLowerCase();
@@ -2363,7 +2519,7 @@ function buildExerciseHTML(ex){
 }
 
 function applySavedTrainingState(){completedTrainingBlocks.forEach(id=>markStepVisualAsCompleted(id));}
-function markStepVisualAsCompleted(blockId){const card=document.getElementById('step-'+blockId);if(!card)return;card.classList.remove('open');card.classList.add('completed');const numEl=card.querySelector('.training-step-number');if(numEl)numEl.textContent='✓';const statusEl=document.getElementById('status-'+blockId);if(statusEl){statusEl.textContent='Completado';statusEl.classList.add('done');}const btn=document.getElementById('completeBtn-'+blockId);if(btn){const msg=document.createElement('div');msg.className='training-step-done-msg';msg.textContent='Bloque completado';btn.replaceWith(msg);}}
+function markStepVisualAsCompleted(blockId){const card=document.getElementById('step-'+blockId);if(!card)return;card.classList.remove('open');card.classList.add('completed');const numEl=card.querySelector('.training-step-number');if(numEl)numEl.textContent='✓';const statusEl=document.getElementById('status-'+blockId);if(statusEl){statusEl.textContent = tClient('completed');statusEl.classList.add('done');}const btn=document.getElementById('completeBtn-'+blockId);if(btn){const msg=document.createElement('div');msg.className='training-step-done-msg';msg.textContent = tClient('blockCompleted');btn.replaceWith(msg);}}
 function toggleTrainingStep(blockId){const card=document.getElementById('step-'+blockId);if(!card)return;if(activeTrainingBlockKey===blockId){card.classList.remove('open');activeTrainingBlockKey=null;}else{if(activeTrainingBlockKey)document.getElementById('step-'+activeTrainingBlockKey)?.classList.remove('open');activeTrainingBlockKey=blockId;card.classList.add('open');}}
 function getSessionIdByBlockId(blockId){const step=buildTrainingSteps().find(s=>String(s.blockId)===String(blockId));return step?String(step.sessionId):null;}
 async function completeTrainingStep(blockId){const sessionId=getSessionIdByBlockId(blockId);completedTrainingBlocks.add(blockId);saveTrainingProgressLocal({},sessionId);markStepVisualAsCompleted(blockId);await saveTrainingProgress({},sessionId);activeTrainingBlockKey=null;const sessionSteps=sessionId?buildTrainingSteps(sessionId):buildTrainingSteps();const sessionIsComplete=sessionSteps.length>0&&sessionSteps.every(s=>completedTrainingBlocks.has(s.blockId));if(sessionIsComplete){renderTrainingCompletionBox(false);return;}const next=sessionSteps.find(s=>!completedTrainingBlocks.has(s.blockId));if(next){activeTrainingBlockKey=next.blockId;const card=document.getElementById('step-'+next.blockId);if(card){card.classList.add('open');setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'start'}),180);}}}
