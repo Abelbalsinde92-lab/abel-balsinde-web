@@ -1310,7 +1310,26 @@ function getFinishedSessionCountFromStorage(){
   return finished.size;
 }
 function buildHomeRing_v2(label,value,unit,svgContent,note,color,targetSection){
-  return`<div class="home-ring-card" onclick="goClientSection('${targetSection}')" title="Ir a ${label}"><div class="home-ring-label">${label}</div><div class="home-ring-value" style="color:${color}">${value}<span style="font-size:14px;color:var(--text-secondary);margin-left:2px;font-family:var(--font-mono)">${unit}</span></div><div class="home-ring-svg-wrap"><svg viewBox="0 0 100 40" preserveAspectRatio="none">${svgContent}</svg></div><div class="home-ring-note">${note}</div></div>`;
+  return (
+    '<div class="home-ring-card" onclick="goClientSection(\'' + targetSection + '\')" title="Ir a ' + label + '">' +
+      '<div class="home-ring-label">' + label + '</div>' +
+
+      '<div class="home-ring-value" style="color:' + color + '">' +
+        value +
+        (unit
+          ? '<span style="font-size:14px;color:var(--text-secondary);margin-left:2px;font-family:var(--font-mono)">' + unit + '</span>'
+          : ''
+        ) +
+      '</div>' +
+
+      (svgContent
+        ? '<div class="home-ring-svg-wrap"><svg viewBox="0 0 100 40" preserveAspectRatio="none">' + svgContent + '</svg></div>'
+        : ''
+      ) +
+
+      '<div class="home-ring-note">' + note + '</div>' +
+    '</div>'
+  );
 }
 
 function getConstanciaState(finishedSessions, totalSessions){
@@ -1319,58 +1338,47 @@ function getConstanciaState(finishedSessions, totalSessions){
 
   if(total <= 0){
     return {
-      value: '0%',
-      note: 'Empieza tu racha',
-      dotsPercent: 0
+      value: '—',
+      note: 'Sin plan activo'
     };
   }
 
   const percent = clampPercent((finished / total) * 100);
 
-  if(finished === 0){
+  if(finished <= 0){
     return {
       value: '0%',
-      note: 'Primer entrenamiento pendiente',
-      dotsPercent: 0
-    };
-  }
-
-  if(finished === 1){
-    return {
-      value: '🔥',
-      note: 'Primer paso completado',
-      dotsPercent: Math.max(percent, 25)
-    };
-  }
-
-  if(finished === 2){
-    return {
-      value: '🔥🔥',
-      note: 'Buena racha',
-      dotsPercent: Math.max(percent, 50)
+      note: 'Primer entrenamiento pendiente'
     };
   }
 
   if(percent >= 100){
     return {
       value: '🔥🔥🔥',
-      note: 'Semana completada',
-      dotsPercent: 100
+      note: 'Semana completada'
+    };
+  }
+
+  if(finished >= 2){
+    return {
+      value: '🔥',
+      note: 'Racha activa'
     };
   }
 
   return {
-    value: '🔥🔥🔥',
-    note: 'Constancia activa',
-    dotsPercent: Math.max(percent, 70)
+    value: percent + '%',
+    note: 'Primer paso completado'
   };
 }
 
 function buildHomeProgressRings(){
   const finishedSessions = getFinishedSessionCountFromStorage();
-  const totalSessions = clientTrainingSessions.length || 1;
+  const totalSessions = clientTrainingSessions.length;
 
-  const planPct = clampPercent((finishedSessions / totalSessions) * 100);
+  const planPct = totalSessions > 0
+    ? clampPercent((finishedSessions / totalSessions) * 100)
+    : 0;
 
   const constancia = getConstanciaState(finishedSessions, totalSessions);
 
@@ -1382,21 +1390,20 @@ function buildHomeProgressRings(){
     72, 78, 74, 80, 76, 82, 79, 85, 88, 83, 77, 81
   ];
 
-  const dotData = Array.from(
-    { length: 30 },
-    (_, i) => i < Math.round((constancia.dotsPercent / 100) * 30)
-  );
-
   const healthNote = clientAlerts.length === 1
     ? '1 indicación activa'
     : clientAlerts.length + ' indicaciones activas';
+
+  const planNote = totalSessions > 0
+    ? finishedSessions + ' de ' + totalSessions + ' sesiones'
+    : 'Sin sesiones asignadas';
 
   const card1 = buildHomeRing_v2(
     'Plan',
     planPct + '%',
     '',
     buildMicroBars(barData, 'var(--sport)', 100, 40),
-    finishedSessions + ' de ' + totalSessions + ' sesiones',
+    planNote,
     'var(--sport)',
     'section-training'
   );
@@ -1415,7 +1422,7 @@ function buildHomeProgressRings(){
     'Constancia',
     constancia.value,
     '',
-    buildMicroDots(dotData, 'var(--streak)', 100, 40),
+    '',
     constancia.note,
     'var(--streak)',
     'section-training'
