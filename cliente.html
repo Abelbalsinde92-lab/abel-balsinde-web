@@ -1387,6 +1387,10 @@ function buildHomeProgressRings(){
     (_, i) => i < Math.round((constancia.dotsPercent / 100) * 30)
   );
 
+  const healthNote = clientAlerts.length === 1
+    ? '1 indicación activa'
+    : clientAlerts.length + ' indicaciones activas';
+
   const card1 = buildHomeRing_v2(
     'Plan',
     planPct + '%',
@@ -1400,9 +1404,9 @@ function buildHomeProgressRings(){
   const card2 = buildHomeRing_v2(
     'Salud',
     clientAlerts.length,
-    'alerts',
+    '',
     buildMicroSpline(splineData, 'var(--medical)', 100, 40),
-    clientAlerts.length + ' indicaciones activas',
+    healthNote,
     'var(--medical)',
     'section-health'
   );
