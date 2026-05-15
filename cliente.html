@@ -1357,8 +1357,9 @@ function getConstanciaState(finishedSessions, totalSessions){
 
   if(total <= 0){
     return {
-      value: '—',
-      note: 'Sin plan activo'
+      value: '0%',
+      note: 'Empieza tu racha',
+      dotsPercent: 0
     };
   }
 
@@ -1367,27 +1368,39 @@ function getConstanciaState(finishedSessions, totalSessions){
   if(finished <= 0){
     return {
       value: '0%',
-      note: 'Primer entrenamiento pendiente'
+      note: 'Primer entrenamiento pendiente',
+      dotsPercent: 0
+    };
+  }
+
+  if(finished === 1 && total > 1){
+    return {
+      value: '🔥',
+      note: 'Primer paso completado',
+      dotsPercent: 0
+    };
+  }
+
+  if(finished === 2 && total > 2){
+    return {
+      value: '🔥🔥',
+      note: 'Buena racha',
+      dotsPercent: 0
     };
   }
 
   if(percent >= 100){
     return {
       value: '🔥🔥🔥',
-      note: 'Semana completada'
-    };
-  }
-
-  if(finished >= 2){
-    return {
-      value: '🔥',
-      note: 'Racha activa'
+      note: 'Semana completada',
+      dotsPercent: 0
     };
   }
 
   return {
-    value: percent + '%',
-    note: 'Primer paso completado'
+    value: '🔥🔥',
+    note: finished + ' de ' + total + ' entrenamientos',
+    dotsPercent: 0
   };
 }
 
