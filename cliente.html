@@ -784,7 +784,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   </header>
 
   <nav class="client-nav" id="clientNav">
-    <button onclick="goClientSection('section-home')">Inicio</button>
+    <button id="navHome" onclick="goClientSection('section-home')">Inicio</button>
     <button onclick="goClientSection('section-training')">Entrenar</button>
     <button onclick="goClientSection('section-assessments')">Progreso</button>
     <button onclick="goClientSection('section-health')">Salud</button>
@@ -1446,7 +1446,10 @@ async function loadClientDashboard(clientId) {
 
 /* ══ RENDER DASHBOARD ══ */
 async function renderDashboard() {
+  updateLangButtons();
   document.documentElement.lang = getLang() === "sr" ? "sr" : "es";
+
+  applyStaticTranslations();
 
   renderHome();
   if (typeof renderProgram==='function') renderProgram();
@@ -1471,6 +1474,113 @@ function valRow(r, ...keys) {
     }
   }
   return '';
+}
+
+function uiText(key) {
+  const lang = getLang();
+
+  const dict = {
+    es: {
+      home: 'Inicio',
+      train: 'Entrenar',
+      progress: 'Progreso',
+      health: 'Salud',
+      profile: 'Perfil',
+      today: 'Hoy',
+      mainTraining: 'Entrenamiento principal',
+      available: 'Disponible',
+      completed: 'Completado',
+      startTraining: 'Empezar entrenamiento',
+      viewCompletedTraining: 'Ver entrenamiento realizado',
+      nextReservation: 'Próxima reserva',
+      noNextReservation: 'Sin reserva próxima',
+      tapCalendar: 'Toca para ver el calendario',
+      contactAbel: 'Contactar a Abel',
+      healthIndications: 'Indicaciones de salud',
+      noActiveHealthNotes: 'Sin indicaciones activas',
+      noHealthAlerts: 'No hay alertas o indicaciones de salud registradas para este cliente.',
+      generalStatus: 'Estado general',
+      followUp: 'Seguimiento',
+      trainingControl: 'Control del entrenamiento',
+      general: 'General',
+      combatAthlete: 'Atleta combate',
+      performanceStatus: 'Estado de rendimiento',
+      combatMetricsActive: 'Métricas de combate activas',
+      viewHealth: 'Ver salud',
+      profileTitle: 'Perfil',
+      personalData: 'Datos personales',
+      name: 'Nombre',
+      phone: 'Teléfono',
+      email: 'Email',
+      city: 'Ciudad',
+      activePlan: 'Plan activo',
+      reservations: 'Reservas',
+      payments: 'Pagos',
+      notes: 'Notas',
+      coachNotes: 'Notas del coach',
+      noCoachNotes: 'Todavía no hay notas del coach.',
+      noPayments: 'No hay pagos registrados.',
+      requestReservation: 'Solicitar nueva reserva'
+    },
+
+    sr: {
+      home: 'Početna',
+      train: 'Trening',
+      progress: 'Napredak',
+      health: 'Zdravlje',
+      profile: 'Profil',
+      today: 'Danas',
+      mainTraining: 'Glavni trening',
+      available: 'Dostupno',
+      completed: 'Završeno',
+      startTraining: 'Počni trening',
+      viewCompletedTraining: 'Pogledaj završen trening',
+      nextReservation: 'Sledeći termin',
+      noNextReservation: 'Nema zakazanog termina',
+      tapCalendar: 'Dodirni za pregled termina',
+      contactAbel: 'Kontaktiraj Abela',
+      healthIndications: 'Zdravstvene napomene',
+      noActiveHealthNotes: 'Nema aktivnih napomena',
+      noHealthAlerts: 'Nema registrovanih zdravstvenih upozorenja ili napomena za ovog klijenta.',
+      generalStatus: 'Opšte stanje',
+      followUp: 'Praćenje',
+      trainingControl: 'Kontrola treninga',
+      general: 'Opšte',
+      combatAthlete: 'Borbeni sportista',
+      performanceStatus: 'Stanje performansi',
+      combatMetricsActive: 'Aktivne borbene metrike',
+      viewHealth: 'Pogledaj zdravlje',
+      profileTitle: 'Profil',
+      personalData: 'Lični podaci',
+      name: 'Ime',
+      phone: 'Telefon',
+      email: 'Email',
+      city: 'Grad',
+      activePlan: 'Aktivan plan',
+      reservations: 'Termini',
+      payments: 'Plaćanja',
+      notes: 'Napomene',
+      coachNotes: 'Napomene trenera',
+      noCoachNotes: 'Još nema napomena trenera.',
+      noPayments: 'Nema registrovanih plaćanja.',
+      requestReservation: 'Zatraži novi termin'
+    }
+  };
+
+  return dict[lang]?.[key] || dict.es[key] || key;
+}
+
+function applyStaticTranslations() {
+  const set = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+
+  set('navHome', uiText('home'));
+  set('navTraining', uiText('train'));
+  set('navProgress', uiText('progress'));
+  set('navHealth', uiText('health'));
+  set('navProfile', uiText('profile'));
 }
 
 /* ══ LANG ══ */
