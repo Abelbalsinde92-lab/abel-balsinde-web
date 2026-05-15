@@ -784,12 +784,12 @@ input, textarea { outline: none; font-family: var(--font-body); }
   </header>
 
   <nav class="client-nav" id="clientNav">
-    <button id="navHome" onclick="goClientSection('section-home')">Inicio</button>
-    <button onclick="goClientSection('section-training')">Entrenar</button>
-    <button onclick="goClientSection('section-assessments')">Progreso</button>
-    <button onclick="goClientSection('section-health')">Salud</button>
-    <button onclick="goClientSection('section-client-data')">Perfil</button>
-  </nav>
+  <button id="navHome" onclick="goClientSection('section-home')">Inicio</button>
+  <button id="navTraining" onclick="goClientSection('section-training')">Entrenar</button>
+  <button id="navProgress" onclick="goClientSection('section-assessments')">Progreso</button>
+  <button id="navHealth" onclick="goClientSection('section-health')">Salud</button>
+  <button id="navProfile" onclick="goClientSection('section-client-data')">Perfil</button>
+</nav>
 
   <main class="dash-main">
 
@@ -1446,10 +1446,11 @@ async function loadClientDashboard(clientId) {
 
 /* ══ RENDER DASHBOARD ══ */
 async function renderDashboard() {
-  updateLangButtons();
   document.documentElement.lang = getLang() === "sr" ? "sr" : "es";
 
   applyStaticTranslations();
+
+  renderHome();
 
   renderHome();
   if (typeof renderProgram==='function') renderProgram();
