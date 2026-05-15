@@ -742,22 +742,22 @@ input, textarea { outline: none; font-family: var(--font-body); }
     <div class="login-logo">
       <img src="/icon-512.png" alt="AB Coach" class="brand-logo brand-logo-login">
     </div>
-    <h1 class="login-title">ÁREA CLIENTE</h1>
-    <p class="login-sub">Accede a tu seguimiento personal.</p>
+    <h1 class="login-title" id="loginTitleText">ÁREA CLIENTE</h1>
+<p class="login-sub" id="loginSubtitleText">Accede a tu seguimiento personal.</p>
     <div id="loginError" class="login-error hidden"></div>
     <div id="loginInfo"  class="login-info  hidden"></div>
     <div class="field-group">
-      <label for="inputPhone">Teléfono</label>
+      <label for="inputPhone" id="labelPhone">Teléfono</label>
       <input type="tel" id="inputPhone" placeholder="+34 627 493 593" autocomplete="tel" />
     </div>
     <div class="field-group">
-      <label for="inputCode">Código de acceso</label>
+      <label for="inputCode" id="labelAccessCode">Código de acceso</label>
       <input type="text" id="inputCode" placeholder="AB1234" autocomplete="off" />
     </div>
     <button class="btn-login" id="btnLogin">Entrar</button>
-    <button class="btn-wa-login" onclick="openWA('Hola Abel, necesito ayuda para entrar al área cliente.')">
+    <button class="btn-wa-login" id="btnLoginHelp">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/></svg>
-      ¿Necesitas ayuda?
+      <span id="loginHelpText">¿Necesitas ayuda?</span>
     </button>
   </div>
 </div>
@@ -1173,7 +1173,11 @@ function formatMoney(amount, currency) {
   const cur = (currency||'EUR').toUpperCase();
   try { return new Intl.NumberFormat('es-ES',{style:'currency',currency:cur}).format(amount); } catch { return amount+' '+cur; }
 }
-function showError(msg) { const el=document.getElementById('loginError'); el.textContent=msg||'Teléfono o código incorrecto.'; el.classList.remove('hidden'); }
+function showError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg || uiText('wrongLogin');
+  el.classList.remove('hidden');
+}
 function hideError() { document.getElementById('loginError')?.classList.add('hidden'); }
 function showInfo(msg) { const el=document.getElementById('loginInfo'); if(el){el.textContent=msg;el.classList.remove('hidden');} }
 function showLoading(v) { document.getElementById('loadingOverlay')?.classList.toggle('hidden',!v); }
@@ -1246,18 +1250,39 @@ function hasCombatMetricsEnabled() {
 /* ══ AUTH ══ */
 async function loginClient() {
   hideError();
-  const phone=document.getElementById('inputPhone').value.trim();
-  const code=document.getElementById('inputCode').value.trim();
-  if (!phone||!code){showError('Completa los dos campos.');return;}
+
+  const phone = document.getElementById('inputPhone').value.trim();
+  const code = document.getElementById('inputCode').value.trim();
+
+  if(!phone || !code){
+    showError(uiText('completeBothFields'));
+    return;
+  }
+
   showLoading(true);
+
   try {
-    const {data,error}=await db.rpc('client_login_by_phone_code',{p_phone:phone,p_access_code:code});
-    if (error) throw error;
-    const found=Array.isArray(data)?data[0]:null;
-    if (!found){showLoading(false);showError('Teléfono o código incorrecto.');return;}
+    const { data, error } = await db.rpc('client_login_by_phone_code', {
+      p_phone: phone,
+      p_access_code: code
+    });
+
+    if(error) throw error;
+
+    const found = Array.isArray(data) ? data[0] : null;
+
+    if(!found){
+      showLoading(false);
+      showError(uiText('wrongLogin'));
+      return;
+    }
+
     Auth.loginAsClient(found.id);
+
   } catch(err) {
-    console.error('Login error:',err);showLoading(false);showError('Error al validar acceso. Inténtalo de nuevo.');
+    console.error('Login error:', err);
+    showLoading(false);
+    showError(uiText('loginConnectionError'));
   }
 }
 
@@ -1515,7 +1540,7 @@ async function loadClientDashboard(clientId) {
     document.getElementById('loginScreen')?.classList.remove('hidden');
     document.getElementById('dashboardScreen')?.classList.add('hidden');
 
-    showError('Error de conexión. Inténtalo de nuevo.');
+    showError(uiText('connectionError'));
   }
 }
 
@@ -1538,7 +1563,14 @@ renderSummary();
 renderClientData();
   const name=clientData.name||'cliente';
   const wa=document.getElementById('btnHeaderWA');
-  if (wa) wa.onclick=()=>openWA('Hola Abel, soy '+name+'. Tengo una duda sobre mi plan.');
+  if (wa) {
+  wa.onclick = () => openWA(
+    (getLang() === 'sr' ? 'Zdravo Abel, ja sam ' : 'Hola Abel, soy ') +
+    name +
+    '. ' +
+    uiText('waPlanQuestion')
+  );
+}
   goClientSection('section-home');
 }
 
@@ -1722,6 +1754,31 @@ sessionRegisteredOn: 'Sesión registrada el',
 abelWillReviewNotes: 'Abel revisará tus notas.',
 observations: 'Observaciones',
 sentNote: 'Nota enviada',
+summaryTitle: 'Resumen AB Coach',
+client: 'Cliente',
+programActive: 'Programa activo',
+metrics: 'Métricas',
+copySummary: 'Copiar resumen al portapapeles',
+copied: 'Copiado',
+couldNotCopy: 'No se pudo copiar.',
+noReservations: 'Sin reservas',
+atTime: 'a las',
+loginTitle: 'ÁREA CLIENTE',
+loginSubtitle: 'Accede a tu seguimiento personal.',
+phone: 'Teléfono',
+accessCode: 'Código de acceso',
+enter: 'Entrar',
+needHelp: '¿Necesitas ayuda?',
+loadingSession: 'Cargando sesión',
+completeBothFields: 'Completa los dos campos.',
+wrongLogin: 'Teléfono o código incorrecto.',
+loginConnectionError: 'Error al validar acceso. Inténtalo de nuevo.',
+connectionError: 'Error de conexión. Inténtalo de nuevo.',
+adminLoginInfo: 'Eres admin. Introduce las credenciales de un cliente para verlo.',
+logout: 'Salir',
+waNeedHelpLogin: 'Hola Abel, necesito ayuda para entrar al área cliente.',
+waPlanQuestion: 'Tengo una duda sobre mi plan.',
+waNeedHelpClientArea: 'Hola, necesito ayuda con mi área cliente.',
 
 feedbackOk: 'Todo bien, sin molestias',
 feedbackDiscomfort: 'Tuve molestias',
@@ -1817,6 +1874,31 @@ sessionRegisteredOn: 'Sesija registrovana',
 abelWillReviewNotes: 'Abel će pregledati tvoje napomene.',
 observations: 'Napomene',
 sentNote: 'Poslata napomena',
+summaryTitle: 'AB Coach sažetak',
+client: 'Klijent',
+programActive: 'Aktivan program',
+metrics: 'Metrike',
+copySummary: 'Kopiraj sažetak',
+copied: 'Kopirano',
+couldNotCopy: 'Nije moguće kopirati.',
+noReservations: 'Nema termina',
+atTime: 'u',
+loginTitle: 'KLIJENTSKA ZONA',
+loginSubtitle: 'Pristupi svom ličnom praćenju.',
+phone: 'Telefon',
+accessCode: 'Pristupni kod',
+enter: 'Uđi',
+needHelp: 'Treba ti pomoć?',
+loadingSession: 'Učitavanje sesije',
+completeBothFields: 'Popuni oba polja.',
+wrongLogin: 'Telefon ili kod nisu tačni.',
+loginConnectionError: 'Greška pri proveri pristupa. Pokušaj ponovo.',
+connectionError: 'Greška u konekciji. Pokušaj ponovo.',
+adminLoginInfo: 'Ti si admin. Unesi kredencijale klijenta da bi video nalog.',
+logout: 'Izlaz',
+waNeedHelpLogin: 'Zdravo Abel, treba mi pomoć da uđem u klijentsku zonu.',
+waPlanQuestion: 'Imam pitanje u vezi sa mojim planom.',
+waNeedHelpClientArea: 'Zdravo, treba mi pomoć oko moje klijentske zone.',
 
 feedbackOk: 'Sve je bilo u redu, bez nelagodnosti',
 feedbackDiscomfort: 'Imao/la sam nelagodnost',
@@ -1968,6 +2050,24 @@ function applyStaticTranslations() {
   set('navProgress', uiText('progress'));
   set('navHealth', uiText('health'));
   set('navProfile', uiText('profile'));
+
+set('loginTitleText', uiText('loginTitle'));
+set('loginSubtitleText', uiText('loginSubtitle'));
+set('labelPhone', uiText('phone'));
+set('labelAccessCode', uiText('accessCode'));
+set('btnLogin', uiText('enter'));
+set('loginHelpText', uiText('needHelp'));
+
+const loadingText = document.querySelector('#loadingOverlay p');
+if(loadingText) loadingText.textContent = uiText('loadingSession');
+
+const logoutLabel = document.querySelector('#btnLogout .btn-label');
+if(logoutLabel) logoutLabel.textContent = uiText('logout');
+
+const loginHelpBtn = document.getElementById('btnLoginHelp');
+if(loginHelpBtn){
+  loginHelpBtn.onclick = () => openWA(uiText('waNeedHelpLogin'));
+}
 
   document.querySelector('#section-home .section-header h2')?.replaceChildren(document.createTextNode(uiText('home').toUpperCase()));
   document.querySelector('#section-training .section-header h2')?.replaceChildren(document.createTextNode(uiText('training').toUpperCase()));
@@ -2331,7 +2431,7 @@ function renderHome(){
 
   html +=
     '<div class="action-box" style="margin-top:12px;">' +
-      '<button class="client-action-btn wa" onclick="clientWA(\'Hola, necesito ayuda con mi área cliente.\')">' +
+      '<button class="client-action-btn wa" onclick="clientWA(uiText(\'waNeedHelpClientArea\'))">' +
         uiText('contactAbel') +
       '</button>' +
     '</div>';
@@ -4233,7 +4333,7 @@ function renderSummary(){
   const lastAss = clientAssessments[0] || null;
 
   const hasPending = clientPayments.some(p =>
-    ['pendiente','vencido','pending','overdue'].includes(String(p.status || '').toLowerCase())
+    ['pendiente','pending','vencido','overdue'].includes(String(p.status || '').toLowerCase())
   );
 
   const hasOverdue = clientPayments.some(p =>
@@ -4263,16 +4363,24 @@ function renderSummary(){
     } else if(typeof rawNotes === 'string'){
       try{
         const parsed = JSON.parse(rawNotes);
+
         if(Array.isArray(parsed) && parsed.length){
           lastNote = typeof parsed[0] === 'string'
             ? parsed[0]
             : (parsed[0].text || parsed[0].note || '');
+        } else {
+          lastNote = rawNotes;
         }
       }catch{
         lastNote = rawNotes;
       }
     }
   }
+
+  const programName =
+    clientTrainingProgram?.name ||
+    clientPrograms?.[0]?.name ||
+    '—';
 
   let html =
     '<div style="background:var(--card);border:1px solid var(--card-border);border-radius:12px;overflow:hidden;">' +
@@ -4299,18 +4407,20 @@ function renderSummary(){
   html +=
     '<div class="summary-card">' +
       '<div class="summary-label">' + uiText('programActive') + '</div>' +
-      '<div class="summary-value">' + (clientTrainingProgram?.name || clientPrograms[0]?.name || '—') + '</div>' +
+      '<div class="summary-value">' + programName + '</div>' +
     '</div>';
 
   html +=
     '<div class="summary-card">' +
       '<div class="summary-label">' + uiText('scope') + '</div>' +
-      '<div class="summary-value">' + (clientTrainingAssignment ? getAssignmentScopeLabel() : '—') + '</div>' +
+      '<div class="summary-value">' +
+        (clientTrainingAssignment ? getAssignmentScopeLabel() : '—') +
+      '</div>' +
     '</div>';
 
   html +=
     '<div class="summary-card">' +
-      '<div class="summary-label">' + uiText('nextSessionSummary') + '</div>' +
+      '<div class="summary-label">' + uiText('nextSession') + '</div>' +
       '<div class="summary-value">' +
         (
           nextRes
@@ -4323,7 +4433,9 @@ function renderSummary(){
   html +=
     '<div class="summary-card">' +
       '<div class="summary-label">' + uiText('payments') + '</div>' +
-      '<div class="summary-value"><span class="badge ' + payClass + '">' + payStatus + '</span></div>' +
+      '<div class="summary-value">' +
+        '<span class="badge ' + payClass + '">' + payStatus + '</span>' +
+      '</div>' +
     '</div>';
 
   html +=
@@ -4343,7 +4455,9 @@ function renderSummary(){
       '<div class="summary-card full">' +
         '<div class="summary-label">' + uiText('lastEvaluation') + '</div>' +
         '<div class="summary-value">' +
-          (lastAss.assessment_name || uiText('functionalTest')) + ' · ' + formatDate(lastAss.assessment_date) +
+          (lastAss.assessment_name || uiText('functionalTest')) +
+          ' · ' +
+          formatDate(lastAss.assessment_date) +
         '</div>' +
       '</div>';
   }
@@ -4351,7 +4465,7 @@ function renderSummary(){
   if(lastNote){
     html +=
       '<div class="summary-card full">' +
-        '<div class="summary-label">' + uiText('lastCoachNote') + '</div>' +
+        '<div class="summary-label">' + uiText('coachNotes') + '</div>' +
         '<div class="summary-value" style="font-style:italic;color:var(--text-secondary);">' +
           lastNote +
         '</div>' +
@@ -4381,7 +4495,7 @@ function copySummaryToClipboard(){
   const lastAss = clientAssessments[0] || null;
 
   const hasPending = clientPayments.some(p =>
-    ['pendiente','vencido','pending','overdue'].includes(String(p.status || '').toLowerCase())
+    ['pendiente','pending','vencido','overdue'].includes(String(p.status || '').toLowerCase())
   );
 
   const hasOverdue = clientPayments.some(p =>
@@ -4405,16 +4519,30 @@ function copySummaryToClipboard(){
     } else if(typeof rawNotes === 'string'){
       try{
         const parsed = JSON.parse(rawNotes);
+
         if(Array.isArray(parsed) && parsed.length){
           lastNote = typeof parsed[0] === 'string'
             ? parsed[0]
             : (parsed[0].text || parsed[0].note || '');
+        } else {
+          lastNote = rawNotes;
         }
       }catch{
         lastNote = rawNotes;
       }
     }
   }
+
+  const nextSessionText = nextRes
+    ? formatDate(nextRes.date) +
+      (nextRes.time ? ' ' + uiText('atTime') + ' ' + formatTime(nextRes.time) : '')
+    : uiText('noReservations');
+
+  const lastEvaluationText = lastAss
+    ? (lastAss.assessment_name || uiText('functionalTest')) +
+      ' · ' +
+      formatDate(lastAss.assessment_date)
+    : '—';
 
   const text = [
     uiText('summaryTitle'),
@@ -4423,19 +4551,13 @@ function copySummaryToClipboard(){
     uiText('training') + ': ' + (clientTrainingProgram?.name || clientPrograms[0]?.name || '—'),
     uiText('scope') + ': ' + (clientTrainingAssignment ? getAssignmentScopeLabel() : '—'),
     uiText('levelLabel') + ': ' + (clientTrainingAssignment?.assigned_level || '—'),
-    uiText('nextSessionSummary') + ': ' + (
-      nextRes
-        ? formatDate(nextRes.date) + (nextRes.time ? ' ' + uiText('atTime') + ' ' + formatTime(nextRes.time) : '')
-        : uiText('noReservations')
-    ),
-    uiText('lastEvaluation') + ': ' + (
-      lastAss
-        ? (lastAss.assessment_name || uiText('functionalTest')) + ' · ' + formatDate(lastAss.assessment_date)
-        : '—'
-    ),
+    uiText('nextSession') + ': ' + nextSessionText,
+    uiText('lastEvaluation') + ': ' + lastEvaluationText,
     uiText('payments') + ': ' + payStatus,
-    lastNote ? uiText('notes') + ': ' + lastNote : ''
-  ].filter(Boolean).join('\n');
+    lastNote ? uiText('coachNotes') + ': ' + lastNote : ''
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.querySelector('.copy-summary-btn');
@@ -4447,7 +4569,9 @@ function copySummaryToClipboard(){
         btn.textContent = uiText('copySummary');
       }, 2000);
     }
-  }).catch(() => alert(uiText('couldNotCopy')));
+  }).catch(() => {
+    alert(uiText('couldNotCopy'));
+  });
 }
 
 function renderClientData(){
@@ -4735,7 +4859,7 @@ document.getElementById('btnLogout')?.addEventListener('click',()=>Auth.logout()
   const urlClientId=params.get('client');
   if(urlClientId){await loadClientDashboard(urlClientId);return;}
   if(Auth.isClient()){await loadClientDashboard(Auth.getClientId());return;}
-  if(Auth.isAdmin()){showLoading(false);document.getElementById('loginScreen')?.classList.remove('hidden');showInfo('Eres admin. Introduce las credenciales de un cliente para verlo.');return;}
+  if(Auth.isAdmin()){showLoading(false);document.getElementById('loginScreen')?.classList.remove('hidden');showInfo(uiText('adminLoginInfo'));return;}
   showLoading(false);document.getElementById('loginScreen')?.classList.remove('hidden');
 })();
 </script>
