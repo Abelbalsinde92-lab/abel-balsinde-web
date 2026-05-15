@@ -2222,45 +2222,346 @@ async function renderClientTraining(){
   }
 }
 
-function tClient(key){
+function tClient(key) {
   const lang = getLang();
 
-  const dict = {
+  const txt = {
     es: {
-      block: 'Bloque',
-      pending: 'Pendiente',
-      noExercises: 'Este bloque todavía no tiene ejercicios.',
-      markBlockDone: 'Marcar bloque terminado',
-      exercise: 'Ejercicio',
-      sets: 'Series',
-      reps: 'Reps',
-      time: 'Tiempo',
-      rest: 'Descanso',
-      level: 'Nivel',
-      indicatedWork: 'Trabajo indicado',
-      howTo: 'Cómo hacerlo',
-      coach: 'Coach',
-      watchReference: 'Ver referencia'
+      week: "Semana",
+      currentWeek: "Semana actual",
+      level: "Nivel",
+      pending: "Pendiente",
+      completed: "Completado",
+      blockCompleted: "Bloque completado",
+      completeBlock: "Marcar bloque terminado",
+      noExercises: "Este bloque todavía no tiene ejercicios.",
+      sets: "Series",
+      reps: "Reps",
+      time: "Tiempo",
+      rest: "Descanso",
+      indicatedWork: "Trabajo indicado",
+      howTo: "Cómo hacerlo",
+      coach: "Coach",
+      exercise: "Ejercicio",
+      watchReference: "Ver referencia",
+      dayA: "Día A",
+      dayB: "Día B",
+      dayC: "Día C",
+      day: "Día",
+      trainingCompleted: "Entrenamiento completado",
+      sessionSaved: "Buen trabajo. Tu sesión quedó registrada y Abel podrá revisar tus observaciones.",
+      details: "Ver detalles del entrenamiento"
     },
     sr: {
-      block: 'Blok',
-      pending: 'Na čekanju',
-      noExercises: 'Ovaj blok još nema vežbe.',
-      markBlockDone: 'Označi blok kao završen',
-      exercise: 'Vežba',
-      sets: 'Serije',
-      reps: 'Ponavljanja',
-      time: 'Vreme',
-      rest: 'Pauza',
-      level: 'Nivo',
-      indicatedWork: 'Zadatak',
-      howTo: 'Kako se radi',
-      coach: 'Trener',
-      watchReference: 'Pogledaj primer'
+      week: "Nedelja",
+      currentWeek: "Trenutna nedelja",
+      level: "Nivo",
+      pending: "Na čekanju",
+      completed: "Završeno",
+      blockCompleted: "Blok završen",
+      completeBlock: "Označi blok kao završen",
+      noExercises: "Ovaj blok još nema vežbe.",
+      sets: "Serije",
+      reps: "Ponavljanja",
+      time: "Vreme",
+      rest: "Odmor",
+      indicatedWork: "Zadatak",
+      howTo: "Kako se radi",
+      coach: "Trener",
+      exercise: "Vežba",
+      watchReference: "Pogledaj primer",
+      dayA: "Dan A",
+      dayB: "Dan B",
+      dayC: "Dan C",
+      day: "Dan",
+      trainingCompleted: "Trening završen",
+      sessionSaved: "Dobar posao. Tvoja sesija je registrovana i Abel može da pregleda tvoje napomene.",
+      details: "Pogledaj detalje treninga"
     }
   };
 
-  return dict[lang]?.[key] || dict.es[key] || key;
+  return txt[lang]?.[key] || txt.es[key] || key;
+}
+
+/* ══ TRAINING ══ */
+function getSessionDayLabel(session,index){
+  const num = Number(session.session_number || index + 1);
+
+  if(num === 1) return tClient('dayA');
+  if(num === 2) return tClient('dayB');
+  if(num === 3) return tClient('dayC');
+
+  return tClient('day') + ' ' + num;
+}
+
+function getSessionDisplayTitle(session,index){
+  const day = getSessionDayLabel(session,index);
+  const lg = getLang();
+
+  let title = lg === 'sr'
+    ? session.title_sr || session.title || ''
+    : session.title_es || session.title || '';
+
+  title = String(title || '').trim();
+
+  if(!title || title.toLowerCase() === day.toLowerCase()) return day;
+
+  if(
+    title.toLowerCase().startsWith('dan ') ||
+    title.toLowerCase().startsWith('día ') ||
+    title.toLowerCase().startsWith('dia ')
+  ){
+    return title;
+  }
+
+  return day + ' · ' + title;
+}
+
+function showTrainingDay(sessionId){
+  saveLastActiveSession(sessionId);
+
+  const btn = document.querySelector('.training-day-tab[data-session-id="' + sessionId + '"]');
+  const scope = btn?.closest('.training-week-panel') || document;
+
+  scope.querySelectorAll('.training-day-tab').forEach(b => {
+    if(!String(b.dataset.weekId || '').length){
+      b.classList.toggle('active', String(b.dataset.sessionId) === String(sessionId));
+    }
+  });
+
+  scope.querySelectorAll('.training-session-panel,.training-day-panel').forEach(p => {
+    if(p.dataset.sessionId){
+      p.classList.toggle('active', String(p.dataset.sessionId) === String(sessionId));
+    }
+  });
+
+  const active = scope.querySelector(
+    '.training-session-panel.active[data-session-id="' + sessionId + '"],' +
+    '.training-day-panel.active[data-session-id="' + sessionId + '"]'
+  );
+
+  if(active){
+    active.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+
+  loadOrCreateTrainingLog(sessionId);
+}
+
+function showTrainingWeekPanel(weekId){
+  document.querySelectorAll('.training-week-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.weekId === String(weekId));
+  });
+
+  document.querySelectorAll('.training-week-panel').forEach(p => {
+    p.classList.toggle('active', p.dataset.weekId === String(weekId));
+  });
+
+  document.querySelector('.training-week-panel[data-week-id="' + weekId + '"]')
+    ?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function buildTrainingSteps(sessionIdFilter){
+  const steps = [];
+  const sessions = sessionIdFilter
+    ? clientTrainingSessions.filter(s => String(s.id) === String(sessionIdFilter))
+    : clientTrainingSessions;
+
+  sessions.forEach((session,sIdx) => {
+    const realIdx = clientTrainingSessions.findIndex(s => String(s.id) === String(session.id));
+
+    const blocks = clientTrainingBlocks
+      .filter(b => b.session_id === session.id)
+      .slice()
+      .sort((a,b) => Number(a.block_order || 0) - Number(b.block_order || 0));
+
+    blocks.forEach((block,bIdx) => {
+      const exercises = clientTrainingExercises
+        .filter(e => e.block_id === block.id)
+        .slice()
+        .sort((a,b) => Number(a.exercise_order || 0) - Number(b.exercise_order || 0));
+
+      steps.push({
+        blockId: String(block.id),
+        block,
+        exercises,
+        sessionId: String(session.id),
+        session,
+        sessionSeparator: bIdx === 0
+          ? getSessionDisplayTitle(session, realIdx >= 0 ? realIdx : sIdx)
+          : null
+      });
+    });
+  });
+
+  return steps;
+}
+
+function getActiveTrainingWeek(){
+  if(!clientTrainingAssignment) return null;
+
+  const currentWeek = Number(clientTrainingAssignment?.current_week || 1);
+
+  return clientTrainingWeeks.find(w => Number(w.week_number) === currentWeek) ||
+         clientTrainingWeeks[0] ||
+         null;
+}
+
+async function loadOrCreateTrainingLog(sessionId){
+  if(!clientData || !clientTrainingAssignment || !clientTrainingProgram) return null;
+
+  const sid = sessionId || getCurrentVisibleSessionId();
+  if(!sid) return null;
+
+  const localProgress = loadTrainingProgressLocal(sid);
+
+  if(localProgress){
+    completedTrainingBlocks = new Set(localProgress.completed_block_ids || []);
+    currentTrainingLog = { ...(currentTrainingLog || {}), ...localProgress };
+  }
+
+  const session = clientTrainingSessions.find(s => String(s.id) === String(sid));
+  const week = session
+    ? clientTrainingWeeks.find(w => String(w.id) === String(session.week_id))
+    : getActiveTrainingWeek();
+
+  const payload = {
+    client_id: clientData.id,
+    assignment_id: clientTrainingAssignment.id,
+    program_id: clientTrainingProgram.id,
+    week_id: week ? week.id : null,
+    session_id: sid,
+    training_date: todayISO()
+  };
+
+  try{
+    const existing = await db
+      .from('client_session_logs')
+      .select('*')
+      .eq('client_id', payload.client_id)
+      .eq('assignment_id', payload.assignment_id)
+      .eq('session_id', payload.session_id)
+      .eq('training_date', payload.training_date)
+      .maybeSingle();
+
+    if(existing.error){
+      console.error('Log read error:', existing.error);
+      return currentTrainingLog;
+    }
+
+    if(existing.data){
+      completedTrainingBlocks = new Set([
+        ...(existing.data.completed_block_ids || []),
+        ...(localProgress?.completed_block_ids || [])
+      ]);
+
+      currentTrainingLog = {
+        ...existing.data,
+        completed_block_ids: Array.from(completedTrainingBlocks),
+        is_finished: existing.data.is_finished || localProgress?.is_finished || false,
+        client_note: existing.data.client_note || localProgress?.client_note || '',
+        client_feedback_tags: existing.data.client_feedback_tags || localProgress?.client_feedback_tags || [],
+        client_feedback_summary: existing.data.client_feedback_summary || localProgress?.client_feedback_summary || ''
+      };
+
+      saveTrainingProgressLocal(currentTrainingLog, sid);
+      return currentTrainingLog;
+    }
+
+    const created = await db
+      .from('client_session_logs')
+      .insert({
+        ...payload,
+        completed_block_ids: Array.from(completedTrainingBlocks),
+        is_finished: localProgress?.is_finished || false,
+        client_note: localProgress?.client_note || '',
+        client_feedback_tags: localProgress?.client_feedback_tags || [],
+        client_feedback_summary: localProgress?.client_feedback_summary || '',
+        started_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if(created.error){
+      console.error('Log create error:', created.error);
+      return currentTrainingLog;
+    }
+
+    currentTrainingLog = created.data;
+    saveTrainingProgressLocal(currentTrainingLog, sid);
+    return currentTrainingLog;
+
+  }catch(err){
+    console.error('Log error:', err);
+    return currentTrainingLog;
+  }
+}
+
+async function saveTrainingProgress(extra,sessionId){
+  const sid = sessionId || getCurrentVisibleSessionId();
+
+  saveTrainingProgressLocal(extra, sid);
+
+  if(!currentTrainingLog?.id || String(currentTrainingLog.session_id) !== String(sid)){
+    await loadOrCreateTrainingLog(sid);
+  }
+
+  if(!currentTrainingLog?.id){
+    console.warn('No log ID');
+    return;
+  }
+
+  const local = loadTrainingProgressLocal(sid) || {};
+
+  try{
+    const saved = await db
+      .from('client_session_logs')
+      .update({
+        completed_block_ids: Array.from(completedTrainingBlocks),
+        is_finished: local.is_finished || false,
+        client_note: local.client_note || null,
+        client_feedback_tags: local.client_feedback_tags || extra?.client_feedback_tags || [],
+        client_feedback_summary: local.client_feedback_summary || extra?.client_feedback_summary || null,
+        updated_at: new Date().toISOString(),
+        ...(extra || {})
+      })
+      .eq('id', currentTrainingLog.id)
+      .select()
+      .single();
+
+    if(!saved.error){
+      currentTrainingLog = saved.data;
+      saveTrainingProgressLocal(currentTrainingLog, sid);
+    } else {
+      console.error('Log save error:', saved.error);
+    }
+  }catch(err){
+    console.error('Log save error:', err);
+  }
+}
+
+function buildCompletedSessionCard(session,index){
+  const title = getSessionDisplayTitle(session,index);
+  const week = clientTrainingWeeks.find(w => String(w.id) === String(session.week_id));
+  const weekLabel = week?.week_number
+    ? tClient('week') + ' ' + week.week_number
+    : tClient('week');
+
+  return (
+    '<div class="training-session-completed-card">' +
+      '<div class="training-session-completed-row">' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div class="training-session-completed-title">' + tClient('trainingCompleted') + '</div>' +
+          '<div class="training-session-completed-sub">' + title + ' · ' + weekLabel + '</div>' +
+          '<div style="font-size:12px;color:var(--text-secondary);margin-top:8px;line-height:1.6;font-family:var(--font-mono);">' +
+            tClient('sessionSaved') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<button class="client-action-btn" style="margin-top:14px;" onclick="toggleCompletedTrainingDetails()">' +
+        tClient('details') +
+      '</button>' +
+    '</div>'
+  );
 }
 
 function buildTrainingStepHTML(step,index){
@@ -2272,6 +2573,7 @@ function buildTrainingStepHTML(step,index){
   const blockTitle =
     pickLang(block,'title',_lg) ||
     pickLang(block,'name',_lg) ||
+    tClient('block') ||
     'Bloque';
 
   const blockObj = pickLang(block,'objective',_lg);
@@ -2287,10 +2589,8 @@ function buildTrainingStepHTML(step,index){
 
   html +=
     '<div class="training-step-card" id="step-' + blockId + '">' +
-
       '<button class="training-step-header" onclick="toggleTrainingStep(\'' + blockId + '\')">' +
         '<div class="training-step-number">' + blockNum + '</div>' +
-
         '<div class="training-step-info">' +
           '<div class="training-step-title">' + blockTitle + '</div>' +
           (
@@ -2299,10 +2599,8 @@ function buildTrainingStepHTML(step,index){
               : ''
           ) +
         '</div>' +
-
         '<div class="training-step-status" id="status-' + blockId + '">' + tClient('pending') + '</div>' +
       '</button>' +
-
       '<div class="training-step-body">' +
         (
           blockObj
@@ -2348,7 +2646,7 @@ function buildExerciseHTML(ex){
   const exName =
     pickLang(ex,'name',_lg) ||
     pickLang(ex,'title',_lg) ||
-    'Ejercicio';
+    tClient('exercise');
 
   const exDesc = pickLang(ex,'description',_lg);
 
@@ -2414,96 +2712,6 @@ function buildExerciseHTML(ex){
       '<div class="training-coach-note">' +
         tClient('coach') + ': ' + exNotes +
       '</div>';
-  }
-
-  if(ex.video_url){
-    html +=
-      '<a href="' + ex.video_url + '" target="_blank" class="training-video-btn">&#9654; Ver referencia</a>';
-  }
-
-  html += '</div>';
-
-  return html;
-}
-
-  function pickVariant(ex,lvl,lang){
-    const l = (lang || 'es').toLowerCase();
-    return (
-      ex['variant_' + lvl.toLowerCase() + '_' + l] ||
-      ex['variant_' + lvl.toLowerCase() + '_es'] ||
-      ex['variant_' + lvl.toLowerCase()] ||
-      ''
-    );
-  }
-
-  const variant = pickVariant(ex,lvl,_lg);
-
-  const exName =
-    pickLang(ex,'name',_lg) ||
-    pickLang(ex,'title',_lg) ||
-    tClient('exercise');
-
-  const exDesc = pickLang(ex,'description',_lg);
-
-  const exNotes =
-    pickLang(ex, 'coaching_notes', _lg) ||
-    pickLang(ex, 'coach_notes', _lg) ||
-    ex.coaching_notes ||
-    ex.coach_notes ||
-    '';
-
-  const stats = [
-    ex.sets ? {label:tClient('sets'), value:ex.sets} : null,
-    ex.reps ? {label:tClient('reps'), value:ex.reps} : null,
-    (ex.time || ex.duration) ? {label:tClient('time'), value:(ex.time || ex.duration)} : null,
-    ex.rest ? {label:tClient('rest'), value:ex.rest} : null
-  ].filter(Boolean);
-
-  let html =
-    '<div class="training-exercise-card">' +
-      '<div class="training-exercise-title">' +
-        (
-          ex.exercise_order
-            ? '<span class="training-ex-num">' + ex.exercise_order + '.</span>'
-            : ''
-        ) +
-        exName +
-      '</div>';
-
-  if(stats.length){
-    html += '<div class="training-exercise-grid">';
-
-    stats.forEach(s => {
-      html +=
-        '<div class="training-mini-stat">' +
-          '<span class="training-mini-label">' + s.label + '</span>' +
-          '<div class="training-mini-value">' + s.value + '</div>' +
-        '</div>';
-    });
-
-    html += '</div>';
-  }
-
-  html += '<div class="training-level-tag">' + tClient('level') + ' ' + lvl + '</div>';
-
-  if(variant){
-    html +=
-      '<div class="training-instruction">' +
-        '<strong>' + tClient('indicatedWork') + '</strong>' +
-        variant +
-      '</div>';
-  }
-
-  if(exDesc){
-    html +=
-      '<div class="training-instruction">' +
-        '<strong>' + tClient('howTo') + '</strong>' +
-        exDesc +
-      '</div>';
-  }
-
-  if(exNotes){
-    html += '<div class="training-coach-note">' + tClient('coach') + ': ' + exNotes + '</div>';
   }
 
   if(ex.video_url){
