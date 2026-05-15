@@ -309,6 +309,15 @@ input, textarea { outline: none; font-family: var(--font-body); }
   display: block; margin-top: 4px;
 }
 
+#display-fc-drop {
+  color: var(--text-primary);
+  margin-top: 6px;
+}
+
+#display-fc-calc {
+  opacity: .85;
+}
+
 .estado-tag {
   display: inline-block; font-family: var(--font-mono);
   font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase;
@@ -944,50 +953,56 @@ async function cargarMetricasCombate() {
   // FC máxima de referencia opcional, solo para mostrar entre paréntesis
   const fcMaxRef = clientData.fc_max_ref ? Number(clientData.fc_max_ref) : null;
 
-  const ck       = evaluarCK(data.creatina_quinasa);
+  const ck = evaluarCK(data.creatina_quinasa);
   const cortisol = evaluarCortisol(data.cortisol);
-  const fcRec    = evaluarFCRecuperacion(data.fc_recuperacion_1min, fcMax);
- 
-   const fcDropEl = document.getElementById('display-fc-drop');
-if (fcDropEl) {
-  fcDropEl.textContent = fcRec.caida != null
-    ? `Caída: ${fcRec.caida} ppm`
-    : 'Caída: -- ppm';
-}
+  const fcRec = evaluarFCRecuperacion(data.fc_recuperacion_1min, fcMax);
 
-const fcCalcEl = document.getElementById('display-fc-calc');
-if (fcCalcEl) {
-  fcCalcEl.textContent = fcMaxRef
-    ? `FC máx usada: ${fcMax} (ref. ${fcMaxRef}) ppm`
-    : `FC máx usada: ${fcMax} ppm`;
-}
-  
-  inyectarMetrica('card-ck', 'display-ck',
+  inyectarMetrica(
+    'card-ck',
+    'display-ck',
     data.creatina_quinasa,
-    ck.clase, ck.label
+    ck.clase,
+    ck.label
   );
 
-  inyectarMetrica('card-cortisol', 'display-cortisol',
+  inyectarMetrica(
+    'card-cortisol',
+    'display-cortisol',
     data.cortisol != null ? Number(data.cortisol).toFixed(1) : null,
-    cortisol.clase, cortisol.label
+    cortisol.clase,
+    cortisol.label
   );
 
-  inyectarMetrica('card-recuperacion', 'display-fc-rec',
+  inyectarMetrica(
+    'card-recuperacion',
+    'display-fc-rec',
     data.fc_recuperacion_1min,
-    fcRec.clase, fcRec.label
+    fcRec.clase,
+    fcRec.label
   );
+
+  // Mostrar caída real de FC
+  const fcDropEl = document.getElementById('display-fc-drop');
+  if (fcDropEl) {
+    fcDropEl.textContent = fcRec.caida != null
+      ? `Caída: ${fcRec.caida} ppm`
+      : 'Caída: -- ppm';
+  }
 
   // Mostrar FC máxima usada para calcular la recuperación
   const fcCalcEl = document.getElementById('display-fc-calc');
   if (fcCalcEl) {
     fcCalcEl.textContent = fcMaxRef
-      ? `Calculado con FC máx: ${fcMax} (${fcMaxRef}) ppm`
-      : `Calculado con FC máx: ${fcMax} ppm`;
+      ? `FC máx usada: ${fcMax} (ref. ${fcMaxRef}) ppm`
+      : `FC máx usada: ${fcMax} ppm`;
   }
 
-  inyectarMetrica('card-peso', 'display-peso',
+  inyectarMetrica(
+    'card-peso',
+    'display-peso',
     data.peso_corporal != null ? Number(data.peso_corporal).toFixed(1) : null,
-    null, null
+    null,
+    null
   );
 
   // Fecha última actualización
