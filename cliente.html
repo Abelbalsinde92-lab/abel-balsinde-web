@@ -1180,19 +1180,41 @@ function showLoading(v) { document.getElementById('loadingOverlay')?.classList.t
 
 function paymentBadge(s) {
   if (!s) return '';
-  const v=s.toLowerCase();
-  if (['pagado','paid'].includes(v))       return '<span class="badge badge-green">'+s+'</span>';
-  if (['pendiente','pending'].includes(v)) return '<span class="badge badge-yellow">'+s+'</span>';
-  if (['vencido','overdue'].includes(v))   return '<span class="badge badge-red">'+s+'</span>';
-  return '<span class="badge badge-gray">'+s+'</span>';
+
+  const v = String(s).toLowerCase();
+
+  if (['pagado','paid'].includes(v)) {
+    return '<span class="badge badge-green">' + (getLang() === 'sr' ? 'Plaćeno' : 'Pagado') + '</span>';
+  }
+
+  if (['pendiente','pending'].includes(v)) {
+    return '<span class="badge badge-yellow">' + (getLang() === 'sr' ? 'Na čekanju' : 'Pendiente') + '</span>';
+  }
+
+  if (['vencido','overdue'].includes(v)) {
+    return '<span class="badge badge-red">' + (getLang() === 'sr' ? 'Kasni' : 'Vencido') + '</span>';
+  }
+
+  return '<span class="badge badge-gray">' + s + '</span>';
 }
 function genericBadge(s) {
   if (!s) return '';
-  const v=s.toLowerCase();
-  if (['activo','active','confirmada','confirmado',uiText('doneStatus'),'completado'].includes(v)) return '<span class="badge badge-green">'+s+'</span>';
-  if (['pendiente','pending','reservada'].includes(v)) return '<span class="badge badge-yellow">'+s+'</span>';
-  if (['cancelada','cancelado','vencido','inactivo'].includes(v)) return '<span class="badge badge-red">'+s+'</span>';
-  return '<span class="badge badge-gray">'+s+'</span>';
+
+  const v = String(s).toLowerCase();
+
+  if (['activo','active','confirmada','confirmado','confirmed','completado','completed','realizada','done'].includes(v)) {
+    return '<span class="badge badge-green">' + (getLang() === 'sr' ? 'Potvrđeno' : 'Confirmado') + '</span>';
+  }
+
+  if (['pendiente','pending','reservada','reserved'].includes(v)) {
+    return '<span class="badge badge-yellow">' + (getLang() === 'sr' ? 'Na čekanju' : 'Pendiente') + '</span>';
+  }
+
+  if (['cancelada','cancelado','cancelled','vencido','overdue','inactivo'].includes(v)) {
+    return '<span class="badge badge-red">' + (getLang() === 'sr' ? 'Otkazano' : 'Cancelado') + '</span>';
+  }
+
+  return '<span class="badge badge-gray">' + s + '</span>';
 }
 
 /* ══ ASSIGNMENT SCOPE HELPERS ══ */
@@ -1654,7 +1676,64 @@ function uiText(key) {
       evolution: 'Evolución',
       exercise: 'Ejercicio',
       coach: 'Coach',
+      noReservationsRegistered: 'Todavía no tienes reservas registradas.',
+      nextSession: 'Próxima sesión',
+      session: 'Sesión',
+      due: 'Vence',
+      requestNewReservationText: 'Quiero solicitar una nueva reserva de entrenamiento.',
+      payment: 'Pago',
+      noPaymentsRegistered: 'No hay pagos registrados.',
+      paymentDue: 'Vence',
+      paymentMethod: 'Método',
+      coachNotesTitle: 'Notas del coach',
+      noCoachNotesRegistered: 'Todavía no hay notas del coach.',
+      noReservationsYet: 'Todavía no tienes reservas registradas.',
+      requestNewTrainingReservation: 'Quiero solicitar una nueva reserva de entrenamiento.',
+      nextSession: 'Próxima sesión',
+      session: 'Sesión',
+      expires: 'Vence',
+      payment: 'Pago',
+      noPaymentsRegistered: 'No hay pagos registrados.',
+      dueDate: 'Vence',
+      paymentMethod: 'Método',
+      client: 'Cliente',
+      programActive: 'Programa activo',
+      nextSessionSummary: 'Próxima sesión',
+      noReservations: 'Sin reservas',
+      metrics: 'Métricas',
+      lastCoachNote: 'Última nota del coach',
+      copySummary: 'Copiar resumen al portapapeles',
+      copied: 'Copiado',
+      couldNotCopy: 'No se pudo copiar.',
+      summaryTitle: 'Resumen AB Coach',
+      atTime: 'a las',
+      everythingCompletedQuestion: '¿Todo completado?',
+beforeClosingSession: 'Antes de cerrar, marca cómo fue la sesión.',
+quickObservations: 'Observaciones rápidas',
+feedbackHelpsCoach: 'Ayuda a Abel a ajustar cargas y dificultad del próximo entrenamiento.',
+optionalCommentCoach: 'Comentario opcional para Abel...',
+closeTraining: 'Cerrar entrenamiento',
+trainingSaved: 'Entrenamiento guardado',
+goodJobProgressSaved: 'Buen trabajo. Tu progreso quedó registrado.',
+nextTrainingUnlocked: 'Siguiente entrenamiento desbloqueado. Puedes continuar cuando estés listo.',
+sessionCompletedCoachReview: 'Sesión completada. Abel revisará tus notas.',
+trainingCompletedTitle: 'Entrenamiento completado',
+sessionRegisteredOn: 'Sesión registrada el',
+abelWillReviewNotes: 'Abel revisará tus notas.',
+observations: 'Observaciones',
+sentNote: 'Nota enviada',
 
+feedbackOk: 'Todo bien, sin molestias',
+feedbackDiscomfort: 'Tuve molestias',
+feedbackPainStopped: 'Sentí dolor y paré',
+feedbackLowerWeight: 'Tuve que bajar el peso',
+feedbackHigherWeight: 'Tuve que subir el peso',
+feedbackVeryTired: 'Me sentí muy cansado',
+feedbackCouldNotComplete: 'No pude completar todos los bloques',
+feedbackNoTime: 'Me faltó tiempo',
+feedbackDidNotUnderstand: 'No entendí bien un ejercicio',
+feedbackNeedsReview: 'Necesito que Abel revise este entrenamiento',
+      
       combatAthlete: 'Atleta combate',
       performanceStatus: 'Estado de rendimiento',
       combatMetricsActive: 'Métricas de combate activas',
@@ -1692,6 +1771,63 @@ function uiText(key) {
       noActiveIndications: 'Nema aktivnih napomena',
       activeIndications: 'Aktivne napomene',
       pendingIndication: 'Napomena na čekanju',
+      noReservationsRegistered: 'Još nema registrovanih termina.',
+      nextSession: 'Sledeća sesija',
+      session: 'Sesija',
+      due: 'Rok',
+      requestNewReservationText: 'Želim da zatražim novi termin za trening.',
+      payment: 'Plaćanje',
+      noPaymentsRegistered: 'Nema registrovanih plaćanja.',
+      paymentDue: 'Rok',
+      paymentMethod: 'Način plaćanja',
+      coachNotesTitle: 'Napomene trenera',
+      noCoachNotesRegistered: 'Još nema napomena trenera.',
+      noReservationsYet: 'Još nemaš registrovane termine.',
+      requestNewTrainingReservation: 'Želim da zatražim novi termin za trening.',
+      nextSession: 'Sledeći trening',
+      session: 'Trening',
+      expires: 'Ističe',
+      payment: 'Plaćanje',
+      noPaymentsRegistered: 'Nema registrovanih plaćanja.',
+      dueDate: 'Rok',
+      paymentMethod: 'Način plaćanja',
+      client: 'Klijent',
+      programActive: 'Aktivan program',
+      nextSessionSummary: 'Sledeći termin',
+      noReservations: 'Nema termina',
+      metrics: 'Metrike',
+      lastCoachNote: 'Poslednja napomena trenera',
+      copySummary: 'Kopiraj sažetak',
+      copied: 'Kopirano',
+      couldNotCopy: 'Nije moguće kopirati.',
+      summaryTitle: 'AB Coach sažetak',
+      atTime: 'u',
+everythingCompletedQuestion: 'Sve završeno?',
+beforeClosingSession: 'Pre zatvaranja označi kako je prošao trening.',
+quickObservations: 'Brze napomene',
+feedbackHelpsCoach: 'Pomaže Abelu da prilagodi opterećenje i težinu sledećeg treninga.',
+optionalCommentCoach: 'Opcioni komentar za Abela...',
+closeTraining: 'Zatvori trening',
+trainingSaved: 'Trening sačuvan',
+goodJobProgressSaved: 'Dobar posao. Tvoj napredak je registrovan.',
+nextTrainingUnlocked: 'Sledeći trening je otključan. Možeš nastaviti kada budeš spreman.',
+sessionCompletedCoachReview: 'Sesija je završena. Abel će pregledati tvoje napomene.',
+trainingCompletedTitle: 'Trening završen',
+sessionRegisteredOn: 'Sesija registrovana',
+abelWillReviewNotes: 'Abel će pregledati tvoje napomene.',
+observations: 'Napomene',
+sentNote: 'Poslata napomena',
+
+feedbackOk: 'Sve je bilo u redu, bez nelagodnosti',
+feedbackDiscomfort: 'Imao/la sam nelagodnost',
+feedbackPainStopped: 'Osetio/la sam bol i stao/la',
+feedbackLowerWeight: 'Morao/la sam da smanjim težinu',
+feedbackHigherWeight: 'Morao/la sam da povećam težinu',
+feedbackVeryTired: 'Osećao/la sam se veoma umorno',
+feedbackCouldNotComplete: 'Nisam uspeo/la da završim sve blokove',
+feedbackNoTime: 'Nedostajalo mi je vremena',
+feedbackDidNotUnderstand: 'Nisam dobro razumeo/la jednu vežbu',
+feedbackNeedsReview: 'Potrebno je da Abel pregleda ovaj trening',
 
       home: 'Početna',
       train: 'Trening',
@@ -1832,6 +1968,16 @@ function applyStaticTranslations() {
   set('navProgress', uiText('progress'));
   set('navHealth', uiText('health'));
   set('navProfile', uiText('profile'));
+
+  document.querySelector('#section-home .section-header h2')?.replaceChildren(document.createTextNode(uiText('home').toUpperCase()));
+  document.querySelector('#section-training .section-header h2')?.replaceChildren(document.createTextNode(uiText('training').toUpperCase()));
+  document.querySelector('#section-assessments .section-header h2')?.replaceChildren(document.createTextNode(uiText('progress').toUpperCase()));
+  document.querySelector('#section-health .section-header h2')?.replaceChildren(document.createTextNode(uiText('health').toUpperCase()));
+  document.querySelector('#section-client-data .section-header h2')?.replaceChildren(document.createTextNode(uiText('profileTitle').toUpperCase()));
+  document.querySelector('#section-plan .section-header h2')?.replaceChildren(document.createTextNode(uiText('plan').toUpperCase()));
+  document.querySelector('#section-reservations .section-header h2')?.replaceChildren(document.createTextNode(uiText('reservations').toUpperCase()));
+  document.querySelector('#section-notes .section-header h2')?.replaceChildren(document.createTextNode(uiText('coachNotesTitle').toUpperCase()));
+  document.querySelector('#section-payments .section-header h2')?.replaceChildren(document.createTextNode(uiText('payments').toUpperCase()));
 }
 
 /* ══ LANG ══ */
@@ -3172,29 +3318,35 @@ function renderTrainingCompletionBox(scroll){
 
     area.innerHTML =
       '<div class="training-finish-card compact">' +
-        '<div class="training-finish-title">Entrenamiento completado</div>' +
-        '<div class="training-finish-sub">Sesión registrada el ' +
-          formatDate(String(finishedAt).slice(0,10)) +
-          '. Abel revisará tus notas.</div>' +
+        '<div class="training-finish-title">' + uiText('trainingCompletedTitle') + '</div>' +
 
-        (feedbackSummary
-          ? '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
-              '<div class="training-notes-title">Observaciones</div>' +
-              '<div class="training-finish-sub" style="margin-bottom:0;">' +
-                feedbackSummary +
-              '</div>' +
-            '</div>'
-          : ''
+        '<div class="training-finish-sub">' +
+          uiText('sessionRegisteredOn') + ' ' +
+          formatDate(String(finishedAt).slice(0,10)) +
+          '. ' +
+          uiText('abelWillReviewNotes') +
+        '</div>' +
+
+        (
+          feedbackSummary
+            ? '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
+                '<div class="training-notes-title">' + uiText('observations') + '</div>' +
+                '<div class="training-finish-sub" style="margin-bottom:0;">' +
+                  feedbackSummary +
+                '</div>' +
+              '</div>'
+            : ''
         ) +
 
-        (note
-          ? '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
-              '<div class="training-notes-title">Nota enviada</div>' +
-              '<div class="training-finish-sub" style="margin-bottom:0;">' +
-                note +
-              '</div>' +
-            '</div>'
-          : ''
+        (
+          note
+            ? '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
+                '<div class="training-notes-title">' + uiText('sentNote') + '</div>' +
+                '<div class="training-finish-sub" style="margin-bottom:0;">' +
+                  note +
+                '</div>' +
+              '</div>'
+            : ''
         ) +
       '</div>';
 
@@ -3207,28 +3359,32 @@ function renderTrainingCompletionBox(scroll){
 
   area.innerHTML =
     '<div class="training-finish-card">' +
-      '<div class="training-finish-title">¿Todo completado?</div>' +
-      '<div class="training-finish-sub">Antes de cerrar, marca cómo fue la sesión.</div>' +
+      '<div class="training-finish-title">' + uiText('everythingCompletedQuestion') + '</div>' +
+      '<div class="training-finish-sub">' + uiText('beforeClosingSession') + '</div>' +
 
       '<div class="training-notes-box" style="text-align:left;margin-top:16px;">' +
-        '<div class="training-notes-title">Observaciones rápidas</div>' +
-        '<div class="training-finish-sub" style="margin-bottom:12px;">Ayuda a Abel a ajustar cargas y dificultad del próximo entrenamiento.</div>' +
-
-        '<div id="trainingFeedbackTags" style="display:grid;gap:8px;margin:12px 0;">' +
-          buildFeedbackTag('ok','Todo bien, sin molestias') +
-          buildFeedbackTag('molestias','Tuve molestias') +
-          buildFeedbackTag('dolor_pare','Sentí dolor y paré') +
-          buildFeedbackTag('baje_peso','Tuve que bajar el peso') +
-          buildFeedbackTag('subi_peso','Tuve que subir el peso') +
-          buildFeedbackTag('muy_cansado','Me sentí muy cansado') +
-          buildFeedbackTag('no_complete','No pude completar todos los bloques') +
-          buildFeedbackTag('falto_tiempo','Me faltó tiempo') +
-          buildFeedbackTag('no_entendi','No entendí bien un ejercicio') +
-          buildFeedbackTag('revisar','Necesito que Abel revise este entrenamiento') +
+        '<div class="training-notes-title">' + uiText('quickObservations') + '</div>' +
+        '<div class="training-finish-sub" style="margin-bottom:12px;">' +
+          uiText('feedbackHelpsCoach') +
         '</div>' +
 
-        '<textarea class="training-notes-textarea" id="trainingFinishNote" placeholder="Comentario opcional para Abel..."></textarea>' +
-        '<button class="training-complete-block-btn" onclick="finishTrainingSession()">Cerrar entrenamiento</button>' +
+        '<div id="trainingFeedbackTags" style="display:grid;gap:8px;margin:12px 0;">' +
+          buildFeedbackTag('ok', uiText('feedbackOk')) +
+          buildFeedbackTag('molestias', uiText('feedbackDiscomfort')) +
+          buildFeedbackTag('dolor_pare', uiText('feedbackPainStopped')) +
+          buildFeedbackTag('baje_peso', uiText('feedbackLowerWeight')) +
+          buildFeedbackTag('subi_peso', uiText('feedbackHigherWeight')) +
+          buildFeedbackTag('muy_cansado', uiText('feedbackVeryTired')) +
+          buildFeedbackTag('no_complete', uiText('feedbackCouldNotComplete')) +
+          buildFeedbackTag('falto_tiempo', uiText('feedbackNoTime')) +
+          buildFeedbackTag('no_entendi', uiText('feedbackDidNotUnderstand')) +
+          buildFeedbackTag('revisar', uiText('feedbackNeedsReview')) +
+        '</div>' +
+
+        '<textarea class="training-notes-textarea" id="trainingFinishNote" placeholder="' + uiText('optionalCommentCoach') + '"></textarea>' +
+        '<button class="training-complete-block-btn" onclick="finishTrainingSession()">' +
+          uiText('closeTraining') +
+        '</button>' +
       '</div>' +
     '</div>';
 
@@ -3237,7 +3393,57 @@ function renderTrainingCompletionBox(scroll){
   }
 }
 function buildFeedbackTag(value,label){return'<label class="training-feedback-row"><input type="checkbox" class="training-feedback-check" value="'+value+'"><span>'+label+'</span></label>';}
-async function finishTrainingSession(){const currentSessionId=getCurrentVisibleSessionId();const checkedTags=Array.from(document.querySelectorAll('.training-feedback-check:checked')).map(i=>i.value);const noteEl=document.getElementById('trainingFinishNote');const note=noteEl?noteEl.value.trim():'';const feedbackLabels={ok:'Todo bien, sin molestias',molestias:'Tuve molestias',dolor_pare:'Sentí dolor y paré',baje_peso:'Tuve que bajar el peso',subi_peso:'Tuve que subir el peso',muy_cansado:'Me sentí muy cansado',no_complete:'No pude completar todos los bloques',falto_tiempo:'Me faltó tiempo',no_entendi:'No entendí bien un ejercicio',revisar:'Necesito que Abel revise este entrenamiento'};const feedbackSummary=checkedTags.map(t=>feedbackLabels[t]||t).join(' · ');saveTrainingProgressLocal({is_finished:true,finished_at:new Date().toISOString(),client_note:note,client_feedback_tags:checkedTags,client_feedback_summary:feedbackSummary},currentSessionId);await saveTrainingProgress({is_finished:true,finished_at:new Date().toISOString(),client_note:note||null,client_feedback_tags:checkedTags,client_feedback_summary:feedbackSummary||null},currentSessionId);const nextSessionId=getNextSessionId(currentSessionId);if(nextSessionId)saveLastActiveSession(nextSessionId);showCompletedToastAndGoNext(currentSessionId);}
+async function finishTrainingSession(){
+  const currentSessionId = getCurrentVisibleSessionId();
+
+  const checkedTags = Array.from(
+    document.querySelectorAll('.training-feedback-check:checked')
+  ).map(i => i.value);
+
+  const noteEl = document.getElementById('trainingFinishNote');
+  const note = noteEl ? noteEl.value.trim() : '';
+
+  const feedbackLabels = {
+    ok: uiText('feedbackOk'),
+    molestias: uiText('feedbackDiscomfort'),
+    dolor_pare: uiText('feedbackPainStopped'),
+    baje_peso: uiText('feedbackLowerWeight'),
+    subi_peso: uiText('feedbackHigherWeight'),
+    muy_cansado: uiText('feedbackVeryTired'),
+    no_complete: uiText('feedbackCouldNotComplete'),
+    falto_tiempo: uiText('feedbackNoTime'),
+    no_entendi: uiText('feedbackDidNotUnderstand'),
+    revisar: uiText('feedbackNeedsReview')
+  };
+
+  const feedbackSummary = checkedTags
+    .map(t => feedbackLabels[t] || t)
+    .join(' · ');
+
+  saveTrainingProgressLocal({
+    is_finished: true,
+    finished_at: new Date().toISOString(),
+    client_note: note,
+    client_feedback_tags: checkedTags,
+    client_feedback_summary: feedbackSummary
+  }, currentSessionId);
+
+  await saveTrainingProgress({
+    is_finished: true,
+    finished_at: new Date().toISOString(),
+    client_note: note || null,
+    client_feedback_tags: checkedTags,
+    client_feedback_summary: feedbackSummary || null
+  }, currentSessionId);
+
+  const nextSessionId = getNextSessionId(currentSessionId);
+
+  if(nextSessionId){
+    saveLastActiveSession(nextSessionId);
+  }
+
+  showCompletedToastAndGoNext(currentSessionId);
+}
 function showCompletedToastAndGoNext(currentSessionId){
   const area = document.getElementById('trainingCompletionArea');
   const nextSessionId = getNextSessionId(currentSessionId);
@@ -3245,14 +3451,18 @@ function showCompletedToastAndGoNext(currentSessionId){
   if(area){
     area.innerHTML =
       '<div class="training-finish-card" style="padding:22px 18px;">' +
-        '<div class="training-finish-title">Entrenamiento guardado</div>' +
+        '<div class="training-finish-title">' + uiText('trainingSaved') + '</div>' +
         '<div class="training-finish-sub">' +
-          'Buen trabajo. Tu progreso quedó registrado.' +
+          uiText('goodJobProgressSaved') +
         '</div>' +
         (
           nextSessionId
-            ? '<div class="training-finish-sub" style="margin-top:8px;">Siguiente entrenamiento desbloqueado. Puedes continuar cuando estés listo.</div>'
-            : '<div class="training-finish-sub" style="margin-top:8px;">Sesión completada. Abel revisará tus notas.</div>'
+            ? '<div class="training-finish-sub" style="margin-top:8px;">' +
+                uiText('nextTrainingUnlocked') +
+              '</div>'
+            : '<div class="training-finish-sub" style="margin-top:8px;">' +
+                uiText('sessionCompletedCoachReview') +
+              '</div>'
         ) +
       '</div>';
   }
@@ -3266,8 +3476,12 @@ function showCompletedToastAndGoNext(currentSessionId){
     saveLastActiveSession(nextSessionId);
 
     renderClientTraining().then(async () => {
-      const nwid = getWeekIdBySessionId(nextSessionId);
-      if(nwid) showTrainingWeekPanel(nwid);
+      const nextWeekId = getWeekIdBySessionId(nextSessionId);
+
+      if(nextWeekId){
+        showTrainingWeekPanel(nextWeekId);
+      }
+
       await showTrainingDay(nextSessionId);
     });
   }, 3000);
@@ -3767,11 +3981,474 @@ function renderAssessments(){
 }
 
 /* ══ OTRAS SECCIONES ══ */
-function renderReservations(){const el=document.getElementById('sectionReservations');const badge=document.getElementById('reservationsBadge');if(!el)return;if(badge)badge.textContent=clientReservations.length;if(!clientReservations.length){el.innerHTML='<p class="empty-state">Todavía no tienes reservas registradas.</p><div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero solicitar una nueva reserva de entrenamiento.\')">Solicitar nueva reserva</button></div>';return;}const today=todayISO();const up=clientReservations.filter(r=>String(r.date).slice(0,10)>=today&&!['cancelada','cancelado'].includes((r.status||'').toLowerCase()));const past=clientReservations.filter(r=>String(r.date).slice(0,10)<today||['cancelada','cancelado'].includes((r.status||'').toLowerCase()));let html='';if(up.length){const nx=up[0];html+='<div class="data-card next-session"><div class="next-label">Próxima sesión</div><div class="dc-row"><span class="dc-title">'+(nx.type||'Sesión')+'</span>'+genericBadge(nx.status)+'</div><div class="dc-row"><span class="dc-sub">'+formatDate(nx.date)+'</span>'+(nx.time?'<span class="dc-sub">'+formatTime(nx.time)+'</span>':'')+(nx.place?'<span class="dc-sub">'+nx.place+'</span>':'')+'</div>'+(nx.note?'<div class="dc-note">'+nx.note+'</div>':'')+'</div>';up.slice(1).forEach(r=>{html+='<div class="data-card"><div class="dc-row"><span class="dc-title">'+(r.type||'Sesión')+'</span>'+genericBadge(r.status)+'</div><div class="dc-row"><span class="dc-sub">'+formatDate(r.date)+'</span>'+(r.time?'<span class="dc-sub">'+formatTime(r.time)+'</span>':'')+(r.place?'<span class="dc-sub">'+r.place+'</span>':'')+'</div>'+(r.note?'<div class="dc-note">'+r.note+'</div>':'')+'</div>';});}past.forEach(r=>{html+='<div class="data-card"><div class="dc-row"><span class="dc-title">'+(r.type||'Sesión')+'</span>'+genericBadge(r.status)+'</div><div class="dc-row"><span class="dc-sub">'+formatDate(r.date)+'</span>'+(r.time?'<span class="dc-sub">'+formatTime(r.time)+'</span>':'')+(r.place?'<span class="dc-sub">'+r.place+'</span>':'')+'</div>'+(r.note?'<div class="dc-note">'+r.note+'</div>':'')+'</div>';});html+='<div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero solicitar una nueva reserva de entrenamiento.\')">Solicitar nueva reserva</button></div>';el.innerHTML=html;}
-function renderPayments(){const el=document.getElementById('sectionPayments');const badge=document.getElementById('paymentsBadge');if(!el)return;if(badge)badge.textContent=clientPayments.length;if(!clientPayments.length){el.innerHTML='<p class="empty-state">No hay pagos registrados.</p>';return;}el.innerHTML=clientPayments.map(p=>'<div class="data-card"><div class="dc-row"><span class="dc-title">'+(p.concept||'Pago')+'</span>'+paymentBadge(p.status)+'</div><div class="dc-row"><span class="dc-sub">'+formatMoney(p.amount,p.currency)+'</span>'+(p.due_date?'<span class="dc-sub">Vence: '+formatDate(p.due_date)+'</span>':'')+(p.method?'<span class="dc-sub">'+p.method+'</span>':'')+'</div>'+(p.note?'<div class="dc-note">'+p.note+'</div>':'')+'</div>').join('');}
-function renderNotes(){const el=document.getElementById('sectionNotes');if(!el)return;const raw=clientData.notes;if(!raw||raw===''||raw==='[]'||raw==='null'){el.innerHTML='<p class="empty-state">Todavía no hay notas del coach.</p>';return;}let notes=[];if(Array.isArray(raw))notes=raw;else if(typeof raw==='string'){try{const p=JSON.parse(raw);notes=Array.isArray(p)?p:[raw];}catch{notes=[raw];}}notes=notes.map(n=>{if(typeof n==='string')return n.trim();if(typeof n==='object'&&n)return String(n.text||n.note||n.message||'').trim();return'';}).filter(Boolean);el.innerHTML=notes.length?notes.map(n=>'<div class="note-item">'+n+'</div>').join(''):'<p class="empty-state">Todavía no hay notas del coach.</p>';}
-function renderSummary(){const el=document.getElementById('sectionSummary');if(!el)return;const today=todayISO();const nextRes=clientReservations.find(r=>String(r.date).slice(0,10)>=today&&!['cancelada','cancelado'].includes((r.status||'').toLowerCase()));const lastAss=clientAssessments[0]||null;const hasPending=clientPayments.some(p=>['pendiente','vencido'].includes((p.status||'').toLowerCase()));const hasOverdue=clientPayments.some(p=>p.status==='vencido');const payStatus=hasOverdue?'Vencido':hasPending?'Pendiente':'Al día';const payClass=hasOverdue?'badge-red':hasPending?'badge-yellow':'badge-green';let rawNotes=clientData.notes,lastNote='';if(rawNotes&&rawNotes!=='[]'&&rawNotes!=='null'){if(Array.isArray(rawNotes)&&rawNotes.length)lastNote=typeof rawNotes[0]==='string'?rawNotes[0]:(rawNotes[0].text||'');else if(typeof rawNotes==='string'){try{const p=JSON.parse(rawNotes);if(Array.isArray(p)&&p.length)lastNote=typeof p[0]==='string'?p[0]:(p[0].text||'');}catch{}}}let html='<div style="background:var(--card);border:1px solid var(--card-border);border-radius:12px;overflow:hidden;"><div class="summary-grid" style="padding:18px;">';html+='<div class="summary-card full"><div class="summary-label">Cliente</div><div class="summary-value big">'+(clientData.name||'—')+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Plan</div><div class="summary-value">'+(clientData.plan||'—')+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Estado</div><div class="summary-value">'+(clientData.status||'—')+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Programa activo</div><div class="summary-value">'+(clientTrainingProgram?.name||clientPrograms[0]?.name||'—')+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Alcance</div><div class="summary-value">'+(clientTrainingAssignment?getAssignmentScopeLabel():'—')+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Próxima sesión</div><div class="summary-value">'+(nextRes?formatDate(nextRes.date)+(nextRes.time?' · '+formatTime(nextRes.time):''):'Sin reservas')+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Pagos</div><div class="summary-value"><span class="badge '+payClass+'">'+payStatus+'</span></div></div>';html+='<div class="summary-card"><div class="summary-label">Tests realizados</div><div class="summary-value">'+clientAssessments.length+'</div></div>';html+='<div class="summary-card"><div class="summary-label">Métricas</div><div class="summary-value">'+clientMetrics.length+'</div></div>';if(lastAss)html+='<div class="summary-card full"><div class="summary-label">Última evaluación</div><div class="summary-value">'+(lastAss.assessment_name||'Test')+' · '+formatDate(lastAss.assessment_date)+'</div></div>';if(lastNote)html+='<div class="summary-card full"><div class="summary-label">Última nota del coach</div><div class="summary-value" style="font-style:italic;color:var(--text-secondary);">'+lastNote+'</div></div>';html+='</div></div><div class="action-box"><button class="copy-summary-btn" onclick="copySummaryToClipboard()">Copiar resumen al portapapeles</button></div>';el.innerHTML=html;}
-function copySummaryToClipboard(){const today=todayISO();const nextRes=clientReservations.find(r=>String(r.date).slice(0,10)>=today&&!['cancelada','cancelado'].includes((r.status||'').toLowerCase()));const lastAss=clientAssessments[0]||null;const hasPending=clientPayments.some(p=>['pendiente','vencido'].includes((p.status||'').toLowerCase()));const hasOverdue=clientPayments.some(p=>p.status==='vencido');const payStatus=hasOverdue?'Vencido':hasPending?'Pendiente':'Al día';let rawNotes=clientData.notes,lastNote='';if(rawNotes&&rawNotes!=='[]'){if(Array.isArray(rawNotes)&&rawNotes.length)lastNote=typeof rawNotes[0]==='string'?rawNotes[0]:(rawNotes[0].text||'');else if(typeof rawNotes==='string'){try{const p=JSON.parse(rawNotes);if(Array.isArray(p)&&p.length)lastNote=typeof p[0]==='string'?p[0]:(p[0].text||'');}catch{}}}const text=['Resumen AB Coach','Cliente: '+(clientData.name||'—'),'Plan: '+(clientData.plan||'—'),'Entrenamiento: '+(clientTrainingProgram?.name||clientPrograms[0]?.name||'—'),'Alcance: '+(clientTrainingAssignment?getAssignmentScopeLabel():'—'),'Nivel: '+(clientTrainingAssignment?.assigned_level||'—'),'Próxima sesión: '+(nextRes?formatDate(nextRes.date)+(nextRes.time?' a las '+formatTime(nextRes.time):''):'Sin reservas'),'Última evaluación: '+(lastAss?(lastAss.assessment_name||'Test')+' · '+formatDate(lastAss.assessment_date):'—'),'Pagos: '+payStatus,lastNote?'Notas: '+lastNote:''].filter(Boolean).join('\n');navigator.clipboard.writeText(text).then(()=>{const btn=document.querySelector('.copy-summary-btn');if(btn){btn.textContent='Copiado';setTimeout(()=>{btn.textContent='Copiar resumen al portapapeles';},2000);}}).catch(()=>alert('No se pudo copiar.'));}
+function renderReservations(){
+  const el = document.getElementById('sectionReservations');
+  const badge = document.getElementById('reservationsBadge');
+
+  if(!el) return;
+
+  if(badge) badge.textContent = clientReservations.length;
+
+  if(!clientReservations.length){
+    el.innerHTML =
+      '<p class="empty-state">' + uiText('noReservationsYet') + '</p>' +
+      '<div class="action-box">' +
+        '<button class="client-action-btn wa" onclick="clientWA(\'' + uiText('requestNewTrainingReservation') + '\')">' +
+          uiText('requestReservation') +
+        '</button>' +
+      '</div>';
+
+    return;
+  }
+
+  const today = todayISO();
+
+  const upcoming = clientReservations.filter(r =>
+    String(r.date).slice(0,10) >= today &&
+    !['cancelada','cancelado','cancelled'].includes(String(r.status || '').toLowerCase())
+  );
+
+  const past = clientReservations.filter(r =>
+    String(r.date).slice(0,10) < today ||
+    ['cancelada','cancelado','cancelled'].includes(String(r.status || '').toLowerCase())
+  );
+
+  let html = '';
+
+  if(upcoming.length){
+    const nextReservation = upcoming[0];
+
+    html +=
+      '<div class="data-card next-session">' +
+        '<div class="next-label">' + uiText('nextSession') + '</div>' +
+
+        '<div class="dc-row">' +
+          '<span class="dc-title">' + (nextReservation.type || uiText('session')) + '</span>' +
+          genericBadge(nextReservation.status) +
+        '</div>' +
+
+        '<div class="dc-row">' +
+          '<span class="dc-sub">' + formatDate(nextReservation.date) + '</span>' +
+          (
+            nextReservation.time
+              ? '<span class="dc-sub">' + formatTime(nextReservation.time) + '</span>'
+              : ''
+          ) +
+          (
+            nextReservation.place
+              ? '<span class="dc-sub">' + nextReservation.place + '</span>'
+              : ''
+          ) +
+        '</div>' +
+
+        (
+          nextReservation.note
+            ? '<div class="dc-note">' + nextReservation.note + '</div>'
+            : ''
+        ) +
+      '</div>';
+
+    upcoming.slice(1).forEach(r => {
+      html +=
+        '<div class="data-card">' +
+          '<div class="dc-row">' +
+            '<span class="dc-title">' + (r.type || uiText('session')) + '</span>' +
+            genericBadge(r.status) +
+          '</div>' +
+
+          '<div class="dc-row">' +
+            '<span class="dc-sub">' + formatDate(r.date) + '</span>' +
+            (
+              r.time
+                ? '<span class="dc-sub">' + formatTime(r.time) + '</span>'
+                : ''
+            ) +
+            (
+              r.place
+                ? '<span class="dc-sub">' + r.place + '</span>'
+                : ''
+            ) +
+          '</div>' +
+
+          (
+            r.note
+              ? '<div class="dc-note">' + r.note + '</div>'
+              : ''
+          ) +
+        '</div>';
+    });
+  }
+
+  past.forEach(r => {
+    html +=
+      '<div class="data-card">' +
+        '<div class="dc-row">' +
+          '<span class="dc-title">' + (r.type || uiText('session')) + '</span>' +
+          genericBadge(r.status) +
+        '</div>' +
+
+        '<div class="dc-row">' +
+          '<span class="dc-sub">' + formatDate(r.date) + '</span>' +
+          (
+            r.time
+              ? '<span class="dc-sub">' + formatTime(r.time) + '</span>'
+              : ''
+          ) +
+          (
+            r.place
+              ? '<span class="dc-sub">' + r.place + '</span>'
+              : ''
+          ) +
+        '</div>' +
+
+        (
+          r.note
+            ? '<div class="dc-note">' + r.note + '</div>'
+            : ''
+        ) +
+      '</div>';
+  });
+
+  html +=
+    '<div class="action-box">' +
+      '<button class="client-action-btn wa" onclick="clientWA(\'' + uiText('requestNewTrainingReservation') + '\')">' +
+        uiText('requestReservation') +
+      '</button>' +
+    '</div>';
+
+  el.innerHTML = html;
+}
+function renderPayments(){
+  const el = document.getElementById('sectionPayments');
+  const badge = document.getElementById('paymentsBadge');
+
+  if(!el) return;
+
+  if(badge) badge.textContent = clientPayments.length;
+
+  if(!clientPayments.length){
+    el.innerHTML =
+      '<p class="empty-state">' + uiText('noPaymentsRegistered') + '</p>';
+    return;
+  }
+
+  el.innerHTML = clientPayments.map(p => {
+    return (
+      '<div class="data-card">' +
+
+        '<div class="dc-row">' +
+          '<span class="dc-title">' + (p.concept || uiText('payment')) + '</span>' +
+          paymentBadge(p.status) +
+        '</div>' +
+
+        '<div class="dc-row">' +
+
+          '<span class="dc-sub">' +
+            formatMoney(p.amount, p.currency) +
+          '</span>' +
+
+          (
+            p.due_date
+              ? '<span class="dc-sub">' + uiText('dueDate') + ': ' + formatDate(p.due_date) + '</span>'
+              : ''
+          ) +
+
+          (
+            p.method
+              ? '<span class="dc-sub">' + p.method + '</span>'
+              : ''
+          ) +
+
+        '</div>' +
+
+        (
+          p.note
+            ? '<div class="dc-note">' + p.note + '</div>'
+            : ''
+        ) +
+
+      '</div>'
+    );
+  }).join('');
+}
+function renderNotes(){
+  const el = document.getElementById('sectionNotes');
+
+  if(!el) return;
+
+  const raw = clientData.notes;
+
+  if(!raw || raw === '' || raw === '[]' || raw === 'null'){
+    el.innerHTML =
+      '<p class="empty-state">' + uiText('noCoachNotesRegistered') + '</p>';
+    return;
+  }
+
+  let notes = [];
+
+  if(Array.isArray(raw)){
+    notes = raw;
+  } else if(typeof raw === 'string'){
+    try{
+      const parsed = JSON.parse(raw);
+      notes = Array.isArray(parsed) ? parsed : [raw];
+    }catch{
+      notes = [raw];
+    }
+  }
+
+  notes = notes
+    .map(n => {
+      if(typeof n === 'string') return n.trim();
+
+      if(typeof n === 'object' && n){
+        return String(n.text || n.note || n.message || '').trim();
+      }
+
+      return '';
+    })
+    .filter(Boolean);
+
+  if(!notes.length){
+    el.innerHTML =
+      '<p class="empty-state">' + uiText('noCoachNotesRegistered') + '</p>';
+    return;
+  }
+
+  el.innerHTML = notes
+    .map(n => '<div class="note-item">' + n + '</div>')
+    .join('');
+}
+function renderSummary(){
+  const el = document.getElementById('sectionSummary');
+  if(!el) return;
+
+  const today = todayISO();
+
+  const nextRes = clientReservations.find(r =>
+    String(r.date).slice(0,10) >= today &&
+    !['cancelada','cancelado','cancelled'].includes(String(r.status || '').toLowerCase())
+  );
+
+  const lastAss = clientAssessments[0] || null;
+
+  const hasPending = clientPayments.some(p =>
+    ['pendiente','vencido','pending','overdue'].includes(String(p.status || '').toLowerCase())
+  );
+
+  const hasOverdue = clientPayments.some(p =>
+    ['vencido','overdue'].includes(String(p.status || '').toLowerCase())
+  );
+
+  const payStatus = hasOverdue
+    ? (getLang() === 'sr' ? 'Kasni' : 'Vencido')
+    : hasPending
+      ? uiText('pending')
+      : uiText('upToDate');
+
+  const payClass = hasOverdue
+    ? 'badge-red'
+    : hasPending
+      ? 'badge-yellow'
+      : 'badge-green';
+
+  let rawNotes = clientData.notes;
+  let lastNote = '';
+
+  if(rawNotes && rawNotes !== '[]' && rawNotes !== 'null'){
+    if(Array.isArray(rawNotes) && rawNotes.length){
+      lastNote = typeof rawNotes[0] === 'string'
+        ? rawNotes[0]
+        : (rawNotes[0].text || rawNotes[0].note || '');
+    } else if(typeof rawNotes === 'string'){
+      try{
+        const parsed = JSON.parse(rawNotes);
+        if(Array.isArray(parsed) && parsed.length){
+          lastNote = typeof parsed[0] === 'string'
+            ? parsed[0]
+            : (parsed[0].text || parsed[0].note || '');
+        }
+      }catch{
+        lastNote = rawNotes;
+      }
+    }
+  }
+
+  let html =
+    '<div style="background:var(--card);border:1px solid var(--card-border);border-radius:12px;overflow:hidden;">' +
+      '<div class="summary-grid" style="padding:18px;">';
+
+  html +=
+    '<div class="summary-card full">' +
+      '<div class="summary-label">' + uiText('client') + '</div>' +
+      '<div class="summary-value big">' + (clientData.name || '—') + '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="summary-card">' +
+      '<div class="summary-label">' + uiText('plan') + '</div>' +
+      '<div class="summary-value">' + (clientData.plan || '—') + '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="summary-card">' +
+      '<div class="summary-label">' + uiText('status') + '</div>' +
+      '<div class="summary-value">' + (clientData.status || '—') + '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="summary-card">' +
+      '<div class="summary-label">' + uiText('programActive') + '</div>' +
+      '<div class="summary-value">' + (clientTrainingProgram?.name || clientPrograms[0]?.name || '—') + '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="summary-card">' +
+      '<div class="summary-label">' + uiText('scope') + '</div>' +
+      '<div class="summary-value">' + (clientTrainingAssignment ? getAssignmentScopeLabel() : '—') + '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="summary-card">' +
+      '<div class="summary-label">' + uiText('nextSessionSummary') + '</div>' +
+      '<div class="summary-value">' +
+        (
+          nextRes
+            ? formatDate(nextRes.date) + (nextRes.time ? ' · ' + formatTime(nextRes.time) : '')
+            : uiText('noReservations')
+        ) +
+      '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="summary-card">' +
+      '<div class="summary-label">' + uiText('payments') + '</div>' +
+      '<div class="summary-value"><span class="badge ' + payClass + '">' + payStatus + '</span></div>' +
+    '</div>';
+
+  html +=
+    '<div class="summary-card">' +
+      '<div class="summary-label">' + uiText('testsDone') + '</div>' +
+      '<div class="summary-value">' + clientAssessments.length + '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="summary-card">' +
+      '<div class="summary-label">' + uiText('metrics') + '</div>' +
+      '<div class="summary-value">' + clientMetrics.length + '</div>' +
+    '</div>';
+
+  if(lastAss){
+    html +=
+      '<div class="summary-card full">' +
+        '<div class="summary-label">' + uiText('lastEvaluation') + '</div>' +
+        '<div class="summary-value">' +
+          (lastAss.assessment_name || uiText('functionalTest')) + ' · ' + formatDate(lastAss.assessment_date) +
+        '</div>' +
+      '</div>';
+  }
+
+  if(lastNote){
+    html +=
+      '<div class="summary-card full">' +
+        '<div class="summary-label">' + uiText('lastCoachNote') + '</div>' +
+        '<div class="summary-value" style="font-style:italic;color:var(--text-secondary);">' +
+          lastNote +
+        '</div>' +
+      '</div>';
+  }
+
+  html +=
+      '</div>' +
+    '</div>' +
+
+    '<div class="action-box">' +
+      '<button class="copy-summary-btn" onclick="copySummaryToClipboard()">' +
+        uiText('copySummary') +
+      '</button>' +
+    '</div>';
+
+  el.innerHTML = html;
+}
+function copySummaryToClipboard(){
+  const today = todayISO();
+
+  const nextRes = clientReservations.find(r =>
+    String(r.date).slice(0,10) >= today &&
+    !['cancelada','cancelado','cancelled'].includes(String(r.status || '').toLowerCase())
+  );
+
+  const lastAss = clientAssessments[0] || null;
+
+  const hasPending = clientPayments.some(p =>
+    ['pendiente','vencido','pending','overdue'].includes(String(p.status || '').toLowerCase())
+  );
+
+  const hasOverdue = clientPayments.some(p =>
+    ['vencido','overdue'].includes(String(p.status || '').toLowerCase())
+  );
+
+  const payStatus = hasOverdue
+    ? (getLang() === 'sr' ? 'Kasni' : 'Vencido')
+    : hasPending
+      ? uiText('pending')
+      : uiText('upToDate');
+
+  let rawNotes = clientData.notes;
+  let lastNote = '';
+
+  if(rawNotes && rawNotes !== '[]'){
+    if(Array.isArray(rawNotes) && rawNotes.length){
+      lastNote = typeof rawNotes[0] === 'string'
+        ? rawNotes[0]
+        : (rawNotes[0].text || rawNotes[0].note || '');
+    } else if(typeof rawNotes === 'string'){
+      try{
+        const parsed = JSON.parse(rawNotes);
+        if(Array.isArray(parsed) && parsed.length){
+          lastNote = typeof parsed[0] === 'string'
+            ? parsed[0]
+            : (parsed[0].text || parsed[0].note || '');
+        }
+      }catch{
+        lastNote = rawNotes;
+      }
+    }
+  }
+
+  const text = [
+    uiText('summaryTitle'),
+    uiText('client') + ': ' + (clientData.name || '—'),
+    uiText('plan') + ': ' + (clientData.plan || '—'),
+    uiText('training') + ': ' + (clientTrainingProgram?.name || clientPrograms[0]?.name || '—'),
+    uiText('scope') + ': ' + (clientTrainingAssignment ? getAssignmentScopeLabel() : '—'),
+    uiText('levelLabel') + ': ' + (clientTrainingAssignment?.assigned_level || '—'),
+    uiText('nextSessionSummary') + ': ' + (
+      nextRes
+        ? formatDate(nextRes.date) + (nextRes.time ? ' ' + uiText('atTime') + ' ' + formatTime(nextRes.time) : '')
+        : uiText('noReservations')
+    ),
+    uiText('lastEvaluation') + ': ' + (
+      lastAss
+        ? (lastAss.assessment_name || uiText('functionalTest')) + ' · ' + formatDate(lastAss.assessment_date)
+        : '—'
+    ),
+    uiText('payments') + ': ' + payStatus,
+    lastNote ? uiText('notes') + ': ' + lastNote : ''
+  ].filter(Boolean).join('\n');
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-summary-btn');
+
+    if(btn){
+      btn.textContent = uiText('copied');
+
+      setTimeout(() => {
+        btn.textContent = uiText('copySummary');
+      }, 2000);
+    }
+  }).catch(() => alert(uiText('couldNotCopy')));
+}
 
 function renderClientData(){
   const el = document.getElementById('sectionClientData');
