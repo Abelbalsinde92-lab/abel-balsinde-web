@@ -1312,43 +1312,87 @@ function getFinishedSessionCountFromStorage(){
 function buildHomeRing_v2(label,value,unit,svgContent,note,color,targetSection){
   return`<div class="home-ring-card" onclick="goClientSection('${targetSection}')" title="Ir a ${label}"><div class="home-ring-label">${label}</div><div class="home-ring-value" style="color:${color}">${value}<span style="font-size:14px;color:var(--text-secondary);margin-left:2px;font-family:var(--font-mono)">${unit}</span></div><div class="home-ring-svg-wrap"><svg viewBox="0 0 100 40" preserveAspectRatio="none">${svgContent}</svg></div><div class="home-ring-note">${note}</div></div>`;
 }
+
+function getConstanciaState(finishedSessions, totalSessions){
+  const total = Number(totalSessions || 0);
+  const finished = Number(finishedSessions || 0);
+
+  if(total <= 0){
+    return {
+      value: '0%',
+      note: 'Empieza tu racha',
+      dotsPercent: 0
+    };
+  }
+
+  const percent = clampPercent((finished / total) * 100);
+
+  if(finished === 0){
+    return {
+      value: '0%',
+      note: 'Primer entrenamiento pendiente',
+      dotsPercent: 0
+    };
+  }
+
+  if(finished === 1){
+    return {
+      value: '🔥',
+      note: 'Primer paso completado',
+      dotsPercent: Math.max(percent, 25)
+    };
+  }
+
+  if(finished === 2){
+    return {
+      value: '🔥🔥',
+      note: 'Buena racha',
+      dotsPercent: Math.max(percent, 50)
+    };
+  }
+
+  if(percent >= 100){
+    return {
+      value: '🔥🔥🔥',
+      note: 'Semana completada',
+      dotsPercent: 100
+    };
+  }
+
+  return {
+    value: '🔥🔥🔥',
+    note: 'Constancia activa',
+    dotsPercent: Math.max(percent, 70)
+  };
+}
+
 function buildHomeProgressRings(){
-  const hasTraining = Boolean(clientTrainingProgram && clientTrainingSessions.length);
+  const finishedSessions = getFinishedSessionCountFromStorage();
+  const totalSessions = clientTrainingSessions.length || 1;
 
-  const finishedSessions = hasTraining ? getFinishedSessionCountFromStorage() : 0;
-  const totalSessions = hasTraining ? clientTrainingSessions.length : 0;
+  const planPct = clampPercent((finishedSessions / totalSessions) * 100);
 
-  const planPct = hasTraining
-    ? clampPercent((finishedSessions / Math.max(totalSessions, 1)) * 100)
-    : 0;
+  const constancia = getConstanciaState(finishedSessions, totalSessions);
 
-  const constanciaPct = hasTraining
-    ? clampPercent((finishedSessions / Math.max(totalSessions, 1)) * 70 + Math.min(30, clientReservations.length * 10))
-    : clampPercent(Math.min(100, clientReservations.length * 20));
+  const barData = [
+    40, 65, 55, 80, 70, 90, 60, 75, 85, 95, 50, clampPercent(planPct)
+  ];
 
-  const barData = hasTraining
-    ? [40,65,55,80,70,90,60,75,85,95,50,clampPercent(planPct)]
-    : [8,8,8,8,8,8,8,8,8,8,8,8];
-
-  const splineData = [72,78,74,80,76,82,79,85,88,83,77,81];
+  const splineData = [
+    72, 78, 74, 80, 76, 82, 79, 85, 88, 83, 77, 81
+  ];
 
   const dotData = Array.from(
     { length: 30 },
-    (_, i) => i < Math.round((constanciaPct / 100) * 30)
+    (_, i) => i < Math.round((constancia.dotsPercent / 100) * 30)
   );
-
-  const planNote = hasTraining
-    ? `${finishedSessions} de ${totalSessions} sesiones`
-    : 'Sin plan activo';
-
-  const alertsUnit = clientAlerts.length === 1 ? 'alerta' : 'alertas';
 
   const card1 = buildHomeRing_v2(
     'Plan',
     planPct + '%',
     '',
-    buildMicroBars(barData,'var(--sport)',100,40),
-    planNote,
+    buildMicroBars(barData, 'var(--sport)', 100, 40),
+    finishedSessions + ' de ' + totalSessions + ' sesiones',
     'var(--sport)',
     'section-training'
   );
@@ -1356,24 +1400,24 @@ function buildHomeProgressRings(){
   const card2 = buildHomeRing_v2(
     'Salud',
     clientAlerts.length,
-    alertsUnit,
-    buildMicroSpline(splineData,'var(--medical)',100,40),
-    `${clientAlerts.length} indicaciones activas`,
+    'alerts',
+    buildMicroSpline(splineData, 'var(--medical)', 100, 40),
+    clientAlerts.length + ' indicaciones activas',
     'var(--medical)',
     'section-health'
   );
 
   const card3 = buildHomeRing_v2(
     'Constancia',
-    constanciaPct + '%',
+    constancia.value,
     '',
-    buildMicroDots(dotData,'var(--streak)',100,40),
-    `${constanciaPct}% continuidad`,
+    buildMicroDots(dotData, 'var(--streak)', 100, 40),
+    constancia.note,
     'var(--streak)',
-    'section-assessments'
+    'section-training'
   );
 
-  return `<div class="home-rings-grid">${card1}${card2}${card3}</div>`;
+  return '<div class="home-rings-grid">' + card1 + card2 + card3 + '</div>';
 }
 
 /* ══ RENDER HOME ══ */
