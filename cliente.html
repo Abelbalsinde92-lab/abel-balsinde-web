@@ -309,6 +309,15 @@ input, textarea { outline: none; font-family: var(--font-body); }
   display: block; margin-top: 4px;
 }
 
+#display-fc-drop {
+  color: var(--text-primary);
+  margin-top: 6px;
+}
+
+#display-fc-calc {
+  opacity: .85;
+}
+
 .estado-tag {
   display: inline-block; font-family: var(--font-mono);
   font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase;
@@ -947,7 +956,20 @@ async function cargarMetricasCombate() {
   const ck       = evaluarCK(data.creatina_quinasa);
   const cortisol = evaluarCortisol(data.cortisol);
   const fcRec    = evaluarFCRecuperacion(data.fc_recuperacion_1min, fcMax);
+  const fcDropEl = document.getElementById('display-fc-drop');
+if (fcDropEl) {
+  fcDropEl.textContent = fcRec.caida != null
+    ? `Caída: ${fcRec.caida} ppm`
+    : 'Caída: -- ppm';
+}
 
+const fcCalcEl = document.getElementById('display-fc-calc');
+if (fcCalcEl) {
+  fcCalcEl.textContent = fcMaxRef
+    ? `FC máx usada: ${fcMax} (ref. ${fcMaxRef}) ppm`
+    : `FC máx usada: ${fcMax} ppm`;
+}
+  
   inyectarMetrica('card-ck', 'display-ck',
     data.creatina_quinasa,
     ck.clase, ck.label
@@ -1401,7 +1423,8 @@ function buildCombatMetricsHTML(){
   '<span>Recuperación cardíaca 1 min</span>' +
   '<strong id="display-fc-rec">--</strong>' +
   '<div class="metrica-unit">ppm al minuto</div>' +
-  '<div class="metrica-unit" id="display-fc-calc">Calculado con FC máx: -- ppm</div>' +
+  '<div class="metrica-unit" id="display-fc-drop">Caída: -- ppm</div>' +
+  '<div class="metrica-unit" id="display-fc-calc">FC máx usada: -- ppm</div>' +
 '</div>' +
 
         '<div class="card-metrica" id="card-peso">' +
