@@ -1482,6 +1482,22 @@ function uiText(key) {
 
   const dict = {
     es: {
+      hello: 'Hola',
+training: 'Entrenamiento',
+pending: 'Pendiente',
+noTrainingVisible: 'Todavía no hay entrenamiento visible para tu cuenta.',
+advance: 'Avance',
+consistency: 'Constancia',
+sessions: 'sesiones',
+of: 'de',
+firstPendingTraining: 'Primer entrenamiento pendiente',
+firstStepCompleted: 'Primer paso completado',
+goodStreak: 'Buena racha',
+weekCompleted: 'Semana completada',
+startYourStreak: 'Empieza tu racha',
+noActiveIndications: 'Sin indicaciones activas',
+activeIndications: 'Indicaciones activas',
+pendingIndication: 'Indicación pendiente',
       home: 'Inicio',
       train: 'Entrenar',
       progress: 'Progreso',
@@ -1525,6 +1541,22 @@ function uiText(key) {
     },
 
     sr: {
+      hello: 'Zdravo',
+training: 'Trening',
+pending: 'Na čekanju',
+noTrainingVisible: 'Trening još nije dostupan za tvoj nalog.',
+advance: 'Napredak',
+consistency: 'Doslednost',
+sessions: 'sesija',
+of: 'od',
+firstPendingTraining: 'Prvi trening je na čekanju',
+firstStepCompleted: 'Prvi korak završen',
+goodStreak: 'Dobar niz',
+weekCompleted: 'Nedelja završena',
+startYourStreak: 'Započni svoj niz',
+noActiveIndications: 'Nema aktivnih napomena',
+activeIndications: 'Aktivne napomene',
+pendingIndication: 'Napomena na čekanju',
       home: 'Početna',
       train: 'Trening',
       progress: 'Napredak',
@@ -1685,7 +1717,7 @@ function getConstanciaState(finishedSessions, totalSessions){
   if(total <= 0){
     return {
       value: '0%',
-      note: 'Empieza tu racha',
+      note: uiText('startYourStreak'),
       dotsPercent: 0
     };
   }
@@ -1695,7 +1727,7 @@ function getConstanciaState(finishedSessions, totalSessions){
   if(finished <= 0){
     return {
       value: '0%',
-      note: 'Primer entrenamiento pendiente',
+      note: uiText('firstPendingTraining'),
       dotsPercent: 0
     };
   }
@@ -1703,7 +1735,7 @@ function getConstanciaState(finishedSessions, totalSessions){
   if(finished === 1 && total > 1){
     return {
       value: '🔥',
-      note: 'Primer paso completado',
+      note: uiText('firstStepCompleted'),
       dotsPercent: 0
     };
   }
@@ -1711,7 +1743,7 @@ function getConstanciaState(finishedSessions, totalSessions){
   if(finished === 2 && total > 2){
     return {
       value: '🔥🔥',
-      note: 'Buena racha',
+      note: uiText('goodStreak'),
       dotsPercent: 0
     };
   }
@@ -1719,14 +1751,14 @@ function getConstanciaState(finishedSessions, totalSessions){
   if(percent >= 100){
     return {
       value: '🔥🔥🔥',
-      note: 'Semana completada',
+      note: uiText('weekCompleted'),
       dotsPercent: 0
     };
   }
 
   return {
     value: '🔥🔥',
-    note: finished + ' de ' + total + ' entrenamientos',
+    note: finished + ' ' + uiText('of') + ' ' + total + ' entrenamientos',
     dotsPercent: 0
   };
 }
@@ -1738,7 +1770,7 @@ function getHealthHomeState(){
     return {
       value: 'OK',
       unit: '',
-      note: 'Sin indicaciones activas',
+      note: uiText('noActiveIndications'),
       color: 'var(--streak)'
     };
   }
@@ -1747,7 +1779,7 @@ function getHealthHomeState(){
     return {
       value: '1',
       unit: '',
-      note: 'Indicación pendiente',
+      note: uiText('pendingIndication'),
       color: 'var(--warn)'
     };
   }
@@ -1755,7 +1787,7 @@ function getHealthHomeState(){
   return {
     value: String(totalAlerts),
     unit: '',
-    note: 'Indicaciones activas',
+    note: uiText('activeIndications'),
     color: 'var(--medical)'
   };
 }
@@ -1778,34 +1810,34 @@ const planPct = progressStats.percent;
     : [60, 61, 60, 62, 61, 60, 61, 60, 62, 61, 60, 61];
 
   const card1 = buildHomeRing_v2(
-  'Avance',
-    planPct + '%',
-    '',
-    buildMicroBars(barData, 'var(--sport)', 100, 40),
-    finishedSessions + ' de ' + totalSessions + ' sesiones',
-    'var(--sport)',
-    'section-training'
-  );
+  uiText('advance'),
+  planPct + '%',
+  '',
+  buildMicroBars(barData, 'var(--sport)', 100, 40),
+  finishedSessions + ' ' + uiText('of') + ' ' + totalSessions + ' ' + uiText('sessions'),
+  'var(--sport)',
+  'section-training'
+);
 
   const card2 = buildHomeRing_v2(
-    'Salud',
-    healthState.value,
-    healthState.unit,
-    buildMicroSpline(splineData, healthState.color, 100, 40),
-    healthState.note,
-    healthState.color,
-    'section-health'
-  );
+  uiText('health'),
+  healthState.value,
+  healthState.unit,
+  buildMicroSpline(splineData, healthState.color, 100, 40),
+  healthState.note,
+  healthState.color,
+  'section-health'
+);
 
   const card3 = buildHomeRing_v2(
-    'Constancia',
-    constancia.value,
-    '',
-    '',
-    constancia.note,
-    'var(--streak)',
-    'section-training'
-  );
+  uiText('consistency'),
+  constancia.value,
+  '',
+  '',
+  constancia.note,
+  'var(--streak)',
+  'section-training'
+);
 
   return '<div class="home-rings-grid">' + card1 + card2 + card3 + '</div>';
 }
@@ -1840,10 +1872,10 @@ const metaLine = metaParts.join(' · ');
   const reservationSub=nextReservation?((nextReservation.type||'Reserva')+(nextReservation.place?' · '+nextReservation.place:'')):'Toca para ver el calendario';
 
   let html='';
-  html+='<div style="padding:4px 0 24px;"><div style="font-family:var(--font-display);font-size:32px;letter-spacing:1.5px;color:var(--text-primary);line-height:1;margin-bottom:6px;">Hola, '+firstName+'.</div><div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);letter-spacing:0.4px;text-transform:capitalize;">'+dateStr+'</div></div>';
+  html+='<div style="padding:4px 0 24px;"><div style="font-family:var(--font-display);font-size:32px;letter-spacing:1.5px;color:var(--text-primary);line-height:1;margin-bottom:6px;">'+uiText('hello')+', '+firstName+'.</div><div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);letter-spacing:0.4px;text-transform:capitalize;">'+dateStr+'</div></div>';
 
   if(hasTraining){
-    html+='<div class="data-card next-session"><div class="next-label">Entrenamiento principal</div><div class="dc-row"><span class="dc-title">'+sessionLabel+'</span>'+(trainingFinished?'<span class="badge badge-green">Completado</span>':'<span class="badge badge-blue">Disponible</span>')+'</div><div class="dc-row"><span class="dc-sub">'+metaLine+'</span></div><div class="action-box"><button class="client-action-btn" onclick="goClientSection(\'section-training\')">'+(trainingFinished?'Ver entrenamiento realizado':'Empezar entrenamiento')+'</button></div></div>';
+    html+='<div class="data-card next-session"><div class="next-label">'+uiText('mainTraining')+'</div><div class="dc-row"><span class="dc-title">'+sessionLabel+'</span>'+(trainingFinished?''<span class="badge badge-green">'+uiText('completed')+'</span>':'<span class="badge badge-blue">'+uiText('available')+'</span>')+'</div><div class="dc-row"><span class="dc-sub">'+metaLine+'</span></div><div class="action-box"><button class="client-action-btn" onclick="goClientSection(\'section-training\')">'+(trainingFinished ? uiText('viewCompletedTraining') : uiText('startTraining'))+'</button></div></div>';
   } else {
     html+='<div class="data-card"><div class="dc-row"><span class="dc-title">Entrenamiento</span><span class="badge badge-gray">Pendiente</span></div><div class="dc-note">Todavía no hay entrenamiento visible para tu cuenta.</div></div>';
   }
