@@ -1452,7 +1452,6 @@ async function renderDashboard() {
 
   renderHome();
 
-  renderHome();
   if (typeof renderProgram==='function') renderProgram();
   await renderClientTraining();
   renderReservations();
@@ -1758,7 +1757,7 @@ function getConstanciaState(finishedSessions, totalSessions){
 
   return {
     value: '🔥🔥',
-    note: finished + ' ' + uiText('of') + ' ' + total + ' entrenamientos',
+    note: finished + ' ' + uiText('of') + ' ' + total + ' ' + uiText('sessions'),
     dotsPercent: 0
   };
 }
@@ -1875,19 +1874,38 @@ const metaLine = metaParts.join(' · ');
   html+='<div style="padding:4px 0 24px;"><div style="font-family:var(--font-display);font-size:32px;letter-spacing:1.5px;color:var(--text-primary);line-height:1;margin-bottom:6px;">'+uiText('hello')+', '+firstName+'.</div><div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);letter-spacing:0.4px;text-transform:capitalize;">'+dateStr+'</div></div>';
 
   if(hasTraining){
-    html+='<div class="data-card next-session"><div class="next-label">'+uiText('mainTraining')+'</div><div class="dc-row"><span class="dc-title">'+sessionLabel+'</span>'+(trainingFinished?''<span class="badge badge-green">'+uiText('completed')+'</span>':'<span class="badge badge-blue">'+uiText('available')+'</span>')+'</div><div class="dc-row"><span class="dc-sub">'+metaLine+'</span></div><div class="action-box"><button class="client-action-btn" onclick="goClientSection(\'section-training\')">'+(trainingFinished ? uiText('viewCompletedTraining') : uiText('startTraining'))+'</button></div></div>';
-  } else {
-    html+='<div class="data-card"><div class="dc-row"><span class="dc-title">Entrenamiento</span><span class="badge badge-gray">Pendiente</span></div><div class="dc-note">Todavía no hay entrenamiento visible para tu cuenta.</div></div>';
-  }
+  html +=
+    '<div class="data-card next-session">' +
+      '<div class="next-label">' + uiText('mainTraining') + '</div>' +
 
-    html += buildHomeCombatSummary();
-  
-  html+=buildHomeProgressRings();
+      '<div class="dc-row">' +
+        '<span class="dc-title">' + sessionLabel + '</span>' +
+        (
+          trainingFinished
+            ? '<span class="badge badge-green">' + uiText('completed') + '</span>'
+            : '<span class="badge badge-blue">' + uiText('available') + '</span>'
+        ) +
+      '</div>' +
 
-  html+='<div class="summary-grid" style="margin-top:0;"><div class="summary-card full" onclick="goClientSection(\'section-reservations\')" style="cursor:pointer;"><div class="summary-label">Próxima reserva</div><div class="summary-value" style="font-size:16px;font-weight:700;">'+reservationMain+'</div><div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;letter-spacing:0.3px;">'+reservationSub+'</div></div></div>';
-  html+='<div class="action-box" style="margin-top:12px;"><button class="client-action-btn wa" onclick="clientWA(\'Hola, necesito ayuda con mi área cliente.\')">Contactar a Abel</button></div>';
+      '<div class="dc-row">' +
+        '<span class="dc-sub">' + metaLine + '</span>' +
+      '</div>' +
 
-  el.innerHTML=html;
+      '<div class="action-box">' +
+        '<button class="client-action-btn" onclick="goClientSection(\'section-training\')">' +
+          (trainingFinished ? uiText('viewCompletedTraining') : uiText('startTraining')) +
+        '</button>' +
+      '</div>' +
+    '</div>';
+} else {
+  html +=
+    '<div class="data-card">' +
+      '<div class="dc-row">' +
+        '<span class="dc-title">' + uiText('training') + '</span>' +
+        '<span class="badge badge-gray">' + uiText('pending') + '</span>' +
+      '</div>' +
+      '<div class="dc-note">' + uiText('noTrainingVisible') + '</div>' +
+    '</div>';
 }
 
 /* ══ RENDER PROGRAM ══ */
