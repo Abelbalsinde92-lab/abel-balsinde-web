@@ -1581,7 +1581,10 @@ function uiText(key) {
     heartDrop: 'Caída',
     maxHrUsed: 'FC máx usada',
     combatWeight: 'Peso de combate',
-    lastUpdate: 'Última actualización'
+    lastUpdate: 'Última actualización',
+
+generalHealthIntro: 'Aquí Abel podrá registrar observaciones generales, molestias, descanso, adaptación al entrenamiento y recomendaciones básicas.',
+combatMetricsDisabled: 'Este perfil no tiene activadas las métricas específicas de combate. Si Abel lo considera necesario, podrá activarlas desde el panel admin.'
   },
 
   sr: {
@@ -1687,6 +1690,9 @@ function uiText(key) {
     maxHrUsed: 'Korišćen maksimalni puls',
     combatWeight: 'Borbena težina',
     lastUpdate: 'Poslednje ažuriranje'
+    
+    generalHealthIntro: 'Ovde Abel može da registruje opšte napomene, nelagodnosti, odmor, adaptaciju na trening i osnovne preporuke.',
+combatMetricsDisabled: 'Ovaj profil nema aktivirane specifične borbene metrike. Ako Abel smatra da je potrebno, može ih aktivirati iz admin panela.'
   }
 };
 
@@ -3789,21 +3795,21 @@ function buildGeneralHealthHTML(){
   return (
     '<div class="data-card">' +
       '<div class="dc-row">' +
-        '<span class="dc-title">Estado general</span>' +
-        '<span class="badge badge-blue">Seguimiento</span>' +
+        '<span class="dc-title">' + uiText('generalStatus') + '</span>' +
+        '<span class="badge badge-blue">' + uiText('followUp') + '</span>' +
       '</div>' +
       '<div class="dc-note">' +
-        'Aquí Abel podrá registrar observaciones generales, molestias, descanso, adaptación al entrenamiento y recomendaciones básicas.' +
+        uiText('generalHealthIntro') +
       '</div>' +
     '</div>' +
 
     '<div class="data-card">' +
       '<div class="dc-row">' +
-        '<span class="dc-title">Control del entrenamiento</span>' +
-        '<span class="badge badge-gray">General</span>' +
+        '<span class="dc-title">' + uiText('trainingControl') + '</span>' +
+        '<span class="badge badge-gray">' + uiText('general') + '</span>' +
       '</div>' +
       '<div class="dc-note">' +
-        'Este perfil no tiene activadas las métricas específicas de combate. Si Abel lo considera necesario, podrá activarlas desde el panel admin.' +
+        uiText('combatMetricsDisabled') +
       '</div>' +
     '</div>'
   );
