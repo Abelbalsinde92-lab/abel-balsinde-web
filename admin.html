@@ -2990,6 +2990,9 @@ function openModal(type,id=null){
            placeholder="Ej: 190">
   </div>
 </div>
+  
+  ${actions}`;
+
   }
 
   else if(type==='reservation'){const r=get('reservations');title.textContent=id?'Editar reserva':'Nueva reserva';form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(r.clientId)}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Fecha</label><input name="date" class="form-input" type="date" value="${esc(r.date||todayISO())}" required></div><div class="form-row"><label class="form-label">Hora</label><input name="time" class="form-input" type="time" value="${esc(r.time||'09:00')}" required></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Tipo</label><input name="type" class="form-input" value="${esc(r.type||'Sesión personal')}" required></div><div class="form-row"><label class="form-label">Lugar</label><input name="place" class="form-input" value="${esc(r.place||'Belgrado')}" required></div></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="reservada" ${r.status==='reservada'?'selected':''}>Reservada</option><option value="confirmada" ${r.status==='confirmada'?'selected':''}>Confirmada</option><option value="realizada" ${r.status==='realizada'?'selected':''}>Realizada</option><option value="cancelada" ${r.status==='cancelada'?'selected':''}>Cancelada</option></select></div><div class="form-row"><label class="form-label">Nota</label><textarea name="note" class="form-input" rows="2">${esc(r.note||'')}</textarea></div>${actions}`;}
@@ -3283,10 +3286,6 @@ async function saveModal(e){
 
   if(data.enable_combat_metrics !== undefined) {
     data.enable_combat_metrics = data.enable_combat_metrics === 'true';
-  }
-
-  if(data.fc_max !== undefined) {
-    data.fc_max = data.fc_max ? Number(data.fc_max) || null : null;
   }
 
   if(data.fc_max !== undefined) {
