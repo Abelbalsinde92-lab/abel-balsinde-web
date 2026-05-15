@@ -1779,6 +1779,20 @@ logout: 'Salir',
 waNeedHelpLogin: 'Hola Abel, necesito ayuda para entrar al área cliente.',
 waPlanQuestion: 'Tengo una duda sobre mi plan.',
 waNeedHelpClientArea: 'Hola, necesito ayuda con mi área cliente.',
+allCompletedQuestion: '¿Todo completado?',
+beforeClosingSession: 'Antes de cerrar, marca cómo fue la sesión.',
+quickObservations: 'Observaciones rápidas',
+helpAbelAdjust: 'Ayuda a Abel a ajustar cargas y dificultad del próximo entrenamiento.',
+optionalCommentForAbel: 'Comentario opcional para Abel...',
+closeTraining: 'Cerrar entrenamiento',
+trainingSaved: 'Entrenamiento guardado',
+goodJobProgressSaved: 'Buen trabajo. Tu progreso quedó registrado.',
+nextTrainingUnlocked: 'Siguiente entrenamiento desbloqueado. Puedes continuar cuando estés listo.',
+sessionCompletedAbelReview: 'Sesión completada. Abel revisará tus notas.',
+sessionRegisteredOn: 'Sesión registrada el',
+abelWillReviewNotes: 'Abel revisará tus notas.',
+observations: 'Observaciones',
+sentNote: 'Nota enviada',
 
 feedbackOk: 'Todo bien, sin molestias',
 feedbackDiscomfort: 'Tuve molestias',
@@ -1899,6 +1913,34 @@ logout: 'Izlaz',
 waNeedHelpLogin: 'Zdravo Abel, treba mi pomoć da uđem u klijentsku zonu.',
 waPlanQuestion: 'Imam pitanje u vezi sa mojim planom.',
 waNeedHelpClientArea: 'Zdravo, treba mi pomoć oko moje klijentske zone.',
+allCompletedQuestion: 'Sve završeno?',
+beforeClosingSession: 'Pre zatvaranja označi kako je prošla sesija.',
+quickObservations: 'Brze napomene',
+helpAbelAdjust: 'Pomozi Abelu da prilagodi opterećenje i težinu sledećeg treninga.',
+optionalCommentForAbel: 'Opcioni komentar za Abela...',
+closeTraining: 'Zatvori trening',
+trainingSaved: 'Trening sačuvan',
+goodJobProgressSaved: 'Dobar posao. Tvoj napredak je registrovan.',
+nextTrainingUnlocked: 'Sledeći trening je otključan. Možeš nastaviti kada budeš spreman.',
+sessionCompletedAbelReview: 'Sesija je završena. Abel će pregledati tvoje napomene.',
+sessionRegisteredOn: 'Sesija registrovana',
+abelWillReviewNotes: 'Abel će pregledati tvoje napomene.',
+observations: 'Napomene',
+sentNote: 'Poslata napomena',
+allCompletedQuestion: 'Sve završeno?',
+beforeClosingSession: 'Pre zatvaranja označi kako je prošla sesija.',
+quickObservations: 'Brze napomene',
+helpAbelAdjust: 'Pomozi Abelu da prilagodi opterećenje i težinu sledećeg treninga.',
+optionalCommentForAbel: 'Opcioni komentar za Abela...',
+closeTraining: 'Zatvori trening',
+trainingSaved: 'Trening sačuvan',
+goodJobProgressSaved: 'Dobar posao. Tvoj napredak je registrovan.',
+nextTrainingUnlocked: 'Sledeći trening je otključan. Možeš nastaviti kada budeš spreman.',
+sessionCompletedAbelReview: 'Sesija je završena. Abel će pregledati tvoje napomene.',
+sessionRegisteredOn: 'Sesija registrovana',
+abelWillReviewNotes: 'Abel će pregledati tvoje napomene.',
+observations: 'Napomene',
+sentNote: 'Poslata napomena',
 
 feedbackOk: 'Sve je bilo u redu, bez nelagodnosti',
 feedbackDiscomfort: 'Imao/la sam nelagodnost',
@@ -3418,35 +3460,31 @@ function renderTrainingCompletionBox(scroll){
 
     area.innerHTML =
       '<div class="training-finish-card compact">' +
-        '<div class="training-finish-title">' + uiText('trainingCompletedTitle') + '</div>' +
-
+        '<div class="training-finish-title">' + tClient('trainingCompleted') + '</div>' +
         '<div class="training-finish-sub">' +
           uiText('sessionRegisteredOn') + ' ' +
           formatDate(String(finishedAt).slice(0,10)) +
-          '. ' +
-          uiText('abelWillReviewNotes') +
+          '. ' + uiText('abelWillReviewNotes') +
         '</div>' +
 
-        (
-          feedbackSummary
-            ? '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
-                '<div class="training-notes-title">' + uiText('observations') + '</div>' +
-                '<div class="training-finish-sub" style="margin-bottom:0;">' +
-                  feedbackSummary +
-                '</div>' +
-              '</div>'
-            : ''
+        (feedbackSummary
+          ? '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
+              '<div class="training-notes-title">' + uiText('observations') + '</div>' +
+              '<div class="training-finish-sub" style="margin-bottom:0;">' +
+                feedbackSummary +
+              '</div>' +
+            '</div>'
+          : ''
         ) +
 
-        (
-          note
-            ? '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
-                '<div class="training-notes-title">' + uiText('sentNote') + '</div>' +
-                '<div class="training-finish-sub" style="margin-bottom:0;">' +
-                  note +
-                '</div>' +
-              '</div>'
-            : ''
+        (note
+          ? '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
+              '<div class="training-notes-title">' + uiText('sentNote') + '</div>' +
+              '<div class="training-finish-sub" style="margin-bottom:0;">' +
+                note +
+              '</div>' +
+            '</div>'
+          : ''
         ) +
       '</div>';
 
@@ -3459,29 +3497,29 @@ function renderTrainingCompletionBox(scroll){
 
   area.innerHTML =
     '<div class="training-finish-card">' +
-      '<div class="training-finish-title">' + uiText('everythingCompletedQuestion') + '</div>' +
+      '<div class="training-finish-title">' + uiText('allCompletedQuestion') + '</div>' +
       '<div class="training-finish-sub">' + uiText('beforeClosingSession') + '</div>' +
 
       '<div class="training-notes-box" style="text-align:left;margin-top:16px;">' +
         '<div class="training-notes-title">' + uiText('quickObservations') + '</div>' +
         '<div class="training-finish-sub" style="margin-bottom:12px;">' +
-          uiText('feedbackHelpsCoach') +
+          uiText('helpAbelAdjust') +
         '</div>' +
 
         '<div id="trainingFeedbackTags" style="display:grid;gap:8px;margin:12px 0;">' +
-          buildFeedbackTag('ok', uiText('feedbackOk')) +
-          buildFeedbackTag('molestias', uiText('feedbackDiscomfort')) +
-          buildFeedbackTag('dolor_pare', uiText('feedbackPainStopped')) +
-          buildFeedbackTag('baje_peso', uiText('feedbackLowerWeight')) +
-          buildFeedbackTag('subi_peso', uiText('feedbackHigherWeight')) +
-          buildFeedbackTag('muy_cansado', uiText('feedbackVeryTired')) +
-          buildFeedbackTag('no_complete', uiText('feedbackCouldNotComplete')) +
-          buildFeedbackTag('falto_tiempo', uiText('feedbackNoTime')) +
-          buildFeedbackTag('no_entendi', uiText('feedbackDidNotUnderstand')) +
-          buildFeedbackTag('revisar', uiText('feedbackNeedsReview')) +
+          buildFeedbackTag('ok', feedbackText('ok')) +
+          buildFeedbackTag('molestias', feedbackText('molestias')) +
+          buildFeedbackTag('dolor_pare', feedbackText('dolor_pare')) +
+          buildFeedbackTag('baje_peso', feedbackText('baje_peso')) +
+          buildFeedbackTag('subi_peso', feedbackText('subi_peso')) +
+          buildFeedbackTag('muy_cansado', feedbackText('muy_cansado')) +
+          buildFeedbackTag('no_complete', feedbackText('no_complete')) +
+          buildFeedbackTag('falto_tiempo', feedbackText('falto_tiempo')) +
+          buildFeedbackTag('no_entendi', feedbackText('no_entendi')) +
+          buildFeedbackTag('revisar', feedbackText('revisar')) +
         '</div>' +
 
-        '<textarea class="training-notes-textarea" id="trainingFinishNote" placeholder="' + uiText('optionalCommentCoach') + '"></textarea>' +
+        '<textarea class="training-notes-textarea" id="trainingFinishNote" placeholder="' + uiText('optionalCommentForAbel') + '"></textarea>' +
         '<button class="training-complete-block-btn" onclick="finishTrainingSession()">' +
           uiText('closeTraining') +
         '</button>' +
@@ -3492,6 +3530,40 @@ function renderTrainingCompletionBox(scroll){
     area.scrollIntoView({ behavior:'smooth', block:'start' });
   }
 }
+
+function feedbackText(key) {
+  const lang = getLang();
+
+  const dict = {
+    es: {
+      ok: 'Todo bien, sin molestias',
+      molestias: 'Tuve molestias',
+      dolor_pare: 'Sentí dolor y paré',
+      baje_peso: 'Tuve que bajar el peso',
+      subi_peso: 'Tuve que subir el peso',
+      muy_cansado: 'Me sentí muy cansado',
+      no_complete: 'No pude completar todos los bloques',
+      falto_tiempo: 'Me faltó tiempo',
+      no_entendi: 'No entendí bien un ejercicio',
+      revisar: 'Necesito que Abel revise este entrenamiento'
+    },
+    sr: {
+      ok: 'Sve je bilo u redu, bez nelagodnosti',
+      molestias: 'Imao/la sam nelagodnost',
+      dolor_pare: 'Osetio/la sam bol i stao/la',
+      baje_peso: 'Morao/la sam da smanjim težinu',
+      subi_peso: 'Morao/la sam da povećam težinu',
+      muy_cansado: 'Osećao/la sam se veoma umorno',
+      no_complete: 'Nisam mogao/la da završim sve blokove',
+      falto_tiempo: 'Nedostajalo mi je vremena',
+      no_entendi: 'Nisam dobro razumeo/la vežbu',
+      revisar: 'Potrebno je da Abel pregleda ovaj trening'
+    }
+  };
+
+  return dict[lang]?.[key] || dict.es[key] || key;
+}
+
 function buildFeedbackTag(value,label){return'<label class="training-feedback-row"><input type="checkbox" class="training-feedback-check" value="'+value+'"><span>'+label+'</span></label>';}
 async function finishTrainingSession(){
   const currentSessionId = getCurrentVisibleSessionId();
@@ -3503,21 +3575,8 @@ async function finishTrainingSession(){
   const noteEl = document.getElementById('trainingFinishNote');
   const note = noteEl ? noteEl.value.trim() : '';
 
-  const feedbackLabels = {
-    ok: uiText('feedbackOk'),
-    molestias: uiText('feedbackDiscomfort'),
-    dolor_pare: uiText('feedbackPainStopped'),
-    baje_peso: uiText('feedbackLowerWeight'),
-    subi_peso: uiText('feedbackHigherWeight'),
-    muy_cansado: uiText('feedbackVeryTired'),
-    no_complete: uiText('feedbackCouldNotComplete'),
-    falto_tiempo: uiText('feedbackNoTime'),
-    no_entendi: uiText('feedbackDidNotUnderstand'),
-    revisar: uiText('feedbackNeedsReview')
-  };
-
   const feedbackSummary = checkedTags
-    .map(t => feedbackLabels[t] || t)
+    .map(t => feedbackText(t))
     .join(' · ');
 
   saveTrainingProgressLocal({
@@ -3561,7 +3620,7 @@ function showCompletedToastAndGoNext(currentSessionId){
                 uiText('nextTrainingUnlocked') +
               '</div>'
             : '<div class="training-finish-sub" style="margin-top:8px;">' +
-                uiText('sessionCompletedCoachReview') +
+                uiText('sessionCompletedAbelReview') +
               '</div>'
         ) +
       '</div>';
@@ -3576,12 +3635,8 @@ function showCompletedToastAndGoNext(currentSessionId){
     saveLastActiveSession(nextSessionId);
 
     renderClientTraining().then(async () => {
-      const nextWeekId = getWeekIdBySessionId(nextSessionId);
-
-      if(nextWeekId){
-        showTrainingWeekPanel(nextWeekId);
-      }
-
+      const nwid = getWeekIdBySessionId(nextSessionId);
+      if(nwid) showTrainingWeekPanel(nwid);
       await showTrainingDay(nextSessionId);
     });
   }, 3000);
