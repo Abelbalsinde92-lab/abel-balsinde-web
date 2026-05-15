@@ -928,18 +928,19 @@ async function cargarMetricasCombate() {
   if (!clientData?.id) return;
 
   const { data, error } = await db
-  .rpc('get_latest_metricas_combate', {
-    p_atleta_id: clientData.id
-  })
-  .maybeSingle();
+    .rpc('get_latest_metricas_combate', {
+      p_atleta_id: clientData.id
+    })
+    .maybeSingle();
 
   if (error || !data) {
     // Sin datos aún — las cards ya muestran '--' por defecto
     return;
   }
 
-  // fc_max viene de clientData (campo en tabla clients)
-  const fcMax = clientData.fc_max || clientData.fc_max_ref || 190;
+  // FC máxima usada y referencia desde tabla clients
+  const fcMax = Number(clientData.fc_max) || 190;
+  const fcMaxRef = Number(clientData.fc_max_ref) || null;
 
   const ck       = evaluarCK(data.creatina_quinasa);
   const cortisol = evaluarCortisol(data.cortisol);
@@ -964,6 +965,14 @@ async function cargarMetricasCombate() {
     data.peso_corporal != null ? Number(data.peso_corporal).toFixed(1) : null,
     null, null
   );
+
+  // Mostrar FC máxima usada para calcular la recuperación
+  const fcCalcEl = document.getElementById('display-fc-calc');
+  if (fcCalcEl) {
+    fcCalcEl.textContent = fcMaxRef
+      ? `Calculado con FC máx: ${fcMax} (${fcMaxRef}) ppm`
+      : `Calculado con FC máx: ${fcMax} ppm`;
+  }
 
   // Fecha última actualización
   const fechaEl = document.getElementById('display-fecha');
@@ -1384,10 +1393,11 @@ function buildCombatMetricsHTML(){
         '</div>' +
 
         '<div class="card-metrica" id="card-recuperacion">' +
-          '<span>Recuperación cardíaca 1 min</span>' +
-          '<strong id="display-fc-rec">--</strong>' +
-          '<div class="metrica-unit">ppm al minuto</div>' +
-        '</div>' +
+  '<span>Recuperación cardíaca 1 min</span>' +
+  '<strong id="display-fc-rec">--</strong>' +
+  '<div class="metrica-unit">ppm al minuto</div>' +
+  '<div class="metrica-unit" id="display-fc-calc" style="margin-top:6px;color:var(--sport);">Calculado con FC máx: --</div>' +
+'</div>' +
 
         '<div class="card-metrica" id="card-peso">' +
           '<span>Peso de combate</span>' +
@@ -1788,11 +1798,11 @@ function renderClientData(){
     clientData.plan ||
     'Sin plan activo';
 
-  const isCombatProfile =
-    String(clientData.athlete_profile || '').toLowerCase() === 'combat';
-
-  const combatMetricsEnabled =
-    clientData.enable_combat_metrics === true;
+  const fcMaxText = clientData.fc_max
+    ? String(clientData.fc_max) +
+      (clientData.fc_max_ref ? ' (' + clientData.fc_max_ref + ')' : '') +
+      ' ppm'
+    : '—';
 
   let html = '';
 
@@ -1824,10 +1834,9 @@ function renderClientData(){
     '<div class="summary-card" onclick="goClientSection(\'section-payments\')" style="cursor:pointer;">' +
       '<div class="summary-label">Pagos</div>' +
       '<div class="summary-value">' +
-        (
-          pendingPay
-            ? '<span class="badge badge-yellow">' + pendingPay + ' pendiente' + (pendingPay !== 1 ? 's' : '') + '</span>'
-            : '<span class="badge badge-green">Al día</span>'
+        (pendingPay
+          ? '<span class="badge badge-yellow">' + pendingPay + ' pendiente' + (pendingPay !== 1 ? 's' : '') + '</span>'
+          : '<span class="badge badge-green">Al día</span>'
         ) +
       '</div>' +
       '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">Estado de pagos</div>' +
@@ -1873,31 +1882,9 @@ function renderClientData(){
           '</div>' +
 
           '<div class="plan-item">' +
-            '<div class="pi-label">Tipo de cliente</div>' +
-            '<div class="pi-value">' +
-              (isCombatProfile ? 'Atleta de combate' : 'Cliente general') +
-            '</div>' +
+            '<div class="pi-label">FC Máxima</div>' +
+            '<div class="pi-value">' + fcMaxText + '</div>' +
           '</div>' +
-
-          '<div class="plan-item">' +
-            '<div class="pi-label">Métricas combate</div>' +
-            '<div class="pi-value">' +
-              (combatMetricsEnabled ? 'Activas' : 'No activas') +
-            '</div>' +
-          '</div>' +
-
-          (
-            (clientData.fc_max || clientData.fc_max_ref)
-              ? '<div class="plan-item">' +
-                  '<div class="pi-label">FC Máxima</div>' +
-                  '<div class="pi-value">' +
-                    (clientData.fc_max || '—') +
-                    (clientData.fc_max_ref ? ' (' + clientData.fc_max_ref + ')' : '') +
-                    ' ppm' +
-                  '</div>' +
-                '</div>'
-              : ''
-          ) +
 
         '</div>' +
       '</div>' +
