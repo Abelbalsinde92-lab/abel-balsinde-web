@@ -1303,119 +1303,137 @@ async function loadClientDashboard(clientId) {
           const first=rows[0];
           clientTrainingProgram = {
   id: first.program_id,
-  name: first.program_name,
-  name_es: first.program_name_es || first.program_name,
-  name_sr: first.program_name_sr || '',
-  description: first.program_description,
-  description_es: first.program_description_es || first.program_description,
-  description_sr: first.program_description_sr || '',
-  objective: first.program_objective,
-  objective_es: first.program_objective_es || first.program_objective,
-  objective_sr: first.program_objective_sr || '',
-  type: first.program_type,
-  type_es: first.program_type_es || first.program_type,
-  type_sr: first.program_type_sr || '',
-  level: first.program_level,
-  level_es: first.program_level_es || first.program_level,
-  level_sr: first.program_level_sr || ''
+
+  name: valRow(first, 'program_name_es', 'program_name'),
+  name_es: valRow(first, 'program_name_es', 'program_name'),
+  name_sr: valRow(first, 'program_name_sr'),
+
+  description: valRow(first, 'program_description_es', 'program_description'),
+  description_es: valRow(first, 'program_description_es', 'program_description'),
+  description_sr: valRow(first, 'program_description_sr'),
+
+  objective: valRow(first, 'program_objective_es', 'program_objective'),
+  objective_es: valRow(first, 'program_objective_es', 'program_objective'),
+  objective_sr: valRow(first, 'program_objective_sr'),
+
+  type: valRow(first, 'program_type_es', 'program_type'),
+  type_es: valRow(first, 'program_type_es', 'program_type'),
+  type_sr: valRow(first, 'program_type_sr'),
+
+  level: valRow(first, 'program_level_es', 'program_level'),
+  level_es: valRow(first, 'program_level_es', 'program_level'),
+  level_sr: valRow(first, 'program_level_sr')
 };
           
           const weeksMap=new Map(),sessionsMap=new Map(),blocksMap=new Map();
           rows.forEach(r=>{
             if (!weeksMap.has(r.week_id)) {
   weeksMap.set(r.week_id, {
-    id: r.week_id,
-    week_number: r.week_order,
-    name: r.week_name,
-    name_es: r.week_name_es || r.week_name,
-    name_sr: r.week_name_sr || '',
-    description: r.week_description,
-    description_es: r.week_description_es || r.week_description,
-    description_sr: r.week_description_sr || '',
-    objective: r.week_objective,
-    objective_es: r.week_objective_es || r.week_objective,
-    objective_sr: r.week_objective_sr || '',
-    focus: r.week_focus,
-    focus_es: r.week_focus_es || r.week_focus,
-    focus_sr: r.week_focus_sr || ''
-  });
+  id: r.week_id,
+  week_number: r.week_order,
+
+  name: valRow(r, 'week_name_es', 'week_name'),
+  name_es: valRow(r, 'week_name_es', 'week_name'),
+  name_sr: valRow(r, 'week_name_sr'),
+
+  description: valRow(r, 'week_description_es', 'week_description'),
+  description_es: valRow(r, 'week_description_es', 'week_description'),
+  description_sr: valRow(r, 'week_description_sr'),
+
+  objective: valRow(r, 'week_objective_es', 'week_objective'),
+  objective_es: valRow(r, 'week_objective_es', 'week_objective'),
+  objective_sr: valRow(r, 'week_objective_sr'),
+
+  focus: valRow(r, 'week_focus_es', 'week_focus'),
+  focus_es: valRow(r, 'week_focus_es', 'week_focus'),
+  focus_sr: valRow(r, 'week_focus_sr')
+});
 }
             if (!sessionsMap.has(r.session_id)) {
   sessionsMap.set(r.session_id, {
-    id: r.session_id,
-    week_id: r.week_id,
-    session_number: r.session_order,
-    title: r.session_title,
-    title_es: r.session_title_es || r.session_title,
-    title_sr: r.session_title_sr || '',
-    objective: r.session_objective,
-    objective_es: r.session_objective_es || r.session_objective,
-    objective_sr: r.session_objective_sr || '',
-    description: r.session_description,
-    description_es: r.session_description_es || r.session_description,
-    description_sr: r.session_description_sr || '',
-    intensity: r.session_intensity,
-    intensity_es: r.session_intensity_es || r.session_intensity,
-    intensity_sr: r.session_intensity_sr || ''
-  });
+  id: r.session_id,
+  week_id: r.week_id,
+  session_number: r.session_order,
+
+  title: valRow(r, 'session_title_es', 'session_title'),
+  title_es: valRow(r, 'session_title_es', 'session_title'),
+  title_sr: valRow(r, 'session_title_sr'),
+
+  objective: valRow(r, 'session_objective_es', 'session_objective'),
+  objective_es: valRow(r, 'session_objective_es', 'session_objective'),
+  objective_sr: valRow(r, 'session_objective_sr'),
+
+  description: valRow(r, 'session_description_es', 'session_description'),
+  description_es: valRow(r, 'session_description_es', 'session_description'),
+  description_sr: valRow(r, 'session_description_sr'),
+
+  intensity: valRow(r, 'session_intensity_es', 'session_intensity'),
+  intensity_es: valRow(r, 'session_intensity_es', 'session_intensity'),
+  intensity_sr: valRow(r, 'session_intensity_sr')
+});
 }
             if (!blocksMap.has(r.block_id)) {
   blocksMap.set(r.block_id, {
-    id: r.block_id,
-    session_id: r.session_id,
-    block_order: r.block_order,
-    title: r.block_title,
-    title_es: r.block_title_es || r.block_title,
-    title_sr: r.block_title_sr || '',
-    objective: r.block_objective,
-    objective_es: r.block_objective_es || r.block_objective,
-    objective_sr: r.block_objective_sr || '',
-    description: r.block_description,
-    description_es: r.block_description_es || r.block_description,
-    description_sr: r.block_description_sr || '',
-    type: r.block_type,
-    type_es: r.block_type_es || r.block_type,
-    type_sr: r.block_type_sr || '',
-    duration: r.block_duration
-  });
+  id: r.block_id,
+  session_id: r.session_id,
+  block_order: r.block_order,
+
+  title: valRow(r, 'block_title_es', 'block_title'),
+  title_es: valRow(r, 'block_title_es', 'block_title'),
+  title_sr: valRow(r, 'block_title_sr'),
+
+  objective: valRow(r, 'block_objective_es', 'block_objective'),
+  objective_es: valRow(r, 'block_objective_es', 'block_objective'),
+  objective_sr: valRow(r, 'block_objective_sr'),
+
+  description: valRow(r, 'block_description_es', 'block_description'),
+  description_es: valRow(r, 'block_description_es', 'block_description'),
+  description_sr: valRow(r, 'block_description_sr'),
+
+  type: valRow(r, 'block_type_es', 'block_type'),
+  type_es: valRow(r, 'block_type_es', 'block_type'),
+  type_sr: valRow(r, 'block_type_sr'),
+
+  duration: r.block_duration
+});
 }
             clientTrainingExercises.push({
   id: r.exercise_id,
   block_id: r.block_id,
   exercise_order: r.exercise_order,
 
-  name: r.exercise_name,
-  name_es: r.exercise_name_es || r.exercise_name,
-  name_sr: r.exercise_name_sr || '',
+  name: valRow(r, 'exercise_name_es', 'exercise_name'),
+  name_es: valRow(r, 'exercise_name_es', 'exercise_name'),
+  name_sr: valRow(r, 'exercise_name_sr'),
 
-  description: r.exercise_description,
-  description_es: r.exercise_description_es || r.exercise_description,
-  description_sr: r.exercise_description_sr || '',
+  description: valRow(r, 'exercise_description_es', 'exercise_description'),
+  description_es: valRow(r, 'exercise_description_es', 'exercise_description'),
+  description_sr: valRow(r, 'exercise_description_sr'),
 
   sets: r.sets,
   reps: r.reps,
   time: r.time,
   rest: r.rest,
 
-  variant_n1: r.variant_n1,
-  variant_n1_es: r.variant_n1_es || r.variant_n1,
-  variant_n1_sr: r.variant_n1_sr || '',
+  variant_n1: valRow(r, 'variant_n1_es', 'variant_n1'),
+  variant_n1_es: valRow(r, 'variant_n1_es', 'variant_n1'),
+  variant_n1_sr: valRow(r, 'variant_n1_sr'),
 
-  variant_n2: r.variant_n2,
-  variant_n2_es: r.variant_n2_es || r.variant_n2,
-  variant_n2_sr: r.variant_n2_sr || '',
+  variant_n2: valRow(r, 'variant_n2_es', 'variant_n2'),
+  variant_n2_es: valRow(r, 'variant_n2_es', 'variant_n2'),
+  variant_n2_sr: valRow(r, 'variant_n2_sr'),
 
-  variant_n3: r.variant_n3,
-  variant_n3_es: r.variant_n3_es || r.variant_n3,
-  variant_n3_sr: r.variant_n3_sr || '',
+  variant_n3: valRow(r, 'variant_n3_es', 'variant_n3'),
+  variant_n3_es: valRow(r, 'variant_n3_es', 'variant_n3'),
+  variant_n3_sr: valRow(r, 'variant_n3_sr'),
 
-  variant_n4: r.variant_n4,
-  variant_n4_es: r.variant_n4_es || r.variant_n4,
-  variant_n4_sr: r.variant_n4_sr || '',
+  variant_n4: valRow(r, 'variant_n4_es', 'variant_n4'),
+  variant_n4_es: valRow(r, 'variant_n4_es', 'variant_n4'),
+  variant_n4_sr: valRow(r, 'variant_n4_sr'),
 
-  coaching_notes: r.coaching_notes,
-  coaching_notes_es: r.coaching_notes_es || r.coaching_notes,
-  coaching_notes_sr: r.coaching_notes_sr || '',
+  coaching_notes: valRow(r, 'coaching_notes_es', 'coaching_notes'),
+  coaching_notes_es: valRow(r, 'coaching_notes_es', 'coaching_notes'),
+  coaching_notes_sr: valRow(r, 'coaching_notes_sr'),
 
   video_url: r.video_url || ''
 });
@@ -1475,6 +1493,15 @@ renderClientData();
   const wa=document.getElementById('btnHeaderWA');
   if (wa) wa.onclick=()=>openWA('Hola Abel, soy '+name+'. Tengo una duda sobre mi plan.');
   goClientSection('section-home');
+}
+
+function valRow(r, ...keys) {
+  for (const k of keys) {
+    if (r && r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== '') {
+      return r[k];
+    }
+  }
+  return '';
 }
 
 /* ══ LANG ══ */
@@ -1946,7 +1973,9 @@ async function saveTrainingProgress(extra,sessionId){
 function buildCompletedSessionCard(session,index){
   const title = getSessionDisplayTitle(session,index);
   const week = clientTrainingWeeks.find(w => String(w.id) === String(session.week_id));
-  const weekLabel = week?.week_number ? 'Semana ' + week.week_number : 'Semana';
+  const weekLabel = week?.week_number
+  ? tClient('week') + ' ' + week.week_number
+  : tClient('week');
 
   return (
     '<div class="training-session-completed-card">' +
@@ -2037,12 +2066,11 @@ async function renderClientTraining(){
       .trim();
 
     const week = clientTrainingWeeks.find(w =>
-      String(w.id) === String(session?.week_id)
-    );
+      String(w.id) === String(session?.week_
 
     const weekLabel = week?.week_number
-      ? 'Semana ' + week.week_number
-      : 'Semana actual';
+  ? tClient('week') + ' ' + week.week_number
+  : tClient('currentWeek');
 
     return (
       '<div class="training-mini-hero">' +
