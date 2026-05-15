@@ -776,7 +776,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   <nav class="client-nav" id="clientNav">
     <button onclick="goClientSection('section-home')">Inicio</button>
     <button onclick="goClientSection('section-training')">Entrenar</button>
-    <button onclick="goClientSection('section-assessments')">Evaluaciones</button>
+    <button onclick="goClientSection('section-assessments')">Progreso</button>
     <button onclick="goClientSection('section-health')">Salud</button>
     <button onclick="goClientSection('section-client-data')">Perfil</button>
   </nav>
@@ -812,7 +812,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
     <!-- EVALUACIONES -->
     <div class="section section-hidden" id="section-assessments">
-      <div class="section-header"><h2>EVALUACIONES</h2><span class="sec-badge" id="assessmentsBadge">0</span></div>
+      <div class="section-header"><h2>PROGRESO</h2><span class="sec-badge" id="assessmentsBadge">0</span></div>
       <div class="section-body" id="sectionAssessments"></div>
     </div>
 
@@ -1942,10 +1942,10 @@ function renderAssessments(){
     el.innerHTML =
       '<div class="data-card">' +
         '<div class="dc-row">' +
-          '<span class="dc-title">Evaluaciones</span>' +
+          '<span class="dc-title">Progreso</span>' +
           '<span class="badge badge-gray">Sin datos</span>' +
         '</div>' +
-        '<div class="dc-note">Todavía no hay evaluaciones registradas. Cuando Abel realice un test, aparecerán aquí tus resultados y evolución.</div>' +
+        '<div class="dc-note">Todavía no hay progreso registrado. Cuando Abel realice un test, aparecerán aquí tus resultados y evolución.</div>' +
       '</div>';
 
     return;
@@ -2018,7 +2018,7 @@ function renderAssessments(){
   ───────────────────────────── */
   html +=
     '<div style="margin:18px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
-      'Resultados principales' +
+      'Tu avance principal' +
     '</div>';
 
   if(latestResults.length){
@@ -2069,7 +2069,7 @@ function renderAssessments(){
   ───────────────────────────── */
   html +=
     '<div style="margin:22px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
-      'Historial de evaluaciones' +
+      'Historial de progreso' +
     '</div>';
 
   clientAssessments.forEach((a, index) => {
