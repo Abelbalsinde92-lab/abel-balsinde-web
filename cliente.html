@@ -926,7 +926,10 @@ function updateLangButtons() {
   });
 }
 
-function setAbLang(lang) {
+async function setAbLang(lang) {
+  const currentSection =
+    document.querySelector('.dash-main .section:not(.section-hidden)')?.id || 'section-home';
+
   AB_LANG = lang;
   localStorage.setItem("ab_lang", lang);
   document.documentElement.lang = lang === "sr" ? "sr" : "es";
@@ -934,7 +937,8 @@ function setAbLang(lang) {
   updateLangButtons();
 
   if (clientData) {
-    renderDashboard();
+    await renderDashboard();
+    goClientSection(currentSection);
   }
 }
 
@@ -1415,7 +1419,7 @@ async function loadClientDashboard(clientId) {
 
   video_url: r.video_url || ''
 });
-
+});
           clientTrainingWeeks=Array.from(weeksMap.values()).sort((a,b)=>Number(a.week_number||0)-Number(b.week_number||0));
           clientTrainingSessions=Array.from(sessionsMap.values()).sort((a,b)=>{
             const wa=clientTrainingWeeks.find(w=>String(w.id)===String(a.week_id));
@@ -2159,8 +2163,204 @@ async function renderClientTraining(){
   }
 }
 
-function buildTrainingStepHTML(step,index){const blockId=step.blockId,block=step.block;const blockNum=block.block_order||(index+1);const _lg=getLang();const blockTitle=pickLang(block,'title',_lg)||pickLang(block,'name',_lg)||'Bloque';const blockObj=pickLang(block,'objective',_lg);const metaP=[block.duration,block.type].filter(Boolean);let html='';if(step.sessionSeparator)html+='<div class="training-session-separator">'+step.sessionSeparator+'</div>';html+='<div class="training-step-card" id="step-'+blockId+'"><button class="training-step-header" onclick="toggleTrainingStep(\''+blockId+'\')"><div class="training-step-number">'+blockNum+'</div><div class="training-step-info"><div class="training-step-title">'+blockTitle+'</div>'+(metaP.length?'<div class="training-step-meta">'+metaP.join(' · ')+'</div>':'')+'</div><div class="training-step-status" id="status-'+blockId+'">Pendiente</div></button><div class="training-step-body">'+(blockObj?'<div class="training-step-objective">'+blockObj+'</div>':'');step.exercises.forEach(ex=>{html+=buildExerciseHTML(ex);});if(!step.exercises.length)html+='<p class="empty-state" style="margin-top:12px;">Este bloque todavía no tiene ejercicios.</p>';html+='<button class="training-complete-block-btn" id="completeBtn-'+blockId+'" onclick="completeTrainingStep(\''+blockId+'\')">Marcar bloque terminado</button></div></div>';return html;}
-function buildExerciseHTML(ex){const lvl=getAssignedTrainingLevel();const _lg=getLang();function pickVariant(ex,lvl,lang){const l=(lang||'es').toLowerCase();return ex['variant_'+lvl.toLowerCase()+'_'+l]||ex['variant_'+lvl.toLowerCase()+'_es']||ex['variant_'+lvl.toLowerCase()]||'';}const variant=pickVariant(ex,lvl,_lg);const exName=pickLang(ex,'name',_lg)||pickLang(ex,'title',_lg)||'Ejercicio';const exDesc=pickLang(ex,'description',_lg);const exNotes=pickLang(ex,'coachingNotes',_lg)||pickLang(ex,'coachNotes',_lg)||ex.coaching_notes||ex.coach_notes||'';const stats=[ex.sets?{label:'Series',value:ex.sets}:null,ex.reps?{label:'Reps',value:ex.reps}:null,(ex.time||ex.duration)?{label:'Tiempo',value:(ex.time||ex.duration)}:null,ex.rest?{label:'Descanso',value:ex.rest}:null].filter(Boolean);let html='<div class="training-exercise-card"><div class="training-exercise-title">'+(ex.exercise_order?'<span class="training-ex-num">'+ex.exercise_order+'.</span>':'')+exName+'</div>';if(stats.length){html+='<div class="training-exercise-grid">';stats.forEach(s=>{html+='<div class="training-mini-stat"><span class="training-mini-label">'+s.label+'</span><div class="training-mini-value">'+s.value+'</div></div>';});html+='</div>';}html+='<div class="training-level-tag">Nivel '+lvl+'</div>';if(variant)html+='<div class="training-instruction"><strong>Trabajo indicado</strong>'+variant+'</div>';if(exDesc)html+='<div class="training-instruction"><strong>Cómo hacerlo</strong>'+exDesc+'</div>';if(exNotes)html+='<div class="training-coach-note">Coach: '+exNotes+'</div>';if(ex.video_url)html+='<a href="'+ex.video_url+'" target="_blank" class="training-video-btn">&#9654; Ver referencia</a>';html+='</div>';return html;}
+function tClient(key){
+  const lang = getLang();
+
+  const dict = {
+    es: {
+      block: 'Bloque',
+      pending: 'Pendiente',
+      noExercises: 'Este bloque todavía no tiene ejercicios.',
+      markBlockDone: 'Marcar bloque terminado',
+      exercise: 'Ejercicio',
+      sets: 'Series',
+      reps: 'Reps',
+      time: 'Tiempo',
+      rest: 'Descanso',
+      level: 'Nivel',
+      indicatedWork: 'Trabajo indicado',
+      howTo: 'Cómo hacerlo',
+      coach: 'Coach',
+      watchReference: 'Ver referencia'
+    },
+    sr: {
+      block: 'Blok',
+      pending: 'Na čekanju',
+      noExercises: 'Ovaj blok još nema vežbe.',
+      markBlockDone: 'Označi blok kao završen',
+      exercise: 'Vežba',
+      sets: 'Serije',
+      reps: 'Ponavljanja',
+      time: 'Vreme',
+      rest: 'Pauza',
+      level: 'Nivo',
+      indicatedWork: 'Zadatak',
+      howTo: 'Kako se radi',
+      coach: 'Trener',
+      watchReference: 'Pogledaj primer'
+    }
+  };
+
+  return dict[lang]?.[key] || dict.es[key] || key;
+}
+
+function buildTrainingStepHTML(step,index){
+  const blockId = step.blockId;
+  const block = step.block;
+  const blockNum = block.block_order || (index + 1);
+  const _lg = getLang();
+
+  const blockTitle =
+    pickLang(block,'title',_lg) ||
+    pickLang(block,'name',_lg) ||
+    tClient('block');
+
+  const blockObj = pickLang(block,'objective',_lg);
+
+  const blockType = pickLang(block,'type',_lg) || block.type;
+  const metaP = [block.duration, blockType].filter(Boolean);
+
+  let html = '';
+
+  if(step.sessionSeparator){
+    html += '<div class="training-session-separator">' + step.sessionSeparator + '</div>';
+  }
+
+  html +=
+    '<div class="training-step-card" id="step-' + blockId + '">' +
+      '<button class="training-step-header" onclick="toggleTrainingStep(\'' + blockId + '\')">' +
+        '<div class="training-step-number">' + blockNum + '</div>' +
+        '<div class="training-step-info">' +
+          '<div class="training-step-title">' + blockTitle + '</div>' +
+          (
+            metaP.length
+              ? '<div class="training-step-meta">' + metaP.join(' · ') + '</div>'
+              : ''
+          ) +
+        '</div>' +
+        '<div class="training-step-status" id="status-' + blockId + '">' + tClient('pending') + '</div>' +
+      '</button>' +
+
+      '<div class="training-step-body">' +
+        (
+          blockObj
+            ? '<div class="training-step-objective">' + blockObj + '</div>'
+            : ''
+        );
+
+  step.exercises.forEach(ex => {
+    html += buildExerciseHTML(ex);
+  });
+
+  if(!step.exercises.length){
+    html += '<p class="empty-state" style="margin-top:12px;">' + tClient('noExercises') + '</p>';
+  }
+
+  html +=
+        '<button class="training-complete-block-btn" id="completeBtn-' + blockId + '" onclick="completeTrainingStep(\'' + blockId + '\')">' +
+          tClient('markBlockDone') +
+        '</button>' +
+      '</div>' +
+    '</div>';
+
+  return html;
+}
+
+function buildExerciseHTML(ex){
+  const lvl = getAssignedTrainingLevel();
+  const _lg = getLang();
+
+  function pickVariant(ex,lvl,lang){
+    const l = (lang || 'es').toLowerCase();
+    return (
+      ex['variant_' + lvl.toLowerCase() + '_' + l] ||
+      ex['variant_' + lvl.toLowerCase() + '_es'] ||
+      ex['variant_' + lvl.toLowerCase()] ||
+      ''
+    );
+  }
+
+  const variant = pickVariant(ex,lvl,_lg);
+
+  const exName =
+    pickLang(ex,'name',_lg) ||
+    pickLang(ex,'title',_lg) ||
+    tClient('exercise');
+
+  const exDesc = pickLang(ex,'description',_lg);
+
+  const exNotes =
+    pickLang(ex, 'coaching_notes', _lg) ||
+    pickLang(ex, 'coach_notes', _lg) ||
+    ex.coaching_notes ||
+    ex.coach_notes ||
+    '';
+
+  const stats = [
+    ex.sets ? {label:tClient('sets'), value:ex.sets} : null,
+    ex.reps ? {label:tClient('reps'), value:ex.reps} : null,
+    (ex.time || ex.duration) ? {label:tClient('time'), value:(ex.time || ex.duration)} : null,
+    ex.rest ? {label:tClient('rest'), value:ex.rest} : null
+  ].filter(Boolean);
+
+  let html =
+    '<div class="training-exercise-card">' +
+      '<div class="training-exercise-title">' +
+        (
+          ex.exercise_order
+            ? '<span class="training-ex-num">' + ex.exercise_order + '.</span>'
+            : ''
+        ) +
+        exName +
+      '</div>';
+
+  if(stats.length){
+    html += '<div class="training-exercise-grid">';
+
+    stats.forEach(s => {
+      html +=
+        '<div class="training-mini-stat">' +
+          '<span class="training-mini-label">' + s.label + '</span>' +
+          '<div class="training-mini-value">' + s.value + '</div>' +
+        '</div>';
+    });
+
+    html += '</div>';
+  }
+
+  html += '<div class="training-level-tag">' + tClient('level') + ' ' + lvl + '</div>';
+
+  if(variant){
+    html +=
+      '<div class="training-instruction">' +
+        '<strong>' + tClient('indicatedWork') + '</strong>' +
+        variant +
+      '</div>';
+  }
+
+  if(exDesc){
+    html +=
+      '<div class="training-instruction">' +
+        '<strong>' + tClient('howTo') + '</strong>' +
+        exDesc +
+      '</div>';
+  }
+
+  if(exNotes){
+    html += '<div class="training-coach-note">' + tClient('coach') + ': ' + exNotes + '</div>';
+  }
+
+  if(ex.video_url){
+    html +=
+      '<a href="' + ex.video_url + '" target="_blank" class="training-video-btn">&#9654; ' +
+        tClient('watchReference') +
+      '</a>';
+  }
+
+  html += '</div>';
+
+  return html;
+}
 
 function applySavedTrainingState(){completedTrainingBlocks.forEach(id=>markStepVisualAsCompleted(id));}
 function markStepVisualAsCompleted(blockId){const card=document.getElementById('step-'+blockId);if(!card)return;card.classList.remove('open');card.classList.add('completed');const numEl=card.querySelector('.training-step-number');if(numEl)numEl.textContent='✓';const statusEl=document.getElementById('status-'+blockId);if(statusEl){statusEl.textContent='Completado';statusEl.classList.add('done');}const btn=document.getElementById('completeBtn-'+blockId);if(btn){const msg=document.createElement('div');msg.className='training-step-done-msg';msg.textContent='Bloque completado';btn.replaceWith(msg);}}
