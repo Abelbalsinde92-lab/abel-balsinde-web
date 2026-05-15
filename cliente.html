@@ -1240,142 +1240,255 @@ async function loginClient() {
 ══════════════════════════════════════════════════════════ */
 async function loadClientDashboard(clientId) {
   showLoading(true);
+
   try {
-    /* clients con select('*') ya incluye fc_max si existe el campo */
-    const {data:client,error:cErr}=await db.from('clients').select('*').eq('id',clientId).single();
-    if (cErr||!client){Auth.logout();return;}
-    clientData=client;
+    const { data: client, error: cErr } = await db
+      .from('clients')
+      .select('*')
+      .eq('id', clientId)
+      .single();
 
-    AB_LANG = (clientData.preferred_lang || 'es').toLowerCase();
-document.documentElement.lang = AB_LANG === 'sr' ? 'sr' : 'es';
-    
-    const [resR,payR,metR,halR,proR,assignR,assR,logsR]=await Promise.all([
-  db.from('reservations').select('*').eq('client_id',clientId).order('date',{ascending:true}),
-  db.from('payments').select('*').eq('client_id',clientId).order('due_date',{ascending:false}),
-  db.from('metrics').select('*').eq('client_id',clientId).order('date',{ascending:false}),
-  db.from('health_alerts').select('*').eq('client_id',clientId).order('date',{ascending:false}),
-  db.from('programs').select('*').eq('client_id',clientId).order('created_at',{ascending:false}),
-  db.from('client_program_assignments').select('*').eq('client_id',clientId).eq('status','activo').order('created_at',{ascending:false}).limit(1),
-  db.from('client_assessments').select('*').eq('client_id',clientId).order('assessment_date',{ascending:false}),
-  db.from('client_session_logs').select('*').eq('client_id',clientId).order('training_date',{ascending:false}),
-]);
-
-    clientReservations=resR.data||[];clientPayments=payR.data||[];clientMetrics=metR.data||[];
-    clientAlerts=halR.data||[];clientPrograms=proR.data||[];
-    clientTrainingAssignment=assignR.data?.[0]||null;clientAssessments=assR.data||[];
-    clientSessionLogs = logsR.data || [];
-
-    clientAssessmentResults=[];
-    if (clientAssessments.length) {
-      const ids=clientAssessments.map(a=>a.id);
-      const rr=await db.from('client_assessment_results').select('*').in('assessment_id',ids).order('item_order',{ascending:true});
-      clientAssessmentResults=rr.data||[];
+    if (cErr || !client) {
+      Auth.logout();
+      return;
     }
 
-    clientTrainingProgram = {
-  id: first.program_id,
-  name: first.program_name || '',
-  description: first.program_description || '',
-  objective: first.program_objective || '',
-  type: first.program_type || '',
-  level: first.program_level || ''
-};
+    clientData = client;
 
-const weeksMap = new Map();
-const sessionsMap = new Map();
-const blocksMap = new Map();
+    AB_LANG = (clientData.preferred_lang || 'es').toLowerCase();
+    document.documentElement.lang = AB_LANG === 'sr' ? 'sr' : 'es';
 
-rows.forEach(r => {
-  if (!weeksMap.has(r.week_id)) {
-    weeksMap.set(r.week_id, {
-      id: r.week_id,
-      week_number: r.week_order,
-      name: r.week_name || '',
-      description: r.week_description || '',
-      objective: r.week_objective || '',
-      focus: r.week_focus || ''
-    });
-  }
+    const [
+      resR,
+      payR,
+      metR,
+      halR,
+      proR,
+      assignR,
+      assR,
+      logsR
+    ] = await Promise.all([
+      db.from('reservations').select('*').eq('client_id', clientId).order('date', { ascending: true }),
+      db.from('payments').select('*').eq('client_id', clientId).order('due_date', { ascending: false }),
+      db.from('metrics').select('*').eq('client_id', clientId).order('date', { ascending: false }),
+      db.from('health_alerts').select('*').eq('client_id', clientId).order('date', { ascending: false }),
+      db.from('programs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
+      db.from('client_program_assignments').select('*').eq('client_id', clientId).eq('status', 'activo').order('created_at', { ascending: false }).limit(1),
+      db.from('client_assessments').select('*').eq('client_id', clientId).order('assessment_date', { ascending: false }),
+      db.from('client_session_logs').select('*').eq('client_id', clientId).order('training_date', { ascending: false }),
+    ]);
 
-  if (!sessionsMap.has(r.session_id)) {
-    sessionsMap.set(r.session_id, {
-      id: r.session_id,
-      week_id: r.week_id,
-      session_number: r.session_order,
-      title: r.session_title || '',
-      description: r.session_description || '',
-      objective: r.session_objective || '',
-      intensity: r.session_intensity || ''
-    });
-  }
+    clientReservations = resR.data || [];
+    clientPayments = payR.data || [];
+    clientMetrics = metR.data || [];
+    clientAlerts = halR.data || [];
+    clientPrograms = proR.data || [];
+    clientTrainingAssignment = assignR.data?.[0] || null;
+    clientAssessments = assR.data || [];
+    clientSessionLogs = logsR.data || [];
 
-  if (!blocksMap.has(r.block_id)) {
-    blocksMap.set(r.block_id, {
-      id: r.block_id,
-      session_id: r.session_id,
-      block_order: r.block_order,
-      title: r.block_title || '',
-      description: r.block_description || '',
-      objective: r.block_objective || '',
-      type: r.block_type || '',
-      duration: r.block_duration || ''
-    });
-  }
+    clientAssessmentResults = [];
 
-  clientTrainingExercises.push({
-    id: r.exercise_id,
-    block_id: r.block_id,
-    exercise_order: r.exercise_order,
+    if (clientAssessments.length) {
+      const ids = clientAssessments.map(a => a.id);
 
-    name: r.exercise_name || '',
-    description: r.exercise_description || '',
+      const rr = await db
+        .from('client_assessment_results')
+        .select('*')
+        .in('assessment_id', ids)
+        .order('item_order', { ascending: true });
 
-    sets: r.sets || '',
-    reps: r.reps || '',
-    time: r.time || '',
-    rest: r.rest || '',
+      clientAssessmentResults = rr.data || [];
+    }
 
-    variant_n1: r.variant_n1 || '',
-    variant_n2: r.variant_n2 || '',
-    variant_n3: r.variant_n3 || '',
-    variant_n4: r.variant_n4 || '',
+    clientTrainingProgram = null;
+    clientTrainingWeeks = [];
+    clientTrainingSessions = [];
+    clientTrainingBlocks = [];
+    clientTrainingExercises = [];
 
-    coaching_notes: r.coaching_notes || '',
-    video_url: r.video_url || ''
-  });
-});
-          clientTrainingWeeks=Array.from(weeksMap.values()).sort((a,b)=>Number(a.week_number||0)-Number(b.week_number||0));
-          clientTrainingSessions=Array.from(sessionsMap.values()).sort((a,b)=>{
-            const wa=clientTrainingWeeks.find(w=>String(w.id)===String(a.week_id));
-            const wb=clientTrainingWeeks.find(w=>String(w.id)===String(b.week_id));
-            const wA=Number(wa?.week_number||0),wB=Number(wb?.week_number||0);
-            if (wA!==wB) return wA-wB;
-            return Number(a.session_number||0)-Number(b.session_number||0);
+    const pid = clientTrainingAssignment?.program_id || null;
+
+    if (pid) {
+      const visibleR = await db
+        .from('client_training_plan_visible')
+        .select('*')
+        .eq('client_id', clientId)
+        .eq('program_id', pid)
+        .order('week_order', { ascending: true })
+        .order('session_order', { ascending: true })
+        .order('block_order', { ascending: true })
+        .order('exercise_order', { ascending: true });
+
+      window.__AB_DEBUG_CLIENT__ = {
+        visibleRows: visibleR.data?.length || 0,
+        visibleError: visibleR.error || null,
+        assignment: clientTrainingAssignment || null
+      };
+
+      if (!visibleR.error) {
+        let rows = visibleR.data || [];
+
+        const scope = getAssignmentScope();
+
+        if (scope === 'day') {
+          const aw = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
+          const as = Number(clientTrainingAssignment?.assigned_session_number || 1);
+
+          rows = rows.filter(r =>
+            Number(r.week_order) === aw &&
+            Number(r.session_order) === as
+          );
+        }
+
+        if (scope === 'week') {
+          const aw = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
+
+          rows = rows.filter(r =>
+            Number(r.week_order) === aw
+          );
+        }
+
+        if (scope === 'month') {
+          const am = Number(clientTrainingAssignment?.assigned_month || 1);
+          const sw = (am - 1) * 4 + 1;
+
+          rows = rows.filter(r =>
+            Number(r.week_order) >= sw &&
+            Number(r.week_order) <= sw + 3
+          );
+        }
+
+        if (rows.length) {
+          const first = rows[0];
+
+          clientTrainingProgram = {
+            id: first.program_id,
+            name: first.program_name || '',
+            description: first.program_description || '',
+            objective: first.program_objective || '',
+            type: first.program_type || '',
+            level: first.program_level || ''
+          };
+
+          const weeksMap = new Map();
+          const sessionsMap = new Map();
+          const blocksMap = new Map();
+
+          rows.forEach(r => {
+            if (!weeksMap.has(r.week_id)) {
+              weeksMap.set(r.week_id, {
+                id: r.week_id,
+                week_number: r.week_order,
+                name: r.week_name || '',
+                description: r.week_description || '',
+                objective: r.week_objective || '',
+                focus: r.week_focus || ''
+              });
+            }
+
+            if (!sessionsMap.has(r.session_id)) {
+              sessionsMap.set(r.session_id, {
+                id: r.session_id,
+                week_id: r.week_id,
+                session_number: r.session_order,
+                title: r.session_title || '',
+                description: r.session_description || '',
+                objective: r.session_objective || '',
+                intensity: r.session_intensity || ''
+              });
+            }
+
+            if (!blocksMap.has(r.block_id)) {
+              blocksMap.set(r.block_id, {
+                id: r.block_id,
+                session_id: r.session_id,
+                block_order: r.block_order,
+                title: r.block_title || '',
+                description: r.block_description || '',
+                objective: r.block_objective || '',
+                type: r.block_type || '',
+                duration: r.block_duration || ''
+              });
+            }
+
+            clientTrainingExercises.push({
+              id: r.exercise_id,
+              block_id: r.block_id,
+              exercise_order: r.exercise_order,
+
+              name: r.exercise_name || '',
+              description: r.exercise_description || '',
+
+              sets: r.sets || '',
+              reps: r.reps || '',
+              time: r.time || r.duration || '',
+              rest: r.rest || '',
+
+              variant_n1: r.variant_n1 || '',
+              variant_n2: r.variant_n2 || '',
+              variant_n3: r.variant_n3 || '',
+              variant_n4: r.variant_n4 || '',
+
+              coaching_notes: r.coaching_notes || '',
+              video_url: r.video_url || ''
+            });
           });
-          clientTrainingBlocks=Array.from(blocksMap.values()).sort((a,b)=>{
-            const sa=clientTrainingSessions.find(s=>String(s.id)===String(a.session_id));
-            const sb=clientTrainingSessions.find(s=>String(s.id)===String(b.session_id));
-            const wa=clientTrainingWeeks.find(w=>String(w.id)===String(sa?.week_id));
-            const wb=clientTrainingWeeks.find(w=>String(w.id)===String(sb?.week_id));
-            const wA=Number(wa?.week_number||0),wB=Number(wb?.week_number||0);
-            if (wA!==wB) return wA-wB;
-            const sA=Number(sa?.session_number||0),sB=Number(sb?.session_number||0);
-            if (sA!==sB) return sA-sB;
-            return Number(a.block_order||0)-Number(b.block_order||0);
+
+          clientTrainingWeeks = Array.from(weeksMap.values()).sort((a, b) =>
+            Number(a.week_number || 0) - Number(b.week_number || 0)
+          );
+
+          clientTrainingSessions = Array.from(sessionsMap.values()).sort((a, b) => {
+            const wa = clientTrainingWeeks.find(w => String(w.id) === String(a.week_id));
+            const wb = clientTrainingWeeks.find(w => String(w.id) === String(b.week_id));
+
+            const wA = Number(wa?.week_number || 0);
+            const wB = Number(wb?.week_number || 0);
+
+            if (wA !== wB) return wA - wB;
+
+            return Number(a.session_number || 0) - Number(b.session_number || 0);
+          });
+
+          clientTrainingBlocks = Array.from(blocksMap.values()).sort((a, b) => {
+            const sa = clientTrainingSessions.find(s => String(s.id) === String(a.session_id));
+            const sb = clientTrainingSessions.find(s => String(s.id) === String(b.session_id));
+
+            const wa = clientTrainingWeeks.find(w => String(w.id) === String(sa?.week_id));
+            const wb = clientTrainingWeeks.find(w => String(w.id) === String(sb?.week_id));
+
+            const wA = Number(wa?.week_number || 0);
+            const wB = Number(wb?.week_number || 0);
+
+            if (wA !== wB) return wA - wB;
+
+            const sA = Number(sa?.session_number || 0);
+            const sB = Number(sb?.session_number || 0);
+
+            if (sA !== sB) return sA - sB;
+
+            return Number(a.block_order || 0) - Number(b.block_order || 0);
           });
         }
       }
     }
 
     await renderDashboard();
+
     document.getElementById('loginScreen')?.classList.add('hidden');
     document.getElementById('dashboardScreen')?.classList.remove('hidden');
+
     showLoading(false);
 
-  } catch(err) {
-    showLoading(false);console.error('Load error:',err);
+  } catch (err) {
+    showLoading(false);
+
+    console.error('Load error:', err);
+
     document.getElementById('loginScreen')?.classList.remove('hidden');
     document.getElementById('dashboardScreen')?.classList.add('hidden');
+
     showError('Error de conexión. Inténtalo de nuevo.');
   }
 }
