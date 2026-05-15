@@ -3532,11 +3532,12 @@ function renderAssessments(){
         uiText('evaluations') +
       '</div>' +
       '<div class="data-card">' +
-        '<div class="dc-row">' +
-          '<span class="dc-title">' + uiText('noTestsRegistered') + '</span>' +
-'<span class="badge badge-gray">' + uiText('pending') + '</span>' +
-'<div class="dc-note">' + uiText('whenAbelTests') + '</div>' +
-      '</div>';
+  '<div class="dc-row">' +
+    '<span class="dc-title">' + uiText('noTestsRegistered') + '</span>' +
+    '<span class="badge badge-gray">' + uiText('pending') + '</span>' +
+  '</div>' +
+  '<div class="dc-note">' + uiText('whenAbelTests') + '</div>' +
+'</div>';
 
     return;
   }
@@ -3580,7 +3581,7 @@ function renderAssessments(){
 
       (
         latestAssessment.coach_notes
-          ? '<div class="dc-note">Coach: ' + latestAssessment.coach_notes + '</div>'
+          ? '<div class="dc-note">' + uiText('coach') + ': ' + latestAssessment.coach_notes + '</div>'
           : '<div class="dc-note">' + uiText('reviewMainResults') + '</div>'
       ) +
     '</div>';
@@ -3597,7 +3598,7 @@ function renderAssessments(){
       '</div>' +
 
       '<div class="summary-card">' +
-        ''<div class="summary-label">' + uiText('savedResults') + '</div>' +
+        '<div class="summary-label">' + uiText('savedResults') + '</div>' +
         '<div class="summary-value big">' + totalResults + '</div>' +
       '</div>' +
 
@@ -3626,7 +3627,7 @@ function renderAssessments(){
           '<div class="assessment-result-row" style="border-bottom:none;padding:0;">' +
 
             '<div style="flex:1;min-width:0;">' +
-              '<div class="assessment-ex-name">' + (r.exercise_name || 'Ejercicio') + '</div>' +
+              '<div class="assessment-ex-name">' + (r.exercise_name || uiText('exercise')) + '</div>' +
               '<div class="assessment-ex-meta">' +
                 (r.metric_type || '') +
                 (
@@ -3677,13 +3678,13 @@ function renderAssessments(){
 
         '<div class="assessment-card-header" onclick="toggleAssessmentCard(\'' + a.id + '\')">' +
           '<div>' +
-            '<div class="assessment-card-title">' + (a.assessment_name || 'Test') + '</div>' +
+            '<div class="assessment-card-title">' + (a.assessment_name || uiText('functionalTest')) + '</div>' +
             '<div class="assessment-card-meta">' +
               formatDate(a.assessment_date) + ' · ' +
               results.length + ' ' + (results.length !== 1 ? uiText('results') : uiText('result')) +
             '</div>' +
           '</div>' +
-          '<span class="badge ' + (a.status === 'realizada' ? 'badge-green' : 'badge-gray') + '">' + (a.status || uiText('doneStatus')) + '</span>' +
+          '<span class="badge ' + (String(a.status || '').toLowerCase() === 'realizada' || String(a.status || '').toLowerCase() === 'urađeno' ? 'badge-green' : 'badge-gray') + '">' + (a.status || uiText('doneStatus')) + '</span>' +
         '</div>' +
 
         '<div class="assessment-card-body">';
@@ -3691,7 +3692,7 @@ function renderAssessments(){
     if(a.coach_notes){
       html +=
         '<div style="font-size:13px;color:var(--text-secondary);font-style:italic;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--divider);">' +
-          'Coach: ' + a.coach_notes +
+          uiText('coach') + ': ' + a.coach_notes +
         '</div>';
     }
 
