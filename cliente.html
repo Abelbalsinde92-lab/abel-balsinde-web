@@ -392,6 +392,23 @@ input, textarea { outline: none; font-family: var(--font-body); }
   font-size: 10px; color: var(--text-secondary);
   font-family: var(--font-mono); letter-spacing: 0.4px; margin-top: 6px;
 }
+.home-ring-card-constancia {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.home-ring-value-constancia {
+  margin-top: 18px;
+  margin-bottom: 22px;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.home-ring-note-constancia {
+  margin-top: 0;
+  line-height: 1.8;
+}
 .home-ring-svg-wrap {
   width: 100%; height: 40px;
   display: flex; align-items: flex-end; justify-content: center;
@@ -1310,11 +1327,13 @@ function getFinishedSessionCountFromStorage(){
   return finished.size;
 }
 function buildHomeRing_v2(label,value,unit,svgContent,note,color,targetSection){
+  const isConstancia = String(label || '').toLowerCase() === 'constancia';
+
   return (
-    '<div class="home-ring-card" onclick="goClientSection(\'' + targetSection + '\')" title="Ir a ' + label + '">' +
+    '<div class="home-ring-card ' + (isConstancia ? 'home-ring-card-constancia' : '') + '" onclick="goClientSection(\'' + targetSection + '\')" title="Ir a ' + label + '">' +
       '<div class="home-ring-label">' + label + '</div>' +
 
-      '<div class="home-ring-value" style="color:' + color + '">' +
+      '<div class="home-ring-value ' + (isConstancia ? 'home-ring-value-constancia' : '') + '" style="color:' + color + '">' +
         value +
         (unit
           ? '<span style="font-size:14px;color:var(--text-secondary);margin-left:2px;font-family:var(--font-mono)">' + unit + '</span>'
@@ -1327,7 +1346,7 @@ function buildHomeRing_v2(label,value,unit,svgContent,note,color,targetSection){
         : ''
       ) +
 
-      '<div class="home-ring-note">' + note + '</div>' +
+      '<div class="home-ring-note ' + (isConstancia ? 'home-ring-note-constancia' : '') + '">' + note + '</div>' +
     '</div>'
   );
 }
