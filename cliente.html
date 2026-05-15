@@ -893,9 +893,9 @@ let currentTrainingLog       = null;
 let clientSessionLogs        = [];
 let AB_LANG = "es";
 
-/* ══════════════════════════════════════════════════════════
-   MÉTRICAS DE COMBATE — Lógica de evaluación fisiológica
-══════════════════════════════════════════════════════════ */
+function statusLabel(esLabel, srLabel) {
+  return getLang() === 'sr' ? srLabel : esLabel;
+}
 
 /**
  * Creatina Quinasa (U/L)
@@ -903,9 +903,25 @@ let AB_LANG = "es";
  */
 function evaluarCK(v) {
   if (v == null) return { clase: null, label: '' };
-  if (v < 400)  return { clase: 'status-ok',      label: 'Óptimo' };
-  if (v <= 800) return { clase: 'status-warning',  label: 'Precaución' };
-  return              { clase: 'status-danger',   label: 'Peligro' };
+
+  if (v < 400) {
+    return {
+      clase: 'status-ok',
+      label: statusLabel('Óptimo', 'Optimalno')
+    };
+  }
+
+  if (v <= 800) {
+    return {
+      clase: 'status-warning',
+      label: statusLabel('Precaución', 'Oprez')
+    };
+  }
+
+  return {
+    clase: 'status-danger',
+    label: statusLabel('Peligro', 'Rizik')
+  };
 }
 
 /**
@@ -914,24 +930,61 @@ function evaluarCK(v) {
  */
 function evaluarCortisol(v) {
   if (v == null) return { clase: null, label: '' };
-  if (v < 15)  return { clase: 'status-ok',      label: 'Óptimo' };
-  if (v <= 22) return { clase: 'status-warning',  label: 'Elevado' };
-  return              { clase: 'status-danger',   label: 'Peligro' };
+
+  if (v < 15) {
+    return {
+      clase: 'status-ok',
+      label: statusLabel('Óptimo', 'Optimalno')
+    };
+  }
+
+  if (v <= 22) {
+    return {
+      clase: 'status-warning',
+      label: statusLabel('Elevado', 'Povišeno')
+    };
+  }
+
+  return {
+    clase: 'status-danger',
+    label: statusLabel('Peligro', 'Rizik')
+  };
 }
 
 /**
  * FC Recuperación 1 min
  * caída = fc_max - fc_al_minuto
  * >30 ppm → ok | 18–30 → warning | <18 → danger
- * fc_max se lee de clientData.fc_max (campo en tabla clients)
  */
 function evaluarFCRecuperacion(fcAlMinuto, fcMax) {
-  if (fcAlMinuto == null) return { clase: null, label: '', caida: null };
-  const fc    = Number(fcMax) || 190;
+  if (fcAlMinuto == null) {
+    return { clase: null, label: '', caida: null };
+  }
+
+  const fc = Number(fcMax) || 190;
   const caida = fc - Number(fcAlMinuto);
-  if (caida > 30)  return { clase: 'status-ok',      label: `↓${caida} ppm · Óptimo`,    caida };
-  if (caida >= 18) return { clase: 'status-warning',  label: `↓${caida} ppm · Regular`,   caida };
-  return              { clase: 'status-danger',   label: `↓${caida} ppm · Peligro`,  caida };
+
+  if (caida > 30) {
+    return {
+      clase: 'status-ok',
+      label: `↓${caida} ppm · ${statusLabel('Óptimo', 'Optimalno')}`,
+      caida
+    };
+  }
+
+  if (caida >= 18) {
+    return {
+      clase: 'status-warning',
+      label: `↓${caida} ppm · ${statusLabel('Regular', 'Solidno')}`,
+      caida
+    };
+  }
+
+  return {
+    clase: 'status-danger',
+    label: `↓${caida} ppm · ${statusLabel('Peligro', 'Rizik')}`,
+    caida
+  };
 }
 
 /**
@@ -3815,7 +3868,6 @@ function buildGeneralHealthHTML(){
   );
 }
 
-/* ══ NAVIGATION ══ */
 function renderHealthAlerts(){
   const el = document.getElementById('sectionHealth');
   const badge = document.getElementById('alertsBadge');
@@ -3838,7 +3890,7 @@ function renderHealthAlerts(){
 
   html +=
     '<div style="margin:18px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
-      'Indicaciones de salud' +
+      uiText('healthIndications') +
     '</div>';
 
   if(clientAlerts.length){
@@ -3846,30 +3898,34 @@ function renderHealthAlerts(){
       const statusText = String(a.status || '').toLowerCase();
 
       let badgeClass = 'badge-gray';
-      let statusLabel = a.status || 'Seguimiento';
+      let statusLabelText = a.status || uiText('followUp');
 
       if(['pendiente','pending'].includes(statusText)){
         badgeClass = 'badge-yellow';
+        statusLabelText = getLang() === 'sr' ? 'Na čekanju' : 'Pendiente';
       }
 
       if(['alerta','critica','crítica','vencido'].includes(statusText)){
         badgeClass = 'badge-red';
+        statusLabelText = getLang() === 'sr' ? 'Upozorenje' : 'Alerta';
       }
 
       if(['revisado','ok','apto','resuelto'].includes(statusText)){
         badgeClass = 'badge-green';
+        statusLabelText = getLang() === 'sr' ? 'Rešeno' : 'Resuelto';
       }
 
       return (
         '<div class="data-card">' +
           '<div class="dc-row">' +
-            '<span class="badge ' + badgeClass + '">' + statusLabel + '</span>' +
+            '<span class="badge ' + badgeClass + '">' + statusLabelText + '</span>' +
             '<span class="dc-sub" style="font-family:var(--font-mono);">' + formatDate(a.date) + '</span>' +
           '</div>' +
 
-          (a.detail
-            ? '<div style="margin-top:10px;font-size:14px;color:var(--text-primary);line-height:1.7;">' + a.detail + '</div>'
-            : '<div class="dc-note">Sin detalle registrado.</div>'
+          (
+            a.detail
+              ? '<div style="margin-top:10px;font-size:14px;color:var(--text-primary);line-height:1.7;">' + a.detail + '</div>'
+              : '<div class="dc-note">' + (getLang() === 'sr' ? 'Nema registrovanog detalja.' : 'Sin detalle registrado.') + '</div>'
           ) +
         '</div>'
       );
@@ -3878,11 +3934,11 @@ function renderHealthAlerts(){
     html +=
       '<div class="data-card">' +
         '<div class="dc-row">' +
-          '<span class="dc-title">Sin indicaciones activas</span>' +
+          '<span class="dc-title">' + uiText('noActiveHealthNotes') + '</span>' +
           '<span class="badge badge-green">OK</span>' +
         '</div>' +
         '<div class="dc-note">' +
-          'No hay alertas o indicaciones de salud registradas para este cliente.' +
+          uiText('noHealthAlerts') +
         '</div>' +
       '</div>';
   }
@@ -3894,6 +3950,7 @@ function renderHealthAlerts(){
   }
 }
 
+/* ══ NAVIGATION ══ */
 function goClientSection(sectionId){document.querySelectorAll('.dash-main .section').forEach(s=>s.classList.add('section-hidden'));const target=document.getElementById(sectionId);if(!target)return;target.classList.remove('section-hidden');document.querySelectorAll('.client-nav button').forEach(b=>b.classList.remove('active'));const activeBtn=Array.from(document.querySelectorAll('.client-nav button')).find(b=>b.getAttribute('onclick')?.includes(sectionId));if(activeBtn){activeBtn.classList.add('active');activeBtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}window.scrollTo({top:0,behavior:'smooth'});}
 function toggleAccordion(button){const block=button.closest('.accordion-block');if(!block)return;const symbol=block.querySelector('.accordion-symbol');const isOpen=block.classList.contains('open');block.classList.toggle('open',!isOpen);if(symbol)symbol.textContent=isOpen?'+':'−';}
 
