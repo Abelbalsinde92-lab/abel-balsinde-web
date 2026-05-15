@@ -1700,7 +1700,29 @@ async function saveTrainingProgress(extra,sessionId){
   try{const saved=await db.from('client_session_logs').update({completed_block_ids:Array.from(completedTrainingBlocks),is_finished:local.is_finished||false,client_note:local.client_note||null,client_feedback_tags:local.client_feedback_tags||extra?.client_feedback_tags||[],client_feedback_summary:local.client_feedback_summary||extra?.client_feedback_summary||null,updated_at:new Date().toISOString(),...(extra||{})}).eq('id',currentTrainingLog.id).select().single();if(!saved.error){currentTrainingLog=saved.data;saveTrainingProgressLocal(currentTrainingLog,sid);}else console.error('Log save error:',saved.error);}catch(err){console.error('Log save error:',err);}
 }
 
-function buildCompletedSessionCard(session,index){const title=getSessionDisplayTitle(session,index);const week=clientTrainingWeeks.find(w=>String(w.id)===String(session.week_id));const weekLabel=week?.week_number?'Semana '+week.week_number:'Semana';return'<div class="training-session-completed-card"><div class="training-session-completed-row"><div class="training-session-completed-icon">✓</div><div style="flex:1;min-width:0;"><div class="training-session-completed-title">Entrenamiento completado</div><div class="training-session-completed-sub">'+title+' · '+weekLabel+'</div><div style="font-size:12px;color:var(--text-secondary);margin-top:6px;line-height:1.5;font-family:var(--font-mono);">Tus observaciones ya fueron enviadas a Abel.</div></div></div><button class="client-action-btn" style="margin-top:14px;" onclick="toggleCompletedTrainingDetails()">Ver detalles del entrenamiento</button></div>';}
+function buildCompletedSessionCard(session,index){
+  const title = getSessionDisplayTitle(session,index);
+  const week = clientTrainingWeeks.find(w => String(w.id) === String(session.week_id));
+  const weekLabel = week?.week_number ? 'Semana ' + week.week_number : 'Semana';
+
+  return (
+    '<div class="training-session-completed-card">' +
+      '<div class="training-session-completed-row">' +
+
+        '<div style="flex:1;min-width:0;">' +
+          '<div class="training-session-completed-title">Entrenamiento completado</div>' +
+          '<div class="training-session-completed-sub">' + title + ' · ' + weekLabel + '</div>' +
+          '<div style="font-size:12px;color:var(--text-secondary);margin-top:8px;line-height:1.6;font-family:var(--font-mono);">' +
+            'Buen trabajo. Tu sesión quedó registrada y Abel podrá revisar tus observaciones.' +
+          '</div>' +
+        '</div>' +
+
+      '</div>' +
+
+      '<button class="client-action-btn" style="margin-top:14px;" onclick="toggleCompletedTrainingDetails()">Ver detalles del entrenamiento</button>' +
+    '</div>'
+  );
+}
 
 async function renderClientTraining(){
   const el = document.getElementById('sectionTrainingClient');
@@ -2075,11 +2097,13 @@ function showCompletedToastAndGoNext(currentSessionId){
       '<div class="training-finish-card" style="padding:22px 18px;">' +
         '<div class="training-finish-title">Entrenamiento guardado</div>' +
         '<div class="training-finish-sub">' +
-          (nextSessionId
-            ? 'Pasando al siguiente día...'
-            : 'Sesión completada. Abel revisará tus notas.'
-          ) +
+          'Buen trabajo. Tu progreso quedó registrado.' +
         '</div>' +
+        (
+          nextSessionId
+            ? '<div class="training-finish-sub" style="margin-top:8px;">Siguiente entrenamiento desbloqueado. Puedes continuar cuando estés listo.</div>'
+            : '<div class="training-finish-sub" style="margin-top:8px;">Sesión completada. Abel revisará tus notas.</div>'
+        ) +
       '</div>';
   }
 
