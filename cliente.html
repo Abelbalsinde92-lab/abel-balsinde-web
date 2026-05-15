@@ -1371,6 +1371,8 @@ const metaLine = metaParts.join(' · ');
     html+='<div class="data-card"><div class="dc-row"><span class="dc-title">Entrenamiento</span><span class="badge badge-gray">Pendiente</span></div><div class="dc-note">Todavía no hay entrenamiento visible para tu cuenta.</div></div>';
   }
 
+    html += buildHomeCombatSummary();
+  
   html+=buildHomeProgressRings();
 
   html+='<div class="summary-grid" style="margin-top:0;"><div class="summary-card full" onclick="goClientSection(\'section-reservations\')" style="cursor:pointer;"><div class="summary-label">Próxima reserva</div><div class="summary-value" style="font-size:16px;font-weight:700;">'+reservationMain+'</div><div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;letter-spacing:0.3px;">'+reservationSub+'</div></div></div>';
@@ -1406,6 +1408,23 @@ function renderProgram(){
   }
   html+='</div></div><div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero consultar un ajuste o nuevo plan.\')">Consultar ajuste de plan</button></div>';
   el.innerHTML=html;
+}
+
+function buildHomeCombatSummary(){
+  if(!hasCombatMetricsEnabled()) return '';
+
+  return (
+    '<div class="data-card next-session" onclick="goClientSection(\'section-health\')" style="cursor:pointer;">' +
+      '<div class="next-label">Estado de rendimiento</div>' +
+      '<div class="dc-row">' +
+        '<span class="dc-title">Métricas de combate activas</span>' +
+        '<span class="badge badge-blue">Ver salud</span>' +
+      '</div>' +
+      '<div class="dc-note">' +
+        'Revisa fatiga muscular, cortisol, recuperación cardíaca y peso de combate.' +
+      '</div>' +
+    '</div>'
+  );
 }
 
 function buildCombatMetricsHTML(){
