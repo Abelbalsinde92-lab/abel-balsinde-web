@@ -956,7 +956,8 @@ async function cargarMetricasCombate() {
   const ck       = evaluarCK(data.creatina_quinasa);
   const cortisol = evaluarCortisol(data.cortisol);
   const fcRec    = evaluarFCRecuperacion(data.fc_recuperacion_1min, fcMax);
-  const fcDropEl = document.getElementById('display-fc-drop');
+ 
+   const fcDropEl = document.getElementById('display-fc-drop');
 if (fcDropEl) {
   fcDropEl.textContent = fcRec.caida != null
     ? `Caída: ${fcRec.caida} ppm`
