@@ -2220,6 +2220,138 @@ function renderTrainingCompletedState(){
   applySavedTrainingState();
 }
 
+function getFinishedTrainingLogs(){
+  if(!clientTrainingAssignment) return [];
+
+  return (clientSessionLogs || [])
+    .filter(log =>
+      String(log.assignment_id) === String(clientTrainingAssignment.id) &&
+      log.is_finished === true
+    )
+    .sort((a,b) => String(b.training_date || '').localeCompare(String(a.training_date || '')));
+}
+
+function getSessionNameFromLog(log){
+  const session = clientTrainingSessions.find(s =>
+    String(s.id) === String(log.session_id)
+  );
+
+  if(!session) return 'Entrenamiento';
+
+  const index = clientTrainingSessions.findIndex(s =>
+    String(s.id) === String(session.id)
+  );
+
+  return getSessionDisplayTitle(session, index >= 0 ? index : 0);
+}
+
+function getWeekNameFromLog(log){
+  const session = clientTrainingSessions.find(s =>
+    String(s.id) === String(log.session_id)
+  );
+
+  const week = session
+    ? clientTrainingWeeks.find(w => String(w.id) === String(session.week_id))
+    : null;
+
+  return week?.week_number ? 'Semana ' + week.week_number : 'Semana';
+}
+
+function buildProgressTrainingSummary(){
+  const finishedLogs = getFinishedTrainingLogs();
+  const totalSessions = clientTrainingSessions.length || 0;
+  const finishedCount = finishedLogs.length;
+
+  const percent = totalSessions > 0
+    ? clampPercent((finishedCount / totalSessions) * 100)
+    : 0;
+
+  const latestLog = finishedLogs[0] || null;
+
+  let html = '';
+
+  html +=
+    '<div class="data-card next-session">' +
+      '<div class="next-label">Resumen de avance</div>' +
+      '<div class="dc-row">' +
+        '<span class="dc-title">Plan de entrenamiento</span>' +
+        '<span class="badge badge-blue">' + percent + '%</span>' +
+      '</div>' +
+      '<div class="dc-row">' +
+        '<span class="dc-sub">' + finishedCount + ' de ' + totalSessions + ' sesiones completadas</span>' +
+      '</div>' +
+      '<div class="dc-note">' +
+        (
+          percent >= 100
+            ? 'Plan completado. Abel podrá revisar el siguiente bloque de trabajo.'
+            : finishedCount > 0
+              ? 'Buen avance. Sigue completando sesiones para mantener la constancia.'
+              : 'Todavía no hay entrenamientos completados registrados.'
+        ) +
+      '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="summary-grid">' +
+      '<div class="summary-card">' +
+        '<div class="summary-label">Sesiones completadas</div>' +
+        '<div class="summary-value big">' + finishedCount + '</div>' +
+      '</div>' +
+
+      '<div class="summary-card">' +
+        '<div class="summary-label">Avance del plan</div>' +
+        '<div class="summary-value big">' + percent + '%</div>' +
+      '</div>' +
+
+      '<div class="summary-card full">' +
+        '<div class="summary-label">Último entrenamiento</div>' +
+        '<div class="summary-value">' +
+          (
+            latestLog
+              ? getSessionNameFromLog(latestLog) + ' · ' + getWeekNameFromLog(latestLog)
+              : 'Sin entrenamiento completado'
+          ) +
+        '</div>' +
+        '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">' +
+          (
+            latestLog?.training_date
+              ? 'Registrado: ' + formatDate(latestLog.training_date)
+              : 'Cuando cierres una sesión, aparecerá aquí.'
+          ) +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  if(finishedLogs.length){
+    html +=
+      '<div style="margin:22px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
+        'Actividad reciente' +
+      '</div>';
+
+    html += finishedLogs.slice(0,5).map(log => {
+      return (
+        '<div class="data-card">' +
+          '<div class="dc-row">' +
+            '<span class="dc-title">' + getSessionNameFromLog(log) + '</span>' +
+            '<span class="badge badge-green">Completado</span>' +
+          '</div>' +
+          '<div class="dc-row">' +
+            '<span class="dc-sub">' + getWeekNameFromLog(log) + '</span>' +
+            '<span class="dc-sub">' + formatDate(log.training_date) + '</span>' +
+          '</div>' +
+          (
+            log.client_feedback_summary
+              ? '<div class="dc-note">' + log.client_feedback_summary + '</div>'
+              : ''
+          ) +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  return html;
+}
+
 /* ══ EVALUACIONES ══ */
 function buildMiniChart(pts){if(!pts||pts.length<2)return null;const vals=pts.map(d=>d.value),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;const W=260,H=50,P=6;const mapped=pts.map((d,i)=>({x:P+(i/(pts.length-1))*(W-P*2),y:P+(H-P*2)-((d.value-min)/range)*(H-P*2),date:d.date,value:d.value}));const line=mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');const area=[mapped[0].x.toFixed(1)+','+(H-P).toFixed(1)].concat(mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1))).concat([mapped[mapped.length-1].x.toFixed(1)+','+(H-P).toFixed(1)]).join(' ');const dots=mapped.map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="var(--sport)" stroke="var(--card)" stroke-width="1.5"/>').join('');const labs=mapped.map(p=>'<span class="mini-chart-label">'+String(p.date||'').slice(5)+'<br>'+p.value+'</span>').join('');return'<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="display:block"><polygon points="'+area+'" fill="rgba(0,163,255,0.06)"/><polyline points="'+line+'" fill="none" stroke="var(--sport)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div class="mini-chart-labels">'+labs+'</div>';}
 function buildExerciseHistory(exerciseName){return clientAssessmentResults.filter(r=>(r.exercise_name||'').trim().toLowerCase()===(exerciseName||'').trim().toLowerCase()).map(r=>{const a=clientAssessments.find(x=>x.id===r.assessment_id);return{date:a?.assessment_date||'',value:r.result_value,numValue:parseFloat(String(r.result_value||'').replace(',','.'))}}).filter(d=>d.date).sort((a,b)=>String(a.date).localeCompare(String(b.date)));}
@@ -2234,14 +2366,20 @@ function renderAssessments(){
 
   if(badge) badge.textContent = clientAssessments.length;
 
+    const trainingProgressHTML = buildProgressTrainingSummary();
+
   if(!clientAssessments.length){
     el.innerHTML =
+      trainingProgressHTML +
+      '<div style="margin:22px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
+        'Evaluaciones' +
+      '</div>' +
       '<div class="data-card">' +
         '<div class="dc-row">' +
-          '<span class="dc-title">Progreso</span>' +
-          '<span class="badge badge-gray">Sin datos</span>' +
+          '<span class="dc-title">Sin tests registrados</span>' +
+          '<span class="badge badge-gray">Pendiente</span>' +
         '</div>' +
-        '<div class="dc-note">Todavía no hay progreso registrado. Cuando Abel realice un test, aparecerán aquí tus resultados y evolución.</div>' +
+        '<div class="dc-note">Cuando Abel realice un test, aparecerán aquí tus resultados y evolución.</div>' +
       '</div>';
 
     return;
@@ -2260,7 +2398,12 @@ function renderAssessments(){
     ? formatDate(latestAssessment.assessment_date)
     : '—';
 
-  let html = '';
+    let html = buildProgressTrainingSummary();
+
+  html +=
+    '<div style="margin:22px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
+      'Evaluaciones y tests' +
+    '</div>';
 
   /* ─────────────────────────────
      HERO / ÚLTIMA EVALUACIÓN
