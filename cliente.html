@@ -726,6 +726,28 @@ input, textarea { outline: none; font-family: var(--font-body); }
   .section-header h2 { font-size: 20px; }
   .card-metrica strong { font-size: 26px; }
 }
+
+.lang-switch {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lang-switch button {
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lang-switch button.is-active {
+  background: #ffffff;
+  color: #111111;
+}
 </style>
 </head>
 <body>
@@ -764,12 +786,19 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
 <!-- ══ DASHBOARD ══════════════════════════════════════════ -->
 <div id="dashboardScreen" class="hidden">
-
+  
   <header class="dash-header">
     <div class="dash-header-logo">
       <img src="/icon-512.png" alt="AB Coach" class="brand-logo brand-logo-header">
     </div>
+
     <div class="dash-header-actions">
+
+      <div class="lang-switch">
+        <button type="button" data-lang="es" onclick="setAbLang('es')">ES</button>
+        <button type="button" data-lang="sr" onclick="setAbLang('sr')">SR</button>
+      </div>
+    
       <button class="btn-icon" id="btnHeaderWA">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/></svg>
         <span class="btn-label">WA</span>
@@ -889,6 +918,25 @@ let completedTrainingBlocks  = new Set();
 let activeTrainingBlockKey   = null;
 let currentTrainingLog       = null;
 let clientSessionLogs        = [];
+let AB_LANG = localStorage.getItem("ab_lang") || "es";
+
+function updateLangButtons() {
+  document.querySelectorAll(".lang-switch button").forEach(btn => {
+    btn.classList.toggle("is-active", btn.dataset.lang === AB_LANG);
+  });
+}
+
+function setAbLang(lang) {
+  AB_LANG = lang;
+  localStorage.setItem("ab_lang", lang);
+  document.documentElement.lang = lang === "sr" ? "sr" : "es";
+
+  updateLangButtons();
+
+  if (clientData) {
+    renderDashboard();
+  }
+}
 
 /* ══════════════════════════════════════════════════════════
    MÉTRICAS DE COMBATE — Lógica de evaluación fisiológica
@@ -1249,15 +1297,124 @@ async function loadClientDashboard(clientId) {
 
         if (rows.length) {
           const first=rows[0];
-          clientTrainingProgram={id:first.program_id,name:first.program_name,name_es:first.program_name_es||first.program_name,name_sr:first.program_name_sr||'',description:first.program_description,description_es:first.program_description_es||first.program_description,objective:first.program_objective,objective_es:first.program_objective_es||first.program_objective,objective_sr:first.program_objective_sr||''};
-
+          clientTrainingProgram = {
+  id: first.program_id,
+  name: first.program_name,
+  name_es: first.program_name_es || first.program_name,
+  name_sr: first.program_name_sr || '',
+  description: first.program_description,
+  description_es: first.program_description_es || first.program_description,
+  description_sr: first.program_description_sr || '',
+  objective: first.program_objective,
+  objective_es: first.program_objective_es || first.program_objective,
+  objective_sr: first.program_objective_sr || '',
+  type: first.program_type,
+  type_es: first.program_type_es || first.program_type,
+  type_sr: first.program_type_sr || '',
+  level: first.program_level,
+  level_es: first.program_level_es || first.program_level,
+  level_sr: first.program_level_sr || ''
+};
+          
           const weeksMap=new Map(),sessionsMap=new Map(),blocksMap=new Map();
           rows.forEach(r=>{
-            if (!weeksMap.has(r.week_id)) weeksMap.set(r.week_id,{id:r.week_id,week_number:r.week_order,name:r.week_name,name_es:r.week_name_es||r.week_name,name_sr:r.week_name_sr||'',objective:r.week_objective,objective_es:r.week_objective_es||r.week_objective,focus:r.week_focus,focus_es:r.week_focus_es||r.week_focus});
-            if (!sessionsMap.has(r.session_id)) sessionsMap.set(r.session_id,{id:r.session_id,week_id:r.week_id,session_number:r.session_order,title:r.session_title,title_es:r.session_title_es||r.session_title,title_sr:r.session_title_sr||'',objective:r.session_objective,objective_es:r.session_objective_es||r.session_objective,description:r.session_description,description_es:r.session_description_es||r.session_description,intensity:r.session_intensity});
-            if (!blocksMap.has(r.block_id)) blocksMap.set(r.block_id,{id:r.block_id,session_id:r.session_id,block_order:r.block_order,title:r.block_title,title_es:r.block_title_es||r.block_title,title_sr:r.block_title_sr||'',objective:r.block_objective,objective_es:r.block_objective_es||r.block_objective,description:r.block_description,description_es:r.block_description_es||r.block_description,type:r.block_type,duration:r.block_duration});
-            clientTrainingExercises.push({id:r.exercise_id,block_id:r.block_id,exercise_order:r.exercise_order,name:r.exercise_name,name_es:r.exercise_name_es||r.exercise_name,name_sr:r.exercise_name_sr||'',description:r.exercise_description,description_es:r.exercise_description_es||r.exercise_description,sets:r.sets,reps:r.reps,time:r.time,rest:r.rest,variant_n1:r.variant_n1,variant_n1_es:r.variant_n1_es||r.variant_n1,variant_n2:r.variant_n2,variant_n2_es:r.variant_n2_es||r.variant_n2,variant_n3:r.variant_n3,variant_n3_es:r.variant_n3_es||r.variant_n3,variant_n4:r.variant_n4,variant_n4_es:r.variant_n4_es||r.variant_n4,coaching_notes:r.coaching_notes,coaching_notes_es:r.coaching_notes_es||r.coaching_notes,video_url:r.video_url||''});
-          });
+            if (!weeksMap.has(r.week_id)) {
+  weeksMap.set(r.week_id, {
+    id: r.week_id,
+    week_number: r.week_order,
+    name: r.week_name,
+    name_es: r.week_name_es || r.week_name,
+    name_sr: r.week_name_sr || '',
+    description: r.week_description,
+    description_es: r.week_description_es || r.week_description,
+    description_sr: r.week_description_sr || '',
+    objective: r.week_objective,
+    objective_es: r.week_objective_es || r.week_objective,
+    objective_sr: r.week_objective_sr || '',
+    focus: r.week_focus,
+    focus_es: r.week_focus_es || r.week_focus,
+    focus_sr: r.week_focus_sr || ''
+  });
+}
+            if (!sessionsMap.has(r.session_id)) {
+  sessionsMap.set(r.session_id, {
+    id: r.session_id,
+    week_id: r.week_id,
+    session_number: r.session_order,
+    title: r.session_title,
+    title_es: r.session_title_es || r.session_title,
+    title_sr: r.session_title_sr || '',
+    objective: r.session_objective,
+    objective_es: r.session_objective_es || r.session_objective,
+    objective_sr: r.session_objective_sr || '',
+    description: r.session_description,
+    description_es: r.session_description_es || r.session_description,
+    description_sr: r.session_description_sr || '',
+    intensity: r.session_intensity,
+    intensity_es: r.session_intensity_es || r.session_intensity,
+    intensity_sr: r.session_intensity_sr || ''
+  });
+}
+            if (!blocksMap.has(r.block_id)) {
+  blocksMap.set(r.block_id, {
+    id: r.block_id,
+    session_id: r.session_id,
+    block_order: r.block_order,
+    title: r.block_title,
+    title_es: r.block_title_es || r.block_title,
+    title_sr: r.block_title_sr || '',
+    objective: r.block_objective,
+    objective_es: r.block_objective_es || r.block_objective,
+    objective_sr: r.block_objective_sr || '',
+    description: r.block_description,
+    description_es: r.block_description_es || r.block_description,
+    description_sr: r.block_description_sr || '',
+    type: r.block_type,
+    type_es: r.block_type_es || r.block_type,
+    type_sr: r.block_type_sr || '',
+    duration: r.block_duration
+  });
+}
+            clientTrainingExercises.push({
+  id: r.exercise_id,
+  block_id: r.block_id,
+  exercise_order: r.exercise_order,
+
+  name: r.exercise_name,
+  name_es: r.exercise_name_es || r.exercise_name,
+  name_sr: r.exercise_name_sr || '',
+
+  description: r.exercise_description,
+  description_es: r.exercise_description_es || r.exercise_description,
+  description_sr: r.exercise_description_sr || '',
+
+  sets: r.sets,
+  reps: r.reps,
+  time: r.time,
+  rest: r.rest,
+
+  variant_n1: r.variant_n1,
+  variant_n1_es: r.variant_n1_es || r.variant_n1,
+  variant_n1_sr: r.variant_n1_sr || '',
+
+  variant_n2: r.variant_n2,
+  variant_n2_es: r.variant_n2_es || r.variant_n2,
+  variant_n2_sr: r.variant_n2_sr || '',
+
+  variant_n3: r.variant_n3,
+  variant_n3_es: r.variant_n3_es || r.variant_n3,
+  variant_n3_sr: r.variant_n3_sr || '',
+
+  variant_n4: r.variant_n4,
+  variant_n4_es: r.variant_n4_es || r.variant_n4,
+  variant_n4_sr: r.variant_n4_sr || '',
+
+  coaching_notes: r.coaching_notes,
+  coaching_notes_es: r.coaching_notes_es || r.coaching_notes,
+  coaching_notes_sr: r.coaching_notes_sr || '',
+
+  video_url: r.video_url || ''
+});
 
           clientTrainingWeeks=Array.from(weeksMap.values()).sort((a,b)=>Number(a.week_number||0)-Number(b.week_number||0));
           clientTrainingSessions=Array.from(sessionsMap.values()).sort((a,b)=>{
@@ -1297,6 +1454,9 @@ async function loadClientDashboard(clientId) {
 
 /* ══ RENDER DASHBOARD ══ */
 async function renderDashboard() {
+  updateLangButtons();
+  document.documentElement.lang = getLang() === "sr" ? "sr" : "es";
+
   renderHome();
   if (typeof renderProgram==='function') renderProgram();
   await renderClientTraining();
@@ -1323,7 +1483,9 @@ function pickLang(obj,base,lang) {
   const snakeEs=base+'_es';
   return String(obj[camelLang]||obj[snakeLang]||obj[camelEs]||obj[snakeEs]||obj[base]||'').trim();
 }
-function getLang() { return (clientData?.preferred_lang||'es').toLowerCase(); }
+function getLang() {
+  return AB_LANG || (clientData?.preferred_lang || 'es').toLowerCase();
+}
 
 /* ══ HOME RINGS ══ */
 function buildMicroBars(data,color,w,h){const gap=3,n=data.length;const bw=(w-gap*(n-1))/n;const max=Math.max(...data,1);return data.map((v,i)=>{const bh=(v/max)*h;const x=i*(bw+gap),y=h-bh;return`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${color}" opacity=".9"/>`;}).join('');}
