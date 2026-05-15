@@ -1189,7 +1189,7 @@ function paymentBadge(s) {
 function genericBadge(s) {
   if (!s) return '';
   const v=s.toLowerCase();
-  if (['activo','active','confirmada','confirmado','realizada','completado'].includes(v)) return '<span class="badge badge-green">'+s+'</span>';
+  if (['activo','active','confirmada','confirmado',uiText('doneStatus'),'completado'].includes(v)) return '<span class="badge badge-green">'+s+'</span>';
   if (['pendiente','pending','reservada'].includes(v)) return '<span class="badge badge-yellow">'+s+'</span>';
   if (['cancelada','cancelado','vencido','inactivo'].includes(v)) return '<span class="badge badge-red">'+s+'</span>';
   return '<span class="badge badge-gray">'+s+'</span>';
@@ -1617,10 +1617,32 @@ function uiText(key) {
     completedSessionsText: 'sesiones completadas',
     planCompleted: 'Plan completado. Abel podrá revisar el siguiente bloque de trabajo.',
     goodProgress: 'Buen avance. Sigue completando sesiones para mantener la constancia.',
-    noCompletedTrainingYet: 'Todavía no hay entrenamientos completados registrados.',
-    whenCloseSession: 'Cuando cierres una sesión, aparecerá aquí.',
+     noCompletedTrainingYet: 'Todavía no hay entrenamientos completados registrados.',
+whenCloseSession: 'Cuando cierres una sesión, aparecerá aquí.',
 
-    combatAthlete: 'Atleta combate',
+evaluations: 'Evaluaciones',
+evaluationsAndTests: uiText('evaluationsAndTests'),
+lastEvaluation: uiText('lastEvaluation'),
+functionalTest: uiText('functionalTest'),
+doneStatus: uiText('doneStatus'),
+results: 'resultados',
+result: 'resultado',
+reviewMainResults: uiText('reviewMainResults'),
+testsDone: uiText('testsDone'),
+savedResults: uiText('savedResults'),
+lastTest: uiText('lastTest'),
+mainProgress: uiText('mainProgress'),
+progressHistory: uiText('progressHistory'),
+noTestsRegistered: uiText('noTestsRegistered'),
+whenAbelTests: uiText('whenAbelTests'),
+noResultsRegistered: uiText('noResultsRegistered'),
+thisTestNoResults: uiText('thisTestNoResults'),
+higherBetter: 'Mejor más alto',
+lowerBetter: 'Mejor más bajo',
+reference: 'Referencia',
+evolution: 'Evolución',
+
+combatAthlete: 'Atleta combate',
     performanceStatus: 'Estado de rendimiento',
     combatMetricsActive: 'Métricas de combate activas',
     viewHealth: 'Ver salud',
@@ -1731,6 +1753,27 @@ combatMetricsDisabled: 'Este perfil no tiene activadas las métricas específica
     goodProgress: 'Dobar napredak. Nastavi da završavaš treninge kako bi održao kontinuitet.',
     noCompletedTrainingYet: 'Još nema registrovanih završenih treninga.',
     whenCloseSession: 'Kada završiš sesiju, pojaviće se ovde.',
+    evaluations: 'Evaluacije',
+evaluationsAndTests: 'Evaluacije i testovi',
+lastEvaluation: 'Poslednja evaluacija',
+functionalTest: 'Funkcionalni test',
+doneStatus: 'urađeno',
+results: 'rezultata',
+result: 'rezultat',
+reviewMainResults: 'Pregledaj glavne rezultate i napredak koji je Abel registrovao.',
+testsDone: 'Urađeni testovi',
+savedResults: 'Sačuvani rezultati',
+lastTest: 'Poslednji test',
+mainProgress: 'Tvoj glavni napredak',
+progressHistory: 'Istorija napretka',
+noTestsRegistered: 'Nema registrovanih testova',
+whenAbelTests: 'Kada Abel uradi test, ovde će se pojaviti tvoji rezultati i napredak.',
+noResultsRegistered: 'Nema registrovanih rezultata.',
+thisTestNoResults: 'Ovaj test nema registrovane rezultate.',
+higherBetter: 'Bolje je više',
+lowerBetter: 'Bolje je niže',
+reference: 'Referenca',
+evolution: 'Napredak',
 
     combatSummaryText: 'Pregledaj mišićni zamor, kortizol, oporavak pulsa i borbenu težinu.',
     combatMetricsIntro: 'Ove metrike pomažu u praćenju zamora, oporavka i adaptacije na trening. Ne zamenjuju medicinsku procenu.',
@@ -3439,7 +3482,11 @@ function buildProgressTrainingSummary(){
 /* ══ EVALUACIONES ══ */
 function buildMiniChart(pts){if(!pts||pts.length<2)return null;const vals=pts.map(d=>d.value),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;const W=260,H=50,P=6;const mapped=pts.map((d,i)=>({x:P+(i/(pts.length-1))*(W-P*2),y:P+(H-P*2)-((d.value-min)/range)*(H-P*2),date:d.date,value:d.value}));const line=mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');const area=[mapped[0].x.toFixed(1)+','+(H-P).toFixed(1)].concat(mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1))).concat([mapped[mapped.length-1].x.toFixed(1)+','+(H-P).toFixed(1)]).join(' ');const dots=mapped.map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="var(--sport)" stroke="var(--card)" stroke-width="1.5"/>').join('');const labs=mapped.map(p=>'<span class="mini-chart-label">'+String(p.date||'').slice(5)+'<br>'+p.value+'</span>').join('');return'<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="display:block"><polygon points="'+area+'" fill="rgba(0,163,255,0.06)"/><polyline points="'+line+'" fill="none" stroke="var(--sport)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div class="mini-chart-labels">'+labs+'</div>';}
 function buildExerciseHistory(exerciseName){return clientAssessmentResults.filter(r=>(r.exercise_name||'').trim().toLowerCase()===(exerciseName||'').trim().toLowerCase()).map(r=>{const a=clientAssessments.find(x=>x.id===r.assessment_id);return{date:a?.assessment_date||'',value:r.result_value,numValue:parseFloat(String(r.result_value||'').replace(',','.'))}}).filter(d=>d.date).sort((a,b)=>String(a.date).localeCompare(String(b.date)));}
-function dLabel(d){if(d==='higher_better')return'Mejor más alto';if(d==='lower_better')return'Mejor más bajo';return'Referencia';}
+function dLabel(d){
+  if(d === 'higher_better') return uiText('higherBetter');
+  if(d === 'lower_better') return uiText('lowerBetter');
+  return uiText('reference');
+}
 function dColor(d){if(d==='higher_better')return'var(--streak)';if(d==='lower_better')return'var(--medical)';return'var(--text-secondary)';}
 function toggleAssessmentCard(id){document.getElementById('ac-'+id)?.classList.toggle('open');}
 function renderAssessments(){
@@ -3456,7 +3503,7 @@ function renderAssessments(){
     el.innerHTML =
       trainingProgressHTML +
       '<div style="margin:22px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
-        'Evaluaciones' +
+        uiText('evaluations') +
       '</div>' +
       '<div class="data-card">' +
         '<div class="dc-row">' +
@@ -3486,7 +3533,7 @@ function renderAssessments(){
 
   html +=
     '<div style="margin:22px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
-      'Evaluaciones y tests' +
+      uiText('evaluationsAndTests') +
     '</div>';
 
   /* ─────────────────────────────
@@ -3497,8 +3544,8 @@ function renderAssessments(){
       '<div class="next-label">Última evaluación</div>' +
 
       '<div class="dc-row">' +
-        '<span class="dc-title">' + (latestAssessment.assessment_name || 'Test funcional') + '</span>' +
-        '<span class="badge badge-green">' + (latestAssessment.status || 'realizada') + '</span>' +
+        '<span class="dc-title">' + (latestAssessment.assessment_name || uiText('functionalTest')) + '</span>' +
+        '<span class="badge badge-green">' + (latestAssessment.status || uiText('doneStatus')) + '</span>' +
       '</div>' +
 
       '<div class="dc-row">' +
@@ -3531,7 +3578,7 @@ function renderAssessments(){
 
       '<div class="summary-card full">' +
         '<div class="summary-label">Último test</div>' +
-        '<div class="summary-value">' + (latestAssessment.assessment_name || 'Test funcional') + ' · ' + latestDate + '</div>' +
+        '<div class="summary-value">' + (latestAssessment.assessment_name || uiText('functionalTest')) + ' · ' + latestDate + '</div>' +
       '</div>' +
 
     '</div>';
@@ -3541,7 +3588,7 @@ function renderAssessments(){
   ───────────────────────────── */
   html +=
     '<div style="margin:18px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
-      'Tu avance principal' +
+      uiText('mainProgress') +
     '</div>';
 
   if(latestResults.length){
@@ -3592,7 +3639,7 @@ function renderAssessments(){
   ───────────────────────────── */
   html +=
     '<div style="margin:22px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
-      'Historial de progreso' +
+      uiText('progressHistory') +
     '</div>';
 
   clientAssessments.forEach((a, index) => {
@@ -3611,7 +3658,7 @@ function renderAssessments(){
               results.length + ' resultado' + (results.length !== 1 ? 's' : '') +
             '</div>' +
           '</div>' +
-          '<span class="badge ' + (a.status === 'realizada' ? 'badge-green' : 'badge-gray') + '">' + (a.status || 'realizada') + '</span>' +
+          '<span class="badge ' + (a.status === 'realizada' ? 'badge-green' : 'badge-gray') + '">' + (a.status || uiText('doneStatus')) + '</span>' +
         '</div>' +
 
         '<div class="assessment-card-body">';
@@ -3677,7 +3724,7 @@ function renderAssessments(){
           if(chart){
             html +=
               '<div class="mini-chart-wrap">' +
-                '<div class="mini-chart-title">Evolución · ' + (r.exercise_name || '') + '</div>' +
+                '<div class="mini-chart-title">' + uiText('evolution') + ' · ' + (r.exercise_name || '') + '</div>' + '</div>' +
                 chart +
               '</div>';
           }
