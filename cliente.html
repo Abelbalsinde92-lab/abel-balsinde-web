@@ -966,13 +966,43 @@ async function cargarMetricasCombate() {
     null, null
   );
 
-  // Mostrar FC máxima usada para calcular la recuperación
-  const fcCalcEl = document.getElementById('display-fc-calc');
-  if (fcCalcEl) {
-    fcCalcEl.textContent = fcMaxRef
-      ? `Calculado con FC máx: ${fcMax} (${fcMaxRef}) ppm`
-      : `Calculado con FC máx: ${fcMax} ppm`;
-  }
+  // FC máxima usada para calcular la recuperación
+const fcMax = Number(clientData.fc_max) || 190;
+
+// FC máxima de referencia opcional, solo para mostrar entre paréntesis
+const fcMaxRef = clientData.fc_max_ref ? Number(clientData.fc_max_ref) : null;
+
+const ck       = evaluarCK(data.creatina_quinasa);
+const cortisol = evaluarCortisol(data.cortisol);
+const fcRec    = evaluarFCRecuperacion(data.fc_recuperacion_1min, fcMax);
+
+inyectarMetrica('card-ck', 'display-ck',
+  data.creatina_quinasa,
+  ck.clase, ck.label
+);
+
+inyectarMetrica('card-cortisol', 'display-cortisol',
+  data.cortisol != null ? Number(data.cortisol).toFixed(1) : null,
+  cortisol.clase, cortisol.label
+);
+
+inyectarMetrica('card-recuperacion', 'display-fc-rec',
+  data.fc_recuperacion_1min,
+  fcRec.clase, fcRec.label
+);
+
+// Mostrar FC máxima usada para calcular la recuperación
+const fcCalcEl = document.getElementById('display-fc-calc');
+if (fcCalcEl) {
+  fcCalcEl.textContent = fcMaxRef
+    ? `Calculado con FC máx: ${fcMax} (${fcMaxRef}) ppm`
+    : `Calculado con FC máx: ${fcMax} ppm`;
+}
+
+inyectarMetrica('card-peso', 'display-peso',
+  data.peso_corporal != null ? Number(data.peso_corporal).toFixed(1) : null,
+  null, null
+);
 
   // Fecha última actualización
   const fechaEl = document.getElementById('display-fecha');
@@ -1396,7 +1426,7 @@ function buildCombatMetricsHTML(){
   '<span>Recuperación cardíaca 1 min</span>' +
   '<strong id="display-fc-rec">--</strong>' +
   '<div class="metrica-unit">ppm al minuto</div>' +
-  '<div class="metrica-unit" id="display-fc-calc" style="margin-top:6px;color:var(--sport);">Calculado con FC máx: --</div>' +
+  '<div class="metrica-unit" id="display-fc-calc">Calculado con FC máx: -- ppm</div>' +
 '</div>' +
 
         '<div class="card-metrica" id="card-peso">' +
