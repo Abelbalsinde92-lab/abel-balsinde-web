@@ -1014,16 +1014,16 @@ async function cargarMetricasCombate() {
   const fcDropEl = document.getElementById('display-fc-drop');
   if (fcDropEl) {
     fcDropEl.textContent = fcRec.caida != null
-      ? `Caída: ${fcRec.caida} ppm`
-      : 'Caída: -- ppm';
+      ? `${uiText('heartDrop')}: ${fcRec.caida} ppm`
+: `${uiText('heartDrop')}: -- ppm`;
   }
 
   // Mostrar FC máxima usada para calcular la recuperación
   const fcCalcEl = document.getElementById('display-fc-calc');
   if (fcCalcEl) {
     fcCalcEl.textContent = fcMaxRef
-      ? `FC máx usada: ${fcMax} (ref. ${fcMaxRef}) ppm`
-      : `FC máx usada: ${fcMax} ppm`;
+      ? `${uiText('maxHrUsed')}: ${fcMax} (ref. ${fcMaxRef}) ppm`
+: `${uiText('maxHrUsed')}: ${fcMax} ppm`;
   }
 
   inyectarMetrica(
@@ -1536,7 +1536,39 @@ pendingIndication: 'Indicación pendiente',
       coachNotes: 'Notas del coach',
       noCoachNotes: 'Todavía no hay notas del coach.',
       noPayments: 'No hay pagos registrados.',
-      requestReservation: 'Solicitar nueva reserva'
+      requestReservation: 'Solicitar nueva reserva',
+plan: 'Plan',
+status: 'Estado',
+mainObjective: 'Objetivo principal',
+nutritionObjective: 'Objetivo nutricional',
+assignedPlan: 'Sin plan asignado',
+noObjective: 'Sin objetivo registrado',
+activeProgram: 'Programa activo',
+programActiveFallback: 'Programa activo',
+scope: 'Alcance',
+levelLabel: 'Nivel',
+currentWeekLabel: 'Semana actual',
+start: 'Inicio',
+programObjective: 'Objetivo del programa',
+coachNotes: 'Notas del coach',
+noProgramAssigned: 'Todavía no hay programa asignado. Abel actualizará esta sección cuando tu plan esté listo.',
+consultPlanAdjustment: 'Consultar ajuste de plan',
+
+performanceStatus: 'Estado de rendimiento',
+combatMetricsActive: 'Métricas de combate activas',
+viewHealth: 'Ver salud',
+combatSummaryText: 'Revisa fatiga muscular, cortisol, recuperación cardíaca y peso de combate.',
+combatAthlete: 'Atleta combate',
+combatMetricsIntro: 'Estas métricas ayudan a controlar fatiga, recuperación y adaptación al entrenamiento. No sustituyen una evaluación médica.',
+performanceMetrics: 'Métricas de rendimiento',
+muscleFatigueCK: 'Fatiga muscular / CK',
+cortisol: 'Cortisol',
+heartRecovery1min: 'Recuperación cardíaca 1 min',
+ppmAtMinute: 'ppm al minuto',
+heartDrop: 'Caída',
+maxHrUsed: 'FC máx usada',
+combatWeight: 'Peso de combate',
+lastUpdate: 'Última actualización'
     },
 
     sr: {
@@ -1593,9 +1625,23 @@ pendingIndication: 'Napomena na čekanju',
       payments: 'Plaćanja',
       notes: 'Napomene',
       coachNotes: 'Napomene trenera',
-      noCoachNotes: 'Još nema napomena trenera.',
+            noCoachNotes: 'Još nema napomena trenera.',
       noPayments: 'Nema registrovanih plaćanja.',
-      requestReservation: 'Zatraži novi termin'
+      requestReservation: 'Zatraži novi termin',
+
+      consultPlanAdjustment: 'Zatraži korekciju plana',
+      assignedTraining: 'Dodeljeni trening',
+      progressSummary: 'Sažetak napretka',
+      completedSessions: 'Završene sesije',
+      planProgress: 'Napredak plana',
+      lastTraining: 'Poslednji trening',
+      noCompletedTraining: 'Nema završenih treninga',
+      registered: 'Registrovano',
+      recentActivity: 'Nedavna aktivnost',
+      completedSessionsText: 'završenih sesija',
+      planCompleted: 'Plan je završen. Abel može da pregleda sledeći blok rada.',
+      goodProgress: 'Dobar napredak. Nastavi da završavaš treninge kako bi održao kontinuitet.',
+      noCompletedTrainingYet: 'Još nema registrovanih završenih treninga.'
     }
   };
 
@@ -1976,31 +2022,124 @@ function renderHome(){
 
 /* ══ RENDER PROGRAM ══ */
 function renderProgram(){
-  const el=document.getElementById('sectionPlan');const badge=document.getElementById('planBadgeStatus');
-  if(!el)return;
-  if(badge)badge.textContent=clientData?.status||'—';
-  const lg=getLang();
-  let html='<div style="background:var(--card);border:1px solid var(--card-border);border-radius:12px;overflow:hidden;"><div class="plan-grid" style="padding:18px;">';
-  html+='<div class="plan-item"><div class="pi-label">Plan</div><div class="pi-value">'+(clientData?.plan||'Sin plan asignado')+'</div></div>';
-  html+='<div class="plan-item"><div class="pi-label">Estado</div><div class="pi-value">'+(clientData?.status||'—')+'</div></div>';
-  html+='<div class="plan-item full"><div class="pi-label">Objetivo principal</div><div class="pi-value">'+(clientData?.objective||'Sin objetivo registrado')+'</div></div>';
-  if(clientData?.nutrition_objective)html+='<div class="plan-item full"><div class="pi-label">Objetivo nutricional</div><div class="pi-value">'+clientData.nutrition_objective+'</div></div>';
-  html+='<hr class="plan-divider">';
-  if(clientTrainingAssignment&&clientTrainingProgram){
-    const programName=pickLang(clientTrainingProgram,'name',lg)||'Programa activo';
-    const programObj=pickLang(clientTrainingProgram,'objective',lg);
-    html+='<div class="plan-item"><div class="pi-label">Programa activo</div><div class="pi-value">'+programName+'</div></div>';
-    html+='<div class="plan-item"><div class="pi-label">Alcance</div><div class="pi-value">'+getAssignmentScopeLabel()+'</div></div>';
-    html+='<div class="plan-item"><div class="pi-label">Nivel</div><div class="pi-value">'+(clientTrainingAssignment.assigned_level||'N1')+'</div></div>';
-    html+='<div class="plan-item"><div class="pi-label">Semana actual</div><div class="pi-value">'+(clientTrainingAssignment.current_week||1)+'</div></div>';
-    html+='<div class="plan-item"><div class="pi-label">Inicio</div><div class="pi-value">'+formatDate(clientTrainingAssignment.start_date)+'</div></div>';
-    if(programObj)html+='<div class="plan-item full"><div class="pi-label">Objetivo del programa</div><div class="pi-value">'+programObj+'</div></div>';
-    if(clientTrainingAssignment.coach_notes)html+='<div class="plan-item full"><div class="pi-label">Notas del coach</div><div class="pi-value">'+clientTrainingAssignment.coach_notes+'</div></div>';
-  } else {
-    html+='<div class="plan-item full"><div class="plan-no-program">Todavía no hay programa asignado. Abel actualizará esta sección cuando tu plan esté listo.</div></div>';
+  const el = document.getElementById('sectionPlan');
+  const badge = document.getElementById('planBadgeStatus');
+
+  if(!el) return;
+
+  if(badge) badge.textContent = clientData?.status || '—';
+
+  const lg = getLang();
+
+  let html =
+    '<div style="background:var(--card);border:1px solid var(--card-border);border-radius:12px;overflow:hidden;">' +
+      '<div class="plan-grid" style="padding:18px;">';
+
+  html +=
+    '<div class="plan-item">' +
+      '<div class="pi-label">' + uiText('plan') + '</div>' +
+      '<div class="pi-value">' + (clientData?.plan || uiText('assignedPlan')) + '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="plan-item">' +
+      '<div class="pi-label">' + uiText('status') + '</div>' +
+      '<div class="pi-value">' + (clientData?.status || '—') + '</div>' +
+    '</div>';
+
+  html +=
+    '<div class="plan-item full">' +
+      '<div class="pi-label">' + uiText('mainObjective') + '</div>' +
+      '<div class="pi-value">' + (clientData?.objective || uiText('noObjective')) + '</div>' +
+    '</div>';
+
+  if(clientData?.nutrition_objective){
+    html +=
+      '<div class="plan-item full">' +
+        '<div class="pi-label">' + uiText('nutritionObjective') + '</div>' +
+        '<div class="pi-value">' + clientData.nutrition_objective + '</div>' +
+      '</div>';
   }
-  html+='</div></div><div class="action-box"><button class="client-action-btn wa" onclick="clientWA(\'Quiero consultar un ajuste o nuevo plan.\')">Consultar ajuste de plan</button></div>';
-  el.innerHTML=html;
+
+  html += '<hr class="plan-divider">';
+
+  if(clientTrainingAssignment && clientTrainingProgram){
+    const programName =
+      pickLang(clientTrainingProgram, 'name', lg) ||
+      clientTrainingProgram.name ||
+      uiText('programActiveFallback');
+
+    const programObj =
+      pickLang(clientTrainingProgram, 'objective', lg) ||
+      clientTrainingProgram.objective ||
+      '';
+
+    html +=
+      '<div class="plan-item">' +
+        '<div class="pi-label">' + uiText('activeProgram') + '</div>' +
+        '<div class="pi-value">' + programName + '</div>' +
+      '</div>';
+
+    html +=
+      '<div class="plan-item">' +
+        '<div class="pi-label">' + uiText('scope') + '</div>' +
+        '<div class="pi-value">' + getAssignmentScopeLabel() + '</div>' +
+      '</div>';
+
+    html +=
+      '<div class="plan-item">' +
+        '<div class="pi-label">' + uiText('levelLabel') + '</div>' +
+        '<div class="pi-value">' + (clientTrainingAssignment.assigned_level || 'N1') + '</div>' +
+      '</div>';
+
+    html +=
+      '<div class="plan-item">' +
+        '<div class="pi-label">' + uiText('currentWeekLabel') + '</div>' +
+        '<div class="pi-value">' + (clientTrainingAssignment.current_week || 1) + '</div>' +
+      '</div>';
+
+    html +=
+      '<div class="plan-item">' +
+        '<div class="pi-label">' + uiText('start') + '</div>' +
+        '<div class="pi-value">' + formatDate(clientTrainingAssignment.start_date) + '</div>' +
+      '</div>';
+
+    if(programObj){
+      html +=
+        '<div class="plan-item full">' +
+          '<div class="pi-label">' + uiText('programObjective') + '</div>' +
+          '<div class="pi-value">' + programObj + '</div>' +
+        '</div>';
+    }
+
+    if(clientTrainingAssignment.coach_notes){
+      html +=
+        '<div class="plan-item full">' +
+          '<div class="pi-label">' + uiText('coachNotes') + '</div>' +
+          '<div class="pi-value">' + clientTrainingAssignment.coach_notes + '</div>' +
+        '</div>';
+    }
+
+  } else {
+    html +=
+      '<div class="plan-item full">' +
+        '<div class="plan-no-program">' +
+          uiText('noProgramAssigned') +
+        '</div>' +
+      '</div>';
+  }
+
+  html +=
+      '</div>' +
+    '</div>' +
+
+    '<div class="action-box">' +
+      '<button class="client-action-btn wa" onclick="clientWA(\'Quiero consultar un ajuste o nuevo plan.\')">' +
+        uiText('consultPlanAdjustment') +
+      '</button>' +
+    '</div>';
+
+  el.innerHTML = html;
 }
 
 function buildHomeCombatSummary(){
@@ -2008,13 +2147,13 @@ function buildHomeCombatSummary(){
 
   return (
     '<div class="data-card next-session" onclick="goClientSection(\'section-health\')" style="cursor:pointer;">' +
-      '<div class="next-label">Estado de rendimiento</div>' +
+      '<div class="next-label">' + uiText('performanceStatus') + '</div>' +
       '<div class="dc-row">' +
-        '<span class="dc-title">Métricas de combate activas</span>' +
-        '<span class="badge badge-blue">Ver salud</span>' +
+        '<span class="dc-title">' + uiText('combatMetricsActive') + '</span>' +
+        '<span class="badge badge-blue">' + uiText('viewHealth') + '</span>' +
       '</div>' +
       '<div class="dc-note">' +
-        'Revisa fatiga muscular, cortisol, recuperación cardíaca y peso de combate.' +
+        uiText('combatSummaryText') +
       '</div>' +
     '</div>'
   );
@@ -2026,47 +2165,47 @@ function buildCombatMetricsHTML(){
 
       '<div class="data-card" style="margin-bottom:14px;">' +
         '<div class="dc-row">' +
-          '<span class="dc-title">Estado de rendimiento</span>' +
-          '<span class="badge badge-blue">Atleta combate</span>' +
+          '<span class="dc-title">' + uiText('performanceStatus') + '</span>' +
+          '<span class="badge badge-blue">' + uiText('combatAthlete') + '</span>' +
         '</div>' +
         '<div class="dc-note">' +
-          'Estas métricas ayudan a controlar fatiga, recuperación y adaptación al entrenamiento. No sustituyen una evaluación médica.' +
+          uiText('combatMetricsIntro') +
         '</div>' +
       '</div>' +
 
-      '<div class="combate-header">Métricas de rendimiento</div>' +
+      '<div class="combate-header">' + uiText('performanceMetrics') + '</div>' +
 
       '<div class="combate-grid">' +
 
         '<div class="card-metrica" id="card-ck">' +
-          '<span>Fatiga muscular / CK</span>' +
+          '<span>' + uiText('muscleFatigueCK') + '</span>' +
           '<strong id="display-ck">--</strong>' +
           '<div class="metrica-unit">U/L</div>' +
         '</div>' +
 
         '<div class="card-metrica" id="card-cortisol">' +
-          '<span>Cortisol</span>' +
+          '<span>' + uiText('cortisol') + '</span>' +
           '<strong id="display-cortisol">--</strong>' +
           '<div class="metrica-unit">µg/dL</div>' +
         '</div>' +
 
         '<div class="card-metrica" id="card-recuperacion">' +
-          '<span>Recuperación cardíaca 1 min</span>' +
+          '<span>' + uiText('heartRecovery1min') + '</span>' +
           '<strong id="display-fc-rec">--</strong>' +
-          '<div class="metrica-unit">ppm al minuto</div>' +
-          '<div class="metrica-unit" id="display-fc-drop">Caída: -- ppm</div>' +
-          '<div class="metrica-unit" id="display-fc-calc">FC máx usada: -- ppm</div>' +
+          '<div class="metrica-unit">' + uiText('ppmAtMinute') + '</div>' +
+          '<div class="metrica-unit" id="display-fc-drop">' + uiText('heartDrop') + ': -- ppm</div>' +
+          '<div class="metrica-unit" id="display-fc-calc">' + uiText('maxHrUsed') + ': -- ppm</div>' +
         '</div>' +
 
         '<div class="card-metrica" id="card-peso">' +
-          '<span>Peso de combate</span>' +
+          '<span>' + uiText('combatWeight') + '</span>' +
           '<strong id="display-peso">--</strong>' +
           '<div class="metrica-unit">kg</div>' +
         '</div>' +
 
       '</div>' +
 
-      '<p class="combate-update">Última actualización: <span id="display-fecha">--/--/----</span></p>' +
+      '<p class="combate-update">' + uiText('lastUpdate') + ': <span id="display-fecha">--/--/----</span></p>' +
 
     '</div>'
   );
