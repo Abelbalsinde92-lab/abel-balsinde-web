@@ -2938,8 +2938,45 @@ function openModal(type,id=null){
           <option value="sr" ${c.preferredLang==='sr'?'selected':''}>🇷🇸 Srpski</option>
         </select>
       </div>
-      <div class="form-row"><label class="form-label">Objetivo principal</label><input name="objective" class="form-input" value="${esc(c.objective||'')}"></div>
-      ${actions}`;
+      <div class="form-row">
+  <label class="form-label">Objetivo principal</label>
+  <input name="objective" class="form-input" value="${esc(c.objective||'')}">
+</div>
+
+<div class="form-row-2">
+  <div class="form-row">
+    <label class="form-label">Perfil del atleta</label>
+    <select name="athlete_profile" class="form-input">
+      <option value="general" ${(c.athleteProfile||c.athlete_profile||'general')==='general'?'selected':''}>
+        Cliente general
+      </option>
+      <option value="combat" ${(c.athleteProfile||c.athlete_profile)==='combat'?'selected':''}>
+        Atleta de combate
+      </option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label class="form-label">Métricas combate</label>
+    <select name="enable_combat_metrics" class="form-input">
+      <option value="false" ${!(c.enableCombatMetrics||c.enable_combat_metrics)?'selected':''}>
+        No mostrar
+      </option>
+      <option value="true" ${(c.enableCombatMetrics||c.enable_combat_metrics)===true||String(c.enableCombatMetrics||c.enable_combat_metrics)==='true'?'selected':''}>
+        Mostrar métricas combate
+      </option>
+    </select>
+  </div>
+</div>
+
+<div class="form-row">
+  <label class="form-label">FC Máxima / ppm</label>
+  <input name="fc_max" type="number" class="form-input"
+         value="${esc(c.fcMax||c.fc_max||'')}"
+         placeholder="Ej: 185">
+</div>
+
+${actions}
   }
 
   else if(type==='reservation'){const r=get('reservations');title.textContent=id?'Editar reserva':'Nueva reserva';form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(r.clientId)}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Fecha</label><input name="date" class="form-input" type="date" value="${esc(r.date||todayISO())}" required></div><div class="form-row"><label class="form-label">Hora</label><input name="time" class="form-input" type="time" value="${esc(r.time||'09:00')}" required></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Tipo</label><input name="type" class="form-input" value="${esc(r.type||'Sesión personal')}" required></div><div class="form-row"><label class="form-label">Lugar</label><input name="place" class="form-input" value="${esc(r.place||'Belgrado')}" required></div></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="reservada" ${r.status==='reservada'?'selected':''}>Reservada</option><option value="confirmada" ${r.status==='confirmada'?'selected':''}>Confirmada</option><option value="realizada" ${r.status==='realizada'?'selected':''}>Realizada</option><option value="cancelada" ${r.status==='cancelada'?'selected':''}>Cancelada</option></select></div><div class="form-row"><label class="form-label">Nota</label><textarea name="note" class="form-input" rows="2">${esc(r.note||'')}</textarea></div>${actions}`;}
@@ -3227,11 +3264,33 @@ async function saveModal(e){
   try{
     const data=formData(e.target);const{type,id}=activeModal||{};
     if(type==='client'){
-  if(data.access_code) data.access_code = data.access_code.trim().toUpperCase();
-  // preferred_lang llega del select como 'preferred_lang' (snake) → el helper camelToSnake lo convierte bien
-  await upsert('clients',{...data,status:data.status||'prospecto',notes:id?(clientById(id)?.notes||[]):[]});
-  if(!state.selectedClientId&&!id)state.selectedClientId=state.clients[state.clients.length-1]?.id||null;
-  showToast(id?'Cliente actualizado':'Cliente guardado');
+  if(data.access_code) {
+    data.access_code = data.access_code.trim().toUpperCase();
+  }
+
+  if(data.enable_combat_metrics !== undefined) {
+    data.enable_combat_metrics = data.enable_combat_metrics === 'true';
+  }
+
+  if(data.fc_max !== undefined) {
+    data.fc_max = data.fc_max ? Number(data.fc_max) || null : null;
+  }
+
+  if(!data.athlete_profile) {
+    data.athlete_profile = 'general';
+  }
+
+  await upsert('clients',{
+    ...data,
+    status: data.status || 'prospecto',
+    notes: id ? (clientById(id)?.notes || []) : []
+  });
+
+  if(!state.selectedClientId && !id) {
+    state.selectedClientId = state.clients[state.clients.length-1]?.id || null;
+  }
+
+  showToast(id ? 'Cliente actualizado' : 'Cliente guardado');
 }
     else if(type==='reservation'){await upsert('reservations',data);showToast('Reserva guardada');}
     else if(type==='payment'){await upsert('payments',data);showToast('Pago registrado');}
