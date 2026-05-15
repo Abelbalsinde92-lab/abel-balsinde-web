@@ -2969,14 +2969,27 @@ function openModal(type,id=null){
   </div>
 </div>
 
-<div class="form-row">
-  <label class="form-label">FC Máxima (ppm)</label>
-  <input name="fc_max" type="number" class="form-input"
-         value="${esc(c.fcMax||c.fc_max||'')}"
-         placeholder="Ej: 185">
-</div>
+<div class="form-row-2">
+  <div class="form-row">
+    <label class="form-label">FC Máxima usada (ppm)</label>
+    <input name="fc_max"
+           type="number"
+           inputmode="numeric"
+           class="form-input"
+           value="${esc(c.fcMax||c.fc_max||'')}"
+           placeholder="Ej: 185">
+  </div>
 
-${actions}`;
+  <div class="form-row">
+    <label class="form-label">FC Máxima referencia (ppm)</label>
+    <input name="fc_max_ref"
+           type="number"
+           inputmode="numeric"
+           class="form-input"
+           value="${esc(c.fcMaxRef||c.fc_max_ref||'')}"
+           placeholder="Ej: 190">
+  </div>
+</div>
   }
 
   else if(type==='reservation'){const r=get('reservations');title.textContent=id?'Editar reserva':'Nueva reserva';form.innerHTML=`<div class="form-row"><label class="form-label">Cliente</label><select name="clientId" class="form-input" required>${clientOptions(r.clientId)}</select></div><div class="form-row-2"><div class="form-row"><label class="form-label">Fecha</label><input name="date" class="form-input" type="date" value="${esc(r.date||todayISO())}" required></div><div class="form-row"><label class="form-label">Hora</label><input name="time" class="form-input" type="time" value="${esc(r.time||'09:00')}" required></div></div><div class="form-row-2"><div class="form-row"><label class="form-label">Tipo</label><input name="type" class="form-input" value="${esc(r.type||'Sesión personal')}" required></div><div class="form-row"><label class="form-label">Lugar</label><input name="place" class="form-input" value="${esc(r.place||'Belgrado')}" required></div></div><div class="form-row"><label class="form-label">Estado</label><select name="status" class="form-input"><option value="reservada" ${r.status==='reservada'?'selected':''}>Reservada</option><option value="confirmada" ${r.status==='confirmada'?'selected':''}>Confirmada</option><option value="realizada" ${r.status==='realizada'?'selected':''}>Realizada</option><option value="cancelada" ${r.status==='cancelada'?'selected':''}>Cancelada</option></select></div><div class="form-row"><label class="form-label">Nota</label><textarea name="note" class="form-input" rows="2">${esc(r.note||'')}</textarea></div>${actions}`;}
@@ -3276,6 +3289,14 @@ async function saveModal(e){
     data.fc_max = data.fc_max ? Number(data.fc_max) || null : null;
   }
 
+  if(data.fc_max !== undefined) {
+  data.fc_max = data.fc_max ? Number(data.fc_max) || null : null;
+}
+
+if(data.fc_max_ref !== undefined) {
+  data.fc_max_ref = data.fc_max_ref ? Number(data.fc_max_ref) || null : null;
+}
+  
   if(!data.athlete_profile) {
     data.athlete_profile = 'general';
   }
