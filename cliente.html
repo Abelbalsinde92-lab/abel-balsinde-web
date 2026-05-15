@@ -880,6 +880,7 @@ let clientTrainingExercises  = [];
 let completedTrainingBlocks  = new Set();
 let activeTrainingBlockKey   = null;
 let currentTrainingLog       = null;
+let clientSessionLogs        = [];
 
 /* ══════════════════════════════════════════════════════════
    MÉTRICAS DE COMBATE — Lógica de evaluación fisiológica
@@ -1185,19 +1186,21 @@ async function loadClientDashboard(clientId) {
     if (cErr||!client){Auth.logout();return;}
     clientData=client;
 
-    const [resR,payR,metR,halR,proR,assignR,assR]=await Promise.all([
-      db.from('reservations').select('*').eq('client_id',clientId).order('date',{ascending:true}),
-      db.from('payments').select('*').eq('client_id',clientId).order('due_date',{ascending:false}),
-      db.from('metrics').select('*').eq('client_id',clientId).order('date',{ascending:false}),
-      db.from('health_alerts').select('*').eq('client_id',clientId).order('date',{ascending:false}),
-      db.from('programs').select('*').eq('client_id',clientId).order('created_at',{ascending:false}),
-      db.from('client_program_assignments').select('*').eq('client_id',clientId).eq('status','activo').order('created_at',{ascending:false}).limit(1),
-      db.from('client_assessments').select('*').eq('client_id',clientId).order('assessment_date',{ascending:false}),
-    ]);
+    const [resR,payR,metR,halR,proR,assignR,assR,logsR]=await Promise.all([
+  db.from('reservations').select('*').eq('client_id',clientId).order('date',{ascending:true}),
+  db.from('payments').select('*').eq('client_id',clientId).order('due_date',{ascending:false}),
+  db.from('metrics').select('*').eq('client_id',clientId).order('date',{ascending:false}),
+  db.from('health_alerts').select('*').eq('client_id',clientId).order('date',{ascending:false}),
+  db.from('programs').select('*').eq('client_id',clientId).order('created_at',{ascending:false}),
+  db.from('client_program_assignments').select('*').eq('client_id',clientId).eq('status','activo').order('created_at',{ascending:false}).limit(1),
+  db.from('client_assessments').select('*').eq('client_id',clientId).order('assessment_date',{ascending:false}),
+  db.from('client_session_logs').select('*').eq('client_id',clientId).order('training_date',{ascending:false}),
+]);
 
     clientReservations=resR.data||[];clientPayments=payR.data||[];clientMetrics=metR.data||[];
     clientAlerts=halR.data||[];clientPrograms=proR.data||[];
     clientTrainingAssignment=assignR.data?.[0]||null;clientAssessments=assR.data||[];
+    clientSessionLogs = logsR.data || [];
 
     clientAssessmentResults=[];
     if (clientAssessments.length) {
@@ -1320,10 +1323,41 @@ function buildMicroSpline(data,color,w,h){const min=Math.min(...data),max=Math.m
 function buildMicroDots(data,color,w,h){const cols=10,rows=Math.ceil(data.length/cols);const ds=Math.min((w-3*(cols-1))/cols,(h-3*(rows-1))/rows);return data.slice(0,cols*rows).map((on,idx)=>{const col=idx%cols,row=Math.floor(idx/cols);const cx=col*(ds+3)+ds/2,cy=row*(ds+3)+ds/2;return`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(ds/2).toFixed(1)}" fill="${on?color:'var(--divider)'}" opacity="${on?1:.5}"/>`;}).join('');}
 function clampPercent(n){return Math.max(0,Math.min(100,Math.round(Number(n||0))));}
 function getFinishedSessionCountFromStorage(){
-  if(!clientData||!clientTrainingAssignment)return 0;
-  const prefix=['ab_tp',clientData.id,clientTrainingAssignment.id].join('_');
-  const finished=new Set();
-  try{for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key||!key.startsWith(prefix))continue;const raw=localStorage.getItem(key);if(!raw)continue;const d=JSON.parse(raw);if(d?.is_finished===true&&d?.session_id)finished.add(String(d.session_id));}}catch{}
+  if(!clientData || !clientTrainingAssignment) return 0;
+
+  const finished = new Set();
+
+  // 1) Progreso guardado en Supabase
+  clientSessionLogs
+    .filter(log =>
+      String(log.assignment_id) === String(clientTrainingAssignment.id) &&
+      log.is_finished === true &&
+      log.session_id
+    )
+    .forEach(log => {
+      finished.add(String(log.session_id));
+    });
+
+  // 2) Respaldo local del navegador
+  const prefix = ['ab_tp', clientData.id, clientTrainingAssignment.id].join('_');
+
+  try{
+    for(let i = 0; i < localStorage.length; i++){
+      const key = localStorage.key(i);
+
+      if(!key || !key.startsWith(prefix)) continue;
+
+      const raw = localStorage.getItem(key);
+      if(!raw) continue;
+
+      const d = JSON.parse(raw);
+
+      if(d?.is_finished === true && d?.session_id){
+        finished.add(String(d.session_id));
+      }
+    }
+  }catch{}
+
   return finished.size;
 }
 function buildHomeRing_v2(label,value,unit,svgContent,note,color,targetSection){
