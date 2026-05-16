@@ -1419,10 +1419,14 @@ function getTrainingLogDate(log){
 }
 
 function isTrainingLogFinished(log){
+  const status = String(log.status || '').toLowerCase();
+
   return (
     log.isFinished === true ||
     log.is_finished === true ||
-    log.status === 'completed' ||
+    status === 'completed' ||
+    status === 'realizada' ||
+    status === 'done' ||
     Boolean(log.finishedAt || log.finished_at || log.completedAt || log.completed_at)
   );
 }
@@ -2563,7 +2567,6 @@ async function resolverAlerta(id){
 }
 
 /* ── Evalúa estado de un check-in ────────────────────── */
-<script>
 function getCheckinStatus(ci){
   const sleep  = Number(ci.sleepQuality || ci.sleep_quality || 10);
   const energy = Number(ci.energyLevel || ci.energy_level || 10);
@@ -2578,7 +2581,6 @@ function getCheckinStatus(ci){
 
   let comment = String(ci.comment || '').toLowerCase().trim();
 
-  // Normalizar acentos simples
   comment = comment
     .replaceAll('á','a')
     .replaceAll('é','e')
@@ -2586,7 +2588,6 @@ function getCheckinStatus(ci){
     .replaceAll('ó','o')
     .replaceAll('ú','u');
 
-  // Frases que significan que NO hay dolor/molestia
   const frasesSinDolor = [
     'sin dolor',
     'sin dolores',
@@ -2611,8 +2612,11 @@ function getCheckinStatus(ci){
     'molestia',
     'molestias',
     'lesion',
+    'lesión',
     'pare',
+    'paré',
     'pare el entrenamiento',
+    'paré el entrenamiento',
     'rodilla',
     'hombro',
     'espalda',
@@ -2628,7 +2632,6 @@ function getCheckinStatus(ci){
 
   return 'normal';
 }
-</script>
 
 /* ── Construye historial de check-ins para un cliente ── */
 function buildCheckinHistorial(clientId, dias=14){
@@ -2666,11 +2669,9 @@ document.getElementById('dashboardAlerts').innerHTML = alertList.length
   document.getElementById('dashboardPayments').innerHTML=payList.length?payList.slice(0,4).map(p=>{const c=clientById(p.clientId);return`<div class="data-row"><span>${esc(c?.name||'Sin cliente')} · ${esc(p.concept)}</span><span style="color:var(--yellow)">${money(p.amount)}</span></div>`;}).join(''):emptyBlock('Sin pagos pendientes.');
     const trainingFeedbackEl = document.getElementById('dashboardTrainingFeedback');
 
-  if (trainingFeedbackEl) {
-    const trainingFeedbackAlerts = state.alertas
-      .filter(a => {
-        return isTrainingAlert(a) && isPendingAlert(a);
-      })
+if (trainingFeedbackEl) {
+  trainingFeedbackEl.innerHTML = buildTrainingReviewBlock();
+}
       .sort((a, b) =>
         String(b.createdAt || b.created_at || '').localeCompare(String(a.createdAt || a.created_at || ''))
       );
