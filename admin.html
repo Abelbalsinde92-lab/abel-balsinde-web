@@ -797,6 +797,9 @@ tr:hover td { background: rgba(255,255,255,.02); }
       <div class="nav-item" data-page="whatsapp" onclick="showPage('whatsapp')">☏ WhatsApp</div>
       <div class="nav-item" data-page="partners" onclick="showPage('partners')">◇ Partners <span class="nav-badge" id="badge-partners"></span></div>
       <div class="nav-section">Sistema</div>
+      <div class="nav-item" data-page="fuerza-fatiga" onclick="showPage('fuerza-fatiga')">
+        ⚡ Fuerza &amp; Fatiga
+      </div>
       <div class="nav-item" data-page="ajustes" onclick="showPage('ajustes')">⚙ Ajustes</div>
       <!-- Logout at bottom -->
       <div style="margin-top:auto">
@@ -867,6 +870,14 @@ tr:hover td { background: rgba(255,255,255,.02); }
         <button class="btn btn-secondary btn-sm btn-icon" onclick="showPage('pagos')">→</button>
       </div>
           <div id="dashboardPayments"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Check-ins de hoy
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="showPage('salud')">→</button>
+      </div>
+      <div id="dashboardCheckins"></div>
     </div>
   </div>
 </div>
@@ -1039,9 +1050,28 @@ tr:hover td { background: rgba(255,255,255,.02); }
         <div class="settings-field"><label class="settings-label">Aviso nutricional</label><textarea class="settings-input" id="nutritionDisclaimer" rows="2">Orientación deportiva general. No sustituye consejo médico ni nutricional profesional.</textarea></div>
         <div class="settings-field"><label class="settings-label">Texto de responsabilidad</label><textarea class="settings-input" id="legalDisclaimer" rows="3">El cliente declara estar en condiciones de realizar actividad física. El coach no se hace responsable de lesiones derivadas de información médica no declarada previamente.</textarea></div>
       </div>
-    </div><!-- /content -->
-  </div><!-- /main -->
-</div><!-- /adminApp -->
+      <div class="page" id="page-fuerza-fatiga">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Solo admin · No visible para el cliente</div>
+      <div class="page-title">Fuerza &amp; Fatiga</div>
+    </div>
+    <div class="page-actions">
+      <select class="form-input" style="max-width:240px" id="ff-client-select"
+              onchange="if(this.value){state.selectedClientId=this.value;renderProfile();showPage('perfil');}">
+        <option value="">Seleccionar atleta…</option>
+      </select>
+    </div>
+  </div>
+  <div id="ff-page-content">
+    <div class="card">
+      <div class="empty">
+        <strong>Motor de Decisiones</strong>
+        Selecciona un atleta arriba para abrir su perfil y acceder al tab ⚡ Fuerza &amp; Fatiga.
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Modal overlay -->
 <div class="overlay" id="modalOverlay">
@@ -1141,6 +1171,7 @@ let state = {
   trainingPrograms:[],trainingWeeks:[],trainingSessions:[],trainingBlocks:[],trainingExercises:[],
   clientProgramAssignments:[],clientSessionLogs:[],clientDailyCheckins:[],
   assessmentTemplates:[],assessmentTemplateItems:[],clientAssessments:[],clientAssessmentResults:[],
+  dailyCheckins:[],
   settings:{
     coachName:'Abel Balsinde',coachEmail:'abel@email.com',coachPhone:COACH_DEFAULT_PHONE,
     coachCity:'Belgrado',coachWeb:'abeltrainer.vercel.app',coachDesc:'Entrenador personal con bases de lucha. UWW Level 2.',
@@ -1236,6 +1267,17 @@ async function loadState(){
     const{data:settingsData}=await db.from('settings').select('*').eq('id','main').maybeSingle();
     if(settingsData)state.settings={...state.settings,...snakeToCamel(settingsData)};
     if(!state.templates.length)await seedTemplates();
+
+    /* ── Carga opcional de check-ins (no detiene el arranque si falla) ── */
+    try{
+      const{data:ciData,error:ciErr}=await db
+        .from('client_daily_checkins')
+        .select('*')
+        .order('checkin_date',{ascending:false})
+        .limit(200);
+      if(!ciErr) state.dailyCheckins=(ciData||[]).map(snakeToCamel);
+    }catch(e){ console.warn('client_daily_checkins no disponible:', e.message); }
+
     renderAll();
     showToast('Datos cargados');
   }catch(error){console.error(error);showToast('Error cargando datos');}
@@ -1776,6 +1818,100 @@ function buildClientAlertsHistory(clientId){
   `;
 }
 
+function buildCheckinTabHTML(clientId){
+  const checkins = buildCheckinHistorial(clientId, 30);
+  const c = clientById(clientId);
+
+  if(!checkins.length){
+    return `<div class="card">${emptyBlock('Este cliente todavía no ha registrado check-ins.')}</div>`;
+  }
+
+  const ultimo = checkins[0];
+  const stUltimo = getCheckinStatus(ultimo);
+  const badgeUltimo = stUltimo==='alerta'?'badge-alerta':stUltimo==='revisar'?'badge-pendiente':'badge-activo';
+
+  const alertas  = checkins.filter(ci => getCheckinStatus(ci) === 'alerta').length;
+  const revisares = checkins.filter(ci => getCheckinStatus(ci) === 'revisar').length;
+
+  const rows = checkins.map(ci => {
+    const st    = getCheckinStatus(ci);
+    const badge = st==='alerta'?'badge-alerta':st==='revisar'?'badge-pendiente':'badge-activo';
+    const fecha = String(ci.checkinDate||ci.created_at||'').slice(0,10);
+    return `<tr>
+      <td>${formatDate(fecha)}</td>
+      <td style="text-align:center">${esc(ci.sleepQuality??'—')}</td>
+      <td style="text-align:center">${esc(ci.energyLevel??'—')}</td>
+      <td style="text-align:center">${esc(ci.painLevel??'—')}</td>
+      <td style="white-space:normal;min-width:180px;color:var(--text-secondary);font-size:.78rem">${esc(ci.comment||'—')}</td>
+      <td><span class="badge ${badge}">${st}</span></td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <div class="three-col" style="margin-bottom:16px;">
+      <div class="card">
+        <div class="card-title">Último check-in</div>
+        <div class="data-row">
+          <span class="data-key">Fecha</span>
+          <span class="data-val">${formatDate(String(ultimo.checkinDate||ultimo.created_at||'').slice(0,10))}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">💤 Sueño</span>
+          <span class="data-val">${esc(ultimo.sleepQuality??'—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">⚡ Energía</span>
+          <span class="data-val">${esc(ultimo.energyLevel??'—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">🩺 Molestias</span>
+          <span class="data-val">${esc(ultimo.painLevel??'—')}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-key">Estado</span>
+          <span class="badge ${badgeUltimo}">${stUltimo}</span>
+        </div>
+        ${ultimo.comment?`<div style="margin-top:10px;font-size:.82rem;color:var(--warn);line-height:1.6;">${esc(ultimo.comment)}</div>`:''}
+      </div>
+      <div class="card">
+        <div class="card-title">Últimos 30 días</div>
+        <div class="data-row"><span class="data-key">Check-ins</span><span class="data-val">${checkins.length}</span></div>
+        <div class="data-row"><span class="data-key">Alertas</span><span class="data-val" style="color:var(--medical)">${alertas}</span></div>
+        <div class="data-row"><span class="data-key">Para revisar</span><span class="data-val" style="color:var(--warn)">${revisares}</span></div>
+        <div class="data-row"><span class="data-key">Normales</span><span class="data-val" style="color:var(--streak)">${checkins.length - alertas - revisares}</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Acciones</div>
+        ${c?.phone?`<button class="btn btn-wa btn-sm" style="width:100%;margin-bottom:8px;"
+          onclick="openWA('${esc(c.phone)}','Hola ${esc((c?.name||'').split(' ')[0])}, vi tu check-in. ¿Todo bien?')">
+          WhatsApp check-in
+        </button>`:''}
+        <button class="btn btn-blue btn-sm" style="width:100%"
+          onclick="showPage('alertas')">Ver alertas</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">Historial de check-ins</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>💤 Sueño</th>
+            <th>⚡ Energía</th>
+            <th>🩺 Molestias</th>
+            <th>Comentario</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
 function buildClientTrainingHistory(clientId){
   const logs = getClientTrainingLogs(clientId);
 
@@ -1992,6 +2128,13 @@ function renderAll(){
   renderAssessments();renderHealth();renderNutrition();renderWhatsapp();renderPartners();renderPrograms();
   renderTraining();renderTrainingDetail();renderTrainingWeekDetail();renderTrainingSessionDetail();
   renderTrainingBlockDetail();renderProfile();renderSettings();
+  /* Poblar select de atletas en página F&F */
+  const ffSel = document.getElementById('ff-client-select');
+  if(ffSel && state.clients.length){
+    const current = ffSel.value;
+    ffSel.innerHTML = '<option value="">Seleccionar atleta…</option>' +
+      state.clients.map(c=>`<option value="${c.id}" ${c.id===current?'selected':''}>${esc(c.name)}</option>`).join('');
+  }
 }
 
 function renderBadges(){
@@ -2288,6 +2431,29 @@ async function resolverAlerta(id){
   }
 }
 
+/* ── Evalúa estado de un check-in ────────────────────── */
+function getCheckinStatus(ci){
+  const sleep  = Number(ci.sleepQuality  || ci.sleep_quality  || 10);
+  const energy = Number(ci.energyLevel   || ci.energy_level   || 10);
+  const pain   = Number(ci.painLevel     || ci.pain_level     || 0);
+  const comment= String(ci.comment || '').toLowerCase();
+
+  const palabrasDolor = ['dolor','molestia','lesión','lesion','pare','paré','rodilla','hombro','espalda','mareo'];
+  const hayDolor = palabrasDolor.some(p => comment.includes(p));
+
+  if(sleep <= 4 || energy <= 3 || pain >= 7 || hayDolor) return 'alerta';
+  if(sleep <= 6 || energy <= 5 || pain >= 4)              return 'revisar';
+  return 'normal';
+}
+
+/* ── Construye historial de check-ins para un cliente ── */
+function buildCheckinHistorial(clientId, dias=14){
+  return (state.dailyCheckins||[])
+    .filter(ci => String(ci.clientId||ci.client_id) === String(clientId))
+    .sort((a,b) => String(b.checkinDate||b.created_at||'').localeCompare(String(a.checkinDate||a.created_at||'')))
+    .slice(0, dias);
+}
+
 function renderDashboard(){
   const today=todayISO();
   const activeClients=state.clients.filter(c=>c.status==='activo').length;
@@ -2324,6 +2490,35 @@ document.getElementById('dashboardAlerts').innerHTML = alertList.length
       .sort((a, b) =>
         String(b.createdAt || b.created_at || '').localeCompare(String(a.createdAt || a.created_at || ''))
       );
+
+/* ── Check-ins de hoy ── */
+  const checkinEl = document.getElementById('dashboardCheckins');
+  if(checkinEl){
+    const todayCheckins = state.dailyCheckins.filter(ci =>
+      String(ci.checkinDate||ci.created_at||'').slice(0,10) === today
+    );
+    checkinEl.innerHTML = todayCheckins.length
+      ? todayCheckins.slice(0,5).map(ci => {
+          const c    = clientById(ci.clientId);
+          const st   = getCheckinStatus(ci);
+          const badge= st==='alerta'?'badge-alerta':st==='revisar'?'badge-pendiente':'badge-activo';
+          return `<div class="data-row" style="align-items:flex-start">
+            <span style="white-space:normal">
+              <strong>${esc(c?.name||'Cliente')}</strong>
+              <span style="margin-left:8px" class="badge ${badge}">${st}</span><br>
+              <span style="color:var(--text-secondary);font-size:.78rem;">
+                💤 ${esc(ci.sleepQuality??'—')}
+                &nbsp;⚡ ${esc(ci.energyLevel??'—')}
+                &nbsp;🩺 ${esc(ci.painLevel??'—')}
+              </span>
+              ${ci.comment?`<br><span style="color:var(--warn);font-size:.78rem;">${esc(ci.comment)}</span>`:''}
+            </span>
+            ${c?.phone?`<button class="btn btn-wa btn-sm"
+              onclick="openWA('${esc(c.phone)}','Hola ${esc((c.name||'').split(' ')[0])}, vi tu check-in de hoy. ¿Cómo te encuentras?')">WA</button>`:''}
+          </div>`;
+        }).join('')
+      : emptyBlock('No hay check-ins registrados hoy.');
+  }
 
     trainingFeedbackEl.innerHTML = trainingFeedbackAlerts.length
       ? trainingFeedbackAlerts.slice(0, 4).map(a => `
@@ -2406,8 +2601,78 @@ function renderAssessments(){
   const latest=[...state.clientAssessments].sort((a,b)=>String(b.assessmentDate||'').localeCompare(String(a.assessmentDate||'')))[0];
   metricsEl.innerHTML=`<div class="metric-card blue"><span class="metric-num">${total}</span><span class="metric-label">Tests realizados</span></div><div class="metric-card green"><span class="metric-num">${clients}</span><span class="metric-label">Clientes evaluados</span></div><div class="metric-card yellow"><span class="metric-num">${tpls}</span><span class="metric-label">Plantillas</span></div><div class="metric-card red"><span class="metric-num">${latest?formatDate(latest.assessmentDate):'—'}</span><span class="metric-label">Último test</span></div>`;
   const rows=[...state.clientAssessments].sort((a,b)=>String(b.assessmentDate||'').localeCompare(String(a.assessmentDate||'')));
-  tableEl.innerHTML=rows.length?rows.map(a=>{const c=clientById(a.clientId);const tpl=state.assessmentTemplates.find(t=>t.id===a.templateId);const results=state.clientAssessmentResults.filter(r=>r.assessmentId===a.id);return`<tr><td>${esc(c?.name||'Cliente eliminado')}</td><td><div class="name-text">${esc(a.assessmentName||tpl?.name||'Test inicial funcional')}</div><div class="name-sub">${results.length} resultado${results.length!==1?'s':''}</div></td><td>${formatDate(a.assessmentDate)}</td><td><span class="badge badge-${a.status||'realizada'}">${esc(a.status||'realizada')}</span></td><td>${esc(a.coachNotes||'—')}</td><td><div class="td-actions"><button class="btn btn-blue btn-sm" onclick="viewAssessment('${a.id}')">Ver resultados</button><button class="btn btn-secondary btn-sm" onclick="deleteAssessment('${a.id}')">Eliminar</button></div></td></tr>`;}).join(''):emptyRow(6,'Todavía no hay evaluaciones registradas.');
-}
+  tableEl.innerHTML=rows.length?rows.map(a=>{
+    const c       = clientById(a.clientId);
+    const tpl     = state.assessmentTemplates.find(t=>t.id===a.templateId);
+    const results = state.clientAssessmentResults.filter(r=>r.assessmentId===a.id);
+    const isEmpty = results.length === 0;
+
+    /* Detección de duplicado: mismo cliente y misma fecha */
+    const isDuplicate = rows.filter(x=>
+      x.clientId===a.clientId &&
+      x.assessmentDate===a.assessmentDate &&
+      x.id!==a.id
+    ).length > 0;
+
+    /* Semáforo: comparar con evaluación anterior del mismo cliente */
+    const prevAssessment = rows.find(x=>
+      x.clientId===a.clientId &&
+      String(x.assessmentDate||'')<String(a.assessmentDate||'') &&
+      x.id!==a.id
+    );
+    let semaforoHtml = '';
+    if(prevAssessment && !isEmpty){
+      const prevResults = state.clientAssessmentResults.filter(r=>r.assessmentId===prevAssessment.id);
+      let mejoras=0,peoras=0;
+      results.forEach(r=>{
+        const prev = prevResults.find(p=>p.exerciseName===r.exerciseName);
+        if(!prev) return;
+        const cur=parseFloat(String(r.resultValue).replace(',','.'));
+        const prv=parseFloat(String(prev.resultValue).replace(',','.'));
+        if(isNaN(cur)||isNaN(prv)) return;
+        if(r.direction==='higher_better')  { if(cur>prv) mejoras++; else if(cur<prv) peoras++; }
+        else if(r.direction==='lower_better') { if(cur<prv) mejoras++; else if(cur>prv) peoras++; }
+      });
+      if(mejoras>peoras)        semaforoHtml='<span style="color:var(--streak);margin-left:6px;">▲</span>';
+      else if(peoras>mejoras)   semaforoHtml='<span style="color:var(--medical);margin-left:6px;">▼</span>';
+      else if(mejoras||peoras)  semaforoHtml='<span style="color:var(--warn);margin-left:6px;">—</span>';
+    }
+
+    return`<tr>
+      <td>
+        <div class="td-name">
+          <div class="avatar">${initials(c?.name)}</div>
+          <div>
+            <div class="name-text">${esc(c?.name||'Cliente eliminado')}</div>
+            <div class="name-sub">${formatDate(a.assessmentDate)}</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div class="name-text">${esc(a.assessmentName||tpl?.name||'Test funcional')}${semaforoHtml}</div>
+        <div class="name-sub">
+          ${isEmpty
+            ? '<span style="color:var(--warn)">⚠ Vacía</span>'
+            : results.length+' resultado'+(results.length!==1?'s':'')
+          }
+          ${isDuplicate?'&nbsp;·&nbsp;<span style="color:var(--medical)">Posible duplicado</span>':''}
+        </div>
+      </td>
+      <td><span class="badge badge-${a.status||'realizada'}">${esc(a.status||'realizada')}</span></td>
+      <td style="white-space:normal;max-width:200px;font-size:.78rem;color:var(--text-secondary)">${esc(a.coachNotes||'—')}</td>
+      <td>
+        <div class="td-actions">
+          ${!isEmpty?`<button class="btn btn-blue btn-sm" onclick="viewAssessment('${a.id}')">Ver</button>`:''}
+          ${isEmpty
+            ?`<button class="btn btn-danger btn-sm" onclick="deleteAssessment('${a.id}')">Eliminar vacía</button>`
+            :`<button class="btn btn-secondary btn-sm" onclick="deleteAssessment('${a.id}')">Eliminar</button>`
+          }
+          <button class="btn btn-secondary btn-sm" onclick="state.selectedClientId='${a.clientId}';openModal('assessment')">+ Test</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join(''):emptyRow(5,'Todavía no hay evaluaciones registradas.');
+  }
 
 function closeAssessmentView(){ document.getElementById('assessmentViewOverlay').classList.remove('open');document.getElementById('assessmentViewContent').innerHTML=''; }
 
@@ -2496,7 +2761,12 @@ function renderTraining(){
   const activePrograms=state.trainingPrograms.filter(p=>p.status==='activo').length;const assignedPrograms=state.clientProgramAssignments.filter(a=>a.status==='activo').length;
   metricsEl.innerHTML=`<div class="metric-card blue"><span class="metric-num">${state.trainingPrograms.length}</span><span class="metric-label">Programas base</span></div><div class="metric-card green"><span class="metric-num">${activePrograms}</span><span class="metric-label">Activos</span></div><div class="metric-card yellow"><span class="metric-num">${assignedPrograms}</span><span class="metric-label">Asignados</span></div><div class="metric-card red"><span class="metric-num">${state.trainingExercises.length}</span><span class="metric-label">Ejercicios</span></div>`;
   programsTable.innerHTML=state.trainingPrograms.length?state.trainingPrograms.map(p=>`<tr><td><div class="name-text">${esc(p.name)}</div><div class="name-sub">${esc(p.type||'Sin tipo')} · ${esc(p.level||'Sin nivel')}</div><div style="margin-top:10px;"><button class="btn btn-blue btn-sm" onclick="openTrainingProgramDetail('${p.id}')">Ver semanas</button></div></td><td>${esc(p.durationWeeks||'—')} semanas</td><td>${esc(p.frequency||'—')}</td><td>${esc(p.objective||'—')}</td><td><span class="badge badge-${p.status||'activo'}">${esc(p.status||'activo')}</span></td><td><div class="td-actions"><button class="btn btn-blue btn-sm" onclick="openTrainingProgramDetail('${p.id}')">Ver</button><button class="btn btn-secondary btn-sm" onclick="openModal('trainingProgram','${p.id}')">Editar</button></div></td></tr>`).join(''):emptyRow(6,'No hay programas base creados todavía.');
-  assignmentsTable.innerHTML=state.clientProgramAssignments.length?state.clientProgramAssignments.map(a=>{const c=clientById(a.clientId);const p=state.trainingPrograms.find(x=>x.id===a.programId);return`<tr><td>${esc(c?.name||'Cliente eliminado')}</td><td>${esc(p?.name||'Programa eliminado')}</td><td><div class="name-text">${esc(a.commercialLabel || getAssignmentScopeLabel(a.assignmentScope))}</div><div class="name-sub">${esc(getAssignmentScopeLabel(a.assignmentScope))}${a.assignmentScope === 'month' && a.assignedMonth ? ' · Mes ' + esc(a.assignedMonth) : ''}${a.assignmentScope === 'week' && a.assignedWeek ? ' · Semana ' + esc(a.assignedWeek) : ''}${a.assignmentScope === 'day' ? ' · Semana ' + esc(a.assignedWeek || 1) + ' · Día ' + esc(a.assignedSessionNumber || 1) : ''}</div></td><td>${esc(a.assignedLevel||'N1')}</td><td>${esc(a.currentWeek||1)}</td><td><span class="badge badge-${a.status||'activo'}">${esc(a.status||'activo')}</span></td><td>${formatDate(a.startDate)}</td></tr>`;}).join(''):emptyRow(7,'No hay programas asignados todavía.');
+  assignmentsTable.innerHTML=state.clientProgramAssignments.length?state.clientProgramAssignments.map(a=>{const c=clientById(a.clientId);const p=state.trainingPrograms.find(x=>x.id===a.programId);return`<tr><td>${esc(c?.name||'Cliente eliminado')}</td><td>${esc(p?.name||'Programa eliminado')}</td><td><div class="name-text">${esc(a.commercialLabel || getAssignmentScopeLabel(a.assignmentScope))}</div><div class="name-sub">${
+  a.assignmentScope==='month' && a.assignedMonth ? 'Mes '+esc(a.assignedMonth) :
+  a.assignmentScope==='week'  && a.assignedWeek  ? 'Semana '+esc(a.assignedWeek) :
+  a.assignmentScope==='day'   ? 'Sem. '+esc(a.assignedWeek||1)+' · Día '+(['A','B','C'][Number(a.assignedSessionNumber||1)-1]||esc(a.assignedSessionNumber||1)) :
+  'Plan completo'
+}</div></td><td>${esc(a.assignedLevel||'N1')}</td><td>${esc(a.currentWeek||1)}</td><td><span class="badge badge-${a.status||'activo'}">${esc(a.status||'activo')}</span></td><td>${formatDate(a.startDate)}</td></tr>`;}).join(''):emptyRow(7,'No hay programas asignados todavía.');
 }
 
 function renderTrainingDetail(){
@@ -2594,9 +2864,10 @@ function renderProfile(){
       <div class="tab active" onclick="switchProfileTab(this,'pf-resumen')">Resumen</div>
       <div class="tab" onclick="switchProfileTab(this,'pf-reservas')">Reservas</div>
       <div class="tab" onclick="switchProfileTab(this,'pf-pagos')">Pagos</div>
-      <div class="tab" onclick="switchProfileTab(this,'pf-progreso')">Progreso</div>
+      <div class="tab" onclick="switchProfileTab(this,'pf-progreso')">Métricas</div>
       <div class="tab" onclick="switchProfileTab(this,'pf-salud')">Salud</div>
       <div class="tab" onclick="switchProfileTab(this,'pf-alertas')">Alertas</div>
+      <div class="tab" onclick="switchProfileTab(this,'pf-checkin')">Check-in</div>
       <div class="tab" onclick="switchProfileTab(this,'pf-notas')">Notas</div>
     </div>
 
@@ -2792,6 +3063,10 @@ function renderProfile(){
           </tbody>
         </table>
       </div>
+    </div>
+
+<div id="pf-checkin" class="profile-tab-content">
+      ${buildCheckinTabHTML(c.id)}
     </div>
 
     <div id="pf-notas" class="profile-tab-content">
