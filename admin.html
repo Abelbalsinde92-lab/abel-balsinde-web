@@ -1841,7 +1841,7 @@ function buildCheckinTabHTML(clientId){
       <td>${formatDate(fecha)}</td>
       <td style="text-align:center">${esc(ci.sleepQuality??'—')}</td>
       <td style="text-align:center">${esc(ci.energyLevel??'—')}</td>
-      <td style="text-align:center">${esc(ci.painLevel??'—')}</td>
+      <td style="text-align:center">${esc(ci.sorenessLevel ?? ci.soreness_level ?? ci.painLevel ?? ci.pain_level ?? '—')}</td>
       <td style="white-space:normal;min-width:180px;color:var(--text-secondary);font-size:.78rem">${esc(ci.comment||'—')}</td>
       <td><span class="badge ${badge}">${st}</span></td>
     </tr>`;
@@ -2433,16 +2433,40 @@ async function resolverAlerta(id){
 
 /* ── Evalúa estado de un check-in ────────────────────── */
 function getCheckinStatus(ci){
-  const sleep  = Number(ci.sleepQuality  || ci.sleep_quality  || 10);
-  const energy = Number(ci.energyLevel   || ci.energy_level   || 10);
-  const pain   = Number(ci.painLevel     || ci.pain_level     || 0);
-  const comment= String(ci.comment || '').toLowerCase();
+  const sleep  = Number(ci.sleepQuality || ci.sleep_quality || 10);
+  const energy = Number(ci.energyLevel || ci.energy_level || 10);
 
-  const palabrasDolor = ['dolor','molestia','lesión','lesion','pare','paré','rodilla','hombro','espalda','mareo'];
+  const soreness = Number(
+    ci.sorenessLevel ||
+    ci.soreness_level ||
+    ci.painLevel ||
+    ci.pain_level ||
+    0
+  );
+
+  const comment = String(ci.comment || '').toLowerCase();
+
+  const palabrasDolor = [
+    'dolor',
+    'molestia',
+    'molestias',
+    'lesión',
+    'lesion',
+    'pare',
+    'paré',
+    'rodilla',
+    'hombro',
+    'espalda',
+    'mareo'
+  ];
+
   const hayDolor = palabrasDolor.some(p => comment.includes(p));
 
-  if(sleep <= 4 || energy <= 3 || pain >= 7 || hayDolor) return 'alerta';
-  if(sleep <= 6 || energy <= 5 || pain >= 4)              return 'revisar';
+  if(sleep <= 2 || energy <= 2 || soreness >= 4 || hayDolor) return 'alerta';
+if(sleep <= 3 || energy <= 3 || soreness >= 3) return 'revisar';
+
+return 'normal';
+
   return 'normal';
 }
 
@@ -2509,7 +2533,7 @@ document.getElementById('dashboardAlerts').innerHTML = alertList.length
               <span style="color:var(--text-secondary);font-size:.78rem;">
                 💤 ${esc(ci.sleepQuality??'—')}
                 &nbsp;⚡ ${esc(ci.energyLevel??'—')}
-                &nbsp;🩺 ${esc(ci.painLevel??'—')}
+                &nbsp;🩺 ${esc(ci.sorenessLevel ?? ci.soreness_level ?? ci.painLevel ?? ci.pain_level ?? '—')}
               </span>
               ${ci.comment?`<br><span style="color:var(--warn);font-size:.78rem;">${esc(ci.comment)}</span>`:''}
             </span>
