@@ -1686,6 +1686,110 @@ function buildClientTrainingAlertCard(clientId){
   `;
 }
 
+function getFinishedAssignmentSessionIds(assignmentId){
+  const finished = new Set();
+
+  (state.clientSessionLogs || [])
+    .filter(log =>
+      String(log.assignmentId || log.assignment_id) === String(assignmentId) &&
+      (
+        log.isFinished === true ||
+        log.is_finished === true ||
+        String(log.status || '').toLowerCase() === 'realizada' ||
+        String(log.status || '').toLowerCase() === 'completed' ||
+        Boolean(log.finishedAt || log.finished_at) ||
+        Boolean(log.completedAt || log.completed_at)
+      ) &&
+      (log.sessionId || log.session_id)
+    )
+    .forEach(log => {
+      finished.add(String(log.sessionId || log.session_id));
+    });
+
+  return finished;
+}
+
+function getAssignmentVisibleSessions(assignment){
+  if(!assignment) return [];
+
+  const programId = assignment.programId || assignment.program_id;
+  const scope = assignment.assignmentScope || assignment.assignment_scope || 'full';
+
+  let sessions = [];
+
+  const programWeeks = state.trainingWeeks
+    .filter(w => String(w.programId || w.program_id) === String(programId));
+
+  const weekIds = new Set(programWeeks.map(w => String(w.id)));
+
+  sessions = state.trainingSessions.filter(s =>
+    weekIds.has(String(s.weekId || s.week_id))
+  );
+
+  if(scope === 'day'){
+    const assignedWeek = Number(assignment.assignedWeek || assignment.assigned_week || assignment.currentWeek || assignment.current_week || 1);
+    const assignedSessionNumber = Number(assignment.assignedSessionNumber || assignment.assigned_session_number || 1);
+
+    const validWeekIds = programWeeks
+      .filter(w => Number(w.weekNumber || w.week_number) === assignedWeek)
+      .map(w => String(w.id));
+
+    sessions = sessions.filter(s =>
+      validWeekIds.includes(String(s.weekId || s.week_id)) &&
+      Number(s.sessionNumber || s.session_number) === assignedSessionNumber
+    );
+  }
+
+  if(scope === 'week'){
+    const assignedWeek = Number(assignment.assignedWeek || assignment.assigned_week || assignment.currentWeek || assignment.current_week || 1);
+
+    const validWeekIds = programWeeks
+      .filter(w => Number(w.weekNumber || w.week_number) === assignedWeek)
+      .map(w => String(w.id));
+
+    sessions = sessions.filter(s =>
+      validWeekIds.includes(String(s.weekId || s.week_id))
+    );
+  }
+
+  if(scope === 'month'){
+    const assignedMonth = Number(assignment.assignedMonth || assignment.assigned_month || 1);
+    const startWeek = (assignedMonth - 1) * 4 + 1;
+    const endWeek = startWeek + 3;
+
+    const validWeekIds = programWeeks
+      .filter(w => {
+        const n = Number(w.weekNumber || w.week_number);
+        return n >= startWeek && n <= endWeek;
+      })
+      .map(w => String(w.id));
+
+    sessions = sessions.filter(s =>
+      validWeekIds.includes(String(s.weekId || s.week_id))
+    );
+  }
+
+  return sessions;
+}
+
+function getAssignmentProgress(assignment){
+  const sessions = getAssignmentVisibleSessions(assignment);
+  const finishedIds = getFinishedAssignmentSessionIds(assignment.id);
+
+  const total = sessions.length;
+  const completed = sessions.filter(s => finishedIds.has(String(s.id))).length;
+
+  const percent = total > 0
+    ? Math.round((completed / total) * 100)
+    : 0;
+
+  return {
+    total,
+    completed,
+    percent
+  };
+}
+
 function buildClientTrainingLogCard(log){
   if(!log) return '';
 
@@ -1892,7 +1996,7 @@ function buildCheckinTabHTML(clientId){
         </div>
         <div class="data-row">
           <span class="data-key">🩺 Molestias</span>
-          <span class="data-val">${esc(ultimo.sorenessLevel ?? ultimo.soreness_level ?? ultimo.painLevel ?? ultimo.pain_level ?? '—')}</span>
+          <span class="data-val">${esc(ultimo.sorenessLevel ?? ultimo.soreness_level ?? ultimo.sorenessLevel ?? ultimo.soreness_level ?? ultimo.painLevel ?? ultimo.pain_level ?? '—' ?? ultimo.pain_level ?? '—')}</span>
         </div>
         <div class="data-row">
           <span class="data-key">Estado</span>
@@ -2459,6 +2563,7 @@ async function resolverAlerta(id){
 }
 
 /* ── Evalúa estado de un check-in ────────────────────── */
+<script>
 function getCheckinStatus(ci){
   const sleep  = Number(ci.sleepQuality || ci.sleep_quality || 10);
   const energy = Number(ci.energyLevel || ci.energy_level || 10);
@@ -2471,31 +2576,59 @@ function getCheckinStatus(ci){
     0
   );
 
-  const comment = String(ci.comment || '').toLowerCase();
+  let comment = String(ci.comment || '').toLowerCase().trim();
+
+  // Normalizar acentos simples
+  comment = comment
+    .replaceAll('á','a')
+    .replaceAll('é','e')
+    .replaceAll('í','i')
+    .replaceAll('ó','o')
+    .replaceAll('ú','u');
+
+  // Frases que significan que NO hay dolor/molestia
+  const frasesSinDolor = [
+    'sin dolor',
+    'sin dolores',
+    'sin molestia',
+    'sin molestias',
+    'no dolor',
+    'no tengo dolor',
+    'no tengo molestias',
+    'ninguna molestia',
+    'ningun dolor',
+    'todo bien',
+    'me siento bien',
+    'listo para entrenar'
+  ];
+
+  const comentarioNiegaDolor = frasesSinDolor.some(frase =>
+    comment.includes(frase)
+  );
 
   const palabrasDolor = [
     'dolor',
     'molestia',
     'molestias',
-    'lesión',
     'lesion',
     'pare',
-    'paré',
+    'pare el entrenamiento',
     'rodilla',
     'hombro',
     'espalda',
     'mareo'
   ];
 
-  const hayDolor = palabrasDolor.some(p => comment.includes(p));
+  const hayDolor = !comentarioNiegaDolor && palabrasDolor.some(p =>
+    comment.includes(p)
+  );
 
   if(sleep <= 2 || energy <= 2 || soreness >= 4 || hayDolor) return 'alerta';
-if(sleep <= 3 || energy <= 3 || soreness >= 3) return 'revisar';
-
-return 'normal';
+  if(sleep <= 3 || energy <= 3 || soreness >= 3) return 'revisar';
 
   return 'normal';
 }
+</script>
 
 /* ── Construye historial de check-ins para un cliente ── */
 function buildCheckinHistorial(clientId, dias=14){
@@ -2818,7 +2951,25 @@ function renderTraining(){
   a.assignmentScope==='week'  && a.assignedWeek  ? 'Semana '+esc(a.assignedWeek) :
   a.assignmentScope==='day'   ? 'Sem. '+esc(a.assignedWeek||1)+' · Día '+(['A','B','C'][Number(a.assignedSessionNumber||1)-1]||esc(a.assignedSessionNumber||1)) :
   'Plan completo'
-}</div></td><td>${esc(a.assignedLevel||'N1')}</td><td>${esc(a.currentWeek||1)}</td><td><span class="badge badge-${a.status||'activo'}">${esc(a.status||'activo')}</span></td><td>${formatDate(a.startDate)}</td></tr>`;}).join(''):emptyRow(7,'No hay programas asignados todavía.');
+}</div></td><td>${esc(a.assignedLevel||'N1')}</td>${(() => {
+  const prog = getAssignmentProgress(a);
+
+  return `
+    <td>
+      <div class="name-text">${esc(a.currentWeek || a.current_week || 1)}</div>
+      <div class="name-sub">${prog.completed}/${prog.total} sesiones · ${prog.percent}%</div>
+    </td>
+
+    <td>
+      <span class="badge badge-${a.status || 'activo'}">${esc(a.status || 'activo')}</span>
+    </td>
+
+    <td>
+      <div>${formatDate(a.startDate || a.start_date)}</div>
+      <div class="name-sub">Avance: ${prog.percent}%</div>
+    </td>
+  `;
+})()}</tr>`;}).join(''):emptyRow(7,'No hay programas asignados todavía.');
 }
 
 function renderTrainingDetail(){
