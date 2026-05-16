@@ -1168,7 +1168,13 @@ function clientWA(text) {
 
   openWA(prefix + (clientData?.name || fallbackName) + '. ' + text);
 }
-function todayISO() { return new Date().toISOString().slice(0,10); }
+function todayISO() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 function todayFormatted() {
   const locale = getLang() === 'sr' ? 'sr-RS' : 'es-ES';
 
@@ -4840,6 +4846,15 @@ function renderClientData(){
    CHECK-IN DIARIO CLIENTE — Sueño / Energía / Molestias
 ══════════════════════════════════════════════════════════ */
 
+function escHTML(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
 function getTodayCheckin() {
   const today = todayISO();
 
@@ -4887,27 +4902,27 @@ function buildDailyCheckinHTML() {
 
         '<div class="field-group" style="margin-bottom:0;">' +
           '<label for="checkinSleepHours">' + uiText('sleepHours') + '</label>' +
-          '<input id="checkinSleepHours" type="number" min="0" max="14" step="0.5" placeholder="7.5" value="' + sleepHours + '">' +
+          '<input id="checkinSleepHours" type="number" min="0" max="14" step="0.5" placeholder="7.5" value="' + escHTML(sleepHours) + '">' +
         '</div>' +
 
         '<div class="field-group" style="margin-bottom:0;">' +
           '<label for="checkinSleepQuality">' + uiText('sleepQuality') + ' · 1-5</label>' +
-          '<input id="checkinSleepQuality" type="number" min="1" max="5" step="1" placeholder="4" value="' + sleepQuality + '">' +
+          '<input id="checkinSleepQuality" type="number" min="1" max="5" step="1" placeholder="4" value="' + escHTML(sleepQuality) + '">' +
         '</div>' +
 
         '<div class="field-group" style="margin-bottom:0;">' +
           '<label for="checkinEnergy">' + uiText('energyLevel') + ' · 1-5</label>' +
-          '<input id="checkinEnergy" type="number" min="1" max="5" step="1" placeholder="4" value="' + energyLevel + '">' +
+          '<input id="checkinEnergy" type="number" min="1" max="5" step="1" placeholder="4" value="' + escHTML(energyLevel) + '">' +
         '</div>' +
 
         '<div class="field-group" style="margin-bottom:0;">' +
           '<label for="checkinSoreness">' + uiText('sorenessLevel') + ' · 0-5</label>' +
-          '<input id="checkinSoreness" type="number" min="0" max="5" step="1" placeholder="1" value="' + soreness + '">' +
+          '<input id="checkinSoreness" type="number" min="0" max="5" step="1" placeholder="1" value="' + escHTML(soreness) + '">' +
         '</div>' +
 
         '<div class="field-group" style="margin-bottom:0;">' +
           '<label for="checkinComment">' + uiText('optionalComment') + '</label>' +
-          '<textarea id="checkinComment" class="training-notes-textarea" style="min-height:74px;margin-bottom:0;" placeholder="' + uiText('dailyCheckinCommentPlaceholder') + '">' + String(comment || '') + '</textarea>' +
+          '<textarea id="checkinComment" class="training-notes-textarea" style="min-height:74px;margin-bottom:0;" placeholder="' + escHTML(uiText('dailyCheckinCommentPlaceholder')) + '">' + escHTML(comment) + '</textarea>' +
         '</div>' +
 
         '<button class="client-action-btn" id="btnSaveDailyCheckin" onclick="saveDailyCheckin()">' +
