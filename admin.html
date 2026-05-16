@@ -1042,33 +1042,59 @@ tr:hover td { background: rgba(255,255,255,.02); }
             <div class="settings-field"><label class="settings-label">Zona horaria</label><select class="settings-input" id="timezone"><option selected>Europe/Belgrade (CET)</option><option>Europe/Madrid (CET)</option></select></div>
           </div>
           <div>
-            <div class="settings-field"><label class="settings-label">Idioma principal</label><select class="settings-input" id="language"><option selected>Español</option><option>English</option><option>Srpski</option></select></div>
-            <div class="settings-field"><label class="settings-label">Mensaje WA por defecto</label><textarea class="settings-input" id="defaultWa" rows="2">Hola, [nombre]. Te recuerdo tu sesión de hoy a las [hora]. Nos vemos.</textarea></div>
+                       <div class="settings-field">
+              <label class="settings-label">Idioma principal</label>
+              <select class="settings-input" id="language">
+                <option selected>Español</option>
+                <option>English</option>
+                <option>Srpski</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label class="settings-label">Mensaje WA por defecto</label>
+              <textarea class="settings-input" id="defaultWa" rows="2">Hola, [nombre]. Te recuerdo tu sesión de hoy a las [hora]. Nos vemos.</textarea>
+            </div>
           </div>
         </div>
+
         <div class="settings-section">Textos legales</div>
-        <div class="settings-field"><label class="settings-label">Aviso nutricional</label><textarea class="settings-input" id="nutritionDisclaimer" rows="2">Orientación deportiva general. No sustituye consejo médico ni nutricional profesional.</textarea></div>
-        <div class="settings-field"><label class="settings-label">Texto de responsabilidad</label><textarea class="settings-input" id="legalDisclaimer" rows="3">El cliente declara estar en condiciones de realizar actividad física. El coach no se hace responsable de lesiones derivadas de información médica no declarada previamente.</textarea></div>
+
+        <div class="settings-field">
+          <label class="settings-label">Aviso nutricional</label>
+          <textarea class="settings-input" id="nutritionDisclaimer" rows="2">Orientación deportiva general. No sustituye consejo médico ni nutricional profesional.</textarea>
+        </div>
+
+        <div class="settings-field">
+          <label class="settings-label">Texto de responsabilidad</label>
+          <textarea class="settings-input" id="legalDisclaimer" rows="3">El cliente declara estar en condiciones de realizar actividad física. El coach no se hace responsable de lesiones derivadas de información médica no declarada previamente.</textarea>
+        </div>
       </div>
+
       <div class="page" id="page-fuerza-fatiga">
-  <div class="page-header">
-    <div>
-      <div class="page-eyebrow">Solo admin · No visible para el cliente</div>
-      <div class="page-title">Fuerza &amp; Fatiga</div>
-    </div>
-    <div class="page-actions">
-      <select class="form-input" style="max-width:240px" id="ff-client-select"
+        <div class="page-header">
+          <div>
+            <div class="page-eyebrow">Solo admin · No visible para el cliente</div>
+            <div class="page-title">Fuerza &amp; Fatiga</div>
+          </div>
+
+          <div class="page-actions">
+            <select class="form-input" style="max-width:240px" id="ff-client-select"
               onchange="if(this.value){state.selectedClientId=this.value;renderProfile();showPage('perfil');}">
-        <option value="">Seleccionar atleta…</option>
-      </select>
-    </div>
-  </div>
-  <div id="ff-page-content">
-    <div class="card">
-      <div class="empty">
-        <strong>Motor de Decisiones</strong>
-        Selecciona un atleta arriba para abrir su perfil. Después conectaremos aquí el motor interno de fuerza, fatiga, 1RM y ajustes de carga.
-      </div><!-- /page-fuerza-fatiga -->
+              <option value="">Seleccionar atleta…</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="ff-page-content">
+          <div class="card">
+            <div class="empty">
+              <strong>Motor de Decisiones</strong>
+              Selecciona un atleta arriba para abrir su perfil. Después conectaremos aquí el motor interno de fuerza, fatiga, 1RM y ajustes de carga.
+            </div>
+          </div>
+        </div>
+      </div>
 
     </div><!-- /content -->
   </div><!-- /main -->
@@ -1172,6 +1198,7 @@ let state = {
   trainingPrograms:[],trainingWeeks:[],trainingSessions:[],trainingBlocks:[],trainingExercises:[],
   clientProgramAssignments:[],clientSessionLogs:[],clientDailyCheckins:[],
   assessmentTemplates:[],assessmentTemplateItems:[],clientAssessments:[],clientAssessmentResults:[],
+  dailyCheckins:[],
   
   settings:{
     coachName:'Abel Balsinde',coachEmail:'abel@email.com',coachPhone:COACH_DEFAULT_PHONE,
@@ -1865,7 +1892,7 @@ function buildCheckinTabHTML(clientId){
         </div>
         <div class="data-row">
           <span class="data-key">🩺 Molestias</span>
-          <span class="data-val">${esc(ultimo.painLevel??'—')}</span>
+          <span class="data-val">${esc(ultimo.sorenessLevel ?? ultimo.soreness_level ?? ultimo.painLevel ?? ultimo.pain_level ?? '—')}</span>
         </div>
         <div class="data-row">
           <span class="data-key">Estado</span>
