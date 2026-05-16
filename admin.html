@@ -2741,30 +2741,15 @@ function renderDashboard(){
       : emptyBlock('No hay alertas.');
   }
 
-  const trainingFeedbackEl = document.getElementById('dashboardTrainingFeedback');
-  if(trainingFeedbackEl){
+    const trainingFeedbackEl = document.getElementById('dashboardTrainingFeedback');
+
+  if (trainingFeedbackEl) {
     trainingFeedbackEl.innerHTML = buildTrainingReviewBlock();
   }
 
-  const dashboardPaymentsEl = document.getElementById('dashboardPayments');
-  if(dashboardPaymentsEl){
-    const payList = state.payments.filter(p => p.status !== 'pagado');
-
-    dashboardPaymentsEl.innerHTML = payList.length
-      ? payList.slice(0,4).map(p => {
-          const c = clientById(p.clientId);
-
-          return `
-            <div class="data-row">
-              <span>${esc(c?.name || 'Sin cliente')} · ${esc(p.concept)}</span>
-              <span style="color:var(--yellow)">${money(p.amount)}</span>
-            </div>
-          `;
-        }).join('')
-      : emptyBlock('Sin pagos pendientes.');
-  }
-
+  /* ── Check-ins de hoy ── */
   const checkinEl = document.getElementById('dashboardCheckins');
+
   if(checkinEl){
     const todayCheckins = state.dailyCheckins.filter(ci =>
       String(ci.checkinDate || ci.created_at || '').slice(0,10) === today
@@ -2784,19 +2769,13 @@ function renderDashboard(){
             <div class="data-row" style="align-items:flex-start">
               <span style="white-space:normal">
                 <strong>${esc(c?.name || 'Cliente')}</strong>
-                <span style="margin-left:8px" class="badge ${badge}">${esc(st)}</span><br>
-
+                <span style="margin-left:8px" class="badge ${badge}">${st}</span><br>
                 <span style="color:var(--text-secondary);font-size:.78rem;">
                   💤 ${esc(ci.sleepQuality ?? ci.sleep_quality ?? '—')}
                   &nbsp;⚡ ${esc(ci.energyLevel ?? ci.energy_level ?? '—')}
                   &nbsp;🩺 ${esc(ci.sorenessLevel ?? ci.soreness_level ?? ci.painLevel ?? ci.pain_level ?? '—')}
                 </span>
-
-                ${
-                  ci.comment
-                    ? `<br><span style="color:var(--warn);font-size:.78rem;">${esc(ci.comment)}</span>`
-                    : ''
-                }
+                ${ci.comment ? `<br><span style="color:var(--warn);font-size:.78rem;">${esc(ci.comment)}</span>` : ''}
               </span>
 
               ${
