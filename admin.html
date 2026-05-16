@@ -1694,18 +1694,26 @@ function getFinishedAssignmentSessionIds(assignmentId){
   const finished = new Set();
 
   (state.clientSessionLogs || [])
-    .filter(log =>
-      String(log.assignmentId || log.assignment_id) === String(assignmentId) &&
-      (
+    .filter(log => {
+      const logAssignmentId = log.assignmentId || log.assignment_id || '';
+      const logSessionId = log.sessionId || log.session_id || '';
+      const status = String(log.status || '').toLowerCase();
+
+      const isFinished =
         log.isFinished === true ||
         log.is_finished === true ||
-        String(log.status || '').toLowerCase() === 'realizada' ||
-        String(log.status || '').toLowerCase() === 'completed' ||
+        status === 'realizada' ||
+        status === 'completed' ||
+        status === 'done' ||
         Boolean(log.finishedAt || log.finished_at) ||
-        Boolean(log.completedAt || log.completed_at)
-      ) &&
-      (log.sessionId || log.session_id)
-    )
+        Boolean(log.completedAt || log.completed_at);
+
+      return (
+        String(logAssignmentId) === String(assignmentId) &&
+        String(logSessionId).trim() !== '' &&
+        isFinished
+      );
+    })
     .forEach(log => {
       finished.add(String(log.sessionId || log.session_id));
     });
@@ -1717,7 +1725,12 @@ function getAssignmentVisibleSessions(assignment){
   if(!assignment) return [];
 
   const programId = assignment.programId || assignment.program_id;
-  const scope = assignment.assignmentScope || assignment.assignment_scope || 'full';
+
+  if(!programId) return [];
+
+  const scope = String(
+    assignment.assignmentScope || assignment.assignment_scope || 'full'
+  ).toLowerCase();
 
   let sessions = [];
 
@@ -2642,82 +2655,162 @@ function buildCheckinHistorial(clientId, dias=14){
 }
 
 function renderDashboard(){
-  const today=todayISO();
-  const activeClients=state.clients.filter(c=>c.status==='activo').length;
-  const todaySessions=state.reservations.filter(r=>r.date===today).length;
-  const pendingPayments=state.payments.filter(p=>p.status!=='pagado').length;
-  const income=state.payments.filter(p=>p.status==='pagado').reduce((s,p)=>s+Number(p.amount||0),0);
-  const upcoming=state.reservations.filter(r=>r.date>=today).length;
+  const today = todayISO();
+
+  const activeClients = state.clients.filter(c => c.status === 'activo').length;
+  const todaySessions = state.reservations.filter(r => r.date === today).length;
+  const pendingPayments = state.payments.filter(p => p.status !== 'pagado').length;
+  const income = state.payments
+    .filter(p => p.status === 'pagado')
+    .reduce((s,p) => s + Number(p.amount || 0), 0);
+
+  const upcoming = state.reservations.filter(r => r.date >= today).length;
   const alerts = state.alertas.filter(a => isPendingAlert(a)).length;
-  document.getElementById('dashboardMetrics').innerHTML=`<div class="metric-card blue"><span class="metric-num">${activeClients}</span><span class="metric-label">Clientes activos</span></div><div class="metric-card red"><span class="metric-num">${todaySessions}</span><span class="metric-label">Sesiones hoy</span></div><div class="metric-card yellow"><span class="metric-num">${pendingPayments}</span><span class="metric-label">Pagos pendientes</span></div><div class="metric-card green"><span class="metric-num">${money(income)}</span><span class="metric-label">Ingresos del mes</span></div><div class="metric-card blue"><span class="metric-num">${upcoming}</span><span class="metric-label">Reservas próximos 7d</span></div><div class="metric-card red"><span class="metric-num">${alerts}</span><span class="metric-label">Alertas salud</span></div>`;
-  const agenda=state.reservations.filter(r=>r.date===today);
-  document.getElementById('agendaToday').innerHTML=agenda.length?agenda.map(r=>{const c=clientById(r.clientId);return`<div class="data-row"><span><strong>${formatTime(r.time)}</strong> · ${esc(c?.name||'Cliente eliminado')}</span><span class="badge badge-${r.status}">${esc(r.status)}</span></div>`;}).join(''):emptyBlock('No hay reservas para hoy.');
-  const alertList = state.alertas.filter(a => isPendingAlert(a));
 
-document.getElementById('dashboardAlerts').innerHTML = alertList.length
-  ? alertList.slice(0,4).map(a => `
-      <div class="data-row">
-        <span>
-          <strong>${esc(a.clientName || 'Cliente')}</strong><br>
-          <span style="color:var(--gray);font-size:.78rem">${esc(a.mensaje || '')}</span>
-        </span>
-        <button class="btn btn-secondary btn-sm" onclick="showPage('alertas')">Ver</button>
+  const dashboardMetricsEl = document.getElementById('dashboardMetrics');
+  if(dashboardMetricsEl){
+    dashboardMetricsEl.innerHTML = `
+      <div class="metric-card blue">
+        <span class="metric-num">${activeClients}</span>
+        <span class="metric-label">Clientes activos</span>
       </div>
-    `).join('')
-  : emptyBlock('No hay alertas.');
-  const payList=state.payments.filter(p=>p.status!=='pagado');
-  document.getElementById('dashboardPayments').innerHTML=payList.length?payList.slice(0,4).map(p=>{const c=clientById(p.clientId);return`<div class="data-row"><span>${esc(c?.name||'Sin cliente')} · ${esc(p.concept)}</span><span style="color:var(--yellow)">${money(p.amount)}</span></div>`;}).join(''):emptyBlock('Sin pagos pendientes.');
-    const trainingFeedbackEl = document.getElementById('dashboardTrainingFeedback');
 
-if (trainingFeedbackEl) {
-  trainingFeedbackEl.innerHTML = buildTrainingReviewBlock();
-}
-      .sort((a, b) =>
-        String(b.createdAt || b.created_at || '').localeCompare(String(a.createdAt || a.created_at || ''))
-      );
+      <div class="metric-card red">
+        <span class="metric-num">${todaySessions}</span>
+        <span class="metric-label">Sesiones hoy</span>
+      </div>
 
-/* ── Check-ins de hoy ── */
-  const checkinEl = document.getElementById('dashboardCheckins');
-  if(checkinEl){
-    const todayCheckins = state.dailyCheckins.filter(ci =>
-      String(ci.checkinDate||ci.created_at||'').slice(0,10) === today
-    );
-    checkinEl.innerHTML = todayCheckins.length
-      ? todayCheckins.slice(0,5).map(ci => {
-          const c    = clientById(ci.clientId);
-          const st   = getCheckinStatus(ci);
-          const badge= st==='alerta'?'badge-alerta':st==='revisar'?'badge-pendiente':'badge-activo';
-          return `<div class="data-row" style="align-items:flex-start">
-            <span style="white-space:normal">
-              <strong>${esc(c?.name||'Cliente')}</strong>
-              <span style="margin-left:8px" class="badge ${badge}">${st}</span><br>
-              <span style="color:var(--text-secondary);font-size:.78rem;">
-                💤 ${esc(ci.sleepQuality??'—')}
-                &nbsp;⚡ ${esc(ci.energyLevel??'—')}
-                &nbsp;🩺 ${esc(ci.sorenessLevel ?? ci.soreness_level ?? ci.painLevel ?? ci.pain_level ?? '—')}
-              </span>
-              ${ci.comment?`<br><span style="color:var(--warn);font-size:.78rem;">${esc(ci.comment)}</span>`:''}
-            </span>
-            ${c?.phone?`<button class="btn btn-wa btn-sm"
-              onclick="openWA('${esc(c.phone)}','Hola ${esc((c.name||'').split(' ')[0])}, vi tu check-in de hoy. ¿Cómo te encuentras?')">WA</button>`:''}
-          </div>`;
-        }).join('')
-      : emptyBlock('No hay check-ins registrados hoy.');
+      <div class="metric-card yellow">
+        <span class="metric-num">${pendingPayments}</span>
+        <span class="metric-label">Pagos pendientes</span>
+      </div>
+
+      <div class="metric-card green">
+        <span class="metric-num">${money(income)}</span>
+        <span class="metric-label">Ingresos del mes</span>
+      </div>
+
+      <div class="metric-card blue">
+        <span class="metric-num">${upcoming}</span>
+        <span class="metric-label">Reservas próximas</span>
+      </div>
+
+      <div class="metric-card red">
+        <span class="metric-num">${alerts}</span>
+        <span class="metric-label">Alertas pendientes</span>
+      </div>
+    `;
   }
 
-    trainingFeedbackEl.innerHTML = trainingFeedbackAlerts.length
-      ? trainingFeedbackAlerts.slice(0, 4).map(a => `
+  const agendaEl = document.getElementById('agendaToday');
+  if(agendaEl){
+    const agenda = state.reservations.filter(r => r.date === today);
+
+    agendaEl.innerHTML = agenda.length
+      ? agenda.map(r => {
+          const c = clientById(r.clientId);
+
+          return `
+            <div class="data-row">
+              <span>
+                <strong>${formatTime(r.time)}</strong> · ${esc(c?.name || 'Cliente eliminado')}
+              </span>
+              <span class="badge badge-${esc(r.status)}">${esc(r.status)}</span>
+            </div>
+          `;
+        }).join('')
+      : emptyBlock('No hay reservas para hoy.');
+  }
+
+  const dashboardAlertsEl = document.getElementById('dashboardAlerts');
+  if(dashboardAlertsEl){
+    const alertList = state.alertas.filter(a => isPendingAlert(a));
+
+    dashboardAlertsEl.innerHTML = alertList.length
+      ? alertList.slice(0,4).map(a => `
           <div class="data-row">
             <span style="white-space:normal">
               <strong>${esc(a.clientName || a.client_name || 'Cliente')}</strong><br>
-              <span style="color:var(--gray);font-size:.78rem;line-height:1.5">
+              <span style="color:var(--gray);font-size:.78rem">
                 ${esc(a.mensaje || '')}
               </span>
             </span>
             <button class="btn btn-secondary btn-sm" onclick="showPage('alertas')">Ver</button>
           </div>
         `).join('')
-      : emptyBlock('Sin feedback pendiente.');
+      : emptyBlock('No hay alertas.');
+  }
+
+  const trainingFeedbackEl = document.getElementById('dashboardTrainingFeedback');
+  if(trainingFeedbackEl){
+    trainingFeedbackEl.innerHTML = buildTrainingReviewBlock();
+  }
+
+  const dashboardPaymentsEl = document.getElementById('dashboardPayments');
+  if(dashboardPaymentsEl){
+    const payList = state.payments.filter(p => p.status !== 'pagado');
+
+    dashboardPaymentsEl.innerHTML = payList.length
+      ? payList.slice(0,4).map(p => {
+          const c = clientById(p.clientId);
+
+          return `
+            <div class="data-row">
+              <span>${esc(c?.name || 'Sin cliente')} · ${esc(p.concept)}</span>
+              <span style="color:var(--yellow)">${money(p.amount)}</span>
+            </div>
+          `;
+        }).join('')
+      : emptyBlock('Sin pagos pendientes.');
+  }
+
+  const checkinEl = document.getElementById('dashboardCheckins');
+  if(checkinEl){
+    const todayCheckins = state.dailyCheckins.filter(ci =>
+      String(ci.checkinDate || ci.created_at || '').slice(0,10) === today
+    );
+
+    checkinEl.innerHTML = todayCheckins.length
+      ? todayCheckins.slice(0,5).map(ci => {
+          const c = clientById(ci.clientId || ci.client_id);
+          const st = getCheckinStatus(ci);
+          const badge = st === 'alerta'
+            ? 'badge-alerta'
+            : st === 'revisar'
+              ? 'badge-pendiente'
+              : 'badge-activo';
+
+          return `
+            <div class="data-row" style="align-items:flex-start">
+              <span style="white-space:normal">
+                <strong>${esc(c?.name || 'Cliente')}</strong>
+                <span style="margin-left:8px" class="badge ${badge}">${esc(st)}</span><br>
+
+                <span style="color:var(--text-secondary);font-size:.78rem;">
+                  💤 ${esc(ci.sleepQuality ?? ci.sleep_quality ?? '—')}
+                  &nbsp;⚡ ${esc(ci.energyLevel ?? ci.energy_level ?? '—')}
+                  &nbsp;🩺 ${esc(ci.sorenessLevel ?? ci.soreness_level ?? ci.painLevel ?? ci.pain_level ?? '—')}
+                </span>
+
+                ${
+                  ci.comment
+                    ? `<br><span style="color:var(--warn);font-size:.78rem;">${esc(ci.comment)}</span>`
+                    : ''
+                }
+              </span>
+
+              ${
+                c?.phone
+                  ? `<button class="btn btn-wa btn-sm"
+                      onclick="openWA('${esc(c.phone)}','Hola ${esc((c.name || '').split(' ')[0])}, vi tu check-in de hoy. ¿Cómo te encuentras?')">
+                      WA
+                    </button>`
+                  : ''
+              }
+            </div>
+          `;
+        }).join('')
+      : emptyBlock('No hay check-ins registrados hoy.');
   }
 }
 
