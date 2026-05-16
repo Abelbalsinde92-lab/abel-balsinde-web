@@ -1111,9 +1111,35 @@ function getTrainingStorageKey(sessionId) {
   return ['ab_tp', clientData.id, clientTrainingAssignment.id, sid, todayISO()].join('_');
 }
 function isSessionFinished(sessionId) {
-  const key = getTrainingStorageKey(sessionId);
+  if (!sessionId) return false;
+
+  const sid = String(sessionId);
+
+  // 1) Supabase: verdad principal
+  const dbFinished = (clientSessionLogs || []).some(log =>
+    String(log.assignment_id) === String(clientTrainingAssignment?.id) &&
+    String(log.session_id) === sid &&
+    (
+      log.is_finished === true ||
+      String(log.status || '').toLowerCase() === 'realizada' ||
+      String(log.status || '').toLowerCase() === 'completed' ||
+      Boolean(log.finished_at) ||
+      Boolean(log.completed_at)
+    )
+  );
+
+  if (dbFinished) return true;
+
+  // 2) Respaldo local
+  const key = getTrainingStorageKey(sid);
   if (!key) return false;
-  try { const r = localStorage.getItem(key); return r ? JSON.parse(r)?.is_finished === true : false; } catch { return false; }
+
+  try {
+    const r = localStorage.getItem(key);
+    return r ? JSON.parse(r)?.is_finished === true : false;
+  } catch {
+    return false;
+  }
 }
 function loadTrainingProgressLocal(sessionId) {
   const key = getTrainingStorageKey(sessionId);
@@ -3501,27 +3527,56 @@ function renderTrainingCompletionBox(scroll){
   if(!area) return;
 
   const currentSessionId = getCurrentVisibleSessionId();
+
+  if(!currentSessionId){
+    area.innerHTML = '';
+    return;
+  }
+
   const localProgress = loadTrainingProgressLocal(currentSessionId);
 
+  const dbLog = (clientSessionLogs || []).find(log =>
+    String(log.assignment_id) === String(clientTrainingAssignment?.id) &&
+    String(log.session_id) === String(currentSessionId) &&
+    (
+      log.is_finished === true ||
+      String(log.status || '').toLowerCase() === 'realizada' ||
+      String(log.status || '').toLowerCase() === 'completed' ||
+      Boolean(log.finished_at) ||
+      Boolean(log.completed_at)
+    )
+  );
+
+  const currentLogMatches =
+    currentTrainingLog &&
+    String(currentTrainingLog.session_id) === String(currentSessionId)
+      ? currentTrainingLog
+      : null;
+
+  const finishedSource =
+    localProgress?.is_finished === true
+      ? localProgress
+      : dbLog || currentLogMatches;
+
   const alreadyFinished =
-    localProgress?.is_finished === true ||
-    currentTrainingLog?.is_finished === true;
+    finishedSource?.is_finished === true ||
+    String(finishedSource?.status || '').toLowerCase() === 'realizada' ||
+    String(finishedSource?.status || '').toLowerCase() === 'completed' ||
+    Boolean(finishedSource?.finished_at) ||
+    Boolean(finishedSource?.completed_at);
 
   if(alreadyFinished){
     const finishedAt =
-      localProgress?.finished_at ||
-      currentTrainingLog?.finished_at ||
+      finishedSource?.finished_at ||
+      finishedSource?.completed_at ||
+      finishedSource?.updated_at ||
       new Date().toISOString();
 
     const feedbackSummary =
-      localProgress?.client_feedback_summary ||
-      currentTrainingLog?.client_feedback_summary ||
-      '';
+      finishedSource?.client_feedback_summary || '';
 
     const note =
-      localProgress?.client_note ||
-      currentTrainingLog?.client_note ||
-      '';
+      finishedSource?.client_note || '';
 
     area.innerHTML =
       '<div class="training-finish-card compact">' +
@@ -3632,6 +3687,11 @@ function feedbackText(key) {
 function buildFeedbackTag(value,label){return'<label class="training-feedback-row"><input type="checkbox" class="training-feedback-check" value="'+value+'"><span>'+label+'</span></label>';}
 async function finishTrainingSession(){
   const currentSessionId = getCurrentVisibleSessionId();
+
+if(!currentSessionId){
+  showClientNotice('No se pudo identificar la sesión activa.', 'error');
+  return;
+}
 
   const checkedTags = Array.from(
     document.querySelectorAll('.training-feedback-check:checked')
