@@ -1139,7 +1139,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let state = {
   clients:[],reservations:[],payments:[],metrics:[],healthAlerts:[],alertas:[],programs:[],partners:[],templates:[],
   trainingPrograms:[],trainingWeeks:[],trainingSessions:[],trainingBlocks:[],trainingExercises:[],
-  clientProgramAssignments:[],clientSessionLogs:[],
+  clientProgramAssignments:[],clientSessionLogs:[],clientDailyCheckins:[],
   assessmentTemplates:[],assessmentTemplateItems:[],clientAssessments:[],clientAssessmentResults:[],
   settings:{
     coachName:'Abel Balsinde',coachEmail:'abel@email.com',coachPhone:COACH_DEFAULT_PHONE,
@@ -1226,7 +1226,8 @@ async function loadState(){
   ['trainingExercises','training_exercises'],
   ['clientProgramAssignments','client_program_assignments'],
   ['clientSessionLogs','client_session_logs'],
-  ['assessmentTemplates','assessment_templates'],
+['clientDailyCheckins','client_daily_checkins'],
+['assessmentTemplates','assessment_templates'],
   ['assessmentTemplateItems','assessment_template_items'],
   ['clientAssessments','client_assessments'],
   ['clientAssessmentResults','client_assessment_results']
