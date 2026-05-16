@@ -4935,6 +4935,47 @@ function buildDailyCheckinHTML() {
   );
 }
 
+function showClientNotice(message, type = 'success') {
+  const old = document.getElementById('clientNoticeToast');
+  if (old) old.remove();
+
+  const color =
+    type === 'success'
+      ? 'var(--streak)'
+      : type === 'error'
+        ? 'var(--medical)'
+        : 'var(--sport)';
+
+  const notice = document.createElement('div');
+  notice.id = 'clientNoticeToast';
+  notice.textContent = message;
+
+  notice.style.position = 'fixed';
+  notice.style.left = '16px';
+  notice.style.right = '16px';
+  notice.style.bottom = 'calc(26px + env(safe-area-inset-bottom))';
+  notice.style.zIndex = '9999';
+  notice.style.background = 'rgba(18,18,20,.96)';
+  notice.style.border = '1px solid ' + color;
+  notice.style.color = color;
+  notice.style.borderRadius = '12px';
+  notice.style.padding = '14px 16px';
+  notice.style.fontFamily = 'var(--font-mono)';
+  notice.style.fontSize = '11px';
+  notice.style.letterSpacing = '1px';
+  notice.style.textTransform = 'uppercase';
+  notice.style.textAlign = 'center';
+  notice.style.boxShadow = '0 12px 30px rgba(0,0,0,.45)';
+
+  document.body.appendChild(notice);
+
+  setTimeout(() => {
+    notice.style.opacity = '0';
+    notice.style.transition = 'opacity .35s ease';
+    setTimeout(() => notice.remove(), 400);
+  }, 2200);
+}
+
 async function saveDailyCheckin() {
   if (!clientData?.id) return;
 
@@ -4977,20 +5018,20 @@ async function saveDailyCheckin() {
       clientDailyCheckins.unshift(data);
     }
 
-    if (btn) {
-      btn.textContent = uiText('checkinSaved');
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.textContent = uiText('saveCheckin');
-      }, 1600);
-    }
+    showClientNotice(uiText('checkinSaved'), 'success');
 
-    const card = document.getElementById('dailyCheckinCard');
-    if (card) {
-      card.outerHTML = buildDailyCheckinHTML();
-    }
+if (btn) {
+  btn.textContent = uiText('checkinSaved');
+}
 
-  } catch (err) {
+setTimeout(() => {
+  const card = document.getElementById('dailyCheckinCard');
+  if (card) {
+    card.outerHTML = buildDailyCheckinHTML();
+  }
+}, 900);
+
+    } catch (err) {
     console.error('Check-in save error:', err);
 
     if (btn) {
@@ -4998,7 +5039,10 @@ async function saveDailyCheckin() {
       btn.textContent = uiText('saveCheckin');
     }
 
-    alert((err && err.message) ? err.message : uiText('checkinSaveError'));
+    showClientNotice(
+      (err && err.message) ? err.message : uiText('checkinSaveError'),
+      'error'
+    );
   }
 }
 
