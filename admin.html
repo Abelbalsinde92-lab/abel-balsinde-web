@@ -1067,11 +1067,12 @@ tr:hover td { background: rgba(255,255,255,.02); }
     <div class="card">
       <div class="empty">
         <strong>Motor de Decisiones</strong>
-        Selecciona un atleta arriba para abrir su perfil y acceder al tab ⚡ Fuerza &amp; Fatiga.
-      </div>
-    </div>
-  </div>
-</div>
+        Selecciona un atleta arriba para abrir su perfil. Después conectaremos aquí el motor interno de fuerza, fatiga, 1RM y ajustes de carga.
+      </div><!-- /page-fuerza-fatiga -->
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /adminApp -->
 
 <!-- Modal overlay -->
 <div class="overlay" id="modalOverlay">
@@ -1171,7 +1172,7 @@ let state = {
   trainingPrograms:[],trainingWeeks:[],trainingSessions:[],trainingBlocks:[],trainingExercises:[],
   clientProgramAssignments:[],clientSessionLogs:[],clientDailyCheckins:[],
   assessmentTemplates:[],assessmentTemplateItems:[],clientAssessments:[],clientAssessmentResults:[],
-  dailyCheckins:[],
+  
   settings:{
     coachName:'Abel Balsinde',coachEmail:'abel@email.com',coachPhone:COACH_DEFAULT_PHONE,
     coachCity:'Belgrado',coachWeb:'abeltrainer.vercel.app',coachDesc:'Entrenador personal con bases de lucha. UWW Level 2.',
@@ -1257,8 +1258,7 @@ async function loadState(){
   ['trainingExercises','training_exercises'],
   ['clientProgramAssignments','client_program_assignments'],
   ['clientSessionLogs','client_session_logs'],
-['clientDailyCheckins','client_daily_checkins'],
-['assessmentTemplates','assessment_templates'],
+  ['assessmentTemplates','assessment_templates'],
   ['assessmentTemplateItems','assessment_template_items'],
   ['clientAssessments','client_assessments'],
   ['clientAssessmentResults','client_assessment_results']
@@ -2658,6 +2658,7 @@ function renderAssessments(){
           ${isDuplicate?'&nbsp;·&nbsp;<span style="color:var(--medical)">Posible duplicado</span>':''}
         </div>
       </td>
+            <td>${formatDate(a.assessmentDate)}</td>
       <td><span class="badge badge-${a.status||'realizada'}">${esc(a.status||'realizada')}</span></td>
       <td style="white-space:normal;max-width:200px;font-size:.78rem;color:var(--text-secondary)">${esc(a.coachNotes||'—')}</td>
       <td>
