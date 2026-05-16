@@ -4998,7 +4998,7 @@ async function saveDailyCheckin() {
       btn.textContent = uiText('saveCheckin');
     }
 
-    alert(uiText('checkinSaveError'));
+    alert((err && err.message) ? err.message : uiText('checkinSaveError'));
   }
 }
 
