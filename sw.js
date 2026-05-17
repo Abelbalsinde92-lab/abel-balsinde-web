@@ -7,7 +7,7 @@ const STATIC_ASSETS = [
   '/abel-lucha-bw.jpg',
   '/ab-system-logo.png.PNG',
   '/icon-192.png',
-  '/icon-512.png'
+  '/icon-512.png.gif'
 ];
 
 self.addEventListener('install', event => {
