@@ -5392,11 +5392,20 @@ async function saveDailyCheckin() {
       clientDailyCheckins.unshift(data);
     }
 
-    showClientNotice(uiText('checkinSaved'), 'success');
+    // Guardar sin dejar cartel fijo
+showClientNotice(uiText('checkinSaved'), 'success');
 
 if (btn) {
-  btn.textContent = uiText('checkinSaved');
+  btn.disabled = false;
+  btn.textContent = uiText('saveCheckin');
 }
+
+setTimeout(() => {
+  const card = document.getElementById('dailyCheckinCard');
+  if (card) {
+    card.outerHTML = buildDailyCheckinHTML();
+  }
+}, 600);
 
 setTimeout(() => {
   const card = document.getElementById('dailyCheckinCard');
