@@ -1509,56 +1509,78 @@ async function loadClientDashboard(clientId) {
     const pid = clientTrainingAssignment?.program_id || null;
 
 if (pid) {
-  const visibleR = await db
-    .from('v_client_training_display')
-    .select('*')
-    .eq('client_id', clientId)
-    .eq('program_id', pid)
-    .order('week_order', { ascending: true })
-    .order('session_order', { ascending: true })
-    .order('block_order', { ascending: true })
-    .order('exercise_order', { ascending: true });
+  const [baseR, displayR] = await Promise.all([
+    db
+      .from('client_training_plan_visible')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('program_id', pid)
+      .order('week_order', { ascending: true })
+      .order('session_order', { ascending: true })
+      .order('block_order', { ascending: true })
+      .order('exercise_order', { ascending: true }),
+
+    db
+      .from('v_client_training_display')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('program_id', pid)
+      .order('week_order', { ascending: true })
+      .order('session_order', { ascending: true })
+      .order('block_order', { ascending: true })
+      .order('exercise_order', { ascending: true })
+  ]);
 
   window.__AB_DEBUG_CLIENT__ = {
-    visibleRows: visibleR.data?.length || 0,
-    visibleError: visibleR.error || null,
+    baseRows: baseR.data?.length || 0,
+    displayRows: displayR.data?.length || 0,
+    baseError: baseR.error || null,
+    displayError: displayR.error || null,
     assignment: clientTrainingAssignment || null
   };
 
-  if (!visibleR.error) {
-    let rows = visibleR.data || [];
+  if (!baseR.error) {
+    let rows = baseR.data || [];
+    let displayRows = displayR.data || [];
 
     const scope = getAssignmentScope();
 
-    if (scope === 'day') {
-      const aw = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
-      const as = Number(clientTrainingAssignment?.assigned_session_number || 1);
+    function applyScopeFilter(list) {
+      if (scope === 'day') {
+        const aw = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
+        const as = Number(clientTrainingAssignment?.assigned_session_number || 1);
 
-      rows = rows.filter(r =>
-        Number(r.week_order) === aw &&
-        Number(r.session_order) === as
-      );
+        return list.filter(r =>
+          Number(r.week_order) === aw &&
+          Number(r.session_order) === as
+        );
+      }
+
+      if (scope === 'week') {
+        const aw = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
+
+        return list.filter(r =>
+          Number(r.week_order) === aw
+        );
+      }
+
+      if (scope === 'month') {
+        const am = Number(clientTrainingAssignment?.assigned_month || 1);
+        const sw = (am - 1) * 4 + 1;
+
+        return list.filter(r =>
+          Number(r.week_order) >= sw &&
+          Number(r.week_order) <= sw + 3
+        );
+      }
+
+      return list;
     }
 
-    if (scope === 'week') {
-      const aw = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
+    rows = applyScopeFilter(rows);
+    displayRows = applyScopeFilter(displayRows);
 
-      rows = rows.filter(r =>
-        Number(r.week_order) === aw
-      );
-    }
-
-    if (scope === 'month') {
-      const am = Number(clientTrainingAssignment?.assigned_month || 1);
-      const sw = (am - 1) * 4 + 1;
-
-      rows = rows.filter(r =>
-        Number(r.week_order) >= sw &&
-        Number(r.week_order) <= sw + 3
-      );
-    }
-
-    clientTrainingDisplayRows = rows || [];
+    clientTrainingDisplayRows = displayRows || [];
 
     clientTrainingSessionDisplay = clientTrainingDisplayRows[0]
       ? {
@@ -1569,6 +1591,19 @@ if (pid) {
           client_objective_message: clientTrainingDisplayRows[0].client_objective_message || ''
         }
       : null;
+
+    const displayMap = new Map();
+
+    displayRows.forEach(r => {
+      const key = [
+        Number(r.week_order || 0),
+        Number(r.session_order || 0),
+        Number(r.block_order || 0),
+        Number(r.exercise_order || 0)
+      ].join('|');
+
+      displayMap.set(key, r);
+    });
 
     if (rows.length) {
       const first = rows[0];
@@ -1587,6 +1622,15 @@ if (pid) {
       const blocksMap = new Map();
 
       rows.forEach(r => {
+        const displayKey = [
+          Number(r.week_order || 0),
+          Number(r.session_order || 0),
+          Number(r.block_order || 0),
+          Number(r.exercise_order || 0)
+        ].join('|');
+
+        const d = displayMap.get(displayKey) || {};
+
         if (!weeksMap.has(r.week_id)) {
           weeksMap.set(r.week_id, {
             id: r.week_id,
@@ -1644,11 +1688,10 @@ if (pid) {
           coaching_notes: r.coaching_notes || '',
           video_url: r.video_url || '',
 
-          client_variant: r.client_variant || '',
-          client_exercise_status: r.client_exercise_status || '',
-          client_coaching_note: r.client_coaching_note || '',
-          main_condition_area: r.main_condition_area || '',
-          final_decision: r.final_decision || ''
+          client_variant: d.client_variant || '',
+          client_exercise_status: d.client_exercise_status || '',
+          client_coaching_note: d.client_coaching_note || '',
+          final_decision: d.final_decision || ''
         });
       });
 
