@@ -811,7 +811,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 <div id="loginScreen" class="hidden">
   <div class="login-box">
     <div class="login-logo">
-      <img src="/icon-512.png" alt="AB Coach" class="brand-logo brand-logo-login">
+      <img src="/favicon.ico" alt="AB Coach" class="brand-logo brand-logo-header">
     </div>
     <h1 class="login-title" id="loginTitleText">ÁREA CLIENTE</h1>
 <p class="login-sub" id="loginSubtitleText">Accede a tu seguimiento personal.</p>
@@ -3109,13 +3109,15 @@ async function loadOrCreateTrainingLog(sessionId){
 
   try{
     const existing = await db
-      .from('client_session_logs')
-      .select('*')
-      .eq('client_id', payload.client_id)
-      .eq('assignment_id', payload.assignment_id)
-      .eq('session_id', payload.session_id)
-      .eq('training_date', payload.training_date)
-      .maybeSingle();
+  .from('client_session_logs')
+  .select('*')
+  .eq('client_id', payload.client_id)
+  .eq('assignment_id', payload.assignment_id)
+  .eq('session_id', payload.session_id)
+  .eq('training_date', payload.training_date)
+  .order('created_at', { ascending: false })
+  .limit(1)
+  .maybeSingle();
 
     if(existing.error){
       console.error('Log read error:', existing.error);
