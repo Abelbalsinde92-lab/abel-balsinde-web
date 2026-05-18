@@ -1510,26 +1510,18 @@ async function loadClientDashboard(clientId) {
 
 if (pid) {
   const [baseR, displayR] = await Promise.all([
-    db
-      .from('client_training_plan_visible')
-      .select('*')
-      .eq('client_id', clientId)
-      .eq('program_id', pid)
-      .order('week_order', { ascending: true })
-      .order('session_order', { ascending: true })
-      .order('block_order', { ascending: true })
-      .order('exercise_order', { ascending: true }),
+  Promise.resolve({ data: [], error: null }),
 
-    db
-      .from('v_client_training_display')
-      .select('*')
-      .eq('client_id', clientId)
-      .eq('program_id', pid)
-      .order('week_order', { ascending: true })
-      .order('session_order', { ascending: true })
-      .order('block_order', { ascending: true })
-      .order('exercise_order', { ascending: true })
-  ]);
+  db
+    .from('v_client_training_display')
+    .select('*')
+    .eq('client_id', clientId)
+    .eq('program_id', pid)
+    .order('week_order', { ascending: true })
+    .order('session_order', { ascending: true })
+    .order('block_order', { ascending: true })
+    .order('exercise_order', { ascending: true })
+]);
 
   window.__AB_DEBUG_CLIENT__ = {
     baseRows: baseR.data?.length || 0,
@@ -3150,18 +3142,21 @@ async function loadOrCreateTrainingLog(sessionId){
     }
 
     const created = await db
-      .from('client_session_logs')
-      .insert({
-        ...payload,
-        completed_block_ids: Array.from(completedTrainingBlocks),
-        is_finished: localProgress?.is_finished || false,
-        client_note: localProgress?.client_note || '',
-        client_feedback_tags: localProgress?.client_feedback_tags || [],
-        client_feedback_summary: localProgress?.client_feedback_summary || '',
-        started_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+  .from('client_session_logs')
+  .upsert({
+    ...payload,
+    completed_block_ids: Array.from(completedTrainingBlocks),
+    is_finished: localProgress?.is_finished || false,
+    client_note: localProgress?.client_note || '',
+    client_feedback_tags: localProgress?.client_feedback_tags || [],
+    client_feedback_summary: localProgress?.client_feedback_summary || '',
+    started_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }, {
+    onConflict: 'client_id,assignment_id,session_id,training_date'
+  })
+  .select()
+  .single();
 
     if(created.error){
       console.error('Log create error:', created.error);
