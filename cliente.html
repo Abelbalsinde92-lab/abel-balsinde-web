@@ -1185,10 +1185,8 @@ function getTrainingStorageKey(sessionId) {
 }
 function isSessionFinished(sessionId) {
   if (!sessionId) return false;
-
   const sid = String(sessionId);
 
-  // 1) Supabase: verdad principal
   const dbFinished = (clientSessionLogs || []).some(log =>
     String(log.assignment_id) === String(clientTrainingAssignment?.id) &&
     String(log.session_id) === sid &&
@@ -1203,7 +1201,6 @@ function isSessionFinished(sessionId) {
 
   if (dbFinished) return true;
 
-  // 2) Respaldo local
   const key = getTrainingStorageKey(sid);
   if (!key) return false;
 
@@ -1213,6 +1210,7 @@ function isSessionFinished(sessionId) {
   } catch {
     return false;
   }
+  // NOTA: completed_block_ids NO determina is_finished. Solo is_finished/status/finished_at lo hacen.
 }
 function loadTrainingProgressLocal(sessionId) {
   const key = getTrainingStorageKey(sessionId);
@@ -2991,35 +2989,114 @@ function getSessionDisplayTitle(session,index){
   return day + ' · ' + title;
 }
 
-function showTrainingDay(sessionId){
+function showTrainingDay(sessionId) {
   saveLastActiveSession(sessionId);
 
   const btn = document.querySelector('.training-day-tab[data-session-id="' + sessionId + '"]');
   const scope = btn?.closest('.training-week-panel') || document;
 
   scope.querySelectorAll('.training-day-tab').forEach(b => {
-    if(!String(b.dataset.weekId || '').length){
+    if (!String(b.dataset.weekId || '').length) {
       b.classList.toggle('active', String(b.dataset.sessionId) === String(sessionId));
     }
   });
 
   scope.querySelectorAll('.training-session-panel,.training-day-panel').forEach(p => {
-    if(p.dataset.sessionId){
+    if (p.dataset.sessionId) {
       p.classList.toggle('active', String(p.dataset.sessionId) === String(sessionId));
     }
   });
 
-  const active = scope.querySelector(
-    '.training-session-panel.active[data-session-id="' + sessionId + '"],' +
-    '.training-day-panel.active[data-session-id="' + sessionId + '"]'
-  );
-
-  if(active){
-    active.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  }
+  // Recargar estado visual SOLO para esta sesión, sin tocar Supabase
+  reloadSessionState(sessionId);
 
   const area = document.getElementById('trainingCompletionArea');
-  if(area) area.innerHTML = '';
+  if (area) area.innerHTML = '';
+
+  // Mostrar completion box si la sesión está terminada o todos sus bloques completos
+  const sessionFinished = isSessionFinished(sessionId);
+  const sessionSteps = buildTrainingSteps(sessionId);
+  const allBlocksDone = sessionSteps.length > 0 &&
+    sessionSteps.every(s => completedTrainingBlocks.has(s.blockId));
+
+  if (sessionFinished) {
+    renderTrainingCompletionBox(false);
+  } else if (allBlocksDone) {
+    renderTrainingCompletionBox(false);
+  }
+}
+
+function showTrainingDay(sessionId) {
+  saveLastActiveSession(sessionId);
+
+  const btn = document.querySelector('.training-day-tab[data-session-id="' + sessionId + '"]');
+  const scope = btn?.closest('.training-week-panel') || document;
+
+  scope.querySelectorAll('.training-day-tab').forEach(b => {
+    if (!String(b.dataset.weekId || '').length) {
+      b.classList.toggle('active', String(b.dataset.sessionId) === String(sessionId));
+    }
+  });
+
+  scope.querySelectorAll('.training-session-panel,.training-day-panel').forEach(p => {
+    if (p.dataset.sessionId) {
+      p.classList.toggle('active', String(p.dataset.sessionId) === String(sessionId));
+    }
+  });
+
+  // Recargar estado visual SOLO para esta sesión, sin tocar Supabase
+  reloadSessionState(sessionId);
+
+  const area = document.getElementById('trainingCompletionArea');
+  if (area) area.innerHTML = '';
+
+  // Mostrar completion box si la sesión está terminada o todos sus bloques completos
+  const sessionFinished = isSessionFinished(sessionId);
+  const sessionSteps = buildTrainingSteps(sessionId);
+  const allBlocksDone = sessionSteps.length > 0 &&
+    sessionSteps.every(s => completedTrainingBlocks.has(s.blockId));
+
+  if (sessionFinished) {
+    renderTrainingCompletionBox(false);
+  } else if (allBlocksDone) {
+    renderTrainingCompletionBox(false);
+  }
+}
+
+function reloadSessionState(sessionId) {
+  // Limpiar estado global
+  completedTrainingBlocks = new Set();
+  activeTrainingBlockKey = null;
+  // NO tocamos currentTrainingLog aquí, no creamos logs
+
+  // Cargar solo desde localStorage para esta sesión concreta
+  const local = loadTrainingProgressLocal(sessionId);
+  if (local && Array.isArray(local.completed_block_ids)) {
+    local.completed_block_ids.forEach(id => completedTrainingBlocks.add(id));
+  }
+
+  // También cargar bloques completados desde Supabase (clientSessionLogs ya cargado)
+  const dbLog = (clientSessionLogs || []).find(log =>
+    String(log.assignment_id) === String(clientTrainingAssignment?.id) &&
+    String(log.session_id) === String(sessionId)
+  );
+  if (dbLog && Array.isArray(dbLog.completed_block_ids)) {
+    dbLog.completed_block_ids.forEach(id => completedTrainingBlocks.add(id));
+  }
+
+  // Aplicar estado visual SOLO a los bloques de esta sesión
+  applySessionTrainingState(sessionId);
+
+  // Abrir el primer bloque pendiente de esta sesión
+  if (!isSessionFinished(sessionId)) {
+    const sessionSteps = buildTrainingSteps(sessionId);
+    const firstPending = sessionSteps.find(s => !completedTrainingBlocks.has(s.blockId));
+    if (firstPending) {
+      activeTrainingBlockKey = firstPending.blockId;
+      const card = document.getElementById('step-' + firstPending.blockId);
+      if (card) card.classList.add('open');
+    }
+  }
 }
 
 function showTrainingWeekPanel(weekId){
@@ -3306,7 +3383,8 @@ if(lp){
   currentTrainingLog = lp;
 } else {
   completedTrainingBlocks = new Set();
-  currentTrainingLog = null;
+activeTrainingBlockKey = null;
+currentTrainingLog = null;
 }
 
   const levelStr = getAssignedTrainingLevel();
@@ -3713,11 +3791,72 @@ const variant = ex.client_variant || baseVariant;
   return html;
 }
 
-function applySavedTrainingState(){completedTrainingBlocks.forEach(id=>markStepVisualAsCompleted(id));}
+function applySessionTrainingState(sessionId) {
+  const sessionSteps = buildTrainingSteps(sessionId);
+  const sessionBlockIds = new Set(sessionSteps.map(s => s.blockId));
+
+  completedTrainingBlocks.forEach(id => {
+    // Solo marcar bloques que pertenecen a esta sesión
+    if (sessionBlockIds.has(id)) {
+      markStepVisualAsCompleted(id);
+    }
+  });
+}
+
+// Mantener applySavedTrainingState por compatibilidad pero que use la sesión activa
+function applySavedTrainingState() {
+  const sessionId = getCurrentVisibleSessionId();
+  if (sessionId) {
+    applySessionTrainingState(sessionId);
+  }
+}
 function markStepVisualAsCompleted(blockId){const card=document.getElementById('step-'+blockId);if(!card)return;card.classList.remove('open');card.classList.add('completed');const numEl=card.querySelector('.training-step-number');if(numEl)numEl.textContent='✓';const statusEl=document.getElementById('status-'+blockId);if(statusEl){statusEl.textContent = tClient('completed');statusEl.classList.add('done');}const btn=document.getElementById('completeBtn-'+blockId);if(btn){const msg=document.createElement('div');msg.className='training-step-done-msg';msg.textContent = tClient('blockCompleted');btn.replaceWith(msg);}}
 function toggleTrainingStep(blockId){const card=document.getElementById('step-'+blockId);if(!card)return;if(activeTrainingBlockKey===blockId){card.classList.remove('open');activeTrainingBlockKey=null;}else{if(activeTrainingBlockKey)document.getElementById('step-'+activeTrainingBlockKey)?.classList.remove('open');activeTrainingBlockKey=blockId;card.classList.add('open');}}
 function getSessionIdByBlockId(blockId){const step=buildTrainingSteps().find(s=>String(s.blockId)===String(blockId));return step?String(step.sessionId):null;}
-async function completeTrainingStep(blockId){const sessionId=getSessionIdByBlockId(blockId);completedTrainingBlocks.add(blockId);saveTrainingProgressLocal({},sessionId);markStepVisualAsCompleted(blockId);await saveTrainingProgress({},sessionId);activeTrainingBlockKey=null;const sessionSteps=sessionId?buildTrainingSteps(sessionId):buildTrainingSteps();const sessionIsComplete=sessionSteps.length>0&&sessionSteps.every(s=>completedTrainingBlocks.has(s.blockId));if(sessionIsComplete){renderTrainingCompletionBox(false);return;}const next=sessionSteps.find(s=>!completedTrainingBlocks.has(s.blockId));if(next){activeTrainingBlockKey=next.blockId;const card=document.getElementById('step-'+next.blockId);if(card){card.classList.add('open');setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'start'}),180);}}}
+async function completeTrainingStep(blockId) {
+  const sessionId = getSessionIdByBlockId(blockId);
+  
+  if (!sessionId) {
+    console.error('completeTrainingStep: no sessionId for block', blockId);
+    return;
+  }
+
+  // Solo añadir si pertenece a la sesión activa visible
+  const visibleSessionId = getCurrentVisibleSessionId();
+  if (String(sessionId) !== String(visibleSessionId)) {
+    console.warn('Block no pertenece a la sesión visible, ignorando');
+    return;
+  }
+
+  completedTrainingBlocks.add(blockId);
+  saveTrainingProgressLocal({}, sessionId);
+  markStepVisualAsCompleted(blockId);
+
+  // Crear/actualizar log en Supabase SOLO aquí
+  await loadOrCreateTrainingLog(sessionId);
+  await saveTrainingProgress({}, sessionId);
+
+  activeTrainingBlockKey = null;
+
+  const sessionSteps = buildTrainingSteps(sessionId);
+  const sessionIsComplete = sessionSteps.length > 0 &&
+    sessionSteps.every(s => completedTrainingBlocks.has(s.blockId));
+
+  if (sessionIsComplete) {
+    renderTrainingCompletionBox(false);
+    return;
+  }
+
+  const next = sessionSteps.find(s => !completedTrainingBlocks.has(s.blockId));
+  if (next) {
+    activeTrainingBlockKey = next.blockId;
+    const card = document.getElementById('step-' + next.blockId);
+    if (card) {
+      card.classList.add('open');
+      setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 180);
+    }
+  }
+}
 function getCurrentVisibleSessionId(){const as=document.querySelector('.training-session-panel.active');if(as?.dataset?.sessionId)return as.dataset.sessionId;const ad=document.querySelector('.training-day-panel.active');if(ad?.dataset?.sessionId&&!String(ad.dataset.sessionId).startsWith('week-'))return ad.dataset.sessionId;return clientTrainingSessions[0]?.id||null;}
 function getSessionById(sessionId){return clientTrainingSessions.find(s=>String(s.id)===String(sessionId))||null;}
 function getNextSessionId(currentSessionId){const sessions=clientTrainingSessions.slice().sort((a,b)=>{const wa=clientTrainingWeeks.find(w=>String(w.id)===String(a.week_id));const wb=clientTrainingWeeks.find(w=>String(w.id)===String(b.week_id));const wA=Number(wa?.week_number||0),wB=Number(wb?.week_number||0);if(wA!==wB)return wA-wB;return Number(a.session_number||0)-Number(b.session_number||0);});const idx=sessions.findIndex(s=>String(s.id)===String(currentSessionId));return idx>=0&&sessions[idx+1]?String(sessions[idx+1].id):null;}
@@ -4063,7 +4202,7 @@ function renderTrainingCompletedState(){
     currentTrainingLog?.completed_block_ids || steps.map(s => s.blockId)
   );
 
-  applySavedTrainingState();
+  reloadSessionState(initialActiveSessionId);
 }
 
 function getFinishedTrainingLogs(){
