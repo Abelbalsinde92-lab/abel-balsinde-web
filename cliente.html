@@ -3846,11 +3846,12 @@ async function completeTrainingStep(blockId) {
   activeTrainingBlockKey = null;
 
   const sessionSteps = buildTrainingSteps(sessionId);
+  const allBlockIds = new Set(sessionSteps.map(s => s.blockId));
   const sessionIsComplete = sessionSteps.length > 0 &&
     sessionSteps.every(s => completedTrainingBlocks.has(s.blockId));
 
-  if (sessionIsComplete) {
-    renderTrainingCompletionBox(false);
+  if (sessionIsComplete && allBlockIds.size > 0) {
+    renderTrainingCompletionBox(true);
     return;
   }
 
