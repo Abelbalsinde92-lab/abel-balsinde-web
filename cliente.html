@@ -3029,43 +3029,6 @@ function showTrainingDay(sessionId) {
   }
 }
 
-function showTrainingDay(sessionId) {
-  saveLastActiveSession(sessionId);
-
-  const btn = document.querySelector('.training-day-tab[data-session-id="' + sessionId + '"]');
-  const scope = btn?.closest('.training-week-panel') || document;
-
-  scope.querySelectorAll('.training-day-tab').forEach(b => {
-    if (!String(b.dataset.weekId || '').length) {
-      b.classList.toggle('active', String(b.dataset.sessionId) === String(sessionId));
-    }
-  });
-
-  scope.querySelectorAll('.training-session-panel,.training-day-panel').forEach(p => {
-    if (p.dataset.sessionId) {
-      p.classList.toggle('active', String(p.dataset.sessionId) === String(sessionId));
-    }
-  });
-
-  // Recargar estado visual SOLO para esta sesión, sin tocar Supabase
-  reloadSessionState(sessionId);
-
-  const area = document.getElementById('trainingCompletionArea');
-  if (area) area.innerHTML = '';
-
-  // Mostrar completion box si la sesión está terminada o todos sus bloques completos
-  const sessionFinished = isSessionFinished(sessionId);
-  const sessionSteps = buildTrainingSteps(sessionId);
-  const allBlocksDone = sessionSteps.length > 0 &&
-    sessionSteps.every(s => completedTrainingBlocks.has(s.blockId));
-
-  if (sessionFinished) {
-    renderTrainingCompletionBox(false);
-  } else if (allBlocksDone) {
-    renderTrainingCompletionBox(false);
-  }
-}
-
 function reloadSessionState(sessionId) {
   // Limpiar estado global
   completedTrainingBlocks = new Set();
