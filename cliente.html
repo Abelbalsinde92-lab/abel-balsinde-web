@@ -3018,7 +3018,8 @@ function showTrainingDay(sessionId){
     active.scrollIntoView({ behavior:'smooth', block:'nearest' });
   }
 
-  loadOrCreateTrainingLog(sessionId);
+  const area = document.getElementById('trainingCompletionArea');
+  if(area) area.innerHTML = '';
 }
 
 function showTrainingWeekPanel(weekId){
@@ -3298,15 +3299,15 @@ async function renderClientTraining(){
 
   const initialActiveSessionId = getInitialActiveSessionId();
 
-  if(clientTrainingAssignment && initialActiveSessionId){
-    await loadOrCreateTrainingLog(initialActiveSessionId);
-  } else {
-    const lp = loadTrainingProgressLocal(initialActiveSessionId);
-    if(lp){
-      completedTrainingBlocks = new Set(lp.completed_block_ids || []);
-      currentTrainingLog = lp;
-    }
-  }
+  const lp = loadTrainingProgressLocal(initialActiveSessionId);
+
+if(lp){
+  completedTrainingBlocks = new Set(lp.completed_block_ids || []);
+  currentTrainingLog = lp;
+} else {
+  completedTrainingBlocks = new Set();
+  currentTrainingLog = null;
+}
 
   const levelStr = getAssignedTrainingLevel();
   const scopeLabel = getAssignmentScopeLabel();
