@@ -649,6 +649,77 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .training-feedback-row:hover { border-color: var(--sport); }
 .training-feedback-check { width: 16px; height: 16px; accent-color: var(--sport); }
 
+/* ═══ ENTRENAMIENTO ADAPTADO CLIENTE ═════════════════════ */
+.training-adapted-card {
+  background: rgba(0,163,255,.06);
+  border: 1px solid rgba(0,163,255,.28);
+  border-radius: 12px;
+  padding: 18px;
+  margin: 0 0 14px;
+}
+
+.training-adapted-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--sport);
+  margin-bottom: 8px;
+}
+
+.training-adapted-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: 1.5px;
+  line-height: 1;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.training-adapted-message {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+
+.training-adapted-summary {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  line-height: 1.7;
+}
+
+.training-client-status {
+  display: inline-block;
+  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .8px;
+  color: var(--warn);
+}
+
+.training-client-note {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.training-client-note strong {
+  display: block;
+  color: var(--sport);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
 /* ═══ EVALUACIONES ══════════════════════════════════════ */
 .assessment-card { margin-bottom: 10px; overflow: hidden; }
 .assessment-card-header {
@@ -887,6 +958,8 @@ let clientTrainingWeeks      = [];
 let clientTrainingSessions   = [];
 let clientTrainingBlocks     = [];
 let clientTrainingExercises  = [];
+let clientTrainingDisplayRows = [];
+let clientTrainingSessionDisplay = null;
 let completedTrainingBlocks  = new Set();
 let activeTrainingBlockKey   = null;
 let currentTrainingLog       = null;
@@ -1435,170 +1508,188 @@ async function loadClientDashboard(clientId) {
 
     const pid = clientTrainingAssignment?.program_id || null;
 
-    if (pid) {
-      const visibleR = await db
-        .from('client_training_plan_visible')
-        .select('*')
-        .eq('client_id', clientId)
-        .eq('program_id', pid)
-        .order('week_order', { ascending: true })
-        .order('session_order', { ascending: true })
-        .order('block_order', { ascending: true })
-        .order('exercise_order', { ascending: true });
+if (pid) {
+  const visibleR = await db
+    .from('v_client_training_display')
+    .select('*')
+    .eq('client_id', clientId)
+    .eq('program_id', pid)
+    .order('week_order', { ascending: true })
+    .order('session_order', { ascending: true })
+    .order('block_order', { ascending: true })
+    .order('exercise_order', { ascending: true });
 
-      window.__AB_DEBUG_CLIENT__ = {
-        visibleRows: visibleR.data?.length || 0,
-        visibleError: visibleR.error || null,
-        assignment: clientTrainingAssignment || null
+  window.__AB_DEBUG_CLIENT__ = {
+    visibleRows: visibleR.data?.length || 0,
+    visibleError: visibleR.error || null,
+    assignment: clientTrainingAssignment || null
+  };
+
+  if (!visibleR.error) {
+    let rows = visibleR.data || [];
+
+    const scope = getAssignmentScope();
+
+    if (scope === 'day') {
+      const aw = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
+      const as = Number(clientTrainingAssignment?.assigned_session_number || 1);
+
+      rows = rows.filter(r =>
+        Number(r.week_order) === aw &&
+        Number(r.session_order) === as
+      );
+    }
+
+    if (scope === 'week') {
+      const aw = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
+
+      rows = rows.filter(r =>
+        Number(r.week_order) === aw
+      );
+    }
+
+    if (scope === 'month') {
+      const am = Number(clientTrainingAssignment?.assigned_month || 1);
+      const sw = (am - 1) * 4 + 1;
+
+      rows = rows.filter(r =>
+        Number(r.week_order) >= sw &&
+        Number(r.week_order) <= sw + 3
+      );
+    }
+
+    clientTrainingDisplayRows = rows || [];
+
+    clientTrainingSessionDisplay = clientTrainingDisplayRows[0]
+      ? {
+          client_status_title: clientTrainingDisplayRows[0].client_status_title || '',
+          client_main_message: clientTrainingDisplayRows[0].client_main_message || '',
+          client_adjustment_summary: clientTrainingDisplayRows[0].client_adjustment_summary || '',
+          client_reason_message: clientTrainingDisplayRows[0].client_reason_message || '',
+          client_objective_message: clientTrainingDisplayRows[0].client_objective_message || ''
+        }
+      : null;
+
+    if (rows.length) {
+      const first = rows[0];
+
+      clientTrainingProgram = {
+        id: first.program_id,
+        name: first.program_name || '',
+        description: first.program_description || '',
+        objective: first.program_objective || '',
+        type: first.program_type || '',
+        level: first.program_level || ''
       };
 
-      if (!visibleR.error) {
-        let rows = visibleR.data || [];
+      const weeksMap = new Map();
+      const sessionsMap = new Map();
+      const blocksMap = new Map();
 
-        const scope = getAssignmentScope();
-
-        if (scope === 'day') {
-          const aw = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
-          const as = Number(clientTrainingAssignment?.assigned_session_number || 1);
-
-          rows = rows.filter(r =>
-            Number(r.week_order) === aw &&
-            Number(r.session_order) === as
-          );
-        }
-
-        if (scope === 'week') {
-          const aw = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
-
-          rows = rows.filter(r =>
-            Number(r.week_order) === aw
-          );
-        }
-
-        if (scope === 'month') {
-          const am = Number(clientTrainingAssignment?.assigned_month || 1);
-          const sw = (am - 1) * 4 + 1;
-
-          rows = rows.filter(r =>
-            Number(r.week_order) >= sw &&
-            Number(r.week_order) <= sw + 3
-          );
-        }
-
-        if (rows.length) {
-          const first = rows[0];
-
-          clientTrainingProgram = {
-            id: first.program_id,
-            name: first.program_name || '',
-            description: first.program_description || '',
-            objective: first.program_objective || '',
-            type: first.program_type || '',
-            level: first.program_level || ''
-          };
-
-          const weeksMap = new Map();
-          const sessionsMap = new Map();
-          const blocksMap = new Map();
-
-          rows.forEach(r => {
-            if (!weeksMap.has(r.week_id)) {
-              weeksMap.set(r.week_id, {
-                id: r.week_id,
-                week_number: r.week_order,
-                name: r.week_name || '',
-                description: r.week_description || '',
-                objective: r.week_objective || '',
-                focus: r.week_focus || ''
-              });
-            }
-
-            if (!sessionsMap.has(r.session_id)) {
-              sessionsMap.set(r.session_id, {
-                id: r.session_id,
-                week_id: r.week_id,
-                session_number: r.session_order,
-                title: r.session_title || '',
-                description: r.session_description || '',
-                objective: r.session_objective || '',
-                intensity: r.session_intensity || ''
-              });
-            }
-
-            if (!blocksMap.has(r.block_id)) {
-              blocksMap.set(r.block_id, {
-                id: r.block_id,
-                session_id: r.session_id,
-                block_order: r.block_order,
-                title: r.block_title || '',
-                description: r.block_description || '',
-                objective: r.block_objective || '',
-                type: r.block_type || '',
-                duration: r.block_duration || ''
-              });
-            }
-
-            clientTrainingExercises.push({
-              id: r.exercise_id,
-              block_id: r.block_id,
-              exercise_order: r.exercise_order,
-
-              name: r.exercise_name || '',
-              description: r.exercise_description || '',
-
-              sets: r.sets || '',
-              reps: r.reps || '',
-              time: r.time || r.duration || '',
-              rest: r.rest || '',
-
-              variant_n1: r.variant_n1 || '',
-              variant_n2: r.variant_n2 || '',
-              variant_n3: r.variant_n3 || '',
-              variant_n4: r.variant_n4 || '',
-
-              coaching_notes: r.coaching_notes || '',
-              video_url: r.video_url || ''
-            });
-          });
-
-          clientTrainingWeeks = Array.from(weeksMap.values()).sort((a, b) =>
-            Number(a.week_number || 0) - Number(b.week_number || 0)
-          );
-
-          clientTrainingSessions = Array.from(sessionsMap.values()).sort((a, b) => {
-            const wa = clientTrainingWeeks.find(w => String(w.id) === String(a.week_id));
-            const wb = clientTrainingWeeks.find(w => String(w.id) === String(b.week_id));
-
-            const wA = Number(wa?.week_number || 0);
-            const wB = Number(wb?.week_number || 0);
-
-            if (wA !== wB) return wA - wB;
-
-            return Number(a.session_number || 0) - Number(b.session_number || 0);
-          });
-
-          clientTrainingBlocks = Array.from(blocksMap.values()).sort((a, b) => {
-            const sa = clientTrainingSessions.find(s => String(s.id) === String(a.session_id));
-            const sb = clientTrainingSessions.find(s => String(s.id) === String(b.session_id));
-
-            const wa = clientTrainingWeeks.find(w => String(w.id) === String(sa?.week_id));
-            const wb = clientTrainingWeeks.find(w => String(w.id) === String(sb?.week_id));
-
-            const wA = Number(wa?.week_number || 0);
-            const wB = Number(wb?.week_number || 0);
-
-            if (wA !== wB) return wA - wB;
-
-            const sA = Number(sa?.session_number || 0);
-            const sB = Number(sb?.session_number || 0);
-
-            if (sA !== sB) return sA - sB;
-
-            return Number(a.block_order || 0) - Number(b.block_order || 0);
+      rows.forEach(r => {
+        if (!weeksMap.has(r.week_id)) {
+          weeksMap.set(r.week_id, {
+            id: r.week_id,
+            week_number: r.week_order,
+            name: r.week_name || '',
+            description: r.week_description || '',
+            objective: r.week_objective || '',
+            focus: r.week_focus || ''
           });
         }
-      }
+
+        if (!sessionsMap.has(r.session_id)) {
+          sessionsMap.set(r.session_id, {
+            id: r.session_id,
+            week_id: r.week_id,
+            session_number: r.session_order,
+            title: r.session_title || '',
+            description: r.session_description || '',
+            objective: r.session_objective || '',
+            intensity: r.session_intensity || ''
+          });
+        }
+
+        if (!blocksMap.has(r.block_id)) {
+          blocksMap.set(r.block_id, {
+            id: r.block_id,
+            session_id: r.session_id,
+            block_order: r.block_order,
+            title: r.block_title || '',
+            description: r.block_description || '',
+            objective: r.block_objective || '',
+            type: r.block_type || '',
+            duration: r.block_duration || ''
+          });
+        }
+
+        clientTrainingExercises.push({
+          id: r.exercise_id,
+          block_id: r.block_id,
+          exercise_order: r.exercise_order,
+
+          name: r.exercise_name || '',
+          description: r.exercise_description || '',
+
+          sets: r.sets || '',
+          reps: r.reps || '',
+          time: r.time || r.duration || '',
+          rest: r.rest || '',
+
+          variant_n1: r.variant_n1 || '',
+          variant_n2: r.variant_n2 || '',
+          variant_n3: r.variant_n3 || '',
+          variant_n4: r.variant_n4 || '',
+
+          coaching_notes: r.coaching_notes || '',
+          video_url: r.video_url || '',
+
+          client_variant: r.client_variant || '',
+          client_exercise_status: r.client_exercise_status || '',
+          client_coaching_note: r.client_coaching_note || '',
+          main_condition_area: r.main_condition_area || '',
+          final_decision: r.final_decision || ''
+        });
+      });
+
+      clientTrainingWeeks = Array.from(weeksMap.values()).sort((a, b) =>
+        Number(a.week_number || 0) - Number(b.week_number || 0)
+      );
+
+      clientTrainingSessions = Array.from(sessionsMap.values()).sort((a, b) => {
+        const wa = clientTrainingWeeks.find(w => String(w.id) === String(a.week_id));
+        const wb = clientTrainingWeeks.find(w => String(w.id) === String(b.week_id));
+
+        const wA = Number(wa?.week_number || 0);
+        const wB = Number(wb?.week_number || 0);
+
+        if (wA !== wB) return wA - wB;
+
+        return Number(a.session_number || 0) - Number(b.session_number || 0);
+      });
+
+      clientTrainingBlocks = Array.from(blocksMap.values()).sort((a, b) => {
+        const sa = clientTrainingSessions.find(s => String(s.id) === String(a.session_id));
+        const sb = clientTrainingSessions.find(s => String(s.id) === String(b.session_id));
+
+        const wa = clientTrainingWeeks.find(w => String(w.id) === String(sa?.week_id));
+        const wb = clientTrainingWeeks.find(w => String(w.id) === String(sb?.week_id));
+
+        const wA = Number(wa?.week_number || 0);
+        const wB = Number(wb?.week_number || 0);
+
+        if (wA !== wB) return wA - wB;
+
+        const sA = Number(sa?.session_number || 0);
+        const sB = Number(sb?.session_number || 0);
+
+        if (sA !== sB) return sA - sB;
+
+        return Number(a.block_order || 0) - Number(b.block_order || 0);
+      });
     }
+  }
+}
 
     await renderDashboard();
 
@@ -3081,6 +3172,47 @@ async function saveTrainingProgress(extra,sessionId){
   }
 }
 
+function buildClientAdaptedSessionCard() {
+  if (!clientTrainingSessionDisplay) return '';
+
+  const title = clientTrainingSessionDisplay.client_status_title || '';
+  const main = clientTrainingSessionDisplay.client_main_message || '';
+  const summary = clientTrainingSessionDisplay.client_adjustment_summary || '';
+  const objective = clientTrainingSessionDisplay.client_objective_message || '';
+
+  if (!title && !main && !summary && !objective) return '';
+
+  return (
+    '<div class="training-adapted-card">' +
+      '<div class="training-adapted-label">Plan ajustado</div>' +
+
+      (
+        title
+          ? '<div class="training-adapted-title">' + title + '</div>'
+          : ''
+      ) +
+
+      (
+        main
+          ? '<div class="training-adapted-message">' + main + '</div>'
+          : ''
+      ) +
+
+      (
+        summary
+          ? '<div class="training-adapted-summary">' + summary + '</div>'
+          : ''
+      ) +
+
+      (
+        objective
+          ? '<div class="training-adapted-message" style="margin-top:10px;margin-bottom:0;color:var(--text-secondary);">' + objective + '</div>'
+          : ''
+      ) +
+    '</div>'
+  );
+}
+
 async function renderClientTraining(){
   const el = document.getElementById('sectionTrainingClient');
   const badge = document.getElementById('trainingClientBadge');
@@ -3174,6 +3306,8 @@ async function renderClientTraining(){
   }
 
   let html = '';
+
+html += buildClientAdaptedSessionCard();
 
   if(clientTrainingSessions.length > 1){
     const sessionsByWeek = new Map();
@@ -3426,7 +3560,8 @@ function buildExerciseHTML(ex){
   return ex['variant_' + lvl.toLowerCase()] || '';
 }
 
-  const variant = pickVariant(ex,lvl);
+  const baseVariant = pickVariant(ex,lvl);
+const variant = ex.client_variant || baseVariant;
 
   const exName =
     pickLang(ex,'name',_lg) ||
@@ -3473,6 +3608,11 @@ function buildExerciseHTML(ex){
 
     html += '</div>';
   }
+  
+  if (ex.client_exercise_status) {
+  html +=
+    '<div class="training-client-status">[' + ex.client_exercise_status + ']</div>';
+}
 
   html += '<div class="training-level-tag">' + tClient('level') + ' ' + lvl + '</div>';
 
@@ -3498,6 +3638,14 @@ function buildExerciseHTML(ex){
         tClient('coach') + ': ' + exNotes +
       '</div>';
   }
+  
+  if (ex.client_coaching_note) {
+  html +=
+    '<div class="training-client-note">' +
+      '<strong>Indicación</strong>' +
+      ex.client_coaching_note +
+    '</div>';
+}
 
   if(ex.video_url){
     html +=
