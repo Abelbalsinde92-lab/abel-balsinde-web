@@ -3107,6 +3107,11 @@ async function loadOrCreateTrainingLog(sessionId){
     training_date: todayISO()
   };
 
+  if (!payload.assignment_id || !payload.client_id || !payload.session_id || !payload.training_date) {
+    console.error('Missing required training log payload fields', payload);
+    return null;
+  }
+
   try{
     const existing = await db
   .from('client_session_logs')
