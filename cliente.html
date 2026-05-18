@@ -1185,18 +1185,13 @@ function getTrainingStorageKey(sessionId) {
 }
 function isSessionFinished(sessionId) {
   if (!sessionId) return false;
+
   const sid = String(sessionId);
 
   const dbFinished = (clientSessionLogs || []).some(log =>
     String(log.assignment_id) === String(clientTrainingAssignment?.id) &&
     String(log.session_id) === sid &&
-    (
-      log.is_finished === true ||
-      String(log.status || '').toLowerCase() === 'realizada' ||
-      String(log.status || '').toLowerCase() === 'completed' ||
-      Boolean(log.finished_at) ||
-      Boolean(log.completed_at)
-    )
+    log.is_finished === true
   );
 
   if (dbFinished) return true;
@@ -1210,7 +1205,6 @@ function isSessionFinished(sessionId) {
   } catch {
     return false;
   }
-  // NOTA: completed_block_ids NO determina is_finished. Solo is_finished/status/finished_at lo hacen.
 }
 function loadTrainingProgressLocal(sessionId) {
   const key = getTrainingStorageKey(sessionId);
@@ -1508,7 +1502,15 @@ async function loadClientDashboard(clientId) {
 
 if (pid) {
   const [baseR, displayR] = await Promise.all([
-  Promise.resolve({ data: [], error: null }),
+  db
+    .from('client_training_plan_visible')
+    .select('*')
+    .eq('client_id', clientId)
+    .eq('program_id', pid)
+    .order('week_order', { ascending: true })
+    .order('session_order', { ascending: true })
+    .order('block_order', { ascending: true })
+    .order('exercise_order', { ascending: true }),
 
   db
     .from('v_client_training_display')
