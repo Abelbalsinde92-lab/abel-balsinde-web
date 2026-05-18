@@ -3115,7 +3115,7 @@ async function loadOrCreateTrainingLog(sessionId){
   .eq('assignment_id', payload.assignment_id)
   .eq('session_id', payload.session_id)
   .eq('training_date', payload.training_date)
-  .order('created_at', { ascending: false })
+  .order('updated_at', { ascending: false, nullsFirst: false })
   .limit(1)
   .maybeSingle();
 
