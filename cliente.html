@@ -1185,27 +1185,28 @@ function getTrainingStorageKey(sessionId) {
 }
 function isSessionFinished(sessionId) {
   if (!sessionId) return false;
-
   const sid = String(sessionId);
 
   const dbFinished = (clientSessionLogs || []).some(log =>
     String(log.assignment_id) === String(clientTrainingAssignment?.id) &&
     String(log.session_id) === sid &&
-    log.is_finished === true
+    (
+      log.is_finished === true ||
+      String(log.status || '').toLowerCase() === 'finished' ||
+      Boolean(log.finished_at)
+    )
   );
 
   if (dbFinished) return true;
 
   const key = getTrainingStorageKey(sid);
   if (!key) return false;
-
   try {
     const r = localStorage.getItem(key);
     return r ? JSON.parse(r)?.is_finished === true : false;
-  } catch {
-    return false;
-  }
+  } catch { return false; }
 }
+
 function loadTrainingProgressLocal(sessionId) {
   const key = getTrainingStorageKey(sessionId);
   if (!key) return null;
@@ -3232,6 +3233,9 @@ async function loadOrCreateTrainingLog(sessionId){
   .from('client_session_logs')
   .upsert({
     ...payload,
+    status: 'iniciada',
+    completed_at: null,
+    finished_at: null,
     completed_block_ids: Array.from(completedTrainingBlocks),
     is_finished: localProgress?.is_finished || false,
     client_note: localProgress?.client_note || '',
@@ -3240,6 +3244,7 @@ async function loadOrCreateTrainingLog(sessionId){
     started_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   }, {
+
     onConflict: 'client_id,assignment_id,session_id,training_date'
   })
   .select()
@@ -3903,10 +3908,8 @@ function renderTrainingCompletionBox(scroll){
 
   const alreadyFinished =
     finishedSource?.is_finished === true ||
-    String(finishedSource?.status || '').toLowerCase() === 'realizada' ||
-    String(finishedSource?.status || '').toLowerCase() === 'completed' ||
-    Boolean(finishedSource?.finished_at) ||
-    Boolean(finishedSource?.completed_at);
+    String(finishedSource?.status || '').toLowerCase() === 'finished' ||
+    Boolean(finishedSource?.finished_at);
 
   if(alreadyFinished){
     const finishedAt =
@@ -4050,6 +4053,7 @@ if(!currentSessionId){
   saveTrainingProgressLocal({
     is_finished: true,
     finished_at: new Date().toISOString(),
+    
     client_note: note,
     client_feedback_tags: checkedTags,
     client_feedback_summary: feedbackSummary
@@ -4057,11 +4061,14 @@ if(!currentSessionId){
 
   await saveTrainingProgress({
     is_finished: true,
+    status: 'finished',
     finished_at: new Date().toISOString(),
+    completed_at: null,
     client_note: note || null,
     client_feedback_tags: checkedTags,
     client_feedback_summary: feedbackSummary || null
   }, currentSessionId);
+
 
   const nextSessionId = getNextSessionId(currentSessionId);
 
