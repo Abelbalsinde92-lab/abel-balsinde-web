@@ -832,6 +832,124 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .avatar-upload-btn:hover { border-color: var(--sport); color: var(--sport); }
 #avatarFileInput { display: none; }
 
+/* ═══ CALENDARIO RESERVAS ══════════════════════════════ */
+.cal-wrapper { margin-bottom: 20px; }
+.cal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.cal-month {
+  font-family: var(--font-display); font-size: 22px;
+  letter-spacing: 2px; color: var(--text-primary);
+}
+.cal-nav-btn {
+  background: transparent; border: 1px solid var(--card-border);
+  color: var(--text-secondary); border-radius: 6px;
+  width: 34px; height: 34px; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .2s, color .2s;
+}
+.cal-nav-btn:hover { border-color: var(--sport); color: var(--sport); }
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.cal-day-label {
+  text-align: center; font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: 1px; color: var(--text-secondary);
+  text-transform: uppercase; padding: 4px 0 8px;
+}
+.cal-day {
+  aspect-ratio: 1; border-radius: 8px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px;
+  cursor: pointer; position: relative;
+  border: 1px solid transparent;
+  transition: border-color .15s, background .15s;
+  gap: 2px;
+}
+.cal-day.empty { cursor: default; }
+.cal-day.past { color: var(--text-secondary); opacity: .35; cursor: default; }
+.cal-day.today { border-color: var(--sport); color: var(--sport); }
+.cal-day.free { color: var(--text-primary); }
+.cal-day.free:hover { border-color: var(--sport); background: rgba(0,163,255,.06); }
+.cal-day.grupal-open {
+  border-color: rgba(0,230,118,.3);
+  background: rgba(0,230,118,.04);
+  color: var(--streak);
+}
+.cal-day.grupal-open:hover { background: rgba(0,230,118,.1); }
+.cal-day.grupal-full { color: var(--text-secondary); opacity: .5; cursor: default; }
+.cal-day.personal-own {
+  background: rgba(0,163,255,.1);
+  border-color: rgba(0,163,255,.4);
+  color: var(--sport);
+}
+.cal-day.occupied { color: var(--text-secondary); opacity: .4; cursor: default; }
+.cal-day.selected {
+  background: var(--sport) !important;
+  border-color: var(--sport) !important;
+  color: #000 !important;
+}
+.cal-dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: currentColor; flex-shrink: 0;
+}
+.cal-legend {
+  display: flex; flex-wrap: wrap; gap: 8px 14px;
+  margin-top: 14px;
+}
+.cal-legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: .8px; text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.cal-legend-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.cal-slots-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.cal-slot-card {
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 10px; padding: 12px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; cursor: pointer; transition: border-color .15s;
+}
+.cal-slot-card:hover { border-color: var(--sport); }
+.cal-slot-card.grupal { border-color: rgba(0,230,118,.25); }
+.cal-slot-card.grupal:hover { border-color: var(--streak); }
+.cal-slot-card.selected { border-color: var(--sport); background: rgba(0,163,255,.06); }
+.cal-slot-time {
+  font-family: var(--font-display); font-size: 22px;
+  letter-spacing: 1px; line-height: 1;
+}
+.cal-slot-meta {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-secondary); letter-spacing: .5px; margin-top: 3px;
+}
+.cal-slot-badge {
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 4px 8px; border-radius: 4px;
+  border: 1px solid currentColor; flex-shrink: 0;
+}
+.cal-request-form {
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 12px; padding: 18px; margin-top: 16px;
+}
+.cal-request-title {
+  font-family: var(--font-display); font-size: 20px;
+  letter-spacing: 1px; margin-bottom: 14px;
+}
+.cal-summary-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid var(--divider);
+  font-size: 13px;
+}
+.cal-summary-row:last-of-type { border-bottom: none; }
+.cal-summary-label { color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; letter-spacing: .8px; text-transform: uppercase; }
+.cal-summary-value { color: var(--text-primary); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -1000,6 +1118,12 @@ let activeTrainingBlockKey   = null;
 let currentTrainingLog       = null;
 let clientSessionLogs        = [];
 let clientDailyCheckins      = [];
+let calCurrentMonth = null;
+let calCurrentYear = null;
+let calSelectedDate = null;
+let calSelectedSlot = null;
+let calPublicSlots = [];
+let calClientReservations = [];
 let AB_LANG = "es";
 
 function statusLabel(esLabel, srLabel) {
@@ -1814,13 +1938,13 @@ async function renderDashboard() {
 
   if (typeof renderProgram==='function') renderProgram();
   await renderClientTraining();
-  renderReservations();
-renderAssessments();
-renderHealthAlerts();
-renderNotes();
-renderPayments();
-renderSummary();
-renderClientData();
+  await renderReservations();
+  renderAssessments();
+  renderHealthAlerts();
+  renderNotes();
+  renderPayments();
+  renderSummary();
+  renderClientData();
   const name=clientData.name||'cliente';
   const wa=document.getElementById('btnHeaderWA');
   if (wa) {
@@ -4680,144 +4804,470 @@ function renderAssessments(){
   el.innerHTML = html;
 }
 
-/* ══ OTRAS SECCIONES ══ */
-function renderReservations(){
-  const el = document.getElementById('sectionReservations');
-  const badge = document.getElementById('reservationsBadge');
-
-  if(!el) return;
-
-  if(badge) badge.textContent = clientReservations.length;
-
-  if(!clientReservations.length){
-    el.innerHTML =
-      '<p class="empty-state">' + uiText('noReservationsYet') + '</p>' +
-      '<div class="action-box">' +
-        '<button class="client-action-btn wa" onclick="clientWA(\'' + uiText('requestNewTrainingReservation') + '\')">' +
-          uiText('requestReservation') +
-        '</button>' +
-      '</div>';
-
-    return;
-  }
+async function loadCalendarData() {
+  if (!clientData?.id) return;
 
   const today = todayISO();
+  const firstDay = calCurrentYear + '-' + String(calCurrentMonth + 1).padStart(2, '0') + '-01';
+  const lastDay = new Date(calCurrentYear, calCurrentMonth + 1, 0);
+  const lastDayStr = calCurrentYear + '-' + String(calCurrentMonth + 1).padStart(2, '0') + '-' + String(lastDay.getDate()).padStart(2, '0');
 
-  const upcoming = clientReservations.filter(r =>
-    String(r.date).slice(0,10) >= today &&
-    !['cancelada','cancelado','cancelled'].includes(String(r.status || '').toLowerCase())
-  );
+  const [slotsR, myR] = await Promise.all([
+    db.from('public_slots')
+      .select('*')
+      .gte('date', firstDay)
+      .lte('date', lastDayStr)
+      .order('date', { ascending: true })
+      .order('time', { ascending: true }),
+    db.from('reservations')
+      .select('*')
+      .eq('client_id', clientData.id)
+      .gte('date', firstDay)
+      .lte('date', lastDayStr)
+  ]);
 
-  const past = clientReservations.filter(r =>
-    String(r.date).slice(0,10) < today ||
-    ['cancelada','cancelado','cancelled'].includes(String(r.status || '').toLowerCase())
-  );
+  calPublicSlots = slotsR.data || [];
+  calClientReservations = myR.data || [];
+}
 
-  let html = '';
+function getDayStatus(dateStr) {
+  const myRes = calClientReservations.filter(r => String(r.date) === dateStr);
+  const publicDay = calPublicSlots.filter(s => String(s.date) === dateStr);
+  const grupalOpen = publicDay.filter(s => s.can_join);
+  const grupalFull = publicDay.filter(s => !s.can_join && s.session_mode === 'grupal');
 
-  if(upcoming.length){
-    const nextReservation = upcoming[0];
+  if (myRes.length) return 'personal-own';
+  if (grupalOpen.length) return 'grupal-open';
+  if (grupalFull.length) return 'grupal-full';
+  return 'free';
+}
 
-    html +=
-      '<div class="data-card next-session">' +
-        '<div class="next-label">' + uiText('nextSession') + '</div>' +
+function buildCalendarHTML() {
+  const monthNames = getLang() === 'sr'
+    ? ['Januar','Februar','Mart','April','Maj','Jun','Jul','Avgust','Septembar','Oktobar','Novembar','Decembar']
+    : ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-        '<div class="dc-row">' +
-          '<span class="dc-title">' + (nextReservation.type || uiText('session')) + '</span>' +
-          genericBadge(nextReservation.status) +
-        '</div>' +
+  const dayLabels = getLang() === 'sr'
+    ? ['Pon','Uto','Sre','Čet','Pet','Sub','Ned']
+    : ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 
-        '<div class="dc-row">' +
-          '<span class="dc-sub">' + formatDate(nextReservation.date) + '</span>' +
-          (
-            nextReservation.time
-              ? '<span class="dc-sub">' + formatTime(nextReservation.time) + '</span>'
-              : ''
-          ) +
-          (
-            nextReservation.place
-              ? '<span class="dc-sub">' + nextReservation.place + '</span>'
-              : ''
-          ) +
-        '</div>' +
+  const today = new Date();
+  const todayStr = todayISO();
+  const firstDay = new Date(calCurrentYear, calCurrentMonth, 1);
+  const daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+  let startDow = firstDay.getDay();
+  startDow = startDow === 0 ? 6 : startDow - 1;
 
-        (
-          nextReservation.note
-            ? '<div class="dc-note">' + nextReservation.note + '</div>'
-            : ''
-        ) +
-      '</div>';
+  let html =
+    '<div class="cal-wrapper">' +
+      '<div class="cal-header">' +
+        '<button class="cal-nav-btn" onclick="calPrevMonth()">‹</button>' +
+        '<div class="cal-month">' + monthNames[calCurrentMonth] + ' ' + calCurrentYear + '</div>' +
+        '<button class="cal-nav-btn" onclick="calNextMonth()">›</button>' +
+      '</div>' +
+      '<div class="cal-grid">';
 
-    upcoming.slice(1).forEach(r => {
+  dayLabels.forEach(d => {
+    html += '<div class="cal-day-label">' + d + '</div>';
+  });
+
+  for (let i = 0; i < startDow; i++) {
+    html += '<div class="cal-day empty"></div>';
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = calCurrentYear + '-' + String(calCurrentMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    const isPast = dateStr < todayStr;
+    const isToday = dateStr === todayStr;
+    const isSelected = dateStr === calSelectedDate;
+    const status = isPast ? 'past' : getDayStatus(dateStr);
+
+    let cls = 'cal-day ' + (isPast ? 'past' : status);
+    if (isToday && !isPast) cls += ' today';
+    if (isSelected) cls += ' selected';
+
+    const onclick = isPast || status === 'occupied' || status === 'grupal-full'
+      ? ''
+      : 'onclick="calSelectDay(\'' + dateStr + '\')"';
+
+    html += '<div class="' + cls + '" ' + onclick + '>' + d;
+
+    if (!isPast && (status === 'grupal-open' || status === 'personal-own')) {
+      html += '<div class="cal-dot"></div>';
+    }
+
+    html += '</div>';
+  }
+
+  html +=
+      '</div>' +
+      '<div class="cal-legend">' +
+        '<div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--streak)"></div>' + (getLang() === 'sr' ? 'Grupal disponible' : 'Grupal disponible') + '</div>' +
+        '<div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--sport)"></div>' + (getLang() === 'sr' ? 'Mi reserva' : 'Mi reserva') + '</div>' +
+        '<div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--text-secondary)"></div>' + (getLang() === 'sr' ? 'Libre' : 'Libre') + '</div>' +
+      '</div>' +
+    '</div>';
+
+  return html;
+}
+
+function buildSlotsForDay(dateStr) {
+  const grupalSlots = calPublicSlots.filter(s => String(s.date) === dateStr);
+  const mySlots = calClientReservations.filter(r => String(r.date) === dateStr);
+
+  let html = '<div class="cal-slots-list">';
+
+  if (mySlots.length) {
+    mySlots.forEach(r => {
       html +=
-        '<div class="data-card">' +
-          '<div class="dc-row">' +
-            '<span class="dc-title">' + (r.type || uiText('session')) + '</span>' +
-            genericBadge(r.status) +
+        '<div class="cal-slot-card personal-own">' +
+          '<div>' +
+            '<div class="cal-slot-time">' + formatTime(r.time) + '</div>' +
+            '<div class="cal-slot-meta">' + (r.type || (getLang() === 'sr' ? 'Lična sesija' : 'Sesión personal')) + (r.place ? ' · ' + r.place : '') + '</div>' +
           '</div>' +
-
-          '<div class="dc-row">' +
-            '<span class="dc-sub">' + formatDate(r.date) + '</span>' +
-            (
-              r.time
-                ? '<span class="dc-sub">' + formatTime(r.time) + '</span>'
-                : ''
-            ) +
-            (
-              r.place
-                ? '<span class="dc-sub">' + r.place + '</span>'
-                : ''
-            ) +
-          '</div>' +
-
-          (
-            r.note
-              ? '<div class="dc-note">' + r.note + '</div>'
-              : ''
-          ) +
+          '<span class="cal-slot-badge" style="color:var(--sport)">' + (getLang() === 'sr' ? 'Moj termin' : 'Mi sesión') + '</span>' +
         '</div>';
     });
   }
 
-  past.forEach(r => {
+  if (grupalSlots.length) {
+    grupalSlots.forEach(s => {
+      const canJoin = s.can_join;
+      const spotsLeft = s.max_capacity - s.current_capacity;
+      const isSelected = calSelectedSlot?.id === s.id;
+
+      html +=
+        '<div class="cal-slot-card grupal' + (isSelected ? ' selected' : '') + (canJoin ? '' : ' grupal-full') + '" ' +
+          (canJoin ? 'onclick="calSelectSlot(\'' + s.id + '\',' + JSON.stringify(s).replace(/"/g, '&quot;') + ')"' : '') + '>' +
+          '<div>' +
+            '<div class="cal-slot-time">' + formatTime(s.time) + '</div>' +
+            '<div class="cal-slot-meta">' +
+              (getLang() === 'sr' ? 'Grupni trening' : 'Entrenamiento grupal') +
+              (s.place ? ' · ' + s.place : '') +
+              ' · ' + s.duration_minutes + 'min' +
+            '</div>' +
+          '</div>' +
+          '<span class="cal-slot-badge" style="color:' + (canJoin ? 'var(--streak)' : 'var(--text-secondary)') + '">' +
+            (canJoin
+              ? (getLang() === 'sr' ? spotsLeft + ' mesta' : spotsLeft + ' plazas')
+              : (getLang() === 'sr' ? 'Popunjeno' : 'Completo')) +
+          '</span>' +
+        '</div>';
+    });
+  }
+
+  if (!mySlots.length && !grupalSlots.length) {
     html +=
       '<div class="data-card">' +
         '<div class="dc-row">' +
-          '<span class="dc-title">' + (r.type || uiText('session')) + '</span>' +
-          genericBadge(r.status) +
+          '<span class="dc-title" style="font-size:14px;">' +
+            (getLang() === 'sr' ? 'Slobodan termin' : 'Horario libre') +
+          '</span>' +
         '</div>' +
-
-        '<div class="dc-row">' +
-          '<span class="dc-sub">' + formatDate(r.date) + '</span>' +
-          (
-            r.time
-              ? '<span class="dc-sub">' + formatTime(r.time) + '</span>'
-              : ''
-          ) +
-          (
-            r.place
-              ? '<span class="dc-sub">' + r.place + '</span>'
-              : ''
-          ) +
+        '<div class="dc-note">' +
+          (getLang() === 'sr' ? 'Puedes solicitar una sesión en esta fecha.' : 'Puedes solicitar una sesión en esta fecha.') +
         '</div>' +
-
-        (
-          r.note
-            ? '<div class="dc-note">' + r.note + '</div>'
-            : ''
-        ) +
+        '<div class="action-box" style="margin-top:12px;">' +
+          '<button class="client-action-btn" onclick="calOpenRequestForm(null)">' +
+            (getLang() === 'sr' ? 'Zatraži termin' : 'Solicitar sesión') +
+          '</button>' +
+        '</div>' +
       '</div>';
-  });
+  } else if (!mySlots.length) {
+    html +=
+      '<button class="client-action-btn" style="margin-top:8px;" onclick="calOpenRequestForm(null)">' +
+        (getLang() === 'sr' ? 'Zatraži ličnu sesiju' : 'Solicitar sesión personal') +
+      '</button>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function buildRequestFormHTML(slot) {
+  const dateLabel = calSelectedDate
+    ? formatDate(calSelectedDate)
+    : '—';
+
+  const isGrupal = !!slot;
+
+  let html =
+    '<div class="cal-request-form">' +
+      '<div class="cal-request-title">' +
+        (getLang() === 'sr' ? 'Zatraži termin' : 'Solicitar reserva') +
+      '</div>' +
+
+      '<div class="cal-summary-row">' +
+        '<span class="cal-summary-label">' + (getLang() === 'sr' ? 'Datum' : 'Fecha') + '</span>' +
+        '<span class="cal-summary-value">' + dateLabel + '</span>' +
+      '</div>';
+
+  if (isGrupal) {
+    html +=
+      '<div class="cal-summary-row">' +
+        '<span class="cal-summary-label">' + (getLang() === 'sr' ? 'Hora' : 'Hora') + '</span>' +
+        '<span class="cal-summary-value">' + formatTime(slot.time) + '</span>' +
+      '</div>' +
+      '<div class="cal-summary-row">' +
+        '<span class="cal-summary-label">' + (getLang() === 'sr' ? 'Tipo' : 'Tipo') + '</span>' +
+        '<span class="cal-summary-value" style="color:var(--streak)">' +
+          (getLang() === 'sr' ? 'Grupal' : 'Grupal') +
+        '</span>' +
+      '</div>' +
+      (slot.place
+        ? '<div class="cal-summary-row">' +
+            '<span class="cal-summary-label">' + (getLang() === 'sr' ? 'Lugar' : 'Lugar') + '</span>' +
+            '<span class="cal-summary-value">' + slot.place + '</span>' +
+          '</div>'
+        : '');
+  } else {
+    html +=
+      '<div class="cal-summary-row">' +
+        '<span class="cal-summary-label">' + (getLang() === 'sr' ? 'Hora preferida' : 'Hora preferida') + '</span>' +
+        '<div>' +
+          '<input id="calRequestTime" type="time" style="background:var(--bg);border:1px solid var(--card-border);border-radius:6px;padding:8px 10px;color:var(--text-primary);font-family:var(--font-mono);font-size:13px;width:130px;" />' +
+        '</div>' +
+      '</div>' +
+      '<div class="cal-summary-row">' +
+        '<span class="cal-summary-label">' + (getLang() === 'sr' ? 'Tipo' : 'Tipo') + '</span>' +
+        '<select id="calRequestType" style="background:var(--bg);border:1px solid var(--card-border);border-radius:6px;padding:8px 10px;color:var(--text-primary);font-family:var(--font-mono);font-size:12px;">' +
+          '<option value="personal">' + (getLang() === 'sr' ? 'Personal' : 'Personal') + '</option>' +
+          '<option value="pareja">' + (getLang() === 'sr' ? 'Par' : 'Pareja') + '</option>' +
+        '</select>' +
+      '</div>';
+  }
 
   html +=
-    '<div class="action-box">' +
-      '<button class="client-action-btn wa" onclick="clientWA(\'' + uiText('requestNewTrainingReservation') + '\')">' +
-        uiText('requestReservation') +
-      '</button>' +
+      '<div style="margin-top:14px;">' +
+        '<div class="summary-label" style="margin-bottom:6px;">' +
+          (getLang() === 'sr' ? 'Poruka treneru (opciono)' : 'Mensaje para el coach (opcional)') +
+        '</div>' +
+        '<textarea id="calRequestNote" class="training-notes-textarea" style="min-height:74px;margin-bottom:0;" placeholder="' +
+          (getLang() === 'sr' ? 'Ej: tengo molestia en rodilla, quiero trabajar...' : 'Ej: tengo molestia en rodilla, quiero trabajar...') +
+        '"></textarea>' +
+      '</div>' +
+
+      '<div class="action-box" style="margin-top:14px;">' +
+        '<button class="client-action-btn" id="calSubmitBtn" onclick="calSubmitRequest(' + (isGrupal ? '\'' + slot.id + '\'' : 'null') + ')">' +
+          (getLang() === 'sr' ? 'Confirmar solicitud' : 'Confirmar solicitud') +
+        '</button>' +
+        '<button class="client-action-btn wa" onclick="calCancelRequest()">' +
+          (getLang() === 'sr' ? 'Cancelar' : 'Cancelar') +
+        '</button>' +
+      '</div>' +
+    '</div>';
+
+  return html;
+}
+
+function calSelectDay(dateStr) {
+  calSelectedDate = dateStr;
+  calSelectedSlot = null;
+  renderReservationsCalendar();
+}
+
+function calSelectSlot(slotId, slotData) {
+  calSelectedSlot = slotData;
+  calOpenRequestForm(slotData);
+}
+
+function calOpenRequestForm(slot) {
+  const area = document.getElementById('calRequestArea');
+  if (!area) return;
+  area.innerHTML = buildRequestFormHTML(slot);
+  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function calCancelRequest() {
+  calSelectedSlot = null;
+  const area = document.getElementById('calRequestArea');
+  if (area) area.innerHTML = '';
+}
+
+async function calSubmitRequest(groupSlotId) {
+  if (!calSelectedDate || !clientData?.id) {
+    showClientNotice(getLang() === 'sr' ? 'Izaberi datum' : 'Selecciona una fecha', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('calSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = getLang() === 'sr' ? 'Enviando...' : 'Enviando...'; }
+
+  const note = document.getElementById('calRequestNote')?.value?.trim() || null;
+  const time = groupSlotId
+    ? (calSelectedSlot?.time || null)
+    : (document.getElementById('calRequestTime')?.value || null);
+  const type = groupSlotId
+    ? 'grupal'
+    : (document.getElementById('calRequestType')?.value || 'personal');
+
+  if (!groupSlotId && !time) {
+    showClientNotice(getLang() === 'sr' ? 'Unesite vreme' : 'Indica la hora', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = getLang() === 'sr' ? 'Confirmar solicitud' : 'Confirmar solicitud'; }
+    return;
+  }
+
+  try {
+    const payload = {
+      client_id: clientData.id,
+      date: calSelectedDate,
+      time: time,
+      type: type,
+      session_mode: groupSlotId ? 'grupal' : type,
+      status: 'pendiente',
+      requested_by_client: true,
+      client_message: note,
+      group_slot_id: groupSlotId || null,
+      place: calSelectedSlot?.place || null
+    };
+
+    const { data, error } = await db
+      .from('reservations')
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    if (groupSlotId) {
+      await db
+        .from('group_slots')
+        .update({ current_capacity: (calSelectedSlot.current_capacity || 0) + 1 })
+        .eq('id', groupSlotId);
+    }
+
+    clientReservations = [...clientReservations, data];
+    calClientReservations = [...calClientReservations, data];
+    calSelectedSlot = null;
+
+    showClientNotice(
+      getLang() === 'sr' ? 'Solicitud enviada. Abel confirmará pronto.' : 'Solicitud enviada. Abel confirmará en breve.',
+      'success'
+    );
+
+    const area = document.getElementById('calRequestArea');
+    if (area) {
+      area.innerHTML =
+        '<div class="data-card" style="border-color:rgba(0,230,118,.2);margin-top:0;">' +
+          '<div class="dc-row">' +
+            '<span class="dc-title">' + (getLang() === 'sr' ? 'Solicitud enviada' : 'Solicitud enviada') + '</span>' +
+            '<span class="badge badge-green">' + (getLang() === 'sr' ? 'Pendiente' : 'Pendiente') + '</span>' +
+          '</div>' +
+          '<div class="dc-note">' +
+            formatDate(calSelectedDate) + (time ? ' · ' + formatTime(time) : '') +
+          '</div>' +
+        '</div>';
+    }
+
+    renderReservationsCalendar();
+
+  } catch (err) {
+    console.error('Reservation error:', err);
+    showClientNotice(getLang() === 'sr' ? 'Error al enviar' : 'Error al enviar la solicitud', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = getLang() === 'sr' ? 'Confirmar solicitud' : 'Confirmar solicitud'; }
+  }
+}
+
+function calPrevMonth() {
+  calCurrentMonth--;
+  if (calCurrentMonth < 0) { calCurrentMonth = 11; calCurrentYear--; }
+  calSelectedDate = null;
+  calSelectedSlot = null;
+  loadCalendarData().then(() => renderReservationsCalendar());
+}
+
+function calNextMonth() {
+  calCurrentMonth++;
+  if (calCurrentMonth > 11) { calCurrentMonth = 0; calCurrentYear++; }
+  calSelectedDate = null;
+  calSelectedSlot = null;
+  loadCalendarData().then(() => renderReservationsCalendar());
+}
+
+function renderReservationsCalendar() {
+  const el = document.getElementById('sectionReservations');
+  if (!el) return;
+
+  let html =
+    '<div class="section-body">' +
+      buildCalendarHTML();
+
+  if (calSelectedDate) {
+    html +=
+      '<div style="margin:16px 0 10px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
+        formatDate(calSelectedDate) +
+      '</div>' +
+      buildSlotsForDay(calSelectedDate);
+  }
+
+  html += '<div id="calRequestArea"></div>';
+
+  // Reservas existentes del cliente
+  const myAll = clientReservations.filter(r =>
+    String(r.date) >= todayISO() &&
+    !['cancelada','cancelado'].includes(String(r.status || '').toLowerCase())
+  );
+
+  if (myAll.length) {
+    html +=
+      '<div style="margin:22px 0 10px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
+        uiText('reservations') +
+      '</div>';
+
+    myAll.forEach(r => {
+      const statusColor =
+        r.status === 'confirmada' ? 'var(--streak)' :
+        r.status === 'pendiente' ? 'var(--warn)' :
+        'var(--text-secondary)';
+
+      html +=
+        '<div class="data-card">' +
+          '<div class="dc-row">' +
+            '<span class="dc-title" style="font-size:15px;">' + formatDate(r.date) + (r.time ? ' · ' + formatTime(r.time) : '') + '</span>' +
+            '<span class="badge" style="color:' + statusColor + '">' + (r.status || 'pendiente') + '</span>' +
+          '</div>' +
+          '<div class="dc-row">' +
+            '<span class="dc-sub">' + (r.type || r.session_mode || 'Personal') + (r.place ? ' · ' + r.place : '') + '</span>' +
+          '</div>' +
+          (r.client_message ? '<div class="dc-note">' + r.client_message + '</div>' : '') +
+        '</div>';
+    });
+  }
+
+  html +=
+      '<div class="action-box" style="margin-top:16px;">' +
+        '<button class="client-action-btn wa" onclick="clientWA(\'' + uiText('requestNewTrainingReservation') + '\')">' +
+          uiText('contactAbel') +
+        '</button>' +
+      '</div>' +
     '</div>';
 
   el.innerHTML = html;
 }
+
+/* ══ OTRAS SECCIONES ══ */
+async function renderReservations() {
+  const el = document.getElementById('sectionReservations');
+  const badge = document.getElementById('reservationsBadge');
+  if (!el) return;
+
+  if (badge) badge.textContent = clientReservations.filter(r =>
+    String(r.date) >= todayISO()
+  ).length;
+
+  const now = new Date();
+  if (!calCurrentMonth && calCurrentMonth !== 0) calCurrentMonth = now.getMonth();
+  if (!calCurrentYear) calCurrentYear = now.getFullYear();
+
+  el.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:center;padding:40px 0;">' +
+      '<div class="spinner"></div>' +
+    '</div>';
+
+  await loadCalendarData();
+  renderReservationsCalendar();
+}
+
 function renderPayments(){
   const el = document.getElementById('sectionPayments');
   const badge = document.getElementById('paymentsBadge');
