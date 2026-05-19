@@ -3292,6 +3292,19 @@ function getSessionDisplayTitle(session,index){
 function showTrainingDay(sessionId) {
   saveLastActiveSession(sessionId);
 
+  const trainingRoot = document.getElementById('sectionTrainingClient');
+
+  if (trainingRoot) {
+    const oldAdaptedCard = trainingRoot.querySelector('.training-adapted-card');
+
+    if (oldAdaptedCard) {
+      const newCardHTML = buildClientAdaptedSessionCard(sessionId);
+      if (newCardHTML) {
+        oldAdaptedCard.outerHTML = newCardHTML;
+      }
+    }
+  }
+
   const btn = document.querySelector('.training-day-tab[data-session-id="' + sessionId + '"]');
   const scope = btn?.closest('.training-week-panel') || document;
 
@@ -3568,19 +3581,49 @@ async function saveTrainingProgress(extra,sessionId){
   }
 }
 
-function buildClientAdaptedSessionCard() {
-  if (!clientTrainingSessionDisplay) return '';
+function getClientSessionDisplayForSession(sessionId) {
+  if (!sessionId || !Array.isArray(clientTrainingDisplayRows)) return null;
 
-  const title = clientTrainingSessionDisplay.client_status_title || '';
-  const main = clientTrainingSessionDisplay.client_main_message || '';
-  const summary = clientTrainingSessionDisplay.client_adjustment_summary || '';
-  const objective = clientTrainingSessionDisplay.client_objective_message || '';
+  const rows = clientTrainingDisplayRows.filter(r =>
+    String(r.session_id) === String(sessionId)
+  );
 
-  if (!title && !main && !summary && !objective) return '';
+  if (!rows.length) return null;
+
+  const first = rows[0];
+
+  return {
+    client_status_title: first.client_status_title || '',
+    client_main_message: first.client_main_message || '',
+    client_adjustment_summary: first.client_adjustment_summary || '',
+    client_reason_message: first.client_reason_message || '',
+    client_objective_message: first.client_objective_message || ''
+  };
+}
+
+function buildClientAdaptedSessionCard(sessionId) {
+  const display = getClientSessionDisplayForSession(sessionId);
+
+  if (!display) return '';
+
+  const title = display.client_status_title || '';
+  const main = display.client_main_message || '';
+  const summary = display.client_adjustment_summary || '';
+  const reason = display.client_reason_message || '';
+  const objective = display.client_objective_message || '';
+
+  if (!title && !main && !summary && !reason && !objective) return '';
+
+  const isAdjusted =
+    String(title).toLowerCase().includes('ajustado') ||
+    String(summary).trim() !== '';
 
   return (
     '<div class="training-adapted-card">' +
-      '<div class="training-adapted-label">Plan ajustado</div>' +
+
+      '<div class="training-adapted-label">' +
+        (isAdjusted ? 'Plan ajustado' : 'Plan asignado') +
+      '</div>' +
 
       (
         title
@@ -3595,8 +3638,17 @@ function buildClientAdaptedSessionCard() {
       ) +
 
       (
+        reason
+          ? '<div class="training-client-note" style="margin-top:10px;">' +
+              '<strong>Motivo</strong>' +
+              reason +
+            '</div>'
+          : ''
+      ) +
+
+      (
         summary
-          ? '<div class="training-adapted-summary">' + summary + '</div>'
+          ? '<div class="training-adapted-summary" style="margin-top:10px;">' + summary + '</div>'
           : ''
       ) +
 
@@ -3605,6 +3657,7 @@ function buildClientAdaptedSessionCard() {
           ? '<div class="training-adapted-message" style="margin-top:10px;margin-bottom:0;color:var(--text-secondary);">' + objective + '</div>'
           : ''
       ) +
+
     '</div>'
   );
 }
@@ -3869,10 +3922,13 @@ currentTrainingLog = null;
 
   let html = '';
 
-  html += buildClientAdaptedSessionCard();
+const initialSessionForCards = initialActiveSessionId || getCurrentVisibleSessionId();
 
-  const mobilityHTML = buildClientMobilityBlock();
-  html += mobilityHTML;
+html += buildClientAdaptedSessionCard(initialSessionForCards);
+
+const mobilityHTML = buildClientMobilityBlock();
+console.log('AB Mobility HTML length:', mobilityHTML.length);
+html += mobilityHTML;
 
   if(clientTrainingSessions.length > 1){
     const sessionsByWeek = new Map();
