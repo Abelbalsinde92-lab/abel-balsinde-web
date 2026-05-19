@@ -1217,17 +1217,32 @@ function loadTrainingProgressLocal(sessionId) {
 function saveTrainingProgressLocal(extra, sessionId) {
   const key = getTrainingStorageKey(sessionId);
   if (!key) return;
+
+  const sessionSteps = buildTrainingSteps(sessionId);
+  const sessionBlockIds = new Set(sessionSteps.map(s => s.blockId));
+  const blockIdsForSession = [...completedTrainingBlocks].filter(id => sessionBlockIds.has(id));
+
+  const hasProgress = blockIdsForSession.length > 0;
+  const hasRelevantExtra = extra && (
+    extra.is_finished === true ||
+    extra.finished_at ||
+    extra.client_note ||
+    (Array.isArray(extra.client_feedback_tags) && extra.client_feedback_tags.length)
+  );
+
+  if (!hasProgress && !hasRelevantExtra) return;
+
   const prev = loadTrainingProgressLocal(sessionId) || {};
   localStorage.setItem(key, JSON.stringify({
     ...prev,
-    session_id: sessionId || getCurrentVisibleSessionId(),
-    completed_block_ids: Array.from(completedTrainingBlocks),
-    is_finished: prev.is_finished || false,
-    client_note: prev.client_note || '',
-    client_feedback_tags: prev.client_feedback_tags || [],
-    client_feedback_summary: prev.client_feedback_summary || '',
-    updated_at: new Date().toISOString(),
-    ...(extra || {})
+    session_id: sessionId,
+    completed_block_ids: blockIdsForSession,
+    is_finished: extra?.is_finished ?? prev.is_finished ?? false,
+    client_note: extra?.client_note ?? prev.client_note ?? '',
+    client_feedback_tags: extra?.client_feedback_tags ?? prev.client_feedback_tags ?? [],
+    client_feedback_summary: extra?.client_feedback_summary ?? prev.client_feedback_summary ?? '',
+    finished_at: extra?.finished_at ?? prev.finished_at ?? null,
+    updated_at: new Date().toISOString()
   }));
 }
 function getLastActiveSessionKey() {
@@ -2574,11 +2589,12 @@ const planPct = progressStats.percent;
 }
 
 /* ══ RENDER HOME ══ */
-function renderHome(){
+function renderHome() {
   const el = document.getElementById('sectionHome');
   const badge = document.getElementById('homeBadge');
+  if (!el || !clientData) return;
 
-  if(!el || !clientData) return;
+  if (badge) badge.textContent = uiText('today') + ' · v20260519';
 
   const fallbackName = getLang() === 'sr' ? 'klijent' : 'cliente';
 const firstName = String(clientData.name || fallbackName).split(' ')[0] || fallbackName;
@@ -4081,88 +4097,53 @@ function showCompletedToastAndGoNext(currentSessionId){
   }, 3000);
 }
 function toggleCompletedTrainingDetails(){const d=document.getElementById('trainingCompletedDetails');if(!d){const ap=document.querySelector('.training-session-panel.active')||document.querySelector('.training-day-panel.active');if(!ap)return;const sid=ap.dataset.sessionId;if(!sid)return;const steps=buildTrainingSteps(sid);let html='<div id="trainingCompletedDetails" style="margin-top:14px;"><div class="training-step-list">';steps.forEach((step,j)=>{html+=buildTrainingStepHTML(step,j);});html+='</div></div>';ap.insertAdjacentHTML('beforeend',html);steps.forEach(step=>markStepVisualAsCompleted(step.blockId));return;}d.classList.toggle('hidden');if(!d.classList.contains('hidden'))d.scrollIntoView({behavior:'smooth',block:'start'});}
-function renderTrainingCompletedState(){
+function renderTrainingCompletedState() {
   const el = document.getElementById('sectionTrainingClient');
-  if(!el) return;
+  if (!el) return;
 
+  const sessionId = getCurrentVisibleSessionId() || String(clientTrainingSessions[0]?.id || '');
   const savedNote = currentTrainingLog?.client_note || '';
   const feedbackSummary = currentTrainingLog?.client_feedback_summary || '';
   const finDate = currentTrainingLog?.finished_at
-    ? formatDate(String(currentTrainingLog.finished_at).slice(0,10))
+    ? formatDate(String(currentTrainingLog.finished_at).slice(0, 10))
     : formatDate(todayISO());
 
   let html =
     '<div class="training-finish-card compact">' +
-      '<div class="training-finish-title">Entrenamiento completado</div>' +
-      '<div class="training-finish-sub">Tu sesión quedó registrada el ' +
-        finDate +
-        '. Abel revisará tus notas.</div>';
+      '<div class="training-finish-title">' + tClient('trainingCompleted') + '</div>' +
+      '<div class="training-finish-sub">Tu sesión quedó registrada el ' + finDate + '. Abel revisará tus notas.</div>';
 
-  if(feedbackSummary){
+  if (feedbackSummary) {
     html +=
       '<div class="training-notes-box" style="text-align:left;margin-top:16px;">' +
-        '<div class="training-notes-title">Observaciones rápidas</div>' +
-        '<div class="training-finish-sub" style="margin-bottom:0;">' +
-          feedbackSummary +
-        '</div>' +
+        '<div class="training-notes-title">' + uiText('observations') + '</div>' +
+        '<div class="training-finish-sub" style="margin-bottom:0;">' + feedbackSummary + '</div>' +
       '</div>';
   }
 
-  if(savedNote){
+  if (savedNote) {
     html +=
       '<div class="training-notes-box" style="text-align:left;margin-top:12px;">' +
-        '<div class="training-notes-title">Nota enviada</div>' +
-        '<div class="training-finish-sub" style="margin-bottom:0;">' +
-          savedNote +
-        '</div>' +
+        '<div class="training-notes-title">' + uiText('sentNote') + '</div>' +
+        '<div class="training-finish-sub" style="margin-bottom:0;">' + savedNote + '</div>' +
       '</div>';
   }
 
   html +=
-      '<button class="client-action-btn" style="margin-top:16px;" onclick="toggleCompletedTrainingDetails()">Ver detalles del entrenamiento</button>' +
-    '</div>';
+    '<button class="client-action-btn" style="margin-top:16px;" onclick="toggleCompletedTrainingDetails()">' +
+      tClient('details') +
+    '</button>' +
+  '</div>';
 
   html +=
     '<div id="trainingCompletedDetails" class="hidden" style="margin-top:14px;">' +
       '<div class="training-step-list">';
 
-  const steps = buildTrainingSteps();
+  const steps = buildTrainingSteps(sessionId);
 
-  if(clientTrainingSessions.length > 1){
-    html += '<div class="training-day-tabs">';
-
-    clientTrainingSessions.forEach((s,i) => {
-      const sid = String(s.id);
-      html +=
-        '<button class="training-day-tab' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' +
-          getSessionDayLabel(s,i) +
-        '</button>';
-    });
-
-    html += '</div>';
-
-    clientTrainingSessions.forEach((s,i) => {
-      const sid = String(s.id);
-      const ss = buildTrainingSteps(sid);
-
-      html +=
-        '<div class="training-day-panel' + (i === 0 ? ' active' : '') + '" data-session-id="' + sid + '">' +
-          '<div class="training-step-list">';
-
-      ss.forEach((step,j) => {
-        html += buildTrainingStepHTML(step,j);
-      });
-
-      html +=
-          '</div>' +
-        '</div>';
-    });
-
-  } else {
-    steps.forEach((step,j) => {
-      html += buildTrainingStepHTML(step,j);
-    });
-  }
+  steps.forEach((step, j) => {
+    html += buildTrainingStepHTML(step, j);
+  });
 
   html +=
       '</div>' +
@@ -4175,7 +4156,7 @@ function renderTrainingCompletedState(){
     currentTrainingLog?.completed_block_ids || steps.map(s => s.blockId)
   );
 
-  reloadSessionState(initialActiveSessionId);
+  reloadSessionState(sessionId);
 }
 
 function getFinishedTrainingLogs(){
@@ -5452,65 +5433,43 @@ function buildGeneralHealthHTML(){
   );
 }
 
-function renderHealthAlerts(){
+function renderHealthAlerts() {
   const el = document.getElementById('sectionHealth');
   const badge = document.getElementById('alertsBadge');
-
-  if(!el) return;
+  if (!el) return;
 
   const showCombatMetrics = hasCombatMetricsEnabled();
-
-  if(badge) {
-    badge.textContent = clientAlerts.length;
-  }
+  if (badge) badge.textContent = clientAlerts.length;
 
   let html = '';
+  html += buildDailyCheckinHTML();
 
-html += buildDailyCheckinHTML();
+  if (showCombatMetrics) {
+    html += buildCombatMetricsHTML();
+  } else {
+    html += buildGeneralHealthHTML();
+  }
 
-if(showCombatMetrics){
-  html += buildCombatMetricsHTML();
-} else {
-  html += buildGeneralHealthHTML();
-}
+  if (clientAlerts.length) {
+    html +=
+      '<div style="margin:18px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
+        uiText('healthIndications') + ' · ' + clientAlerts.length +
+      '</div>';
 
-const alertLabel = uiText('healthIndications') +
-  (clientAlerts.length ? ' · ' + clientAlerts.length : '');
-
-html +=
-  '<div class="accordion-block ' + (clientAlerts.length ? '' : 'open') + '" style="margin-top:12px;">' +
-    '<button class="accordion-title" onclick="toggleAccordion(this)">' +
-      '<span>' + alertLabel + '</span>' +
-      '<span class="accordion-symbol">' + (clientAlerts.length ? '+' : '−') + '</span>' +
-    '</button>' +
-    '<div class="accordion-content">';
-
-html +=
-  '<div class="accordion-block ' + (clientAlerts.length ? '' : 'open') + '" style="margin-top:12px;">' +
-    '<button class="accordion-title" onclick="toggleAccordion(this)">' +
-      '<span>' + alertLabel + '</span>' +
-      '<span class="accordion-symbol">' + (clientAlerts.length ? '+' : '−') + '</span>' +
-    '</button>' +
-    '<div class="accordion-content">';
-
-  if(clientAlerts.length){
     html += clientAlerts.map(a => {
       const statusText = String(a.status || '').toLowerCase();
-
       let badgeClass = 'badge-gray';
       let statusLabelText = a.status || uiText('followUp');
 
-      if(['pendiente','pending'].includes(statusText)){
+      if (['pendiente', 'pending'].includes(statusText)) {
         badgeClass = 'badge-yellow';
         statusLabelText = getLang() === 'sr' ? 'Na čekanju' : 'Pendiente';
       }
-
-      if(['alerta','critica','crítica','vencido'].includes(statusText)){
+      if (['alerta', 'critica', 'crítica', 'vencido'].includes(statusText)) {
         badgeClass = 'badge-red';
         statusLabelText = getLang() === 'sr' ? 'Upozorenje' : 'Alerta';
       }
-
-      if(['revisado','ok','apto','resuelto'].includes(statusText)){
+      if (['revisado', 'ok', 'apto', 'resuelto'].includes(statusText)) {
         badgeClass = 'badge-green';
         statusLabelText = getLang() === 'sr' ? 'Rešeno' : 'Resuelto';
       }
@@ -5521,34 +5480,27 @@ html +=
             '<span class="badge ' + badgeClass + '">' + statusLabelText + '</span>' +
             '<span class="dc-sub" style="font-family:var(--font-mono);">' + formatDate(a.date) + '</span>' +
           '</div>' +
-
-          (
-            a.detail
-              ? '<div style="margin-top:10px;font-size:14px;color:var(--text-primary);line-height:1.7;">' + a.detail + '</div>'
-              : '<div class="dc-note">' + (getLang() === 'sr' ? 'Nema registrovanog detalja.' : 'Sin detalle registrado.') + '</div>'
+          (a.detail
+            ? '<div style="margin-top:10px;font-size:14px;color:var(--text-primary);line-height:1.7;">' + a.detail + '</div>'
+            : '<div class="dc-note">' + (getLang() === 'sr' ? 'Nema registrovanog detalja.' : 'Sin detalle registrado.') + '</div>'
           ) +
         '</div>'
       );
     }).join('');
   } else {
     html +=
-      '<div class="data-card">' +
+      '<div class="data-card" style="margin-top:12px;">' +
         '<div class="dc-row">' +
           '<span class="dc-title">' + uiText('noActiveHealthNotes') + '</span>' +
           '<span class="badge badge-green">OK</span>' +
         '</div>' +
-        '<div class="dc-note">' +
-          uiText('noHealthAlerts') +
-        '</div>' +
+        '<div class="dc-note">' + uiText('noHealthAlerts') + '</div>' +
       '</div>';
   }
 
-  html += '</div></div>'; // cierra accordion-content y accordion-block
   el.innerHTML = html;
 
-  if(showCombatMetrics){
-    cargarMetricasCombate();
-  }
+  if (showCombatMetrics) cargarMetricasCombate();
 }
 
 /* ══ NAVIGATION ══ */
