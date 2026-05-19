@@ -5248,65 +5248,73 @@ function checkinNumOrNull(id) {
 function buildDailyCheckinHTML() {
   const saved = getTodayCheckin();
 
+  // Si ya hay check-in de hoy, mostrar resumen en lugar del formulario
+  if (saved) {
+    return (
+      '<div class="data-card" id="dailyCheckinCard" style="border-color:rgba(0,230,118,.2);">' +
+        '<div class="next-label">' + uiText('dailyCheckin') + '</div>' +
+        '<div class="dc-row">' +
+          '<span class="dc-title">' + uiText('todayStatus') + '</span>' +
+          '<span class="badge badge-green">' + uiText('registered') + '</span>' +
+        '</div>' +
+        '<div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+          (saved.sleep_hours != null ? '<div class="summary-card"><div class="summary-label">' + uiText('sleepHours') + '</div><div class="summary-value">' + saved.sleep_hours + 'h</div></div>' : '') +
+          (saved.sleep_quality != null ? '<div class="summary-card"><div class="summary-label">' + uiText('sleepQuality') + '</div><div class="summary-value">' + saved.sleep_quality + '/5</div></div>' : '') +
+          (saved.energy_level != null ? '<div class="summary-card"><div class="summary-label">' + uiText('energyLevel') + '</div><div class="summary-value">' + saved.energy_level + '/5</div></div>' : '') +
+          (saved.soreness_level != null ? '<div class="summary-card"><div class="summary-label">' + uiText('sorenessLevel') + '</div><div class="summary-value">' + saved.soreness_level + '/5</div></div>' : '') +
+        '</div>' +
+        (saved.comment ? '<div class="dc-note" style="margin-top:10px;">' + escHTML(saved.comment) + '</div>' : '') +
+        '<button class="client-action-btn" style="margin-top:14px;background:transparent;border:1px solid var(--card-border);color:var(--text-secondary);" onclick="mostrarFormCheckin()">' +
+          (getLang() === 'sr' ? 'Izmeni check-in' : 'Editar check-in') +
+        '</button>' +
+      '</div>'
+    );
+  }
+
+  // Sin check-in de hoy: mostrar formulario
+  return (
+    '<div class="data-card next-session" id="dailyCheckinCard">' +
+      '<div class="next-label">' + uiText('dailyCheckin') + '</div>' +
+      '<div class="dc-row">' +
+        '<span class="dc-title">' + uiText('todayStatus') + '</span>' +
+        '<span class="badge badge-yellow">' + uiText('pending') + '</span>' +
+      '</div>' +
+      '<div class="dc-note">' + uiText('dailyCheckinIntro') + '</div>' +
+      '<div style="margin-top:14px;display:grid;gap:12px;">' +
+        '<div class="field-group" style="margin-bottom:0;"><label for="checkinSleepHours">' + uiText('sleepHours') + '</label><input id="checkinSleepHours" type="number" min="0" max="14" step="0.5" placeholder="7.5"></div>' +
+        '<div class="field-group" style="margin-bottom:0;"><label for="checkinSleepQuality">' + uiText('sleepQuality') + ' · 1-5</label><input id="checkinSleepQuality" type="number" min="1" max="5" step="1" placeholder="4"></div>' +
+        '<div class="field-group" style="margin-bottom:0;"><label for="checkinEnergy">' + uiText('energyLevel') + ' · 1-5</label><input id="checkinEnergy" type="number" min="1" max="5" step="1" placeholder="4"></div>' +
+        '<div class="field-group" style="margin-bottom:0;"><label for="checkinSoreness">' + uiText('sorenessLevel') + ' · 0-5</label><input id="checkinSoreness" type="number" min="0" max="5" step="1" placeholder="1"></div>' +
+        '<div class="field-group" style="margin-bottom:0;"><label for="checkinComment">' + uiText('optionalComment') + '</label><textarea id="checkinComment" class="training-notes-textarea" style="min-height:74px;margin-bottom:0;" placeholder="' + escHTML(uiText('dailyCheckinCommentPlaceholder')) + '"></textarea></div>' +
+        '<button class="client-action-btn" id="btnSaveDailyCheckin" onclick="saveDailyCheckin()">' + uiText('saveCheckin') + '</button>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function mostrarFormCheckin() {
+  const card = document.getElementById('dailyCheckinCard');
+  if (!card) return;
+  const saved = getTodayCheckin();
   const sleepHours   = saved?.sleep_hours ?? '';
   const sleepQuality = saved?.sleep_quality ?? '';
   const energyLevel  = saved?.energy_level ?? '';
   const soreness     = saved?.soreness_level ?? '';
   const comment      = saved?.comment ?? '';
-
-  return (
+  card.outerHTML =
     '<div class="data-card next-session" id="dailyCheckinCard">' +
-
       '<div class="next-label">' + uiText('dailyCheckin') + '</div>' +
-
-      '<div class="dc-row">' +
-        '<span class="dc-title">' + uiText('todayStatus') + '</span>' +
-        (
-          saved
-            ? '<span class="badge badge-green">' + uiText('registered') + '</span>'
-            : '<span class="badge badge-yellow">' + uiText('pending') + '</span>'
-        ) +
-      '</div>' +
-
-      '<div class="dc-note">' +
-        uiText('dailyCheckinIntro') +
-      '</div>' +
-
+      '<div class="dc-row"><span class="dc-title">' + uiText('todayStatus') + '</span><span class="badge badge-green">' + uiText('registered') + '</span></div>' +
+      '<div class="dc-note">' + uiText('dailyCheckinIntro') + '</div>' +
       '<div style="margin-top:14px;display:grid;gap:12px;">' +
-
-        '<div class="field-group" style="margin-bottom:0;">' +
-          '<label for="checkinSleepHours">' + uiText('sleepHours') + '</label>' +
-          '<input id="checkinSleepHours" type="number" min="0" max="14" step="0.5" placeholder="7.5" value="' + escHTML(sleepHours) + '">' +
-        '</div>' +
-
-        '<div class="field-group" style="margin-bottom:0;">' +
-          '<label for="checkinSleepQuality">' + uiText('sleepQuality') + ' · 1-5</label>' +
-          '<input id="checkinSleepQuality" type="number" min="1" max="5" step="1" placeholder="4" value="' + escHTML(sleepQuality) + '">' +
-        '</div>' +
-
-        '<div class="field-group" style="margin-bottom:0;">' +
-          '<label for="checkinEnergy">' + uiText('energyLevel') + ' · 1-5</label>' +
-          '<input id="checkinEnergy" type="number" min="1" max="5" step="1" placeholder="4" value="' + escHTML(energyLevel) + '">' +
-        '</div>' +
-
-        '<div class="field-group" style="margin-bottom:0;">' +
-          '<label for="checkinSoreness">' + uiText('sorenessLevel') + ' · 0-5</label>' +
-          '<input id="checkinSoreness" type="number" min="0" max="5" step="1" placeholder="1" value="' + escHTML(soreness) + '">' +
-        '</div>' +
-
-        '<div class="field-group" style="margin-bottom:0;">' +
-          '<label for="checkinComment">' + uiText('optionalComment') + '</label>' +
-          '<textarea id="checkinComment" class="training-notes-textarea" style="min-height:74px;margin-bottom:0;" placeholder="' + escHTML(uiText('dailyCheckinCommentPlaceholder')) + '">' + escHTML(comment) + '</textarea>' +
-        '</div>' +
-
-        '<button class="client-action-btn" id="btnSaveDailyCheckin" onclick="saveDailyCheckin()">' +
-          uiText('saveCheckin') +
-        '</button>' +
-
+        '<div class="field-group" style="margin-bottom:0;"><label for="checkinSleepHours">' + uiText('sleepHours') + '</label><input id="checkinSleepHours" type="number" min="0" max="14" step="0.5" placeholder="7.5" value="' + escHTML(sleepHours) + '"></div>' +
+        '<div class="field-group" style="margin-bottom:0;"><label for="checkinSleepQuality">' + uiText('sleepQuality') + ' · 1-5</label><input id="checkinSleepQuality" type="number" min="1" max="5" step="1" placeholder="4" value="' + escHTML(sleepQuality) + '"></div>' +
+        '<div class="field-group" style="margin-bottom:0;"><label for="checkinEnergy">' + uiText('energyLevel') + ' · 1-5</label><input id="checkinEnergy" type="number" min="1" max="5" step="1" placeholder="4" value="' + escHTML(energyLevel) + '"></div>' +
+        '<div class="field-group" style="margin-bottom:0;"><label for="checkinSoreness">' + uiText('sorenessLevel') + ' · 0-5</label><input id="checkinSoreness" type="number" min="0" max="5" step="1" placeholder="1" value="' + escHTML(soreness) + '"></div>' +
+        '<div class="field-group" style="margin-bottom:0;"><label for="checkinComment">' + uiText('optionalComment') + '</label><textarea id="checkinComment" class="training-notes-textarea" style="min-height:74px;margin-bottom:0;" placeholder="' + escHTML(uiText('dailyCheckinCommentPlaceholder')) + '">' + escHTML(comment) + '</textarea></div>' +
+        '<button class="client-action-btn" id="btnSaveDailyCheckin" onclick="saveDailyCheckin()">' + uiText('saveCheckin') + '</button>' +
       '</div>' +
-
-    '</div>'
-  );
+    '</div>';
 }
 
 function showClientNotice(message, type = 'success') {
@@ -5392,27 +5400,18 @@ async function saveDailyCheckin() {
       clientDailyCheckins.unshift(data);
     }
 
-    // Guardar sin dejar cartel fijo
-showClientNotice(uiText('checkinSaved'), 'success');
+    showClientNotice(uiText('checkinSaved'), 'success');
+    
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = uiText('saveCheckin');
+    }
+    
+    setTimeout(() => {
+      const card = document.getElementById('dailyCheckinCard');
+      if (card) card.outerHTML = buildDailyCheckinHTML();
+    }, 600);
 
-if (btn) {
-  btn.disabled = false;
-  btn.textContent = uiText('saveCheckin');
-}
-
-setTimeout(() => {
-  const card = document.getElementById('dailyCheckinCard');
-  if (card) {
-    card.outerHTML = buildDailyCheckinHTML();
-  }
-}, 600);
-
-setTimeout(() => {
-  const card = document.getElementById('dailyCheckinCard');
-  if (card) {
-    card.outerHTML = buildDailyCheckinHTML();
-  }
-}, 900);
 
     } catch (err) {
     console.error('Check-in save error:', err);
@@ -5476,9 +5475,17 @@ if(showCombatMetrics){
 }
 
 html +=
-  '<div style="margin:18px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
-    uiText('healthIndications') +
-  '</div>';
+  // POR:
+const alertLabel = uiText('healthIndications') +
+  (clientAlerts.length ? ' · ' + clientAlerts.length : '');
+
+html +=
+  '<div class="accordion-block ' + (clientAlerts.length ? '' : 'open') + '" style="margin-top:12px;">' +
+    '<button class="accordion-title" onclick="toggleAccordion(this)">' +
+      '<span>' + alertLabel + '</span>' +
+      '<span class="accordion-symbol">' + (clientAlerts.length ? '+' : '−') + '</span>' +
+    '</button>' +
+    '<div class="accordion-content">';
 
   if(clientAlerts.length){
     html += clientAlerts.map(a => {
@@ -5530,6 +5537,7 @@ html +=
       '</div>';
   }
 
+  html += '</div></div>'; // cierra accordion-content y accordion-block
   el.innerHTML = html;
 
   if(showCombatMetrics){
