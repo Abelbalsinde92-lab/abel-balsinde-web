@@ -4015,15 +4015,11 @@ currentTrainingLog = null;
 
   applySavedTrainingState();
 
-  const activeSessionId = getCurrentVisibleSessionId() || initialActiveSessionId;
-  const activeSessionFinished = activeSessionId ? isSessionFinished(activeSessionId) : false;
-  const visibleSteps = activeSessionId ? buildTrainingSteps(activeSessionId) : allSteps;
+  const activeSessionId = getCurrentVisibleSessionId?.() || getInitialActiveSessionId?.();
+const activeSession = activeSessionId ? getSessionById(activeSessionId) : null;
 
-  if(activeSessionFinished){
-    const area = document.getElementById('trainingCompletionArea');
-    if(area) area.innerHTML = '';
-    return;
-  }
+// La movilidad se muestra si hay cadena asignada.
+// Más adelante podemos ocultarla por sesión específica desde base de datos.
 
   const firstPending = visibleSteps.find(s => !completedTrainingBlocks.has(s.blockId));
 
