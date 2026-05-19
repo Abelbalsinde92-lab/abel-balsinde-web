@@ -3610,16 +3610,11 @@ function buildClientAdaptedSessionCard() {
 }
 
 function buildClientMobilityBlock() {
-  if (!clientMobilityChain || !clientMobilityChain.length) return '';
-
-  const activeSessionId = getCurrentVisibleSessionId?.() || getInitialActiveSessionId?.();
-  const activeSession = activeSessionId ? getSessionById(activeSessionId) : null;
-
-  if (activeSession && Number(activeSession.session_number || 0) === 1) {
+  if (!Array.isArray(clientMobilityChain) || !clientMobilityChain.length) {
     return '';
   }
 
-  const first = clientMobilityChain[0];
+  const first = clientMobilityChain[0] || {};
 
   const chainName = first.chain_name || 'Movilidad activa';
   const level = first.level || '';
@@ -3698,8 +3693,8 @@ function buildClientMobilityBlock() {
       '<div class="training-exercise-card">' +
 
         '<div class="training-exercise-title">' +
-          '<span class="training-ex-num">' + ex.exercise_order + '.</span>' +
-          (ex.exercise_name || 'Ejercicio de movilidad') +
+          '<span class="training-ex-num">' + (ex.exercise_order || '') + '.</span>' +
+          (ex.exercise_name || ex.name || 'Ejercicio de movilidad') +
         '</div>' +
 
         '<div class="training-exercise-grid">' +
@@ -3714,10 +3709,10 @@ function buildClientMobilityBlock() {
           ) +
 
           (
-            ex.exercise_duration
+            ex.exercise_duration || ex.duration
               ? '<div class="training-mini-stat">' +
                   '<span class="training-mini-label">Tiempo</span>' +
-                  '<div class="training-mini-value">' + ex.exercise_duration + '</div>' +
+                  '<div class="training-mini-value">' + (ex.exercise_duration || ex.duration) + '</div>' +
                 '</div>'
               : ''
           ) +
@@ -3765,7 +3760,6 @@ function buildClientMobilityBlock() {
   html +=
           '</div>' +
         '</div>' +
-
       '</div>' +
     '</div>';
 
@@ -4013,24 +4007,44 @@ currentTrainingLog = null;
 
   el.innerHTML = html;
 
+  el.innerHTML = html;
+
+const activeSessionId = getCurrentVisibleSessionId() || initialActiveSessionId;
+
+if (activeSessionId) {
+  reloadSessionState(activeSessionId);
+} else {
   applySavedTrainingState();
+}
 
-  const activeSessionId = getCurrentVisibleSessionId?.() || getInitialActiveSessionId?.();
-const activeSession = activeSessionId ? getSessionById(activeSessionId) : null;
+const activeSessionFinished = activeSessionId
+  ? isSessionFinished(activeSessionId)
+  : false;
 
-// La movilidad se muestra si hay cadena asignada.
-// Más adelante podemos ocultarla por sesión específica desde base de datos.
+let visibleSteps = [];
 
-  const firstPending = visibleSteps.find(s => !completedTrainingBlocks.has(s.blockId));
+if (activeSessionId) {
+  visibleSteps = buildTrainingSteps(activeSessionId);
+} else {
+  visibleSteps = allSteps || [];
+}
 
-  if(firstPending){
-    activeTrainingBlockKey = firstPending.blockId;
+if (activeSessionFinished) {
+  const area = document.getElementById('trainingCompletionArea');
+  if (area) area.innerHTML = '';
+  return;
+}
 
-    const card = document.getElementById('step-' + firstPending.blockId);
-    if(card) card.classList.add('open');
-  } else {
-    renderTrainingCompletionBox(false);
-  }
+const firstPending = visibleSteps.find(s => !completedTrainingBlocks.has(s.blockId));
+
+if (firstPending) {
+  activeTrainingBlockKey = firstPending.blockId;
+
+  const card = document.getElementById('step-' + firstPending.blockId);
+  if (card) card.classList.add('open');
+} else {
+  renderTrainingCompletionBox(false);
+}
 }
 
 function buildCompletedSessionCard(session,index){
