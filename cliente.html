@@ -5475,9 +5475,11 @@ if(showCombatMetrics){
 }
 
 html +=
-  // POR:
-const alertLabel = uiText('healthIndications') +
+  const alertLabel = uiText('healthIndications') +
   (clientAlerts.length ? ' · ' + clientAlerts.length : '');
+
+html +=
+  '<div class="accordion-block ' + (clientAlerts.length ? '' : 'open') + '" style="margin-top:12px;">' +
 
 html +=
   '<div class="accordion-block ' + (clientAlerts.length ? '' : 'open') + '" style="margin-top:12px;">' +
