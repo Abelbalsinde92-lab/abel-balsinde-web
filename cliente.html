@@ -799,6 +799,39 @@ input, textarea { outline: none; font-family: var(--font-body); }
   .section-header h2 { font-size: 20px; }
   .card-metrica strong { font-size: 26px; }
 }
+
+.client-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  object-fit: cover; flex-shrink: 0;
+}
+.client-avatar-initials {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--sport); color: #000;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  flex-shrink: 0; letter-spacing: 0.5px;
+}
+.client-avatar-lg {
+  width: 72px; height: 72px; border-radius: 50%;
+  object-fit: cover; flex-shrink: 0;
+}
+.client-avatar-initials-lg {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--sport); color: #000;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 26px; font-weight: 500;
+  flex-shrink: 0;
+}
+.avatar-upload-btn {
+  background: transparent; border: 1px solid var(--card-border);
+  color: var(--text-secondary); border-radius: 8px; padding: 8px 14px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase; cursor: pointer; transition: border-color .2s, color .2s;
+  margin-top: 10px;
+}
+.avatar-upload-btn:hover { border-color: var(--sport); color: var(--sport); }
+#avatarFileInput { display: none; }
+
 </style>
 </head>
 <body>
@@ -839,9 +872,9 @@ input, textarea { outline: none; font-family: var(--font-body); }
 <div id="dashboardScreen" class="hidden">
   
   <header class="dash-header">
-    <div class="dash-header-logo">
-      <img src="/icon-512.png.JPG" alt="AB Coach" class="brand-logo brand-logo-header">
-    </div>
+    <div class="dash-header-logo" id="dashHeaderLogo">
+  <img src="/icon-512.png.JPG" alt="AB Coach" class="brand-logo brand-logo-header">
+</div>
 
     <div class="dash-header-actions">
     
@@ -1774,6 +1807,8 @@ async function renderDashboard() {
   document.documentElement.lang = getLang() === "sr" ? "sr" : "es";
 
   applyStaticTranslations();
+  
+  injectAvatarInHeader();
 
   renderHome();
 
@@ -2586,6 +2621,94 @@ const planPct = progressStats.percent;
 );
 
   return '<div class="home-rings-grid">' + card1 + card2 + card3 + '</div>';
+}
+
+async function uploadAvatar(file) {
+  if (!file || !clientData?.id) return;
+
+  const btn = document.getElementById('avatarUploadBtn');
+  if (btn) { btn.textContent = getLang() === 'sr' ? 'Čuvanje...' : 'Guardando...'; btn.disabled = true; }
+
+  try {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const allowed = ['jpg', 'jpeg', 'png', 'webp'];
+    if (!allowed.includes(ext)) {
+      showClientNotice(getLang() === 'sr' ? 'Solo JPG, PNG o WEBP' : 'Solo JPG, PNG o WEBP', 'error');
+      if (btn) { btn.textContent = getLang() === 'sr' ? 'Promeni foto' : 'Cambiar foto'; btn.disabled = false; }
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64 = e.target.result;
+
+      const { error } = await db
+        .from('clients')
+        .update({ avatar_url: base64 })
+        .eq('id', clientData.id);
+
+      if (error) throw error;
+
+      clientData.avatar_url = base64;
+      showClientNotice(getLang() === 'sr' ? 'Foto sačuvana' : 'Foto guardada', 'success');
+      refreshAvatarEverywhere();
+
+      if (btn) { btn.textContent = getLang() === 'sr' ? 'Promeni foto' : 'Cambiar foto'; btn.disabled = false; }
+    };
+    reader.readAsDataURL(file);
+
+  } catch (err) {
+    console.error('Avatar upload error:', err);
+    showClientNotice(getLang() === 'sr' ? 'Error al guardar foto' : 'Error al guardar foto', 'error');
+    if (btn) { btn.textContent = getLang() === 'sr' ? 'Promeni foto' : 'Cambiar foto'; btn.disabled = false; }
+  }
+}
+
+function refreshAvatarEverywhere() {
+  document.querySelectorAll('.client-avatar').forEach(img => { img.src = clientData.avatar_url || ''; });
+  document.querySelectorAll('.client-avatar-initials').forEach(el => {
+    if (clientData.avatar_url) {
+      const img = document.createElement('img');
+      img.src = clientData.avatar_url;
+      img.className = 'client-avatar';
+      img.alt = clientData.name || '';
+      el.replaceWith(img);
+    }
+  });
+  document.querySelectorAll('.client-avatar-lg').forEach(img => { img.src = clientData.avatar_url || ''; });
+  document.querySelectorAll('.client-avatar-initials-lg').forEach(el => {
+    if (clientData.avatar_url) {
+      const img = document.createElement('img');
+      img.src = clientData.avatar_url;
+      img.className = 'client-avatar-lg';
+      img.alt = clientData.name || '';
+      el.replaceWith(img);
+    }
+  });
+}
+
+function injectAvatarInHeader() {
+  const logo = document.getElementById('dashHeaderLogo');
+  if (!logo || !clientData) return;
+  const existing = logo.querySelector('.client-avatar, .client-avatar-initials');
+  if (existing) existing.remove();
+  logo.insertAdjacentHTML('beforeend', buildAvatarHTML('sm'));
+}
+
+function buildAvatarHTML(size) {
+  const name = clientData?.name || '';
+  const url = clientData?.avatar_url || '';
+  const initials = name.trim().split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
+
+  if (size === 'lg') {
+    return url
+      ? '<img src="' + url + '" class="client-avatar-lg" alt="' + name + '">'
+      : '<div class="client-avatar-initials-lg">' + initials + '</div>';
+  }
+
+  return url
+    ? '<img src="' + url + '" class="client-avatar" alt="' + name + '">'
+    : '<div class="client-avatar-initials">' + initials + '</div>';
 }
 
 /* ══ RENDER HOME ══ */
@@ -5149,43 +5272,56 @@ function renderClientData(){
   html += '</div>';
 
   html +=
-    '<div class="accordion-block open" style="margin-top:12px;">' +
-      '<button class="accordion-title" onclick="toggleAccordion(this)">' +
-        '<span>' + uiText('personalData') + '</span>' +
-        '<span class="accordion-symbol">−</span>' +
-      '</button>' +
+    html +=
+  '<div class="accordion-block open" style="margin-top:12px;">' +
+    '<button class="accordion-title" onclick="toggleAccordion(this)">' +
+      '<span>' + uiText('personalData') + '</span>' +
+      '<span class="accordion-symbol">−</span>' +
+    '</button>' +
+    '<div class="accordion-content">' +
 
-      '<div class="accordion-content">' +
-        '<div class="plan-grid" style="margin-top:12px;">' +
-
-          '<div class="plan-item">' +
-            '<div class="pi-label">' + uiText('name') + '</div>' +
-            '<div class="pi-value">' + (clientData.name || '—') + '</div>' +
-          '</div>' +
-
-          '<div class="plan-item">' +
-            '<div class="pi-label">' + uiText('phone') + '</div>' +
-            '<div class="pi-value">' + (clientData.phone || '—') + '</div>' +
-          '</div>' +
-
-          '<div class="plan-item">' +
-            '<div class="pi-label">' + uiText('email') + '</div>' +
-            '<div class="pi-value">' + (clientData.email || '—') + '</div>' +
-          '</div>' +
-
-          '<div class="plan-item">' +
-            '<div class="pi-label">' + uiText('city') + '</div>' +
-            '<div class="pi-value">' + (clientData.city || '—') + '</div>' +
-          '</div>' +
-
-          '<div class="plan-item">' +
-            '<div class="pi-label">' + uiText('maxHeartRate') + '</div>' +
-            '<div class="pi-value">' + fcMaxText + '</div>' +
-          '</div>' +
-
+      '<div style="display:flex;align-items:center;gap:16px;padding:16px 0 8px;">' +
+        buildAvatarHTML('lg') +
+        '<div>' +
+          '<div style="font-size:17px;font-weight:700;color:var(--text-primary);">' + (clientData.name || '—') + '</div>' +
+          '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:3px;">' + (clientData.email || '') + '</div>' +
+          '<button id="avatarUploadBtn" class="avatar-upload-btn" onclick="document.getElementById(\'avatarFileInput\').click()">' +
+            (getLang() === 'sr' ? 'Promeni foto' : 'Cambiar foto') +
+          '</button>' +
+          '<input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp" onchange="uploadAvatar(this.files[0])">' +
         '</div>' +
       '</div>' +
-    '</div>';
+
+      '<div class="plan-grid" style="margin-top:12px;">' +
+
+        '<div class="plan-item">' +
+          '<div class="pi-label">' + uiText('name') + '</div>' +
+          '<div class="pi-value">' + (clientData.name || '—') + '</div>' +
+        '</div>' +
+
+        '<div class="plan-item">' +
+          '<div class="pi-label">' + uiText('phone') + '</div>' +
+          '<div class="pi-value">' + (clientData.phone || '—') + '</div>' +
+        '</div>' +
+
+        '<div class="plan-item">' +
+          '<div class="pi-label">' + uiText('email') + '</div>' +
+          '<div class="pi-value">' + (clientData.email || '—') + '</div>' +
+        '</div>' +
+
+        '<div class="plan-item">' +
+          '<div class="pi-label">' + uiText('city') + '</div>' +
+          '<div class="pi-value">' + (clientData.city || '—') + '</div>' +
+        '</div>' +
+
+        '<div class="plan-item">' +
+          '<div class="pi-label">' + uiText('maxHeartRate') + '</div>' +
+          '<div class="pi-value">' + fcMaxText + '</div>' +
+        '</div>' +
+
+      '</div>' +
+    '</div>' +
+  '</div>';
 
   html +=
     '<div class="action-box" style="margin-top:12px;">' +
