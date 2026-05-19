@@ -1277,8 +1277,14 @@ let clientMobilityDebug      = {
   error: 'No inicializado'
 };
 
+// ── TIPO DE CLIENTE ──────────────────────────────────────
+// false → cliente convencional/general
+// true  → atleta o perfil especial de rendimiento
+let isAthlete = false;
+
 window.clientMobilityChain = clientMobilityChain;
 window.clientMobilityDebug = clientMobilityDebug;
+window.isAthlete = isAthlete;
 
 let calCurrentMonth = null;
 let calCurrentYear = null;
@@ -1721,6 +1727,31 @@ function hasCombatMetricsEnabled() {
          String(clientData?.athlete_profile || '').toLowerCase() === 'combat';
 }
 
+// ── VISTA DUAL: CLIENTE GENERAL / ATLETA ─────────────────
+function applyClientView() {
+  const profile = String(clientData?.athlete_profile || 'general').toLowerCase();
+
+  isAthlete = (
+    clientData?.enable_combat_metrics === true &&
+    profile !== 'general'
+  );
+
+  window.isAthlete = isAthlete;
+
+  const badge = document.getElementById('client-type-badge');
+  if (badge) {
+    badge.textContent = isAthlete ? 'ATLETA' : 'CLIENTE';
+    badge.style.color = isAthlete ? 'var(--sport)' : 'var(--streak)';
+  }
+
+  console.log('AB Client View:', {
+    isAthlete,
+    enable_combat_metrics: clientData?.enable_combat_metrics,
+    athlete_profile: clientData?.athlete_profile,
+    combatMetricsVisible: hasCombatMetricsEnabled()
+  });
+}
+
 /* ══ AUTH ══ */
 async function loginClient() {
   hideError();
@@ -1779,8 +1810,9 @@ async function loadClientDashboard(clientId) {
     }
 
     clientData = client;
+applyClientView();
 
-    AB_LANG = (clientData.preferred_lang || 'es').toLowerCase();
+AB_LANG = (clientData.preferred_lang || 'es').toLowerCase();
     document.documentElement.lang = AB_LANG === 'sr' ? 'sr' : 'es';
 
     const [
@@ -6447,18 +6479,60 @@ async function saveDailyCheckin() {
   }
 }
 
-function buildGeneralHealthHTML(){
-  return (
-    '<div class="data-card">' +
+function buildGeneralHealthHTML() {
+  // ── Tarjeta: Mi objetivo ──
+  const objetivo = clientData?.objective || '';
+  const plan = clientData?.plan || '';
+
+  let objetivoHTML = '';
+
+  if (objetivo || plan) {
+    objetivoHTML =
+      '<div class="data-card" style="border-color:rgba(0,230,118,.2);margin-bottom:10px;">' +
+        '<div class="next-label">' + (getLang() === 'sr' ? 'Moj cilj' : 'Mi objetivo') + '</div>' +
+        '<div class="dc-title" style="font-size:15px;line-height:1.5;">' +
+          (objetivo || plan) +
+        '</div>' +
+        (
+          plan && objetivo
+            ? '<div class="dc-sub" style="margin-top:6px;">' + plan + '</div>'
+            : ''
+        ) +
+      '</div>';
+  }
+
+  // ── Tarjeta: Estado de entrenamiento ──
+  const progressStats = typeof getTrainingProgressStats === 'function'
+    ? getTrainingProgressStats()
+    : { finishedSessions: 0, totalSessions: 0, percent: 0 };
+
+  const hasTrainingProgress = Number(progressStats.totalSessions || 0) > 0;
+
+  const progresoHTML =
+    '<div class="data-card" style="margin-bottom:10px;">' +
+      '<div class="next-label">' + (getLang() === 'sr' ? 'Opšte stanje' : 'Estado general') + '</div>' +
       '<div class="dc-row">' +
-        '<span class="dc-title">' + uiText('generalStatus') + '</span>' +
-        '<span class="badge badge-blue">' + uiText('followUp') + '</span>' +
+        '<span class="dc-title">' + (getLang() === 'sr' ? 'Praćenje treninga' : 'Seguimiento de entrenamiento') + '</span>' +
+        '<span class="badge badge-blue">' + (hasTrainingProgress ? progressStats.percent + '%' : '—') + '</span>' +
       '</div>' +
       '<div class="dc-note">' +
-        uiText('generalHealthIntro') +
+        (
+          hasTrainingProgress
+            ? progressStats.finishedSessions + ' ' +
+              (getLang() === 'sr' ? 'od' : 'de') + ' ' +
+              progressStats.totalSessions + ' ' +
+              (getLang() === 'sr' ? 'sesija završeno' : 'sesiones completadas')
+            : (
+                getLang() === 'sr'
+                  ? 'Još nema dovoljno podataka o treningu.'
+                  : 'Todavía no hay suficientes datos de entrenamiento.'
+              )
+        ) +
       '</div>' +
-    '</div>' +
+    '</div>';
 
+  // ── Tarjeta: Cliente general / sin métricas de combate ──
+  const infoHTML =
     '<div class="data-card">' +
       '<div class="dc-row">' +
         '<span class="dc-title">' + uiText('trainingControl') + '</span>' +
@@ -6467,8 +6541,9 @@ function buildGeneralHealthHTML(){
       '<div class="dc-note">' +
         uiText('combatMetricsDisabled') +
       '</div>' +
-    '</div>'
-  );
+    '</div>';
+
+  return objetivoHTML + progresoHTML + infoHTML;
 }
 
 function renderHealthAlerts() {
