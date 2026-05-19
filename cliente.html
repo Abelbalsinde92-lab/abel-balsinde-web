@@ -950,6 +950,116 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .cal-summary-row:last-of-type { border-bottom: none; }
 .cal-summary-label { color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; letter-spacing: .8px; text-transform: uppercase; }
 .cal-summary-value { color: var(--text-primary); font-weight: 600; }
+
+/* ═══ TARJETAS PLEGABLES ENTRENAMIENTO ═════════════ */
+
+.training-collapsible-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  margin: 0 0 14px;
+  overflow: hidden;
+}
+
+.training-collapsible-card.adjusted {
+  border-color: rgba(0,163,255,.28);
+  background: rgba(0,163,255,.05);
+}
+
+.training-collapsible-card.mobility {
+  border-color: rgba(0,230,118,.28);
+  background: rgba(0,230,118,.045);
+}
+
+.training-collapsible-header {
+  width: 100%;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  text-align: left;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.training-collapsible-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.training-collapsible-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--sport);
+  margin-bottom: 6px;
+}
+
+.training-collapsible-card.mobility .training-collapsible-label {
+  color: var(--streak);
+}
+
+.training-collapsible-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: 1.4px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.training-collapsible-sub {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  letter-spacing: .4px;
+  line-height: 1.5;
+}
+
+.training-collapsible-icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 18px;
+}
+
+.training-collapsible-card.open .training-collapsible-icon {
+  color: var(--sport);
+  border-color: rgba(0,163,255,.35);
+}
+
+.training-collapsible-card.mobility.open .training-collapsible-icon {
+  color: var(--streak);
+  border-color: rgba(0,230,118,.35);
+}
+
+.training-collapsible-body {
+  display: none;
+  padding: 0 18px 18px;
+  border-top: 1px solid var(--divider);
+}
+
+.training-collapsible-card.open .training-collapsible-body {
+  display: block;
+}
+
+.training-collapsible-body .training-adapted-message:first-child,
+.training-collapsible-body .training-adapted-summary:first-child,
+.training-collapsible-body .training-client-note:first-child {
+  margin-top: 14px;
+}
 </style>
 </head>
 <body>
@@ -3295,7 +3405,7 @@ function showTrainingDay(sessionId) {
   const trainingRoot = document.getElementById('sectionTrainingClient');
 
   if (trainingRoot) {
-    const oldAdaptedCard = trainingRoot.querySelector('.training-adapted-card');
+    const oldAdaptedCard = trainingRoot.querySelector('.training-collapsible-card.adjusted');
 
     if (oldAdaptedCard) {
       const newCardHTML = buildClientAdaptedSessionCard(sessionId);
@@ -3618,56 +3728,71 @@ function buildClientAdaptedSessionCard(sessionId) {
     String(title).toLowerCase().includes('ajustado') ||
     String(summary).trim() !== '';
 
+  const label = isAdjusted ? 'Plan ajustado' : 'Plan asignado';
+  const cardTitle = title || label;
+
+  const shortSub = isAdjusted
+    ? 'Toca para ver el motivo y los ajustes de la sesión.'
+    : 'Toca para ver las indicaciones generales de la sesión.';
+
   return (
-    '<div class="training-adapted-card">' +
+    '<div class="training-collapsible-card adjusted" id="adaptedPlanCard">' +
 
-      '<div class="training-adapted-label">' +
-        (isAdjusted ? 'Plan ajustado' : 'Plan asignado') +
+      '<button class="training-collapsible-header" onclick="toggleTrainingCollapsible(\'adaptedPlanCard\')">' +
+        '<div class="training-collapsible-info">' +
+          '<div class="training-collapsible-label">' + label + '</div>' +
+          '<div class="training-collapsible-title">' + cardTitle + '</div>' +
+          '<div class="training-collapsible-sub">' + shortSub + '</div>' +
+        '</div>' +
+        '<div class="training-collapsible-icon">+</div>' +
+      '</button>' +
+
+      '<div class="training-collapsible-body">' +
+
+        (
+          main
+            ? '<div class="training-adapted-message">' + main + '</div>'
+            : ''
+        ) +
+
+        (
+          reason
+            ? '<div class="training-client-note" style="margin-top:10px;">' +
+                '<strong>Motivo</strong>' +
+                reason +
+              '</div>'
+            : ''
+        ) +
+
+        (
+          summary
+            ? '<div class="training-adapted-summary" style="margin-top:10px;">' + summary + '</div>'
+            : ''
+        ) +
+
+        (
+          objective
+            ? '<div class="training-adapted-message" style="margin-top:10px;margin-bottom:0;color:var(--text-secondary);">' + objective + '</div>'
+            : ''
+        ) +
+
       '</div>' +
-
-      (
-        title
-          ? '<div class="training-adapted-title">' + title + '</div>'
-          : ''
-      ) +
-
-      (
-        main
-          ? '<div class="training-adapted-message">' + main + '</div>'
-          : ''
-      ) +
-
-      (
-        reason
-          ? '<div class="training-client-note" style="margin-top:10px;">' +
-              '<strong>Motivo</strong>' +
-              reason +
-            '</div>'
-          : ''
-      ) +
-
-      (
-        summary
-          ? '<div class="training-adapted-summary" style="margin-top:10px;">' + summary + '</div>'
-          : ''
-      ) +
-
-      (
-        objective
-          ? '<div class="training-adapted-message" style="margin-top:10px;margin-bottom:0;color:var(--text-secondary);">' + objective + '</div>'
-          : ''
-      ) +
-
     '</div>'
   );
 }
 
 function buildClientMobilityBlock() {
-  if (!Array.isArray(clientMobilityChain) || !clientMobilityChain.length) {
+  if (!clientMobilityChain || !clientMobilityChain.length) return '';
+
+  const activeSessionId = getCurrentVisibleSessionId?.() || getInitialActiveSessionId?.();
+  const activeSession = activeSessionId ? getSessionById(activeSessionId) : null;
+
+  // No mostramos movilidad extra en Día A si ya fue la primera sesión realizada
+  if (activeSession && Number(activeSession.session_number || 0) === 1) {
     return '';
   }
 
-  const first = clientMobilityChain[0] || {};
+  const first = clientMobilityChain[0];
 
   const chainName = first.chain_name || 'Movilidad activa';
   const level = first.level || '';
@@ -3679,98 +3804,104 @@ function buildClientMobilityBlock() {
   let html = '';
 
   html +=
-    '<div class="training-adapted-card" style="border-color:rgba(0,230,118,.28);background:rgba(0,230,118,.05);">' +
+    '<div class="training-collapsible-card mobility" id="mobilityChainCard">' +
 
-      '<div class="training-adapted-label" style="color:var(--streak);">' +
-        'Movilidad activa asignada' +
-      '</div>' +
+      '<button class="training-collapsible-header" onclick="toggleTrainingCollapsible(\'mobilityChainCard\')">' +
+        '<div class="training-collapsible-info">' +
+          '<div class="training-collapsible-label">Movilidad activa asignada</div>' +
+          '<div class="training-collapsible-title">' + chainName + '</div>' +
+          '<div class="training-collapsible-sub">' +
+            [
+              level ? 'Nivel: ' + level : '',
+              duration ? 'Duración: ' + duration : '',
+              'Después del calentamiento'
+            ].filter(Boolean).join(' · ') +
+          '</div>' +
+        '</div>' +
+        '<div class="training-collapsible-icon">+</div>' +
+      '</button>' +
 
-      '<div class="training-adapted-title">' +
-        chainName +
-      '</div>' +
+      '<div class="training-collapsible-body">' +
 
-      '<div class="training-adapted-summary">' +
-        [
-          level ? 'Nivel: ' + level : '',
-          duration ? 'Duración: ' + duration : ''
-        ].filter(Boolean).join(' · ') +
-      '</div>' +
+        (
+          objective
+            ? '<div class="training-adapted-message" style="margin-top:14px;">' +
+                objective +
+              '</div>'
+            : ''
+        ) +
 
-      (
-        objective
-          ? '<div class="training-adapted-message" style="margin-top:10px;">' +
-              objective +
-            '</div>'
-          : ''
-      ) +
+        (
+          clientNotes
+            ? '<div class="training-client-note" style="margin-top:12px;">' +
+                '<strong>Indicación</strong>' +
+                clientNotes +
+              '</div>'
+            : ''
+        ) +
 
-      (
-        clientNotes
-          ? '<div class="training-client-note" style="margin-top:12px;">' +
-              '<strong>Indicación</strong>' +
-              clientNotes +
-            '</div>'
-          : ''
-      ) +
+        (
+          assignedReason
+            ? '<div class="training-client-note" style="margin-top:10px;">' +
+                '<strong>Por qué la hacemos</strong>' +
+                assignedReason +
+              '</div>'
+            : ''
+        ) +
 
-      (
-        assignedReason
-          ? '<div class="training-client-note" style="margin-top:10px;">' +
-              '<strong>Por qué la hacemos</strong>' +
-              assignedReason +
-            '</div>'
-          : ''
-      ) +
+        '<div class="training-step-list" style="margin-top:14px;">' +
 
-      '<div class="training-step-list" style="margin-top:14px;">' +
+          '<div class="training-step-card open" id="mobilityBlockCard">' +
 
-        '<div class="training-step-card" id="mobilityBlockCard">' +
+            '<button class="training-step-header" onclick="toggleMobilityBlock()">' +
+              '<div class="training-step-number">M</div>' +
+              '<div class="training-step-info">' +
+                '<div class="training-step-title">Preparación de movilidad</div>' +
+                '<div class="training-step-meta">Antes de la rutina principal</div>' +
+              '</div>' +
+              '<div class="training-step-status">Ver</div>' +
+            '</button>' +
 
-          '<button class="training-step-header" onclick="toggleMobilityBlock()">' +
-            '<div class="training-step-number">M</div>' +
-            '<div class="training-step-info">' +
-              '<div class="training-step-title">Preparación de movilidad</div>' +
-              '<div class="training-step-meta">Después del calentamiento · Antes de la rutina principal</div>' +
-            '</div>' +
-            '<div class="training-step-status">Ver</div>' +
-          '</button>' +
+            '<div class="training-step-body">' +
 
-          '<div class="training-step-body">' +
-
-            '<div class="training-step-objective">' +
-              'Realiza esta cadena de movilidad de forma lenta y controlada. No busca fatigarte; busca preparar articulaciones, respiración y técnica antes del entrenamiento principal.' +
-            '</div>';
+              '<div class="training-step-objective">' +
+                'Realiza esta cadena de movilidad de forma lenta y controlada. No busca fatigarte; busca preparar articulaciones, respiración y técnica antes del entrenamiento principal.' +
+              '</div>';
 
   clientMobilityChain.forEach(ex => {
     html +=
       '<div class="training-exercise-card">' +
 
         '<div class="training-exercise-title">' +
-          '<span class="training-ex-num">' + (ex.exercise_order || '') + '.</span>' +
-          (ex.exercise_name || ex.name || 'Ejercicio de movilidad') +
+          '<span class="training-ex-num">' + ex.exercise_order + '.</span>' +
+          (ex.exercise_name || 'Ejercicio de movilidad') +
         '</div>' +
 
-        '<div class="training-exercise-grid">' +
+        (
+          ex.reps || ex.exercise_duration
+            ? '<div class="training-exercise-grid">' +
 
-          (
-            ex.reps
-              ? '<div class="training-mini-stat">' +
-                  '<span class="training-mini-label">Reps</span>' +
-                  '<div class="training-mini-value">' + ex.reps + '</div>' +
-                '</div>'
-              : ''
-          ) +
+                (
+                  ex.reps
+                    ? '<div class="training-mini-stat">' +
+                        '<span class="training-mini-label">Reps</span>' +
+                        '<div class="training-mini-value">' + ex.reps + '</div>' +
+                      '</div>'
+                    : ''
+                ) +
 
-          (
-            ex.exercise_duration || ex.duration
-              ? '<div class="training-mini-stat">' +
-                  '<span class="training-mini-label">Tiempo</span>' +
-                  '<div class="training-mini-value">' + (ex.exercise_duration || ex.duration) + '</div>' +
-                '</div>'
-              : ''
-          ) +
+                (
+                  ex.exercise_duration
+                    ? '<div class="training-mini-stat">' +
+                        '<span class="training-mini-label">Tiempo</span>' +
+                        '<div class="training-mini-value">' + ex.exercise_duration + '</div>' +
+                      '</div>'
+                    : ''
+                ) +
 
-        '</div>' +
+              '</div>'
+            : ''
+        ) +
 
         (
           ex.description
@@ -3811,8 +3942,11 @@ function buildClientMobilityBlock() {
   });
 
   html +=
+            '</div>' +
           '</div>' +
+
         '</div>' +
+
       '</div>' +
     '</div>';
 
@@ -3823,6 +3957,18 @@ function toggleMobilityBlock() {
   const card = document.getElementById('mobilityBlockCard');
   if (!card) return;
   card.classList.toggle('open');
+}
+
+function toggleTrainingCollapsible(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+
+  card.classList.toggle('open');
+
+  const icon = card.querySelector('.training-collapsible-icon');
+  if (icon) {
+    icon.textContent = card.classList.contains('open') ? '−' : '+';
+  }
 }
 
 async function renderClientTraining(){
