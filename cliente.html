@@ -5474,12 +5474,16 @@ if(showCombatMetrics){
   html += buildGeneralHealthHTML();
 }
 
-html +=
-  const alertLabel = uiText('healthIndications') +
+const alertLabel = uiText('healthIndications') +
   (clientAlerts.length ? ' · ' + clientAlerts.length : '');
 
 html +=
   '<div class="accordion-block ' + (clientAlerts.length ? '' : 'open') + '" style="margin-top:12px;">' +
+    '<button class="accordion-title" onclick="toggleAccordion(this)">' +
+      '<span>' + alertLabel + '</span>' +
+      '<span class="accordion-symbol">' + (clientAlerts.length ? '+' : '−') + '</span>' +
+    '</button>' +
+    '<div class="accordion-content">';
 
 html +=
   '<div class="accordion-block ' + (clientAlerts.length ? '' : 'open') + '" style="margin-top:12px;">' +
