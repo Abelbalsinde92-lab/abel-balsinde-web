@@ -722,6 +722,48 @@ input, textarea { outline: none; font-family: var(--font-body); }
   margin-bottom: 4px;
 }
 
+/* ═══ MOVILIDAD ACTIVA PLEGABLE ═════════════════════ */
+
+.mobility-card {
+  overflow: hidden;
+}
+
+.mobility-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.mobility-toggle-symbol {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,230,118,.28);
+  color: var(--streak);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.mobility-card-body {
+  display: none;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0,230,118,.18);
+}
+
+.mobility-card.open .mobility-card-body {
+  display: block;
+}
+
 /* ═══ EVALUACIONES ══════════════════════════════════════ */
 .assessment-card { margin-bottom: 10px; overflow: hidden; }
 .assessment-card-header {
@@ -3781,13 +3823,13 @@ function buildClientAdaptedSessionCard(sessionId) {
   );
 }
 
-function buildClientMobilityBlock() {
+function buildClientMobilityBlock(sessionId) {
   if (!clientMobilityChain || !clientMobilityChain.length) return '';
 
-  const activeSessionId = getCurrentVisibleSessionId?.() || getInitialActiveSessionId?.();
-  const activeSession = activeSessionId ? getSessionById(activeSessionId) : null;
+  const activeSession = sessionId ? getSessionById(sessionId) : null;
 
-  // No mostramos movilidad extra en Día A si ya fue la primera sesión realizada
+  // No mostrar movilidad en Día A si ya fue realizado o si decidimos que Día A no la lleva.
+  // Para Juan Carlos queremos aplicarla desde Día B en adelante.
   if (activeSession && Number(activeSession.session_number || 0) === 1) {
     return '';
   }
@@ -3804,28 +3846,36 @@ function buildClientMobilityBlock() {
   let html = '';
 
   html +=
-    '<div class="training-collapsible-card mobility" id="mobilityChainCard">' +
+    '<div class="training-adapted-card mobility-card collapsed" style="border-color:rgba(0,230,118,.28);background:rgba(0,230,118,.05);">' +
 
-      '<button class="training-collapsible-header" onclick="toggleTrainingCollapsible(\'mobilityChainCard\')">' +
-        '<div class="training-collapsible-info">' +
-          '<div class="training-collapsible-label">Movilidad activa asignada</div>' +
-          '<div class="training-collapsible-title">' + chainName + '</div>' +
-          '<div class="training-collapsible-sub">' +
+      '<button class="mobility-toggle" onclick="toggleMobilityCard(this)">' +
+        '<div style="flex:1;min-width:0;text-align:left;">' +
+
+          '<div class="training-adapted-label" style="color:var(--streak);">' +
+            'Movilidad activa asignada' +
+          '</div>' +
+
+          '<div class="training-adapted-title">' +
+            chainName +
+          '</div>' +
+
+          '<div class="training-adapted-summary">' +
             [
               level ? 'Nivel: ' + level : '',
-              duration ? 'Duración: ' + duration : '',
-              'Después del calentamiento'
+              duration ? 'Duración: ' + duration : ''
             ].filter(Boolean).join(' · ') +
           '</div>' +
+
         '</div>' +
-        '<div class="training-collapsible-icon">+</div>' +
+
+        '<span class="mobility-toggle-symbol">+</span>' +
       '</button>' +
 
-      '<div class="training-collapsible-body">' +
+      '<div class="mobility-card-body">' +
 
         (
           objective
-            ? '<div class="training-adapted-message" style="margin-top:14px;">' +
+            ? '<div class="training-adapted-message" style="margin-top:10px;">' +
                 objective +
               '</div>'
             : ''
@@ -3849,59 +3899,40 @@ function buildClientMobilityBlock() {
             : ''
         ) +
 
-        '<div class="training-step-list" style="margin-top:14px;">' +
-
-          '<div class="training-step-card open" id="mobilityBlockCard">' +
-
-            '<button class="training-step-header" onclick="toggleMobilityBlock()">' +
-              '<div class="training-step-number">M</div>' +
-              '<div class="training-step-info">' +
-                '<div class="training-step-title">Preparación de movilidad</div>' +
-                '<div class="training-step-meta">Antes de la rutina principal</div>' +
-              '</div>' +
-              '<div class="training-step-status">Ver</div>' +
-            '</button>' +
-
-            '<div class="training-step-body">' +
-
-              '<div class="training-step-objective">' +
-                'Realiza esta cadena de movilidad de forma lenta y controlada. No busca fatigarte; busca preparar articulaciones, respiración y técnica antes del entrenamiento principal.' +
-              '</div>';
+        '<div class="training-step-objective" style="margin-top:14px;">' +
+          'Realiza esta cadena de movilidad de forma lenta y controlada. No busca fatigarte; busca preparar articulaciones, respiración y técnica antes del entrenamiento principal.' +
+        '</div>';
 
   clientMobilityChain.forEach(ex => {
     html +=
       '<div class="training-exercise-card">' +
 
         '<div class="training-exercise-title">' +
-          '<span class="training-ex-num">' + ex.exercise_order + '.</span>' +
+          '<span class="training-ex-num">' + (ex.exercise_order || '') + '.</span>' +
           (ex.exercise_name || 'Ejercicio de movilidad') +
         '</div>' +
 
-        (
-          ex.reps || ex.exercise_duration
-            ? '<div class="training-exercise-grid">' +
+        '<div class="training-exercise-grid">' +
 
-                (
-                  ex.reps
-                    ? '<div class="training-mini-stat">' +
-                        '<span class="training-mini-label">Reps</span>' +
-                        '<div class="training-mini-value">' + ex.reps + '</div>' +
-                      '</div>'
-                    : ''
-                ) +
+          (
+            ex.reps
+              ? '<div class="training-mini-stat">' +
+                  '<span class="training-mini-label">Reps</span>' +
+                  '<div class="training-mini-value">' + ex.reps + '</div>' +
+                '</div>'
+              : ''
+          ) +
 
-                (
-                  ex.exercise_duration
-                    ? '<div class="training-mini-stat">' +
-                        '<span class="training-mini-label">Tiempo</span>' +
-                        '<div class="training-mini-value">' + ex.exercise_duration + '</div>' +
-                      '</div>'
-                    : ''
-                ) +
+          (
+            ex.exercise_duration
+              ? '<div class="training-mini-stat">' +
+                  '<span class="training-mini-label">Tiempo</span>' +
+                  '<div class="training-mini-value">' + ex.exercise_duration + '</div>' +
+                '</div>'
+              : ''
+          ) +
 
-              '</div>'
-            : ''
-        ) +
+        '</div>' +
 
         (
           ex.description
@@ -3942,15 +3973,21 @@ function buildClientMobilityBlock() {
   });
 
   html +=
-            '</div>' +
-          '</div>' +
-
-        '</div>' +
-
       '</div>' +
     '</div>';
 
   return html;
+}
+
+function toggleMobilityCard(button) {
+  const card = button.closest('.mobility-card');
+  if (!card) return;
+
+  const isOpen = card.classList.toggle('open');
+  card.classList.toggle('collapsed', !isOpen);
+
+  const symbol = card.querySelector('.mobility-toggle-symbol');
+  if (symbol) symbol.textContent = isOpen ? '−' : '+';
 }
 
 function toggleMobilityBlock() {
@@ -4072,10 +4109,6 @@ const initialSessionForCards = initialActiveSessionId || getCurrentVisibleSessio
 
 html += buildClientAdaptedSessionCard(initialSessionForCards);
 
-const mobilityHTML = buildClientMobilityBlock();
-console.log('AB Mobility HTML length:', mobilityHTML.length);
-html += mobilityHTML;
-
   if(clientTrainingSessions.length > 1){
     const sessionsByWeek = new Map();
 
@@ -4109,6 +4142,7 @@ html += mobilityHTML;
 
         html += '<div class="training-day-panel' + (sid === String(initialSessionId) ? ' active' : '') + '" data-session-id="' + sid + '">';
         html += buildSessionMiniHeader(s,i);
+        html += buildClientMobilityBlock(sid);
 
         if(isSessionFinished(sid)){
           html += buildCompletedSessionCard(s,i);
