@@ -3876,6 +3876,10 @@ currentTrainingLog = null;
   let html = '';
 
   html += buildClientAdaptedSessionCard();
+
+  const mobilityHTML = buildClientMobilityBlock();
+  consomé.log('AB Mobility HTML length:', mobilityHTML.length);
+  html += mobilityHTML;
   html += buildClientMobilityBlock();
 
   if(clientTrainingSessions.length > 1){
