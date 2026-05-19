@@ -1119,6 +1119,15 @@ let currentTrainingLog       = null;
 let clientSessionLogs        = [];
 let clientDailyCheckins      = [];
 let clientMobilityChain      = [];
+let clientMobilityDebug      = {
+  loaded: false,
+  count: 0,
+  error: 'No inicializado'
+};
+
+window.clientMobilityChain = clientMobilityChain;
+window.clientMobilityDebug = clientMobilityDebug;
+
 let calCurrentMonth = null;
 let calCurrentYear = null;
 let calSelectedDate = null;
@@ -1662,8 +1671,21 @@ async function loadClientDashboard(clientId) {
     clientTrainingAssignment = assignR.data?.[0] || null;
     clientAssessments = assR.data || [];
     clientSessionLogs = logsR.data || [];
-    clientDailyCheckins = checkinR.data || [];
-    clientMobilityChain = mobilityR.data || [];
+clientDailyCheckins = checkinR.data || [];
+
+clientMobilityChain = mobilityR?.data || [];
+
+clientMobilityDebug = {
+  loaded: true,
+  count: clientMobilityChain.length,
+  error: mobilityR?.error ? mobilityR.error.message : null
+};
+
+window.clientMobilityChain = clientMobilityChain;
+window.clientMobilityDebug = clientMobilityDebug;
+
+console.log('AB Mobility Debug:', window.clientMobilityDebug);
+console.log('AB Mobility Chain:', window.clientMobilityChain);
 
     clientAssessmentResults = [];
 
