@@ -1118,6 +1118,7 @@ let activeTrainingBlockKey   = null;
 let currentTrainingLog       = null;
 let clientSessionLogs        = [];
 let clientDailyCheckins      = [];
+let clientMobilityChain      = [];
 let calCurrentMonth = null;
 let calCurrentYear = null;
 let calSelectedDate = null;
@@ -1630,7 +1631,8 @@ async function loadClientDashboard(clientId) {
   assignR,
   assR,
   logsR,
-  checkinR
+  checkinR,
+  mobilityR
 ] = await Promise.all([
       db.from('reservations').select('*').eq('client_id', clientId).order('date', { ascending: true }),
       db.from('payments').select('*').eq('client_id', clientId).order('due_date', { ascending: false }),
@@ -1640,7 +1642,16 @@ async function loadClientDashboard(clientId) {
       db.from('client_program_assignments').select('*').eq('client_id', clientId).eq('status', 'activo').order('created_at', { ascending: false }).limit(1),
       db.from('client_assessments').select('*').eq('client_id', clientId).order('assessment_date', { ascending: false }),
       db.from('client_session_logs').select('*').eq('client_id', clientId).order('training_date', { ascending: false }),
-      db.from('client_daily_checkins').select('*').eq('client_id', clientId).order('checkin_date', { ascending: false }).limit(30),
+      db.from('client_daily_checkins')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('checkin_date', { ascending: false })
+        .limit(30),
+      
+      db.from('v_client_active_mobility_chain')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('exercise_order', { ascending: true }),
       ]);
 
     clientReservations = resR.data || [];
@@ -1652,6 +1663,7 @@ async function loadClientDashboard(clientId) {
     clientAssessments = assR.data || [];
     clientSessionLogs = logsR.data || [];
     clientDailyCheckins = checkinR.data || [];
+    clientMobilityChain = mobilityR.data || [];
 
     clientAssessmentResults = [];
 
@@ -3575,6 +3587,175 @@ function buildClientAdaptedSessionCard() {
   );
 }
 
+function buildClientMobilityBlock() {
+  if (!clientMobilityChain || !clientMobilityChain.length) return '';
+
+  const activeSessionId = getCurrentVisibleSessionId?.() || getInitialActiveSessionId?.();
+  const activeSession = activeSessionId ? getSessionById(activeSessionId) : null;
+
+  if (activeSession && Number(activeSession.session_number || 0) === 1) {
+    return '';
+  }
+
+  const first = clientMobilityChain[0];
+
+  const chainName = first.chain_name || 'Movilidad activa';
+  const level = first.level || '';
+  const duration = first.duration || '';
+  const objective = first.objective || '';
+  const clientNotes = first.client_notes || '';
+  const assignedReason = first.assigned_reason || '';
+
+  let html = '';
+
+  html +=
+    '<div class="training-adapted-card" style="border-color:rgba(0,230,118,.28);background:rgba(0,230,118,.05);">' +
+
+      '<div class="training-adapted-label" style="color:var(--streak);">' +
+        'Movilidad activa asignada' +
+      '</div>' +
+
+      '<div class="training-adapted-title">' +
+        chainName +
+      '</div>' +
+
+      '<div class="training-adapted-summary">' +
+        [
+          level ? 'Nivel: ' + level : '',
+          duration ? 'Duración: ' + duration : ''
+        ].filter(Boolean).join(' · ') +
+      '</div>' +
+
+      (
+        objective
+          ? '<div class="training-adapted-message" style="margin-top:10px;">' +
+              objective +
+            '</div>'
+          : ''
+      ) +
+
+      (
+        clientNotes
+          ? '<div class="training-client-note" style="margin-top:12px;">' +
+              '<strong>Indicación</strong>' +
+              clientNotes +
+            '</div>'
+          : ''
+      ) +
+
+      (
+        assignedReason
+          ? '<div class="training-client-note" style="margin-top:10px;">' +
+              '<strong>Por qué la hacemos</strong>' +
+              assignedReason +
+            '</div>'
+          : ''
+      ) +
+
+      '<div class="training-step-list" style="margin-top:14px;">' +
+
+        '<div class="training-step-card" id="mobilityBlockCard">' +
+
+          '<button class="training-step-header" onclick="toggleMobilityBlock()">' +
+            '<div class="training-step-number">M</div>' +
+            '<div class="training-step-info">' +
+              '<div class="training-step-title">Preparación de movilidad</div>' +
+              '<div class="training-step-meta">Después del calentamiento · Antes de la rutina principal</div>' +
+            '</div>' +
+            '<div class="training-step-status">Ver</div>' +
+          '</button>' +
+
+          '<div class="training-step-body">' +
+
+            '<div class="training-step-objective">' +
+              'Realiza esta cadena de movilidad de forma lenta y controlada. No busca fatigarte; busca preparar articulaciones, respiración y técnica antes del entrenamiento principal.' +
+            '</div>';
+
+  clientMobilityChain.forEach(ex => {
+    html +=
+      '<div class="training-exercise-card">' +
+
+        '<div class="training-exercise-title">' +
+          '<span class="training-ex-num">' + ex.exercise_order + '.</span>' +
+          (ex.exercise_name || 'Ejercicio de movilidad') +
+        '</div>' +
+
+        '<div class="training-exercise-grid">' +
+
+          (
+            ex.reps
+              ? '<div class="training-mini-stat">' +
+                  '<span class="training-mini-label">Reps</span>' +
+                  '<div class="training-mini-value">' + ex.reps + '</div>' +
+                '</div>'
+              : ''
+          ) +
+
+          (
+            ex.exercise_duration
+              ? '<div class="training-mini-stat">' +
+                  '<span class="training-mini-label">Tiempo</span>' +
+                  '<div class="training-mini-value">' + ex.exercise_duration + '</div>' +
+                '</div>'
+              : ''
+          ) +
+
+        '</div>' +
+
+        (
+          ex.description
+            ? '<div class="training-instruction">' +
+                '<strong>Cómo hacerlo</strong>' +
+                ex.description +
+              '</div>'
+            : ''
+        ) +
+
+        (
+          ex.breathing_cue
+            ? '<div class="training-instruction">' +
+                '<strong>Respiración</strong>' +
+                ex.breathing_cue +
+              '</div>'
+            : ''
+        ) +
+
+        (
+          ex.coaching_notes
+            ? '<div class="training-coach-note">' +
+                'Coach: ' + ex.coaching_notes +
+              '</div>'
+            : ''
+        ) +
+
+        (
+          ex.contraindication_note
+            ? '<div class="training-client-note">' +
+                '<strong>Atención</strong>' +
+                ex.contraindication_note +
+              '</div>'
+            : ''
+        ) +
+
+      '</div>';
+  });
+
+  html +=
+          '</div>' +
+        '</div>' +
+
+      '</div>' +
+    '</div>';
+
+  return html;
+}
+
+function toggleMobilityBlock() {
+  const card = document.getElementById('mobilityBlockCard');
+  if (!card) return;
+  card.classList.toggle('open');
+}
+
 async function renderClientTraining(){
   const el = document.getElementById('sectionTrainingClient');
   const badge = document.getElementById('trainingClientBadge');
@@ -3672,7 +3853,8 @@ currentTrainingLog = null;
 
   let html = '';
 
-html += buildClientAdaptedSessionCard();
+  html += buildClientAdaptedSessionCard();
+  html += buildClientMobilityBlock();
 
   if(clientTrainingSessions.length > 1){
     const sessionsByWeek = new Map();
