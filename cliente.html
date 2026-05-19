@@ -5554,36 +5554,8 @@ document.getElementById('btnLogin')?.addEventListener('click',loginClient);
 document.getElementById('btnLogout')?.addEventListener('click',()=>Auth.logout());
 ['inputPhone','inputCode'].forEach(id=>{document.getElementById(id)?.addEventListener('keydown',e=>{if(e.key==='Enter')loginClient();});});
 
-/* RESET FORZADO LÁZARO — limpiar progreso local falso */
-function forceResetLazaroTrainingProgress() {
-  const LAZARO_ID = 'e119671e-88f7-485b-8822-a7e547230cff';
-
-  const keysToRemove = [];
-
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-
-    if (
-      key &&
-      (
-        key.includes(LAZARO_ID) ||
-        key.startsWith('ab_tp_') ||
-        key.startsWith('ab_last_session_')
-      )
-    ) {
-      keysToRemove.push(key);
-    }
-  }
-
-  keysToRemove.forEach(key => localStorage.removeItem(key));
-
-  console.log('AB RESET LÁZARO aplicado:', keysToRemove);
-}
-
 /* ══ INIT ══ */
 (async function init(){
-  forceResetLazaroTrainingProgress();
-
   const params=new URLSearchParams(location.search);
   if(params.has('auth')||params.has('logged_out'))history.replaceState({},'',location.pathname);
   const urlClientId=params.get('client');
