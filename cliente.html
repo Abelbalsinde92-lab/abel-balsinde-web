@@ -1658,6 +1658,24 @@ input, textarea { outline: none; font-family: var(--font-body); }
 <!-- ══ DASHBOARD ══════════════════════════════════════════ -->
 <div id="dashboardScreen" class="hidden">
 
+  <header class="dash-header">
+    <div class="dash-header-logo" id="dashHeaderLogo">
+      <img src="/favicon.ico.PNG" alt="AB Coach" class="brand-logo brand-logo-header">
+    </div>
+
+    <div class="dash-header-actions">
+      <div id="headerAvatarSlot"></div>
+
+      <button class="btn-icon" id="btnHeaderWA" type="button">
+        WhatsApp
+      </button>
+
+      <button class="btn-icon red" id="btnLogout" type="button">
+        <span class="btn-label">Salir</span>
+      </button>
+    </div>
+  </header>
+
   <nav class="client-nav" id="clientNav">
   <button id="navHome" onclick="goClientSection('section-home')">Inicio</button>
   <button id="navTraining" onclick="goClientSection('section-training')">Entrenar</button>
