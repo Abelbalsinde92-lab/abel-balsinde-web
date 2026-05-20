@@ -1102,6 +1102,85 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .training-collapsible-body .training-client-note:first-child {
   margin-top: 14px;
 }
+
+/* ═══ CHECK-IN EMOJI SCALE ═════════════════════════════ */
+
+.emoji-scale-group {
+  background: var(--bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.emoji-scale-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.emoji-scale {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.emoji-scale-btn {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 10px 4px 8px;
+  color: var(--text-secondary);
+  text-align: center;
+  transition: border-color .15s, background .15s, color .15s, transform .1s;
+}
+
+.emoji-scale-btn:hover {
+  border-color: rgba(0,163,255,.35);
+  color: var(--text-primary);
+}
+
+.emoji-scale-btn.active {
+  border-color: var(--sport);
+  background: rgba(0,163,255,.10);
+  color: var(--text-primary);
+}
+
+.emoji-scale-btn:active {
+  transform: scale(.96);
+}
+
+.emoji-scale-emoji {
+  display: block;
+  font-size: 22px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.emoji-scale-value {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .8px;
+}
+
+.emoji-scale-text {
+  display: block;
+  margin-top: 4px;
+  font-size: 9px;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.emoji-scale-btn.active .emoji-scale-text {
+  color: var(--text-primary);
+}
+
+.emoji-hidden-input {
+  display: none !important;
+}
 </style>
 </head>
 <body>
@@ -6469,6 +6548,103 @@ function checkinNumOrNull(id) {
   return Number.isFinite(n) ? n : null;
 }
 
+function buildEmojiScale(id, label, value, options) {
+  const current = value !== null && value !== undefined && value !== ''
+    ? Number(value)
+    : null;
+
+  let html =
+    '<div class="emoji-scale-group">' +
+      '<div class="emoji-scale-label">' + label + '</div>' +
+      '<input type="hidden" class="emoji-hidden-input" id="' + id + '" value="' + (current ?? '') + '">' +
+      '<div class="emoji-scale" data-target="' + id + '">';
+
+  options.forEach(opt => {
+    const active = Number(opt.value) === current ? ' active' : '';
+
+    html +=
+      '<button type="button" class="emoji-scale-btn' + active + '" onclick="selectEmojiScale(\'' + id + '\',' + opt.value + ', this)">' +
+        '<span class="emoji-scale-emoji">' + opt.emoji + '</span>' +
+        '<span class="emoji-scale-value">' + opt.value + '</span>' +
+        '<span class="emoji-scale-text">' + opt.text + '</span>' +
+      '</button>';
+  });
+
+  html +=
+      '</div>' +
+    '</div>';
+
+  return html;
+}
+
+function selectEmojiScale(inputId, value, button) {
+  const input = document.getElementById(inputId);
+  if (input) input.value = value;
+
+  const scale = button.closest('.emoji-scale');
+  if (!scale) return;
+
+  scale.querySelectorAll('.emoji-scale-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+
+  button.classList.add('active');
+}
+
+function getSleepQualityOptions() {
+  return getLang() === 'sr'
+    ? [
+        { value: 1, emoji: '😴', text: 'Loše' },
+        { value: 2, emoji: '😐', text: 'Slabo' },
+        { value: 3, emoji: '🙂', text: 'OK' },
+        { value: 4, emoji: '😊', text: 'Dobro' },
+        { value: 5, emoji: '🔋', text: 'Odlično' }
+      ]
+    : [
+        { value: 1, emoji: '😴', text: 'Mala' },
+        { value: 2, emoji: '😐', text: 'Regular' },
+        { value: 3, emoji: '🙂', text: 'OK' },
+        { value: 4, emoji: '😊', text: 'Buena' },
+        { value: 5, emoji: '🔋', text: 'Excelente' }
+      ];
+}
+
+function getEnergyOptions() {
+  return getLang() === 'sr'
+    ? [
+        { value: 1, emoji: '🪫', text: 'Nisko' },
+        { value: 2, emoji: '😐', text: 'Slabo' },
+        { value: 3, emoji: '🙂', text: 'OK' },
+        { value: 4, emoji: '💪', text: 'Dobro' },
+        { value: 5, emoji: '⚡', text: 'Jako' }
+      ]
+    : [
+        { value: 1, emoji: '🪫', text: 'Baja' },
+        { value: 2, emoji: '😐', text: 'Poca' },
+        { value: 3, emoji: '🙂', text: 'Normal' },
+        { value: 4, emoji: '💪', text: 'Buena' },
+        { value: 5, emoji: '⚡', text: 'Alta' }
+      ];
+}
+
+function getSorenessOptions() {
+  return getLang() === 'sr'
+    ? [
+        { value: 0, emoji: '✅', text: 'Ništa' },
+        { value: 1, emoji: '🙂', text: 'Malo' },
+        { value: 2, emoji: '😐', text: 'Blago' },
+        { value: 3, emoji: '⚠️', text: 'Srednje' },
+        { value: 5, emoji: '🔴', text: 'Jako' }
+      ]
+    : [
+        { value: 0, emoji: '✅', text: 'Nada' },
+        { value: 1, emoji: '🙂', text: 'Leve' },
+        { value: 2, emoji: '😐', text: 'Media' },
+        { value: 3, emoji: '⚠️', text: 'Alta' },
+        { value: 5, emoji: '🔴', text: 'Fuerte' }
+      ];
+}
+
 function buildDailyCheckinHTML() {
   const saved = getTodayCheckin();
 
@@ -6506,9 +6682,26 @@ function buildDailyCheckinHTML() {
       '<div class="dc-note">' + uiText('dailyCheckinIntro') + '</div>' +
       '<div style="margin-top:14px;display:grid;gap:12px;">' +
         '<div class="field-group" style="margin-bottom:0;"><label for="checkinSleepHours">' + uiText('sleepHours') + '</label><input id="checkinSleepHours" type="number" min="0" max="14" step="0.5" placeholder="7.5"></div>' +
-        '<div class="field-group" style="margin-bottom:0;"><label for="checkinSleepQuality">' + uiText('sleepQuality') + ' · 1-5</label><input id="checkinSleepQuality" type="number" min="1" max="5" step="1" placeholder="4"></div>' +
-        '<div class="field-group" style="margin-bottom:0;"><label for="checkinEnergy">' + uiText('energyLevel') + ' · 1-5</label><input id="checkinEnergy" type="number" min="1" max="5" step="1" placeholder="4"></div>' +
-        '<div class="field-group" style="margin-bottom:0;"><label for="checkinSoreness">' + uiText('sorenessLevel') + ' · 0-5</label><input id="checkinSoreness" type="number" min="0" max="5" step="1" placeholder="1"></div>' +
+        buildEmojiScale(
+  'checkinSleepQuality',
+  uiText('sleepQuality') + ' · 1-5',
+  '',
+  getSleepQualityOptions()
+) +
+
+buildEmojiScale(
+  'checkinEnergy',
+  uiText('energyLevel') + ' · 1-5',
+  '',
+  getEnergyOptions()
+) +
+
+buildEmojiScale(
+  'checkinSoreness',
+  uiText('sorenessLevel') + ' · 0-5',
+  '',
+  getSorenessOptions()
+) +
         '<div class="field-group" style="margin-bottom:0;"><label for="checkinComment">' + uiText('optionalComment') + '</label><textarea id="checkinComment" class="training-notes-textarea" style="min-height:74px;margin-bottom:0;" placeholder="' + escHTML(uiText('dailyCheckinCommentPlaceholder')) + '"></textarea></div>' +
         '<button class="client-action-btn" id="btnSaveDailyCheckin" onclick="saveDailyCheckin()">' + uiText('saveCheckin') + '</button>' +
       '</div>' +
@@ -6532,9 +6725,26 @@ function mostrarFormCheckin() {
       '<div class="dc-note">' + uiText('dailyCheckinIntro') + '</div>' +
       '<div style="margin-top:14px;display:grid;gap:12px;">' +
         '<div class="field-group" style="margin-bottom:0;"><label for="checkinSleepHours">' + uiText('sleepHours') + '</label><input id="checkinSleepHours" type="number" min="0" max="14" step="0.5" placeholder="7.5" value="' + escHTML(sleepHours) + '"></div>' +
-        '<div class="field-group" style="margin-bottom:0;"><label for="checkinSleepQuality">' + uiText('sleepQuality') + ' · 1-5</label><input id="checkinSleepQuality" type="number" min="1" max="5" step="1" placeholder="4" value="' + escHTML(sleepQuality) + '"></div>' +
-        '<div class="field-group" style="margin-bottom:0;"><label for="checkinEnergy">' + uiText('energyLevel') + ' · 1-5</label><input id="checkinEnergy" type="number" min="1" max="5" step="1" placeholder="4" value="' + escHTML(energyLevel) + '"></div>' +
-        '<div class="field-group" style="margin-bottom:0;"><label for="checkinSoreness">' + uiText('sorenessLevel') + ' · 0-5</label><input id="checkinSoreness" type="number" min="0" max="5" step="1" placeholder="1" value="' + escHTML(soreness) + '"></div>' +
+        buildEmojiScale(
+  'checkinSleepQuality',
+  uiText('sleepQuality') + ' · 1-5',
+  sleepQuality,
+  getSleepQualityOptions()
+) +
+
+buildEmojiScale(
+  'checkinEnergy',
+  uiText('energyLevel') + ' · 1-5',
+  energyLevel,
+  getEnergyOptions()
+) +
+
+buildEmojiScale(
+  'checkinSoreness',
+  uiText('sorenessLevel') + ' · 0-5',
+  soreness,
+  getSorenessOptions()
+) +
         '<div class="field-group" style="margin-bottom:0;"><label for="checkinComment">' + uiText('optionalComment') + '</label><textarea id="checkinComment" class="training-notes-textarea" style="min-height:74px;margin-bottom:0;" placeholder="' + escHTML(uiText('dailyCheckinCommentPlaceholder')) + '">' + escHTML(comment) + '</textarea></div>' +
         '<button class="client-action-btn" id="btnSaveDailyCheckin" onclick="saveDailyCheckin()">' + uiText('saveCheckin') + '</button>' +
       '</div>' +
