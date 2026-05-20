@@ -1449,6 +1449,116 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .training-collapsible-card.adjusted .training-guidance-icon {
   color: var(--sport);
 }
+
+/* ═══ GUÍA POR VIDEO DE EJERCICIOS ═══ */
+
+.exercise-video-guide {
+  margin-top: 12px;
+  border: 1px solid rgba(0,163,255,.24);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0,163,255,.035);
+}
+
+.exercise-video-toggle {
+  width: 100%;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: transparent;
+  color: var(--sport);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.exercise-video-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exercise-video-play-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  flex-shrink: 0;
+}
+
+.exercise-video-symbol {
+  color: var(--text-secondary);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.exercise-video-body {
+  display: none;
+  padding: 0 12px 12px;
+  border-top: 1px solid rgba(0,163,255,.16);
+}
+
+.exercise-video-guide.open .exercise-video-body {
+  display: block;
+}
+
+.exercise-video-frame-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.exercise-video-frame-wrap iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.exercise-video-note {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.exercise-video-external {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  padding: 9px 12px;
+  border: 1px solid rgba(0,163,255,.32);
+  border-radius: 8px;
+  color: var(--sport);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+}
+
+.exercise-video-missing {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px dashed var(--card-border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
 </style>
 </head>
 <body>
@@ -4075,6 +4185,8 @@ function tClient(key) {
       trainingCompleted: "Entrenamiento completado",
       sessionSaved: "Buen trabajo. Tu sesión quedó registrada y Abel podrá revisar tus observaciones.",
       details: "Ver detalles del entrenamiento"
+      videoGuide: "Vídeo guía",
+      openVideo: "Abrir vídeo"
     },
 
     sr: {
@@ -4103,6 +4215,8 @@ function tClient(key) {
       trainingCompleted: "Trening završen",
       sessionSaved: "Dobar posao. Tvoja sesija je registrovana i Abel može da pregleda tvoje napomene.",
       details: "Pogledaj detalje treninga"
+      videoGuide: "Video vodič",
+      openVideo: "Otvori video"
     }
   };
 
@@ -5040,6 +5154,118 @@ const metaP = [
   return html;
 }
 
+function getVideoEmbedUrl(url) {
+  if (!url) return '';
+
+  const raw = String(url).trim();
+
+  try {
+    const u = new URL(raw);
+
+    // YouTube normal: https://www.youtube.com/watch?v=ID
+    if (u.hostname.includes('youtube.com')) {
+      const id = u.searchParams.get('v');
+
+      if (id) {
+        return 'https://www.youtube.com/embed/' + id;
+      }
+
+      // YouTube shorts: https://www.youtube.com/shorts/ID
+      const shortsMatch = u.pathname.match(/\/shorts\/([^/?]+)/);
+
+      if (shortsMatch?.[1]) {
+        return 'https://www.youtube.com/embed/' + shortsMatch[1];
+      }
+    }
+
+    // YouTube corto: https://youtu.be/ID
+    if (u.hostname.includes('youtu.be')) {
+      const id = u.pathname.replace('/', '');
+
+      if (id) {
+        return 'https://www.youtube.com/embed/' + id;
+      }
+    }
+
+    // Vimeo: https://vimeo.com/ID
+    if (u.hostname.includes('vimeo.com')) {
+      const id = u.pathname.replace('/', '');
+
+      if (id) {
+        return 'https://player.vimeo.com/video/' + id;
+      }
+    }
+
+    return '';
+  } catch {
+    return '';
+  }
+}
+
+function toggleExerciseVideo(id) {
+  const card = document.getElementById(id);
+  if (!card) return;
+
+  card.classList.toggle('open');
+
+  const symbol = card.querySelector('.exercise-video-symbol');
+
+  if (symbol) {
+    symbol.textContent = card.classList.contains('open') ? '−' : '+';
+  }
+}
+
+function buildExerciseVideoGuide(ex) {
+  const videoUrl = ex.video_url || '';
+
+  if (!videoUrl) {
+    return '';
+  }
+
+  const embedUrl = getVideoEmbedUrl(videoUrl);
+  const videoId = 'video-guide-' + String(ex.id || Math.random()).replace(/[^a-zA-Z0-9_-]/g, '');
+
+  const title = getLang() === 'sr'
+    ? 'Video vodič'
+    : 'Vídeo guía';
+
+  const note = getLang() === 'sr'
+    ? 'Mira el video antes de hacer el ejercicio. Después vuelve al bloque y realiza el trabajo indicado.'
+    : 'Mira el vídeo antes de hacer el ejercicio. Después vuelve al bloque y realiza el trabajo indicado.';
+
+  let html =
+    '<div class="exercise-video-guide" id="' + videoId + '">' +
+
+      '<button class="exercise-video-toggle" onclick="toggleExerciseVideo(\'' + videoId + '\')">' +
+        '<span class="exercise-video-toggle-left">' +
+          '<span class="exercise-video-play-icon">▶</span>' +
+          '<span>' + title + '</span>' +
+        '</span>' +
+        '<span class="exercise-video-symbol">+</span>' +
+      '</button>' +
+
+      '<div class="exercise-video-body">';
+
+  if (embedUrl) {
+    html +=
+      '<div class="exercise-video-frame-wrap">' +
+        '<iframe src="' + embedUrl + '" allowfullscreen loading="lazy"></iframe>' +
+      '</div>';
+  } else {
+    html +=
+      '<a href="' + videoUrl + '" target="_blank" rel="noopener" class="exercise-video-external">' +
+        (getLang() === 'sr' ? 'Otvori video' : 'Abrir vídeo') +
+      '</a>';
+  }
+
+  html +=
+        '<div class="exercise-video-note">' + note + '</div>' +
+      '</div>' +
+    '</div>';
+
+  return html;
+}
+
 function buildExerciseHTML(ex){
   const lvl = getAssignedTrainingLevel();
   const _lg = getLang();
@@ -5135,12 +5361,7 @@ const variant = ex.client_variant || baseVariant;
     '</div>';
 }
 
-  if(ex.video_url){
-    html +=
-      '<a href="' + ex.video_url + '" target="_blank" class="training-video-btn">&#9654; ' +
-        tClient('watchReference') +
-      '</a>';
-  }
+  html += buildExerciseVideoGuide(ex);
 
   html += '</div>';
 
