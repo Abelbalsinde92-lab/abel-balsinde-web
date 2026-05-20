@@ -5873,17 +5873,6 @@ function renderReservationsCalendar() {
   el.innerHTML = html;
 }
 
-  html +=
-      '<div class="action-box" style="margin-top:16px;">' +
-        '<button class="client-action-btn wa" onclick="clientWA(\'' + uiText('requestNewTrainingReservation') + '\')">' +
-          uiText('contactAbel') +
-        '</button>' +
-      '</div>' +
-    '</div>';
-
-  el.innerHTML = html;
-}
-
 /* ══ OTRAS SECCIONES ══ */
 async function renderReservations() {
   const el = document.getElementById('sectionReservations');
