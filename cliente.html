@@ -5859,32 +5859,33 @@ function renderReservationsCalendar() {
 
 /* ══ OTRAS SECCIONES ══ */
 async function renderReservations() {
-  const el = document.getElementById('sectionReservations');
-  const badge = document.getElementById('reservationsBadge');
-  if (!el) return;
+ const el = document.getElementById('sectionReservations');
+ const badge = document.getElementById('reservationsBadge');
+ if (!el) return;
 
-  if (badge) badge.textContent = clientReservations.filter(r =>
-    String(r.date) >= todayISO()
-  ).length;
+ if (badge) badge.textContent = clientReservations.filter(r =>
+   String(r.date) >= todayISO()
+ ).length;
 
-  const now = new Date();
-  if (!calCurrentMonth && calCurrentMonth !== 0) calCurrentMonth = now.getMonth();
-  if (!calCurrentYear) calCurrentYear = now.getFullYear();
+ const now = new Date();
+ if (!calCurrentMonth && calCurrentMonth !== 0) calCurrentMonth = now.getMonth();
+ if (!calCurrentYear) calCurrentYear = now.getFullYear();
 
-  el.innerHTML =
-    '<div style="display:flex;align-items:center;justify-content:center;padding:40px 0;">' +
-      '<div class="spinner"></div>' +
-    '</div>';
+ el.innerHTML =
+   '<div style="display:flex;align-items:center;justify-content:center;padding:40px 0;">' +
+     '<div class="spinner"></div>' +
+   '</div>';
 
-  await loadCalendarData();
+ await loadCalendarData();
 
-  // ── BIFURCACIÓN: cliente general vs atleta ──
-  if (!isAthlete) {
-    el.innerHTML = '<div class="section-body">' + buildSimpleReservationView() + '</div>';
-    return;
-  }
+ // ── BIFURCACIÓN: cliente general ve vista simplificada ──
+ if (!isAthlete) {
+   el.innerHTML = '<div class="section-body">' + buildSimpleReservationView() + '</div>';
+   return;
+ }
 
-  renderReservationsCalendar();
+ // Atleta: calendario completo sin cambios
+ renderReservationsCalendar();
 }
 
 function renderPayments(){
