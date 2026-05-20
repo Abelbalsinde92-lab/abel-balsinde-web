@@ -5668,6 +5668,134 @@ function calNextMonth() {
   loadCalendarData().then(() => renderReservationsCalendar());
 }
 
+// ── VISTA SIMPLIFICADA DE RESERVAS (cliente general) ──────
+function buildSimpleReservationView() {
+  const today = todayISO();
+
+  // Próxima reserva propia
+  const myNext = clientReservations
+    .filter(r =>
+      String(r.date) >= today &&
+      !['cancelada','cancelado'].includes(String(r.status || '').toLowerCase())
+    )
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)))[0] || null;
+
+  // Próximos 3 días con slots grupales disponibles
+  const nextSlotDays = [];
+  const seen = new Set();
+  const sorted = [...calPublicSlots]
+    .filter(s => String(s.date) >= today && s.can_join)
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+
+  for (const s of sorted) {
+    if (!seen.has(s.date)) {
+      seen.add(s.date);
+      nextSlotDays.push(s.date);
+      if (nextSlotDays.length >= 3) break;
+    }
+  }
+
+  let html = '';
+
+  // ── Mi próxima reserva ──
+  if (myNext) {
+    const statusColor =
+      myNext.status === 'confirmada' ? 'var(--streak)' :
+      myNext.status === 'pendiente'  ? 'var(--warn)' :
+      'var(--text-secondary)';
+
+    html +=
+      '<div class="data-card next-session" style="margin-bottom:16px;">' +
+        '<div class="next-label">' + uiText('nextReservation') + '</div>' +
+        '<div class="dc-row">' +
+          '<span class="dc-title">' +
+            formatDate(myNext.date) +
+            (myNext.time ? ' · ' + formatTime(myNext.time) : '') +
+          '</span>' +
+          '<span class="badge" style="color:' + statusColor + '">' +
+            (myNext.status || 'pendiente') +
+          '</span>' +
+        '</div>' +
+        '<div class="dc-row">' +
+          '<span class="dc-sub">' +
+            (myNext.type || myNext.session_mode || 'Personal') +
+            (myNext.place ? ' · ' + myNext.place : '') +
+          '</span>' +
+        '</div>' +
+        (myNext.client_message
+          ? '<div class="dc-note">' + myNext.client_message + '</div>'
+          : ''
+        ) +
+      '</div>';
+  }
+
+  // ── Próximas plazas grupales ──
+  if (nextSlotDays.length) {
+    html +=
+      '<div style="margin:0 0 10px;font-family:var(--font-mono);font-size:10px;' +
+      'letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
+        (getLang() === 'sr' ? 'Dostupni termini' : 'Próximas plazas disponibles') +
+      '</div>';
+
+    nextSlotDays.forEach(dateStr => {
+      const daySlots = calPublicSlots.filter(s => s.date === dateStr && s.can_join);
+      const first = daySlots[0];
+      const spotsLeft = first.max_capacity - first.current_capacity;
+
+      html +=
+        '<div class="data-card" style="margin-bottom:8px;">' +
+          '<div class="dc-row">' +
+            '<span class="dc-title" style="font-size:15px;">' +
+              formatDate(dateStr) +
+              (first.time ? ' · ' + formatTime(first.time) : '') +
+            '</span>' +
+            '<span class="badge badge-green">' + spotsLeft + ' plazas</span>' +
+          '</div>' +
+          '<div class="dc-row">' +
+            '<span class="dc-sub">' +
+              (getLang() === 'sr' ? 'Grupni trening' : 'Entrenamiento grupal') +
+              (first.place ? ' · ' + first.place : '') +
+              (first.duration_minutes ? ' · ' + first.duration_minutes + 'min' : '') +
+            '</span>' +
+          '</div>' +
+          '<div class="action-box" style="margin-top:10px;">' +
+            '<button class="client-action-btn" onclick="calSelectDay(\'' + dateStr + '\');goClientSection(\'section-reservations\')">' +
+              (getLang() === 'sr' ? 'Reservar este turno' : 'Reservar este turno') +
+            '</button>' +
+          '</div>' +
+        '</div>';
+    });
+  } else if (!myNext) {
+    html +=
+      '<div class="data-card">' +
+        '<div class="dc-row">' +
+          '<span class="dc-title">' +
+            (getLang() === 'sr' ? 'Sin plazas próximas' : 'Sin plazas próximas') +
+          '</span>' +
+          '<span class="badge badge-gray">—</span>' +
+        '</div>' +
+        '<div class="dc-note">' +
+          (getLang() === 'sr'
+            ? 'No hay plazas grupales disponibles en los próximos días.'
+            : 'No hay plazas grupales disponibles en los próximos días.') +
+        '</div>' +
+      '</div>';
+  }
+
+  // ── Botón ver calendario completo + WA ──
+  html +=
+    '<div class="action-box" style="margin-top:12px;">' +
+      '<button class="client-action-btn" onclick="goClientSection(\'section-reservations\')">' +
+        (getLang() === 'sr' ? 'Ver calendario completo' : 'Ver calendario completo') +
+      '</button>' +
+      '<button class="client-action-btn wa" onclick="clientWA(\'' + uiText('requestNewTrainingReservation') + '\')">' +
+        uiText('contactAbel') +
+      '</button>' +
+    '</div>';
+
+  return html;
+}
+
 function renderReservationsCalendar() {
   const el = document.getElementById('sectionReservations');
   if (!el) return;
@@ -5749,6 +5877,13 @@ async function renderReservations() {
     '</div>';
 
   await loadCalendarData();
+
+  // ── BIFURCACIÓN: cliente general vs atleta ──
+  if (!isAthlete) {
+    el.innerHTML = '<div class="section-body">' + buildSimpleReservationView() + '</div>';
+    return;
+  }
+
   renderReservationsCalendar();
 }
 
