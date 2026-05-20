@@ -145,110 +145,211 @@ input, textarea { outline: none; font-family: var(--font-body); }
 }
 
 /* ═══ HEADER ═════════════════════════════════════════ */
-#dashboardScreen { min-height: 100vh; }
+
+#dashboardScreen {
+  min-height: 100vh;
+}
+
 .dash-header {
-  background: rgba(0,0,0,.92); border-bottom: 1px solid var(--divider);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  padding: 0 20px; height: 60px;
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; z-index: 100;
-}
-.dash-header-logo { display: flex; align-items: center; gap: 10px; }
-.dash-header-actions { display: flex; align-items: center; gap: 8px; }
-.btn-icon {
-  background: transparent; border: 1px solid var(--card-border);
-  color: var(--text-secondary); border-radius: 6px; padding: 7px 12px;
-  font-size: 11px; font-family: var(--font-mono); letter-spacing: 0.8px;
-  display: flex; align-items: center; gap: 6px;
-  transition: border-color .2s, color .2s;
-}
-.btn-icon:hover { border-color: var(--sport); color: var(--sport); }
-.btn-icon.red:hover { border-color: var(--medical); color: var(--medical); }
-#btnHeaderWA { border-color: rgba(0,230,118,.2); color: var(--streak); }
-#btnHeaderWA:hover { border-color: var(--streak); }
-
-/* === HEADER CLIENTE LIMPIO === */
-
-.dash-header-logo {
+  height: 70px;
+  padding: 0 28px;
+  background: rgba(0,0,0,.96);
+  border-bottom: 1px solid var(--divider);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
-  gap: 0;
+  justify-content: space-between;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.dash-header-actions {
+.dash-header-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 22px;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.brand-logo {
+  display: block;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.brand-logo-login {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+}
+
+.brand-logo-header {
+  width: 46px;
+  height: 46px;
+  border-radius: 0;
+  object-fit: contain;
 }
 
 #headerAvatarSlot {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 2px;
-}
-
-.brand-logo-header {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .client-avatar,
 .client-avatar-initials {
-  width: 36px;
-  height: 36px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
 }
 
-<!-- ══ DASHBOARD ══════════════════════════════════════════ -->
-<div id="dashboardScreen" class="hidden">
+.client-avatar {
+  object-fit: cover;
+}
 
-  <header class="dash-header">
-  <div class="dash-header-left">
-    <img src="/favicon.ico.PNG" alt="AB Coach" class="brand-logo brand-logo-header">
-    <div id="headerAvatarSlot"></div>
-  </div>
+.client-avatar-initials {
+  background: var(--sport);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
 
-  <div class="dash-header-actions">
-    <button class="btn-icon btn-wa-icon" id="btnHeaderWA" type="button" aria-label="WhatsApp">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/>
-      </svg>
-    </button>
+.dash-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
 
-    <button class="btn-icon btn-exit-icon red" id="btnLogout" type="button" aria-label="Salir">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M10 7V5.8C10 4.8 10.8 4 11.8 4H18.2C19.2 4 20 4.8 20 5.8V18.2C20 19.2 19.2 20 18.2 20H11.8C10.8 20 10 19.2 10 18.2V17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        <path d="M4 12H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        <path d="M12 8.5L15.5 12L12 15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-  </div>
-</header>
+.btn-icon {
+  width: 58px;
+  height: 50px;
+  padding: 0;
+  border-radius: 12px;
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0;
+  line-height: 1;
+  transition: border-color .2s, color .2s, background .2s;
+}
 
-  <nav class="client-nav" id="clientNav">
+.btn-wa-icon {
+  color: var(--streak);
+  border-color: rgba(0,230,118,.28);
+}
+
+.btn-wa-icon:hover {
+  border-color: var(--streak);
+  background: rgba(0,230,118,.06);
+}
+
+.btn-exit-icon {
+  color: var(--text-secondary);
+}
+
+.btn-exit-icon:hover {
+  color: var(--medical);
+  border-color: rgba(255,90,90,.45);
+  background: rgba(255,90,90,.06);
+}
 
 /* ═══ NAV ════════════════════════════════════════════ */
+
 .client-nav {
-  background: rgba(0,0,0,.95); border-bottom: 1px solid var(--divider);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  position: sticky; top: 60px; z-index: 90;
-  display: flex; overflow-x: auto;
-  scrollbar-width: none; -ms-overflow-style: none;
+  height: 56px;
+  background: rgba(0,0,0,.95);
+  border-bottom: 1px solid var(--divider);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: sticky;
+  top: 70px;
+  z-index: 90;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-.client-nav::-webkit-scrollbar { display: none; }
+
+.client-nav::-webkit-scrollbar {
+  display: none;
+}
+
 .client-nav button {
-  flex: 0 0 auto; background: transparent;
-  color: var(--text-secondary); border: none;
-  border-bottom: 2px solid transparent;
-  padding: 14px 18px 12px; font-family: var(--font-mono);
-  font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase;
-  white-space: nowrap; transition: color .15s, border-color .15s;
+  flex: 0 0 auto;
+  min-width: max-content;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 16px 34px 13px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.7px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
 }
-.client-nav button:hover { color: var(--text-primary); }
-.client-nav button.active { color: var(--text-primary); border-bottom-color: var(--tab-indicator); }
+
+.client-nav button:hover {
+  color: var(--text-primary);
+}
+
+.client-nav button.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--tab-indicator);
+}
+
+@media (max-width: 480px) {
+  .dash-header {
+    height: 70px;
+    padding: 0 28px;
+  }
+
+  .dash-header-left {
+    gap: 22px;
+  }
+
+  .brand-logo-header {
+    width: 46px;
+    height: 46px;
+  }
+
+  .client-avatar,
+  .client-avatar-initials {
+    width: 54px;
+    height: 54px;
+  }
+
+  .btn-icon {
+    width: 58px;
+    height: 50px;
+  }
+
+  .client-nav {
+    top: 70px;
+    height: 56px;
+  }
+
+  .client-nav button {
+    padding: 16px 34px 13px;
+  }
+}
 
 /* ═══ LAYOUT ══════════════════════════════════════════ */
 .dash-main {
@@ -905,17 +1006,6 @@ input, textarea { outline: none; font-family: var(--font-body); }
   .card-metrica strong { font-size: 26px; }
 }
 
-.client-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  object-fit: cover; flex-shrink: 0;
-}
-.client-avatar-initials {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: var(--sport); color: #000;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
-  flex-shrink: 0; letter-spacing: 0.5px;
-}
 .client-avatar-lg {
   width: 72px; height: 72px; border-radius: 50%;
   object-fit: cover; flex-shrink: 0;
@@ -1623,151 +1713,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   line-height: 1.6;
 }
 
-/* ═══ FIX HEADER + NAV MOBILE ═════════════════════ */
 
-.dash-header {
-  height: 70px;
-  padding: 0 28px;
-  background: rgba(0,0,0,.96);
-  border-bottom: 1px solid var(--divider);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.dash-header-left {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-  min-width: 0;
-}
-
-.brand-logo-header {
-  width: 46px;
-  height: 46px;
-  border-radius: 0;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-#headerAvatarSlot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.client-avatar,
-.client-avatar-initials {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-}
-
-.dash-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-}
-
-.btn-icon {
-  width: 58px;
-  height: 50px;
-  padding: 0;
-  border-radius: 12px;
-  background: transparent;
-  border: 1px solid var(--card-border);
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0;
-}
-
-.btn-wa-icon {
-  color: var(--streak);
-  border-color: rgba(0,230,118,.28);
-}
-
-.btn-wa-icon:hover {
-  border-color: var(--streak);
-  color: var(--streak);
-}
-
-.btn-exit-icon {
-  color: var(--text-secondary);
-}
-
-.btn-exit-icon:hover {
-  color: var(--medical);
-  border-color: rgba(255,90,90,.45);
-}
-
-/* NAV: una sola línea deslizable */
-.client-nav {
-  top: 70px;
-  width: 100%;
-  max-width: 100%;
-  display: flex;
-  flex-wrap: nowrap !important;
-  overflow-x: auto !important;
-  overflow-y: hidden;
-  white-space: nowrap;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.client-nav::-webkit-scrollbar {
-  display: none;
-}
-
-.client-nav button {
-  flex: 0 0 auto !important;
-  white-space: nowrap !important;
-  min-width: max-content;
-  padding: 16px 34px 13px;
-}
-
-/* Ajuste iPhone */
-@media (max-width: 480px) {
-  .dash-header {
-    height: 70px;
-    padding: 0 28px;
-  }
-
-  .dash-header-left {
-    gap: 22px;
-  }
-
-  .brand-logo-header {
-    width: 46px;
-    height: 46px;
-  }
-
-  .client-avatar,
-  .client-avatar-initials {
-    width: 54px;
-    height: 54px;
-  }
-
-  .btn-icon {
-    width: 58px;
-    height: 50px;
-  }
-
-  .client-nav {
-    top: 70px;
-  }
-
-  .client-nav button {
-    padding: 16px 34px 13px;
-  }
-}
 </style>
 </head>
 <body>
@@ -1808,22 +1754,28 @@ input, textarea { outline: none; font-family: var(--font-body); }
 <div id="dashboardScreen" class="hidden">
 
   <header class="dash-header">
-    <div class="dash-header-logo" id="dashHeaderLogo">
-      <img src="/favicon.ico.PNG" alt="AB Coach" class="brand-logo brand-logo-header">
-    </div>
+  <div class="dash-header-left">
+    <img src="/favicon.ico.PNG" alt="AB Coach" class="brand-logo brand-logo-header">
+    <div id="headerAvatarSlot"></div>
+  </div>
 
-    <div class="dash-header-actions">
-      <div id="headerAvatarSlot"></div>
+  <div class="dash-header-actions">
+    <button class="btn-icon btn-wa-icon" id="btnHeaderWA" type="button" aria-label="WhatsApp">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/>
+      </svg>
+    </button>
 
-      <button class="btn-icon" id="btnHeaderWA" type="button">
-        WhatsApp
-      </button>
-
-      <button class="btn-icon red" id="btnLogout" type="button">
-        <span class="btn-label">Salir</span>
-      </button>
-    </div>
-  </header>
+    <button class="btn-icon btn-exit-icon red" id="btnLogout" type="button" aria-label="Salir">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M10 7V5.8C10 4.8 10.8 4 11.8 4H18.2C19.2 4 20 4.8 20 5.8V18.2C20 19.2 19.2 20 18.2 20H11.8C10.8 20 10 19.2 10 18.2V17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M4 12H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M12 8.5L15.5 12L12 15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+</header>
 
   <nav class="client-nav" id="clientNav">
   <button id="navHome" onclick="goClientSection('section-home')">Inicio</button>
