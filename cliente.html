@@ -4164,6 +4164,81 @@ currentTrainingLog = null;
     return;
   }
 
+  let html = '';
+
+  const programTitle =
+    clientTrainingProgram?.name ||
+    clientData?.plan ||
+    uiText('activeProgram');
+
+  const programMeta = [
+    scopeLabel,
+    tClient('level') + ' ' + levelStr,
+    clientTrainingSessions.length + ' ' + uiText('sessions')
+  ].filter(Boolean).join(' · ');
+
+  html +=
+    '<div class="training-guide-summary">' +
+      '<div class="training-guide-title">' + programTitle + '</div>' +
+      '<div class="training-guide-meta">' + programMeta + '</div>' +
+      (
+        clientTrainingProgram?.objective
+          ? '<div class="training-week-objective">' + clientTrainingProgram.objective + '</div>'
+          : ''
+      ) +
+    '</div>';
+
+  html += buildClientAdaptedSessionCard(initialActiveSessionId);
+  html += buildClientMobilityBlock(initialActiveSessionId);
+
+  html += '<div class="training-day-tabs">';
+
+  clientTrainingSessions.forEach((session, index) => {
+    const sid = String(session.id);
+    const active = sid === String(initialActiveSessionId) ? ' active' : '';
+
+    html +=
+      '<button class="training-day-tab' + active + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' +
+        getSessionDayLabel(session, index) +
+      '</button>';
+  });
+
+  html += '</div>';
+
+  clientTrainingSessions.forEach((session, index) => {
+    const sid = String(session.id);
+    const active = sid === String(initialActiveSessionId) ? ' active' : '';
+    const sessionFinished = isSessionFinished(sid);
+    const steps = buildTrainingSteps(sid);
+
+    html +=
+      '<div class="training-session-panel' + active + '" data-session-id="' + sid + '">' +
+        buildSessionMiniHeader(session, index);
+
+    if (sessionFinished) {
+      html += buildCompletedSessionCard(session, index);
+    } else {
+      html += '<div class="training-step-list">';
+
+      steps.forEach((step, stepIndex) => {
+        html += buildTrainingStepHTML(step, stepIndex);
+      });
+
+      html += '</div>';
+    }
+
+    html += '</div>';
+  });
+
+  html += '<div id="trainingCompletionArea"></div>';
+
+  el.innerHTML = html;
+
+  await showTrainingDay(initialActiveSessionId);
+
+  return;
+}
+
 function buildCompletedSessionCard(session,index){
   const title = getSessionDisplayTitle(session,index);
   const week = clientTrainingWeeks.find(w => String(w.id) === String(session.week_id));
@@ -6166,7 +6241,7 @@ const timeLabel = totalMin > 0 ? '~' + Math.round(totalMin) + ' min' : null;
   difficultyLabel
     ? '<span style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;' +
       'color:' + difficultyColor + ';border:1px solid currentColor;border-radius:4px;padding:1px 7px;">' +
-        'Dificultad: ' + difficultyLabel +
+        (getLang() === 'sr' ? 'Težina: ' : 'Dificultad: ') + difficultyLabel +
       '</span>'
     : ''
 ) +
@@ -6175,7 +6250,7 @@ const timeLabel = totalMin > 0 ? '~' + Math.round(totalMin) + ' min' : null;
   intensityLabel
     ? '<span style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;' +
       'color:' + intensityColor + ';border:1px solid currentColor;border-radius:4px;padding:1px 7px;">' +
-        'Intensidad: ' + intensityLabel +
+        (getLang() === 'sr' ? 'Intenzitet: ' : 'Intensidad: ') + intensityLabel +
       '</span>'
     : ''
 ) +
@@ -6304,7 +6379,6 @@ function renderClientData(){
 
   html += '</div>';
 
-  html +=
     html +=
   '<div class="accordion-block open" style="margin-top:12px;">' +
     '<button class="accordion-title" onclick="toggleAccordion(this)">' +
