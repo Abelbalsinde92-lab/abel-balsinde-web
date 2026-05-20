@@ -4098,69 +4098,6 @@ currentTrainingLog = null;
     return;
   }
 
-function buildSessionMiniHeader(session, index) {
-  const dayLabel = getSessionDayLabel(session, index);
-
-  let sessionTitle = String(session.title || '').trim();
-  const cleanTitle = sessionTitle
-    .replace(/^(día|dia|dan)\s+[a-z]\s*[-–—·]?\s*/i, '')
-    .replace(/^entrenamiento\s*/i, '')
-    .trim();
-
-  const week = clientTrainingWeeks.find(w =>
-    String(w.id) === String(session?.week_id)
-  );
-  const weekLabel = week?.week_number
-    ? tClient('week') + ' ' + week.week_number
-    : tClient('currentWeek');
-
-  // Nivel desde función global (no depende de scope externo)
-  const lvl = getAssignedTrainingLevel();
-
-  // Dificultad derivada del nivel
-  const diffMap = {
-    es: { N1: 'Fácil', N2: 'Medio', N3: 'Intenso', N4: 'Avanzado' },
-    sr: { N1: 'Lako',  N2: 'Srednje', N3: 'Intenzivno', N4: 'Napredno' }
-  };
-  const diffLabel = diffMap[getLang()]?.[lvl] || lvl;
-  const diffColor = { N1: 'var(--streak)', N2: 'var(--sport)', N3: 'var(--warn)', N4: 'var(--medical)' }[lvl] || 'var(--text-secondary)';
-
-  // Tiempo estimado sumando block.duration de esta sesión
-  const sessionBlocks = clientTrainingBlocks.filter(b =>
-    String(b.session_id) === String(session.id)
-  );
-  let totalMin = 0;
-  sessionBlocks.forEach(b => {
-    const match = String(b.duration || '').match(/(\d+(?:\.\d+)?)/);
-    if (match) totalMin += parseFloat(match[1]);
-  });
-  const timeLabel = totalMin > 0 ? '~' + Math.round(totalMin) + ' min' : null;
-
-  return (
-    '<div class="training-mini-hero">' +
-      '<div class="training-mini-hero-top">' +
-        '<div class="training-mini-day">' + dayLabel + '</div>' +
-        '<div class="training-mini-week">' + weekLabel + '</div>' +
-      '</div>' +
-      '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">' +
-        '<span style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);letter-spacing:1px;">' +
-          tClient('level') + ' ' + lvl +
-        '</span>' +
-        '<span style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;' +
-        'color:' + diffColor + ';border:1px solid currentColor;border-radius:4px;padding:1px 7px;">' +
-          diffLabel +
-        '</span>' +
-        (timeLabel
-          ? '<span style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);letter-spacing:0.5px;">⏱ ' + timeLabel + '</span>'
-          : '') +
-      '</div>' +
-      (cleanTitle
-        ? '<div class="training-mini-title" style="margin-top:6px;">' + cleanTitle + '</div>'
-        : '') +
-    '</div>'
-  );
-}
-
 function buildCompletedSessionCard(session,index){
   const title = getSessionDisplayTitle(session,index);
   const week = clientTrainingWeeks.find(w => String(w.id) === String(session.week_id));
@@ -6085,6 +6022,69 @@ function copySummaryToClipboard(){
       }
     })
     .catch(() => alert(uiText('couldNotCopy')));
+}
+
+function buildSessionMiniHeader(session, index) {
+  const dayLabel = getSessionDayLabel(session, index);
+
+  let sessionTitle = String(session.title || '').trim();
+  const cleanTitle = sessionTitle
+    .replace(/^(día|dia|dan)\s+[a-z]\s*[-–—·]?\s*/i, '')
+    .replace(/^entrenamiento\s*/i, '')
+    .trim();
+
+  const week = clientTrainingWeeks.find(w =>
+    String(w.id) === String(session?.week_id)
+  );
+  const weekLabel = week?.week_number
+    ? tClient('week') + ' ' + week.week_number
+    : tClient('currentWeek');
+
+  // Nivel desde función global (no depende de scope externo)
+  const lvl = getAssignedTrainingLevel();
+
+  // Dificultad derivada del nivel
+  const diffMap = {
+    es: { N1: 'Fácil', N2: 'Medio', N3: 'Intenso', N4: 'Avanzado' },
+    sr: { N1: 'Lako',  N2: 'Srednje', N3: 'Intenzivno', N4: 'Napredno' }
+  };
+  const diffLabel = diffMap[getLang()]?.[lvl] || lvl;
+  const diffColor = { N1: 'var(--streak)', N2: 'var(--sport)', N3: 'var(--warn)', N4: 'var(--medical)' }[lvl] || 'var(--text-secondary)';
+
+  // Tiempo estimado sumando block.duration de esta sesión
+  const sessionBlocks = clientTrainingBlocks.filter(b =>
+    String(b.session_id) === String(session.id)
+  );
+  let totalMin = 0;
+  sessionBlocks.forEach(b => {
+    const match = String(b.duration || '').match(/(\d+(?:\.\d+)?)/);
+    if (match) totalMin += parseFloat(match[1]);
+  });
+  const timeLabel = totalMin > 0 ? '~' + Math.round(totalMin) + ' min' : null;
+
+  return (
+    '<div class="training-mini-hero">' +
+      '<div class="training-mini-hero-top">' +
+        '<div class="training-mini-day">' + dayLabel + '</div>' +
+        '<div class="training-mini-week">' + weekLabel + '</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">' +
+        '<span style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);letter-spacing:1px;">' +
+          tClient('level') + ' ' + lvl +
+        '</span>' +
+        '<span style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;' +
+        'color:' + diffColor + ';border:1px solid currentColor;border-radius:4px;padding:1px 7px;">' +
+          diffLabel +
+        '</span>' +
+        (timeLabel
+          ? '<span style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);letter-spacing:0.5px;">⏱ ' + timeLabel + '</span>'
+          : '') +
+      '</div>' +
+      (cleanTitle
+        ? '<div class="training-mini-title" style="margin-top:6px;">' + cleanTitle + '</div>'
+        : '') +
+    '</div>'
+  );
 }
 
 function renderClientData(){
