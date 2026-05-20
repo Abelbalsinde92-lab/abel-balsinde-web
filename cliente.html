@@ -4184,7 +4184,7 @@ function tClient(key) {
       day: "Día",
       trainingCompleted: "Entrenamiento completado",
       sessionSaved: "Buen trabajo. Tu sesión quedó registrada y Abel podrá revisar tus observaciones.",
-      details: "Ver detalles del entrenamiento"
+      details: "Ver detalles del entrenamiento",
       videoGuide: "Vídeo guía",
       openVideo: "Abrir vídeo"
     },
@@ -4214,7 +4214,7 @@ function tClient(key) {
       day: "Dan",
       trainingCompleted: "Trening završen",
       sessionSaved: "Dobar posao. Tvoja sesija je registrovana i Abel može da pregleda tvoje napomene.",
-      details: "Pogledaj detalje treninga"
+      details: "Pogledaj detalje treninga",
       videoGuide: "Video vodič",
       openVideo: "Otvori video"
     }
@@ -5225,12 +5225,10 @@ function buildExerciseVideoGuide(ex) {
   const embedUrl = getVideoEmbedUrl(videoUrl);
   const videoId = 'video-guide-' + String(ex.id || Math.random()).replace(/[^a-zA-Z0-9_-]/g, '');
 
-  const title = getLang() === 'sr'
-    ? 'Video vodič'
-    : 'Vídeo guía';
+  const title = tClient('videoGuide');
 
   const note = getLang() === 'sr'
-    ? 'Mira el video antes de hacer el ejercicio. Después vuelve al bloque y realiza el trabajo indicado.'
+    ? 'Pogledaj video pre izvođenja vežbe. Zatim se vrati na blok i uradi zadati rad.'
     : 'Mira el vídeo antes de hacer el ejercicio. Después vuelve al bloque y realiza el trabajo indicado.';
 
   let html =
@@ -5254,7 +5252,7 @@ function buildExerciseVideoGuide(ex) {
   } else {
     html +=
       '<a href="' + videoUrl + '" target="_blank" rel="noopener" class="exercise-video-external">' +
-        (getLang() === 'sr' ? 'Otvori video' : 'Abrir vídeo') +
+        tClient('openVideo') +
       '</a>';
   }
 
