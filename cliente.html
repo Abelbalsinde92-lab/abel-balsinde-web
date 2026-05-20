@@ -151,8 +151,8 @@ input, textarea { outline: none; font-family: var(--font-body); }
 }
 
 .dash-header {
-  height: 70px;
-  padding: 0 28px;
+  height: 60px;
+  padding: 0 20px;
   background: rgba(0,0,0,.96);
   border-bottom: 1px solid var(--divider);
   backdrop-filter: blur(20px);
@@ -160,7 +160,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -169,7 +169,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .dash-header-left {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 16px;
   min-width: 0;
   flex-shrink: 0;
 }
@@ -187,8 +187,8 @@ input, textarea { outline: none; font-family: var(--font-body); }
 }
 
 .brand-logo-header {
-  width: 46px;
-  height: 46px;
+  width: 38px;
+  height: 38px;
   border-radius: 0;
   object-fit: contain;
 }
@@ -202,8 +202,8 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
 .client-avatar,
 .client-avatar-initials {
-  width: 54px;
-  height: 54px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
 }
 
@@ -218,7 +218,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   align-items: center;
   justify-content: center;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.5px;
 }
@@ -226,15 +226,15 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .dash-header-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
 .btn-icon {
-  width: 58px;
-  height: 50px;
+  width: 50px;
+  height: 42px;
   padding: 0;
-  border-radius: 12px;
+  border-radius: 10px;
   background: transparent;
   border: 1px solid var(--card-border);
   color: var(--text-secondary);
@@ -317,37 +317,32 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
 @media (max-width: 480px) {
   .dash-header {
-    height: 70px;
-    padding: 0 28px;
+    height: 60px;
+    padding: 0 20px;
   }
 
   .dash-header-left {
-    gap: 22px;
+    gap: 16px;
   }
 
   .brand-logo-header {
-    width: 46px;
-    height: 46px;
+    width: 38px;
+    height: 38px;
   }
 
   .client-avatar,
   .client-avatar-initials {
-    width: 54px;
-    height: 54px;
+    width: 44px;
+    height: 44px;
   }
 
   .btn-icon {
-    width: 58px;
-    height: 50px;
+    width: 50px;
+    height: 42px;
   }
 
   .client-nav {
-    top: 70px;
-    height: 56px;
-  }
-
-  .client-nav button {
-    padding: 16px 34px 13px;
+    top: 60px;
   }
 }
 
