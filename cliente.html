@@ -1377,6 +1377,78 @@ input, textarea { outline: none; font-family: var(--font-body); }
   gap: 8px;
   margin-top: 14px;
 }
+
+/* ═══ INDICADOR DE DIFICULTAD — ENTRENAMIENTO ADAPTADO ═══ */
+
+.training-difficulty-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  margin-top: 10px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+}
+
+.training-difficulty-pill.easy {
+  color: var(--streak);
+  background: rgba(0,230,118,.06);
+}
+
+.training-difficulty-pill.medium {
+  color: var(--sport);
+  background: rgba(0,163,255,.06);
+}
+
+.training-difficulty-pill.intense {
+  color: var(--warn);
+  background: rgba(255,179,64,.07);
+}
+
+.training-difficulty-pill.very-intense {
+  color: var(--medical);
+  background: rgba(255,90,90,.07);
+}
+
+.training-difficulty-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.training-guidance-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.training-guidance-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.training-guidance-icon {
+  color: var(--sport);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  flex-shrink: 0;
+}
+
+.training-collapsible-card.adjusted .training-guidance-icon {
+  color: var(--sport);
+}
 </style>
 </head>
 <body>
@@ -4381,6 +4453,102 @@ function getClientSessionDisplayForSession(sessionId) {
   };
 }
 
+function getSessionDifficultyInfo(sessionId) {
+  const session = getSessionById(sessionId);
+
+  if (!session) {
+    return {
+      key: 'medium',
+      label: getLang() === 'sr' ? 'Srednje' : 'Media',
+      short: getLang() === 'sr' ? 'Sesija sa umerenim opterećenjem.' : 'Sesión con carga moderada.'
+    };
+  }
+
+  const difficulty = Number(session.difficulty_level || 0);
+  const intensity = Number(session.intensity_level || 0);
+
+  const score = Math.max(difficulty, intensity);
+
+  if (score <= 2) {
+    return {
+      key: 'easy',
+      label: getLang() === 'sr' ? 'Lako' : 'Fácil',
+      short: getLang() === 'sr'
+        ? 'Trening je kontrolisan. Fokus je na tehnici, ritmu i dobrom osećaju.'
+        : 'Entrenamiento controlado. Prioridad: técnica, ritmo y buenas sensaciones.'
+    };
+  }
+
+  if (score === 3) {
+    return {
+      key: 'medium',
+      label: getLang() === 'sr' ? 'Srednje' : 'Media',
+      short: getLang() === 'sr'
+        ? 'Trening ima srednje opterećenje. Radi stabilno, bez žurbe.'
+        : 'Entrenamiento de carga media. Trabaja estable, sin prisas.'
+    };
+  }
+
+  if (score === 4) {
+    return {
+      key: 'intense',
+      label: getLang() === 'sr' ? 'Intenzivno' : 'Intenso',
+      short: getLang() === 'sr'
+        ? 'Trening zahteva više energije. Kontroliši disanje i odmore.'
+        : 'Entrenamiento exigente. Controla respiración, descansos y técnica.'
+    };
+  }
+
+  return {
+    key: 'very-intense',
+    label: getLang() === 'sr' ? 'Vrlo intenzivno' : 'Muy intenso',
+    short: getLang() === 'sr'
+      ? 'Visoko opterećenje. Ako se pojavi bol ili jak umor, zaustavi se i obavesti Abela.'
+      : 'Carga alta. Si aparece dolor o fatiga excesiva, detente y avisa a Abel.'
+  };
+}
+
+function buildDifficultyPill(sessionId) {
+  const info = getSessionDifficultyInfo(sessionId);
+
+  return (
+    '<div class="training-difficulty-pill ' + info.key + '">' +
+      '<span class="training-difficulty-dot"></span>' +
+      '<span>' +
+        (getLang() === 'sr' ? 'Težina' : 'Dificultad') +
+        ': ' + info.label +
+      '</span>' +
+    '</div>'
+  );
+}
+
+function buildAdaptedTrainingGuidance(sessionId) {
+  const info = getSessionDifficultyInfo(sessionId);
+
+  const items = getLang() === 'sr'
+    ? [
+        info.short,
+        'Ne žuri. Bolje je završiti dobro nego brzo.',
+        'Ako osetiš bol, vrtoglavicu ili nelagodnost, prekini vežbu i napiši komentar na kraju.'
+      ]
+    : [
+        info.short,
+        'No busques correr. Mejor completar bien que completar rápido.',
+        'Si aparece dolor, mareo o molestia fuerte, detén el ejercicio y deja comentario al cerrar la sesión.'
+      ];
+
+  return (
+    '<div class="training-guidance-list">' +
+      items.map(item =>
+        '<div class="training-guidance-item">' +
+          '<span class="training-guidance-icon">•</span>' +
+          '<span>' + item + '</span>' +
+        '</div>'
+      ).join('') +
+    '</div>'
+  );
+}
+
 function buildClientAdaptedSessionCard(sessionId) {
   const display = getClientSessionDisplayForSession(sessionId);
 
@@ -4413,11 +4581,14 @@ function buildClientAdaptedSessionCard(sessionId) {
           '<div class="training-collapsible-label">' + label + '</div>' +
           '<div class="training-collapsible-title">' + cardTitle + '</div>' +
           '<div class="training-collapsible-sub">' + shortSub + '</div>' +
+          buildDifficultyPill(sessionId) +
         '</div>' +
         '<div class="training-collapsible-icon">+</div>' +
       '</button>' +
 
       '<div class="training-collapsible-body">' +
+      
+      buildAdaptedTrainingGuidance(sessionId) +
 
         (
           main
