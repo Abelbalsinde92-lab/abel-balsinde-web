@@ -167,6 +167,47 @@ input, textarea { outline: none; font-family: var(--font-body); }
 #btnHeaderWA { border-color: rgba(0,230,118,.2); color: var(--streak); }
 #btnHeaderWA:hover { border-color: var(--streak); }
 
+/* === AJUSTE HEADER CLIENTE: LOGO IZQUIERDA / FOTO DERECHA === */
+
+.client-topbar,
+.client-header,
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-left,
+.header-brand,
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.header-right,
+.client-actions,
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Mantener logo limpio a la izquierda */
+.brand-logo,
+.logo-img,
+.app-logo {
+  flex-shrink: 0;
+}
+
+/* La foto mantiene su tamaño actual, solo se mueve al bloque derecho */
+.client-avatar,
+.user-avatar,
+.profile-avatar {
+  flex-shrink: 0;
+  order: -1;
+}
+
 /* ═══ NAV ════════════════════════════════════════════ */
 .client-nav {
   background: rgba(0,0,0,.95); border-bottom: 1px solid var(--divider);
@@ -1598,23 +1639,23 @@ input, textarea { outline: none; font-family: var(--font-body); }
 <!-- ══ DASHBOARD ══════════════════════════════════════════ -->
 <div id="dashboardScreen" class="hidden">
   
-  <header class="dash-header">
-    <div class="dash-header-logo" id="dashHeaderLogo">
-  <img src="/icon-512.png.JPG" alt="AB Coach" class="brand-logo brand-logo-header">
-</div>
+  <header class="client-header">
+  <div class="brand-left">
+    <img class="brand-logo" src="..." />
+  </div>
 
-    <div class="dash-header-actions">
-    
-      <button class="btn-icon" id="btnHeaderWA">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.858L.057 23.875l6.191-1.623A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.004-1.375l-.36-.214-3.724.977.994-3.63-.236-.374A9.785 9.785 0 012.182 12C2.182 6.586 6.586 2.182 12 2.182S21.818 6.586 21.818 12 17.414 21.818 12 21.818z"/></svg>
-        <span class="btn-label">WA</span>
-      </button>
-      <button class="btn-icon red" id="btnLogout">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span class="btn-label">Salir</span>
-      </button>
-    </div>
-  </header>
+  <div class="header-right">
+    <img class="client-avatar" src="..." />
+
+    <a class="whatsapp-btn" href="#">
+      ...
+    </a>
+
+    <button class="logout-btn">
+      ...
+    </button>
+  </div>
+</header>
 
   <nav class="client-nav" id="clientNav">
   <button id="navHome" onclick="goClientSection('section-home')">Inicio</button>
