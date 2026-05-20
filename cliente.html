@@ -1294,6 +1294,89 @@ input, textarea { outline: none; font-family: var(--font-body); }
   background: rgba(255,179,64,.06);
   white-space: nowrap;
 }
+
+/* ═══ AVISO DE INACTIVIDAD ═════════════════════════ */
+
+.inactivity-card {
+  background:
+    radial-gradient(circle at top right, rgba(255,179,64,.14), transparent 35%),
+    var(--card);
+  border: 1px solid rgba(255,179,64,.30);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.inactivity-card.strong {
+  background:
+    radial-gradient(circle at top right, rgba(255,90,90,.13), transparent 35%),
+    var(--card);
+  border-color: rgba(255,90,90,.32);
+}
+
+.inactivity-kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--warn);
+  margin-bottom: 8px;
+}
+
+.inactivity-card.strong .inactivity-kicker {
+  color: var(--medical);
+}
+
+.inactivity-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: 1.4px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.inactivity-text {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.inactivity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--divider);
+}
+
+.inactivity-days {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+  color: var(--warn);
+}
+
+.inactivity-card.strong .inactivity-days {
+  color: var(--medical);
+}
+
+.inactivity-days-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+.inactivity-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
 </style>
 </head>
 <body>
@@ -3406,6 +3489,171 @@ function buildNewClientOnboardingCard(context = 'home') {
   );
 }
 
+function daysBetweenISO(fromISO, toISO) {
+  if (!fromISO || !toISO) return null;
+
+  const from = new Date(String(fromISO).slice(0, 10) + 'T00:00:00');
+  const to = new Date(String(toISO).slice(0, 10) + 'T00:00:00');
+
+  if (isNaN(from.getTime()) || isNaN(to.getTime())) return null;
+
+  const diff = to.getTime() - from.getTime();
+
+  return Math.max(0, Math.floor(diff / 86400000));
+}
+
+function getLastFinishedTrainingDate() {
+  let dates = [];
+
+  // 1) Supabase
+  (clientSessionLogs || []).forEach(log => {
+    const isFinished =
+      log.is_finished === true ||
+      String(log.status || '').toLowerCase() === 'finished' ||
+      Boolean(log.finished_at);
+
+    if (!isFinished) return;
+
+    const d =
+      log.training_date ||
+      String(log.finished_at || '').slice(0, 10) ||
+      String(log.completed_at || '').slice(0, 10) ||
+      String(log.updated_at || '').slice(0, 10);
+
+    if (d) dates.push(String(d).slice(0, 10));
+  });
+
+  // 2) Respaldo local
+  if (clientData && clientTrainingAssignment) {
+    const prefix = ['ab_tp', clientData.id, clientTrainingAssignment.id].join('_');
+
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+
+        if (!key || !key.startsWith(prefix)) continue;
+
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+
+        const data = JSON.parse(raw);
+
+        if (data?.is_finished === true) {
+          const d =
+            String(data.finished_at || '').slice(0, 10) ||
+            String(data.updated_at || '').slice(0, 10);
+
+          if (d) dates.push(d);
+        }
+      }
+    } catch {}
+  }
+
+  dates = dates
+    .filter(Boolean)
+    .sort((a, b) => String(b).localeCompare(String(a)));
+
+  return dates[0] || null;
+}
+
+function buildInactivityNoticeCard() {
+  if (!clientTrainingProgram || !clientTrainingSessions.length) return '';
+
+  const today = todayISO();
+  const lastDate = getLastFinishedTrainingDate();
+  const progressStats = getTrainingProgressStats();
+
+  // Si ya completó todo el plan, no mostramos inactividad.
+  if (progressStats.totalSessions > 0 && progressStats.percent >= 100) {
+    return '';
+  }
+
+  // Cliente con plan, pero ninguna sesión cerrada todavía.
+  if (!lastDate) {
+    return (
+      '<div class="inactivity-card">' +
+        '<div class="inactivity-kicker">' +
+          (getLang() === 'sr' ? 'Početak plana' : 'Inicio del plan') +
+        '</div>' +
+
+        '<div class="inactivity-title">' +
+          (getLang() === 'sr' ? 'Tu primer entrenamiento está listo' : 'Tu primer entrenamiento está listo') +
+        '</div>' +
+
+        '<div class="inactivity-text">' +
+          (getLang() === 'sr'
+            ? 'Empieza con calma. Lo importante ahora es completar la primera sesión y dejar tus sensaciones al final.'
+            : 'Empieza con calma. Lo importante ahora es completar la primera sesión y dejar tus sensaciones al final.') +
+        '</div>' +
+
+        '<div class="inactivity-actions">' +
+          '<button class="client-action-btn" onclick="goClientSection(\'section-training\')">' +
+            uiText('startTraining') +
+          '</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  const days = daysBetweenISO(lastDate, today);
+
+  if (days == null || days < 3) return '';
+
+  const strong = days >= 7;
+
+  const title = strong
+    ? (getLang() === 'sr' ? 'Vreme je da se vratiš u ritam' : 'Toca volver al ritmo')
+    : (getLang() === 'sr' ? 'Mantengamos la constancia' : 'Mantengamos la constancia');
+
+  const text = strong
+    ? (getLang() === 'sr'
+        ? 'Han pasado varios días desde tu última sesión. No hace falta compensar de golpe: vuelve con una sesión controlada y Abel revisará tus sensaciones.'
+        : 'Han pasado varios días desde tu última sesión. No hace falta compensar de golpe: vuelve con una sesión controlada y Abel revisará tus sensaciones.')
+    : (getLang() === 'sr'
+        ? 'Llevas unos días sin cerrar sesión. Una sesión ligera hoy puede ayudarte a mantener el progreso sin forzar.'
+        : 'Llevas unos días sin cerrar sesión. Una sesión ligera hoy puede ayudarte a mantener el progreso sin forzar.');
+
+  const waText = getLang() === 'sr'
+    ? 'Hola Abel, llevo varios días sin entrenar. ¿Retomo con la sesión pendiente o ajustamos algo?'
+    : 'Hola Abel, llevo varios días sin entrenar. ¿Retomo con la sesión pendiente o ajustamos algo?';
+
+  return (
+    '<div class="inactivity-card ' + (strong ? 'strong' : '') + '">' +
+      '<div class="inactivity-kicker">' +
+        (getLang() === 'sr' ? 'Praćenje aktivnosti' : 'Seguimiento de actividad') +
+      '</div>' +
+
+      '<div class="inactivity-title">' + title + '</div>' +
+
+      '<div class="inactivity-text">' + text + '</div>' +
+
+      '<div class="inactivity-row">' +
+        '<div>' +
+          '<div class="inactivity-days">' + days + '</div>' +
+          '<div class="inactivity-days-label">' +
+            (getLang() === 'sr' ? 'dana bez sesije' : 'días sin sesión') +
+          '</div>' +
+        '</div>' +
+
+        '<div style="text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);letter-spacing:.5px;">' +
+          (getLang() === 'sr' ? 'Última sesión' : 'Última sesión') + '<br>' +
+          formatDate(lastDate) +
+        '</div>' +
+      '</div>' +
+
+      '<div class="inactivity-actions">' +
+        '<button class="client-action-btn" onclick="goClientSection(\'section-training\')">' +
+          uiText('startTraining') +
+        '</button>' +
+
+        '<button class="client-action-btn wa" onclick="clientWA(\'' + waText + '\')">' +
+          uiText('contactAbel') +
+        '</button>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
 /* ══ RENDER HOME ══ */
 function renderHome() {
   const el = document.getElementById('sectionHome');
@@ -3477,6 +3725,8 @@ const firstName = String(clientData.name || fallbackName).split(' ')[0] || fallb
       '</div>' +
     '</div>';
 
+  html += buildInactivityNoticeCard();
+  
   if(hasTraining){
     html +=
       '<div class="data-card next-session">' +
@@ -4440,6 +4690,8 @@ currentTrainingLog = null;
   }
 
   let html = '';
+  
+  html += buildInactivityNoticeCard();
   
   if (!clientTrainingProgram) {
   html += buildNewClientOnboardingCard('profile');
