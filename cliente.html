@@ -1181,6 +1181,119 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .emoji-hidden-input {
   display: none !important;
 }
+
+/* ═══ ONBOARDING CLIENTE NUEVO ═════════════════════════ */
+
+.onboarding-card {
+  background:
+    radial-gradient(circle at top right, rgba(0,163,255,.16), transparent 34%),
+    var(--card);
+  border: 1px solid rgba(0,163,255,.28);
+  border-radius: 16px;
+  padding: 22px 18px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.onboarding-kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.7px;
+  text-transform: uppercase;
+  color: var(--sport);
+  margin-bottom: 10px;
+}
+
+.onboarding-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: .95;
+  letter-spacing: 1.5px;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.onboarding-text {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.onboarding-steps {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.onboarding-step {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 11px 12px;
+}
+
+.onboarding-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: rgba(0,163,255,.10);
+  border: 1px solid rgba(0,163,255,.25);
+  color: var(--sport);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.onboarding-step-title {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.onboarding-step-text {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.55;
+  margin-top: 2px;
+}
+
+.onboarding-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid var(--divider);
+  padding-top: 14px;
+  margin-top: 16px;
+}
+
+.onboarding-status-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.onboarding-status-value {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--warn);
+  border: 1px solid rgba(255,179,64,.35);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(255,179,64,.06);
+  white-space: nowrap;
+}
 </style>
 </head>
 <body>
@@ -3199,6 +3312,100 @@ function buildAvatarHTML(size) {
     : '<div class="client-avatar-initials">' + initials + '</div>';
 }
 
+function buildNewClientOnboardingCard(context = 'home') {
+  const firstName = String(clientData?.name || uiText('client')).split(' ')[0] || uiText('client');
+
+  const isProfile = context === 'profile';
+
+  const title = getLang() === 'sr'
+    ? 'Dobrodošao, ' + firstName
+    : 'Bienvenido, ' + firstName;
+
+  const intro = getLang() === 'sr'
+    ? 'Tu cuenta ya está activa. Abel revisará tu información inicial y cargará tu entrenamiento cuando el plan esté preparado.'
+    : 'Tu cuenta ya está activa. Abel revisará tu información inicial y cargará tu entrenamiento cuando el plan esté preparado.';
+
+  const step1Title = getLang() === 'sr' ? 'Perfil creado' : 'Perfil creado';
+  const step1Text  = getLang() === 'sr'
+    ? 'Ya puedes acceder a tu área cliente y revisar tus datos.'
+    : 'Ya puedes acceder a tu área cliente y revisar tus datos.';
+
+  const step2Title = getLang() === 'sr' ? 'Revisión inicial' : 'Revisión inicial';
+  const step2Text  = getLang() === 'sr'
+    ? 'Abel revisará tus objetivos, disponibilidad, nivel y posibles molestias.'
+    : 'Abel revisará tus objetivos, disponibilidad, nivel y posibles molestias.';
+
+  const step3Title = getLang() === 'sr' ? 'Plan en preparación' : 'Plan en preparación';
+  const step3Text  = getLang() === 'sr'
+    ? 'Cuando tu entrenamiento esté listo, aparecerá aquí automáticamente.'
+    : 'Cuando tu entrenamiento esté listo, aparecerá aquí automáticamente.';
+
+  const statusText = getLang() === 'sr'
+    ? 'Plan pendiente'
+    : 'Plan pendiente';
+
+  const waText = getLang() === 'sr'
+    ? 'Hola Abel, ya entré al área cliente. Quedo pendiente del plan.'
+    : 'Hola Abel, ya entré al área cliente. Quedo pendiente del plan.';
+
+  return (
+    '<div class="onboarding-card">' +
+      '<div class="onboarding-kicker">' +
+        (getLang() === 'sr' ? 'Novi klijent' : 'Cliente nuevo') +
+      '</div>' +
+
+      '<div class="onboarding-title">' + title + '</div>' +
+
+      '<div class="onboarding-text">' + intro + '</div>' +
+
+      '<div class="onboarding-steps">' +
+
+        '<div class="onboarding-step">' +
+          '<div class="onboarding-step-num">1</div>' +
+          '<div>' +
+            '<div class="onboarding-step-title">' + step1Title + '</div>' +
+            '<div class="onboarding-step-text">' + step1Text + '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="onboarding-step">' +
+          '<div class="onboarding-step-num">2</div>' +
+          '<div>' +
+            '<div class="onboarding-step-title">' + step2Title + '</div>' +
+            '<div class="onboarding-step-text">' + step2Text + '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="onboarding-step">' +
+          '<div class="onboarding-step-num">3</div>' +
+          '<div>' +
+            '<div class="onboarding-step-title">' + step3Title + '</div>' +
+            '<div class="onboarding-step-text">' + step3Text + '</div>' +
+          '</div>' +
+        '</div>' +
+
+      '</div>' +
+
+      '<div class="onboarding-status-row">' +
+        '<div class="onboarding-status-label">' +
+          (getLang() === 'sr' ? 'Status' : 'Estado') +
+        '</div>' +
+        '<div class="onboarding-status-value">' + statusText + '</div>' +
+      '</div>' +
+
+      (
+        isProfile
+          ? ''
+          : '<div class="action-box" style="margin-top:16px;">' +
+              '<button class="client-action-btn wa" onclick="clientWA(\'' + waText + '\')">' +
+                uiText('contactAbel') +
+              '</button>' +
+            '</div>'
+      ) +
+    '</div>'
+  );
+}
+
 /* ══ RENDER HOME ══ */
 function renderHome() {
   const el = document.getElementById('sectionHome');
@@ -3295,15 +3502,8 @@ const firstName = String(clientData.name || fallbackName).split(' ')[0] || fallb
         '</div>' +
       '</div>';
   } else {
-    html +=
-      '<div class="data-card">' +
-        '<div class="dc-row">' +
-          '<span class="dc-title">' + uiText('training') + '</span>' +
-          '<span class="badge badge-gray">' + uiText('pending') + '</span>' +
-        '</div>' +
-        '<div class="dc-note">' + uiText('noTrainingVisible') + '</div>' +
-      '</div>';
-  }
+  html += buildNewClientOnboardingCard('home');
+}
 
   html += buildHomeCombatSummary();
 
@@ -4197,26 +4397,22 @@ async function renderClientTraining(){
   currentTrainingLog = null;
 
   if(!clientTrainingProgram){
-    if(badge) badge.textContent = uiText('noData');
+  if(badge) badge.textContent = uiText('pending');
 
-    el.innerHTML =
-      '<p class="empty-state">' + uiText('noTrainingForScope') + '</p>' +
-      '<div class="data-card" style="margin-top:10px;">' +
-        '<div class="dc-row">' +
-          '<span class="dc-title" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.8px;">' + uiText('diagnostic') + '</span>' +
-        '</div>' +
-        '<div class="dc-note">Cliente ID: ' + (clientData?.id || '—') + '</div>' +
-        '<div class="dc-note">Asignación: ' + (clientTrainingAssignment?.id || 'NO') + '</div>' +
-        '<div class="dc-note">Programa ID: ' + (clientTrainingAssignment?.program_id || 'NO') + '</div>' +
-        '<div class="dc-note">Alcance: ' + (clientTrainingAssignment?.assignment_scope || 'NO') + '</div>' +
-        '<div class="dc-note">Base rows: ' + (window.__AB_DEBUG_CLIENT__?.baseRows ?? '—') + '</div>' +
-'<div class="dc-note">Display rows: ' + (window.__AB_DEBUG_CLIENT__?.displayRows ?? '—') + '</div>' +
-'<div class="dc-note">Base error: ' + (window.__AB_DEBUG_CLIENT__?.baseError?.message || 'Ninguno') + '</div>' +
-'<div class="dc-note">Display error: ' + (window.__AB_DEBUG_CLIENT__?.displayError?.message || 'Ninguno') + '</div>' +
-      '</div>';
+  el.innerHTML =
+    buildNewClientOnboardingCard('training') +
+    '<div class="data-card">' +
+      '<div class="dc-row">' +
+        '<span class="dc-title">' + uiText('training') + '</span>' +
+        '<span class="badge badge-yellow">' + uiText('pending') + '</span>' +
+      '</div>' +
+      '<div class="dc-note">' +
+        uiText('noTrainingVisible') +
+      '</div>' +
+    '</div>';
 
-    return;
-  }
+  return;
+}
 
   const initialActiveSessionId = getInitialActiveSessionId();
 
@@ -4244,6 +4440,10 @@ currentTrainingLog = null;
   }
 
   let html = '';
+  
+  if (!clientTrainingProgram) {
+  html += buildNewClientOnboardingCard('profile');
+}
 
   const programTitle =
     clientTrainingProgram?.name ||
