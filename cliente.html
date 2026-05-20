@@ -1723,6 +1723,66 @@ function getAssignedTrainingLevel() {
   return ['N1','N2','N3','N4'].includes(lvl)?lvl:'N1';
 }
 
+function getDifficultyLabel(level) {
+  const lang = getLang();
+  const n = Number(level || 0);
+
+  const labels = {
+    es: {
+      1: 'Muy fácil',
+      2: 'Fácil',
+      3: 'Media',
+      4: 'Difícil',
+      5: 'Avanzada'
+    },
+    sr: {
+      1: 'Vrlo lako',
+      2: 'Lako',
+      3: 'Srednje',
+      4: 'Teško',
+      5: 'Napredno'
+    }
+  };
+
+  return labels[lang]?.[n] || labels.es[n] || '';
+}
+
+function getIntensityLabel(level) {
+  const lang = getLang();
+  const n = Number(level || 0);
+
+  const labels = {
+    es: {
+      1: 'Muy suave',
+      2: 'Suave',
+      3: 'Moderada',
+      4: 'Alta',
+      5: 'Muy alta'
+    },
+    sr: {
+      1: 'Vrlo lagano',
+      2: 'Lagano',
+      3: 'Umereno',
+      4: 'Visoko',
+      5: 'Vrlo visoko'
+    }
+  };
+
+  return labels[lang]?.[n] || labels.es[n] || '';
+}
+
+function getLevelColor(level) {
+  const n = Number(level || 0);
+
+  if (n <= 1) return 'var(--streak)';
+  if (n === 2) return 'var(--streak)';
+  if (n === 3) return 'var(--sport)';
+  if (n === 4) return 'var(--warn)';
+  if (n >= 5) return 'var(--medical)';
+
+  return 'var(--text-secondary)';
+}
+
 function hasCombatMetricsEnabled() {
   return clientData?.enable_combat_metrics === true &&
          String(clientData?.athlete_profile || '').toLowerCase() === 'combat';
@@ -2037,27 +2097,33 @@ if (pid) {
 
       if (!sessionsMap.has(sessionId)) {
         sessionsMap.set(sessionId, {
-          id: sessionId,
-          week_id: weekId,
-          session_number: r.session_order,
-          title: r.session_title || '',
-          description: r.session_description || '',
-          objective: r.session_objective || '',
-          intensity: r.session_intensity || ''
-        });
+  id: sessionId,
+  week_id: weekId,
+  session_number: r.session_order,
+  title: r.session_title || '',
+  description: r.session_description || '',
+  objective: r.session_objective || '',
+  intensity: r.session_intensity || '',
+  intensity_level: r.session_intensity_level || null,
+  difficulty_level: r.session_difficulty_level || null,
+  estimated_duration_minutes: r.session_estimated_duration_minutes || null
+});
       }
 
       if (!blocksMap.has(blockId)) {
         blocksMap.set(blockId, {
-          id: blockId,
-          session_id: sessionId,
-          block_order: r.block_order,
-          title: r.block_title || '',
-          description: r.block_description || '',
-          objective: r.block_objective || '',
-          type: r.block_type || '',
-          duration: r.block_duration || ''
-        });
+  id: blockId,
+  session_id: sessionId,
+  block_order: r.block_order,
+  title: r.block_title || '',
+  description: r.block_description || '',
+  objective: r.block_objective || '',
+  type: r.block_type || '',
+  duration: r.block_duration || '',
+  intensity_level: r.block_intensity_level || null,
+  difficulty_level: r.block_difficulty_level || null,
+  estimated_duration_minutes: r.block_estimated_duration_minutes || null
+});
       }
 
       clientTrainingExercises.push({
@@ -4138,7 +4204,19 @@ function buildTrainingStepHTML(step,index){
   const blockObj = pickLang(block,'objective',_lg);
   const blockType = pickLang(block,'type',_lg) || block.type || '';
 
-  const metaP = [block.duration, blockType].filter(Boolean);
+  const blockDurationLabel = block.estimated_duration_minutes
+  ? '~' + block.estimated_duration_minutes + ' min'
+  : block.duration;
+
+const blockIntensityLabel = block.intensity_level
+  ? getIntensityLabel(block.intensity_level)
+  : '';
+
+const metaP = [
+  blockDurationLabel,
+  blockIntensityLabel ? 'Intensidad ' + blockIntensityLabel : '',
+  blockType
+].filter(Boolean);
 
   let html = '';
 
@@ -6043,24 +6121,36 @@ function buildSessionMiniHeader(session, index) {
   // Nivel desde función global (no depende de scope externo)
   const lvl = getAssignedTrainingLevel();
 
-  // Dificultad derivada del nivel
-  const diffMap = {
-    es: { N1: 'Fácil', N2: 'Medio', N3: 'Intenso', N4: 'Avanzado' },
-    sr: { N1: 'Lako',  N2: 'Srednje', N3: 'Intenzivno', N4: 'Napredno' }
-  };
-  const diffLabel = diffMap[getLang()]?.[lvl] || lvl;
-  const diffColor = { N1: 'var(--streak)', N2: 'var(--sport)', N3: 'var(--warn)', N4: 'var(--medical)' }[lvl] || 'var(--text-secondary)';
+  const difficultyLabel = getDifficultyLabel(session.difficulty_level);
+const intensityLabel = getIntensityLabel(session.intensity_level);
 
-  // Tiempo estimado sumando block.duration de esta sesión
-  const sessionBlocks = clientTrainingBlocks.filter(b =>
-    String(b.session_id) === String(session.id)
-  );
-  let totalMin = 0;
+const difficultyColor = getLevelColor(session.difficulty_level);
+const intensityColor = getLevelColor(session.intensity_level);
+
+const sessionBlocks = clientTrainingBlocks.filter(b =>
+  String(b.session_id) === String(session.id)
+);
+
+let totalMin = Number(session.estimated_duration_minutes || 0);
+
+if (!totalMin) {
   sessionBlocks.forEach(b => {
+    const directMinutes = Number(b.estimated_duration_minutes || 0);
+
+    if (directMinutes > 0) {
+      totalMin += directMinutes;
+      return;
+    }
+
     const match = String(b.duration || '').match(/(\d+(?:\.\d+)?)/);
-    if (match) totalMin += parseFloat(match[1]);
+
+    if (match) {
+      totalMin += parseFloat(match[1]);
+    }
   });
-  const timeLabel = totalMin > 0 ? '~' + Math.round(totalMin) + ' min' : null;
+}
+
+const timeLabel = totalMin > 0 ? '~' + Math.round(totalMin) + ' min' : null;
 
   return (
     '<div class="training-mini-hero">' +
@@ -6072,10 +6162,23 @@ function buildSessionMiniHeader(session, index) {
         '<span style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);letter-spacing:1px;">' +
           tClient('level') + ' ' + lvl +
         '</span>' +
-        '<span style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;' +
-        'color:' + diffColor + ';border:1px solid currentColor;border-radius:4px;padding:1px 7px;">' +
-          diffLabel +
-        '</span>' +
+        (
+  difficultyLabel
+    ? '<span style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;' +
+      'color:' + difficultyColor + ';border:1px solid currentColor;border-radius:4px;padding:1px 7px;">' +
+        'Dificultad: ' + difficultyLabel +
+      '</span>'
+    : ''
+) +
+
+(
+  intensityLabel
+    ? '<span style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;' +
+      'color:' + intensityColor + ';border:1px solid currentColor;border-radius:4px;padding:1px 7px;">' +
+        'Intensidad: ' + intensityLabel +
+      '</span>'
+    : ''
+) +
         (timeLabel
           ? '<span style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);letter-spacing:0.5px;">⏱ ' + timeLabel + '</span>'
           : '') +
