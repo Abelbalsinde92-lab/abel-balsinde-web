@@ -5785,9 +5785,9 @@ function buildSimpleReservationView() {
   // ── Botón ver calendario completo + WA ──
   html +=
     '<div class="action-box" style="margin-top:12px;">' +
-      '<button class="client-action-btn" onclick="goClientSection(\'section-reservations\')">' +
-        (getLang() === 'sr' ? 'Ver calendario completo' : 'Ver calendario completo') +
-      '</button>' +
+      '<button class="client-action-btn" onclick="calShowFullView=true;renderReservationsCalendar();">' +
+  (getLang() === 'sr' ? 'Ver calendario completo' : 'Ver calendario completo') +
+'</button>' +
       '<button class="client-action-btn wa" onclick="clientWA(\'' + uiText('requestNewTrainingReservation') + '\')">' +
         uiText('contactAbel') +
       '</button>' +
@@ -5800,9 +5800,18 @@ function renderReservationsCalendar() {
   const el = document.getElementById('sectionReservations');
   if (!el) return;
 
-  let html =
-    '<div class="section-body">' +
-      buildCalendarHTML();
+  let html = '<div class="section-body">';
+
+  if (!isAthlete) {
+    html +=
+      '<button class="client-action-btn" style="background:transparent;border:1px solid var(--card-border);' +
+      'color:var(--text-secondary);margin-bottom:16px;" ' +
+      'onclick="calShowFullView=false;renderReservations();">← ' +
+        (getLang() === 'sr' ? 'Volver' : 'Volver') +
+      '</button>';
+  }
+
+  html += buildCalendarHTML();
 
   if (calSelectedDate) {
     html +=
@@ -5814,7 +5823,6 @@ function renderReservationsCalendar() {
 
   html += '<div id="calRequestArea"></div>';
 
-  // Reservas existentes del cliente
   const myAll = clientReservations.filter(r =>
     String(r.date) >= todayISO() &&
     !['cancelada','cancelado'].includes(String(r.status || '').toLowerCase())
@@ -5829,22 +5837,40 @@ function renderReservationsCalendar() {
     myAll.forEach(r => {
       const statusColor =
         r.status === 'confirmada' ? 'var(--streak)' :
-        r.status === 'pendiente' ? 'var(--warn)' :
+        r.status === 'pendiente'  ? 'var(--warn)'   :
         'var(--text-secondary)';
 
       html +=
         '<div class="data-card">' +
           '<div class="dc-row">' +
-            '<span class="dc-title" style="font-size:15px;">' + formatDate(r.date) + (r.time ? ' · ' + formatTime(r.time) : '') + '</span>' +
-            '<span class="badge" style="color:' + statusColor + '">' + (r.status || 'pendiente') + '</span>' +
+            '<span class="dc-title" style="font-size:15px;">' +
+              formatDate(r.date) + (r.time ? ' · ' + formatTime(r.time) : '') +
+            '</span>' +
+            '<span class="badge" style="color:' + statusColor + '">' +
+              (r.status || 'pendiente') +
+            '</span>' +
           '</div>' +
           '<div class="dc-row">' +
-            '<span class="dc-sub">' + (r.type || r.session_mode || 'Personal') + (r.place ? ' · ' + r.place : '') + '</span>' +
+            '<span class="dc-sub">' +
+              (r.type || r.session_mode || 'Personal') +
+              (r.place ? ' · ' + r.place : '') +
+            '</span>' +
           '</div>' +
           (r.client_message ? '<div class="dc-note">' + r.client_message + '</div>' : '') +
         '</div>';
     });
   }
+
+  html +=
+    '<div class="action-box" style="margin-top:16px;">' +
+      '<button class="client-action-btn wa" onclick="clientWA(\'' + uiText('requestNewTrainingReservation') + '\')">' +
+        uiText('contactAbel') +
+      '</button>' +
+    '</div>' +
+  '</div>';
+
+  el.innerHTML = html;
+}
 
   html +=
       '<div class="action-box" style="margin-top:16px;">' +
@@ -5859,33 +5885,31 @@ function renderReservationsCalendar() {
 
 /* ══ OTRAS SECCIONES ══ */
 async function renderReservations() {
- const el = document.getElementById('sectionReservations');
- const badge = document.getElementById('reservationsBadge');
- if (!el) return;
+  const el = document.getElementById('sectionReservations');
+  const badge = document.getElementById('reservationsBadge');
+  if (!el) return;
 
- if (badge) badge.textContent = clientReservations.filter(r =>
-   String(r.date) >= todayISO()
- ).length;
+  if (badge) badge.textContent = clientReservations.filter(r =>
+    String(r.date) >= todayISO()
+  ).length;
 
- const now = new Date();
- if (!calCurrentMonth && calCurrentMonth !== 0) calCurrentMonth = now.getMonth();
- if (!calCurrentYear) calCurrentYear = now.getFullYear();
+  const now = new Date();
+  if (!calCurrentMonth && calCurrentMonth !== 0) calCurrentMonth = now.getMonth();
+  if (!calCurrentYear) calCurrentYear = now.getFullYear();
 
- el.innerHTML =
-   '<div style="display:flex;align-items:center;justify-content:center;padding:40px 0;">' +
-     '<div class="spinner"></div>' +
-   '</div>';
+  el.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:center;padding:40px 0;">' +
+      '<div class="spinner"></div>' +
+    '</div>';
 
- await loadCalendarData();
+  await loadCalendarData();
 
- // ── BIFURCACIÓN: cliente general ve vista simplificada ──
- if (!isAthlete) {
-   el.innerHTML = '<div class="section-body">' + buildSimpleReservationView() + '</div>';
-   return;
- }
+  if (!isAthlete && !calShowFullView) {
+    el.innerHTML = '<div class="section-body">' + buildSimpleReservationView() + '</div>';
+    return;
+  }
 
- // Atleta: calendario completo sin cambios
- renderReservationsCalendar();
+  renderReservationsCalendar();
 }
 
 function renderPayments(){
