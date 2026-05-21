@@ -597,7 +597,7 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
         rgba(0,0,0,.22) 50%,
         rgba(0,0,0,.12) 100%
       ),
-      url('/hero-abel-trainer.png');
+      url('/hero-abel-trainer.png.PNG');
     background-size: cover;
     background-repeat: no-repeat;
     background-position: 64% 18%;
@@ -1783,6 +1783,120 @@ footer {
     letter-spacing: .12em;
     padding-left: 8px;
     line-height: 1.25;
+  }
+}
+
+/* ═══ PARCHE FINAL MOBILE HERO + AUTH CARD ═══ */
+
+@media (max-width: 900px) {
+  #hero {
+    min-height: 100svh;
+    align-items: flex-end;
+  }
+
+  .hero-bg {
+    background:
+      linear-gradient(180deg,
+        rgba(0,0,0,.10) 0%,
+        rgba(0,0,0,.24) 34%,
+        rgba(0,0,0,.86) 72%,
+        rgba(0,0,0,1) 100%
+      ),
+      linear-gradient(90deg,
+        rgba(0,0,0,.72) 0%,
+        rgba(0,0,0,.24) 50%,
+        rgba(0,0,0,.12) 100%
+      ),
+      url('/hero-abel-trainer.png.PNG?v=20260521-04');
+
+    background-repeat: no-repeat;
+    background-size: auto 82svh;
+    background-position: 58% 76px;
+  }
+
+  .hero-content {
+    grid-template-columns: 1fr;
+    padding: 50svh 0 3.25rem;
+  }
+
+  .hero-left {
+    max-width: 100%;
+  }
+
+  .hero-h1 {
+    font-size: clamp(2.35rem, 11.5vw, 3.85rem);
+    line-height: .98;
+    letter-spacing: .01em;
+    margin-bottom: 1.35rem;
+  }
+
+  .hero-desc {
+    font-size: .98rem;
+    line-height: 1.65;
+    margin-bottom: 1.8rem;
+    max-width: 96%;
+  }
+
+  .hero-ctas {
+    flex-direction: column;
+  }
+
+  .hero-ctas .btn-primary,
+  .hero-ctas .btn-outline,
+  .hero-ctas .btn-ghost {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-bg {
+    background-size: auto 78svh;
+    background-position: 58% 78px;
+  }
+
+  .hero-content {
+    padding-top: 49svh;
+  }
+
+  .hero-h1 {
+    font-size: clamp(2.25rem, 10.6vw, 3.55rem);
+    line-height: 1;
+  }
+
+  .hero-pretitle span {
+    font-size: .54rem;
+    letter-spacing: .16em;
+  }
+}
+
+/* Corrige la tarjeta de credenciales: elimina el placeholder encima de la foto */
+.auth-visual-placeholder {
+  display: none !important;
+}
+
+.auth-visual img {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-corner {
+  z-index: 2;
+}
+
+/* Ajuste móvil de la tarjeta de credenciales */
+@media (max-width: 600px) {
+  .auth-visual {
+    aspect-ratio: 16 / 10;
+    max-height: 300px;
+  }
+
+  .auth-visual img {
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  .auth-corner {
+    padding: .85rem 1rem;
   }
 }
 </style>
