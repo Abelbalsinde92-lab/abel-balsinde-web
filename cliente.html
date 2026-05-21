@@ -1761,6 +1761,25 @@ input, textarea { outline: none; font-family: var(--font-body); }
   }
 }
 
+/* FIX LOGO HEADER MÓVIL — AB */
+@media (max-width: 480px) {
+  .dash-header {
+    height: 74px !important;
+    padding: 0 20px !important;
+  }
+
+  .brand-logo-header {
+    width: 78px !important;
+    height: auto !important;
+    max-height: 50px !important;
+    border-radius: 0 !important;
+    object-fit: contain !important;
+  }
+
+  .client-nav {
+    top: 74px !important;
+  }
+}
 </style>
 </head>
 <body>
