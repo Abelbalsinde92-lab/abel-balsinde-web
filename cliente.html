@@ -8017,6 +8017,19 @@ document.getElementById('btnLogout')?.addEventListener('click',()=>Auth.logout()
   if(Auth.isAdmin()){showLoading(false);document.getElementById('loginScreen')?.classList.remove('hidden');showInfo(uiText('adminLoginInfo'));return;}
   showLoading(false);document.getElementById('loginScreen')?.classList.remove('hidden');
 })();
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js?v=20260521-01', {
+    scope: '/',
+    updateViaCache: 'none'
+  }).then(reg => {
+    reg.update();
+  }).catch(err => {
+    console.log('SW error:', err);
+  });
+}
 </script>
+
 </body>
 </html>
