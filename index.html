@@ -587,25 +587,27 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
   .hero-bg {
     background:
       linear-gradient(180deg,
-        rgba(0,0,0,.20) 0%,
-        rgba(0,0,0,.35) 35%,
+        rgba(0,0,0,.18) 0%,
+        rgba(0,0,0,.32) 35%,
         rgba(0,0,0,.88) 72%,
         rgba(0,0,0,1) 100%
       ),
       linear-gradient(90deg,
-        rgba(0,0,0,.75) 0%,
-        rgba(0,0,0,.25) 50%,
-        rgba(0,0,0,.15) 100%
+        rgba(0,0,0,.72) 0%,
+        rgba(0,0,0,.22) 50%,
+        rgba(0,0,0,.12) 100%
       ),
-      url('/hero-abel-trainer.png.PNG');
+      url('/hero-abel-trainer.png');
     background-size: cover;
-    background-position: 67% center;
+    background-repeat: no-repeat;
+    background-position: 64% 18%;
   }
 
   .hero-content {
     grid-template-columns: 1fr;
-    padding: 42svh 0 3.25rem;
+    padding: 46svh 0 3.25rem;
   }
+}
 
   .hero-left {
     max-width: 100%;
@@ -640,8 +642,23 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
 
 @media (max-width: 480px) {
   .hero-bg {
-    background-position: 70% center;
+    background-position: 66% 12%;
   }
+
+  .hero-content {
+    padding-top: 44svh;
+  }
+
+  .hero-pretitle span {
+    font-size: .54rem;
+    letter-spacing: .18em;
+  }
+
+  .hero-mini-points span {
+    font-size: .52rem;
+    padding: .48rem .62rem;
+  }
+}
 
   .hero-content {
     padding-top: 40svh;
