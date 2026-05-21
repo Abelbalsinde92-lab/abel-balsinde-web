@@ -387,7 +387,7 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
 .d5 { animation-delay: .5s; }
 
 /* ═══════════════════════════════════════════════════════════
-   HERO
+   HERO — IMAGE LAYOUT
 ═══════════════════════════════════════════════════════════ */
 #hero {
   min-height: 100svh;
@@ -399,52 +399,85 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
   background: var(--black);
 }
 
-/* Diagonal grid lines */
+.hero-image-layout {
+  isolation: isolate;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(90deg,
+      rgba(0,0,0,1) 0%,
+      rgba(0,0,0,.96) 20%,
+      rgba(0,0,0,.76) 42%,
+      rgba(0,0,0,.28) 68%,
+      rgba(0,0,0,.18) 100%
+    ),
+    linear-gradient(180deg,
+      rgba(0,0,0,.22) 0%,
+      rgba(0,0,0,.05) 45%,
+      rgba(0,0,0,.78) 100%
+    ),
+    url('/hero-abel-trainer.png.PNG');
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
+}
+
 #hero::before {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 1;
   background-image:
-    linear-gradient(rgba(0,210,220,.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,210,220,.04) 1px, transparent 1px);
-  background-size: 60px 60px;
-  mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.6) 30%, rgba(0,0,0,.3) 70%, transparent 100%);
-}
-
-/* Cyan glow orb */
-#hero::after {
-  content: '';
-  position: absolute;
-  top: 20%; left: 55%;
-  width: 600px; height: 600px;
-  background: radial-gradient(ellipse, rgba(0,210,220,.08) 0%, transparent 70%);
+    linear-gradient(rgba(0,210,220,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,210,220,.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(90deg, rgba(0,0,0,.55) 0%, transparent 65%);
   pointer-events: none;
 }
 
-/* Scanline animation */
+#hero::after {
+  content: '';
+  position: absolute;
+  top: 18%;
+  left: 8%;
+  width: 520px;
+  height: 520px;
+  z-index: 1;
+  background: radial-gradient(ellipse, rgba(0,210,220,.10) 0%, transparent 70%);
+  pointer-events: none;
+}
+
 .hero-scanline {
   position: absolute;
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   height: 2px;
+  z-index: 2;
   background: linear-gradient(90deg, transparent, rgba(0,210,220,.15), transparent);
-  animation: scanline 6s linear infinite;
+  animation: scanline 7s linear infinite;
   pointer-events: none;
 }
 
 .hero-content {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: clamp(3rem, 6vw, 5rem) 0;
+  padding: clamp(4rem, 7vw, 6rem) 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 560px) 1fr;
   gap: 4rem;
   align-items: center;
 }
 
-.hero-left {}
+.hero-left {
+  max-width: 580px;
+}
 
 .hero-pretitle {
   display: flex;
@@ -453,11 +486,13 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
   margin-bottom: 1.5rem;
   animation: fadeUp .6s ease .1s both;
 }
+
 .hero-pretitle .line {
   width: 32px;
   height: 1px;
   background: var(--cyan);
 }
+
 .hero-pretitle span {
   font-family: var(--font-mono);
   font-size: .6rem;
@@ -469,23 +504,30 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
 .hero-h1 {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(3.2rem, 7vw, 6.8rem);
-  line-height: .92;
+  font-size: clamp(3rem, 6.5vw, 6.3rem);
+  line-height: .9;
   letter-spacing: -.01em;
   color: var(--white);
   margin-bottom: 2rem;
+  text-transform: uppercase;
   animation: fadeUp .7s ease .2s both;
 }
-.hero-h1 .accent { color: var(--cyan); }
-.hero-h1 .block { display: block; }
+
+.hero-h1 .accent {
+  color: var(--cyan);
+}
+
+.hero-h1 .block {
+  display: block;
+}
 
 .hero-desc {
-  font-size: clamp(.95rem, 1.5vw, 1.1rem);
-  color: var(--gray);
+  font-size: clamp(.98rem, 1.5vw, 1.15rem);
+  color: rgba(229,229,229,.74);
   line-height: 1.75;
   font-weight: 300;
-  max-width: 480px;
-  margin-bottom: 2.5rem;
+  max-width: 520px;
+  margin-bottom: 2.4rem;
   animation: fadeUp .7s ease .3s both;
 }
 
@@ -496,81 +538,122 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
   animation: fadeUp .7s ease .4s both;
 }
 
-/* Hero right — stats block */
-.hero-right {
-  position: relative;
+.hero-mini-points {
+  margin-top: 2rem;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  animation: fadeIn .8s ease .5s both;
+  flex-wrap: wrap;
+  gap: .6rem;
+  animation: fadeUp .7s ease .5s both;
 }
 
-.hero-stat-block {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 1.5rem;
-  position: relative;
-  overflow: hidden;
-}
-.hero-stat-block::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 3px;
-  height: 100%;
-  background: var(--cyan);
-}
-.hero-stat-block:hover { border-color: var(--border-cyan); }
-.hero-stat-block b {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 2.4rem;
-  color: var(--white);
-  display: block;
-  line-height: 1;
-}
-.hero-stat-block b .unit { font-size: 1.2rem; color: var(--cyan); }
-.hero-stat-label {
+.hero-mini-points span {
   font-family: var(--font-mono);
   font-size: .58rem;
-  letter-spacing: .18em;
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--gray);
-  margin-top: 4px;
-  display: block;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,.34);
+  padding: .55rem .75rem;
 }
 
-.hero-stats-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.status-bar {
-  background: var(--surface);
-  border: 1px solid var(--border-cyan);
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  animation: pulse-border 3s ease-in-out infinite;
-}
-.status-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--cyan);
-  box-shadow: 0 0 8px var(--cyan);
-  animation: blink 2s ease-in-out infinite;
-}
-.status-text {
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .15em;
-  text-transform: uppercase;
+.hero-mini-points span::before {
+  content: '[ ';
   color: var(--cyan);
-  display: flex;
-  align-items: center;
-  gap: 8px;
+}
+
+.hero-mini-points span::after {
+  content: ' ]';
+  color: var(--cyan);
+}
+
+/* Ocultamos los stats antiguos del hero */
+.hero-right,
+.hero-stat-block,
+.hero-stats-row,
+.status-bar {
+  display: none !important;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  #hero {
+    min-height: 100svh;
+    align-items: flex-end;
+  }
+
+  .hero-bg {
+    background:
+      linear-gradient(180deg,
+        rgba(0,0,0,.20) 0%,
+        rgba(0,0,0,.35) 35%,
+        rgba(0,0,0,.88) 72%,
+        rgba(0,0,0,1) 100%
+      ),
+      linear-gradient(90deg,
+        rgba(0,0,0,.75) 0%,
+        rgba(0,0,0,.25) 50%,
+        rgba(0,0,0,.15) 100%
+      ),
+      url('/hero-abel-trainer.png');
+    background-size: cover;
+    background-position: 67% center;
+  }
+
+  .hero-content {
+    grid-template-columns: 1fr;
+    padding: 42svh 0 3.25rem;
+  }
+
+  .hero-left {
+    max-width: 100%;
+  }
+
+  .hero-h1 {
+    font-size: clamp(2.55rem, 13vw, 4.2rem);
+    margin-bottom: 1.35rem;
+  }
+
+  .hero-desc {
+    font-size: .98rem;
+    line-height: 1.65;
+    margin-bottom: 1.8rem;
+    max-width: 96%;
+  }
+
+  .hero-ctas {
+    flex-direction: column;
+  }
+
+  .hero-ctas .btn-primary,
+  .hero-ctas .btn-outline,
+  .hero-ctas .btn-ghost {
+    width: 100%;
+  }
+
+  .hero-mini-points {
+    margin-top: 1.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-bg {
+    background-position: 70% center;
+  }
+
+  .hero-content {
+    padding-top: 40svh;
+  }
+
+  .hero-pretitle span {
+    font-size: .54rem;
+    letter-spacing: .18em;
+  }
+
+  .hero-mini-points span {
+    font-size: .52rem;
+    padding: .48rem .62rem;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -602,6 +685,48 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
 .ticker .sep {
   color: rgba(0,0,0,.3);
 }
+
+<!-- ═══ FOR WHO ═══════════════════════════════════════════ -->
+<section id="for-who">
+  <div class="inner">
+    <div class="section-header reveal">
+      <div>
+        <div class="label-cyan" style="margin-bottom:.75rem; display:flex; align-items:center; gap:10px;">
+          <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
+          Para quién es
+        </div>
+        <h2 class="section-title">NO NECESITAS SER ATLETA.<br><span class="accent">NECESITAS UN SISTEMA.</span></h2>
+      </div>
+      <div class="section-number">SECTION_01</div>
+    </div>
+
+    <div class="forwho-grid">
+      <div class="forwho-card reveal d1">
+        <span>01</span>
+        <h3>Personas que quieren ponerse en forma</h3>
+        <p>Si quieres entrenar con estructura, mejorar tu cuerpo y sentirte con más energía sin hacer rutinas al azar.</p>
+      </div>
+
+      <div class="forwho-card reveal d2">
+        <span>02</span>
+        <h3>Principiantes</h3>
+        <p>Si estás empezando, el trabajo se adapta a tu nivel: técnica, movilidad, fuerza básica y progresión segura.</p>
+      </div>
+
+      <div class="forwho-card reveal d3">
+        <span>03</span>
+        <h3>Personas ocupadas</h3>
+        <p>Si necesitas entrenar de forma eficiente, con sesiones claras, objetivos medibles y seguimiento real.</p>
+      </div>
+
+      <div class="forwho-card reveal d4">
+        <span>04</span>
+        <h3>Atletas o ex atletas</h3>
+        <p>Si ya tienes base deportiva y quieres recuperar rendimiento, condición física o preparación específica.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
 /* ═══════════════════════════════════════════════════════════
    PILLARS
@@ -1579,6 +1704,93 @@ footer {
   .footer-bottom { flex-direction: column; }
   .hero-stats-row { grid-template-columns: 1fr; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   FOR WHO
+═══════════════════════════════════════════════════════════ */
+#for-who {
+  background: var(--black);
+  border-top: 1px solid var(--border);
+}
+
+.forwho-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.forwho-card {
+  padding: 2rem;
+  border-right: 1px solid var(--border);
+  min-height: 250px;
+  transition: background .2s, border-color .2s;
+}
+
+.forwho-card:last-child {
+  border-right: 0;
+}
+
+.forwho-card:hover {
+  background: var(--surface2);
+}
+
+.forwho-card span {
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .2em;
+  color: var(--cyan);
+  display: block;
+  margin-bottom: 1.2rem;
+}
+
+.forwho-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  line-height: 1;
+  letter-spacing: .04em;
+  color: var(--white);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.forwho-card p {
+  color: var(--gray);
+  font-size: .88rem;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+@media (max-width: 1024px) {
+  .forwho-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .forwho-card:nth-child(2) {
+    border-right: 0;
+  }
+
+  .forwho-card:nth-child(1),
+  .forwho-card:nth-child(2) {
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 600px) {
+  .forwho-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .forwho-card {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    min-height: auto;
+  }
+
+  .forwho-card:last-child {
+    border-bottom: 0;
+  }
+}
 </style>
 </head>
 <body>
@@ -1597,6 +1809,7 @@ footer {
 
   <nav class="desk">
     <a href="#pillars">Metodología</a>
+   <a href="#for-who">Para quién</a>
     <a href="#authority">Credenciales</a>
     <a href="#plans">Planes</a>
     <a href="#apply">Aplicar</a>
@@ -1625,7 +1838,8 @@ footer {
 <!-- Mobile nav -->
 <div class="mobile-menu" id="mobileNav">
   <a href="#pillars" onclick="closeMenu()">Metodología</a>
-  <a href="#authority" onclick="closeMenu()">Credenciales</a>
+  <a href="#for-who" onclick="closeMenu()">Para quién</a>
+   <a href="#authority" onclick="closeMenu()">Credenciales</a>
   <a href="#plans" onclick="closeMenu()">Planes</a>
   <a href="#apply" onclick="closeMenu()">Aplicar</a>
   <a href="#faq" onclick="closeMenu()">FAQ</a>
@@ -1641,64 +1855,45 @@ footer {
 </div>
 
 <!-- ═══ HERO ═══════════════════════════════════════════════ -->
-<section id="hero">
+<section id="hero" class="hero-image-layout">
+  <div class="hero-bg" aria-hidden="true"></div>
   <div class="hero-scanline" aria-hidden="true"></div>
 
   <div class="hero-content inner">
     <div class="hero-left">
+
       <div class="hero-pretitle">
         <div class="line"></div>
-        <span>Entrenamiento · Belgrado · 2026</span>
+        <span>Entrenamiento personal · Belgrado · Online</span>
       </div>
 
       <h1 class="hero-h1">
-        <span class="block">OPTIMIZACIÓN</span>
-        <span class="block">BIOLÓGICA</span>
-        <span class="block accent">Y RENDIMIENTO</span>
-        <span class="block">DE <span class="accent">ÉLITE.</span></span>
+        <span class="block">ENTRENA</span>
+        <span class="block">FUERTE.</span>
+        <span class="block accent">MUÉVETE MEJOR.</span>
+        <span class="block">VIVE CON MÁS ENERGÍA.</span>
       </h1>
 
       <p class="hero-desc">
-        Programas de entrenamiento basados en ciencia, fuerza y salud integral. Diseñados para quienes no aceptan excusas.
+        Entrenamiento funcional con base de lucha, fuerza, movilidad y condición física.
+        Un sistema progresivo para personas que quieren mejorar su cuerpo, su salud y su rendimiento sin improvisar.
       </p>
 
       <div class="hero-ctas">
         <a href="#apply" class="btn-primary">
-          <svg class="wa-icon" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.122 1.523 5.852L.057 23.04c-.07.252.006.52.197.699.15.14.347.212.547.212.051 0 .103-.006.154-.018l5.35-1.398A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-4.98-1.357l-.357-.213-3.122.815.836-3.046-.233-.373A9.818 9.818 0 012.182 12c0-5.42 4.398-9.818 9.818-9.818 5.42 0 9.818 4.398 9.818 9.818 0 5.42-4.398 9.818-9.818 9.818z" fill-rule="evenodd"/></svg>
-          [ EMPEZAR MI TRANSFORMACIÓN ]
+          [ EMPEZAR MI PROCESO ]
         </a>
-        <a href="#plans" class="btn-outline">Ver planes</a>
+        <a href="#for-who" class="btn-outline">¿Es para mí?</a>
         <a href="/cliente.html" class="btn-ghost">Área cliente →</a>
       </div>
-    </div>
 
-    <div class="hero-right">
-      <div class="status-bar">
-        <span class="status-text"><span class="status-dot"></span>Sistema activo</span>
-        <span class="label-cyan">Belgrado / Online</span>
+      <div class="hero-mini-points">
+        <span>Fuerza</span>
+        <span>Movilidad</span>
+        <span>Condición física</span>
+        <span>Seguimiento real</span>
       </div>
 
-      <div class="hero-stats-row">
-        <div class="hero-stat-block">
-          <b>+20<span class="unit"> años</span></b>
-          <span class="hero-stat-label">Experiencia deportiva</span>
-        </div>
-        <div class="hero-stat-block">
-          <b>UWW</b>
-          <span class="hero-stat-label">Level 2 Coaching</span>
-        </div>
-      </div>
-
-      <div class="hero-stats-row">
-        <div class="hero-stat-block">
-          <b>ESP<span class="unit"> + SRB</span></b>
-          <span class="hero-stat-label">Experiencia profesional</span>
-        </div>
-        <div class="hero-stat-block">
-          <b>3<span class="unit"> planes</span></b>
-          <span class="hero-stat-label">Presencial / Online</span>
-        </div>
-      </div>
     </div>
   </div>
 </section>
