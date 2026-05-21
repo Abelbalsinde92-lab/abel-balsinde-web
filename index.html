@@ -1898,6 +1898,141 @@ footer {
   .auth-corner {
     padding: .85rem 1rem;
   }
+
+/* ═════════════════════════════════════════════════════
+   FIX FINAL MOBILE — HERO + CTA FINAL
+   Pegar justo antes de </style>
+═════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  #hero {
+    min-height: 100svh;
+    align-items: flex-end;
+  }
+
+  .hero-bg {
+    background:
+      linear-gradient(180deg,
+        rgba(0,0,0,.10) 0%,
+        rgba(0,0,0,.26) 34%,
+        rgba(0,0,0,.88) 72%,
+        rgba(0,0,0,1) 100%
+      ),
+      linear-gradient(90deg,
+        rgba(0,0,0,.72) 0%,
+        rgba(0,0,0,.24) 50%,
+        rgba(0,0,0,.12) 100%
+      ),
+      url('/hero-abel-trainer.png.PNG?v=20260521-05');
+
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: 66% 8%;
+  }
+
+  .hero-content {
+    grid-template-columns: 1fr;
+    padding: 48svh 0 calc(5.5rem + env(safe-area-inset-bottom));
+  }
+
+  .hero-left {
+    max-width: 100%;
+  }
+
+  .hero-h1 {
+    font-size: clamp(2.5rem, 12.5vw, 4rem);
+    line-height: 1;
+    letter-spacing: 0;
+    margin-bottom: 1.55rem;
+  }
+
+  .hero-desc {
+    max-width: 92%;
+    font-size: .98rem;
+    line-height: 1.7;
+    margin-bottom: 2.2rem;
+  }
+
+  .hero-ctas {
+    flex-direction: column;
+    gap: .85rem;
+  }
+
+  .hero-ctas .btn-primary,
+  .hero-ctas .btn-outline,
+  .hero-ctas .btn-ghost {
+    width: 100%;
+    min-height: 56px;
+  }
+}
+
+@media (max-width: 600px) {
+  #faq {
+    padding-bottom: 3.8rem;
+  }
+
+  #cta-final {
+    padding: 5.6rem 1.35rem calc(7rem + env(safe-area-inset-bottom));
+  }
+
+  .cta-eyebrow {
+    font-size: .52rem;
+    letter-spacing: .18em;
+    gap: 10px;
+    margin-bottom: 1.45rem;
+  }
+
+  .cta-eyebrow::before,
+  .cta-eyebrow::after {
+    width: 28px;
+  }
+
+  .cta-title {
+    font-size: clamp(2.75rem, 13.5vw, 4.1rem);
+    line-height: .96;
+    letter-spacing: 0;
+    margin-bottom: 1.65rem;
+  }
+
+  .cta-sub {
+    max-width: 92%;
+    font-size: .98rem;
+    line-height: 1.72;
+    margin-bottom: 2.6rem;
+  }
+
+  .cta-actions {
+    width: 100%;
+    gap: 1rem;
+  }
+
+  .cta-actions .btn-primary,
+  .cta-actions .btn-outline {
+    width: 100%;
+    min-height: 60px;
+    padding: 16px 18px;
+    font-size: .66rem;
+    letter-spacing: .13em;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-bg {
+    background-position: 68% 7%;
+  }
+
+  .hero-content {
+    padding-top: 48svh;
+  }
+
+  .hero-pretitle {
+    margin-bottom: 1.25rem;
+  }
+
+  .hero-pretitle span {
+    font-size: .52rem;
+    letter-spacing: .16em;
+  }
 }
 </style>
 </head>
