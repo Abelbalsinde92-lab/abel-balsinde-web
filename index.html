@@ -1786,7 +1786,21 @@ footer {
   }
 }
 
-/* ═══ PARCHE FINAL MOBILE HERO + AUTH CARD ═══ */
+/* ═══ PARCHE FINAL LIMPIO MOBILE HERO + AUTH + CTA ═══ */
+
+/* Oculta el placeholder de la tarjeta de credenciales */
+.auth-visual-placeholder {
+  display: none !important;
+}
+
+.auth-visual img {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-corner {
+  z-index: 2;
+}
 
 @media (max-width: 900px) {
   #hero {
@@ -1807,16 +1821,16 @@ footer {
         rgba(0,0,0,.24) 50%,
         rgba(0,0,0,.12) 100%
       ),
-      url('/hero-abel-trainer.png.PNG?v=20260521-04');
+      url('/hero-abel-trainer.png.PNG?v=20260521-06');
 
     background-repeat: no-repeat;
-    background-size: auto 82svh;
-    background-position: 58% 76px;
+    background-size: auto 78svh;
+    background-position: 58% 78px;
   }
 
   .hero-content {
     grid-template-columns: 1fr;
-    padding: 50svh 0 3.25rem;
+    padding: 49svh 0 calc(5.5rem + env(safe-area-inset-bottom));
   }
 
   .hero-left {
@@ -1825,122 +1839,6 @@ footer {
 
   .hero-h1 {
     font-size: clamp(2.35rem, 11.5vw, 3.85rem);
-    line-height: .98;
-    letter-spacing: .01em;
-    margin-bottom: 1.35rem;
-  }
-
-  .hero-desc {
-    font-size: .98rem;
-    line-height: 1.65;
-    margin-bottom: 1.8rem;
-    max-width: 96%;
-  }
-
-  .hero-ctas {
-    flex-direction: column;
-  }
-
-  .hero-ctas .btn-primary,
-  .hero-ctas .btn-outline,
-  .hero-ctas .btn-ghost {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-bg {
-    background-size: auto 78svh;
-    background-position: 58% 78px;
-  }
-
-  .hero-content {
-    padding-top: 49svh;
-  }
-
-  .hero-h1 {
-    font-size: clamp(2.25rem, 10.6vw, 3.55rem);
-    line-height: 1;
-  }
-
-  .hero-pretitle span {
-    font-size: .54rem;
-    letter-spacing: .16em;
-  }
-}
-
-/* Corrige la tarjeta de credenciales: elimina el placeholder encima de la foto */
-.auth-visual-placeholder {
-  display: none !important;
-}
-
-.auth-visual img {
-  position: relative;
-  z-index: 1;
-}
-
-.auth-corner {
-  z-index: 2;
-}
-
-/* Ajuste móvil de la tarjeta de credenciales */
-@media (max-width: 600px) {
-  .auth-visual {
-    aspect-ratio: 16 / 10;
-    max-height: 300px;
-  }
-
-  .auth-visual img {
-    object-fit: cover;
-    object-position: center top;
-  }
-
-  .auth-corner {
-    padding: .85rem 1rem;
-  }
-}
-/* ═════════════════════════════════════════════════════
-   FIX FINAL MOBILE — HERO + CTA FINAL
-   Pegar justo antes de </style>
-═════════════════════════════════════════════════════ */
-
-@media (max-width: 900px) {
-  #hero {
-    min-height: 100svh;
-    align-items: flex-end;
-  }
-
-  .hero-bg {
-    background:
-      linear-gradient(180deg,
-        rgba(0,0,0,.10) 0%,
-        rgba(0,0,0,.26) 34%,
-        rgba(0,0,0,.88) 72%,
-        rgba(0,0,0,1) 100%
-      ),
-      linear-gradient(90deg,
-        rgba(0,0,0,.72) 0%,
-        rgba(0,0,0,.24) 50%,
-        rgba(0,0,0,.12) 100%
-      ),
-      url('/hero-abel-trainer.png.PNG?v=20260521-05');
-
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: 66% 8%;
-  }
-
-  .hero-content {
-    grid-template-columns: 1fr;
-    padding: 48svh 0 calc(5.5rem + env(safe-area-inset-bottom));
-  }
-
-  .hero-left {
-    max-width: 100%;
-  }
-
-  .hero-h1 {
-    font-size: clamp(2.5rem, 12.5vw, 4rem);
     line-height: 1;
     letter-spacing: 0;
     margin-bottom: 1.55rem;
@@ -1972,31 +1870,31 @@ footer {
   }
 
   #cta-final {
-    padding: 5.6rem 1.35rem calc(7rem + env(safe-area-inset-bottom));
+    padding: 5.8rem 1.35rem calc(7rem + env(safe-area-inset-bottom));
   }
 
   .cta-eyebrow {
-    font-size: .52rem;
-    letter-spacing: .18em;
-    gap: 10px;
-    margin-bottom: 1.45rem;
+    font-size: .5rem;
+    letter-spacing: .14em;
+    gap: 8px;
+    margin-bottom: 1.5rem;
   }
 
   .cta-eyebrow::before,
   .cta-eyebrow::after {
-    width: 28px;
+    width: 24px;
   }
 
   .cta-title {
-    font-size: clamp(2.75rem, 13.5vw, 4.1rem);
-    line-height: .96;
+    font-size: clamp(2.55rem, 12.5vw, 3.8rem);
+    line-height: .98;
     letter-spacing: 0;
-    margin-bottom: 1.65rem;
+    margin-bottom: 1.75rem;
   }
 
   .cta-sub {
     max-width: 92%;
-    font-size: .98rem;
+    font-size: .95rem;
     line-height: 1.72;
     margin-bottom: 2.6rem;
   }
@@ -2011,18 +1909,33 @@ footer {
     width: 100%;
     min-height: 60px;
     padding: 16px 18px;
-    font-size: .66rem;
-    letter-spacing: .13em;
+    font-size: .64rem;
+    letter-spacing: .12em;
+  }
+
+  .auth-visual {
+    aspect-ratio: 16 / 10;
+    max-height: 300px;
+  }
+
+  .auth-visual img {
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  .auth-corner {
+    padding: .85rem 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .hero-bg {
-    background-position: 68% 7%;
+    background-size: auto 76svh;
+    background-position: 58% 78px;
   }
 
   .hero-content {
-    padding-top: 48svh;
+    padding-top: 49svh;
   }
 
   .hero-pretitle {
