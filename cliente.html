@@ -8326,53 +8326,6 @@ function renderHealthAlerts() {
 function goClientSection(sectionId){document.querySelectorAll('.dash-main .section').forEach(s=>s.classList.add('section-hidden'));const target=document.getElementById(sectionId);if(!target)return;target.classList.remove('section-hidden');document.querySelectorAll('.client-nav button').forEach(b=>b.classList.remove('active'));const activeBtn=Array.from(document.querySelectorAll('.client-nav button')).find(b=>b.getAttribute('onclick')?.includes(sectionId));if(activeBtn){activeBtn.classList.add('active');activeBtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}window.scrollTo({top:0,behavior:'smooth'});}
 function toggleAccordion(button){const block=button.closest('.accordion-block');if(!block)return;const symbol=block.querySelector('.accordion-symbol');const isOpen=block.classList.contains('open');block.classList.toggle('open',!isOpen);if(symbol)symbol.textContent=isOpen?'+':'−';}
 
-/* ═════════════════════════════════════════════════════
-   FIX — ABRIR FORMULARIO DE MÉTRICAS FÍSICAS
-   Pegar antes de </script>
-═════════════════════════════════════════════════════ */
-
-window.toggleClientBodyMetricsForm = function () {
-  const form = document.getElementById('clientBodyMetricsForm');
-
-  if (!form) {
-    showClientNotice('No se encontró el formulario de métricas.', 'error');
-    return;
-  }
-
-  form.classList.remove('hidden');
-  form.style.display = 'grid';
-  form.style.gap = '12px';
-
-  const m = getLatestClientMetric ? getLatestClientMetric() : null;
-
-  const set = (id, keys) => {
-    const el = document.getElementById(id);
-    if (!el || !m) return;
-
-    const value = metricVal(m, keys);
-    if (!el.value && value !== '') el.value = value;
-  };
-
-  set('bodyMetricWeight', ['weight', 'peso', 'peso_kg', 'body_weight']);
-  set('bodyMetricHeight', ['height', 'altura', 'height_cm']);
-  set('bodyMetricWaist', ['waist', 'cintura', 'waist_cm']);
-  set('bodyMetricHip', ['hip', 'cadera', 'hip_cm']);
-  set('bodyMetricChest', ['chest', 'pecho', 'chest_cm']);
-  set('bodyMetricArm', ['arm', 'brazo', 'arm_cm']);
-  set('bodyMetricThigh', ['thigh', 'leg', 'pierna', 'thigh_cm']);
-  set('bodyMetricRestingHR', ['resting_hr', 'fc_reposo', 'resting_heart_rate']);
-
-  const notesEl = document.getElementById('bodyMetricNotes');
-  if (notesEl && m && !notesEl.value) {
-    notesEl.value = metricVal(m, ['notes', 'note', 'observaciones']);
-  }
-
-  form.scrollIntoView({
-    behavior: 'smooth',
-    block: 'center'
-  });
-};
-
 /* ══ EVENTOS ══ */
 document.getElementById('btnLogin')?.addEventListener('click',loginClient);
 document.getElementById('btnLogout')?.addEventListener('click',()=>Auth.logout());
