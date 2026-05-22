@@ -6773,29 +6773,40 @@ async function calSubmitRequest(groupSlotId) {
   }
 
   const btn = document.getElementById('calSubmitBtn');
-  if (btn) { btn.disabled = true; btn.textContent = getLang() === 'sr' ? 'Enviando...' : 'Enviando...'; }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = getLang() === 'sr' ? 'Enviando...' : 'Enviando...';
+  }
 
   const note = document.getElementById('calRequestNote')?.value?.trim() || null;
+
   const time = groupSlotId
     ? (calSelectedSlot?.time || null)
     : (document.getElementById('calRequestTime')?.value || null);
+
   const selectedType = groupSlotId
-  ? 'group'
-  : (document.getElementById('calRequestType')?.value || 'personal');
+    ? 'group'
+    : (document.getElementById('calRequestType')?.value || 'personal');
 
-const reservationType = groupSlotId
-  ? 'Entrenamiento grupal'
-  : selectedType === 'pareja'
-    ? 'Sesión en pareja'
-    : 'Sesión personal';
+  const reservationType = groupSlotId
+    ? 'Entrenamiento grupal'
+    : selectedType === 'pareja'
+      ? 'Sesión en pareja'
+      : 'Sesión personal';
 
-const sessionMode = groupSlotId
-  ? 'group'
-  : 'personal';
+  const sessionMode = groupSlotId
+    ? 'group'
+    : 'personal';
 
   if (!groupSlotId && !time) {
     showClientNotice(getLang() === 'sr' ? 'Unesite vreme' : 'Indica la hora', 'error');
-    if (btn) { btn.disabled = false; btn.textContent = getLang() === 'sr' ? 'Confirmar solicitud' : 'Confirmar solicitud'; }
+
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = getLang() === 'sr' ? 'Confirmar solicitud' : 'Confirmar solicitud';
+    }
+
     return;
   }
 
@@ -6810,7 +6821,7 @@ const sessionMode = groupSlotId
       requested_by_client: true,
       client_message: note,
       group_slot_id: groupSlotId || null,
-      place: calSelectedSlot?.place || null
+      place: calSelectedSlot?.place || 'Belgrado'
     };
 
     const { data, error } = await db
@@ -6822,34 +6833,43 @@ const sessionMode = groupSlotId
     if (error) throw error;
 
     if (groupSlotId) {
-      if (groupSlotId) {
-  const { error: slotError } = await db
-    .from('group_slots')
-    .update({ current_capacity: (calSelectedSlot.current_capacity || 0) + 1 })
-    .eq('id', groupSlotId);
+      const { error: slotError } = await db
+        .from('group_slots')
+        .update({
+          current_capacity: (calSelectedSlot?.current_capacity || 0) + 1
+        })
+        .eq('id', groupSlotId);
 
-  if (slotError) throw slotError;
-}
+      if (slotError) throw slotError;
+    }
 
     clientReservations = [...clientReservations, data];
     calClientReservations = [...calClientReservations, data];
     calSelectedSlot = null;
 
     showClientNotice(
-      getLang() === 'sr' ? 'Solicitud enviada. Abel confirmará pronto.' : 'Solicitud enviada. Abel confirmará en breve.',
+      getLang() === 'sr'
+        ? 'Solicitud enviada. Abel confirmará pronto.'
+        : 'Solicitud enviada. Abel confirmará en breve.',
       'success'
     );
 
     const area = document.getElementById('calRequestArea');
+
     if (area) {
       area.innerHTML =
         '<div class="data-card" style="border-color:rgba(0,230,118,.2);margin-top:0;">' +
           '<div class="dc-row">' +
-            '<span class="dc-title">' + (getLang() === 'sr' ? 'Solicitud enviada' : 'Solicitud enviada') + '</span>' +
-            '<span class="badge badge-green">' + (getLang() === 'sr' ? 'Pendiente' : 'Pendiente') + '</span>' +
+            '<span class="dc-title">' +
+              (getLang() === 'sr' ? 'Solicitud enviada' : 'Solicitud enviada') +
+            '</span>' +
+            '<span class="badge badge-green">' +
+              (getLang() === 'sr' ? 'Pendiente' : 'Pendiente') +
+            '</span>' +
           '</div>' +
           '<div class="dc-note">' +
-            formatDate(calSelectedDate) + (time ? ' · ' + formatTime(time) : '') +
+            formatDate(calSelectedDate) +
+            (time ? ' · ' + formatTime(time) : '') +
           '</div>' +
         '</div>';
     }
@@ -6858,8 +6878,16 @@ const sessionMode = groupSlotId
 
   } catch (err) {
     console.error('Reservation error:', err);
-    showClientNotice(getLang() === 'sr' ? 'Error al enviar' : 'Error al enviar la solicitud', 'error');
-    if (btn) { btn.disabled = false; btn.textContent = getLang() === 'sr' ? 'Confirmar solicitud' : 'Confirmar solicitud'; }
+
+    showClientNotice(
+      getLang() === 'sr' ? 'Error al enviar' : 'Error al enviar la solicitud',
+      'error'
+    );
+
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = getLang() === 'sr' ? 'Confirmar solicitud' : 'Confirmar solicitud';
+    }
   }
 }
 
