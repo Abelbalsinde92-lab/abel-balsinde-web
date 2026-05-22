@@ -2501,6 +2501,57 @@ function getUpcomingReservations() {
     .sort(compareReservationsByDateTime);
 }
 
+function isPendingReservation(r) {
+  const s = reservationStatusValue(r);
+
+  return [
+    'pendiente',
+    'pending',
+    'por_confirmar',
+    'por confirmar'
+  ].includes(s);
+}
+
+function isConfirmedReservation(r) {
+  const s = reservationStatusValue(r);
+
+  return [
+    'reservada',
+    'reservado',
+    'confirmada',
+    'confirmado',
+    'confirmed'
+  ].includes(s);
+}
+
+function getConfirmedUpcomingReservations() {
+  return getUpcomingReservations()
+    .filter(isConfirmedReservation);
+}
+
+function getPendingUpcomingReservations() {
+  return getUpcomingReservations()
+    .filter(isPendingReservation);
+}
+
+function reservationClientStatusLabel(r) {
+  if (isPendingReservation(r)) {
+    return getLang() === 'sr' ? 'Za potvrdu' : 'Por confirmar';
+  }
+
+  if (isConfirmedReservation(r)) {
+    return getLang() === 'sr' ? 'Potvrđeno' : 'Confirmada';
+  }
+
+  return r?.status || '—';
+}
+
+function reservationClientStatusBadgeClass(r) {
+  if (isPendingReservation(r)) return 'badge-yellow';
+  if (isConfirmedReservation(r)) return 'badge-green';
+  return 'badge-gray';
+}
+
 function formatMoney(amount, currency) {
   if (amount == null) return '—';
 
@@ -4267,7 +4318,10 @@ const firstName = String(clientData.name || fallbackName).split(' ')[0] || fallb
   const today = todayISO();
   const dateStr = todayFormatted();
 
-  const nextReservation = getUpcomingReservations()[0] || null;
+  const confirmedNextReservation = getConfirmedUpcomingReservations()[0] || null;
+const pendingNextReservation = getPendingUpcomingReservations()[0] || null;
+
+const nextReservation = confirmedNextReservation || pendingNextReservation;
 
   const hasTraining = Boolean(clientTrainingProgram && clientTrainingSessions.length);
 
@@ -4302,13 +4356,24 @@ const firstName = String(clientData.name || fallbackName).split(' ')[0] || fallb
 
   const metaLine = metaParts.join(' · ');
 
-  const reservationMain = nextReservation
-    ? formatDate(nextReservation.date) + (nextReservation.time ? ' · ' + formatTime(nextReservation.time) : '')
-    : uiText('noNextReservation');
+const reservationTitleLabel = confirmedNextReservation
+  ? uiText('nextReservation')
+  : pendingNextReservation
+    ? (getLang() === 'sr' ? 'Zahtev na čekanju' : 'Solicitud pendiente')
+    : uiText('nextReservation');
 
-  const reservationSub = nextReservation
-    ? ((nextReservation.type || uiText('reservation')) + (nextReservation.place ? ' · ' + nextReservation.place : ''))
-    : uiText('tapCalendar');
+const reservationMain = nextReservation
+  ? formatDate(nextReservation.date) + (nextReservation.time ? ' · ' + formatTime(nextReservation.time) : '')
+  : uiText('noNextReservation');
+
+const reservationSub = nextReservation
+  ? (
+      reservationClientStatusLabel(nextReservation) +
+      ' · ' +
+      (nextReservation.type || uiText('reservation')) +
+      (nextReservation.place ? ' · ' + nextReservation.place : '')
+    )
+  : uiText('tapCalendar');
 
   let html = '';
 
@@ -4359,7 +4424,7 @@ const firstName = String(clientData.name || fallbackName).split(' ')[0] || fallb
   html +=
     '<div class="summary-grid" style="margin-top:0;">' +
       '<div class="summary-card full" onclick="goClientSection(\'section-reservations\')" style="cursor:pointer;">' +
-        '<div class="summary-label">' + uiText('nextReservation') + '</div>' +
+'<div class="summary-label">' + reservationTitleLabel + '</div>' +
         '<div class="summary-value" style="font-size:16px;font-weight:700;">' +
           reservationMain +
         '</div>' +
@@ -6685,31 +6750,39 @@ function buildSlotsForDay(dateStr) {
       'requested'
     ].includes(reservationStatus);
 
-    const badgeText = isPendingReservation
-      ? (getLang() === 'sr' ? 'Čeka potvrdu' : 'Por confirmar')
-      : (getLang() === 'sr' ? 'Moj termin' : 'Mi sesión');
+    const status = String(r.status || '').toLowerCase();
 
-    const badgeColor = isPendingReservation
-      ? 'var(--warn)'
-      : 'var(--sport)';
+const isPendingReservation =
+  status === 'pendiente' ||
+  status === 'pending' ||
+  status === 'por_confirmar' ||
+  status === 'por confirmar';
 
-    const borderColor = isPendingReservation
-      ? 'rgba(255,179,64,.35)'
-      : 'rgba(0,163,255,.40)';
+const badgeText = isPendingReservation
+  ? (getLang() === 'sr' ? 'Čeka potvrdu' : 'Por confirmar')
+  : (getLang() === 'sr' ? 'Moj termin' : 'Mi sesión');
 
-    html +=
-      '<div class="cal-slot-card personal-own" style="border-color:' + borderColor + ';">' +
-        '<div>' +
-          '<div class="cal-slot-time">' + formatTime(r.time) + '</div>' +
-          '<div class="cal-slot-meta">' +
-            (r.type || (getLang() === 'sr' ? 'Lična sesija' : 'Sesión personal')) +
-            (r.place ? ' · ' + r.place : '') +
-          '</div>' +
-        '</div>' +
-        '<span class="cal-slot-badge" style="color:' + badgeColor + '">' +
-          badgeText +
-        '</span>' +
-      '</div>';
+const badgeColor = isPendingReservation
+  ? 'var(--warn)'
+  : 'var(--sport)';
+
+const borderColor = isPendingReservation
+  ? 'rgba(255,179,64,.35)'
+  : 'rgba(0,163,255,.40)';
+
+html +=
+  '<div class="cal-slot-card personal-own"' + cardStyle + '>' +
+    '<div>' +
+      '<div class="cal-slot-time">' + formatTime(r.time) + '</div>' +
+      '<div class="cal-slot-meta">' +
+        (r.type || (getLang() === 'sr' ? 'Lična sesija' : 'Sesión personal')) +
+        (r.place ? ' · ' + r.place : '') +
+      '</div>' +
+    '</div>' +
+    '<span class="cal-slot-badge" style="color:' + badgeColor + '">' +
+      badgeText +
+    '</span>' +
+  '</div>';
   });
 }
 
@@ -7167,10 +7240,8 @@ function renderReservationsCalendar() {
       '</div>';
 
     myAll.forEach(r => {
-      const statusColor =
-        r.status === 'confirmada' ? 'var(--streak)' :
-        r.status === 'pendiente'  ? 'var(--warn)'   :
-        'var(--text-secondary)';
+      const statusClass = reservationClientStatusBadgeClass(r);
+const statusText = reservationClientStatusLabel(r);
 
       html +=
         '<div class="data-card">' +
@@ -7178,8 +7249,9 @@ function renderReservationsCalendar() {
             '<span class="dc-title" style="font-size:15px;">' +
               formatDate(r.date) + (r.time ? ' · ' + formatTime(r.time) : '') +
             '</span>' +
-            '<span class="badge" style="color:' + statusColor + '">' +
-              (r.status || 'pendiente') +
+            '<span class="badge ' + statusClass + '">' +
+  statusText +
+'</span>' +
             '</span>' +
           '</div>' +
           '<div class="dc-row">' +
