@@ -1804,6 +1804,89 @@ input, textarea { outline: none; font-family: var(--font-body); }
   color: var(--sport);
   opacity: .85;
 }
+
+/* FIX PERFIL DUPLICADO */
+#section-client-data > .section-header {
+  display: none !important;
+}
+
+/* FIX MÉTRICAS — OCULTAR FORMULARIO LARGO */
+#clientBodyMetricsForm {
+  display: none !important;
+}
+
+/* MINI EDITOR DE MÉTRICAS */
+.metric-editor-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0,0,0,.68);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px 14px calc(18px + env(safe-area-inset-bottom));
+}
+
+.metric-editor-sheet {
+  width: 100%;
+  max-width: 520px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.65);
+}
+
+.metric-editor-kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--sport);
+  margin-bottom: 8px;
+}
+
+.metric-editor-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 1.4px;
+  line-height: 1;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+.metric-editor-input {
+  width: 100%;
+  background: #000;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-family: var(--font-mono);
+}
+
+.metric-editor-unit {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+.metric-editor-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.metric-editor-cancel {
+  background: transparent !important;
+  border: 1px solid var(--card-border) !important;
+  color: var(--text-secondary) !important;
+}
 </style>
 </head>
 <body>
@@ -7603,67 +7686,236 @@ function buildClientBodyMetricsCard() {
   );
 }
 
-function toggleClientBodyMetricsForm(focusId = null) {
-  const form = document.getElementById('clientBodyMetricsForm');
+const BODY_METRIC_CONFIG = {
+  bodyMetricWeight: {
+    label: 'Peso',
+    column: 'weight',
+    unit: 'kg',
+    step: '0.1',
+    keys: ['weight', 'peso', 'peso_kg', 'body_weight']
+  },
+  bodyMetricHeight: {
+    label: 'Altura',
+    column: 'height',
+    unit: 'cm',
+    step: '0.1',
+    keys: ['height', 'altura', 'height_cm']
+  },
+  bodyMetricWaist: {
+    label: 'Cintura',
+    column: 'waist',
+    unit: 'cm',
+    step: '0.1',
+    keys: ['waist', 'cintura', 'waist_cm']
+  },
+  bodyMetricHip: {
+    label: 'Cadera',
+    column: 'hip',
+    unit: 'cm',
+    step: '0.1',
+    keys: ['hip', 'cadera', 'hip_cm']
+  },
+  bodyMetricChest: {
+    label: 'Pecho',
+    column: 'chest',
+    unit: 'cm',
+    step: '0.1',
+    keys: ['chest', 'pecho', 'chest_cm']
+  },
+  bodyMetricArm: {
+    label: 'Brazo',
+    column: 'arm',
+    unit: 'cm',
+    step: '0.1',
+    keys: ['arm', 'brazo', 'arm_cm']
+  },
+  bodyMetricThigh: {
+    label: 'Pierna',
+    column: 'thigh',
+    unit: 'cm',
+    step: '0.1',
+    keys: ['thigh', 'leg', 'pierna', 'thigh_cm']
+  },
+  bodyMetricRestingHR: {
+    label: 'FC reposo',
+    column: 'resting_hr',
+    unit: 'ppm',
+    step: '1',
+    keys: ['resting_hr', 'fc_reposo', 'resting_heart_rate']
+  }
+};
 
-  if (!form) {
-    showClientNotice('No se encontró el formulario de métricas.', 'error');
+function ensureMetricEditorSheet() {
+  let overlay = document.getElementById('metricEditorOverlay');
+
+  if (overlay) return overlay;
+
+  overlay = document.createElement('div');
+  overlay.id = 'metricEditorOverlay';
+  overlay.className = 'metric-editor-overlay hidden';
+
+  overlay.innerHTML =
+    '<div class="metric-editor-sheet">' +
+      '<div class="metric-editor-kicker">Actualizar métrica</div>' +
+      '<div class="metric-editor-title" id="metricEditorTitle">Métrica</div>' +
+
+      '<input type="hidden" id="metricEditorTarget">' +
+
+      '<input id="metricEditorInput" class="metric-editor-input" type="number" inputmode="decimal">' +
+      '<div class="metric-editor-unit" id="metricEditorUnit">—</div>' +
+
+      '<div class="field-group" style="margin-top:14px;margin-bottom:0;">' +
+        '<label>Observación opcional</label>' +
+        '<textarea id="metricEditorNote" class="training-notes-textarea" style="min-height:70px;margin-bottom:0;" placeholder="Ej: peso en ayunas, sensación general..."></textarea>' +
+      '</div>' +
+
+      '<div class="metric-editor-actions">' +
+        '<button class="client-action-btn" id="btnSaveMetricEditor" onclick="saveMetricEditorValue()">Guardar métrica</button>' +
+        '<button class="client-action-btn metric-editor-cancel" onclick="closeMetricEditor()">Cancelar</button>' +
+      '</div>' +
+    '</div>';
+
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) closeMetricEditor();
+  });
+
+  document.body.appendChild(overlay);
+
+  return overlay;
+}
+
+function toggleClientBodyMetricsForm(focusId = null) {
+  const targetId = focusId || 'bodyMetricWeight';
+  openMetricEditor(targetId);
+}
+
+function openMetricEditor(targetId) {
+  const cfg = BODY_METRIC_CONFIG[targetId] || BODY_METRIC_CONFIG.bodyMetricWeight;
+  const overlay = ensureMetricEditorSheet();
+
+  const latest = getLatestClientMetric();
+  const currentValue = metricVal(latest, cfg.keys);
+  const currentNote = metricVal(latest, ['notes', 'note', 'observaciones']);
+
+  document.getElementById('metricEditorTarget').value = targetId;
+  document.getElementById('metricEditorTitle').textContent = cfg.label;
+  document.getElementById('metricEditorUnit').textContent = cfg.unit || '';
+
+  const input = document.getElementById('metricEditorInput');
+  input.step = cfg.step || '0.1';
+  input.value = currentValue !== '' ? currentValue : '';
+
+  const note = document.getElementById('metricEditorNote');
+  note.value = currentNote || '';
+
+  overlay.classList.remove('hidden');
+
+  setTimeout(() => {
+    input.focus();
+    input.select?.();
+  }, 80);
+}
+
+function closeMetricEditor() {
+  const overlay = document.getElementById('metricEditorOverlay');
+  if (overlay) overlay.classList.add('hidden');
+}
+
+function numFromMetric(row, cfg) {
+  const raw = metricVal(row, cfg.keys);
+  if (raw === '' || raw === null || raw === undefined) return null;
+
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+async function saveMetricEditorValue() {
+  if (!clientData?.id) {
+    showClientNotice('Cliente no identificado.', 'error');
     return;
   }
 
-  const isHidden =
-    form.classList.contains('hidden') ||
-    getComputedStyle(form).display === 'none';
+  const targetId = document.getElementById('metricEditorTarget')?.value || 'bodyMetricWeight';
+  const cfg = BODY_METRIC_CONFIG[targetId] || BODY_METRIC_CONFIG.bodyMetricWeight;
 
-  // Si viene desde una tarjeta, siempre abre y enfoca.
-  // Si viene desde el botón inferior y ya está abierto, lo cierra.
-  if (isHidden || focusId) {
-    form.classList.remove('hidden');
-    form.style.display = 'block';
+  const input = document.getElementById('metricEditorInput');
+  const rawValue = input?.value;
 
-    const m = getLatestClientMetric();
+  if (rawValue === '' || rawValue === null || rawValue === undefined) {
+    showClientNotice('Introduce un valor.', 'error');
+    return;
+  }
 
-    const set = (id, keys) => {
-      const el = document.getElementById(id);
-      if (!el) return;
+  const numericValue = Number(rawValue);
 
-      const value = metricVal(m, keys);
+  if (!Number.isFinite(numericValue)) {
+    showClientNotice('Valor no válido.', 'error');
+    return;
+  }
 
-      if (value !== '' && value !== null && value !== undefined) {
-        el.value = value;
-      }
-    };
+  const btn = document.getElementById('btnSaveMetricEditor');
 
-    set('bodyMetricWeight', ['weight', 'peso', 'peso_kg', 'body_weight']);
-    set('bodyMetricHeight', ['height', 'altura', 'height_cm']);
-    set('bodyMetricWaist', ['waist', 'cintura', 'waist_cm']);
-    set('bodyMetricHip', ['hip', 'cadera', 'hip_cm']);
-    set('bodyMetricChest', ['chest', 'pecho', 'chest_cm']);
-    set('bodyMetricArm', ['arm', 'brazo', 'arm_cm']);
-    set('bodyMetricThigh', ['thigh', 'leg', 'pierna', 'thigh_cm']);
-    set('bodyMetricRestingHR', ['resting_hr', 'fc_reposo', 'resting_heart_rate']);
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+  }
 
-    const notesEl = document.getElementById('bodyMetricNotes');
-    if (notesEl) {
-      const notes = metricVal(m, ['notes', 'note', 'observaciones']);
-      if (notes) notesEl.value = notes;
+  const latest = getLatestClientMetric() || {};
+  const payload = {
+    client_id: clientData.id,
+    date: todayISO(),
+
+    // Importante por las restricciones actuales de tu tabla metrics
+    type: 'body_metrics',
+    value: numericValue,
+
+    notes: document.getElementById('metricEditorNote')?.value?.trim() || null,
+    updated_at: new Date().toISOString()
+  };
+
+  Object.values(BODY_METRIC_CONFIG).forEach(item => {
+    const columnExistsInLatest =
+      latest &&
+      Object.prototype.hasOwnProperty.call(latest, item.column);
+
+    if (columnExistsInLatest || item.column === cfg.column) {
+      payload[item.column] = numFromMetric(latest, item);
     }
+  });
 
-    setTimeout(() => {
-      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  payload[cfg.column] = numericValue;
 
-      if (focusId) {
-        const input = document.getElementById(focusId);
-        if (input) {
-          input.focus();
-          input.select?.();
-        }
-      }
-    }, 120);
+  try {
+    const { data, error } = await db
+      .from('metrics')
+      .insert(payload)
+      .select()
+      .single();
 
-  } else {
-    form.classList.add('hidden');
-    form.style.display = '';
+    if (error) throw error;
+
+    clientMetrics.unshift(data);
+
+    closeMetricEditor();
+
+    showClientNotice('Métrica guardada.', 'success');
+
+    renderClientData();
+    renderSummary();
+
+  } catch (err) {
+    console.error('Metric editor save error:', err);
+
+    showClientNotice(
+      err?.message || 'No se pudo guardar la métrica.',
+      'error'
+    );
+
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Guardar métrica';
+    }
   }
 }
 
