@@ -6653,14 +6653,22 @@ async function loadCalendarData() {
 }
 
 function getDayStatus(dateStr) {
-  const myRes = calClientReservations.filter(r => String(r.date) === dateStr);
-  const publicDay = calPublicSlots.filter(s => String(s.date) === dateStr);
+  const myRes = calClientReservations.filter(r =>
+    String(r.date).slice(0, 10) === dateStr &&
+    isUpcomingReservation(r)
+  );
+
+  const publicDay = calPublicSlots.filter(s =>
+    String(s.date).slice(0, 10) === dateStr
+  );
+
   const grupalOpen = publicDay.filter(s => s.can_join);
   const grupalFull = publicDay.filter(s => !s.can_join && s.session_mode === 'grupal');
 
   if (myRes.length) return 'personal-own';
   if (grupalOpen.length) return 'grupal-open';
   if (grupalFull.length) return 'grupal-full';
+
   return 'free';
 }
 
@@ -6734,57 +6742,47 @@ function buildCalendarHTML() {
 }
 
 function buildSlotsForDay(dateStr) {
-  const grupalSlots = calPublicSlots.filter(s => String(s.date) === dateStr);
-  const mySlots = calClientReservations.filter(r => String(r.date) === dateStr);
+  const grupalSlots = calPublicSlots.filter(s =>
+    String(s.date).slice(0, 10) === dateStr
+  );
+
+  const mySlots = calClientReservations
+    .filter(r => String(r.date).slice(0, 10) === dateStr)
+    .filter(isUpcomingReservation);
 
   let html = '<div class="cal-slots-list">';
 
   if (mySlots.length) {
-  mySlots.forEach(r => {
-    const reservationStatus = String(r.status || '').toLowerCase();
+    mySlots.forEach(r => {
+      const pending = isPendingReservation(r);
 
-    const isPendingReservation = [
-      'pendiente',
-      'pending',
-      'solicitada',
-      'requested'
-    ].includes(reservationStatus);
+      const badgeText = pending
+        ? (getLang() === 'sr' ? 'Čeka potvrdu' : 'Por confirmar')
+        : (getLang() === 'sr' ? 'Moj termin' : 'Mi sesión');
 
-    const status = String(r.status || '').toLowerCase();
+      const badgeColor = pending
+        ? 'var(--warn)'
+        : 'var(--sport)';
 
-const isPendingReservation =
-  status === 'pendiente' ||
-  status === 'pending' ||
-  status === 'por_confirmar' ||
-  status === 'por confirmar';
+      const borderColor = pending
+        ? 'rgba(255,179,64,.35)'
+        : 'rgba(0,163,255,.40)';
 
-const badgeText = isPendingReservation
-  ? (getLang() === 'sr' ? 'Čeka potvrdu' : 'Por confirmar')
-  : (getLang() === 'sr' ? 'Moj termin' : 'Mi sesión');
-
-const badgeColor = isPendingReservation
-  ? 'var(--warn)'
-  : 'var(--sport)';
-
-const borderColor = isPendingReservation
-  ? 'rgba(255,179,64,.35)'
-  : 'rgba(0,163,255,.40)';
-
-html +=
-  '<div class="cal-slot-card personal-own"' + cardStyle + '>' +
-    '<div>' +
-      '<div class="cal-slot-time">' + formatTime(r.time) + '</div>' +
-      '<div class="cal-slot-meta">' +
-        (r.type || (getLang() === 'sr' ? 'Lična sesija' : 'Sesión personal')) +
-        (r.place ? ' · ' + r.place : '') +
-      '</div>' +
-    '</div>' +
-    '<span class="cal-slot-badge" style="color:' + badgeColor + '">' +
-      badgeText +
-    '</span>' +
-  '</div>';
-  });
-}
+      html +=
+        '<div class="cal-slot-card personal-own" style="border-color:' + borderColor + ';">' +
+          '<div>' +
+            '<div class="cal-slot-time">' + formatTime(r.time) + '</div>' +
+            '<div class="cal-slot-meta">' +
+              (r.type || (getLang() === 'sr' ? 'Lična sesija' : 'Sesión personal')) +
+              (r.place ? ' · ' + r.place : '') +
+            '</div>' +
+          '</div>' +
+          '<span class="cal-slot-badge" style="color:' + badgeColor + '">' +
+            badgeText +
+          '</span>' +
+        '</div>';
+    });
+  }
 
   if (grupalSlots.length) {
     grupalSlots.forEach(s => {
@@ -6800,7 +6798,7 @@ html +=
             '<div class="cal-slot-meta">' +
               (getLang() === 'sr' ? 'Grupni trening' : 'Entrenamiento grupal') +
               (s.place ? ' · ' + s.place : '') +
-              ' · ' + s.duration_minutes + 'min' +
+              (s.duration_minutes ? ' · ' + s.duration_minutes + 'min' : '') +
             '</div>' +
           '</div>' +
           '<span class="cal-slot-badge" style="color:' + (canJoin ? 'var(--streak)' : 'var(--text-secondary)') + '">' +
@@ -6837,6 +6835,7 @@ html +=
   }
 
   html += '</div>';
+
   return html;
 }
 
