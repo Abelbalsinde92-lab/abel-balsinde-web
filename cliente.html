@@ -6812,11 +6812,14 @@ async function calSubmitRequest(groupSlotId) {
     if (error) throw error;
 
     if (groupSlotId) {
-      await db
-        .from('group_slots')
-        .update({ current_capacity: (calSelectedSlot.current_capacity || 0) + 1 })
-        .eq('id', groupSlotId);
-    }
+      if (groupSlotId) {
+  const { error: slotError } = await db
+    .from('group_slots')
+    .update({ current_capacity: (calSelectedSlot.current_capacity || 0) + 1 })
+    .eq('id', groupSlotId);
+
+  if (slotError) throw slotError;
+}
 
     clientReservations = [...clientReservations, data];
     calClientReservations = [...calClientReservations, data];
