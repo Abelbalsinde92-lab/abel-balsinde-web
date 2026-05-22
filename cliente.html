@@ -1780,6 +1780,30 @@ input, textarea { outline: none; font-family: var(--font-body); }
   }
 
 }
+
+.metric-edit-card {
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .08s;
+}
+
+.metric-edit-card:hover {
+  border-color: rgba(0,163,255,.35);
+  background: rgba(0,163,255,.04);
+}
+
+.metric-edit-card:active {
+  transform: scale(.98);
+}
+
+.metric-edit-hint {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  color: var(--sport);
+  opacity: .85;
+}
 </style>
 </head>
 <body>
@@ -7450,11 +7474,20 @@ function metricText(row, keys, unit) {
   return v + (unit ? ' ' + unit : '');
 }
 
-function buildMetricBox(label, value) {
+function buildMetricBox(label, value, inputId = '') {
+  const clickable = Boolean(inputId);
+
   return (
-    '<div class="summary-card">' +
+    '<div class="summary-card ' + (clickable ? 'metric-edit-card' : '') + '"' +
+      (clickable ? ' onclick="toggleClientBodyMetricsForm(\'' + inputId + '\')"' : '') +
+    '>' +
       '<div class="summary-label">' + label + '</div>' +
       '<div class="summary-value">' + value + '</div>' +
+      (
+        clickable
+          ? '<div class="metric-edit-hint">Tocar para editar</div>'
+          : ''
+      ) +
     '</div>'
   );
 }
@@ -7486,14 +7519,14 @@ function buildClientBodyMetricsCard() {
 
         '<div class="summary-grid">' +
 
-          buildMetricBox('Peso', metricText(m, ['weight', 'peso', 'peso_kg', 'body_weight'], 'kg')) +
-          buildMetricBox('Altura', metricText(m, ['height', 'altura', 'height_cm'], 'cm')) +
-          buildMetricBox('Cintura', metricText(m, ['waist', 'cintura', 'waist_cm'], 'cm')) +
-          buildMetricBox('Cadera', metricText(m, ['hip', 'cadera', 'hip_cm'], 'cm')) +
-          buildMetricBox('Pecho', metricText(m, ['chest', 'pecho', 'chest_cm'], 'cm')) +
-          buildMetricBox('Brazo', metricText(m, ['arm', 'brazo', 'arm_cm'], 'cm')) +
-          buildMetricBox('Pierna', metricText(m, ['thigh', 'leg', 'pierna', 'thigh_cm'], 'cm')) +
-          buildMetricBox('FC reposo', metricText(m, ['resting_hr', 'fc_reposo', 'resting_heart_rate'], 'ppm')) +
+          buildMetricBox('Peso', metricText(m, ['weight', 'peso', 'peso_kg', 'body_weight'], 'kg'), 'bodyMetricWeight') +
+          buildMetricBox('Altura', metricText(m, ['height', 'altura', 'height_cm'], 'cm'), 'bodyMetricHeight') +
+          buildMetricBox('Cintura', metricText(m, ['waist', 'cintura', 'waist_cm'], 'cm'), 'bodyMetricWaist') +
+          buildMetricBox('Cadera', metricText(m, ['hip', 'cadera', 'hip_cm'], 'cm'), 'bodyMetricHip') +
+          buildMetricBox('Pecho', metricText(m, ['chest', 'pecho', 'chest_cm'], 'cm'), 'bodyMetricChest') +
+          buildMetricBox('Brazo', metricText(m, ['arm', 'brazo', 'arm_cm'], 'cm'), 'bodyMetricArm') +
+          buildMetricBox('Pierna', metricText(m, ['thigh', 'leg', 'pierna', 'thigh_cm'], 'cm'), 'bodyMetricThigh') +
+          buildMetricBox('FC reposo', metricText(m, ['resting_hr', 'fc_reposo', 'resting_heart_rate'], 'ppm'), 'bodyMetricRestingHR') +
 
           '<div class="summary-card full">' +
             '<div class="summary-label">Última actualización</div>' +
@@ -7570,7 +7603,7 @@ function buildClientBodyMetricsCard() {
   );
 }
 
-function toggleClientBodyMetricsForm() {
+function toggleClientBodyMetricsForm(focusId = null) {
   const form = document.getElementById('clientBodyMetricsForm');
 
   if (!form) {
@@ -7578,10 +7611,15 @@ function toggleClientBodyMetricsForm() {
     return;
   }
 
-  const isHidden = form.classList.contains('hidden');
+  const isHidden =
+    form.classList.contains('hidden') ||
+    getComputedStyle(form).display === 'none';
 
-  if (isHidden) {
+  // Si viene desde una tarjeta, siempre abre y enfoca.
+  // Si viene desde el botón inferior y ya está abierto, lo cierra.
+  if (isHidden || focusId) {
     form.classList.remove('hidden');
+    form.style.display = 'block';
 
     const m = getLatestClientMetric();
 
@@ -7613,10 +7651,19 @@ function toggleClientBodyMetricsForm() {
 
     setTimeout(() => {
       form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 80);
+
+      if (focusId) {
+        const input = document.getElementById(focusId);
+        if (input) {
+          input.focus();
+          input.select?.();
+        }
+      }
+    }, 120);
 
   } else {
     form.classList.add('hidden');
+    form.style.display = '';
   }
 }
 
