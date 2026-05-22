@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AB coach · Admin</title>
+<title>AB SYSTEM · Admin</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -24,7 +24,7 @@
   --text-primary:   #FFFFFF;
   --text-secondary: #8E8E93;
 
-  --sport:   #00A3FF;
+  --sport:   #00C8E8;
   --medical: #FF5A5A;
   --streak:  #00E676;
   --warn:    #FFB340;
@@ -42,7 +42,7 @@
   --gray2: #555560;
   --green: #00E676;
   --yellow:#FFB340;
-  --border:  rgba(0,163,255,.1);
+  --border:  rgba(0,200,232,.1);
   --border2: rgba(255,255,255,.06);
 
   /* ── Layout ── */
@@ -196,7 +196,7 @@ a { text-decoration: none; color: inherit; }
 .sidebar-coach {
   display: flex; align-items: center; gap: 10px;
   padding: 12px 16px; border-bottom: 1px solid var(--divider);
-  background: rgba(0,163,255,.04);
+  background: rgba(0,200,232,.04);
 }
 .coach-avatar {
   width: 32px; height: 32px; border-radius: 50%;
@@ -227,7 +227,7 @@ a { text-decoration: none; color: inherit; }
 .nav-item:hover { color: var(--text-primary); background: rgba(255,255,255,.03); }
 .nav-item.active {
   color: var(--text-primary);
-  background: rgba(0,163,255,.07);
+  background: rgba(0,200,232,.07);
   border-left-color: var(--sport);
 }
 .nav-badge {
@@ -322,10 +322,10 @@ a { text-decoration: none; color: inherit; }
 }
 .btn-secondary:hover { color: var(--text-primary); border-color: rgba(255,255,255,.15); opacity: 1; }
 .btn-blue {
-  background: rgba(0,163,255,.1); color: var(--sport);
-  border: 1px solid rgba(0,163,255,.25);
+  background: rgba(0,200,232,.1); color: var(--sport);
+  border: 1px solid rgba(0,200,232,.25);
 }
-.btn-blue:hover { background: rgba(0,163,255,.18); opacity: 1; }
+.btn-blue:hover { background: rgba(0,200,232,.18); opacity: 1; }
 .btn-wa { background: #25D366; color: var(--bg); }
 .btn-wa:hover { background: #1cb956; opacity: 1; }
 .btn-danger {
@@ -387,8 +387,8 @@ a { text-decoration: none; color: inherit; }
 }
 .filter-pill:hover { color: var(--text-primary); border-color: rgba(255,255,255,.15); }
 .filter-pill.active {
-  background: rgba(0,163,255,.1); color: var(--sport);
-  border-color: rgba(0,163,255,.3);
+  background: rgba(0,200,232,.1); color: var(--sport);
+  border-color: rgba(0,200,232,.3);
 }
 table { width: 100%; border-collapse: collapse; }
 th {
@@ -410,8 +410,8 @@ tr:hover td { background: rgba(255,255,255,.02); }
   width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-size: .9rem;
-  background: rgba(0,163,255,.1); color: var(--sport);
-  border: 1px solid rgba(0,163,255,.2);
+  background: rgba(0,200,232,.1); color: var(--sport);
+  border: 1px solid rgba(0,200,232,.2);
 }
 .name-text { font-weight: 600; color: var(--text-primary); }
 .name-sub  { font-size: .72rem; color: var(--text-secondary); margin-top: 1px; }
@@ -437,7 +437,7 @@ tr:hover td { background: rgba(255,255,255,.02); }
 .badge-confirmada::before, .badge-realizada::before { background: var(--streak); }
 
 .badge-prospecto, .badge-reservada, .badge-plantilla {
-  background: rgba(0,163,255,.1); color: var(--sport);
+  background: rgba(0,200,232,.1); color: var(--sport);
 }
 .badge-prospecto::before, .badge-reservada::before,
 .badge-plantilla::before { background: var(--sport); }
@@ -578,7 +578,7 @@ tr:hover td { background: rgba(255,255,255,.02); }
 /* ══ TOAST ═══════════════════════════════════════════════ */
 .toast {
   position: fixed; bottom: 24px; right: 24px;
-  background: var(--card); border: 1px solid rgba(0,163,255,.25);
+  background: var(--card); border: 1px solid rgba(0,200,232,.25);
   color: var(--text-primary); border-radius: 10px;
   padding: 12px 18px; z-index: 300; font-size: .85rem;
   box-shadow: 0 20px 50px rgba(0,0,0,.5);
@@ -616,7 +616,7 @@ tr:hover td { background: rgba(255,255,255,.02); }
 .wa-msg {
   font-size: .8rem; color: var(--text-secondary); line-height: 1.7;
   background: var(--bg);
-  border-left: 2px solid rgba(0,163,255,.3);
+  border-left: 2px solid rgba(0,200,232,.3);
   padding: 10px 12px; border-radius: 0 6px 6px 0;
 }
 .wa-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
@@ -679,8 +679,8 @@ tr:hover td { background: rgba(255,255,255,.02); }
   color: var(--text-secondary);
 }
 .mini-chart-wrap {
-  background: rgba(0,163,255,.04);
-  border: 1px solid rgba(0,163,255,.12);
+  background: rgba(0,200,232,.04);
+  border: 1px solid rgba(0,200,232,.12);
   border-top: none; padding: 10px 14px; border-radius: 0 0 10px 10px;
 }
 .mini-chart-title {
@@ -700,7 +700,7 @@ tr:hover td { background: rgba(255,255,255,.02); }
 /* ══ BILINGÜE HELPER VISUAL ═════════════════════════════ */
 .lang-tag-es {
   font-family: var(--font-mono); font-size: .55rem; letter-spacing: .1em;
-  background: rgba(0,163,255,.08); color: var(--sport);
+  background: rgba(0,200,232,.08); color: var(--sport);
   padding: 1px 6px; border-radius: 4px; margin-left: 6px;
 }
 .lang-tag-sr {
@@ -749,7 +749,7 @@ tr:hover td { background: rgba(255,255,255,.02); }
       <span class="brand-coach">coach · Admin</span>
     </div>
     <div class="al-title">ACCESO RESTRINGIDO</div>
-    <div class="al-sub">Panel de administración · Abel Balsinde</div>
+    <div class="al-sub">Panel privado · Health & Performance</div>
 
     <div id="alError" class="al-error hidden"></div>
 
@@ -776,39 +776,98 @@ tr:hover td { background: rgba(255,255,255,.02); }
 <!-- ══ FULL ADMIN APP ════════════════════════════════════ -->
 <div id="adminApp" class="app hidden">
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand"><span class="brand-ab">AB</span><span class="brand-coach">coach · Admin</span></div>
-    <div class="sidebar-coach"><div class="coach-avatar">A</div><div><div class="coach-name">Abel Balsinde</div><div class="coach-role">Coach · Training System</div></div></div>
+    <div class="sidebar-brand"><span class="brand-ab">AB</span><span class="brand-coach">SYSTEM · Admin</span></div>
+    <div class="sidebar-coach"><div class="coach-avatar">A</div><div><div class="coach-name">Abel Balsinde</div><div class="coach-role">Health & Performance</div></div></div>
     <nav class="sidebar-nav">
-      <div class="nav-section">Principal</div>
-      <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">◈ Inicio</div>
-      <div class="nav-item" data-page="alertas" onclick="showPage('alertas')">🔔 Alertas <span class="nav-badge" id="badge-alertas"></span></div>
-      <div class="nav-item" data-page="clientes" onclick="showPage('clientes')">◉ Clientes <span class="nav-badge" id="badge-clientes"></span></div>
-      <div class="nav-item" data-page="planes" onclick="showPage('planes')">▤ Programas / Planes <span class="nav-badge" id="badge-planes"></span></div>
-      <div class="nav-item" data-page="entrenamiento" onclick="showPage('entrenamiento')">▦ Entrenamiento <span class="nav-badge" id="badge-entrenamiento"></span></div>
-      <div class="nav-section">Gestión</div>
-      <div class="nav-item" data-page="reservas" onclick="showPage('reservas')">◷ Reservas <span class="nav-badge" id="badge-reservas"></span></div>
-      <div class="nav-item" data-page="pagos" onclick="showPage('pagos')">◎ Pagos <span class="nav-badge" id="badge-pagos"></span></div>
-      <div class="nav-item" data-page="progreso" onclick="showPage('progreso')">↗ Progreso <span class="nav-badge" id="badge-progreso"></span></div>
-      <div class="nav-item" data-page="evaluaciones" onclick="showPage('evaluaciones')">◬ Evaluaciones <span class="nav-badge" id="badge-evaluaciones"></span></div>
-      <div class="nav-section">Clínico</div>
-      <div class="nav-item" data-page="nutricion" onclick="showPage('nutricion')">◐ Nutrición</div>
-      <div class="nav-item" data-page="salud" onclick="showPage('salud')">♡ Salud / Chequeos <span class="nav-badge" id="badge-salud"></span></div>
-      <div class="nav-section">Comunicación</div>
-      <div class="nav-item" data-page="whatsapp" onclick="showPage('whatsapp')">☏ WhatsApp</div>
-      <div class="nav-item" data-page="partners" onclick="showPage('partners')">◇ Partners <span class="nav-badge" id="badge-partners"></span></div>
-      <div class="nav-section">Sistema</div>
-      <div class="nav-item" data-page="fuerza-fatiga" onclick="showPage('fuerza-fatiga')">
-        ⚡ Fuerza &amp; Fatiga
-      </div>
-      <div class="nav-item" data-page="ajustes" onclick="showPage('ajustes')">⚙ Ajustes</div>
-      <!-- Logout at bottom -->
-      <div style="margin-top:auto">
-        <div class="nav-logout" onclick="adminLogout()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          Cerrar sesión
-        </div>
-      </div>
-    </nav>
+  <div class="nav-section">Principal</div>
+
+  <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+    ◈ Inicio
+  </div>
+
+  <div class="nav-item" data-page="alertas" onclick="showPage('alertas')">
+    🔔 Alertas <span class="nav-badge" id="badge-alertas"></span>
+  </div>
+
+  <div class="nav-item" data-page="clientes" onclick="showPage('clientes')">
+    ◉ Clientes <span class="nav-badge" id="badge-clientes"></span>
+  </div>
+
+  <div class="nav-item" data-page="reservas" onclick="showPage('reservas')">
+    ◷ Agenda / Reservas <span class="nav-badge" id="badge-reservas"></span>
+  </div>
+
+  <div class="nav-section">Entrenamiento</div>
+
+  <div class="nav-item" data-page="entrenamiento" onclick="showPage('entrenamiento')">
+    ▦ Entrenamientos asignados <span class="nav-badge" id="badge-entrenamiento"></span>
+  </div>
+
+  <div class="nav-item" data-page="training-library" onclick="showPage('training-library')">
+    ▤ Biblioteca de programas
+  </div>
+
+  <div class="nav-item" data-page="exercise-library" onclick="showPage('exercise-library')">
+    ⊕ Biblioteca de ejercicios
+  </div>
+
+  <div class="nav-item" data-page="evaluaciones" onclick="showPage('evaluaciones')">
+    ◬ Evaluaciones / Test <span class="nav-badge" id="badge-evaluaciones"></span>
+  </div>
+
+  <div class="nav-item" data-page="progreso" onclick="showPage('progreso')">
+    ↗ Progreso <span class="nav-badge" id="badge-progreso"></span>
+  </div>
+
+  <div class="nav-section">Seguimiento</div>
+
+  <div class="nav-item" data-page="checkins" onclick="showPage('checkins')">
+    ◐ Check-ins <span class="nav-badge" id="badge-checkins"></span>
+  </div>
+
+  <div class="nav-item" data-page="salud" onclick="showPage('salud')">
+    ♡ Salud / Chequeos <span class="nav-badge" id="badge-salud"></span>
+  </div>
+
+  <div class="nav-item" data-page="readaptacion" onclick="showPage('readaptacion')">
+    ⚕ Readaptación deportiva
+  </div>
+
+  <div class="nav-item" data-page="fuerza-fatiga" onclick="showPage('fuerza-fatiga')">
+    ⚡ Fuerza &amp; Fatiga
+  </div>
+
+  <div class="nav-section">Comunicación</div>
+
+  <div class="nav-item" data-page="whatsapp" onclick="showPage('whatsapp')">
+    ☏ WhatsApp
+  </div>
+
+  <div class="nav-item" data-page="partners" onclick="showPage('partners')">
+    ◇ Partners <span class="nav-badge" id="badge-partners"></span>
+  </div>
+
+  <div class="nav-item" data-page="videos" onclick="showPage('videos')">
+    ▣ Videos / Material
+  </div>
+
+  <div class="nav-section">Sistema</div>
+
+  <div class="nav-item" data-page="ajustes" onclick="showPage('ajustes')">
+    ⚙ Ajustes
+  </div>
+
+  <div style="margin-top:auto">
+    <div class="nav-logout" onclick="adminLogout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Cerrar sesión
+    </div>
+  </div>
+</nav>
   </aside>
 
   <div class="main">
@@ -1071,6 +1130,175 @@ tr:hover td { background: rgba(255,255,255,.02); }
         </div>
       </div>
 
+      <div class="page" id="page-training-library">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Biblioteca técnica</div>
+      <div class="page-title">Programas base</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openModal('trainingProgram')">+ Crear programa base</button>
+      <button class="btn btn-secondary" onclick="showPage('entrenamiento')">Ver asignaciones</button>
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Estructura</div>
+      <div class="data-row"><span class="data-key">Programa</span><span class="data-val">Base</span></div>
+      <div class="data-row"><span class="data-key">Semana</span><span class="data-val">Bloque de trabajo</span></div>
+      <div class="data-row"><span class="data-key">Sesión</span><span class="data-val">Día A / B / C</span></div>
+      <div class="data-row"><span class="data-key">Bloque</span><span class="data-val">Calentamiento, fuerza, técnica...</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Uso correcto</div>
+      <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
+        Aquí se crea el material técnico base. No es todavía el cliente activo. 
+        Primero se construye el programa; después se asigna desde Entrenamientos asignados.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Próxima mejora</div>
+      <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
+        Añadiremos filtros por objetivo: condición física, fuerza, potencia, movilidad, outdoor, precompetitiva, competitiva y poscompetitiva.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Acceso rápido</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-blue btn-sm" onclick="showPage('entrenamiento')">Ver programas cargados</button>
+      <button class="btn btn-secondary btn-sm" onclick="openModal('trainingProgram')">Crear programa</button>
+      <button class="btn btn-secondary btn-sm" onclick="openModal('trainingAssignment')">Asignar a cliente</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-exercise-library">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Biblioteca técnica</div>
+      <div class="page-title">Ejercicios</div>
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Contenido técnico</div>
+      <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
+        Cada ejercicio debe tener explicación, respiración, puntos críticos, errores comunes, variantes por nivel y notas para el coach.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Cliente</div>
+      <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
+        El cliente no debe ver exceso de tecnicismos. Debe recibir una versión limpia, clara y aplicable.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Pendiente</div>
+      <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
+        Más adelante separaremos ejercicios por fuerza, potencia, movilidad, core, cardio, lucha, outdoor y readaptación.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="empty small">
+      La biblioteca de ejercicios usará los ejercicios ya creados dentro de los bloques. Después podemos crear una tabla independiente para ejercicios reutilizables.
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-checkins">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Seguimiento diario</div>
+      <div class="page-title">Check-ins</div>
+    </div>
+  </div>
+
+  <div id="checkinsContent"></div>
+</div>
+
+<div class="page" id="page-readaptacion">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Tratamiento deportivo</div>
+      <div class="page-title">Readaptación deportiva</div>
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Dolencias comunes</div>
+      <div class="data-row"><span class="data-key">Lumbar</span><span class="data-val">Movilidad + core</span></div>
+      <div class="data-row"><span class="data-key">Rodilla</span><span class="data-val">Control + fuerza progresiva</span></div>
+      <div class="data-row"><span class="data-key">Hombro</span><span class="data-val">Escápula + estabilidad</span></div>
+      <div class="data-row"><span class="data-key">Tobillo</span><span class="data-val">Movilidad + propiocepción</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Fases</div>
+      <div class="data-row"><span class="data-key">Fase 1</span><span class="data-val">Descarga / dolor</span></div>
+      <div class="data-row"><span class="data-key">Fase 2</span><span class="data-val">Activación</span></div>
+      <div class="data-row"><span class="data-key">Fase 3</span><span class="data-val">Fuerza progresiva</span></div>
+      <div class="data-row"><span class="data-key">Fase 4</span><span class="data-val">Retorno al entrenamiento</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Seguridad</div>
+      <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
+        Este módulo no sustituye diagnóstico médico. Debe incluir señales de alarma, criterios de derivación y ejercicios seguros según fase.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Pendiente de construcción</div>
+    <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
+      Próximo paso: crear base de casos por zona corporal, con ejercicios correctivos, progresión, qué evitar y texto simple para cliente.
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-videos">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Material visual</div>
+      <div class="page-title">Videos / Material cliente</div>
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Videos de ejercicios</div>
+      <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
+        Checklist futuro de videos por ejercicio, técnica, respiración, movilidad, calentamiento y errores comunes.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Marketing</div>
+      <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
+        Videos para publicidad de AB SYSTEM: entrenamiento funcional, movilidad, fuerza, lucha aplicada y transformación del cliente.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Idiomas</div>
+      <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
+        Decidir qué videos van sin audio, con subtítulos, en español, serbio o inglés. Prioridad: claridad y reutilización.
+      </div>
+    </div>
+  </div>
+</div>
+      
       <div class="page" id="page-fuerza-fatiga">
         <div class="page-header">
           <div>
@@ -1121,9 +1349,6 @@ tr:hover td { background: rgba(255,255,255,.02); }
 <div class="toast" id="toast">Acción completada</div>
 
 <!-- ══ AUTH MODULE ═══════════════════════════════════════ -->
-<script src="/auth.js"></script>
-
-<!-- ══ ADMIN AUTH LOGIC ══════════════════════════════════ -->
 <script src="/auth.js"></script>
 
 <script>
@@ -2274,7 +2499,7 @@ function showPage(id){
 }
 
 function renderAll(){
-  renderBadges();renderDashboard();renderAlertas();renderClients();renderReservations();renderPayments();renderProgress();
+  renderBadges();renderDashboard();renderAlertas();renderClients();renderReservations();renderPayments();renderProgress();renderCheckinsPage();
   renderAssessments();renderHealth();renderNutrition();renderWhatsapp();renderPartners();renderPrograms();
   renderTraining();renderTrainingDetail();renderTrainingWeekDetail();renderTrainingSessionDetail();
   renderTrainingBlockDetail();renderProfile();renderSettings();
@@ -2297,7 +2522,9 @@ function renderBadges(){
   set('badge-progreso',state.metrics.length);
   set('badge-evaluaciones',state.clientAssessments.length);
   set('badge-salud',state.healthAlerts.filter(h=>h.status!=='revisado').length);
-  set('badge-planes',state.programs.length);
+  set('badge-checkins', (state.dailyCheckins || []).filter(ci =>
+    String(ci.checkinDate || ci.created_at || '').slice(0,10) === todayISO()
+  ).length);
   set('badge-entrenamiento',state.trainingPrograms.length);
   set('badge-partners',state.partners.length);
 }
@@ -2992,6 +3219,119 @@ function renderHealth(){
   const active=state.healthAlerts.filter(h=>h.status!=='revisado').length;const pending=state.healthAlerts.filter(h=>h.status==='pendiente').length;
   document.getElementById('healthMetrics').innerHTML=`<div class="metric-card red"><span class="metric-num">${active}</span><span class="metric-label">Alertas activas</span></div><div class="metric-card yellow"><span class="metric-num">${pending}</span><span class="metric-label">Resultados pendientes</span></div><div class="metric-card blue"><span class="metric-num">0</span><span class="metric-label">Lesiones activas</span></div><div class="metric-card green"><span class="metric-num">${Math.max(0,state.clients.length-active)}</span><span class="metric-label">Aptos sin restricciones</span></div>`;
   document.getElementById('healthTable').innerHTML=state.healthAlerts.length?state.healthAlerts.map(h=>{const c=clientById(h.clientId);return`<tr><td>${esc(c?.name||'Sin cliente')}</td><td><span class="badge badge-${h.status==='revisado'?'pagado':'alerta'}">${esc(h.status)}</span></td><td>${esc(h.detail)}</td><td>${esc(h.date)}</td><td><div class="td-actions"><button class="btn btn-wa btn-sm" onclick="openWA('${esc(c?.phone||state.settings.coachPhone)}','Hola ${esc((c?.name||'').split(' ')[0]||'')}.')">Solicitar WA</button><button class="btn btn-secondary btn-sm" onclick="markHealthReviewed('${h.id}')">Revisado</button></div></td></tr>`;}).join(''):emptyRow(5,'No hay chequeos registrados todavía.');
+}
+
+function renderCheckinsPage(){
+  const el = document.getElementById('checkinsContent');
+  if(!el) return;
+
+  const list = [...(state.dailyCheckins || [])].sort((a,b) =>
+    String(b.checkinDate || b.created_at || '').localeCompare(String(a.checkinDate || a.created_at || ''))
+  );
+
+  const today = todayISO();
+
+  const todayList = list.filter(ci =>
+    String(ci.checkinDate || ci.created_at || '').slice(0,10) === today
+  );
+
+  const alertList = list.filter(ci => getCheckinStatus(ci) === 'alerta');
+  const reviewList = list.filter(ci => getCheckinStatus(ci) === 'revisar');
+
+  const rows = list.slice(0,80).map(ci => {
+    const c = clientById(ci.clientId || ci.client_id);
+    const status = getCheckinStatus(ci);
+
+    const badgeClass =
+      status === 'alerta'
+        ? 'badge-alerta'
+        : status === 'revisar'
+          ? 'badge-pendiente'
+          : 'badge-activo';
+
+    const fecha = String(ci.checkinDate || ci.created_at || '').slice(0,10);
+
+    return `
+      <tr>
+        <td>
+          <div class="td-name">
+            <div class="avatar">${initials(c?.name || 'Cliente')}</div>
+            <div>
+              <div class="name-text">${esc(c?.name || 'Cliente')}</div>
+              <div class="name-sub">${formatDate(fecha)}</div>
+            </div>
+          </div>
+        </td>
+
+        <td style="text-align:center">${esc(ci.sleepQuality ?? ci.sleep_quality ?? '—')}</td>
+        <td style="text-align:center">${esc(ci.energyLevel ?? ci.energy_level ?? '—')}</td>
+        <td style="text-align:center">${esc(ci.sorenessLevel ?? ci.soreness_level ?? ci.painLevel ?? ci.pain_level ?? '—')}</td>
+
+        <td style="white-space:normal;min-width:240px;color:var(--text-secondary);font-size:.78rem">
+          ${esc(ci.comment || '—')}
+        </td>
+
+        <td>
+          <span class="badge ${badgeClass}">${esc(status)}</span>
+        </td>
+
+        <td>
+          <div class="td-actions">
+            ${c?.id ? `<button class="btn btn-blue btn-sm" onclick="openProfile('${c.id}')">Perfil</button>` : ''}
+            ${c?.phone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc((c.name || '').split(' ')[0])}, vi tu check-in. ¿Cómo te encuentras?')">WA</button>` : ''}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="metrics-row">
+      <div class="metric-card blue">
+        <span class="metric-num">${todayList.length}</span>
+        <span class="metric-label">Check-ins hoy</span>
+      </div>
+
+      <div class="metric-card red">
+        <span class="metric-num">${alertList.length}</span>
+        <span class="metric-label">Alertas</span>
+      </div>
+
+      <div class="metric-card yellow">
+        <span class="metric-num">${reviewList.length}</span>
+        <span class="metric-label">Para revisar</span>
+      </div>
+
+      <div class="metric-card green">
+        <span class="metric-num">${list.length}</span>
+        <span class="metric-label">Total registros</span>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">Historial de check-ins</div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Sueño</th>
+            <th>Energía</th>
+            <th>Molestias</th>
+            <th>Comentario</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${rows || emptyRow(7,'No hay check-ins registrados todavía.')}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 function renderNutrition(){
