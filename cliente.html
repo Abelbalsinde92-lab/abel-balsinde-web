@@ -2423,6 +2423,84 @@ function formatDate(d) {
   try { const [y,m,day]=String(d).slice(0,10).split('-'); return day+'/'+m+'/'+y; } catch { return d; }
 }
 function formatTime(t) { return t ? String(t).slice(0,5) : ''; }
+
+function reservationStatusValue(r) {
+  return String(r?.status || '').trim().toLowerCase();
+}
+
+function isClosedReservation(r) {
+  const s = reservationStatusValue(r);
+
+  return [
+    'cancelada',
+    'cancelado',
+    'cancelled',
+    'realizada',
+    'realizado',
+    'completada',
+    'completado',
+    'completed',
+    'finished',
+    'done'
+  ].includes(s);
+}
+
+function reservationMinutes(r) {
+  const t = String(r?.time || '').slice(0, 5);
+  const parts = t.split(':');
+
+  if (parts.length < 2) return null;
+
+  const h = Number(parts[0]);
+  const m = Number(parts[1]);
+
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+
+  return h * 60 + m;
+}
+
+function isPastTodayReservation(r, graceMinutes = 60) {
+  const date = String(r?.date || '').slice(0, 10);
+
+  if (date !== todayISO()) return false;
+
+  const minutes = reservationMinutes(r);
+
+  if (minutes == null) return false;
+
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  return minutes + graceMinutes < nowMinutes;
+}
+
+function isUpcomingReservation(r) {
+  const date = String(r?.date || '').slice(0, 10);
+
+  if (!date) return false;
+  if (isClosedReservation(r)) return false;
+
+  const today = todayISO();
+
+  if (date > today) return true;
+  if (date < today) return false;
+
+  return !isPastTodayReservation(r);
+}
+
+function compareReservationsByDateTime(a, b) {
+  const da = String(a?.date || '').slice(0, 10) + ' ' + String(a?.time || '23:59').slice(0, 5);
+  const dbb = String(b?.date || '').slice(0, 10) + ' ' + String(b?.time || '23:59').slice(0, 5);
+
+  return da.localeCompare(dbb);
+}
+
+function getUpcomingReservations() {
+  return (clientReservations || [])
+    .filter(isUpcomingReservation)
+    .sort(compareReservationsByDateTime);
+}
+
 function formatMoney(amount, currency) {
   if (amount == null) return '—';
 
@@ -4189,10 +4267,7 @@ const firstName = String(clientData.name || fallbackName).split(' ')[0] || fallb
   const today = todayISO();
   const dateStr = todayFormatted();
 
-  const nextReservation = clientReservations.find(r =>
-    String(r.date).slice(0,10) >= today &&
-    !['cancelada','cancelado'].includes(String(r.status || '').toLowerCase())
-  );
+  const nextReservation = getUpcomingReservations()[0] || null;
 
   const hasTraining = Boolean(clientTrainingProgram && clientTrainingSessions.length);
 
@@ -6938,12 +7013,7 @@ function buildSimpleReservationView() {
   const today = todayISO();
 
   // Próxima reserva propia
-  const myNext = clientReservations
-    .filter(r =>
-      String(r.date) >= today &&
-      !['cancelada','cancelado'].includes(String(r.status || '').toLowerCase())
-    )
-    .sort((a, b) => String(a.date).localeCompare(String(b.date)))[0] || null;
+  const myNext = getUpcomingReservations()[0] || null;
 
   // Próximos 3 días con slots grupales disponibles
   const nextSlotDays = [];
@@ -7088,10 +7158,7 @@ function renderReservationsCalendar() {
 
   html += '<div id="calRequestArea"></div>';
 
-  const myAll = clientReservations.filter(r =>
-    String(r.date) >= todayISO() &&
-    !['cancelada','cancelado'].includes(String(r.status || '').toLowerCase())
-  );
+  const myAll = getUpcomingReservations();
 
   if (myAll.length) {
     html +=
@@ -7143,9 +7210,7 @@ async function renderReservations() {
   const badge = document.getElementById('reservationsBadge');
   if (!el) return;
 
-  if (badge) badge.textContent = clientReservations.filter(r =>
-    String(r.date) >= todayISO()
-  ).length;
+  if (badge) badge.textContent = getUpcomingReservations().length;
 
   const now = new Date();
   if (!calCurrentMonth && calCurrentMonth !== 0) calCurrentMonth = now.getMonth();
@@ -7274,10 +7339,7 @@ function renderSummary(){
 
   const today = todayISO();
 
-  const nextRes = clientReservations.find(r =>
-    String(r.date).slice(0,10) >= today &&
-    !['cancelada','cancelado','cancelled'].includes(String(r.status || '').toLowerCase())
-  );
+  const nextRes = getUpcomingReservations()[0] || null;
 
   const lastAss = clientAssessments[0] || null;
 
@@ -8027,10 +8089,7 @@ function renderClientData(){
 
   const totalRes = clientReservations.length;
 
-  const nextReservation = clientReservations.find(r =>
-    String(r.date).slice(0,10) >= todayISO() &&
-    !['cancelada','cancelado'].includes(String(r.status || '').toLowerCase())
-  );
+  const nextReservation = getUpcomingReservations()[0] || null;
 
   const pendingPay = clientPayments.filter(p =>
     ['pendiente','vencido','pending','overdue'].includes(String(p.status || '').toLowerCase())
