@@ -7693,10 +7693,11 @@ async function saveClientBodyMetrics() {
   }
 
   const payload = {
-    client_id: clientData.id,
-    date: todayISO(),
+  client_id: clientData.id,
+  date: todayISO(),
+  type: 'body_metrics',
 
-    weight: bodyMetricNum('bodyMetricWeight'),
+  weight: bodyMetricNum('bodyMetricWeight'),
     height: bodyMetricNum('bodyMetricHeight'),
     waist: bodyMetricNum('bodyMetricWaist'),
     hip: bodyMetricNum('bodyMetricHip'),
@@ -7705,7 +7706,8 @@ async function saveClientBodyMetrics() {
     thigh: bodyMetricNum('bodyMetricThigh'),
     resting_hr: bodyMetricNum('bodyMetricRestingHR'),
 
-    notes: document.getElementById('bodyMetricNotes')?.value?.trim() || null
+    notes: document.getElementById('bodyMetricNotes')?.value?.trim() || null,
+    updated_at: new Date().toISOString()
   };
 
   try {
