@@ -8361,6 +8361,53 @@ document.getElementById('btnLogout')?.addEventListener('click',()=>Auth.logout()
   showLoading(false);
   document.getElementById('loginScreen')?.classList.remove('hidden');
 })();
+
+/* ═════════════════════════════════════════════════════
+   FIX — ABRIR FORMULARIO DE MÉTRICAS FÍSICAS
+   Pegar antes de </script>
+═════════════════════════════════════════════════════ */
+
+window.toggleClientBodyMetricsForm = function () {
+  const form = document.getElementById('clientBodyMetricsForm');
+
+  if (!form) {
+    showClientNotice('No se encontró el formulario de métricas.', 'error');
+    return;
+  }
+
+  form.classList.remove('hidden');
+  form.style.display = 'grid';
+  form.style.gap = '12px';
+
+  const m = getLatestClientMetric ? getLatestClientMetric() : null;
+
+  const set = (id, keys) => {
+    const el = document.getElementById(id);
+    if (!el || !m) return;
+
+    const value = metricVal(m, keys);
+    if (!el.value && value !== '') el.value = value;
+  };
+
+  set('bodyMetricWeight', ['weight', 'peso', 'peso_kg', 'body_weight']);
+  set('bodyMetricHeight', ['height', 'altura', 'height_cm']);
+  set('bodyMetricWaist', ['waist', 'cintura', 'waist_cm']);
+  set('bodyMetricHip', ['hip', 'cadera', 'hip_cm']);
+  set('bodyMetricChest', ['chest', 'pecho', 'chest_cm']);
+  set('bodyMetricArm', ['arm', 'brazo', 'arm_cm']);
+  set('bodyMetricThigh', ['thigh', 'leg', 'pierna', 'thigh_cm']);
+  set('bodyMetricRestingHR', ['resting_hr', 'fc_reposo', 'resting_heart_rate']);
+
+  const notesEl = document.getElementById('bodyMetricNotes');
+  if (notesEl && m && !notesEl.value) {
+    notesEl.value = metricVal(m, ['notes', 'note', 'observaciones']);
+  }
+
+  form.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
+  });
+};
 </script>
 
 <script>
