@@ -7413,6 +7413,258 @@ const timeLabel = totalMin > 0 ? '~' + Math.round(totalMin) + ' min' : null;
   );
 }
 
+/* ══════════════════════════════════════════════════════════
+   MÉTRICAS GENERALES CLIENTE — peso / medidas / FC reposo
+   Visible para todos los clientes, no depende de combate
+══════════════════════════════════════════════════════════ */
+
+function getLatestClientMetric() {
+  if (!Array.isArray(clientMetrics) || !clientMetrics.length) return null;
+
+  return [...clientMetrics].sort((a, b) => {
+    const da = String(a.date || a.created_at || '');
+    const dbb = String(b.date || b.created_at || '');
+    return dbb.localeCompare(da);
+  })[0] || null;
+}
+
+function metricVal(row, keys) {
+  if (!row) return '';
+
+  for (const key of keys) {
+    if (
+      row[key] !== undefined &&
+      row[key] !== null &&
+      String(row[key]).trim() !== ''
+    ) {
+      return row[key];
+    }
+  }
+
+  return '';
+}
+
+function metricText(row, keys, unit) {
+  const v = metricVal(row, keys);
+  if (v === '') return '—';
+  return v + (unit ? ' ' + unit : '');
+}
+
+function buildMetricBox(label, value) {
+  return (
+    '<div class="summary-card">' +
+      '<div class="summary-label">' + label + '</div>' +
+      '<div class="summary-value">' + value + '</div>' +
+    '</div>'
+  );
+}
+
+function buildClientBodyMetricsCard() {
+  const m = getLatestClientMetric();
+
+  const date = m
+    ? formatDate(m.date || String(m.created_at || '').slice(0, 10))
+    : '—';
+
+  return (
+    '<div class="accordion-block open" style="margin-top:12px;">' +
+
+      '<button class="accordion-title" onclick="toggleAccordion(this)">' +
+        '<span>' + (getLang() === 'sr' ? 'Telesne metrike' : 'Métricas físicas') + '</span>' +
+        '<span class="accordion-symbol">−</span>' +
+      '</button>' +
+
+      '<div class="accordion-content">' +
+
+        '<div class="dc-note" style="margin:12px 0 14px;">' +
+          (
+            getLang() === 'sr'
+              ? 'Registra peso y medidas básicas para que Abel pueda seguir tu evolución.'
+              : 'Registra peso y medidas básicas para que Abel pueda seguir tu evolución.'
+          ) +
+        '</div>' +
+
+        '<div class="summary-grid">' +
+
+          buildMetricBox('Peso', metricText(m, ['weight', 'peso', 'peso_kg', 'body_weight'], 'kg')) +
+          buildMetricBox('Altura', metricText(m, ['height', 'altura', 'height_cm'], 'cm')) +
+          buildMetricBox('Cintura', metricText(m, ['waist', 'cintura', 'waist_cm'], 'cm')) +
+          buildMetricBox('Cadera', metricText(m, ['hip', 'cadera', 'hip_cm'], 'cm')) +
+          buildMetricBox('Pecho', metricText(m, ['chest', 'pecho', 'chest_cm'], 'cm')) +
+          buildMetricBox('Brazo', metricText(m, ['arm', 'brazo', 'arm_cm'], 'cm')) +
+          buildMetricBox('Pierna', metricText(m, ['thigh', 'leg', 'pierna', 'thigh_cm'], 'cm')) +
+          buildMetricBox('FC reposo', metricText(m, ['resting_hr', 'fc_reposo', 'resting_heart_rate'], 'ppm')) +
+
+          '<div class="summary-card full">' +
+            '<div class="summary-label">Última actualización</div>' +
+            '<div class="summary-value">' + date + '</div>' +
+          '</div>' +
+
+        '</div>' +
+
+        (
+          m && metricVal(m, ['notes', 'note', 'observaciones'])
+            ? '<div class="note-item" style="margin-top:10px;">' +
+                metricVal(m, ['notes', 'note', 'observaciones']) +
+              '</div>'
+            : ''
+        ) +
+
+        '<div id="clientBodyMetricsForm" class="hidden" style="margin-top:14px;">' +
+          '<div class="field-group">' +
+            '<label>Peso kg</label>' +
+            '<input id="bodyMetricWeight" type="number" step="0.1" placeholder="84.5">' +
+          '</div>' +
+
+          '<div class="field-group">' +
+            '<label>Altura cm</label>' +
+            '<input id="bodyMetricHeight" type="number" step="0.1" placeholder="184">' +
+          '</div>' +
+
+          '<div class="field-group">' +
+            '<label>Cintura cm</label>' +
+            '<input id="bodyMetricWaist" type="number" step="0.1" placeholder="88">' +
+          '</div>' +
+
+          '<div class="field-group">' +
+            '<label>Cadera cm</label>' +
+            '<input id="bodyMetricHip" type="number" step="0.1" placeholder="98">' +
+          '</div>' +
+
+          '<div class="field-group">' +
+            '<label>Pecho cm</label>' +
+            '<input id="bodyMetricChest" type="number" step="0.1" placeholder="104">' +
+          '</div>' +
+
+          '<div class="field-group">' +
+            '<label>Brazo cm</label>' +
+            '<input id="bodyMetricArm" type="number" step="0.1" placeholder="36">' +
+          '</div>' +
+
+          '<div class="field-group">' +
+            '<label>Pierna cm</label>' +
+            '<input id="bodyMetricThigh" type="number" step="0.1" placeholder="58">' +
+          '</div>' +
+
+          '<div class="field-group">' +
+            '<label>FC reposo</label>' +
+            '<input id="bodyMetricRestingHR" type="number" step="1" placeholder="62">' +
+          '</div>' +
+
+          '<div class="field-group">' +
+            '<label>Observaciones</label>' +
+            '<textarea id="bodyMetricNotes" class="training-notes-textarea" style="min-height:74px;margin-bottom:0;" placeholder="Ej: peso en ayunas, molestias, sensación general..."></textarea>' +
+          '</div>' +
+
+          '<button class="client-action-btn" id="btnSaveBodyMetrics" onclick="saveClientBodyMetrics()">' +
+            'Guardar métricas' +
+          '</button>' +
+        '</div>' +
+
+        '<button class="client-action-btn" style="margin-top:14px;background:transparent;border:1px solid var(--card-border);color:var(--text-secondary);" onclick="toggleClientBodyMetricsForm()">' +
+          'Actualizar peso y medidas' +
+        '</button>' +
+
+      '</div>' +
+    '</div>'
+  );
+}
+
+function toggleClientBodyMetricsForm() {
+  const form = document.getElementById('clientBodyMetricsForm');
+  if (!form) return;
+
+  form.classList.toggle('hidden');
+
+  const m = getLatestClientMetric();
+  if (!m) return;
+
+  const set = (id, keys) => {
+    const el = document.getElementById(id);
+    if (el && !el.value) el.value = metricVal(m, keys);
+  };
+
+  set('bodyMetricWeight', ['weight', 'peso', 'peso_kg', 'body_weight']);
+  set('bodyMetricHeight', ['height', 'altura', 'height_cm']);
+  set('bodyMetricWaist', ['waist', 'cintura', 'waist_cm']);
+  set('bodyMetricHip', ['hip', 'cadera', 'hip_cm']);
+  set('bodyMetricChest', ['chest', 'pecho', 'chest_cm']);
+  set('bodyMetricArm', ['arm', 'brazo', 'arm_cm']);
+  set('bodyMetricThigh', ['thigh', 'leg', 'pierna', 'thigh_cm']);
+  set('bodyMetricRestingHR', ['resting_hr', 'fc_reposo', 'resting_heart_rate']);
+
+  const notesEl = document.getElementById('bodyMetricNotes');
+  if (notesEl && !notesEl.value) {
+    notesEl.value = metricVal(m, ['notes', 'note', 'observaciones']);
+  }
+}
+
+function bodyMetricNum(id) {
+  const el = document.getElementById(id);
+  if (!el || el.value === '') return null;
+
+  const n = Number(el.value);
+  return Number.isFinite(n) ? n : null;
+}
+
+async function saveClientBodyMetrics() {
+  if (!clientData?.id) return;
+
+  const btn = document.getElementById('btnSaveBodyMetrics');
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+  }
+
+  const payload = {
+    client_id: clientData.id,
+    date: todayISO(),
+
+    weight: bodyMetricNum('bodyMetricWeight'),
+    height: bodyMetricNum('bodyMetricHeight'),
+    waist: bodyMetricNum('bodyMetricWaist'),
+    hip: bodyMetricNum('bodyMetricHip'),
+    chest: bodyMetricNum('bodyMetricChest'),
+    arm: bodyMetricNum('bodyMetricArm'),
+    thigh: bodyMetricNum('bodyMetricThigh'),
+    resting_hr: bodyMetricNum('bodyMetricRestingHR'),
+
+    notes: document.getElementById('bodyMetricNotes')?.value?.trim() || null,
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    const { data, error } = await db
+      .from('metrics')
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    clientMetrics.unshift(data);
+
+    showClientNotice('Métricas guardadas', 'success');
+
+    renderClientData();
+    renderSummary();
+
+  } catch (err) {
+    console.error('Body metrics save error:', err);
+
+    showClientNotice(
+      err?.message || 'No se pudieron guardar las métricas',
+      'error'
+    );
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Guardar métricas';
+    }
+  }
+}
+
 function renderClientData(){
   const el = document.getElementById('sectionClientData');
   const badge = document.getElementById('clientDataBadge');
@@ -7577,6 +7829,8 @@ function renderClientData(){
       '</div>' +
     '</div>' +
   '</div>';
+
+  html += buildClientBodyMetricsCard();
 
   html +=
     '<div class="action-box" style="margin-top:12px;">' +
