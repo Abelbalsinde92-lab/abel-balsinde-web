@@ -7692,23 +7692,28 @@ async function saveClientBodyMetrics() {
     btn.textContent = 'Guardando...';
   }
 
-  const payload = {
+  const weightValue = bodyMetricNum('bodyMetricWeight');
+
+const payload = {
   client_id: clientData.id,
   date: todayISO(),
   type: 'body_metrics',
 
-  weight: bodyMetricNum('bodyMetricWeight'),
-    height: bodyMetricNum('bodyMetricHeight'),
-    waist: bodyMetricNum('bodyMetricWaist'),
-    hip: bodyMetricNum('bodyMetricHip'),
-    chest: bodyMetricNum('bodyMetricChest'),
-    arm: bodyMetricNum('bodyMetricArm'),
-    thigh: bodyMetricNum('bodyMetricThigh'),
-    resting_hr: bodyMetricNum('bodyMetricRestingHR'),
+  // columna antigua obligatoria de la tabla metrics
+  value: weightValue ?? 0,
 
-    notes: document.getElementById('bodyMetricNotes')?.value?.trim() || null,
-    updated_at: new Date().toISOString()
-  };
+  weight: weightValue,
+  height: bodyMetricNum('bodyMetricHeight'),
+  waist: bodyMetricNum('bodyMetricWaist'),
+  hip: bodyMetricNum('bodyMetricHip'),
+  chest: bodyMetricNum('bodyMetricChest'),
+  arm: bodyMetricNum('bodyMetricArm'),
+  thigh: bodyMetricNum('bodyMetricThigh'),
+  resting_hr: bodyMetricNum('bodyMetricRestingHR'),
+
+  notes: document.getElementById('bodyMetricNotes')?.value?.trim() || null,
+  updated_at: new Date().toISOString()
+};
 
   try {
     const { data, error } = await db
