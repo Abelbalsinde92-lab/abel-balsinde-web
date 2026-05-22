@@ -6600,17 +6600,43 @@ function buildSlotsForDay(dateStr) {
   let html = '<div class="cal-slots-list">';
 
   if (mySlots.length) {
-    mySlots.forEach(r => {
-      html +=
-        '<div class="cal-slot-card personal-own">' +
-          '<div>' +
-            '<div class="cal-slot-time">' + formatTime(r.time) + '</div>' +
-            '<div class="cal-slot-meta">' + (r.type || (getLang() === 'sr' ? 'Lična sesija' : 'Sesión personal')) + (r.place ? ' · ' + r.place : '') + '</div>' +
+  mySlots.forEach(r => {
+    const reservationStatus = String(r.status || '').toLowerCase();
+
+    const isPendingReservation = [
+      'pendiente',
+      'pending',
+      'solicitada',
+      'requested'
+    ].includes(reservationStatus);
+
+    const badgeText = isPendingReservation
+      ? (getLang() === 'sr' ? 'Čeka potvrdu' : 'Por confirmar')
+      : (getLang() === 'sr' ? 'Moj termin' : 'Mi sesión');
+
+    const badgeColor = isPendingReservation
+      ? 'var(--warn)'
+      : 'var(--sport)';
+
+    const borderColor = isPendingReservation
+      ? 'rgba(255,179,64,.35)'
+      : 'rgba(0,163,255,.40)';
+
+    html +=
+      '<div class="cal-slot-card personal-own" style="border-color:' + borderColor + ';">' +
+        '<div>' +
+          '<div class="cal-slot-time">' + formatTime(r.time) + '</div>' +
+          '<div class="cal-slot-meta">' +
+            (r.type || (getLang() === 'sr' ? 'Lična sesija' : 'Sesión personal')) +
+            (r.place ? ' · ' + r.place : '') +
           '</div>' +
-          '<span class="cal-slot-badge" style="color:var(--sport)">' + (getLang() === 'sr' ? 'Moj termin' : 'Mi sesión') + '</span>' +
-        '</div>';
-    });
-  }
+        '</div>' +
+        '<span class="cal-slot-badge" style="color:' + badgeColor + '">' +
+          badgeText +
+        '</span>' +
+      '</div>';
+  });
+}
 
   if (grupalSlots.length) {
     grupalSlots.forEach(s => {
