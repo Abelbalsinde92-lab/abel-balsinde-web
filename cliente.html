@@ -6779,9 +6779,19 @@ async function calSubmitRequest(groupSlotId) {
   const time = groupSlotId
     ? (calSelectedSlot?.time || null)
     : (document.getElementById('calRequestTime')?.value || null);
-  const type = groupSlotId
-    ? 'grupal'
-    : (document.getElementById('calRequestType')?.value || 'personal');
+  const selectedType = groupSlotId
+  ? 'group'
+  : (document.getElementById('calRequestType')?.value || 'personal');
+
+const reservationType = groupSlotId
+  ? 'Entrenamiento grupal'
+  : selectedType === 'pareja'
+    ? 'Sesión en pareja'
+    : 'Sesión personal';
+
+const sessionMode = groupSlotId
+  ? 'group'
+  : 'personal';
 
   if (!groupSlotId && !time) {
     showClientNotice(getLang() === 'sr' ? 'Unesite vreme' : 'Indica la hora', 'error');
@@ -6794,8 +6804,8 @@ async function calSubmitRequest(groupSlotId) {
       client_id: clientData.id,
       date: calSelectedDate,
       time: time,
-      type: type,
-      session_mode: groupSlotId ? 'grupal' : type,
+      type: reservationType,
+      session_mode: sessionMode,
       status: 'pendiente',
       requested_by_client: true,
       client_message: note,
