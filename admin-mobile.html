@@ -994,7 +994,7 @@ function formatDate(s){
   const [y,m,d] = String(s).split('-');
   return y && m && d ? `${d}/${m}/${y}` : s;
 }
-function formatDate(s){if(!s)return'—';const[y,m,d]=String(s).split('-');return y&&m&&d?`${d}/${m}/${y}`:s}
+
 function formatTime(s){return s?String(s).slice(0,5):'—'}
 function initials(name){return(name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'?'}
 function firstName(name){return String(name||'').split(/\s+/)[0]||''}
@@ -3216,6 +3216,8 @@ async function saveModal(e){
 function openWorkout(clientId,reservationId=null){
   state.activeTrainingClientId = clientId;
   state.activeWorkoutReservationId = reservationId;
+  state.activeWorkoutBlockId = null;
+  state.activeWorkoutExerciseIndex = 0;
   showScr('workout');
 }
 
@@ -3757,8 +3759,23 @@ function getExerciseTitle(ex){
 }
 
 function findExerciseById(exId){
+  const target = String(exId);
+
+  const c = clientById(state.activeTrainingClientId || state.selectedClientId);
+  const plan = c ? getWorkoutPlanForClient(c) : null;
+
+  if(plan?.blocks?.length){
+    for(const block of plan.blocks){
+      const found = (block.exercises || []).find((ex, idx) =>
+        String(getExerciseId(ex, idx)) === target
+      );
+
+      if(found) return found;
+    }
+  }
+
   return state.trainingExercises.find(ex =>
-    String(getExerciseId(ex)) === String(exId)
+    String(ex.id || ex.exerciseId || ex.exercise_id || '') === target
   );
 }
 
