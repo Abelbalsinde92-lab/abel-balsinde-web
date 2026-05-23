@@ -570,6 +570,36 @@ a{text-decoration:none;color:inherit}
   line-height:1.6;
   text-align:center;
 }
+
+.video-box{
+  width:100%;
+  background:#000;
+  border:1px solid var(--card-border);
+  border-radius:12px;
+  overflow:hidden;
+  margin-bottom:12px;
+}
+
+.video-box iframe,
+.video-box video{
+  width:100%;
+  aspect-ratio:16/9;
+  display:block;
+  border:0;
+  background:#000;
+}
+
+.video-link{
+  display:block;
+  font-family:var(--font-m);
+  font-size:.68rem;
+  color:var(--sport);
+  text-align:center;
+  padding:12px;
+  border:1px solid rgba(0,200,232,.25);
+  border-radius:10px;
+  background:rgba(0,200,232,.06);
+}
 </style>
 </head>
 <body>
@@ -801,6 +831,16 @@ a{text-decoration:none;color:inherit}
     <button class="ms-x" onclick="closeModal()" aria-label="Cerrar">✕</button>
     <div class="ms-title" id="modal-title">Acción</div>
     <form id="modal-form"></form>
+  </div>
+</div>
+
+<!-- VIDEO MODAL -->
+<div class="ov" id="video-ov">
+  <div class="ms">
+    <div class="ms-handle"></div>
+    <button class="ms-x" onclick="closeVideoModal()" aria-label="Cerrar">✕</button>
+    <div class="ms-title" id="video-title">Vídeo</div>
+    <div id="video-body"></div>
   </div>
 </div>
 
@@ -1144,7 +1184,11 @@ document.getElementById('top-date').textContent = new Date()
     if(e.target.id==='modal-ov')closeModal();
   });
 
-  await loadAllData();
+  document.getElementById('video-ov')?.addEventListener('click',e=>{
+  if(e.target.id === 'video-ov') closeVideoModal();
+});
+
+await loadAllData();
 })();
 
 /* ── LOGIN (mobile, sets session directly, stays on /admin-mobile) ── */
@@ -3601,10 +3645,132 @@ function getExerciseId(ex, fallbackIndex=0){
   );
 }
 
+function getExerciseVideoUrl(ex){
+  return (
+    ex.videoUrl ||
+    ex.video_url ||
+    ex.videoLink ||
+    ex.video_link ||
+    ex.video ||
+    ''
+  );
+}
+
+function getExerciseTitle(ex){
+  return (
+    ex.name ||
+    ex.nameEs ||
+    ex.name_es ||
+    ex.title ||
+    ex.titleEs ||
+    ex.title_es ||
+    'Ejercicio'
+  );
+}
+
+function findExerciseById(exId){
+  return state.trainingExercises.find(ex =>
+    String(getExerciseId(ex)) === String(exId)
+  );
+}
+
+function youtubeEmbedUrl(url){
+  try{
+    const u = new URL(url);
+    let id = '';
+
+    if(u.hostname.includes('youtu.be')){
+      id = u.pathname.replace('/','').split('/')[0];
+    }
+
+    if(u.hostname.includes('youtube.com')){
+      if(u.pathname.includes('/shorts/')){
+        id = u.pathname.split('/shorts/')[1]?.split('/')[0] || '';
+      }else if(u.pathname.includes('/embed/')){
+        id = u.pathname.split('/embed/')[1]?.split('/')[0] || '';
+      }else{
+        id = u.searchParams.get('v') || '';
+      }
+    }
+
+    return id ? `https://www.youtube.com/embed/${id}?playsinline=1&rel=0` : '';
+  }catch(e){
+    return '';
+  }
+}
+
+function buildVideoHTML(url){
+  const clean = String(url || '').trim();
+  const yt = youtubeEmbedUrl(clean);
+
+  if(yt){
+    return `
+      <div class="video-box">
+        <iframe
+          src="${esc(yt)}"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </div>
+      <a class="video-link" href="${esc(clean)}" target="_blank" rel="noopener">
+        Abrir vídeo externo
+      </a>
+    `;
+  }
+
+  if(/\.(mp4|webm|ogg|mov)(\?|#|$)/i.test(clean)){
+    return `
+      <div class="video-box">
+        <video controls playsinline preload="metadata" src="${esc(clean)}"></video>
+      </div>
+      <a class="video-link" href="${esc(clean)}" target="_blank" rel="noopener">
+        Abrir vídeo externo
+      </a>
+    `;
+  }
+
+  return `
+    <div class="video-box">
+      <iframe src="${esc(clean)}" allowfullscreen></iframe>
+    </div>
+    <a class="video-link" href="${esc(clean)}" target="_blank" rel="noopener">
+      Abrir vídeo externo
+    </a>
+  `;
+}
+
+function openExerciseVideo(exId){
+  const ex = findExerciseById(exId);
+
+  if(!ex){
+    showToast('Ejercicio no encontrado','err');
+    return;
+  }
+
+  const url = getExerciseVideoUrl(ex);
+
+  if(!url){
+    showToast('Este ejercicio no tiene vídeo','err');
+    return;
+  }
+
+  document.getElementById('video-title').textContent = getExerciseTitle(ex);
+  document.getElementById('video-body').innerHTML = buildVideoHTML(url);
+  document.getElementById('video-ov').classList.add('on');
+}
+
+function closeVideoModal(){
+  document.getElementById('video-ov')?.classList.remove('on');
+
+  const body = document.getElementById('video-body');
+  if(body) body.innerHTML = '';
+}
+
 function buildWorkoutExerciseCard(ex, index, clientId){
   const exId = getExerciseId(ex, index);
   const done = isExerciseDone(clientId, exId);
-  const info = getExerciseInfo(ex);
+  const videoUrl = getExerciseVideoUrl(ex);
+const info = getExerciseInfo(ex);
 
   return `
     <div class="ex-card ${done ? 'done' : ''}">
@@ -3652,10 +3818,16 @@ function buildWorkoutExerciseCard(ex, index, clientId){
       </div>
 
       <div class="ex-actions">
-        <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
-          ${done ? 'Terminado' : 'Marcar'}
-        </button>
-      </div>
+  <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
+    ${done ? 'Terminado' : 'Marcar'}
+  </button>
+
+  ${
+    videoUrl
+      ? `<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`
+      : ''
+  }
+</div>
     </div>
   `;
 }
