@@ -145,7 +145,13 @@ a{text-decoration:none;color:inherit}
 .dr:first-child{padding-top:0}
 .dk{font-family:var(--font-m);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);white-space:nowrap}
 .dv{font-size:.85rem;font-weight:600;text-align:right}
-.dv.wrap{white-space:normal;max-width:60%}
+.dv.val-wrap{
+  white-space:normal;
+  max-width:60%;
+  overflow:visible;
+  padding:0;
+  flex:initial;
+}
 
 .empty{text-align:center;padding:48px 20px;color:var(--text-2)}
 .empty strong{display:block;font-family:var(--font-d);font-size:1.4rem;letter-spacing:.04em;color:var(--text);margin-bottom:6px}
@@ -1048,8 +1054,8 @@ function renderPerfil(){
         </div>
         ${badge(c.status||'prospecto',c.status||'prospecto')}
       </div>
-      <div class="dr"><span class="dk">Objetivo</span><span class="dv wrap">${esc(c.objective||'—')}</span></div>
-      ${program?`<div class="dr"><span class="dk">Programa</span><span class="dv wrap" style="color:var(--sport)">${esc(program.name||program.nameEs||'')}</span></div>`:''}
+      <div class="dr"><span class="dk">Objetivo</span><span class="dv val-wrap">${esc(c.objective||'—')}</span></div>
+      ${program?`<div class="dr"><span class="dk">Programa</span><span class="dv val-wrap" style="color:var(--sport)">${esc(program.name||program.nameEs||'')}</span></div>`:''}
       ${todayCI?`<div class="dr"><span class="dk">CI hoy</span><span>${badge(ciStatus||'normal',ciStatus||'normal')}</span></div>`:`<div class="dr"><span class="dk">CI hoy</span><span>${badge('Sin CI','inactivo')}</span></div>`}
       ${pendPay.length?`<div class="dr"><span class="dk">Deuda</span><span class="dv" style="color:var(--warn)">${money(pendPay.reduce((s,p)=>s+Number(p.amount||0),0))}</span></div>`:''}
     </div>
@@ -1073,7 +1079,7 @@ function renderPerfil(){
       ${alerts.filter(isPendingAlert).length?`
         <div class="card" style="border-left:3px solid var(--medical)"><div class="card-body">
           <div class="card-title" style="color:var(--medical)">⚠ Alertas pendientes</div>
-          ${alerts.filter(isPendingAlert).slice(0,3).map(a=>`<div class="dr"><span class="dk">${esc(a.tipoAlerta||'alerta')}</span><span class="dv wrap" style="color:var(--warn);font-weight:500;font-size:.78rem">${esc(String(a.mensaje||'').slice(0,90))}</span></div>`).join('')}
+          ${alerts.filter(isPendingAlert).slice(0,3).map(a=>`<div class="dr"><span class="dk">${esc(a.tipoAlerta||'alerta')}</span><span class="dv val-wrap" style="color:var(--warn);font-weight:500;font-size:.78rem">${esc(String(a.mensaje||'').slice(0,90))}</span></div>`).join('')}
         </div>
         <div class="card-acts">
           <button class="btn btn-b btn-sm" onclick="showScr('alertas')">Ver todas</button>
@@ -1125,7 +1131,7 @@ function renderPerfil(){
         <div class="card"><div class="card-body">
           <div class="dr"><span class="dk">${esc(m.type||'—')}</span><span class="dv mono" style="font-size:1.1rem;color:var(--sport)">${esc(m.value)}</span></div>
           <div class="dr"><span class="dk">Fecha</span><span class="dv">${formatDate(m.date)}</span></div>
-          ${m.note?`<div class="dr"><span class="dk">Nota</span><span class="dv wrap">${esc(m.note)}</span></div>`:''}
+          ${m.note?`<div class="dr"><span class="dk">Nota</span><span class="dv val-wrap">${esc(m.note)}</span></div>`:''}
         </div></div>`).join(''):emptyState('Sin métricas','')}
     </div>
     <div id="pt-alertas" class="ptc">
@@ -1140,7 +1146,7 @@ function renderPerfil(){
           <div class="dr"><span class="dk">💤 Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div>
           <div class="dr"><span class="dk">⚡ Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div>
           <div class="dr"><span class="dk">🩺 Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>
-          ${ci.comment?`<div class="dr"><span class="dk">Nota</span><span class="dv wrap" style="color:var(--warn);font-weight:500;font-size:.8rem">${esc(ci.comment)}</span></div>`:''}
+          ${ci.comment?`<div class="dr"><span class="dk">Nota</span><span class="dv val-wrap" style="color:var(--warn);font-weight:500;font-size:.8rem">${esc(ci.comment)}</span></div>`:''}
         </div></div>`;
       }).join(''):emptyState('Sin check-ins','')}
     </div>
@@ -1374,7 +1380,7 @@ function renderCheckins(){
         <div class="dr"><span class="dk">💤 Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div>
         <div class="dr"><span class="dk">⚡ Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div>
         <div class="dr"><span class="dk">🩺 Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>
-        ${ci.comment?`<div class="dr"><span class="dk">Nota</span><span class="dv wrap" style="color:var(--warn);font-weight:500;font-size:.8rem">${esc(ci.comment)}</span></div>`:''}
+        ${ci.comment?`<div class="dr"><span class="dk">Nota</span><span class="dv val-wrap" style="color:var(--warn);font-weight:500;font-size:.8rem">${esc(ci.comment)}</span></div>`:''}
       </div>
       ${c?`<div class="card-acts">
         <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
@@ -1451,7 +1457,7 @@ function renderEntreno(){
     const logs=state.sessionLogs.filter(l=>{const cid=l.clientId||l.client_id;const fin=l.status==='completed'||l.status==='realizada'||l.finishedAt||l.finished_at;return String(cid)===String(a.clientId||a.client_id)&&fin});
     return`<div class="card"><div class="card-body">
       <div class="dr"><span class="dk">Cliente</span><span class="dv">${esc(c?.name||'—')}</span></div>
-      <div class="dr"><span class="dk">Programa</span><span class="dv wrap" style="color:var(--sport)">${esc(p?.name||p?.nameEs||'—')}</span></div>
+      <div class="dr"><span class="dk">Programa</span><span class="dv val-wrap" style="color:var(--sport)">${esc(p?.name||p?.nameEs||'—')}</span></div>
       <div class="dr"><span class="dk">Nivel</span><span class="dv">${esc(a.assignedLevel||a.assigned_level||'N1')}</span></div>
       <div class="dr"><span class="dk">Semana</span><span class="dv">${esc(a.currentWeek||a.current_week||1)}</span></div>
       <div class="dr"><span class="dk">Sesiones hechas</span><span class="dv">${logs.length}</span></div>
@@ -1474,10 +1480,10 @@ function renderEval(){
     const c=clientById(a.clientId||a.client_id);
     return`<div class="card"><div class="card-body">
       <div class="dr"><span class="dk">Cliente</span><span class="dv">${esc(c?.name||'—')}</span></div>
-      <div class="dr"><span class="dk">Test</span><span class="dv wrap">${esc(a.assessmentName||a.assessment_name||'Test')}</span></div>
+      <div class="dr"><span class="dk">Test</span><span class="dv val-wrap">${esc(a.assessmentName||a.assessment_name||'Test')}</span></div>
       <div class="dr"><span class="dk">Fecha</span><span class="dv">${formatDate(a.assessmentDate||a.assessment_date)}</span></div>
       <div class="dr"><span class="dk">Estado</span><span>${badge(a.status||'realizada',a.status||'realizada')}</span></div>
-      ${a.coachNotes||a.coach_notes?`<div class="dr"><span class="dk">Notas</span><span class="dv wrap" style="font-size:.78rem">${esc(a.coachNotes||a.coach_notes)}</span></div>`:''}
+      ${a.coachNotes||a.coach_notes?`<div class="dr"><span class="dk">Notas</span><span class="dv val-wrap" style="font-size:.78rem">${esc(a.coachNotes||a.coach_notes)}</span></div>`:''}
     </div>
     ${c?`<div class="card-acts"><button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button></div>`:''}
     </div>`;
