@@ -3844,34 +3844,6 @@ function closeVideoModal(){
   if(body) body.innerHTML = '';
 }
 
-function getExerciseVideoUrl(ex){
-  const direct =
-    ex.videoUrl ||
-    ex.video_url ||
-    ex.videoURL ||
-    '';
-
-  if(direct){
-    return direct;
-  }
-
-  const family =
-    ex.videoFamily ||
-    ex.video_family ||
-    '';
-
-  if(!family){
-    return '';
-  }
-
-  const video = state.videoLibrary.find(v =>
-    String(v.videoFamily || v.video_family || '').trim() === String(family).trim() &&
-    String(v.status || v.videoStatus || v.video_status || 'active').toLowerCase() !== 'inactive'
-  );
-
-  return video?.videoUrl || video?.video_url || '';
-}
-
 function openExerciseVideo(url){
   const clean = normalizeVideoUrl(url);
 
@@ -3937,8 +3909,9 @@ function buildWorkoutExerciseCard(ex, index, clientId){
       <div class="ex-actions">
   ${
     videoUrl
-      ? `<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${esc(videoUrl)}')">Video</button>`
-      : `<button class="btn btn-s btn-sm" disabled>Sin video</button>`
+      `videoUrl
+  ? `<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`
+  : `<button class="btn btn-s btn-sm" disabled>Sin vídeo</button>`
   }
 
   <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
@@ -4236,6 +4209,9 @@ function buildActiveSingleExerciseScreen(c, plan, block){
 
 function isCircuitBlock(block){
   const txt = [
+    getBlockName(block),
+    block.sessionTitle,
+    block.session_title,
     block.blockType,
     block.block_type,
     block.type,
@@ -4247,7 +4223,12 @@ function isCircuitBlock(block){
     block.name,
     block.nameEs,
     block.name_es
-  ].join(' ').toLowerCase();
+  ]
+  .filter(Boolean)
+  .join(' ')
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g,'');
 
   return (
     txt.includes('circuito') ||
