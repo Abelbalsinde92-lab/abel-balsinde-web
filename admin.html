@@ -4709,7 +4709,63 @@ function openModal(type,id=null){
         ${biField('Variante N3','Varijanta N3','variant_n3_es','variant_n3_sr',ex.variantN3Es||'',ex.variantN3Sr||'','textarea',1)}
         ${biField('Variante N4','Varijanta N4','variant_n4_es','variant_n4_sr',ex.variantN4Es||'',ex.variantN4Sr||'','textarea',1)}
       </div>
-      ${biField('Notas del coach','Napomene trenera','coaching_notes_es','coaching_notes_sr',ex.coachingNotesEs||ex.coachNotes||'',ex.coachingNotesSr||'','textarea',2)}
+            ${biField('Notas del coach','Napomene trenera','coaching_notes_es','coaching_notes_sr',ex.coachingNotesEs||ex.coachNotes||'',ex.coachingNotesSr||'','textarea',2)}
+
+      <div style="background:var(--navy3);border:1px solid var(--border2);padding:12px;margin-bottom:14px">
+        <div style="font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:10px">Vídeo de demostración</div>
+
+        <div class="form-row">
+          <label class="form-label">URL del vídeo</label>
+          <input name="video_url" class="form-input" type="url"
+                 value="${esc(ex.videoUrl||ex.video_url||'')}"
+                 placeholder="https://youtube.com/watch?v=... o https://archivo.mp4">
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-row">
+            <label class="form-label">Origen</label>
+            <select name="video_source" class="form-input">
+              <option value="">—</option>
+              <option value="youtube" ${(ex.videoSource||ex.video_source)==='youtube'?'selected':''}>YouTube</option>
+              <option value="vimeo"   ${(ex.videoSource||ex.video_source)==='vimeo'  ?'selected':''}>Vimeo</option>
+              <option value="drive"   ${(ex.videoSource||ex.video_source)==='drive'  ?'selected':''}>Google Drive</option>
+              <option value="externo" ${(ex.videoSource||ex.video_source)==='externo'?'selected':''}>Externo</option>
+              <option value="propio"  ${(ex.videoSource||ex.video_source)==='propio' ?'selected':''}>Propio</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Estado vídeo</label>
+            <select name="video_status" class="form-input">
+              <option value="pendiente" ${(ex.videoStatus||ex.video_status||'pendiente')==='pendiente'?'selected':''}>Pendiente</option>
+              <option value="aprobado"  ${(ex.videoStatus||ex.video_status)==='aprobado' ?'selected':''}>Aprobado</option>
+              <option value="revisar"   ${(ex.videoStatus||ex.video_status)==='revisar'  ?'selected':''}>Revisar</option>
+              <option value="rechazado" ${(ex.videoStatus||ex.video_status)==='rechazado'?'selected':''}>Rechazado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-row">
+            <label class="form-label">Familia (reutilizar vídeo)</label>
+            <input name="video_family" class="form-input"
+                   value="${esc(ex.videoFamily||ex.video_family||'')}"
+                   placeholder="ej: sentadilla, plancha, remo">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Prioridad</label>
+            <input name="video_priority" class="form-input"
+                   value="${esc(ex.videoPriority||ex.video_priority||'')}"
+                   placeholder="1, 2, 3...">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Notas del vídeo</label>
+          <textarea name="video_notes" class="form-input" rows="2"
+                    placeholder="Ej: vídeo provisional, regrabar en mejor ángulo">${esc(ex.videoNotes||ex.video_notes||'')}</textarea>
+        </div>
+      </div>
+
       ${actions}`;
   }
 
@@ -5063,7 +5119,17 @@ if(data.fc_max_ref !== undefined) {
   }
   showToast(id?'Bloque actualizado':'Bloque creado');
 }
-    else if(type==='trainingExercise'){
+        else if(type==='trainingExercise'){
+  // Limpiar campos de vídeo: '' → null para no llenar Supabase con strings vacíos
+  ['video_url','video_source','video_status','video_family','video_priority','video_notes']
+    .forEach(k => {
+      const v = String(data[k] || '').trim();
+      data[k] = v === '' ? null : v;
+    });
+
+  // Si pegaste URL pero no marcaste estado, asume aprobado
+  if(data.video_url && !data.video_status) data.video_status = 'aprobado';
+
   await upsert('trainingExercises',{
     ...data,
     name:          data.name_es || data.name,
