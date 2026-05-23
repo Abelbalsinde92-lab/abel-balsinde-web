@@ -3213,11 +3213,35 @@ async function saveModal(e){
    TRAINING MODE · Entrenamiento operativo en sala
 ══════════════════════════════════════════════════════════ */
 
-function openWorkout(clientId,reservationId=null){
+function openWorkout(clientId, reservationId = null){
+  const previousKey = `${state.activeTrainingClientId || ''}__${state.activeWorkoutReservationId || 'manual'}`;
+  const nextKey = `${clientId}__${reservationId || 'manual'}`;
+
+  // Si es una sesión nueva, limpiar cronómetro y marcas anteriores
+  if(previousKey !== nextKey){
+    if(state.workoutTimer.interval){
+      clearInterval(state.workoutTimer.interval);
+      state.workoutTimer.interval = null;
+    }
+
+    state.workoutTimer.running = false;
+    state.workoutTimer.seconds = 0;
+
+    Object.keys(state.workoutChecks).forEach(k => {
+      if(k.startsWith(clientId + '__')){
+        delete state.workoutChecks[k];
+      }
+    });
+
+    state.workoutNotes[clientId] = '';
+  }
+
+  state.selectedClientId = clientId;
   state.activeTrainingClientId = clientId;
   state.activeWorkoutReservationId = reservationId;
   state.activeWorkoutBlockId = null;
   state.activeWorkoutExerciseIndex = 0;
+
   showScr('workout');
 }
 
@@ -3679,6 +3703,20 @@ function pauseWorkoutTimer(){
   renderWorkout();
 }
 
+function resetWorkoutTimerOnly(){
+  state.workoutTimer.running = false;
+
+  if(state.workoutTimer.interval){
+    clearInterval(state.workoutTimer.interval);
+    state.workoutTimer.interval = null;
+  }
+
+  state.workoutTimer.seconds = 0;
+
+  updateClockUI();
+  renderWorkout();
+}
+
 function resetWorkoutTimer(clientId=null){
   const cid = clientId || state.activeTrainingClientId || state.selectedClientId;
 
@@ -4132,9 +4170,9 @@ function buildActiveSingleExerciseScreen(c, plan, block){
             : `<button class="btn btn-p btn-sm" onclick="startWorkoutTimer()">Iniciar</button>`
         }
 
-        <button class="btn btn-s btn-sm" onclick="resetWorkoutTimer('${c.id}')">
-          Reiniciar
-        </button>
+        <button class="btn btn-s btn-sm" onclick="resetWorkoutTimerOnly()">
+  Reiniciar
+</button>
       </div>
     </div>
 
@@ -4269,9 +4307,9 @@ function buildActiveCircuitScreen(c, plan, block){
             : `<button class="btn btn-p btn-sm" onclick="startWorkoutTimer()">Iniciar</button>`
         }
 
-        <button class="btn btn-s btn-sm" onclick="resetWorkoutTimer('${c.id}')">
-          Reiniciar
-        </button>
+        <button class="btn btn-s btn-sm" onclick="resetWorkoutTimerOnly()">
+  Reiniciar
+</button>
       </div>
     </div>
 
