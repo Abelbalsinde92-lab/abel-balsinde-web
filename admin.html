@@ -1063,11 +1063,74 @@ tr:hover td { background: rgba(255,255,255,.02); }
       </div>
 
       <div class="page" id="page-entrenamiento">
-        <div class="page-header"><div><div class="page-eyebrow">Sistema de entrenamiento</div><div class="page-title">Entrenamiento</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('trainingProgram')">+ Crear programa base</button><button class="btn btn-secondary" onclick="openModal('trainingAssignment')">Asignar a cliente</button></div></div>
-        <div class="metrics-row" id="trainingMetrics"></div>
-        <div class="table-wrap"><div class="table-header"><div class="table-title">Programas base</div></div><table><thead><tr><th>Programa</th><th>Duración</th><th>Frecuencia</th><th>Objetivo</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="trainingProgramsTable"></tbody></table></div>
-        <div class="table-wrap"><div class="table-header"><div class="table-title">Programas asignados a clientes</div></div><table><thead><tr><th>Cliente</th><th>Programa</th><th>Alcance</th><th>Nivel</th><th>Semana actual</th><th>Estado</th><th>Inicio</th></tr></thead><tbody id="trainingAssignmentsTable"></tbody></table></div>
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Sistema de entrenamiento</div>
+      <div class="page-title">Entrenamientos asignados</div>
+    </div>
+
+    <div class="page-actions">
+      <button class="btn btn-secondary" onclick="showPage('training-library')">
+        Biblioteca de programas
+      </button>
+      <button class="btn btn-primary" onclick="openModal('trainingAssignment')">
+        Asignar a cliente
+      </button>
+    </div>
+  </div>
+
+  <div class="metrics-row" id="trainingMetrics"></div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Uso de esta sección</div>
+      <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
+        Aquí se revisa qué entrenamiento tiene asignado cada cliente, el alcance comercial vendido y el avance real.
       </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Alcances comerciales</div>
+      <div class="data-row"><span class="data-key">Día</span><span class="data-val">Sesión suelta</span></div>
+      <div class="data-row"><span class="data-key">Semana</span><span class="data-val">Semana completa</span></div>
+      <div class="data-row"><span class="data-key">Mes</span><span class="data-val">Mes completo</span></div>
+      <div class="data-row"><span class="data-key">Plan</span><span class="data-val">Completo</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Flujo recomendado</div>
+      <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
+        Primero crea el programa base en Biblioteca. Después asígnalo desde aquí según nivel, semana, mes o plan completo.
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Programas asignados a clientes</div>
+      <button class="btn btn-secondary btn-sm" onclick="openModal('trainingAssignment')">
+        + Nueva asignación
+      </button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Programa</th>
+          <th>Alcance</th>
+          <th>Nivel</th>
+          <th>Semana actual</th>
+          <th>Estado</th>
+          <th>Inicio</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody id="trainingAssignmentsTable"></tbody>
+    </table>
+  </div>
+</div>
 
       <div class="page" id="page-training-detail">
         <div class="page-header"><div><div class="page-eyebrow" style="cursor:pointer" onclick="showPage('entrenamiento')">← Entrenamiento</div><div class="page-title" id="trainingDetailTitle">Programa</div></div><div class="page-actions"><button class="btn btn-primary" onclick="openModal('trainingWeek')">+ Crear semana</button></div></div>
@@ -1164,11 +1227,18 @@ tr:hover td { background: rgba(255,255,255,.02); }
       <div class="page-eyebrow">Biblioteca técnica</div>
       <div class="page-title">Programas base</div>
     </div>
+
     <div class="page-actions">
-      <button class="btn btn-primary" onclick="openModal('trainingProgram')">+ Crear programa base</button>
-      <button class="btn btn-secondary" onclick="showPage('entrenamiento')">Ver asignaciones</button>
+      <button class="btn btn-secondary" onclick="showPage('entrenamiento')">
+        Ver asignaciones
+      </button>
+      <button class="btn btn-primary" onclick="openModal('trainingProgram')">
+        + Crear programa base
+      </button>
     </div>
   </div>
+
+  <div class="metrics-row" id="trainingLibraryMetrics"></div>
 
   <div class="three-col">
     <div class="card">
@@ -1182,26 +1252,42 @@ tr:hover td { background: rgba(255,255,255,.02); }
     <div class="card">
       <div class="card-title">Uso correcto</div>
       <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
-        Aquí se crea el material técnico base. No es todavía el cliente activo. 
-        Primero se construye el programa; después se asigna desde Entrenamientos asignados.
+        Aquí se crea el material técnico base. Después se asigna a cada cliente
+        según nivel, semana, día, mes o plan completo.
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title">Próxima mejora</div>
+      <div class="card-title">Futuras categorías</div>
       <div style="color:var(--text-secondary);font-size:.85rem;line-height:1.7;">
-        Añadiremos filtros por objetivo: condición física, fuerza, potencia, movilidad, outdoor, precompetitiva, competitiva y poscompetitiva.
+        Condición física, fuerza, potencia, movilidad, outdoor, precompetitiva,
+        competitiva, poscompetitiva y readaptación.
       </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-title">Acceso rápido</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-blue btn-sm" onclick="showPage('entrenamiento')">Ver programas cargados</button>
-      <button class="btn btn-secondary btn-sm" onclick="openModal('trainingProgram')">Crear programa</button>
-      <button class="btn btn-secondary btn-sm" onclick="openModal('trainingAssignment')">Asignar a cliente</button>
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Programas base cargados</div>
+      <button class="btn btn-secondary btn-sm" onclick="openModal('trainingProgram')">
+        + Nuevo programa
+      </button>
     </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Programa</th>
+          <th>Duración</th>
+          <th>Frecuencia</th>
+          <th>Objetivo</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody id="trainingLibraryProgramsTable"></tbody>
+    </table>
   </div>
 </div>
 
@@ -1456,7 +1542,9 @@ let state = {
   dailyCheckins:[],
   
   settings:{
-    coachName:'Abel Balsinde',coachEmail:'abel@email.com',coachPhone:COACH_DEFAULT_PHONE,
+    adminUsername:'abel_admin',
+    adminPassword:'',
+    coachName:'Abel Balsinde',
     coachCity:'Belgrado',coachWeb:'abeltrainer.vercel.app',coachDesc:'Entrenador personal con bases de lucha. UWW Level 2.',
     currency:'EUR — Euro',timezone:'Europe/Belgrade (CET)',language:'Español',
     defaultWa:'Hola, [nombre]. Te recuerdo tu sesión de hoy a las [hora]. Nos vemos.',
@@ -2562,7 +2650,10 @@ function renderBadges(){
   set('badge-checkins', (state.dailyCheckins || []).filter(ci =>
     String(ci.checkinDate || ci.created_at || '').slice(0,10) === todayISO()
   ).length);
-  set('badge-entrenamiento',state.trainingPrograms.length);
+  set(
+  'badge-entrenamiento',
+  state.clientProgramAssignments.filter(a => String(a.status || 'activo') === 'activo').length
+);
   set('badge-partners',state.partners.length);
 }
 
@@ -3637,35 +3728,304 @@ function renderPrograms(){
 }
 
 function renderTraining(){
-  const metricsEl=document.getElementById('trainingMetrics');const programsTable=document.getElementById('trainingProgramsTable');const assignmentsTable=document.getElementById('trainingAssignmentsTable');
-  if(!metricsEl||!programsTable||!assignmentsTable)return;
-  const activePrograms=state.trainingPrograms.filter(p=>p.status==='activo').length;const assignedPrograms=state.clientProgramAssignments.filter(a=>a.status==='activo').length;
-  metricsEl.innerHTML=`<div class="metric-card blue"><span class="metric-num">${state.trainingPrograms.length}</span><span class="metric-label">Programas base</span></div><div class="metric-card green"><span class="metric-num">${activePrograms}</span><span class="metric-label">Activos</span></div><div class="metric-card yellow"><span class="metric-num">${assignedPrograms}</span><span class="metric-label">Asignados</span></div><div class="metric-card red"><span class="metric-num">${state.trainingExercises.length}</span><span class="metric-label">Ejercicios</span></div>`;
-  programsTable.innerHTML=state.trainingPrograms.length?state.trainingPrograms.map(p=>`<tr><td><div class="name-text">${esc(p.name)}</div><div class="name-sub">${esc(p.type||'Sin tipo')} · ${esc(p.level||'Sin nivel')}</div><div style="margin-top:10px;"><button class="btn btn-blue btn-sm" onclick="openTrainingProgramDetail('${p.id}')">Ver semanas</button></div></td><td>${esc(p.durationWeeks||'—')} semanas</td><td>${esc(p.frequency||'—')}</td><td>${esc(p.objective||'—')}</td><td><span class="badge badge-${p.status||'activo'}">${esc(p.status||'activo')}</span></td><td><div class="td-actions"><button class="btn btn-blue btn-sm" onclick="openTrainingProgramDetail('${p.id}')">Ver</button><button class="btn btn-secondary btn-sm" onclick="openModal('trainingProgram','${p.id}')">Editar</button></div></td></tr>`).join(''):emptyRow(6,'No hay programas base creados todavía.');
-  assignmentsTable.innerHTML=state.clientProgramAssignments.length?state.clientProgramAssignments.map(a=>{const c=clientById(a.clientId);const p=state.trainingPrograms.find(x=>x.id===a.programId);return`<tr><td>${esc(c?.name||'Cliente eliminado')}</td><td>${esc(p?.name||'Programa eliminado')}</td><td><div class="name-text">${esc(a.commercialLabel || getAssignmentScopeLabel(a.assignmentScope))}</div><div class="name-sub">${
-  a.assignmentScope==='month' && a.assignedMonth ? 'Mes '+esc(a.assignedMonth) :
-  a.assignmentScope==='week'  && a.assignedWeek  ? 'Semana '+esc(a.assignedWeek) :
-  a.assignmentScope==='day'   ? 'Sem. '+esc(a.assignedWeek||1)+' · Día '+(['A','B','C'][Number(a.assignedSessionNumber||1)-1]||esc(a.assignedSessionNumber||1)) :
-  'Plan completo'
-}</div></td><td>${esc(a.assignedLevel||'N1')}</td>${(() => {
-  const prog = getAssignmentProgress(a);
+  const metricsEl = document.getElementById('trainingMetrics');
+  const assignmentsTable = document.getElementById('trainingAssignmentsTable');
 
-  return `
-    <td>
-      <div class="name-text">${esc(a.currentWeek || a.current_week || 1)}</div>
-      <div class="name-sub">${prog.completed}/${prog.total} sesiones · ${prog.percent}%</div>
-    </td>
+  const libraryMetricsEl = document.getElementById('trainingLibraryMetrics');
+  const libraryProgramsTable = document.getElementById('trainingLibraryProgramsTable');
 
-    <td>
-      <span class="badge badge-${a.status || 'activo'}">${esc(a.status || 'activo')}</span>
-    </td>
+  const activePrograms = state.trainingPrograms.filter(p =>
+    String(p.status || 'activo') === 'activo'
+  ).length;
 
-    <td>
-      <div>${formatDate(a.startDate || a.start_date)}</div>
-      <div class="name-sub">Avance: ${prog.percent}%</div>
-    </td>
-  `;
-})()}</tr>`;}).join(''):emptyRow(7,'No hay programas asignados todavía.');
+  const activeAssignments = state.clientProgramAssignments.filter(a =>
+    String(a.status || 'activo') === 'activo'
+  ).length;
+
+  const totalWeeks = state.trainingWeeks.length;
+  const totalSessions = state.trainingSessions.length;
+  const totalBlocks = state.trainingBlocks.length;
+  const totalExercises = state.trainingExercises.length;
+
+  function scopeDetail(a){
+    const scope = String(a.assignmentScope || a.assignment_scope || 'full').toLowerCase();
+
+    if(scope === 'day'){
+      const week = a.assignedWeek || a.assigned_week || a.currentWeek || a.current_week || 1;
+      const sessionNumber = Number(a.assignedSessionNumber || a.assigned_session_number || 1);
+
+      const dayLetter =
+        sessionNumber === 1 ? 'A' :
+        sessionNumber === 2 ? 'B' :
+        sessionNumber === 3 ? 'C' :
+        sessionNumber;
+
+      return `Semana ${week} · Día ${dayLetter}`;
+    }
+
+    if(scope === 'week'){
+      const week = a.assignedWeek || a.assigned_week || a.currentWeek || a.current_week || 1;
+      return `Semana ${week}`;
+    }
+
+    if(scope === 'month'){
+      const month = a.assignedMonth || a.assigned_month || 1;
+      const startWeek = (Number(month) - 1) * 4 + 1;
+      const endWeek = startWeek + 3;
+
+      return `Mes ${month} · Semanas ${startWeek}-${endWeek}`;
+    }
+
+    return 'Plan completo';
+  }
+
+  function scopeBadgeClass(scope){
+    scope = String(scope || 'full').toLowerCase();
+
+    if(scope === 'day') return 'badge-alerta';
+    if(scope === 'week') return 'badge-pendiente';
+    if(scope === 'month') return 'badge-plantilla';
+
+    return 'badge-pagado';
+  }
+
+  if(metricsEl){
+    metricsEl.innerHTML = `
+      <div class="metric-card yellow">
+        <span class="metric-num">${activeAssignments}</span>
+        <span class="metric-label">Asignaciones activas</span>
+      </div>
+
+      <div class="metric-card blue">
+        <span class="metric-num">${state.clients.length}</span>
+        <span class="metric-label">Clientes registrados</span>
+      </div>
+
+      <div class="metric-card green">
+        <span class="metric-num">${activePrograms}</span>
+        <span class="metric-label">Programas disponibles</span>
+      </div>
+
+      <div class="metric-card red">
+        <span class="metric-num">${totalExercises}</span>
+        <span class="metric-label">Ejercicios cargados</span>
+      </div>
+    `;
+  }
+
+  if(assignmentsTable){
+    const assignments = [...state.clientProgramAssignments].sort((a,b) => {
+      const statusA = String(a.status || 'activo') === 'activo' ? 0 : 1;
+      const statusB = String(b.status || 'activo') === 'activo' ? 0 : 1;
+
+      if(statusA !== statusB) return statusA - statusB;
+
+      return String(b.startDate || b.start_date || '')
+        .localeCompare(String(a.startDate || a.start_date || ''));
+    });
+
+    assignmentsTable.innerHTML = assignments.length
+      ? assignments.map(a => {
+          const clientId = a.clientId || a.client_id;
+          const programId = a.programId || a.program_id;
+
+          const c = clientById(clientId);
+          const p = state.trainingPrograms.find(x =>
+            String(x.id) === String(programId)
+          );
+
+          const scope = String(a.assignmentScope || a.assignment_scope || 'full').toLowerCase();
+          const status = String(a.status || 'activo');
+
+          const progress = getAssignmentProgress(a);
+
+          const label =
+            a.commercialLabel ||
+            a.commercial_label ||
+            getAssignmentScopeLabel(scope);
+
+          const level =
+            a.assignedLevel ||
+            a.assigned_level ||
+            'N1';
+
+          const currentWeek =
+            a.currentWeek ||
+            a.current_week ||
+            1;
+
+          return `
+            <tr>
+              <td>
+                <div class="td-name">
+                  <div class="avatar">${initials(c?.name || 'Cliente')}</div>
+                  <div>
+                    <div class="name-text">${esc(c?.name || 'Cliente eliminado')}</div>
+                    <div class="name-sub">${esc(c?.phone || '')}</div>
+                  </div>
+                </div>
+              </td>
+
+              <td>
+                <div class="name-text">${esc(p?.name || p?.nameEs || 'Programa eliminado')}</div>
+                <div class="name-sub">
+                  ${esc(p?.type || p?.typeEs || 'Sin tipo')} · ${esc(p?.level || p?.levelEs || 'Sin nivel')}
+                </div>
+              </td>
+
+              <td>
+                <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start;">
+                  <span class="badge ${scopeBadgeClass(scope)}">
+                    ${esc(label)}
+                  </span>
+                  <span class="name-sub">${esc(scopeDetail(a))}</span>
+                </div>
+              </td>
+
+              <td>${esc(level)}</td>
+
+              <td>
+                <div class="name-text">Semana ${esc(currentWeek)}</div>
+                <div class="name-sub">
+                  ${progress.completed}/${progress.total} sesiones · ${progress.percent}%
+                </div>
+              </td>
+
+              <td>
+                <span class="badge badge-${esc(status)}">
+                  ${esc(status)}
+                </span>
+              </td>
+
+              <td>
+                <div>${formatDate(a.startDate || a.start_date)}</div>
+                <div class="name-sub">Avance: ${progress.percent}%</div>
+              </td>
+
+              <td>
+                <div class="td-actions">
+                  ${c?.id ? `
+                    <button class="btn btn-blue btn-sm" onclick="openProfile('${c.id}')">
+                      Perfil
+                    </button>
+                  ` : ''}
+
+                  <button class="btn btn-secondary btn-sm" onclick="openModal('trainingAssignment','${a.id}')">
+                    Editar
+                  </button>
+
+                  ${
+                    status === 'activo'
+                      ? `<button class="btn btn-danger btn-sm" onclick="updateTrainingAssignmentStatus('${a.id}','inactivo')">
+                          Desactivar
+                        </button>`
+                      : `<button class="btn btn-primary btn-sm" onclick="updateTrainingAssignmentStatus('${a.id}','activo')">
+                          Reactivar
+                        </button>`
+                  }
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('')
+      : emptyRow(8,'No hay programas asignados todavía.');
+  }
+
+  if(libraryMetricsEl){
+    libraryMetricsEl.innerHTML = `
+      <div class="metric-card blue">
+        <span class="metric-num">${state.trainingPrograms.length}</span>
+        <span class="metric-label">Programas base</span>
+      </div>
+
+      <div class="metric-card green">
+        <span class="metric-num">${activePrograms}</span>
+        <span class="metric-label">Activos</span>
+      </div>
+
+      <div class="metric-card yellow">
+        <span class="metric-num">${totalWeeks}</span>
+        <span class="metric-label">Semanas cargadas</span>
+      </div>
+
+      <div class="metric-card red">
+        <span class="metric-num">${totalExercises}</span>
+        <span class="metric-label">Ejercicios</span>
+      </div>
+    `;
+  }
+
+  if(libraryProgramsTable){
+    libraryProgramsTable.innerHTML = state.trainingPrograms.length
+      ? state.trainingPrograms.map(p => {
+          const weeks = state.trainingWeeks.filter(w =>
+            String(w.programId || w.program_id) === String(p.id)
+          );
+
+          const weekIds = new Set(weeks.map(w => String(w.id)));
+
+          const sessions = state.trainingSessions.filter(s =>
+            weekIds.has(String(s.weekId || s.week_id))
+          );
+
+          const sessionIds = new Set(sessions.map(s => String(s.id)));
+
+          const blocks = state.trainingBlocks.filter(b =>
+            sessionIds.has(String(b.sessionId || b.session_id))
+          );
+
+          const blockIds = new Set(blocks.map(b => String(b.id)));
+
+          const exercises = state.trainingExercises.filter(ex =>
+            blockIds.has(String(ex.blockId || ex.block_id))
+          );
+
+          return `
+            <tr>
+              <td>
+                <div class="name-text">${esc(p.name || p.nameEs || 'Sin nombre')}</div>
+                <div class="name-sub">
+                  ${esc(p.type || p.typeEs || 'Sin tipo')} · ${esc(p.level || p.levelEs || 'Sin nivel')}
+                </div>
+              </td>
+
+              <td>${esc(p.durationWeeks || p.duration_weeks || '—')} semanas</td>
+
+              <td>${esc(p.frequency || '—')}</td>
+
+              <td style="white-space:normal;min-width:260px;color:var(--text-secondary);font-size:.78rem">
+                ${esc(p.objective || p.objectiveEs || '—')}
+              </td>
+
+              <td>
+                <span class="badge badge-${esc(p.status || 'activo')}">
+                  ${esc(p.status || 'activo')}
+                </span>
+                <div class="name-sub" style="margin-top:5px;">
+                  ${weeks.length} semanas · ${sessions.length} sesiones · ${exercises.length} ejercicios
+                </div>
+              </td>
+
+              <td>
+                <div class="td-actions">
+                  <button class="btn btn-blue btn-sm" onclick="openTrainingProgramDetail('${p.id}')">
+                    Ver estructura
+                  </button>
+
+                  <button class="btn btn-secondary btn-sm" onclick="openModal('trainingProgram','${p.id}')">
+                    Editar
+                  </button>
+
+                  <button class="btn btn-primary btn-sm" onclick="openModal('trainingAssignment')">
+                    Asignar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('')
+      : emptyRow(6,'No hay programas base creados todavía.');
+  }
 }
 
 function renderTrainingDetail(){
@@ -3994,7 +4354,17 @@ function renderProfile(){
 function switchProfileTab(btn,id){ document.querySelectorAll('.profile-tabs .tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.profile-tab-content').forEach(x=>x.classList.remove('active'));document.getElementById(id)?.classList.add('active'); }
 
 function renderSettings(){
-  for(const[k,v]of Object.entries(state.settings)){const el=document.getElementById(k);if(el)el.value=v;}
+  for(const [k,v] of Object.entries(state.settings)){
+    if(k === 'adminPassword') continue;
+
+    const el = document.getElementById(k);
+    if(el) el.value = v ?? '';
+  }
+
+  // La contraseña no se muestra por seguridad.
+  // Solo se escribe aquí cuando quieres cambiarla.
+  const passEl = document.getElementById('adminPassword');
+  if(passEl) passEl.value = '';
 }
 
 function getClientAccessPath(client){
@@ -4047,8 +4417,34 @@ function sendTemplate(id){ const tpl=state.templates.find(t=>t.id===id);const ci
 async function markPaid(id){
   try{const{data,error}=await db.from('payments').update({status:'pagado',method:'Registrado'}).eq('id',id).select().single();if(error)throw error;const idx=state.payments.findIndex(x=>x.id===id);if(idx>=0)state.payments[idx]=snakeToCamel(data);renderAll();showToast('Pago marcado como pagado');}catch(err){console.error(err);showToast('Error actualizando pago');}
 }
-async function updateReservationStatus(id,status){
-  try{const{data,error}=await db.from('reservations').update({status}).eq('id',id).select().single();if(error)throw error;const idx=state.reservations.findIndex(x=>x.id===id);if(idx>=0)state.reservations[idx]=snakeToCamel(data);renderAll();showToast('Reserva actualizada');}catch(err){console.error(err);showToast('Error actualizando reserva');}
+async function updateTrainingAssignmentStatus(id,status){
+  try{
+    const { data, error } = await db
+      .from('client_program_assignments')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if(error) throw error;
+
+    const idx = state.clientProgramAssignments.findIndex(x => x.id === id);
+
+    if(idx >= 0){
+      state.clientProgramAssignments[idx] = snakeToCamel(data);
+    }
+
+    renderAll();
+
+    showToast(
+      status === 'activo'
+        ? 'Asignación reactivada'
+        : 'Asignación desactivada'
+    );
+  }catch(err){
+    console.error(err);
+    showToast('Error actualizando asignación');
+  }
 }
 async function markHealthReviewed(id){
   try{const{data,error}=await db.from('health_alerts').update({status:'revisado'}).eq('id',id).select().single();if(error)throw error;const idx=state.healthAlerts.findIndex(x=>x.id===id);if(idx>=0)state.healthAlerts[idx]=snakeToCamel(data);renderAll();showToast('Chequeo revisado');}catch(err){console.error(err);showToast('Error actualizando chequeo');}
@@ -4288,14 +4684,61 @@ function openModal(type,id=null){
       ${actions}`;
   }
 
-else if(type==='trainingAssignment'){
-  title.textContent='Asignar entrenamiento a cliente';
+`else if(type==='trainingAssignment'){
+  const a = get('clientProgramAssignments');
 
-  form.innerHTML=`
+  title.textContent = id ? 'Editar asignación de entrenamiento' : 'Asignar entrenamiento a cliente';
+
+  const selectedClientId = a.clientId || a.client_id || state.selectedClientId || '';
+  const selectedProgramId = a.programId || a.program_id || '';
+  const selectedLevel = a.assignedLevel || a.assigned_level || 'N1';
+  const selectedScope = a.assignmentScope || a.assignment_scope || 'full';
+  const selectedCurrentWeek = a.currentWeek || a.current_week || 1;
+  const selectedStartDate = a.startDate || a.start_date || todayISO();
+  const selectedMonth = a.assignedMonth || a.assigned_month || '';
+  const selectedWeek = a.assignedWeek || a.assigned_week || '';
+  const selectedSessionNumber = a.assignedSessionNumber || a.assigned_session_number || '';
+  const selectedCommercialLabel = a.commercialLabel || a.commercial_label || '';
+
+  if(!state.clients.length){
+    form.innerHTML = `
+      <div class="empty small">
+        Primero necesitas crear un cliente para poder asignar un entrenamiento.
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:20px">
+        <button type="button" class="btn btn-primary" onclick="closeModal();openModal('client')">
+          Crear cliente
+        </button>
+      </div>
+    `;
+    document.getElementById('modalOverlay').classList.add('open');
+    return;
+  }
+
+  if(!state.trainingPrograms.length){
+    form.innerHTML = `
+      <div class="empty small">
+        Primero necesitas crear un programa base en la biblioteca de programas.
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:20px">
+        <button type="button" class="btn btn-primary" onclick="closeModal();openModal('trainingProgram')">
+          Crear programa base
+        </button>
+      </div>
+    `;
+    document.getElementById('modalOverlay').classList.add('open');
+    return;
+  }
+
+  form.innerHTML = `
     <div class="form-row">
       <label class="form-label">Cliente</label>
       <select name="clientId" class="form-input" required>
-        ${clientOptions()}
+        ${state.clients.map(c=>`
+          <option value="${c.id}" ${String(selectedClientId)===String(c.id)?'selected':''}>
+            ${esc(c.name)}
+          </option>
+        `).join('')}
       </select>
     </div>
 
@@ -4303,7 +4746,9 @@ else if(type==='trainingAssignment'){
       <label class="form-label">Programa base</label>
       <select name="programId" class="form-input" required>
         ${state.trainingPrograms.map(p=>`
-          <option value="${p.id}">${esc(p.nameEs||p.name||'')}</option>
+          <option value="${p.id}" ${String(selectedProgramId)===String(p.id)?'selected':''}>
+            ${esc(p.nameEs || p.name || 'Programa sin nombre')}
+          </option>
         `).join('')}
       </select>
     </div>
@@ -4312,20 +4757,20 @@ else if(type==='trainingAssignment'){
       <div class="form-row">
         <label class="form-label">Nivel asignado</label>
         <select name="assignedLevel" class="form-input">
-          <option value="N1">N1 — Principiante</option>
-          <option value="N2">N2 — Básico</option>
-          <option value="N3">N3 — Intermedio</option>
-          <option value="N4">N4 — Avanzado</option>
+          <option value="N1" ${selectedLevel==='N1'?'selected':''}>N1 — Principiante</option>
+          <option value="N2" ${selectedLevel==='N2'?'selected':''}>N2 — Básico</option>
+          <option value="N3" ${selectedLevel==='N3'?'selected':''}>N3 — Intermedio</option>
+          <option value="N4" ${selectedLevel==='N4'?'selected':''}>N4 — Avanzado</option>
         </select>
       </div>
 
       <div class="form-row">
         <label class="form-label">Alcance comercial</label>
         <select name="assignmentScope" class="form-input" id="assignmentScopeSelect" onchange="updateAssignmentScopeFields()">
-          <option value="full" selected>Plan completo</option>
-          <option value="month">Mes completo</option>
-          <option value="week">Semana completa</option>
-          <option value="day">Solo un día</option>
+          <option value="full" ${selectedScope==='full'?'selected':''}>Plan completo</option>
+          <option value="month" ${selectedScope==='month'?'selected':''}>Mes completo</option>
+          <option value="week" ${selectedScope==='week'?'selected':''}>Semana completa</option>
+          <option value="day" ${selectedScope==='day'?'selected':''}>Solo un día</option>
         </select>
       </div>
     </div>
@@ -4333,24 +4778,24 @@ else if(type==='trainingAssignment'){
     <div class="form-row-2">
       <div class="form-row">
         <label class="form-label">Semana actual</label>
-        <input name="currentWeek" class="form-input" type="number" value="1" min="1">
+        <input name="currentWeek" class="form-input" type="number" value="${esc(selectedCurrentWeek)}" min="1">
       </div>
 
       <div class="form-row">
         <label class="form-label">Fecha de inicio</label>
-        <input name="startDate" class="form-input" type="date" value="${todayISO()}">
+        <input name="startDate" class="form-input" type="date" value="${esc(selectedStartDate)}">
       </div>
     </div>
 
     <div class="form-row-2" id="assignmentMonthWeekRow">
       <div class="form-row" id="assignmentMonthField">
         <label class="form-label">Mes asignado</label>
-        <input name="assignedMonth" class="form-input" type="number" min="1" placeholder="Ej: 1">
+        <input name="assignedMonth" class="form-input" type="number" min="1" value="${esc(selectedMonth)}" placeholder="Ej: 1">
       </div>
 
       <div class="form-row" id="assignmentWeekField">
         <label class="form-label">Semana asignada</label>
-        <input name="assignedWeek" class="form-input" type="number" min="1" placeholder="Ej: 1">
+        <input name="assignedWeek" class="form-input" type="number" min="1" value="${esc(selectedWeek)}" placeholder="Ej: 1">
       </div>
     </div>
 
@@ -4358,15 +4803,20 @@ else if(type==='trainingAssignment'){
       <label class="form-label">Día / sesión asignada</label>
       <select name="assignedSessionNumber" class="form-input">
         <option value="">Seleccionar día</option>
-        <option value="1">Día A / Sesión 1</option>
-        <option value="2">Día B / Sesión 2</option>
-        <option value="3">Día C / Sesión 3</option>
+        <option value="1" ${String(selectedSessionNumber)==='1'?'selected':''}>Día A / Sesión 1</option>
+        <option value="2" ${String(selectedSessionNumber)==='2'?'selected':''}>Día B / Sesión 2</option>
+        <option value="3" ${String(selectedSessionNumber)==='3'?'selected':''}>Día C / Sesión 3</option>
       </select>
     </div>
 
     <div class="form-row">
       <label class="form-label">Etiqueta comercial opcional</label>
-      <input name="commercialLabel" class="form-input" placeholder="Se genera automática si lo dejas vacío">
+      <input name="commercialLabel" class="form-input" value="${esc(selectedCommercialLabel)}" placeholder="Se genera automática si lo dejas vacío">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Notas internas del coach</label>
+      <textarea name="coachNotes" class="form-input" rows="2" placeholder="Nota privada para esta asignación">${esc(a.coachNotes || a.coach_notes || '')}</textarea>
     </div>
 
     <input type="hidden" name="status" value="activo">
@@ -4376,6 +4826,7 @@ else if(type==='trainingAssignment'){
 
   setTimeout(updateAssignmentScopeFields, 0);
 }
+
   else if(type==='assessment'){
     title.textContent='Registrar test inicial';
     const templates=state.assessmentTemplates||[];const defaultTpl=templates[0];
@@ -4399,40 +4850,68 @@ else if(type==='trainingAssignment'){
 function updateAssignmentScopeFields(){
   const scope = document.getElementById('assignmentScopeSelect')?.value || 'full';
 
-  const monthRow = document.getElementById('assignmentMonthWeekRow');
-  const monthField = document.getElementById('assignmentMonthField');
-  const weekField = document.getElementById('assignmentWeekField');
-  const dayField = document.getElementById('assignmentDayField');
+  const monthRow  = document.getElementById('assignmentMonthWeekRow');
+  const monthBox  = document.getElementById('assignmentMonthField');
+  const weekBox   = document.getElementById('assignmentWeekField');
+  const dayBox    = document.getElementById('assignmentDayField');
 
   const monthInput = document.querySelector('[name="assignedMonth"]');
-  const weekInput = document.querySelector('[name="assignedWeek"]');
-  const dayInput = document.querySelector('[name="assignedSessionNumber"]');
+  const weekInput  = document.querySelector('[name="assignedWeek"]');
+  const dayInput   = document.querySelector('[name="assignedSessionNumber"]');
 
-  if(!monthRow || !monthField || !weekField || !dayField) return;
+  if(!monthRow || !monthBox || !weekBox || !dayBox) return;
 
   monthRow.classList.add('hidden');
-  monthField.classList.add('hidden');
-  weekField.classList.add('hidden');
-  dayField.classList.add('hidden');
+  monthBox.classList.add('hidden');
+  weekBox.classList.add('hidden');
+  dayBox.classList.add('hidden');
 
-  if(monthInput) monthInput.value = '';
-  if(weekInput) weekInput.value = '';
-  if(dayInput) dayInput.value = '';
+  if(scope === 'full'){
+    if(monthInput) monthInput.value = '';
+    if(weekInput) weekInput.value = '';
+    if(dayInput) dayInput.value = '';
+  }
 
   if(scope === 'month'){
     monthRow.classList.remove('hidden');
-    monthField.classList.remove('hidden');
+    monthBox.classList.remove('hidden');
+
+    if(weekInput) weekInput.value = '';
+    if(dayInput) dayInput.value = '';
+
+    if(monthInput && !monthInput.value){
+      monthInput.value = '1';
+    }
   }
 
   if(scope === 'week'){
     monthRow.classList.remove('hidden');
-    weekField.classList.remove('hidden');
+    weekBox.classList.remove('hidden');
+
+    if(monthInput) monthInput.value = '';
+    if(dayInput) dayInput.value = '';
+
+    if(weekInput && !weekInput.value){
+      const currentWeek = document.querySelector('[name="currentWeek"]')?.value || '1';
+      weekInput.value = currentWeek;
+    }
   }
 
   if(scope === 'day'){
     monthRow.classList.remove('hidden');
-    weekField.classList.remove('hidden');
-    dayField.classList.remove('hidden');
+    weekBox.classList.remove('hidden');
+    dayBox.classList.remove('hidden');
+
+    if(monthInput) monthInput.value = '';
+
+    if(weekInput && !weekInput.value){
+      const currentWeek = document.querySelector('[name="currentWeek"]')?.value || '1';
+      weekInput.value = currentWeek;
+    }
+
+    if(dayInput && !dayInput.value){
+      dayInput.value = '1';
+    }
   }
 }
 
@@ -4571,88 +5050,135 @@ if(data.fc_max_ref !== undefined) {
   showToast(id?'Ejercicio actualizado':'Ejercicio creado');
 }
     else if(type==='trainingAssignment'){
-  data.status = 'activo';
+  const clientId  = data.clientId;
+  const programId = data.programId;
 
-  const scope = data.assignmentScope || 'full';
+  if(!clientId){
+    throw new Error('Selecciona un cliente.');
+  }
+
+  if(!programId){
+    throw new Error('Selecciona un programa base.');
+  }
+
+  const scope = String(data.assignmentScope || 'full').toLowerCase();
+
+  const currentWeek = Math.max(
+    1,
+    Number(data.currentWeek || 1)
+  );
 
   let assignedMonth = null;
   let assignedWeek = null;
   let assignedSessionNumber = null;
 
   if(scope === 'month'){
-    assignedMonth = data.assignedMonth || 1;
+    assignedMonth = Math.max(
+      1,
+      Number(data.assignedMonth || 1)
+    );
   }
 
   if(scope === 'week'){
-    assignedWeek = data.assignedWeek || data.currentWeek || 1;
+    assignedWeek = Math.max(
+      1,
+      Number(data.assignedWeek || currentWeek || 1)
+    );
   }
 
   if(scope === 'day'){
-    assignedWeek = data.assignedWeek || data.currentWeek || 1;
-    assignedSessionNumber = data.assignedSessionNumber || 1;
+    assignedWeek = Math.max(
+      1,
+      Number(data.assignedWeek || currentWeek || 1)
+    );
+
+    assignedSessionNumber = Math.max(
+      1,
+      Number(data.assignedSessionNumber || 1)
+    );
   }
 
   let automaticLabel = 'Plan completo';
 
   if(scope === 'month'){
-    automaticLabel = data.assignedMonth
-      ? `Mes ${data.assignedMonth}`
+    automaticLabel = assignedMonth
+      ? `Mes ${assignedMonth}`
       : 'Mes completo';
   }
 
   if(scope === 'week'){
-    automaticLabel = data.assignedWeek
-      ? `Semana ${data.assignedWeek}`
+    automaticLabel = assignedWeek
+      ? `Semana ${assignedWeek}`
       : 'Semana completa';
   }
 
   if(scope === 'day'){
     const dayLetter =
-      data.assignedSessionNumber === '1' ? 'A' :
-      data.assignedSessionNumber === '2' ? 'B' :
-      data.assignedSessionNumber === '3' ? 'C' :
-      data.assignedSessionNumber || '';
+      assignedSessionNumber === 1 ? 'A' :
+      assignedSessionNumber === 2 ? 'B' :
+      assignedSessionNumber === 3 ? 'C' :
+      assignedSessionNumber;
 
-    automaticLabel = data.assignedWeek
-      ? `Día ${dayLetter} · Semana ${data.assignedWeek}`
+    automaticLabel = assignedWeek
+      ? `Día ${dayLetter} · Semana ${assignedWeek}`
       : `Día ${dayLetter}`;
   }
 
   const cleanAssignment = {
-    clientId: data.clientId,
-    programId: data.programId,
+    clientId,
+    programId,
+
     status: 'activo',
+
     assignmentScope: scope,
     assignedLevel: data.assignedLevel || 'N1',
-    currentWeek: data.currentWeek || 1,
 
-    assignedMonth: assignedMonth,
-assignedWeek: assignedWeek,
-assignedSessionNumber: assignedSessionNumber,
+    currentWeek,
 
-    commercialLabel: data.commercialLabel || automaticLabel,
+    assignedMonth,
+    assignedWeek,
+    assignedSessionNumber,
+
+    commercialLabel: data.commercialLabel?.trim() || automaticLabel,
+
     startDate: data.startDate || todayISO(),
+
     coachNotes: data.coachNotes || ''
   };
 
-  const { error: deErr } = await db
+  /*
+    Solo debe quedar una asignación activa por cliente.
+    Si estamos editando una asignación existente, no desactivamos esa misma antes de guardarla.
+  */
+  let deactivateQuery = db
     .from('client_program_assignments')
     .update({ status: 'inactivo' })
-    .eq('client_id', cleanAssignment.clientId)
+    .eq('client_id', clientId)
     .eq('status', 'activo');
 
-  if(deErr) throw deErr;
+  if(id){
+    deactivateQuery = deactivateQuery.neq('id', id);
+  }
+
+  const { error: deactivateError } = await deactivateQuery;
+
+  if(deactivateError) throw deactivateError;
 
   state.clientProgramAssignments = state.clientProgramAssignments.map(a => {
-    if(a.clientId === cleanAssignment.clientId && a.status === 'activo' && a.id !== id){
-      return { ...a, status:'inactivo' };
+    const sameClient = String(a.clientId || a.client_id) === String(clientId);
+    const sameAssignment = id && String(a.id) === String(id);
+    const active = String(a.status || 'activo') === 'activo';
+
+    if(sameClient && active && !sameAssignment){
+      return { ...a, status: 'inactivo' };
     }
+
     return a;
   });
 
   await upsert('clientProgramAssignments', cleanAssignment);
 
-  showToast('Entrenamiento asignado al cliente');
+  showToast(id ? 'Asignación actualizada' : 'Entrenamiento asignado al cliente');
 }
     else if(type==='assessment'){
       const assessmentForm=e.target;const assessmentId=uid();
@@ -4697,12 +5223,64 @@ assignedSessionNumber: assignedSessionNumber,
 
 async function saveSettings(){
   try{
-    ['coachName','coachEmail','coachPhone','coachCity','coachWeb','coachDesc','currency','timezone','language','defaultWa','nutritionDisclaimer','legalDisclaimer'].forEach(id=>{const el=document.getElementById(id);if(el)state.settings[id]=el.value;});
-    const payload=camelToSnake({id:'main',...state.settings});
-    const{error}=await db.from('settings').upsert(payload,{onConflict:'id'}).select().single();
-    if(error)throw error;
+    const ids = [
+      'adminUsername',
+      'coachName',
+      'coachEmail',
+      'coachPhone',
+      'coachCity',
+      'coachWeb',
+      'coachDesc',
+      'currency',
+      'timezone',
+      'language',
+      'defaultWa',
+      'nutritionDisclaimer',
+      'legalDisclaimer'
+    ];
+
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) state.settings[id] = el.value;
+    });
+
+    // La contraseña solo se cambia si escribes una nueva.
+    const passEl = document.getElementById('adminPassword');
+    const newPass = passEl ? passEl.value.trim() : '';
+
+    if(newPass){
+      state.settings.adminPassword = newPass;
+    }
+
+    if(!state.settings.adminUsername || !state.settings.adminUsername.trim()){
+      state.settings.adminUsername = 'abel_admin';
+    }
+
+    const payload = camelToSnake({
+      id: 'main',
+      ...state.settings
+    });
+
+    // Si no escribiste contraseña nueva, no tocamos la anterior.
+    if(!newPass){
+      delete payload.admin_password;
+    }
+
+    const { error } = await db
+      .from('settings')
+      .upsert(payload, { onConflict: 'id' })
+      .select()
+      .single();
+
+    if(error) throw error;
+
+    if(passEl) passEl.value = '';
+
     showToast('Configuración guardada');
-  }catch(error){console.error(error);showToast('Error guardando configuración');}
+  }catch(error){
+    console.error(error);
+    showToast('Error guardando configuración');
+  }
 }
 </script>
 </body>
