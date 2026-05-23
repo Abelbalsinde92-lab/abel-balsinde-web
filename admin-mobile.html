@@ -924,6 +924,7 @@ trainingWeeks:[],
 trainingSessions:[],
 trainingBlocks:[],
 trainingExercises:[],
+videoLibrary:[],
 assignments:[],
 sessionLogs:[],
 activeTrainingClientId:null,
@@ -1303,6 +1304,7 @@ async function loadAllData(){
       {data:tsessions},
       {data:tblocks},
       {data:texercises},
+      {data:videos},
       {data:assignments},
       {data:slogs},
       {data:templates},
@@ -1367,6 +1369,10 @@ db.from('training_exercises')
   .select('*')
   .order('exercise_order'),
 
+db.from('exercise_video_library')
+  .select('*')
+  .order('priority'),
+
 db.from('client_program_assignments')
   .select('*'),
 
@@ -1410,6 +1416,7 @@ state.trainingWeeks = mapArr(tweeks);
 state.trainingSessions = mapArr(tsessions);
 state.trainingBlocks = mapArr(tblocks);
 state.trainingExercises = mapArr(texercises);
+state.videoLibrary = mapArr(videos);
 state.assignments = mapArr(assignments);
     state.sessionLogs = mapArr(slogs);
     state.templates = mapArr(templates);
@@ -3815,11 +3822,69 @@ function closeVideoModal(){
   if(body) body.innerHTML = '';
 }
 
+function getExerciseVideoUrl(ex){
+  const direct =
+    ex.videoUrl ||
+    ex.video_url ||
+    ex.videoURL ||
+    '';
+
+  if(direct){
+    return direct;
+  }
+
+  const family =
+    ex.videoFamily ||
+    ex.video_family ||
+    '';
+
+  if(!family){
+    return '';
+  }
+
+  const video = state.videoLibrary.find(v =>
+    String(v.videoFamily || v.video_family || '').trim() === String(family).trim() &&
+    String(v.status || v.videoStatus || v.video_status || 'active').toLowerCase() !== 'inactive'
+  );
+
+  return video?.videoUrl || video?.video_url || '';
+}
+
+function normalizeVideoUrl(url){
+  if(!url) return '';
+
+  const raw = String(url).trim();
+
+  if(raw.includes('youtube.com/watch?v=')){
+    const id = raw.split('v=')[1]?.split('&')[0];
+    return id ? `https://www.youtube.com/embed/${id}` : raw;
+  }
+
+  if(raw.includes('youtu.be/')){
+    const id = raw.split('youtu.be/')[1]?.split('?')[0];
+    return id ? `https://www.youtube.com/embed/${id}` : raw;
+  }
+
+  return raw;
+}
+
+function openExerciseVideo(url){
+  const clean = normalizeVideoUrl(url);
+
+  if(!clean){
+    showToast('Este ejercicio no tiene vídeo cargado','err');
+    return;
+  }
+
+  window.open(clean, '_blank', 'noopener');
+}
+
 function buildWorkoutExerciseCard(ex, index, clientId){
   const exId = getExerciseId(ex, index);
   const done = isExerciseDone(clientId, exId);
   const videoUrl = getExerciseVideoUrl(ex);
 const info = getExerciseInfo(ex);
+const videoUrl = getExerciseVideoUrl(ex);
 
   return `
     <div class="ex-card ${done ? 'done' : ''}">
@@ -3867,15 +3932,15 @@ const info = getExerciseInfo(ex);
       </div>
 
       <div class="ex-actions">
+  ${
+    videoUrl
+      ? `<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${esc(videoUrl)}')">Video</button>`
+      : `<button class="btn btn-s btn-sm" disabled>Sin video</button>`
+  }
+
   <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
     ${done ? 'Terminado' : 'Marcar'}
   </button>
-
-  ${
-    videoUrl
-      ? `<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`
-      : ''
-  }
 </div>
     </div>
   `;
