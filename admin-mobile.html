@@ -70,6 +70,10 @@ a{text-decoration:none;color:inherit}
 .top-date{font-family:var(--font-m);font-size:.6rem;letter-spacing:.06em;color:var(--text-2);margin-left:auto}
 .top-btn{min-width:var(--touch);height:var(--touch);background:var(--card);border:1px solid var(--card-border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-2);padding:0 12px;gap:6px;font-family:var(--font-m);font-size:.65rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
 .top-btn:active{background:rgba(255,255,255,.06);color:var(--text)}
+.top-btn:disabled{
+  opacity:.45;
+  pointer-events:none;
+}
 .top-btn.pri{background:var(--text);color:var(--bg);border-color:var(--text)}
 .top-btn.pri:active{opacity:.85}
 
@@ -320,12 +324,13 @@ a{text-decoration:none;color:inherit}
 <div id="app" class="hidden">
   <!-- TOP -->
   <header class="top">
-    <div>
-      <span class="top-brand">AB</span> <span class="top-sub">FIELD</span>
-    </div>
-    <span class="top-date" id="top-date"></span>
-    <button class="top-btn pri" onclick="openModal('reservation')">＋ Sesión</button>
-  </header>
+  <div>
+    <span class="top-brand">AB</span> <span class="top-sub">FIELD</span>
+  </div>
+  <span class="top-date" id="top-date"></span>
+  <button class="top-btn" onclick="refresh()" title="Actualizar datos">↻</button>
+  <button class="top-btn pri" onclick="openModal('reservation')">＋ Sesión</button>
+</header>
 
   <!-- SCREENS -->
   <div class="wrap">
@@ -541,8 +546,9 @@ const db = supabase.createClient(SUPA_URL, SUPA_KEY);
 const state = {
   clients:[],
   todayRes:[],
-  futureRes:[],
-  allRes:[],
+   futureRes:[],
+   pastRes:[],
+   allRes:[],
   payments:[],
   alertas:[],
   todayCheckins:[],
@@ -572,13 +578,54 @@ let activeModal=null;
 /* ── HELPERS ── */
 function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function money(n){return `${Number(n||0).toLocaleString('es-ES')}€`}
-function todayISO(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+
+function normalizeNumberInput(v){
+  if(v === null || v === undefined) return null;
+
+  const clean = String(v)
+    .trim()
+    .replace(/\s/g,'')
+    .replace(',', '.');
+
+  if(clean === '') return null;
+
+  const n = Number(clean);
+
+  return Number.isFinite(n) ? n : null;
+}
+
+function money(n){
+  const value = Number(n || 0);
+
+  if(!Number.isFinite(value)){
+    return '0€';
+  }
+
+  return `${value.toLocaleString('es-ES')}€`;
+}
+
+function todayISO(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function formatDate(s){
+  if(!s) return '—';
+  const [y,m,d] = String(s).split('-');
+  return y && m && d ? `${d}/${m}/${y}` : s;
+}
 function formatDate(s){if(!s)return'—';const[y,m,d]=String(s).split('-');return y&&m&&d?`${d}/${m}/${y}`:s}
 function formatTime(s){return s?String(s).slice(0,5):'—'}
 function initials(name){return(name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'?'}
 function firstName(name){return String(name||'').split(/\s+/)[0]||''}
 function clientById(id){return state.clients.find(c=>String(c.id)===String(id))}
+
+function reservationById(id){
+  if(!id) return {};
+
+  return [...state.todayRes, ...state.futureRes, ...state.pastRes]
+    .find(r => String(r.id) === String(id)) || {};
+}
 
 function snakeToCamel(obj){
   if(!obj||typeof obj!=='object')return obj;
@@ -605,6 +652,60 @@ function waUrl(phone,msg){
 }
 function openWA(phone,msg){window.open(waUrl(phone,msg),'_blank','noopener')}
 function openCoachWA(){openWA(state.settings.coachPhone||COACH_PHONE_DEFAULT,'Hola Abel.')}
+
+function getClientAccessPath(client){
+  return '/cliente.html';
+}
+
+function getClientAccessUrl(client){
+  const origin = window.location.origin;
+  return origin + getClientAccessPath(client) + '?client=' + encodeURIComponent(client.id);
+}
+
+function copyClientLink(clientId){
+  const c = clientById(clientId);
+
+  if(!c){
+    showToast('Cliente no encontrado','err');
+    return;
+  }
+
+  const url = getClientAccessUrl(c);
+
+  navigator.clipboard.writeText(url).then(()=>{
+    showToast('Link copiado ✓','ok');
+  }).catch(()=>{
+    prompt('Copia este link:', url);
+  });
+}
+
+function sendClientAccessWA(clientId){
+  const c = clientById(clientId);
+
+  if(!c){
+    showToast('Cliente no encontrado','err');
+    return;
+  }
+
+  const url = getClientAccessUrl(c);
+  const code = c.accessCode || '';
+
+  const msg = c.preferredLang === 'sr'
+    ? `Zdravo ${firstName(c.name)}, ovo je pristup tvojoj klijentskoj zoni AB SYSTEM:
+
+${url}
+
+Telefon: ${c.phone || ''}
+Kod: ${code}`
+    : `Hola ${firstName(c.name)}, este es tu acceso al área cliente de AB SYSTEM:
+
+${url}
+
+Teléfono: ${c.phone || ''}
+Código: ${code}`;
+
+  openWA(c.phone || state.settings.coachPhone, msg);
+}
 
 /* ── ALERT HELPERS ── */
 function getAlertClientId(a){return a.clientsId||a.clientesId||a.clienteId||a.clientId||a.client_id||''}
@@ -787,11 +888,13 @@ function doLogout(){
 /* ── DATA LOAD: server-side filtered for speed on mobile ── */
 async function loadAllData(){
   try{
-    const today=todayISO();
+    const today = todayISO();
+
     const [
       {data:clients},
       {data:todayRes},
       {data:futureRes},
+      {data:pastRes},
       {data:payments},
       {data:alertas},
       {data:todayCI},
@@ -805,25 +908,80 @@ async function loadAllData(){
       {data:settings}
     ] = await Promise.all([
       db.from('clients').select('*').order('name'),
-      db.from('reservations').select('*').eq('date',today).order('time'),
-      db.from('reservations').select('*').gt('date',today).order('date').limit(80),
-      db.from('payments').select('*').order('due_date',{ascending:false}).limit(300),
-      db.from('admin_alertas_detalle').select('*').order('created_at',{ascending:false}).limit(200),
-      db.from('client_daily_checkins').select('*').eq('checkin_date',today),
-      db.from('client_daily_checkins').select('*').order('checkin_date',{ascending:false}).limit(80),
-      db.from('training_programs').select('*'),
-      db.from('client_program_assignments').select('*'),
-      db.from('client_session_logs').select('*').order('created_at',{ascending:false}).limit(200),
-      db.from('templates').select('*').order('name'),
-      db.from('client_assessments').select('*').order('assessment_date',{ascending:false}).limit(80),
-      db.from('metrics').select('*').order('date',{ascending:false}).limit(150),
-      db.from('settings').select('*').eq('id','main').maybeSingle()
+
+      db.from('reservations')
+        .select('*')
+        .eq('date', today)
+        .order('time'),
+
+      db.from('reservations')
+        .select('*')
+        .gt('date', today)
+        .order('date')
+        .limit(80),
+
+      db.from('reservations')
+        .select('*')
+        .lt('date', today)
+        .order('date', { ascending:false })
+        .limit(80),
+
+      db.from('payments')
+        .select('*')
+        .order('due_date', { ascending:false })
+        .limit(300),
+
+      db.from('admin_alertas_detalle')
+        .select('*')
+        .order('created_at', { ascending:false })
+        .limit(200),
+
+      db.from('client_daily_checkins')
+        .select('*')
+        .eq('checkin_date', today),
+
+      db.from('client_daily_checkins')
+        .select('*')
+        .order('checkin_date', { ascending:false })
+        .limit(80),
+
+      db.from('training_programs')
+        .select('*'),
+
+      db.from('client_program_assignments')
+        .select('*'),
+
+      db.from('client_session_logs')
+        .select('*')
+        .order('created_at', { ascending:false })
+        .limit(200),
+
+      db.from('templates')
+        .select('*')
+        .order('name'),
+
+      db.from('client_assessments')
+        .select('*')
+        .order('assessment_date', { ascending:false })
+        .limit(80),
+
+      db.from('metrics')
+        .select('*')
+        .order('date', { ascending:false })
+        .limit(150),
+
+      db.from('settings')
+        .select('*')
+        .eq('id','main')
+        .maybeSingle()
     ]);
 
     state.clients = mapArr(clients);
     state.todayRes = mapArr(todayRes);
     state.futureRes = mapArr(futureRes);
-    state.allRes = [...state.todayRes, ...state.futureRes];
+    state.pastRes = mapArr(pastRes);
+    state.allRes = [...state.todayRes, ...state.futureRes, ...state.pastRes];
+
     state.payments = mapArr(payments);
     state.alertas = mapArr(alertas);
     state.todayCheckins = mapArr(todayCI);
@@ -834,19 +992,32 @@ async function loadAllData(){
     state.templates = mapArr(templates);
     state.assessments = mapArr(assessments);
     state.metrics = mapArr(metrics);
-    if(settings)state.settings={...state.settings,...snakeToCamel(settings)};
+
+    if(settings){
+      state.settings = {
+        ...state.settings,
+        ...snakeToCamel(settings)
+      };
+    }
 
     renderAll();
     showToast('Datos cargados ✓','ok');
+
   }catch(err){
-    console.error('loadAllData error:',err);
+    console.error('loadAllData error:', err);
     showToast('Error cargando datos','err');
   }
 }
 
 async function refresh(){
-  showToast('Actualizando…','ok');
-  await loadAllData();
+  try{
+    showToast('Actualizando…','ok');
+    await loadAllData();
+    showToast('Datos actualizados ✓','ok');
+  }catch(err){
+    console.error(err);
+    showToast('Error actualizando','err');
+  }
 }
 </script>
 
@@ -932,8 +1103,9 @@ function buildSessionCard(r){
     </div>
     <div class="sc-acts">
       ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
-      ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>`:''}
-      ${status!=='realizada'?`<button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Realizada</button>`:''}
+<button class="btn btn-s btn-sm" onclick="openModal('reservation','${r.id}')">Editar</button>
+${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>`:''}
+${status!=='realizada'?`<button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Realizada</button>`:''}
       ${status==='reservada'?`<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>`:''}
       ${status!=='cancelada'&&status!=='realizada'?`<button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>`:''}
     </div>
@@ -942,16 +1114,64 @@ function buildSessionCard(r){
 
 async function updateResStatus(id,status){
   try{
-    const{data,error}=await db.from('reservations').update({status}).eq('id',id).select().single();
-    if(error)throw error;
-    const upd=snakeToCamel(data);
-    const idx=state.todayRes.findIndex(r=>r.id===id);
-    if(idx>=0)state.todayRes[idx]=upd;
-    const idxF=state.futureRes.findIndex(r=>r.id===id);
-    if(idxF>=0)state.futureRes[idxF]=upd;
+    const { data, error } = await db
+      .from('reservations')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if(error) throw error;
+
+    const upd = snakeToCamel(data);
+
+    // Quitar la reserva de todos los grupos antes de recolocarla
+    state.todayRes = state.todayRes.filter(r => String(r.id) !== String(upd.id));
+    state.futureRes = state.futureRes.filter(r => String(r.id) !== String(upd.id));
+    state.pastRes = state.pastRes.filter(r => String(r.id) !== String(upd.id));
+
+    const today = todayISO();
+
+    if(upd.date === today){
+      state.todayRes.push(upd);
+    }else if(upd.date > today){
+      state.futureRes.push(upd);
+    }else{
+      state.pastRes.push(upd);
+    }
+
+    // Ordenar listas
+    state.todayRes.sort((a,b) =>
+      String(a.time || '').localeCompare(String(b.time || ''))
+    );
+
+    state.futureRes.sort((a,b) =>
+      String((a.date || '') + (a.time || '')).localeCompare(
+        String((b.date || '') + (b.time || ''))
+      )
+    );
+
+    state.pastRes.sort((a,b) =>
+      String((b.date || '') + (b.time || '')).localeCompare(
+        String((a.date || '') + (a.time || ''))
+      )
+    );
+
+    state.allRes = [...state.todayRes, ...state.futureRes, ...state.pastRes];
+
     renderScr(currentScr);
-    showToast(status==='realizada'?'✓ Marcada como realizada':'Reserva actualizada','ok');
-  }catch(err){console.error(err);showToast('Error actualizando','err')}
+
+    showToast(
+      status === 'realizada'
+        ? '✓ Marcada como realizada'
+        : 'Reserva actualizada',
+      'ok'
+    );
+
+  }catch(err){
+    console.error('updateResStatus error:', err);
+    showToast('Error actualizando','err');
+  }
 }
 </script>
 
@@ -1008,49 +1228,117 @@ function renderClientes(){
 }
 
 function buildClientCard(c){
-  const next=state.allRes.filter(r=>(r.clientId||r.client_id)===c.id&&r.date>=todayISO())
-    .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
-  const pend=getClientPendingPayments(c.id);
-  const alerts=getClientPendingAlerts(c.id);
-  const critical=alerts.some(a=>a.nivel==='critica'||a.nivel==='alerta');
-  const ci=getClientTodayCheckin(c.id);
-  const ciStatus=ci?getCheckinStatus(ci):null;
-  const assign=getClientActiveAssignment(c.id);
-  const program=getAssignmentProgram(assign);
+  const next = state.allRes
+    .filter(r => String(r.clientId || r.client_id) === String(c.id) && String(r.date || '') >= todayISO())
+    .sort((a,b) => String((a.date || '') + (a.time || '')).localeCompare(String((b.date || '') + (b.time || ''))))[0];
 
-  const statusBadge=badge(c.status||'prospecto',c.status||'prospecto');
-  const sideBadges=[];
-  if(alerts.length)sideBadges.push(badge(`${alerts.length} ${critical?'⚠':'!'}`,critical?'alerta':'revisar'));
-  if(ci&&ciStatus==='alerta')sideBadges.push(badge('CI ⚠','alerta'));
-  else if(ci&&ciStatus==='revisar')sideBadges.push(badge('CI revisar','revisar'));
+  const pend = getClientPendingPayments(c.id);
+  const alerts = getClientPendingAlerts(c.id);
+  const critical = alerts.some(a => a.nivel === 'critica' || a.nivel === 'alerta');
+
+  const ci = getClientTodayCheckin(c.id);
+  const ciStatus = ci ? getCheckinStatus(ci) : null;
+
+  const assign = getClientActiveAssignment(c.id);
+  const program = getAssignmentProgram(assign);
+
+  const statusBadge = badge(c.status || 'prospecto', c.status || 'prospecto');
+
+  const sideBadges = [];
+
+  if(alerts.length){
+    sideBadges.push(
+      badge(`${alerts.length} ${critical ? '⚠' : '!'}`, critical ? 'alerta' : 'revisar')
+    );
+  }
+
+  if(ci && ciStatus === 'alerta'){
+    sideBadges.push(badge('CI ⚠','alerta'));
+  }else if(ci && ciStatus === 'revisar'){
+    sideBadges.push(badge('CI revisar','revisar'));
+  }
 
   return `
-  <div class="cc">
-    <div class="cc-top">
-      <div class="av">${initials(c.name)}</div>
-      <div style="flex:1;min-width:0">
-        <div class="cc-name">${esc(c.name)}</div>
-        <div class="cc-meta">${esc(c.plan||'Sin plan')} · ${esc(c.phone||'Sin tel.')}</div>
+    <div class="cc">
+      <div class="cc-top">
+        <div class="av">${initials(c.name)}</div>
+
+        <div style="flex:1;min-width:0">
+          <div class="cc-name">${esc(c.name)}</div>
+          <div class="cc-meta">${esc(c.plan || 'Sin plan')} · ${esc(c.phone || 'Sin tel.')}</div>
+        </div>
+
+        <div class="cc-badges">
+          ${statusBadge}
+          ${sideBadges.join('')}
+        </div>
       </div>
-      <div class="cc-badges">
-        ${statusBadge}
-        ${sideBadges.join('')}
+
+      <div class="cc-rows">
+        <div class="cc-row">
+          <span class="dk">Próx. sesión</span>
+          <span class="sc-v">${next ? `${formatDate(next.date)} ${formatTime(next.time)}` : '—'}</span>
+        </div>
+
+        <div class="cc-row">
+          <span class="dk">Pago</span>
+          <span>
+            ${
+              pend.length
+                ? badge(money(pend.reduce((s,p) => s + Number(p.amount || 0), 0)) + ' pend.','pendiente')
+                : badge('Al día','pagado')
+            }
+          </span>
+        </div>
+
+        ${
+          program
+            ? `
+              <div class="cc-row">
+                <span class="dk">Programa</span>
+                <span class="sc-v" style="color:var(--sport);white-space:normal;max-width:55%;font-size:.78rem">
+                  ${esc(program.name || program.nameEs || '—')}
+                </span>
+              </div>
+            `
+            : ''
+        }
+
+        ${
+          c.accessCode
+            ? `
+              <div class="cc-row">
+                <span class="dk">Código</span>
+                <span class="sc-v mono" style="color:var(--sport);font-size:.78rem">${esc(c.accessCode)}</span>
+              </div>
+            `
+            : ''
+        }
+      </div>
+
+      <div class="cc-acts">
+        <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
+
+        ${
+          c.phone
+            ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}.')">WA</button>`
+            : ''
+        }
+
+        <button class="btn btn-s btn-sm" onclick="copyClientLink('${c.id}')">Copiar acceso</button>
+
+        ${
+          c.phone
+            ? `<button class="btn btn-wa btn-sm" onclick="sendClientAccessWA('${c.id}')">Enviar acceso</button>`
+            : ''
+        }
+
+        <button class="btn btn-s btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
+        <button class="btn btn-s btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
+        <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
       </div>
     </div>
-    <div class="cc-rows">
-      <div class="cc-row"><span class="dk">Próx. sesión</span><span class="sc-v">${next?`${formatDate(next.date)} ${formatTime(next.time)}`:'—'}</span></div>
-      <div class="cc-row"><span class="dk">Pago</span><span>${pend.length?badge(money(pend.reduce((s,p)=>s+Number(p.amount||0),0))+' pend.','pendiente'):badge('Al día','pagado')}</span></div>
-      ${program?`<div class="cc-row"><span class="dk">Programa</span><span class="sc-v" style="color:var(--sport);white-space:normal;max-width:55%;font-size:.78rem">${esc(program.name||program.nameEs||'')}</span></div>`:''}
-      ${c.accessCode?`<div class="cc-row"><span class="dk">Código</span><span class="sc-v mono" style="color:var(--sport);font-size:.78rem">${esc(c.accessCode)}</span></div>`:''}
-    </div>
-    <div class="cc-acts">
-      <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
-      ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}.')">WA</button>`:''}
-      <button class="btn btn-s btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
-      <button class="btn btn-s btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
-      <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
-    </div>
-  </div>`;
+  `;
 }
 
 function openProfile(id){
@@ -1090,13 +1378,15 @@ function renderPerfil(){
   el.innerHTML=`
     <!-- Quick actions row -->
     <div class="qrow">
-      ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}.')">WA</button>`:''}
-      <button class="btn btn-p btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
-      <button class="btn btn-p btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
-      <button class="btn btn-b btn-sm" onclick="openModal('metric',null,{clientId:'${c.id}'})">+ Métrica</button>
-      <button class="btn btn-b btn-sm" onclick="openModal('note',null,{clientId:'${c.id}'})">+ Nota</button>
-      <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
-    </div>
+  ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}.')">WA</button>`:''}
+  <button class="btn btn-s btn-sm" onclick="copyClientLink('${c.id}')">Copiar acceso</button>
+  ${c.phone?`<button class="btn btn-wa btn-sm" onclick="sendClientAccessWA('${c.id}')">Enviar acceso</button>`:''}
+  <button class="btn btn-p btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
+  <button class="btn btn-p btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
+  <button class="btn btn-b btn-sm" onclick="openModal('metric',null,{clientId:'${c.id}'})">+ Métrica</button>
+  <button class="btn btn-b btn-sm" onclick="openModal('note',null,{clientId:'${c.id}'})">+ Nota</button>
+  <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
+</div>
 
     <!-- Summary -->
     <div class="psum">
@@ -1155,48 +1445,109 @@ function renderPerfil(){
     </div>
 
     <!-- SESIONES TAB -->
-    <div id="pt-sesiones" class="ptc">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
-        <button class="btn btn-p btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
-      </div>
-      ${reservs.length?reservs.slice(0,30).map(r=>`
+<div id="pt-sesiones" class="ptc">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+    <button class="btn btn-p btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
+  </div>
+
+  ${
+    reservs.length
+      ? reservs.slice(0,30).map(r => `
         <div class="card">
           <div class="card-body">
             <div class="dr"><span class="dk">Fecha</span><span class="dv">${formatDate(r.date)} ${formatTime(r.time)}</span></div>
-            <div class="dr"><span class="dk">Tipo</span><span class="dv">${esc(r.type||'—')}</span></div>
-            <div class="dr"><span class="dk">Lugar</span><span class="dv">${esc(r.place||'—')}</span></div>
-            <div class="dr"><span class="dk">Estado</span><span>${badge(r.status||'reservada',r.status||'reservada')}</span></div>
+            <div class="dr"><span class="dk">Tipo</span><span class="dv">${esc(r.type || '—')}</span></div>
+            <div class="dr"><span class="dk">Lugar</span><span class="dv">${esc(r.place || '—')}</span></div>
+            <div class="dr"><span class="dk">Estado</span><span>${badge(r.status || 'reservada', r.status || 'reservada')}</span></div>
           </div>
-          ${r.status!=='realizada'&&r.status!=='cancelada'?`
-          <div class="card-acts">
-            ${r.status==='reservada'?`<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>`:''}
-            <button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Realizada</button>
-            <button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>
-          </div>`:''}
-        </div>`).join(''):emptyState('Sin sesiones','')}
-    </div>
 
-    <!-- PAGOS TAB -->
-    <div id="pt-pagos" class="ptc">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
-        <button class="btn btn-p btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
-      </div>
-      ${pays.length?pays.map(p=>`
+          <div class="card-acts">
+            <button class="btn btn-s btn-sm" onclick="openModal('reservation','${r.id}')">Editar</button>
+
+            ${
+              r.status !== 'realizada' && r.status !== 'cancelada'
+                ? `
+                  ${r.status === 'reservada'
+                    ? `<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>`
+                    : ''
+                  }
+                  <button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Realizada</button>
+                  <button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>
+                `
+                : ''
+            }
+          </div>
+        </div>
+      `).join('')
+      : emptyState('Sin sesiones','')
+  }
+</div>
+   
+   <!-- PAGOS TAB -->
+<div id="pt-pagos" class="ptc">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+    <button class="btn btn-p btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
+  </div>
+
+  ${
+    pays.length
+      ? pays.map(p => `
         <div class="card">
           <div class="card-body">
-            <div class="dr"><span class="dk">Concepto</span><span class="dv">${esc(p.concept||'—')}</span></div>
-            <div class="dr"><span class="dk">Importe</span><span class="dv mono">${money(p.amount)}</span></div>
-            <div class="dr"><span class="dk">Vence</span><span class="dv">${formatDate(p.dueDate||p.due_date)}</span></div>
-            <div class="dr"><span class="dk">Estado</span><span>${badge(p.status,p.status)}</span></div>
-            ${p.method?`<div class="dr"><span class="dk">Método</span><span class="dv">${esc(p.method)}</span></div>`:''}
+            <div class="dr">
+              <span class="dk">Concepto</span>
+              <span class="dv">${esc(p.concept || '—')}</span>
+            </div>
+
+            <div class="dr">
+              <span class="dk">Importe</span>
+              <span class="dv mono">${money(p.amount)}</span>
+            </div>
+
+            <div class="dr">
+              <span class="dk">Vence</span>
+              <span class="dv">${formatDate(p.dueDate || p.due_date)}</span>
+            </div>
+
+            <div class="dr">
+              <span class="dk">Estado</span>
+              <span>${badge(p.status || 'pendiente', p.status || 'pendiente')}</span>
+            </div>
+
+            ${
+              p.method
+                ? `
+                  <div class="dr">
+                    <span class="dk">Método</span>
+                    <span class="dv">${esc(p.method)}</span>
+                  </div>
+                `
+                : ''
+            }
           </div>
-          ${p.status!=='pagado'?`
+
           <div class="card-acts">
-            <button class="btn btn-g btn-sm" onclick="markPaid('${p.id}')">✓ Pagado</button>
-            ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te recuerdo el pago de ${esc(p.concept||'tu plan')}.')">WA cobro</button>`:''}
-          </div>`:''}
-        </div>`).join(''):emptyState('Sin pagos','')}
-    </div>
+            ${
+              p.status !== 'pagado'
+                ? `<button class="btn btn-g btn-sm" onclick="markPaid('${p.id}')">✓ Pagado</button>`
+                : ''
+            }
+
+            <button class="btn btn-s btn-sm" onclick="openModal('payment','${p.id}')">
+              Editar
+            </button>
+
+            ${
+              c.phone
+                ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te recuerdo el pago de ${esc(p.concept || 'tu plan')}.')">WA cobro</button>`
+                : ''
+            }
+          </div>
+        </div>
+      `).join('')
+      : emptyState('Sin pagos','')
+  }
+</div>
 
     <!-- MÉTRICAS TAB -->
     <div id="pt-metricas" class="ptc">
@@ -1428,63 +1779,186 @@ function renderMas(){
    RENDER · PAGOS / CHECK-INS / WHATSAPP / AJUSTES
 ══════════════════════════════════════════════════════════ */
 function renderPagos(){
-  const paid=state.payments.filter(p=>p.status==='pagado').reduce((s,p)=>s+Number(p.amount||0),0);
-  const pend=state.payments.filter(p=>p.status!=='pagado').reduce((s,p)=>s+Number(p.amount||0),0);
-  const overdue=state.payments.filter(p=>p.status==='vencido').length;
-  const debtClients=new Set(state.payments.filter(p=>p.status!=='pagado').map(p=>p.clientId||p.client_id)).size;
+  const paid = state.payments
+    .filter(p => p.status === 'pagado')
+    .reduce((s,p) => s + Number(p.amount || 0), 0);
 
-  document.getElementById('pag-metrics').innerHTML=`
-    <div class="mc g"><span class="mc-n" style="font-size:1.5rem">${money(paid)}</span><span class="mc-l">Cobrado</span></div>
-    <div class="mc y"><span class="mc-n" style="font-size:1.5rem">${money(pend)}</span><span class="mc-l">Pendiente</span></div>
-    <div class="mc r"><span class="mc-n">${overdue}</span><span class="mc-l">Vencidos</span></div>
-    <div class="mc b"><span class="mc-n">${debtClients}</span><span class="mc-l">Con deuda</span></div>
+  const pend = state.payments
+    .filter(p => p.status !== 'pagado')
+    .reduce((s,p) => s + Number(p.amount || 0), 0);
+
+  const overdue = state.payments
+    .filter(p => p.status === 'vencido')
+    .length;
+
+  const debtClients = new Set(
+    state.payments
+      .filter(p => p.status !== 'pagado')
+      .map(p => p.clientId || p.client_id)
+  ).size;
+
+  document.getElementById('pag-metrics').innerHTML = `
+    <div class="mc g">
+      <span class="mc-n" style="font-size:1.5rem">${money(paid)}</span>
+      <span class="mc-l">Cobrado</span>
+    </div>
+
+    <div class="mc y">
+      <span class="mc-n" style="font-size:1.5rem">${money(pend)}</span>
+      <span class="mc-l">Pendiente</span>
+    </div>
+
+    <div class="mc r">
+      <span class="mc-n">${overdue}</span>
+      <span class="mc-l">Vencidos</span>
+    </div>
+
+    <div class="mc b">
+      <span class="mc-n">${debtClients}</span>
+      <span class="mc-l">Con deuda</span>
+    </div>
   `;
 
-  const filters=[['todos','Todos'],['pendiente','Pendientes'],['vencido','Vencidos'],['pagado','Pagados']];
-  document.getElementById('pag-filters').innerHTML=filters.map(([k,l])=>
-    `<button class="fp ${filterPag===k?'on':''}" onclick="filterPag='${k}';renderPagos()">${l}</button>`
-  ).join('');
+  const filters = [
+    ['todos','Todos'],
+    ['pendiente','Pendientes'],
+    ['vencido','Vencidos'],
+    ['pagado','Pagados']
+  ];
 
-  let rows=[...state.payments].sort((a,b)=>String(b.dueDate||b.due_date||'').localeCompare(String(a.dueDate||a.due_date||'')));
-  if(filterPag!=='todos')rows=rows.filter(p=>p.status===filterPag);
+  document.getElementById('pag-filters').innerHTML = filters.map(([k,l]) => `
+    <button class="fp ${filterPag === k ? 'on' : ''}" onclick="filterPag='${k}';renderPagos()">
+      ${l}
+    </button>
+  `).join('');
 
-  document.getElementById('pag-content').innerHTML=rows.length?rows.map(p=>{
-    const c=clientById(p.clientId||p.client_id);
-    return `
-    <div class="card">
-      <div class="card-body">
-        <div class="dr"><span class="dk">Cliente</span><span class="dv">${esc(c?.name||'Cliente eliminado')}</span></div>
-        <div class="dr"><span class="dk">Concepto</span><span class="dv">${esc(p.concept||'—')}</span></div>
-        <div class="dr"><span class="dk">Importe</span><span class="dv mono" style="font-size:1.1rem">${money(p.amount)}</span></div>
-        <div class="dr"><span class="dk">Vence</span><span class="dv">${formatDate(p.dueDate||p.due_date)}</span></div>
-        <div class="dr"><span class="dk">Estado</span><span>${badge(p.status,p.status)}</span></div>
-        ${p.method?`<div class="dr"><span class="dk">Método</span><span class="dv">${esc(p.method)}</span></div>`:''}
-      </div>
-      <div class="card-acts">
-        ${p.status!=='pagado'?`<button class="btn btn-g btn-sm" onclick="markPaid('${p.id}')">✓ Pagado</button>`:''}
-        ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te recuerdo el pago de ${esc(p.concept||'tu plan')}.')">WA cobro</button>`:''}
-        ${c?.id?`<button class="btn btn-s btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
-      </div>
-    </div>`;
-  }).join(''):emptyState('Sin pagos','Registra el primer pago');
+  let rows = [...state.payments].sort((a,b) =>
+    String(b.dueDate || b.due_date || '').localeCompare(
+      String(a.dueDate || a.due_date || '')
+    )
+  );
 
-  // Quick add at bottom
-  document.getElementById('pag-content').innerHTML+=`
+  if(filterPag !== 'todos'){
+    rows = rows.filter(p => p.status === filterPag);
+  }
+
+  const html = rows.length
+    ? rows.map(p => {
+        const c = clientById(p.clientId || p.client_id);
+
+        return `
+          <div class="card">
+            <div class="card-body">
+              <div class="dr">
+                <span class="dk">Cliente</span>
+                <span class="dv">${esc(c?.name || 'Cliente eliminado')}</span>
+              </div>
+
+              <div class="dr">
+                <span class="dk">Concepto</span>
+                <span class="dv">${esc(p.concept || '—')}</span>
+              </div>
+
+              <div class="dr">
+                <span class="dk">Importe</span>
+                <span class="dv mono" style="font-size:1.1rem">${money(p.amount)}</span>
+              </div>
+
+              <div class="dr">
+                <span class="dk">Vence</span>
+                <span class="dv">${formatDate(p.dueDate || p.due_date)}</span>
+              </div>
+
+              <div class="dr">
+                <span class="dk">Estado</span>
+                <span>${badge(p.status || 'pendiente', p.status || 'pendiente')}</span>
+              </div>
+
+              ${
+                p.method
+                  ? `
+                    <div class="dr">
+                      <span class="dk">Método</span>
+                      <span class="dv">${esc(p.method)}</span>
+                    </div>
+                  `
+                  : ''
+              }
+            </div>
+
+            <div class="card-acts">
+              ${
+                p.status !== 'pagado'
+                  ? `<button class="btn btn-g btn-sm" onclick="markPaid('${p.id}')">✓ Pagado</button>`
+                  : ''
+              }
+
+              <button class="btn btn-s btn-sm" onclick="openModal('payment','${p.id}')">
+                Editar
+              </button>
+
+              ${
+                c?.phone
+                  ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te recuerdo el pago de ${esc(p.concept || 'tu plan')}.')">WA cobro</button>`
+                  : ''
+              }
+
+              ${
+                c?.id
+                  ? `<button class="btn btn-s btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`
+                  : ''
+              }
+            </div>
+          </div>
+        `;
+      }).join('')
+    : emptyState('Sin pagos','Registra el primer pago');
+
+  document.getElementById('pag-content').innerHTML = html + `
     <div style="margin-top:12px">
-      <button class="btn btn-p btn-wide" onclick="openModal('payment')">+ Registrar pago</button>
-    </div>`;
+      <button class="btn btn-p btn-wide" onclick="openModal('payment')">
+        + Registrar pago
+      </button>
+    </div>
+  `;
 }
 
 async function markPaid(id){
   try{
-    const{data,error}=await db.from('payments').update({status:'pagado',method:'Registrado'}).eq('id',id).select().single();
-    if(error)throw error;
-    const upd=snakeToCamel(data);
-    const idx=state.payments.findIndex(p=>p.id===id);
-    if(idx>=0)state.payments[idx]=upd;
-    renderScr(currentScr);
+    const { data, error } = await db
+      .from('payments')
+      .update({
+        status: 'pagado',
+        method: 'Registrado'
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if(error) throw error;
+
+    const saved = snakeToCamel(data);
+
+    const idx = state.payments.findIndex(p => String(p.id) === String(saved.id));
+
+    if(idx >= 0){
+      state.payments[idx] = saved;
+    }else{
+      state.payments.push(saved);
+    }
+
+    state.payments.sort((a,b) =>
+      String(b.dueDate || '').localeCompare(String(a.dueDate || ''))
+    );
+
+    renderAll();
+
     showToast('✓ Pago cobrado','ok');
-  }catch(err){console.error(err);showToast('Error','err')}
+
+  }catch(err){
+    console.error('markPaid error:', err);
+    showToast('Error marcando pago','err');
+  }
 }
 
 /* ── CHECK-INS ── */
@@ -1689,189 +2163,260 @@ function renderEval(){
    MODAL SYSTEM · Bottom sheet
 ══════════════════════════════════════════════════════════ */
 function closeModal(){
-  const ov=document.getElementById('modal-ov');
-  const fm=document.getElementById('modal-form');
-  if(ov)ov.classList.remove('on');
-  if(fm){fm.onsubmit=null;fm.innerHTML=''}
-  document.getElementById('modal-title').textContent='Acción';
-  activeModal=null;
+  const ov = document.getElementById('modal-ov');
+  const fm = document.getElementById('modal-form');
+
+  if(ov) ov.classList.remove('on');
+
+  if(fm){
+    fm.onsubmit = null;
+    fm.innerHTML = '';
+  }
+
+  document.getElementById('modal-title').textContent = 'Acción';
+  activeModal = null;
 }
 
 function clientOpts(selectedId=''){
-  return state.clients.map(c=>`<option value="${c.id}" ${String(selectedId)===String(c.id)?'selected':''}>${esc(c.name)}</option>`).join('');
+  return state.clients.map(c => `
+    <option value="${c.id}" ${String(selectedId) === String(c.id) ? 'selected' : ''}>
+      ${esc(c.name)}
+    </option>
+  `).join('');
 }
 
-function formData(form){return Object.fromEntries(new FormData(form).entries())}
+function formData(form){
+  return Object.fromEntries(new FormData(form).entries());
+}
 
-const TABLE_MAP={
-  clients:'clients',reservations:'reservations',payments:'payments',
-  metrics:'metrics',healthAlerts:'health_alerts'
-};
-
-async function upsertItem(stateKey,tableName,data){
+async function upsertItem(stateKey, tableName, data){
   if(activeModal?.id){
-    const{data:saved,error}=await db.from(tableName).update(camelToSnake(data)).eq('id',activeModal.id).select().single();
-    if(error)throw error;
-    const idx=state[stateKey].findIndex(x=>x.id===activeModal.id);
-    if(idx>=0)state[stateKey][idx]=snakeToCamel(saved);
-    return snakeToCamel(saved);
-  }else{
-    const{data:saved,error}=await db.from(tableName).insert(camelToSnake({id:uid(),...data})).select().single();
-    if(error)throw error;
-    state[stateKey].push(snakeToCamel(saved));
-    return snakeToCamel(saved);
+    const { data:saved, error } = await db
+      .from(tableName)
+      .update(camelToSnake(data))
+      .eq('id', activeModal.id)
+      .select()
+      .single();
+
+    if(error) throw error;
+
+    const item = snakeToCamel(saved);
+    const idx = state[stateKey].findIndex(x => String(x.id) === String(activeModal.id));
+
+    if(idx >= 0){
+      state[stateKey][idx] = item;
+    }
+
+    return item;
   }
+
+  const { data:saved, error } = await db
+    .from(tableName)
+    .insert(camelToSnake({ id:uid(), ...data }))
+    .select()
+    .single();
+
+  if(error) throw error;
+
+  const item = snakeToCamel(saved);
+  state[stateKey].push(item);
+
+  return item;
 }
 
-function openModal(type,id=null,prefill={}){
-  activeModal={type,id};
-  const form=document.getElementById('modal-form');
-  const title=document.getElementById('modal-title');
-  const P=prefill||{};
-  const actions=`<div class="fld-acts"><button type="button" class="btn btn-s" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-p">Guardar</button></div>`;
+function openModal(type, id=null, prefill={}){
+  activeModal = { type, id };
 
-  // Get existing record if editing
-  const get=(arrKey)=>state[arrKey]?.find(x=>x.id===id)||{};
+  const form = document.getElementById('modal-form');
+  const title = document.getElementById('modal-title');
+  const P = prefill || {};
 
-  if(type==='client'){
-    const c=get('clients');
-    title.textContent=id?'Editar cliente':'Nuevo cliente';
-    form.innerHTML=`
+  const actions = `
+    <div class="fld-acts">
+      <button type="button" class="btn btn-s" onclick="closeModal()">Cancelar</button>
+      <button type="submit" class="btn btn-p">Guardar</button>
+    </div>
+  `;
+
+  const get = (arrKey) => state[arrKey]?.find(x => String(x.id) === String(id)) || {};
+
+  if(type === 'client'){
+    const c = get('clients');
+
+    title.textContent = id ? 'Editar cliente' : 'Nuevo cliente';
+
+    form.innerHTML = `
       <div class="fld">
         <label class="fld-l">Nombre completo *</label>
-        <input name="name" class="fld-i" value="${esc(c.name||'')}" required autocapitalize="words">
+        <input name="name" class="fld-i" value="${esc(c.name || '')}" required autocapitalize="words">
       </div>
+
       <div class="fld-2">
         <div class="fld">
           <label class="fld-l">Teléfono</label>
-          <input name="phone" class="fld-i" value="${esc(c.phone||'')}" inputmode="tel" pattern="[0-9+\\-\\s]*">
+          <input name="phone" class="fld-i" value="${esc(c.phone || '')}" inputmode="tel" pattern="[0-9+\\-\\s]*">
         </div>
+
         <div class="fld">
           <label class="fld-l">Plan</label>
           <select name="plan" class="fld-s">
-            <option ${c.plan==='Inicio'?'selected':''}>Inicio</option>
-            <option ${c.plan==='Performance'?'selected':''}>Performance</option>
-            <option ${c.plan==='Online'?'selected':''}>Online</option>
-            <option ${c.plan==='Sin plan'?'selected':''}>Sin plan</option>
+            <option ${c.plan === 'Inicio' ? 'selected' : ''}>Inicio</option>
+            <option ${c.plan === 'Performance' ? 'selected' : ''}>Performance</option>
+            <option ${c.plan === 'Online' ? 'selected' : ''}>Online</option>
+            <option ${c.plan === 'Sin plan' ? 'selected' : ''}>Sin plan</option>
           </select>
         </div>
       </div>
+
       <div class="fld-2">
         <div class="fld">
           <label class="fld-l">Estado</label>
           <select name="status" class="fld-s">
-            <option value="prospecto" ${(c.status||'prospecto')==='prospecto'?'selected':''}>Prospecto</option>
-            <option value="activo" ${c.status==='activo'?'selected':''}>Activo</option>
-            <option value="pausado" ${c.status==='pausado'?'selected':''}>Pausado</option>
-            <option value="inactivo" ${c.status==='inactivo'?'selected':''}>Inactivo</option>
+            <option value="prospecto" ${(c.status || 'prospecto') === 'prospecto' ? 'selected' : ''}>Prospecto</option>
+            <option value="activo" ${c.status === 'activo' ? 'selected' : ''}>Activo</option>
+            <option value="pausado" ${c.status === 'pausado' ? 'selected' : ''}>Pausado</option>
+            <option value="inactivo" ${c.status === 'inactivo' ? 'selected' : ''}>Inactivo</option>
           </select>
         </div>
+
         <div class="fld">
           <label class="fld-l">Idioma</label>
           <select name="preferred_lang" class="fld-s">
-            <option value="es" ${(c.preferredLang||'es')==='es'?'selected':''}>🇪🇸 ES</option>
-            <option value="sr" ${c.preferredLang==='sr'?'selected':''}>🇷🇸 SR</option>
+            <option value="es" ${(c.preferredLang || 'es') === 'es' ? 'selected' : ''}>🇪🇸 ES</option>
+            <option value="sr" ${c.preferredLang === 'sr' ? 'selected' : ''}>🇷🇸 SR</option>
           </select>
         </div>
       </div>
+
       <div class="fld">
-        <label class="fld-l">Código de acceso (área cliente)</label>
-        <input name="access_code" class="fld-i" value="${esc(c.accessCode||'')}" placeholder="Ej: AB1234" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:.08em">
+        <label class="fld-l">Código de acceso</label>
+        <input name="access_code" class="fld-i" value="${esc(c.accessCode || '')}" placeholder="Ej: AB1234" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:.08em">
       </div>
+
       <div class="fld">
         <label class="fld-l">Email</label>
-        <input name="email" class="fld-i" value="${esc(c.email||'')}" inputmode="email" autocapitalize="off">
+        <input name="email" class="fld-i" value="${esc(c.email || '')}" inputmode="email" autocapitalize="off">
       </div>
+
       <div class="fld">
         <label class="fld-l">Objetivo principal</label>
-        <input name="objective" class="fld-i" value="${esc(c.objective||'')}">
+        <input name="objective" class="fld-i" value="${esc(c.objective || '')}">
       </div>
-      ${actions}`;
+
+      ${actions}
+    `;
   }
 
-  else if(type==='reservation'){
-    const r=get('todayRes');
-    title.textContent=id?'Editar sesión':'Nueva sesión';
-    form.innerHTML=`
+  else if(type === 'reservation'){
+    const r = id ? reservationById(id) : {};
+
+    title.textContent = id ? 'Editar sesión' : 'Nueva sesión';
+
+    form.innerHTML = `
       <div class="fld">
         <label class="fld-l">Cliente *</label>
-        <select name="clientId" class="fld-s" required>${clientOpts(r.clientId||P.clientId)}</select>
+        <select name="clientId" class="fld-s" required>
+          ${clientOpts(r.clientId || P.clientId)}
+        </select>
       </div>
+
       <div class="fld-2">
         <div class="fld">
           <label class="fld-l">Fecha *</label>
-          <input name="date" class="fld-i" type="date" value="${esc(r.date||todayISO())}" required>
+          <input name="date" class="fld-i" type="date" value="${esc(r.date || todayISO())}" required>
         </div>
+
         <div class="fld">
           <label class="fld-l">Hora *</label>
-          <input name="time" class="fld-i" type="time" value="${esc(r.time||'09:00')}" required>
+          <input name="time" class="fld-i" type="time" value="${esc(r.time || '09:00')}" required>
         </div>
       </div>
+
       <div class="fld">
         <label class="fld-l">Tipo</label>
-        <input name="type" class="fld-i" value="${esc(r.type||'Sesión personal')}">
+        <input name="type" class="fld-i" value="${esc(r.type || 'Sesión personal')}">
       </div>
+
       <div class="fld">
         <label class="fld-l">Lugar</label>
-        <input name="place" class="fld-i" value="${esc(r.place||'Belgrado')}">
+        <input name="place" class="fld-i" value="${esc(r.place || 'Belgrado')}">
       </div>
+
       <div class="fld">
         <label class="fld-l">Estado</label>
         <select name="status" class="fld-s">
-          <option value="reservada" ${(r.status||'reservada')==='reservada'?'selected':''}>Reservada</option>
-          <option value="confirmada" ${r.status==='confirmada'?'selected':''}>Confirmada</option>
-          <option value="realizada" ${r.status==='realizada'?'selected':''}>Realizada</option>
-          <option value="cancelada" ${r.status==='cancelada'?'selected':''}>Cancelada</option>
+          <option value="reservada" ${(r.status || 'reservada') === 'reservada' ? 'selected' : ''}>Reservada</option>
+          <option value="confirmada" ${r.status === 'confirmada' ? 'selected' : ''}>Confirmada</option>
+          <option value="realizada" ${r.status === 'realizada' ? 'selected' : ''}>Realizada</option>
+          <option value="cancelada" ${r.status === 'cancelada' ? 'selected' : ''}>Cancelada</option>
         </select>
       </div>
-      ${actions}`;
+
+      ${actions}
+    `;
   }
 
-  else if(type==='payment'){
-    const p=get('payments');
-    title.textContent=id?'Editar pago':'Registrar pago';
-    form.innerHTML=`
+  else if(type === 'payment'){
+    const p = get('payments');
+
+    title.textContent = id ? 'Editar pago' : 'Registrar pago';
+
+    form.innerHTML = `
       <div class="fld">
         <label class="fld-l">Cliente *</label>
-        <select name="clientId" class="fld-s" required>${clientOpts(p.clientId||P.clientId)}</select>
+        <select name="clientId" class="fld-s" required>
+          ${clientOpts(p.clientId || P.clientId)}
+        </select>
       </div>
+
       <div class="fld">
         <label class="fld-l">Concepto</label>
-        <input name="concept" class="fld-i" value="${esc(p.concept||'Mensualidad')}" autocapitalize="sentences">
+        <input name="concept" class="fld-i" value="${esc(p.concept || 'Mensualidad')}" autocapitalize="sentences">
       </div>
+
       <div class="fld">
         <label class="fld-l">Importe (€) *</label>
-        <input name="amount" class="fld-i fld-num" value="${esc(p.amount||'')}" inputmode="decimal" pattern="[0-9.,]*" placeholder="0" required>
+        <input name="amount" class="fld-i fld-num" value="${esc(p.amount || '')}" inputmode="decimal" pattern="[0-9.,]*" placeholder="0" required>
       </div>
+
       <div class="fld-2">
         <div class="fld">
           <label class="fld-l">Estado</label>
           <select name="status" class="fld-s">
-            <option value="pendiente" ${(p.status||'pendiente')==='pendiente'?'selected':''}>Pendiente</option>
-            <option value="pagado" ${p.status==='pagado'?'selected':''}>Pagado</option>
-            <option value="vencido" ${p.status==='vencido'?'selected':''}>Vencido</option>
+            <option value="pendiente" ${(p.status || 'pendiente') === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+            <option value="pagado" ${p.status === 'pagado' ? 'selected' : ''}>Pagado</option>
+            <option value="vencido" ${p.status === 'vencido' ? 'selected' : ''}>Vencido</option>
           </select>
         </div>
+
         <div class="fld">
           <label class="fld-l">Vence</label>
-          <input name="dueDate" class="fld-i" type="date" value="${esc(p.dueDate||p.due_date||todayISO())}">
+          <input name="dueDate" class="fld-i" type="date" value="${esc(p.dueDate || todayISO())}">
         </div>
       </div>
+
       <div class="fld">
         <label class="fld-l">Método</label>
-        <input name="method" class="fld-i" value="${esc(p.method||'')}" placeholder="Efectivo, transferencia, …">
+        <input name="method" class="fld-i" value="${esc(p.method || '')}" placeholder="Efectivo, transferencia, …">
       </div>
-      ${actions}`;
+
+      ${actions}
+    `;
   }
 
-  else if(type==='metric'){
-    const m=get('metrics');
-    title.textContent='Registrar métrica';
-    form.innerHTML=`
+  else if(type === 'metric'){
+    const m = get('metrics');
+
+    title.textContent = 'Registrar métrica';
+
+    form.innerHTML = `
       <div class="fld">
         <label class="fld-l">Cliente *</label>
-        <select name="clientId" class="fld-s" required>${clientOpts(m.clientId||P.clientId||state.selectedClientId)}</select>
+        <select name="clientId" class="fld-s" required>
+          ${clientOpts(m.clientId || P.clientId || state.selectedClientId)}
+        </select>
       </div>
+
       <div class="fld">
         <label class="fld-l">Tipo</label>
         <select name="type" class="fld-s">
@@ -1882,104 +2427,205 @@ function openModal(type,id=null,prefill={}){
           <option>Resistencia (1-10)</option>
         </select>
       </div>
+
       <div class="fld">
         <label class="fld-l">Valor *</label>
-        <input name="value" class="fld-i fld-num" value="${esc(m.value||'')}" inputmode="decimal" pattern="[0-9.,]*" placeholder="0" required>
+        <input name="value" class="fld-i fld-num" value="${esc(m.value || '')}" inputmode="decimal" pattern="[0-9.,]*" placeholder="0" required>
       </div>
+
       <div class="fld-2">
         <div class="fld">
           <label class="fld-l">Fecha</label>
-          <input name="date" class="fld-i" type="date" value="${esc(m.date||todayISO())}">
+          <input name="date" class="fld-i" type="date" value="${esc(m.date || todayISO())}">
         </div>
+
         <div class="fld">
           <label class="fld-l">Nota</label>
-          <input name="note" class="fld-i" value="${esc(m.note||'')}">
+          <input name="note" class="fld-i" value="${esc(m.note || '')}">
         </div>
       </div>
-      ${actions}`;
+
+      ${actions}
+    `;
   }
 
-  else if(type==='note'){
-    title.textContent='Nueva nota';
-    form.innerHTML=`
+  else if(type === 'note'){
+    title.textContent = 'Nueva nota';
+
+    form.innerHTML = `
       <div class="fld">
         <label class="fld-l">Cliente *</label>
-        <select name="clientId" class="fld-s" required>${clientOpts(P.clientId||state.selectedClientId)}</select>
+        <select name="clientId" class="fld-s" required>
+          ${clientOpts(P.clientId || state.selectedClientId)}
+        </select>
       </div>
+
       <div class="fld">
         <label class="fld-l">Nota</label>
         <textarea name="text" class="fld-t" rows="4" required autocapitalize="sentences" placeholder="Observación rápida del coach…"></textarea>
       </div>
-      ${actions}`;
+
+      ${actions}
+    `;
   }
 
   else{
-    title.textContent='No disponible';
-    form.innerHTML=`<div class="empty"><strong>Acción no disponible</strong>Aún no soportada en móvil.</div>${actions}`;
+    title.textContent = 'No disponible';
+
+    form.innerHTML = `
+      <div class="empty">
+        <strong>Acción no disponible</strong>
+        Aún no soportada en móvil.
+      </div>
+      ${actions}
+    `;
   }
 
-  form.onsubmit=saveModal;
+  form.onsubmit = saveModal;
   document.getElementById('modal-ov').classList.add('on');
-
-  // Auto-focus first text input
-  setTimeout(()=>{
-    const fi=form.querySelector('input[type="text"]:not([readonly]), input:not([type]):not([readonly]), input[type="search"]:not([readonly])');
-    if(fi&&!('ontouchstart' in window))fi.focus();
-  },100);
 }
 
 async function saveModal(e){
   e.preventDefault();
-  try{
-    const data=formData(e.target);
-    const{type,id}=activeModal||{};
 
-    if(type==='client'){
-      if(data.access_code)data.access_code=data.access_code.trim().toUpperCase();
-      await upsertItem('clients','clients',{...data,notes:id?(clientById(id)?.notes||[]):[]});
-      if(!state.selectedClientId&&!id){
-        state.selectedClientId=state.clients[state.clients.length-1]?.id||null;
+  try{
+    const data = formData(e.target);
+    const { type, id } = activeModal || {};
+
+    if(type === 'client'){
+      if(data.access_code){
+        data.access_code = data.access_code.trim().toUpperCase();
       }
-      showToast(id?'Cliente actualizado ✓':'Cliente guardado ✓','ok');
-    }
-    else if(type==='reservation'){
-      const saved=await upsertItem('todayRes','reservations',data);
-      // Re-bucket: today vs future
-      if(saved.date===todayISO()){
-        if(!state.todayRes.some(r=>r.id===saved.id))state.todayRes.push(saved);
-        state.futureRes=state.futureRes.filter(r=>r.id!==saved.id);
-      }else if(saved.date>todayISO()){
-        if(!state.futureRes.some(r=>r.id===saved.id))state.futureRes.push(saved);
-        state.todayRes=state.todayRes.filter(r=>r.id!==saved.id);
+
+      const saved = await upsertItem('clients','clients',{
+        ...data,
+        notes: id ? (clientById(id)?.notes || []) : []
+      });
+
+      if(!state.selectedClientId && !id){
+        state.selectedClientId = saved.id;
       }
-      state.allRes=[...state.todayRes,...state.futureRes];
-      showToast('Sesión guardada ✓','ok');
+
+      showToast(id ? 'Cliente actualizado ✓' : 'Cliente guardado ✓','ok');
     }
-    else if(type==='payment'){
-      await upsertItem('payments','payments',data);
-      showToast('Pago registrado ✓','ok');
+
+    else if(type === 'reservation'){
+      let saved;
+
+      if(id){
+        const { data:savedData, error } = await db
+          .from('reservations')
+          .update(camelToSnake(data))
+          .eq('id', id)
+          .select()
+          .single();
+
+        if(error) throw error;
+        saved = snakeToCamel(savedData);
+      }else{
+        const { data:savedData, error } = await db
+          .from('reservations')
+          .insert(camelToSnake({ id:uid(), ...data }))
+          .select()
+          .single();
+
+        if(error) throw error;
+        saved = snakeToCamel(savedData);
+      }
+
+      state.todayRes = state.todayRes.filter(r => String(r.id) !== String(saved.id));
+      state.futureRes = state.futureRes.filter(r => String(r.id) !== String(saved.id));
+      state.pastRes = state.pastRes.filter(r => String(r.id) !== String(saved.id));
+
+      const today = todayISO();
+
+      if(saved.date === today){
+        state.todayRes.push(saved);
+      }else if(saved.date > today){
+        state.futureRes.push(saved);
+      }else{
+        state.pastRes.push(saved);
+      }
+
+      state.todayRes.sort((a,b) => String(a.time || '').localeCompare(String(b.time || '')));
+      state.futureRes.sort((a,b) => String((a.date || '') + (a.time || '')).localeCompare(String((b.date || '') + (b.time || ''))));
+      state.pastRes.sort((a,b) => String((b.date || '') + (b.time || '')).localeCompare(String((a.date || '') + (a.time || ''))));
+
+      state.allRes = [...state.todayRes, ...state.futureRes, ...state.pastRes];
+
+      showToast(id ? 'Sesión actualizada ✓' : 'Sesión guardada ✓','ok');
     }
-    else if(type==='metric'){
-      await upsertItem('metrics','metrics',data);
-      showToast('Métrica guardada ✓','ok');
-    }
-    else if(type==='note'){
-      const c=clientById(data.clientId);
+
+    else if(type === 'payment'){
+  const amount = normalizeNumberInput(data.amount);
+
+  if(amount === null || amount < 0){
+    showToast('Importe no válido','err');
+    return;
+  }
+
+  data.amount = amount;
+
+  await upsertItem('payments','payments',data);
+
+  state.payments.sort((a,b) =>
+    String(b.dueDate || '').localeCompare(String(a.dueDate || ''))
+  );
+
+  showToast(id ? 'Pago actualizado ✓' : 'Pago registrado ✓','ok');
+}
+
+    else if(type === 'metric'){
+  const value = normalizeNumberInput(data.value);
+
+  if(value === null){
+    showToast('Valor no válido','err');
+    return;
+  }
+
+  data.value = value;
+
+  await upsertItem('metrics','metrics',data);
+
+  state.metrics.sort((a,b) =>
+    String(b.date || '').localeCompare(String(a.date || ''))
+  );
+
+  showToast('Métrica guardada ✓','ok');
+}
+
+    else if(type === 'note'){
+      const c = clientById(data.clientId);
+
       if(c){
-        const notes=Array.isArray(c.notes)?c.notes:[];
-        notes.unshift({id:uid(),text:data.text,date:todayISO()});
-        const{data:saved,error}=await db.from('clients').update({notes}).eq('id',c.id).select().single();
-        if(error)throw error;
-        Object.assign(c,snakeToCamel(saved));
+        const notes = Array.isArray(c.notes) ? c.notes : [];
+
+        notes.unshift({
+          id: uid(),
+          text: data.text,
+          date: todayISO()
+        });
+
+        const { data:saved, error } = await db
+          .from('clients')
+          .update({ notes })
+          .eq('id', c.id)
+          .select()
+          .single();
+
+        if(error) throw error;
+
+        Object.assign(c, snakeToCamel(saved));
         showToast('Nota guardada ✓','ok');
       }
     }
 
     closeModal();
     renderAll();
+
   }catch(err){
-    console.error('saveModal error:',err);
-    showToast('Error: '+(err?.message||'no se pudo guardar'),'err');
+    console.error('saveModal error:', err);
+    showToast('Error: ' + (err?.message || 'no se pudo guardar'),'err');
   }
 }
 </script>
