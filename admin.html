@@ -3727,6 +3727,43 @@ function renderPrograms(){
   document.getElementById('programsContent').innerHTML=state.programs.length?`<div class="program-grid">${state.programs.map(p=>{const c=clientById(p.clientId);return`<div class="program-card"><div class="program-cat">${esc(p.type)} · ${esc(p.level)}</div><div class="program-name">${esc(p.name)}</div><div class="program-desc">${esc(p.objective||'Sin objetivo definido')}</div><div class="data-row"><span class="data-key">Duración</span><span>${esc(p.duration||'—')}</span></div><div class="data-row"><span class="data-key">Cliente</span><span>${esc(c?.name||'Sin asignar')}</span></div><div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn btn-secondary btn-sm" onclick="openModal('program','${p.id}')">Editar</button><button class="btn btn-secondary btn-sm" onclick="duplicateProgram('${p.id}')">Duplicar</button><button class="btn btn-wa btn-sm" onclick="sendProgramWA('${p.id}')">Enviar WA</button></div></div>`;}).join('')}</div>`:emptyBlock('No hay programas creados todavía.');
 }
 
+function scopeDetail(a){
+  const scope = String(a.assignmentScope || a.assignment_scope || 'full').toLowerCase();
+
+  if(scope === 'day'){
+    const week = a.assignedWeek || a.assigned_week || a.currentWeek || a.current_week || 1;
+    const sessionNumber = Number(a.assignedSessionNumber || a.assigned_session_number || 1);
+    const dayLetter =
+      sessionNumber === 1 ? 'A' :
+      sessionNumber === 2 ? 'B' :
+      sessionNumber === 3 ? 'C' :
+      sessionNumber;
+    return `Semana ${week} · Día ${dayLetter}`;
+  }
+
+  if(scope === 'week'){
+    const week = a.assignedWeek || a.assigned_week || a.currentWeek || a.current_week || 1;
+    return `Semana ${week}`;
+  }
+
+  if(scope === 'month'){
+    const month = a.assignedMonth || a.assigned_month || 1;
+    const startWeek = (Number(month) - 1) * 4 + 1;
+    const endWeek = startWeek + 3;
+    return `Mes ${month} · Semanas ${startWeek}-${endWeek}`;
+  }
+
+  return 'Plan completo';
+}
+
+function scopeBadgeClass(scope){
+  scope = String(scope || 'full').toLowerCase();
+  if(scope === 'day')   return 'badge-alerta';
+  if(scope === 'week')  return 'badge-pendiente';
+  if(scope === 'month') return 'badge-plantilla';
+  return 'badge-pagado';
+}
+
 function renderTraining(){
   const metricsEl = document.getElementById('trainingMetrics');
   const assignmentsTable = document.getElementById('trainingAssignmentsTable');
