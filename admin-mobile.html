@@ -4131,7 +4131,7 @@ function buildWorkoutBlockListScreen(c, plan, ci, ciStatus, doneCount, totalCoun
   `;
 }
 
-function buildActiveBlockScreen(c, plan, block){
+function buildActiveSingleExerciseScreen(c, plan, block){
   const exercises = block.exercises || [];
   const idx = Math.min(
     Number(state.activeWorkoutExerciseIndex || 0),
@@ -4232,6 +4232,182 @@ function buildActiveBlockScreen(c, plan, block){
       </div>
     </div>
   `;
+}
+
+function isCircuitBlock(block){
+  const txt = [
+    block.blockType,
+    block.block_type,
+    block.type,
+    block.typeEs,
+    block.type_es,
+    block.title,
+    block.titleEs,
+    block.title_es,
+    block.name,
+    block.nameEs,
+    block.name_es
+  ].join(' ').toLowerCase();
+
+  return (
+    txt.includes('circuito') ||
+    txt.includes('circuit') ||
+    txt.includes('funcional') ||
+    txt.includes('round') ||
+    txt.includes('ronda')
+  );
+}
+
+function buildActiveBlockScreen(c, plan, block){
+  if(isCircuitBlock(block)){
+    return buildActiveCircuitScreen(c, plan, block);
+  }
+
+  return buildActiveSingleExerciseScreen(c, plan, block);
+}
+
+function buildActiveCircuitScreen(c, plan, block){
+  const exercises = block.exercises || [];
+  const blockTitle = getBlockName(block) || 'Circuito';
+
+  const doneCount = exercises.filter((ex, idx) => {
+    const exId = getExerciseId(ex, idx);
+    return isExerciseDone(c.id, exId);
+  }).length;
+
+  return `
+    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">
+      Volver a bloques
+    </button>
+
+    <div style="margin-bottom:10px">
+      <div class="scr-eye">${esc(blockTitle)}</div>
+      <div class="scr-t" style="font-size:1.35rem">
+        Circuito · ${doneCount}/${exercises.length}
+      </div>
+    </div>
+
+    <div class="wt-timer">
+      <div class="wt-clock" id="wt-clock">${formatClock(state.workoutTimer.seconds)}</div>
+
+      <div class="wt-timer-actions">
+        ${
+          state.workoutTimer.running
+            ? `<button class="btn btn-s btn-sm" onclick="pauseWorkoutTimer()">Pausar</button>`
+            : `<button class="btn btn-p btn-sm" onclick="startWorkoutTimer()">Iniciar</button>`
+        }
+
+        <button class="btn btn-s btn-sm" onclick="resetWorkoutTimer('${c.id}')">
+          Reiniciar
+        </button>
+      </div>
+    </div>
+
+    ${
+      exercises.length
+        ? exercises.map((ex, idx) => buildCircuitExerciseCard(ex, idx, c.id)).join('')
+        : `
+          <div class="wt-empty">
+            Este circuito no tiene ejercicios cargados.
+          </div>
+        `
+    }
+
+    <div class="card">
+      <div class="card-acts">
+        <button class="btn btn-p btn-sm btn-wide" onclick="completeCircuitBlock('${c.id}','${block.id}')">
+          Circuito terminado
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function buildCircuitExerciseCard(ex, index, clientId){
+  const exId = getExerciseId(ex, index);
+  const done = isExerciseDone(clientId, exId);
+  const info = getExerciseInfo(ex);
+  const videoUrl = getExerciseVideoUrl(ex);
+
+  return `
+    <div class="ex-card ${done ? 'done' : ''}">
+      <div class="ex-main">
+        <div class="ex-top">
+          <div class="ex-num">${String(index + 1).padStart(2,'0')}</div>
+
+          <div style="flex:1;min-width:0">
+            <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
+            <div class="ex-dose">${esc(getExerciseDose(ex))}</div>
+
+            ${
+              ex.description || ex.descriptionEs || ex.description_es
+                ? `<div class="ex-desc">${esc(ex.description || ex.descriptionEs || ex.description_es)}</div>`
+                : ''
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="ex-mini">
+        <details>
+          <summary>Por qué</summary>
+          <p>${esc(info.why)}</p>
+        </details>
+
+        <details>
+          <summary>Técnica</summary>
+          <p>${esc(info.tech)}</p>
+        </details>
+
+        <details>
+          <summary>Respira</summary>
+          <p>${esc(info.breath)}</p>
+        </details>
+
+        <details>
+          <summary>Coach</summary>
+          <p>${esc(info.coach)}</p>
+        </details>
+      </div>
+
+      <div class="ex-actions">
+        ${
+          videoUrl
+            ? `<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`
+            : `<button class="btn btn-s btn-sm" disabled>Sin vídeo</button>`
+        }
+
+        <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
+          ${done ? 'Hecho' : 'Marcar'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function completeCircuitBlock(clientId, blockId){
+  const c = clientById(clientId);
+
+  if(!c){
+    showToast('Cliente no encontrado','err');
+    return;
+  }
+
+  const plan = getWorkoutPlanForClient(c);
+  const block = plan.blocks.find(b => String(b.id) === String(blockId));
+
+  if(!block){
+    showToast('Bloque no encontrado','err');
+    return;
+  }
+
+  (block.exercises || []).forEach((ex, idx) => {
+    const exId = getExerciseId(ex, idx);
+    state.workoutChecks[getWorkoutKey(clientId, exId)] = true;
+  });
+
+  showToast('Circuito terminado ✓','ok');
+  backToWorkoutBlocks();
 }
 
 function renderWorkout(){
