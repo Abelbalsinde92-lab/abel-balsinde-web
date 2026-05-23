@@ -1283,9 +1283,9 @@ db.from('client_program_assignments')
   .select('*'),
 
       db.from('client_session_logs')
-        .select('*')
-        .order('created_at', { ascending:false })
-        .limit(200),
+  .select('*')
+  .order('updated_at', { ascending:false })
+  .limit(200),
 
       db.from('templates')
         .select('*')
@@ -3424,6 +3424,29 @@ function getWorkoutPlanForClient(c){
   };
 }
 
+function getExerciseDose(ex){
+  const parts = [];
+
+  if(ex.sets) parts.push(`${ex.sets} series`);
+  if(ex.reps) parts.push(`${ex.reps} reps`);
+  if(ex.duration) parts.push(ex.duration);
+  if(ex.rest) parts.push(`descanso ${ex.rest}`);
+  if(ex.tempo) parts.push(`tempo ${ex.tempo}`);
+
+  const variant =
+    ex.variantN1 ||
+    ex.variant_n1 ||
+    ex.variantN1Es ||
+    ex.variant_n1_es ||
+    '';
+
+  if(!parts.length && variant){
+    parts.push(variant);
+  }
+
+  return parts.length ? parts.join(' · ') : 'Carga según ficha';
+}
+
 function getExerciseInfo(ex){
   const name = String(ex.name || ex.nameEs || '').toLowerCase();
   const desc = ex.description || ex.descriptionEs || '';
@@ -3862,9 +3885,15 @@ Observaciones: ${note || 'Sin observaciones.'}`,
   finished_at: now
 };
 
-    const { error } = await db
-      .from('client_session_logs')
-      .insert(payload);
+    const { data:savedLog, error } = await db
+  .from('client_session_logs')
+  .insert(payload)
+  .select()
+  .single();
+
+if(error) throw error;
+
+state.sessionLogs.unshift(snakeToCamel(savedLog));
 
     if(error) throw error;
 
