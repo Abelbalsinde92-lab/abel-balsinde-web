@@ -600,6 +600,48 @@ a{text-decoration:none;color:inherit}
   border-radius:10px;
   background:rgba(0,200,232,.06);
 }
+
+.block-closed{
+  width:100%;
+  text-align:left;
+  display:block;
+  background:var(--card);
+}
+
+.block-closed:active{
+  opacity:.78;
+  transform:scale(.99);
+}
+
+.block-closed-title{
+  font-family:var(--font-d);
+  font-size:1.25rem;
+  letter-spacing:.04em;
+  color:var(--text);
+  line-height:1.05;
+}
+
+.block-closed-sub{
+  font-family:var(--font-m);
+  font-size:.6rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text-2);
+  margin-top:5px;
+}
+
+.block-closed-action{
+  font-family:var(--font-m);
+  font-size:.58rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--sport);
+  border:1px solid rgba(0,200,232,.28);
+  background:rgba(0,200,232,.08);
+  border-radius:8px;
+  padding:8px 10px;
+  flex-shrink:0;
+}
 </style>
 </head>
 <body>
@@ -3971,36 +4013,20 @@ function buildWorkoutBlockListScreen(c, plan, ci, ciStatus, doneCount, totalCoun
             const title = getBlockName(b) || `Bloque ${bi + 1}`;
 
             return `
-              <div class="card">
+              <button class="card block-closed" onclick="openWorkoutBlock('${b.id}')">
                 <div class="card-body">
-                  <div class="dr">
-                    <span class="dk">Bloque</span>
-                    <span class="dv wrap" style="color:var(--sport)">${esc(title)}</span>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                    <div style="min-width:0;text-align:left">
+                      <div class="block-closed-title">${esc(title)}</div>
+                      <div class="block-closed-sub">${info.done}/${info.total} ejercicios</div>
+                    </div>
+
+                    <div class="block-closed-action">
+                      ${info.finished ? 'Revisar' : 'Abrir'}
+                    </div>
                   </div>
-
-                  <div class="dr">
-                    <span class="dk">Ejercicios</span>
-                    <span class="dv">${info.done}/${info.total}</span>
-                  </div>
-
-                  ${
-                    b.objective || b.objectiveEs || b.objective_es || b.description || b.descriptionEs || b.description_es
-                      ? `
-                        <div class="dr">
-                          <span class="dk">Objetivo</span>
-                          <span class="dv wrap">${esc(b.objective || b.objectiveEs || b.objective_es || b.description || b.descriptionEs || b.description_es)}</span>
-                        </div>
-                      `
-                      : ''
-                  }
                 </div>
-
-                <div class="card-acts">
-                  <button class="btn ${info.finished ? 'btn-g' : 'btn-p'} btn-sm btn-wide" onclick="openWorkoutBlock('${b.id}')">
-                    ${info.finished ? 'Revisar bloque' : 'Abrir bloque'}
-                  </button>
-                </div>
-              </div>
+              </button>
             `;
           }).join('')
         : `
