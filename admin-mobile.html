@@ -3854,17 +3854,6 @@ function closeVideoModal(){
   if(body) body.innerHTML = '';
 }
 
-function openExerciseVideo(url){
-  const clean = normalizeVideoUrl(url);
-
-  if(!clean){
-    showToast('Este ejercicio no tiene vídeo cargado','err');
-    return;
-  }
-
-  window.open(clean, '_blank', 'noopener');
-}
-
 function buildWorkoutExerciseCard(ex, index, clientId){
   const exId = getExerciseId(ex, index);
   const done = isExerciseDone(clientId, exId);
@@ -3956,30 +3945,6 @@ function backToWorkoutBlocks(){
   state.activeWorkoutBlockId = null;
   state.activeWorkoutExerciseIndex = 0;
   renderWorkout();
-}
-
-function getExerciseTitle(ex){
-  return (
-    ex.name ||
-    ex.nameEs ||
-    ex.name_es ||
-    ex.title ||
-    ex.titleEs ||
-    ex.title_es ||
-    'Ejercicio'
-  );
-}
-
-function getExerciseDose(ex){
-  const parts = [];
-
-  if(ex.sets) parts.push(`${ex.sets} series`);
-  if(ex.reps) parts.push(`${ex.reps} reps`);
-  if(ex.duration) parts.push(ex.duration);
-  if(ex.rest) parts.push(`descanso ${ex.rest}`);
-  if(ex.tempo) parts.push(`tempo ${ex.tempo}`);
-
-  return parts.length ? parts.join(' · ') : 'Carga según ficha';
 }
 
 function completeActiveExercise(clientId, blockId, exId){
