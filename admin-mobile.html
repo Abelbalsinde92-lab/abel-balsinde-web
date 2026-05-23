@@ -294,6 +294,282 @@ a{text-decoration:none;color:inherit}
   .scr{padding-left:24px;padding-right:24px;max-width:720px;margin:0 auto}
   .top{padding-left:24px;padding-right:24px}
 }
+
+/* ════════════════════════════════════════════════════════
+   AB FIELD · TRAINING MODE
+══════════════════════════════════════════════════════════ */
+
+.client-photo{
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  background:rgba(0,200,232,.1);
+  color:var(--sport);
+  border:1px solid rgba(0,200,232,.25);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--font-d);
+  font-size:1.25rem;
+  overflow:hidden;
+  flex-shrink:0;
+}
+
+.client-photo.sm{
+  width:42px;
+  height:42px;
+  font-size:1rem;
+}
+
+.client-photo img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.wt-head{
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:var(--r);
+  padding:14px;
+  margin-bottom:12px;
+}
+
+.wt-head-top{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.wt-name{
+  font-weight:800;
+  font-size:1.05rem;
+}
+
+.wt-meta{
+  color:var(--text-2);
+  font-size:.76rem;
+  margin-top:2px;
+}
+
+.wt-program{
+  font-family:var(--font-m);
+  color:var(--sport);
+  font-size:.68rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  margin-top:4px;
+}
+
+.wt-timer{
+  position:sticky;
+  top:calc(var(--top-h) + var(--safe-t) + 8px);
+  z-index:20;
+  background:rgba(18,18,20,.96);
+  border:1px solid var(--card-border);
+  border-top:2px solid var(--sport);
+  border-radius:var(--r);
+  padding:14px;
+  margin-bottom:12px;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+
+.wt-clock{
+  font-family:var(--font-d);
+  font-size:3rem;
+  line-height:1;
+  letter-spacing:.04em;
+  text-align:center;
+  color:var(--text);
+  margin-bottom:10px;
+}
+
+.wt-timer-actions{
+  display:flex;
+  gap:8px;
+}
+
+.wt-timer-actions .btn{
+  flex:1;
+}
+
+.wt-ci{
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--divider);
+  border-radius:10px;
+  padding:10px 12px;
+  margin-bottom:12px;
+}
+
+.wt-ci-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  border-bottom:1px solid var(--divider);
+  padding:6px 0;
+}
+
+.wt-ci-row:last-child{
+  border-bottom:none;
+}
+
+.wt-sec{
+  margin-bottom:14px;
+}
+
+.wt-sec-h{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+.wt-sec-title{
+  font-family:var(--font-d);
+  font-size:1.15rem;
+  letter-spacing:.04em;
+}
+
+.wt-sec-sub{
+  font-family:var(--font-m);
+  font-size:.58rem;
+  color:var(--text-2);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.ex-card{
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:var(--r);
+  margin-bottom:10px;
+  overflow:hidden;
+}
+
+.ex-card.done{
+  border-color:rgba(0,230,118,.35);
+  opacity:.76;
+}
+
+.ex-main{
+  padding:13px 14px 10px;
+}
+
+.ex-top{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+}
+
+.ex-num{
+  width:28px;
+  height:28px;
+  border-radius:8px;
+  background:rgba(0,200,232,.1);
+  border:1px solid rgba(0,200,232,.22);
+  color:var(--sport);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--font-m);
+  font-size:.62rem;
+  flex-shrink:0;
+}
+
+.ex-title{
+  font-weight:800;
+  font-size:.96rem;
+  line-height:1.25;
+}
+
+.ex-dose{
+  font-family:var(--font-m);
+  font-size:.62rem;
+  color:var(--text-2);
+  margin-top:4px;
+  letter-spacing:.04em;
+}
+
+.ex-desc{
+  font-size:.78rem;
+  color:var(--text-2);
+  line-height:1.55;
+  margin-top:8px;
+}
+
+.ex-mini{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:6px;
+  padding:0 14px 12px;
+}
+
+.ex-mini details{
+  background:rgba(0,0,0,.35);
+  border:1px solid var(--divider);
+  border-radius:8px;
+  padding:8px 10px;
+}
+
+.ex-mini summary{
+  font-family:var(--font-m);
+  font-size:.58rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--sport);
+  list-style:none;
+  cursor:pointer;
+}
+
+.ex-mini summary::-webkit-details-marker{
+  display:none;
+}
+
+.ex-mini p{
+  margin-top:7px;
+  font-size:.78rem;
+  color:var(--text-2);
+  line-height:1.5;
+}
+
+.ex-actions{
+  display:flex;
+  gap:8px;
+  padding:10px 14px;
+  border-top:1px solid var(--divider);
+}
+
+.ex-actions .btn{
+  flex:1;
+}
+
+.wt-note{
+  width:100%;
+  background:var(--bg);
+  color:var(--text);
+  border:1px solid var(--card-border);
+  border-radius:10px;
+  padding:12px;
+  min-height:92px;
+  resize:vertical;
+  outline:none;
+  line-height:1.5;
+}
+
+.wt-empty{
+  border:1px dashed var(--card-border);
+  border-radius:var(--r);
+  padding:18px 14px;
+  color:var(--text-2);
+  font-size:.84rem;
+  line-height:1.6;
+  text-align:center;
+}
 </style>
 </head>
 <body>
@@ -398,7 +674,13 @@ a{text-decoration:none;color:inherit}
       <div id="perfil-content"></div>
     </div>
 
-    <!-- PAGOS -->
+    <!-- ENTRENAMIENTO OPERATIVO -->
+<div class="scr" id="s-workout">
+  <a class="scr-back" onclick="showScr('perfil')">← Perfil</a>
+  <div id="workout-content"></div>
+</div>
+   
+   <!-- PAGOS -->
     <div class="scr" id="s-pagos">
       <a class="scr-back" onclick="showScr('mas')">← Más</a>
       <div class="scr-h">
@@ -496,17 +778,17 @@ a{text-decoration:none;color:inherit}
   <!-- BOTTOM NAV -->
   <nav class="nav">
     <div class="tab on" id="tab-hoy" onclick="showScr('hoy')">
-      <span class="tab-i">📅</span><span class="tab-l">Hoy</span>
+      <span class="tab-i mono">01</span><span class="tab-l">Hoy</span>
     </div>
     <div class="tab" id="tab-clientes" onclick="showScr('clientes')">
-      <span class="tab-i">👥</span><span class="tab-l">Clientes</span>
+      <span class="tab-i mono">CL</span><span class="tab-l">Clientes</span>
     </div>
     <div class="tab" id="tab-alertas" onclick="showScr('alertas')">
-      <span class="tab-i">🔔</span><span class="tab-l">Alertas</span>
+      <span class="tab-i mono">!</span><span class="tab-l">Alertas</span>
       <span class="tab-b" id="badge-al"></span>
     </div>
     <div class="tab" id="tab-mas" onclick="showScr('mas')">
-      <span class="tab-i">☰</span><span class="tab-l">Más</span>
+      <span class="tab-i mono">+</span><span class="tab-l">Más</span>
     </div>
   </nav>
 </div>
@@ -556,8 +838,19 @@ const state = {
   programs:[],
   templates:[],
   trainingPrograms:[],
-  assignments:[],
-  sessionLogs:[],
+trainingBlocks:[],
+trainingExercises:[],
+assignments:[],
+sessionLogs:[],
+activeTrainingClientId:null,
+activeWorkoutReservationId:null,
+workoutChecks:{},
+workoutNotes:{},
+workoutTimer:{
+  seconds:0,
+  running:false,
+  interval:null
+},
   assessments:[],
   metrics:[],
   settings:{
@@ -769,7 +1062,7 @@ function showScr(id){
   if(tabMap[id])document.getElementById(tabMap[id])?.classList.add('on');
   else{
     // Sub-screen: highlight parent tab
-    if(['perfil'].includes(id))document.getElementById('tab-clientes')?.classList.add('on');
+    if(['perfil','workout'].includes(id))document.getElementById('tab-clientes')?.classList.add('on');
     else document.getElementById('tab-mas')?.classList.add('on');
   }
   window.scrollTo(0,0);
@@ -783,7 +1076,8 @@ function renderScr(id){
     case'alertas':renderAlertas();break;
     case'mas':renderMas();break;
     case'perfil':renderPerfil();break;
-    case'pagos':renderPagos();break;
+case'workout':renderWorkout();break;
+case'pagos':renderPagos();break;
     case'checkins':renderCheckins();break;
     case'whatsapp':renderWhatsapp();break;
     case'ajustes':renderAjustes();break;
@@ -1102,7 +1396,8 @@ function buildSessionCard(r){
       ${ci?.comment?`<div class="sc-row"><span class="sc-k">CI nota</span><span class="sc-v" style="color:var(--warn);white-space:normal;max-width:60%;font-weight:500;font-size:.78rem">${esc(ci.comment)}</span></div>`:''}
     </div>
     <div class="sc-acts">
-      ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
+      ${c?.id?`<button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}','${r.id}')">Entrenar</button>`:''}
+${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
 <button class="btn btn-s btn-sm" onclick="openModal('reservation','${r.id}')">Editar</button>
 ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>`:''}
 ${status!=='realizada'?`<button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Realizada</button>`:''}
@@ -1381,7 +1676,8 @@ function renderPerfil(){
   ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}.')">WA</button>`:''}
   <button class="btn btn-s btn-sm" onclick="copyClientLink('${c.id}')">Copiar acceso</button>
   ${c.phone?`<button class="btn btn-wa btn-sm" onclick="sendClientAccessWA('${c.id}')">Enviar acceso</button>`:''}
-  <button class="btn btn-p btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
+  <button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}')">Entrenamiento</button>
+<button class="btn btn-p btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
   <button class="btn btn-p btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
   <button class="btn btn-b btn-sm" onclick="openModal('metric',null,{clientId:'${c.id}'})">+ Métrica</button>
   <button class="btn btn-b btn-sm" onclick="openModal('note',null,{clientId:'${c.id}'})">+ Nota</button>
@@ -2627,6 +2923,558 @@ async function saveModal(e){
     console.error('saveModal error:', err);
     showToast('Error: ' + (err?.message || 'no se pudo guardar'),'err');
   }
+}
+
+/* ════════════════════════════════════════════════════════
+   TRAINING MODE · Entrenamiento operativo en sala
+══════════════════════════════════════════════════════════ */
+
+function openWorkout(clientId,reservationId=null){
+  state.activeTrainingClientId = clientId;
+  state.activeWorkoutReservationId = reservationId;
+  showScr('workout');
+}
+
+function getClientPhotoHTML(c, size=''){
+  const url =
+    c.photoUrl ||
+    c.photo_url ||
+    c.avatarUrl ||
+    c.avatar_url ||
+    c.profilePhoto ||
+    c.profile_photo ||
+    c.imageUrl ||
+    c.image_url ||
+    '';
+
+  if(url){
+    return `<div class="client-photo ${size}"><img src="${esc(url)}" alt="${esc(c.name || 'Cliente')}"></div>`;
+  }
+
+  return `<div class="client-photo ${size}">${initials(c.name)}</div>`;
+}
+
+function sortByOrder(arr){
+  return [...(arr || [])].sort((a,b) =>
+    Number(a.orderIndex || a.order_index || 0) -
+    Number(b.orderIndex || b.order_index || 0)
+  );
+}
+
+function getWorkoutPlanForClient(c){
+  const assignment = getClientActiveAssignment(c.id);
+  const program = getAssignmentProgram(assignment);
+  const week = Number(assignment?.currentWeek || assignment?.current_week || 1);
+
+  if(!program){
+    return {
+      assignment:null,
+      program:null,
+      blocks:[],
+      exercises:[]
+    };
+  }
+
+  let blocks = state.trainingBlocks.filter(b => {
+    const pid =
+      b.programId ||
+      b.program_id ||
+      b.trainingProgramId ||
+      b.training_program_id;
+
+    return String(pid) === String(program.id);
+  });
+
+  const hasWeekBlocks = blocks.some(b =>
+    Number(b.weekNumber || b.week_number || b.week || 0) === week
+  );
+
+  if(hasWeekBlocks){
+    blocks = blocks.filter(b =>
+      Number(b.weekNumber || b.week_number || b.week || 0) === week
+    );
+  }
+
+  blocks = sortByOrder(blocks);
+
+  let blockData = blocks.map(b => {
+    const exercises = sortByOrder(
+      state.trainingExercises.filter(e =>
+        String(e.blockId || e.block_id) === String(b.id)
+      )
+    );
+
+    return {
+      ...b,
+      exercises
+    };
+  }).filter(b => b.exercises.length);
+
+  if(!blockData.length){
+    const looseExercises = sortByOrder(
+      state.trainingExercises.filter(e => {
+        const pid =
+          e.programId ||
+          e.program_id ||
+          e.trainingProgramId ||
+          e.training_program_id;
+
+        return String(pid) === String(program.id);
+      })
+    );
+
+    if(looseExercises.length){
+      blockData = [{
+        id:'general',
+        name:'Sesión del día',
+        blockName:'Sesión del día',
+        exercises:looseExercises
+      }];
+    }
+  }
+
+  return {
+    assignment,
+    program,
+    blocks:blockData,
+    exercises:blockData.flatMap(b => b.exercises)
+  };
+}
+
+function getExerciseDose(ex){
+  const parts = [];
+
+  if(ex.sets) parts.push(`${ex.sets} series`);
+  if(ex.reps) parts.push(`${ex.reps} reps`);
+  if(ex.duration) parts.push(ex.duration);
+  if(ex.rest) parts.push(`descanso ${ex.rest}`);
+  if(ex.tempo) parts.push(`tempo ${ex.tempo}`);
+
+  return parts.length ? parts.join(' · ') : 'Carga según ficha';
+}
+
+function getExerciseInfo(ex){
+  const name = String(ex.name || ex.nameEs || '').toLowerCase();
+  const desc = ex.description || ex.descriptionEs || '';
+
+  const base = {
+    why:
+      ex.why ||
+      ex.purpose ||
+      ex.objective ||
+      desc ||
+      'Se utiliza para mejorar la calidad del movimiento, preparar el cuerpo y transferir mejor al objetivo principal de la sesión.',
+
+    tech:
+      ex.technicalPoints ||
+      ex.technical_points ||
+      ex.coachingNotes ||
+      ex.coaching_notes ||
+      'Mantén control postural, ejecuta sin prisas y prioriza calidad antes que cantidad.',
+
+    breath:
+      ex.breathing ||
+      ex.breathingNotes ||
+      ex.breathing_notes ||
+      'No bloquees el aire. Exhala durante la fase de esfuerzo e inhala en la fase de retorno o control.',
+
+    errors:
+      ex.commonErrors ||
+      ex.common_errors ||
+      'Evita compensar con velocidad, perder postura, acortar recorrido o aguantar la respiración.',
+
+    coach:
+      ex.coachCue ||
+      ex.coach_cue ||
+      ex.coachingNotes ||
+      ex.coaching_notes ||
+      'Observar control, fatiga, molestias y si el cliente entiende el objetivo antes de aumentar intensidad.'
+  };
+
+  if(name.includes('sentadilla') || name.includes('squat')){
+    base.why = base.why || 'Patrón básico para fuerza de piernas, control de cadera y transferencia a acciones de empuje.';
+    base.tech = base.tech || 'Rodillas acompañan la línea de los pies, tronco estable, peso repartido y control en la bajada.';
+  }
+
+  if(name.includes('plancha') || name.includes('plank')){
+    base.why = base.why || 'Mejora estabilidad del tronco y control lumbo-pélvico.';
+    base.tech = base.tech || 'Mantén abdomen activo, glúteos firmes y cuello neutro.';
+  }
+
+  return base;
+}
+
+function getWorkoutKey(clientId, exId){
+  return `${clientId}__${exId}`;
+}
+
+function isExerciseDone(clientId, exId){
+  return !!state.workoutChecks[getWorkoutKey(clientId, exId)];
+}
+
+function toggleWorkoutExercise(clientId, exId){
+  const key = getWorkoutKey(clientId, exId);
+  state.workoutChecks[key] = !state.workoutChecks[key];
+  renderWorkout();
+}
+
+function setWorkoutBlockDone(clientId, blockId){
+  const exercises = state.trainingExercises.filter(e =>
+    String(e.blockId || e.block_id) === String(blockId)
+  );
+
+  exercises.forEach(ex => {
+    const exId = ex.id || `${blockId}-${ex.orderIndex || ex.order_index || ex.name}`;
+    state.workoutChecks[getWorkoutKey(clientId, exId)] = true;
+  });
+
+  renderWorkout();
+}
+
+function formatClock(seconds){
+  const s = Math.max(0, Number(seconds || 0));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+
+  if(h > 0){
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
+
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function updateClockUI(){
+  const el = document.getElementById('wt-clock');
+  if(el) el.textContent = formatClock(state.workoutTimer.seconds);
+}
+
+function startWorkoutTimer(){
+  if(state.workoutTimer.running) return;
+
+  state.workoutTimer.running = true;
+
+  state.workoutTimer.interval = setInterval(() => {
+    state.workoutTimer.seconds += 1;
+    updateClockUI();
+  }, 1000);
+
+  renderWorkout();
+}
+
+function pauseWorkoutTimer(){
+  state.workoutTimer.running = false;
+
+  if(state.workoutTimer.interval){
+    clearInterval(state.workoutTimer.interval);
+    state.workoutTimer.interval = null;
+  }
+
+  renderWorkout();
+}
+
+function resetWorkoutTimer(){
+  pauseWorkoutTimer();
+  state.workoutTimer.seconds = 0;
+  updateClockUI();
+  renderWorkout();
+}
+
+function saveWorkoutNote(clientId, value){
+  state.workoutNotes[clientId] = value;
+}
+
+function buildWorkoutExerciseCard(ex, index, clientId){
+  const exId = ex.id || `ex-${index}`;
+  const done = isExerciseDone(clientId, exId);
+  const info = getExerciseInfo(ex);
+
+  return `
+    <div class="ex-card ${done ? 'done' : ''}">
+      <div class="ex-main">
+        <div class="ex-top">
+          <div class="ex-num">${String(index + 1).padStart(2,'0')}</div>
+
+          <div style="flex:1;min-width:0">
+            <div class="ex-title">${esc(ex.name || ex.nameEs || 'Ejercicio')}</div>
+            <div class="ex-dose">${esc(getExerciseDose(ex))}</div>
+            ${
+              ex.description || ex.descriptionEs
+                ? `<div class="ex-desc">${esc(ex.description || ex.descriptionEs)}</div>`
+                : ''
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="ex-mini">
+        <details>
+          <summary>Por qué</summary>
+          <p>${esc(info.why)}</p>
+        </details>
+
+        <details>
+          <summary>Técnica</summary>
+          <p>${esc(info.tech)}</p>
+        </details>
+
+        <details>
+          <summary>Respira</summary>
+          <p>${esc(info.breath)}</p>
+        </details>
+
+        <details>
+          <summary>Errores</summary>
+          <p>${esc(info.errors)}</p>
+        </details>
+
+        <details>
+          <summary>Coach</summary>
+          <p>${esc(info.coach)}</p>
+        </details>
+      </div>
+
+      <div class="ex-actions">
+        <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
+          ${done ? 'Terminado' : 'Marcar'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderWorkout(){
+  const box = document.getElementById('workout-content');
+  const c = clientById(state.activeTrainingClientId || state.selectedClientId);
+
+  if(!c){
+    box.innerHTML = emptyState('Sin cliente','Vuelve a clientes y abre un perfil.');
+    return;
+  }
+
+  state.activeTrainingClientId = c.id;
+
+  const ci = getClientTodayCheckin(c.id);
+  const ciStatus = ci ? getCheckinStatus(ci) : null;
+  const plan = getWorkoutPlanForClient(c);
+  const exercises = plan.exercises || [];
+
+  const doneCount = exercises.filter(ex => {
+    const exId = ex.id || `ex-${exercises.indexOf(ex)}`;
+    return isExerciseDone(c.id, exId);
+  }).length;
+
+  const totalCount = exercises.length;
+  const note = state.workoutNotes[c.id] || '';
+
+  box.innerHTML = `
+    <div class="wt-head">
+      <div class="wt-head-top">
+        ${getClientPhotoHTML(c)}
+
+        <div style="flex:1;min-width:0">
+          <div class="wt-name">${esc(c.name)}</div>
+          <div class="wt-meta">${esc(c.plan || 'Sin plan')} · ${esc(c.objective || 'Objetivo pendiente')}</div>
+          <div class="wt-program">
+            ${plan.program ? esc(plan.program.name || plan.program.nameEs || 'Programa activo') : 'Sin programa activo'}
+          </div>
+        </div>
+
+        ${badge(c.status || 'activo', c.status || 'activo')}
+      </div>
+
+      <div class="dr">
+        <span class="dk">Progreso sesión</span>
+        <span class="dv">${doneCount}/${totalCount || 0}</span>
+      </div>
+    </div>
+
+    <div class="wt-timer">
+      <div class="wt-clock" id="wt-clock">${formatClock(state.workoutTimer.seconds)}</div>
+
+      <div class="wt-timer-actions">
+        ${
+          state.workoutTimer.running
+            ? `<button class="btn btn-s btn-sm" onclick="pauseWorkoutTimer()">Pausar</button>`
+            : `<button class="btn btn-p btn-sm" onclick="startWorkoutTimer()">Iniciar</button>`
+        }
+
+        <button class="btn btn-s btn-sm" onclick="resetWorkoutTimer()">Reiniciar</button>
+      </div>
+    </div>
+
+    <div class="wt-ci">
+      <div class="wt-ci-row">
+        <span class="dk">Check-in hoy</span>
+        <span>${ci ? badge(ciStatus || 'normal', ciStatus || 'normal') : badge('Sin CI','inactivo')}</span>
+      </div>
+
+      ${
+        ci
+          ? `
+            <div class="wt-ci-row">
+              <span class="dk">Sueño</span>
+              <span class="dv">${esc(ci.sleepQuality ?? ci.sleep_quality ?? '—')}/10</span>
+            </div>
+
+            <div class="wt-ci-row">
+              <span class="dk">Energía</span>
+              <span class="dv">${esc(ci.energyLevel ?? ci.energy_level ?? '—')}/10</span>
+            </div>
+
+            <div class="wt-ci-row">
+              <span class="dk">Molestias</span>
+              <span class="dv">${esc(ci.sorenessLevel ?? ci.soreness_level ?? ci.painLevel ?? ci.pain_level ?? '—')}/5</span>
+            </div>
+
+            ${
+              ci.comment
+                ? `<div class="wt-ci-row"><span class="dk">Nota</span><span class="dv wrap">${esc(ci.comment)}</span></div>`
+                : ''
+            }
+          `
+          : `
+            <div style="font-size:.78rem;color:var(--text-2);line-height:1.5;margin-top:6px">
+              No hay check-in registrado. Preguntar sueño, energía y molestias antes de subir intensidad.
+            </div>
+          `
+      }
+    </div>
+
+    ${
+      plan.blocks.length
+        ? plan.blocks.map((b, bi) => `
+          <div class="wt-sec">
+            <div class="wt-sec-h">
+              <div>
+                <div class="wt-sec-title">${esc(b.name || b.blockName || b.title || `Bloque ${bi + 1}`)}</div>
+                <div class="wt-sec-sub">${b.exercises.length} ejercicios</div>
+              </div>
+
+              ${
+                b.id && b.id !== 'general'
+                  ? `<button class="btn btn-s btn-sm" onclick="setWorkoutBlockDone('${c.id}','${b.id}')">Sección OK</button>`
+                  : ''
+              }
+            </div>
+
+            ${b.exercises.map((ex, i) => buildWorkoutExerciseCard(ex, i, c.id)).join('')}
+          </div>
+        `).join('')
+        : `
+          <div class="wt-empty">
+            Este cliente tiene programa asignado, pero el móvil todavía no encuentra ejercicios cargados para mostrar.
+            Revisa que existan bloques y ejercicios del programa en el admin de escritorio.
+          </div>
+        `
+    }
+
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title">Observaciones de entrenamiento</div>
+
+        <textarea
+          class="wt-note"
+          placeholder="Ej: respiración bloqueada en esfuerzo, molestia leve en rodilla, técnica mejoró en la segunda serie..."
+          oninput="saveWorkoutNote('${c.id}', this.value)"
+        >${esc(note)}</textarea>
+      </div>
+
+      <div class="card-acts">
+        <button class="btn btn-p btn-sm btn-wide" onclick="finishWorkout('${c.id}')">
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+async function finishWorkout(clientId){
+  const c = clientById(clientId);
+
+  if(!c){
+    showToast('Cliente no encontrado','err');
+    return;
+  }
+
+  const note = state.workoutNotes[clientId] || '';
+  const completedKeys = Object.keys(state.workoutChecks)
+    .filter(k => k.startsWith(clientId + '__') && state.workoutChecks[k]);
+
+  const summary = `Sesión registrada desde AB Field.
+Duración: ${formatClock(state.workoutTimer.seconds)}.
+Ejercicios marcados: ${completedKeys.length}.
+Observaciones: ${note || 'Sin observaciones.'}`;
+
+  try{
+    const payload = {
+      id: uid(),
+      client_id: clientId,
+      reservation_id: state.activeWorkoutReservationId || null,
+      date: todayISO(),
+      status: 'realizada',
+      duration_sec: state.workoutTimer.seconds,
+      coach_notes: note,
+      completed_exercises: completedKeys
+    };
+
+    const { error } = await db
+      .from('client_session_logs')
+      .insert(payload);
+
+    if(error) throw error;
+
+    showToast('Sesión guardada ✓','ok');
+
+  }catch(err){
+    console.warn('client_session_logs fallback:', err);
+
+    try{
+      const notes = Array.isArray(c.notes) ? c.notes : [];
+
+      notes.unshift({
+        id: uid(),
+        date: todayISO(),
+        text: summary
+      });
+
+      const { data:saved, error } = await db
+        .from('clients')
+        .update({ notes })
+        .eq('id', clientId)
+        .select()
+        .single();
+
+      if(error) throw error;
+
+      Object.assign(c, snakeToCamel(saved));
+      showToast('Sesión guardada como nota ✓','ok');
+
+    }catch(e){
+      console.error(e);
+      showToast('No se pudo guardar la sesión','err');
+      return;
+    }
+  }
+
+  pauseWorkoutTimer();
+
+  if(state.activeWorkoutReservationId){
+    try{
+      await db
+        .from('reservations')
+        .update({ status:'realizada' })
+        .eq('id', state.activeWorkoutReservationId);
+
+      const r = reservationById(state.activeWorkoutReservationId);
+      if(r) r.status = 'realizada';
+
+    }catch(e){
+      console.warn('No se pudo marcar reserva realizada:', e);
+    }
+  }
+
+  renderAll();
 }
 </script>
 
