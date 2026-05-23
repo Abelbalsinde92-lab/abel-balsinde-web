@@ -1025,9 +1025,24 @@ function getClientTodayCheckin(clientId){
 
 /* ── PROGRAM/ASSIGNMENT ── */
 function getClientActiveAssignment(clientId){
-  return state.assignments
-    .filter(a=>String(a.clientId||a.client_id)===String(clientId)&&String(a.status||'activo')==='activo')
-    .sort((a,b)=>String(b.startDate||b.start_date||'').localeCompare(String(a.startDate||a.start_date||'')))[0];
+  const rows = state.assignments
+    .filter(a => String(a.clientId || a.client_id) === String(clientId))
+    .filter(a => {
+      const st = String(a.status || 'activo').toLowerCase();
+      return st === 'activo';
+    });
+
+  rows.sort((a,b) => {
+    const aDate = String(a.startDate || a.start_date || '');
+    const bDate = String(b.startDate || b.start_date || '');
+
+    const aCreated = String(a.createdAt || a.created_at || a.updatedAt || a.updated_at || a.id || '');
+    const bCreated = String(b.createdAt || b.created_at || b.updatedAt || b.updated_at || b.id || '');
+
+    return String(bDate + bCreated).localeCompare(String(aDate + aCreated));
+  });
+
+  return rows[0] || null;
 }
 function getAssignmentProgram(a){
   if(!a)return null;
@@ -2999,18 +3014,25 @@ async function saveModal(e){
   }
 
   if(closeOld && !id){
-    await db
-      .from('client_program_assignments')
-      .update({ status:'finalizado' })
-      .eq('client_id', data.clientId)
-      .eq('status', 'activo');
+  const { error: closeErr } = await db
+    .from('client_program_assignments')
+    .update({ status:'finalizado' })
+    .eq('client_id', data.clientId)
+    .or('status.eq.activo,status.is.null');
 
-    state.assignments.forEach(a => {
-      if(String(a.clientId || a.client_id) === String(data.clientId) && String(a.status || 'activo') === 'activo'){
-        a.status = 'finalizado';
-      }
-    });
+  if(closeErr){
+    console.warn('No se pudieron cerrar asignaciones anteriores:', closeErr);
   }
+
+  state.assignments.forEach(a => {
+    const sameClient = String(a.clientId || a.client_id) === String(data.clientId);
+    const st = String(a.status || 'activo').toLowerCase();
+
+    if(sameClient && st === 'activo'){
+      a.status = 'finalizado';
+    }
+  });
+}
 
   const saved = await upsertItem('assignments','client_program_assignments',data);
 
@@ -3538,10 +3560,19 @@ function renderWorkout(){
           </div>
         `).join('')
         : `
-          <div class="wt-empty">
-            Este cliente tiene programa asignado, pero el móvil todavía no encuentra ejercicios cargados para mostrar.
-            Revisa que existan bloques y ejercicios del programa en el admin de escritorio.
-          </div>
+  <div class="wt-empty">
+    Este cliente tiene programa asignado, pero el móvil todavía no encuentra ejercicios cargados para mostrar.
+    <br><br>
+    <span class="mono">
+      Asignación: ${plan.assignment ? 'sí' : 'no'} ·
+      Programa: ${plan.program ? 'sí' : 'no'} ·
+      Bloques cargados: ${state.trainingBlocks.length} ·
+      Ejercicios cargados: ${state.trainingExercises.length}
+    </span>
+    <br><br>
+    Si bloques o ejercicios aparecen en 0, el problema está en la carga desde Supabase o en el nombre de la tabla/campos.
+  </div>
+`
         `
     }
 
