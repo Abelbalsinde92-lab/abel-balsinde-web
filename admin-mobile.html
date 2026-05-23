@@ -3702,14 +3702,36 @@ function getExerciseId(ex, fallbackIndex=0){
 }
 
 function getExerciseVideoUrl(ex){
-  return (
+  const direct =
     ex.videoUrl ||
     ex.video_url ||
+    ex.videoURL ||
     ex.videoLink ||
     ex.video_link ||
-    ex.video ||
+    '';
+
+  if(String(direct || '').trim()){
+    return String(direct).trim();
+  }
+
+  const family = String(
+    ex.videoFamily ||
+    ex.video_family ||
     ''
-  );
+  ).trim().toLowerCase();
+
+  if(!family){
+    return '';
+  }
+
+  const video = state.videoLibrary.find(v => {
+    const vf = String(v.videoFamily || v.video_family || '').trim().toLowerCase();
+    const st = String(v.status || v.videoStatus || v.video_status || 'active').toLowerCase();
+
+    return vf === family && !['inactive','inactivo','disabled'].includes(st);
+  });
+
+  return video?.videoUrl || video?.video_url || '';
 }
 
 function getExerciseTitle(ex){
@@ -3850,24 +3872,6 @@ function getExerciseVideoUrl(ex){
   return video?.videoUrl || video?.video_url || '';
 }
 
-function normalizeVideoUrl(url){
-  if(!url) return '';
-
-  const raw = String(url).trim();
-
-  if(raw.includes('youtube.com/watch?v=')){
-    const id = raw.split('v=')[1]?.split('&')[0];
-    return id ? `https://www.youtube.com/embed/${id}` : raw;
-  }
-
-  if(raw.includes('youtu.be/')){
-    const id = raw.split('youtu.be/')[1]?.split('?')[0];
-    return id ? `https://www.youtube.com/embed/${id}` : raw;
-  }
-
-  return raw;
-}
-
 function openExerciseVideo(url){
   const clean = normalizeVideoUrl(url);
 
@@ -3882,9 +3886,8 @@ function openExerciseVideo(url){
 function buildWorkoutExerciseCard(ex, index, clientId){
   const exId = getExerciseId(ex, index);
   const done = isExerciseDone(clientId, exId);
+  const info = getExerciseInfo(ex);
   const videoUrl = getExerciseVideoUrl(ex);
-const info = getExerciseInfo(ex);
-const videoUrl = getExerciseVideoUrl(ex);
 
   return `
     <div class="ex-card ${done ? 'done' : ''}">
@@ -4148,15 +4151,10 @@ function buildActiveBlockScreen(c, plan, block){
       Volver a bloques
     </button>
 
-    <div class="wt-head">
-      <div class="dr">
-        <span class="dk">Bloque</span>
-        <span class="dv wrap" style="color:var(--sport)">${esc(blockTitle)}</span>
-      </div>
-
-      <div class="dr">
-        <span class="dk">Ejercicio</span>
-        <span class="dv">${idx + 1}/${exercises.length}</span>
+        <div style="margin-bottom:10px">
+      <div class="scr-eye">${esc(blockTitle)}</div>
+      <div class="scr-t" style="font-size:1.35rem">
+        ${idx + 1}/${exercises.length} · ${esc(getExerciseTitle(ex))}
       </div>
     </div>
 
