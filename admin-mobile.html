@@ -3136,75 +3136,216 @@ function sortByOrder(arr){
   );
 }
 
+function toId(v){
+  if(v && typeof v === 'object'){
+    return String(v.id || v.uuid || '').trim();
+  }
+
+  return String(v ?? '').trim();
+}
+
+function sameId(a,b){
+  const A = toId(a);
+  const B = toId(b);
+  return A !== '' && B !== '' && A === B;
+}
+
+function getVal(obj, keys){
+  for(const k of keys){
+    if(
+      obj &&
+      Object.prototype.hasOwnProperty.call(obj,k) &&
+      obj[k] !== null &&
+      obj[k] !== undefined &&
+      String(obj[k]).trim() !== ''
+    ){
+      return obj[k];
+    }
+  }
+
+  return '';
+}
+
+function cleanText(v){
+  return String(v || '')
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'');
+}
+
+function getWeekNumber(v){
+  const m = String(v ?? '').match(/\d+/);
+  return m ? Number(m[0]) : 0;
+}
+
 function getBlockProgramId(b){
-  return (
-    b.programId ||
-    b.program_id ||
-    b.trainingProgramId ||
-    b.training_program_id ||
-    b.program ||
-    ''
-  );
+  return getVal(b,[
+    'programId',
+    'program_id',
+    'trainingProgramId',
+    'training_program_id',
+    'planId',
+    'plan_id',
+    'routineId',
+    'routine_id',
+    'programaId',
+    'programa_id'
+  ]);
+}
+
+function getBlockProgramName(b){
+  return getVal(b,[
+    'programName',
+    'program_name',
+    'trainingProgramName',
+    'training_program_name',
+    'planName',
+    'plan_name',
+    'program',
+    'programa'
+  ]);
+}
+
+function getBlockWeek(b){
+  return getWeekNumber(getVal(b,[
+    'weekNumber',
+    'week_number',
+    'currentWeek',
+    'current_week',
+    'week',
+    'semana',
+    'weekLabel',
+    'week_label'
+  ]));
+}
+
+function getBlockName(b){
+  return getVal(b,[
+    'name',
+    'nameEs',
+    'name_es',
+    'blockName',
+    'block_name',
+    'title'
+  ]);
 }
 
 function getExerciseBlockId(e){
-  return (
-    e.blockId ||
-    e.block_id ||
-    e.trainingBlockId ||
-    e.training_block_id ||
-    e.programBlockId ||
-    e.program_block_id ||
-    ''
-  );
+  return getVal(e,[
+    'blockId',
+    'block_id',
+    'trainingBlockId',
+    'training_block_id',
+    'programBlockId',
+    'program_block_id',
+    'sessionBlockId',
+    'session_block_id'
+  ]);
+}
+
+function getExerciseBlockName(e){
+  return getVal(e,[
+    'blockName',
+    'block_name',
+    'sectionName',
+    'section_name'
+  ]);
 }
 
 function getExerciseProgramId(e){
-  return (
-    e.programId ||
-    e.program_id ||
-    e.trainingProgramId ||
-    e.training_program_id ||
-    ''
-  );
+  return getVal(e,[
+    'programId',
+    'program_id',
+    'trainingProgramId',
+    'training_program_id',
+    'planId',
+    'plan_id'
+  ]);
 }
 
 function getWorkoutPlanForClient(c){
   const assignment = getClientActiveAssignment(c.id);
   const program = getAssignmentProgram(assignment);
-  const week = Number(assignment?.currentWeek || assignment?.current_week || 1);
+
+  const assignmentProgramId =
+    assignment?.programId ||
+    assignment?.program_id ||
+    '';
+
+  const week = Number(
+    assignment?.currentWeek ||
+    assignment?.current_week ||
+    1
+  );
+
+  const debug = {
+    assignmentId: assignment?.id || '',
+    assignmentProgramId,
+    programId: program?.id || '',
+    programName: program?.name || program?.nameEs || '',
+    week,
+    loadedBlocks: state.trainingBlocks.length,
+    loadedExercises: state.trainingExercises.length,
+    matchedBlocks: 0,
+    weekBlocks: 0,
+    blocksWithExercises: 0,
+    looseExercises: 0,
+    firstBlockKeys: state.trainingBlocks[0] ? Object.keys(state.trainingBlocks[0]).join(', ') : '—',
+    firstExerciseKeys: state.trainingExercises[0] ? Object.keys(state.trainingExercises[0]).join(', ') : '—'
+  };
 
   if(!program){
     return {
       assignment:null,
       program:null,
       blocks:[],
-      exercises:[]
+      exercises:[],
+      debug
     };
   }
 
+  const programName = cleanText(program.name || program.nameEs || '');
+
   let blocks = state.trainingBlocks.filter(b =>
-    String(getBlockProgramId(b)) === String(program.id)
+    sameId(getBlockProgramId(b), program.id) ||
+    sameId(getBlockProgramId(b), assignmentProgramId)
   );
 
-  const hasWeekBlocks = blocks.some(b =>
-    Number(b.weekNumber || b.week_number || b.week || 0) === week
-  );
-
-  if(hasWeekBlocks){
-    blocks = blocks.filter(b =>
-      Number(b.weekNumber || b.week_number || b.week || 0) === week
+  // Fallback por nombre si el ID no coincide
+  if(!blocks.length && programName){
+    blocks = state.trainingBlocks.filter(b =>
+      cleanText(getBlockProgramName(b)) === programName
     );
   }
+
+  debug.matchedBlocks = blocks.length;
+
+  const hasWeekBlocks = blocks.some(b => getBlockWeek(b) === week);
+
+  if(hasWeekBlocks){
+    blocks = blocks.filter(b => getBlockWeek(b) === week);
+  }
+
+  debug.weekBlocks = blocks.length;
 
   blocks = sortByOrder(blocks);
 
   let blockData = blocks.map(b => {
-    const exercises = sortByOrder(
+    let exercises = sortByOrder(
       state.trainingExercises.filter(e =>
-        String(getExerciseBlockId(e)) === String(b.id)
+        sameId(getExerciseBlockId(e), b.id)
       )
     );
+
+    // Fallback por nombre del bloque
+    if(!exercises.length && getBlockName(b)){
+      exercises = sortByOrder(
+        state.trainingExercises.filter(e =>
+          cleanText(getExerciseBlockName(e)) === cleanText(getBlockName(b))
+        )
+      );
+    }
 
     return {
       ...b,
@@ -3212,12 +3353,18 @@ function getWorkoutPlanForClient(c){
     };
   }).filter(b => b.exercises.length);
 
+  debug.blocksWithExercises = blockData.length;
+
+  // Fallback: ejercicios conectados directamente al programa
   if(!blockData.length){
     const looseExercises = sortByOrder(
       state.trainingExercises.filter(e =>
-        String(getExerciseProgramId(e)) === String(program.id)
+        sameId(getExerciseProgramId(e), program.id) ||
+        sameId(getExerciseProgramId(e), assignmentProgramId)
       )
     );
+
+    debug.looseExercises = looseExercises.length;
 
     if(looseExercises.length){
       blockData = [{
@@ -3233,7 +3380,8 @@ function getWorkoutPlanForClient(c){
     assignment,
     program,
     blocks:blockData,
-    exercises:blockData.flatMap(b => b.exercises)
+    exercises:blockData.flatMap(b => b.exercises),
+    debug
   };
 }
 
@@ -3587,7 +3735,31 @@ function renderWorkout(){
     `).join('')
     : `
       <div class="wt-empty">
-        Este cliente tiene programa asignado, pero el móvil todavía no encuentra ejercicios cargados para mostrar.
+  Este cliente tiene programa asignado, pero el móvil todavía no encuentra ejercicios cargados para mostrar.
+  <br><br>
+
+  <span class="mono">
+    Asignación: ${plan.assignment ? 'sí' : 'no'} ·
+    Programa: ${plan.program ? 'sí' : 'no'}<br>
+    ID programa asignado: ${esc(plan.debug?.assignmentProgramId || '—')}<br>
+    ID programa encontrado: ${esc(plan.debug?.programId || '—')}<br>
+    Nombre programa: ${esc(plan.debug?.programName || '—')}<br>
+    Semana: ${esc(plan.debug?.week || '—')}<br>
+    Bloques cargados: ${plan.debug?.loadedBlocks || 0}<br>
+    Ejercicios cargados: ${plan.debug?.loadedExercises || 0}<br>
+    Bloques de este programa: ${plan.debug?.matchedBlocks || 0}<br>
+    Bloques de esta semana: ${plan.debug?.weekBlocks || 0}<br>
+    Bloques con ejercicios: ${plan.debug?.blocksWithExercises || 0}<br>
+    Ejercicios sueltos del programa: ${plan.debug?.looseExercises || 0}
+  </span>
+
+  <br><br>
+
+  <span class="mono">
+    Campos bloque: ${esc(plan.debug?.firstBlockKeys || '—')}<br>
+    Campos ejercicio: ${esc(plan.debug?.firstExerciseKeys || '—')}
+  </span>
+</div>
         <br><br>
         <span class="mono">
           Asignación: ${plan.assignment ? 'sí' : 'no'} ·
