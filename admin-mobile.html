@@ -364,14 +364,14 @@ a{text-decoration:none;color:inherit}
 }
 
 .wt-timer{
-  position:sticky;
-  top:calc(var(--top-h) + var(--safe-t) + 8px);
-  z-index:20;
+  position:relative;
+  top:auto;
+  z-index:1;
   background:rgba(18,18,20,.96);
   border:1px solid var(--card-border);
   border-top:2px solid var(--sport);
   border-radius:var(--r);
-  padding:14px;
+  padding:12px;
   margin-bottom:12px;
   backdrop-filter:blur(18px);
   -webkit-backdrop-filter:blur(18px);
@@ -379,12 +379,12 @@ a{text-decoration:none;color:inherit}
 
 .wt-clock{
   font-family:var(--font-d);
-  font-size:3rem;
+  font-size:2.2rem;
   line-height:1;
   letter-spacing:.04em;
   text-align:center;
   color:var(--text);
-  margin-bottom:10px;
+  margin-bottom:8px;
 }
 
 .wt-timer-actions{
@@ -886,6 +886,8 @@ assignments:[],
 sessionLogs:[],
 activeTrainingClientId:null,
 activeWorkoutReservationId:null,
+activeWorkoutBlockId:null,
+activeWorkoutExerciseIndex:0,
 workoutChecks:{},
 workoutNotes:{},
 workoutTimer:{
@@ -3413,16 +3415,21 @@ function getWorkoutPlanForClient(c){
   debug.matchedSessions = sessions.length;
 
   if(targetSessionNumber > 0){
-    const exactSessions = sessions.filter(s =>
-      getSessionNumberFromRow(s) === targetSessionNumber
-    );
+  const exactSessions = sessions.filter(s =>
+    getSessionNumberFromRow(s) === targetSessionNumber
+  );
 
-    if(exactSessions.length){
-      sessions = exactSessions;
-    }
+  if(exactSessions.length){
+    sessions = exactSessions;
   }
+}else if(sessions.length){
+  // IMPORTANTE:
+  // Si no hay sesión asignada, no mostramos toda la semana.
+  // Mostramos solo la primera sesión disponible.
+  sessions = [sessions[0]];
+}
 
-  debug.selectedSessions = sessions.length;
+debug.selectedSessions = sessions.length;
 
   const selectedSessionIds = new Set(
     sessions.map(s => toId(s.id)).filter(Boolean)
@@ -3832,31 +3839,83 @@ const info = getExerciseInfo(ex);
   `;
 }
 
-function renderWorkout(){
-  const box = document.getElementById('workout-content');
-  const c = clientById(state.activeTrainingClientId || state.selectedClientId);
+function getBlockDoneInfo(clientId, block){
+  const exercises = block?.exercises || [];
 
-  if(!c){
-    box.innerHTML = emptyState('Sin cliente','Vuelve a clientes y abre un perfil.');
+  const done = exercises.filter((ex, idx) => {
+    const exId = getExerciseId(ex, idx);
+    return isExerciseDone(clientId, exId);
+  }).length;
+
+  return {
+    done,
+    total: exercises.length,
+    finished: exercises.length > 0 && done === exercises.length
+  };
+}
+
+function openWorkoutBlock(blockId){
+  state.activeWorkoutBlockId = blockId;
+  state.activeWorkoutExerciseIndex = 0;
+  renderWorkout();
+}
+
+function backToWorkoutBlocks(){
+  state.activeWorkoutBlockId = null;
+  state.activeWorkoutExerciseIndex = 0;
+  renderWorkout();
+}
+
+function getExerciseTitle(ex){
+  return (
+    ex.name ||
+    ex.nameEs ||
+    ex.name_es ||
+    ex.title ||
+    ex.titleEs ||
+    ex.title_es ||
+    'Ejercicio'
+  );
+}
+
+function getExerciseDose(ex){
+  const parts = [];
+
+  if(ex.sets) parts.push(`${ex.sets} series`);
+  if(ex.reps) parts.push(`${ex.reps} reps`);
+  if(ex.duration) parts.push(ex.duration);
+  if(ex.rest) parts.push(`descanso ${ex.rest}`);
+  if(ex.tempo) parts.push(`tempo ${ex.tempo}`);
+
+  return parts.length ? parts.join(' · ') : 'Carga según ficha';
+}
+
+function completeActiveExercise(clientId, blockId, exId){
+  state.workoutChecks[getWorkoutKey(clientId, exId)] = true;
+
+  const c = clientById(clientId);
+  const plan = getWorkoutPlanForClient(c);
+  const block = plan.blocks.find(b => String(b.id) === String(blockId));
+
+  if(!block){
+    backToWorkoutBlocks();
     return;
   }
 
-  state.activeTrainingClientId = c.id;
+  const nextIndex = Number(state.activeWorkoutExerciseIndex || 0) + 1;
 
-  const ci = getClientTodayCheckin(c.id);
-  const ciStatus = ci ? getCheckinStatus(ci) : null;
-  const plan = getWorkoutPlanForClient(c);
-  const exercises = plan.exercises || [];
+  if(nextIndex < block.exercises.length){
+    state.activeWorkoutExerciseIndex = nextIndex;
+    renderWorkout();
+    return;
+  }
 
-  const doneCount = exercises.filter((ex, idx) => {
-  const exId = getExerciseId(ex, idx);
-  return isExerciseDone(c.id, exId);
-}).length;
+  showToast('Bloque terminado ✓','ok');
+  backToWorkoutBlocks();
+}
 
-  const totalCount = exercises.length;
-  const note = state.workoutNotes[c.id] || '';
-
-  box.innerHTML = `
+function buildWorkoutBlockListScreen(c, plan, ci, ciStatus, doneCount, totalCount, note){
+  return `
     <div class="wt-head">
       <div class="wt-head-top">
         ${getClientPhotoHTML(c)}
@@ -3878,25 +3937,6 @@ function renderWorkout(){
       </div>
     </div>
 
-    <div style="display:flex;gap:8px;margin-top:12px">
-  <button class="btn btn-b btn-sm btn-wide" onclick="openModal('assignment',null,{clientId:'${c.id}'})">
-    Asignar nuevo entrenamiento
-  </button>
-</div>
-   
-   <div class="wt-timer">
-      <div class="wt-clock" id="wt-clock">${formatClock(state.workoutTimer.seconds)}</div>
-
-      <div class="wt-timer-actions">
-        ${
-          state.workoutTimer.running
-            ? `<button class="btn btn-s btn-sm" onclick="pauseWorkoutTimer()">Pausar</button>`
-            : `<button class="btn btn-p btn-sm" onclick="startWorkoutTimer()">Iniciar</button>`
-        }
-      <button class="btn btn-s btn-sm" onclick="resetWorkoutTimer('${c.id}')">Reiniciar</button>
-        </div>
-    </div>
-
     <div class="wt-ci">
       <div class="wt-ci-row">
         <span class="dk">Check-in hoy</span>
@@ -3907,11 +3947,6 @@ function renderWorkout(){
         ci
           ? `
             <div class="wt-ci-row">
-              <span class="dk">Sueño</span>
-              <span class="dv">${esc(ci.sleepQuality ?? ci.sleep_quality ?? '—')}/10</span>
-            </div>
-
-            <div class="wt-ci-row">
               <span class="dk">Energía</span>
               <span class="dv">${esc(ci.energyLevel ?? ci.energy_level ?? '—')}/10</span>
             </div>
@@ -3920,80 +3955,67 @@ function renderWorkout(){
               <span class="dk">Molestias</span>
               <span class="dv">${esc(ci.sorenessLevel ?? ci.soreness_level ?? ci.painLevel ?? ci.pain_level ?? '—')}/5</span>
             </div>
-
-            ${
-              ci.comment
-                ? `<div class="wt-ci-row"><span class="dk">Nota</span><span class="dv wrap">${esc(ci.comment)}</span></div>`
-                : ''
-            }
           `
           : `
             <div style="font-size:.78rem;color:var(--text-2);line-height:1.5;margin-top:6px">
-              No hay check-in registrado. Preguntar sueño, energía y molestias antes de subir intensidad.
+              Antes de iniciar, preguntar sueño, energía y molestias.
             </div>
           `
       }
     </div>
 
     ${
-  plan.blocks.length
-    ? plan.blocks.map((b, bi) => `
-      <div class="wt-sec">
-        <div class="wt-sec-h">
-          <div>
-            <div class="wt-sec-title">${esc(getBlockName(b) || `Bloque ${bi + 1}`)}</div>
-            <div class="wt-sec-sub">${b.exercises.length} ejercicios</div>
+      plan.blocks.length
+        ? plan.blocks.map((b, bi) => {
+            const info = getBlockDoneInfo(c.id, b);
+            const title = getBlockName(b) || `Bloque ${bi + 1}`;
+
+            return `
+              <div class="card">
+                <div class="card-body">
+                  <div class="dr">
+                    <span class="dk">Bloque</span>
+                    <span class="dv wrap" style="color:var(--sport)">${esc(title)}</span>
+                  </div>
+
+                  <div class="dr">
+                    <span class="dk">Ejercicios</span>
+                    <span class="dv">${info.done}/${info.total}</span>
+                  </div>
+
+                  ${
+                    b.objective || b.objectiveEs || b.objective_es || b.description || b.descriptionEs || b.description_es
+                      ? `
+                        <div class="dr">
+                          <span class="dk">Objetivo</span>
+                          <span class="dv wrap">${esc(b.objective || b.objectiveEs || b.objective_es || b.description || b.descriptionEs || b.description_es)}</span>
+                        </div>
+                      `
+                      : ''
+                  }
+                </div>
+
+                <div class="card-acts">
+                  <button class="btn ${info.finished ? 'btn-g' : 'btn-p'} btn-sm btn-wide" onclick="openWorkoutBlock('${b.id}')">
+                    ${info.finished ? 'Revisar bloque' : 'Abrir bloque'}
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')
+        : `
+          <div class="wt-empty">
+            Este cliente tiene programa asignado, pero no se encontraron bloques ejecutables para esta sesión.
+            <br><br>
+            <span class="mono">
+              Programa: ${plan.program ? 'sí' : 'no'} ·
+              Semana: ${esc(plan.debug?.week || '—')} ·
+              Bloques: ${plan.debug?.loadedBlocks || 0} ·
+              Ejercicios: ${plan.debug?.loadedExercises || 0}
+            </span>
           </div>
-
-          ${
-            b.id && b.id !== 'general'
-              ? `<button class="btn btn-s btn-sm" onclick="setWorkoutBlockDone('${c.id}','${b.id}')">Sección OK</button>`
-              : ''
-          }
-        </div>
-
-        ${b.exercises.map((ex, i) => buildWorkoutExerciseCard(ex, i, c.id)).join('')}
-      </div>
-    `).join('')
-    : `
-      <div class="wt-empty">
-  Este cliente tiene programa asignado, pero el móvil todavía no encuentra ejercicios cargados para mostrar.
-  <br><br>
-
-  <span class="mono">
-    Asignación: ${plan.assignment ? 'sí' : 'no'} ·
-    Programa: ${plan.program ? 'sí' : 'no'}<br>
-    ID programa asignado: ${esc(plan.debug?.assignmentProgramId || '—')}<br>
-    ID programa encontrado: ${esc(plan.debug?.programId || '—')}<br>
-    Nombre programa: ${esc(plan.debug?.programName || '—')}<br>
-    Semana: ${esc(plan.debug?.week || '—')}<br>
-    Bloques cargados: ${plan.debug?.loadedBlocks || 0}<br>
-    Ejercicios cargados: ${plan.debug?.loadedExercises || 0}<br>
-    Bloques de este programa: ${plan.debug?.matchedBlocks || 0}<br>
-    Bloques de esta semana: ${plan.debug?.weekBlocks || 0}<br>
-    Bloques con ejercicios: ${plan.debug?.blocksWithExercises || 0}<br>
-    Ejercicios sueltos del programa: ${plan.debug?.looseExercises || 0}
-  </span>
-
-  <br><br>
-
-  <span class="mono">
-    Campos bloque: ${esc(plan.debug?.firstBlockKeys || '—')}<br>
-    Campos ejercicio: ${esc(plan.debug?.firstExerciseKeys || '—')}
-  </span>
-</div>
-        <br><br>
-        <span class="mono">
-          Asignación: ${plan.assignment ? 'sí' : 'no'} ·
-          Programa: ${plan.program ? 'sí' : 'no'} ·
-          Bloques cargados: ${state.trainingBlocks.length} ·
-          Ejercicios cargados: ${state.trainingExercises.length}
-        </span>
-        <br><br>
-        Si bloques o ejercicios aparecen en 0, el problema está en la carga desde Supabase o en el nombre de la tabla/campos.
-      </div>
-    `
-}
+        `
+    }
 
     <div class="card">
       <div class="card-body">
@@ -4001,7 +4023,7 @@ function renderWorkout(){
 
         <textarea
           class="wt-note"
-          placeholder="Ej: respiración bloqueada en esfuerzo, molestia leve en rodilla, técnica mejoró en la segunda serie..."
+          placeholder="Ej: respiración bloqueada, molestia leve, técnica mejoró..."
           oninput="saveWorkoutNote('${c.id}', this.value)"
         >${esc(note)}</textarea>
       </div>
@@ -4013,6 +4035,159 @@ function renderWorkout(){
       </div>
     </div>
   `;
+}
+
+function buildActiveBlockScreen(c, plan, block){
+  const exercises = block.exercises || [];
+  const idx = Math.min(
+    Number(state.activeWorkoutExerciseIndex || 0),
+    Math.max(0, exercises.length - 1)
+  );
+
+  state.activeWorkoutExerciseIndex = idx;
+
+  const ex = exercises[idx];
+  const exId = getExerciseId(ex, idx);
+  const info = getExerciseInfo(ex);
+  const videoUrl = typeof getExerciseVideoUrl === 'function' ? getExerciseVideoUrl(ex) : '';
+  const blockTitle = getBlockName(block) || 'Bloque de entrenamiento';
+
+  return `
+    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">
+      Volver a bloques
+    </button>
+
+    <div class="wt-head">
+      <div class="dr">
+        <span class="dk">Bloque</span>
+        <span class="dv wrap" style="color:var(--sport)">${esc(blockTitle)}</span>
+      </div>
+
+      <div class="dr">
+        <span class="dk">Ejercicio</span>
+        <span class="dv">${idx + 1}/${exercises.length}</span>
+      </div>
+    </div>
+
+    <div class="wt-timer">
+      <div class="wt-clock" id="wt-clock">${formatClock(state.workoutTimer.seconds)}</div>
+
+      <div class="wt-timer-actions">
+        ${
+          state.workoutTimer.running
+            ? `<button class="btn btn-s btn-sm" onclick="pauseWorkoutTimer()">Pausar</button>`
+            : `<button class="btn btn-p btn-sm" onclick="startWorkoutTimer()">Iniciar</button>`
+        }
+
+        <button class="btn btn-s btn-sm" onclick="resetWorkoutTimer('${c.id}')">
+          Reiniciar
+        </button>
+      </div>
+    </div>
+
+    <div class="ex-card">
+      <div class="ex-main">
+        <div class="ex-top">
+          <div class="ex-num">${String(idx + 1).padStart(2,'0')}</div>
+
+          <div style="flex:1;min-width:0">
+            <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
+            <div class="ex-dose">${esc(getExerciseDose(ex))}</div>
+
+            ${
+              ex.description || ex.descriptionEs || ex.description_es
+                ? `<div class="ex-desc">${esc(ex.description || ex.descriptionEs || ex.description_es)}</div>`
+                : ''
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="ex-mini">
+        <details open>
+          <summary>Por qué</summary>
+          <p>${esc(info.why)}</p>
+        </details>
+
+        <details>
+          <summary>Técnica</summary>
+          <p>${esc(info.tech)}</p>
+        </details>
+
+        <details>
+          <summary>Respira</summary>
+          <p>${esc(info.breath)}</p>
+        </details>
+
+        <details>
+          <summary>Errores</summary>
+          <p>${esc(info.errors)}</p>
+        </details>
+
+        <details>
+          <summary>Coach</summary>
+          <p>${esc(info.coach)}</p>
+        </details>
+      </div>
+
+      <div class="ex-actions">
+        ${
+          videoUrl
+            ? `<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`
+            : ''
+        }
+
+        <button class="btn btn-p btn-sm" onclick="completeActiveExercise('${c.id}','${block.id}','${exId}')">
+          Terminado
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderWorkout(){
+  const box = document.getElementById('workout-content');
+  const c = clientById(state.activeTrainingClientId || state.selectedClientId);
+
+  if(!c){
+    box.innerHTML = emptyState('Sin cliente','Vuelve a clientes y abre un perfil.');
+    return;
+  }
+
+  state.activeTrainingClientId = c.id;
+
+  const ci = getClientTodayCheckin(c.id);
+  const ciStatus = ci ? getCheckinStatus(ci) : null;
+  const plan = getWorkoutPlanForClient(c);
+  const exercises = plan.exercises || [];
+
+  const doneCount = exercises.filter((ex, idx) => {
+    const exId = getExerciseId(ex, idx);
+    return isExerciseDone(c.id, exId);
+  }).length;
+
+  const totalCount = exercises.length;
+  const note = state.workoutNotes[c.id] || '';
+
+  const activeBlock = state.activeWorkoutBlockId
+    ? plan.blocks.find(b => String(b.id) === String(state.activeWorkoutBlockId))
+    : null;
+
+  if(activeBlock){
+    box.innerHTML = buildActiveBlockScreen(c, plan, activeBlock);
+    updateClockUI();
+    return;
+  }
+
+  box.innerHTML = buildWorkoutBlockListScreen(
+    c,
+    plan,
+    ci,
+    ciStatus,
+    doneCount,
+    totalCount,
+    note
+  );
 }
 
 async function finishWorkout(clientId){
