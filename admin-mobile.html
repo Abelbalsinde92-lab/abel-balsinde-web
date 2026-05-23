@@ -3797,8 +3797,76 @@ function isVideoRowActive(v){
   return !['inactive','inactivo','disabled','desactivado','borrado','draft'].includes(st);
 }
 
+function normalizeVideoText(v){
+  return String(v || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function pickFirst(obj, keys){
+  for(const k of keys){
+    const v = obj?.[k];
+
+    if(v !== null && v !== undefined && String(v).trim() !== ''){
+      return String(v).trim();
+    }
+  }
+
+  return '';
+}
+
+function getVideoUrlFromRow(row){
+  return pickFirst(row, [
+    'videoUrl',
+    'video_url',
+    'videoURL',
+    'url',
+    'video',
+    'link',
+    'youtubeUrl',
+    'youtube_url',
+    'youtube',
+    'driveUrl',
+    'drive_url',
+    'fileUrl',
+    'file_url'
+  ]);
+}
+
+function getVideoFamilyFromRow(row){
+  return pickFirst(row, [
+    'videoFamily',
+    'video_family',
+    'family',
+    'exerciseFamily',
+    'exercise_family',
+    'category',
+    'slug'
+  ]);
+}
+
+function getVideoExerciseNameFromRow(row){
+  return pickFirst(row, [
+    'exerciseName',
+    'exercise_name',
+    'name',
+    'nameEs',
+    'name_es',
+    'title',
+    'titleEs',
+    'title_es'
+  ]);
+}
+
 function getExerciseVideoUrl(ex){
-  if(!ex) return '';
+  if(!ex){
+    return '';
+  }
 
   // 1) Vídeo directo dentro del ejercicio
   const direct = getVideoUrlFromRow(ex);
@@ -3807,50 +3875,50 @@ function getExerciseVideoUrl(ex){
     return direct;
   }
 
-  const exId = toId(getVal(ex,[
-    'id',
-    'exerciseId',
-    'exercise_id',
-    'trainingExerciseId',
-    'training_exercise_id'
-  ]));
+  const exId = String(
+    ex.id ||
+    ex.exerciseId ||
+    ex.exercise_id ||
+    ''
+  ).trim();
 
-  const exTitle = normTxt(getExerciseTitle(ex));
+  const exName = normalizeVideoText(
+    ex.name ||
+    ex.nameEs ||
+    ex.name_es ||
+    ex.title ||
+    ex.titleEs ||
+    ex.title_es ||
+    ''
+  );
 
-  const exFamily = normTxt(getVal(ex,[
-    'videoFamily',
-    'video_family',
-    'family',
-    'videoKey',
-    'video_key',
-    'exerciseKey',
-    'exercise_key',
-    'movementPattern',
-    'movement_pattern',
-    'pattern',
-    'category',
-    'slug',
-    'code',
-    'key'
-  ]));
+  const exFamily = normalizeVideoText(
+    getVideoFamilyFromRow(ex)
+  );
 
-  const videos = (state.videoLibrary || [])
-    .filter(v => isVideoRowActive(v))
-    .filter(v => getVideoUrlFromRow(v));
+  const activeVideos = (state.videoLibrary || []).filter(v => {
+    const st = String(
+      v.status ||
+      v.videoStatus ||
+      v.video_status ||
+      'active'
+    ).toLowerCase();
 
-  // 2) Match por ID del ejercicio
+    return !['inactive','inactivo','disabled','borrador'].includes(st);
+  });
+
+  // 2) Buscar por exercise_id / training_exercise_id
   if(exId){
-    const byId = videos.find(v => {
-      const vId = toId(getVal(v,[
-        'exerciseId',
-        'exercise_id',
-        'trainingExerciseId',
-        'training_exercise_id',
-        'trainingExercise',
-        'exercise'
-      ]));
+    const byId = activeVideos.find(v => {
+      const vid = String(
+        v.exerciseId ||
+        v.exercise_id ||
+        v.trainingExerciseId ||
+        v.training_exercise_id ||
+        ''
+      ).trim();
 
-      return vId && sameId(vId, exId);
+      return vid && vid === exId && getVideoUrlFromRow(v);
     });
 
     if(byId){
@@ -3858,27 +3926,11 @@ function getExerciseVideoUrl(ex){
     }
   }
 
-  // 3) Match por familia / clave
+  // 3) Buscar por video_family
   if(exFamily){
-    const byFamily = videos.find(v => {
-      const vFamily = normTxt(getVal(v,[
-        'videoFamily',
-        'video_family',
-        'family',
-        'videoKey',
-        'video_key',
-        'exerciseKey',
-        'exercise_key',
-        'movementPattern',
-        'movement_pattern',
-        'pattern',
-        'category',
-        'slug',
-        'code',
-        'key'
-      ]));
-
-      return vFamily && vFamily === exFamily;
+    const byFamily = activeVideos.find(v => {
+      const vf = normalizeVideoText(getVideoFamilyFromRow(v));
+      return vf && vf === exFamily && getVideoUrlFromRow(v);
     });
 
     if(byFamily){
@@ -3886,42 +3938,34 @@ function getExerciseVideoUrl(ex){
     }
   }
 
-  // 4) Match por nombre del ejercicio
-  if(exTitle){
-    const byName = videos.find(v => {
-      const vName = normTxt(getVal(v,[
-        'exerciseName',
-        'exercise_name',
-        'name',
-        'nameEs',
-        'name_es',
-        'title',
-        'titleEs',
-        'title_es',
-        'exerciseTitle',
-        'exercise_title'
-      ]));
-
-      return vName && (
-        vName === exTitle ||
-        vName.includes(exTitle) ||
-        exTitle.includes(vName)
-      );
+  // 4) Buscar por nombre exacto del ejercicio
+  if(exName){
+    const byExactName = activeVideos.find(v => {
+      const vn = normalizeVideoText(getVideoExerciseNameFromRow(v));
+      return vn && vn === exName && getVideoUrlFromRow(v);
     });
 
-    if(byName){
-      return getVideoUrlFromRow(byName);
+    if(byExactName){
+      return getVideoUrlFromRow(byExactName);
     }
   }
 
-  console.warn('[AB FIELD] Vídeo no encontrado para ejercicio:', {
-    ejercicio: ex,
-    titulo: getExerciseTitle(ex),
-    exId,
-    exFamily,
-    videosCargados: state.videoLibrary?.length || 0,
-    primerVideo: state.videoLibrary?.[0] || null
-  });
+  // 5) Buscar por nombre parcial, por si uno dice "Sentadilla" y otro "Sentadilla goblet"
+  if(exName){
+    const byPartialName = activeVideos.find(v => {
+      const vn = normalizeVideoText(getVideoExerciseNameFromRow(v));
+
+      if(!vn || !getVideoUrlFromRow(v)){
+        return false;
+      }
+
+      return vn.includes(exName) || exName.includes(vn);
+    });
+
+    if(byPartialName){
+      return getVideoUrlFromRow(byPartialName);
+    }
+  }
 
   return '';
 }
@@ -3988,15 +4032,25 @@ function buildVideoHTML(url){
   const clean = String(url || '').trim();
   const yt = youtubeEmbedUrl(clean);
 
+  if(!clean){
+    return `
+      <div class="wt-empty">
+        No hay URL de vídeo registrada para este ejercicio.
+      </div>
+    `;
+  }
+
   if(yt){
     return `
       <div class="video-box">
         <iframe
           src="${esc(yt)}"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowfullscreen
+          playsinline
         ></iframe>
       </div>
+
       <a class="video-link" href="${esc(clean)}" target="_blank" rel="noopener">
         Abrir vídeo externo
       </a>
@@ -4008,6 +4062,7 @@ function buildVideoHTML(url){
       <div class="video-box">
         <video controls playsinline preload="metadata" src="${esc(clean)}"></video>
       </div>
+
       <a class="video-link" href="${esc(clean)}" target="_blank" rel="noopener">
         Abrir vídeo externo
       </a>
@@ -4015,9 +4070,12 @@ function buildVideoHTML(url){
   }
 
   return `
-    <div class="video-box">
-      <iframe src="${esc(clean)}" allowfullscreen></iframe>
+    <div class="wt-empty">
+      Este enlace no se puede incrustar con seguridad dentro del panel móvil.
+      <br><br>
+      Ábrelo como vídeo externo.
     </div>
+
     <a class="video-link" href="${esc(clean)}" target="_blank" rel="noopener">
       Abrir vídeo externo
     </a>
