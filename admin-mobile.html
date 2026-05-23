@@ -3751,37 +3751,179 @@ function getExerciseId(ex, fallbackIndex=0){
   );
 }
 
+function normTxt(v){
+  return String(v || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function getVideoUrlFromRow(row){
+  return String(getVal(row,[
+    'videoUrl',
+    'video_url',
+    'youtubeUrl',
+    'youtube_url',
+    'url',
+    'link',
+    'videoLink',
+    'video_link',
+    'fileUrl',
+    'file_url',
+    'publicUrl',
+    'public_url',
+    'storageUrl',
+    'storage_url',
+    'mediaUrl',
+    'media_url',
+    'demoUrl',
+    'demo_url'
+  ]) || '').trim();
+}
+
+function isVideoRowActive(v){
+  const st = normTxt(
+    v.status ||
+    v.videoStatus ||
+    v.video_status ||
+    v.estado ||
+    'active'
+  );
+
+  return !['inactive','inactivo','disabled','desactivado','borrado','draft'].includes(st);
+}
+
 function getExerciseVideoUrl(ex){
-  const direct =
-    ex.videoUrl ||
-    ex.video_url ||
-    ex.videoURL ||
-    ex.videoLink ||
-    ex.video_link ||
-    '';
+  if(!ex) return '';
 
-  if(String(direct || '').trim()){
-    return String(direct).trim();
+  // 1) Vídeo directo dentro del ejercicio
+  const direct = getVideoUrlFromRow(ex);
+
+  if(direct){
+    return direct;
   }
 
-  const family = String(
-    ex.videoFamily ||
-    ex.video_family ||
-    ''
-  ).trim().toLowerCase();
+  const exId = toId(getVal(ex,[
+    'id',
+    'exerciseId',
+    'exercise_id',
+    'trainingExerciseId',
+    'training_exercise_id'
+  ]));
 
-  if(!family){
-    return '';
+  const exTitle = normTxt(getExerciseTitle(ex));
+
+  const exFamily = normTxt(getVal(ex,[
+    'videoFamily',
+    'video_family',
+    'family',
+    'videoKey',
+    'video_key',
+    'exerciseKey',
+    'exercise_key',
+    'movementPattern',
+    'movement_pattern',
+    'pattern',
+    'category',
+    'slug',
+    'code',
+    'key'
+  ]));
+
+  const videos = (state.videoLibrary || [])
+    .filter(v => isVideoRowActive(v))
+    .filter(v => getVideoUrlFromRow(v));
+
+  // 2) Match por ID del ejercicio
+  if(exId){
+    const byId = videos.find(v => {
+      const vId = toId(getVal(v,[
+        'exerciseId',
+        'exercise_id',
+        'trainingExerciseId',
+        'training_exercise_id',
+        'trainingExercise',
+        'exercise'
+      ]));
+
+      return vId && sameId(vId, exId);
+    });
+
+    if(byId){
+      return getVideoUrlFromRow(byId);
+    }
   }
 
-  const video = state.videoLibrary.find(v => {
-    const vf = String(v.videoFamily || v.video_family || '').trim().toLowerCase();
-    const st = String(v.status || v.videoStatus || v.video_status || 'active').toLowerCase();
+  // 3) Match por familia / clave
+  if(exFamily){
+    const byFamily = videos.find(v => {
+      const vFamily = normTxt(getVal(v,[
+        'videoFamily',
+        'video_family',
+        'family',
+        'videoKey',
+        'video_key',
+        'exerciseKey',
+        'exercise_key',
+        'movementPattern',
+        'movement_pattern',
+        'pattern',
+        'category',
+        'slug',
+        'code',
+        'key'
+      ]));
 
-    return vf === family && !['inactive','inactivo','disabled'].includes(st);
+      return vFamily && vFamily === exFamily;
+    });
+
+    if(byFamily){
+      return getVideoUrlFromRow(byFamily);
+    }
+  }
+
+  // 4) Match por nombre del ejercicio
+  if(exTitle){
+    const byName = videos.find(v => {
+      const vName = normTxt(getVal(v,[
+        'exerciseName',
+        'exercise_name',
+        'name',
+        'nameEs',
+        'name_es',
+        'title',
+        'titleEs',
+        'title_es',
+        'exerciseTitle',
+        'exercise_title'
+      ]));
+
+      return vName && (
+        vName === exTitle ||
+        vName.includes(exTitle) ||
+        exTitle.includes(vName)
+      );
+    });
+
+    if(byName){
+      return getVideoUrlFromRow(byName);
+    }
+  }
+
+  console.warn('[AB FIELD] Vídeo no encontrado para ejercicio:', {
+    ejercicio: ex,
+    titulo: getExerciseTitle(ex),
+    exId,
+    exFamily,
+    videosCargados: state.videoLibrary?.length || 0,
+    primerVideo: state.videoLibrary?.[0] || null
   });
 
-  return video?.videoUrl || video?.video_url || '';
+  return '';
 }
 
 function getExerciseTitle(ex){
@@ -3893,7 +4035,14 @@ function openExerciseVideo(exId){
   const url = getExerciseVideoUrl(ex);
 
   if(!url){
-    showToast('Este ejercicio no tiene vídeo','err');
+    console.warn('[AB FIELD] Sin vídeo al abrir:', {
+      exId,
+      ejercicio: ex,
+      titulo: getExerciseTitle(ex),
+      videoLibrary: state.videoLibrary
+    });
+
+    showToast(`Sin vídeo · biblioteca: ${state.videoLibrary?.length || 0}`,'err');
     return;
   }
 
@@ -3962,10 +4111,10 @@ function buildWorkoutExerciseCard(ex, index, clientId){
 
       <div class="ex-actions">
         ${
-          videoUrl
-            ? `<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`
-            : `<button class="btn btn-s btn-sm" disabled>Sin vídeo</button>`
-        }
+  videoUrl
+    ? `<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`
+    : `<button class="btn btn-s btn-sm" disabled>Sin vídeo</button>`
+}
 
         <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
           ${done ? 'Terminado' : 'Marcar'}
