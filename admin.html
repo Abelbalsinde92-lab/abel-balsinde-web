@@ -4773,11 +4773,12 @@ function openModal(type,id=null){
     const t=get('templates');title.textContent=id?'Editar plantilla':'Nueva plantilla';
     form.innerHTML=`
       ${biField('Nombre','Naziv','name_es','name_sr',t.nameEs||t.name||'',t.nameSr||'')}
-      ${biField('Mensaje','Poruka','msg_es','msg_sr',t.msgEs||t.msg||'',t.msgSr||'','textarea',4)}
+            ${biField('Mensaje','Poruka','msg_es','msg_sr',t.msgEs||t.msg||'',t.msgSr||'','textarea',4)}
       ${actions}`;
   }
 
-`else if(type==='trainingAssignment'){
+  else if(type==='trainingAssignment'){
+
   const a = get('clientProgramAssignments');
 
   title.textContent = id ? 'Editar asignación de entrenamiento' : 'Asignar entrenamiento a cliente';
