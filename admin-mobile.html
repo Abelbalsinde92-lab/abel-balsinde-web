@@ -3505,7 +3505,17 @@ debug.selectedSessions = sessions.length;
     return {
       ...b,
       sessionId: session?.id || '',
-      sessionTitle: session?.title || session?.titleEs || session?.name || '',
+      sessionTitle: [
+  session?.title,
+  session?.titleEs,
+  session?.title_es,
+  session?.name,
+  session?.nameEs,
+  session?.name_es,
+  session?.type,
+  session?.typeEs,
+  session?.type_es
+].filter(Boolean).join(' '),
       sessionNumber: getSessionNumberFromRow(session || {}),
       exercises
     };
@@ -3868,11 +3878,11 @@ function buildWorkoutExerciseCard(ex, index, clientId){
           <div class="ex-num">${String(index + 1).padStart(2,'0')}</div>
 
           <div style="flex:1;min-width:0">
-            <div class="ex-title">${esc(ex.name || ex.nameEs || 'Ejercicio')}</div>
+            <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
             <div class="ex-dose">${esc(getExerciseDose(ex))}</div>
             ${
-              ex.description || ex.descriptionEs
-                ? `<div class="ex-desc">${esc(ex.description || ex.descriptionEs)}</div>`
+              ex.description || ex.descriptionEs || ex.description_es
+                ? `<div class="ex-desc">${esc(ex.description || ex.descriptionEs || ex.description_es)}</div>`
                 : ''
             }
           </div>
@@ -3907,17 +3917,16 @@ function buildWorkoutExerciseCard(ex, index, clientId){
       </div>
 
       <div class="ex-actions">
-  ${
-    videoUrl
-      `videoUrl
-  ? `<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`
-  : `<button class="btn btn-s btn-sm" disabled>Sin vídeo</button>`
-  }
+        ${
+          videoUrl
+            ? `<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`
+            : `<button class="btn btn-s btn-sm" disabled>Sin vídeo</button>`
+        }
 
-  <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
-    ${done ? 'Terminado' : 'Marcar'}
-  </button>
-</div>
+        <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
+          ${done ? 'Terminado' : 'Marcar'}
+        </button>
+      </div>
     </div>
   `;
 }
