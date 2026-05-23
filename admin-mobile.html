@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>AB · Field</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AB Field">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ════════════════════════════════════════════════════════
+   AB ADMIN FIELD · MOBILE-FIRST v1.0 (Fase 1)
+   Para uso en sala de gimnasio. Pulgar + sudor + cero margen.
+══════════════════════════════════════════════════════════ */
+:root{
+  --bg:#000;--card:#121214;--card-border:#1F1F24;--divider:#16161A;
+  --text:#FFF;--text-2:#8E8E93;
+  --sport:#00C8E8;--medical:#FF5A5A;--streak:#00E676;--warn:#FFB340;
+  --font-d:'Bebas Neue',sans-serif;
+  --font-b:'Syne',sans-serif;
+  --font-m:'DM Mono',monospace;
+  --top-h:56px;--bot-h:62px;--touch:48px;--r:14px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:var(--font-b);background:var(--bg);color:var(--text);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;overscroll-behavior:none;text-size-adjust:none;-webkit-text-size-adjust:none}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:16px}
+a{text-decoration:none;color:inherit}
+.hidden{display:none!important}
+.mono{font-family:var(--font-m)}
+
+/* GLOBAL LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.spin{width:32px;height:32px;border:2px solid var(--divider);border-top-color:var(--sport);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading p{font-family:var(--font-m);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-2)}
+
+/* LOGIN */
+#login{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 20px calc(24px + var(--safe-b)) 20px;padding-top:calc(24px + var(--safe-t))}
+.login-card{width:100%;max-width:380px;background:var(--card);border:1px solid var(--card-border);border-top:2px solid var(--medical);border-radius:var(--r);padding:32px 24px 28px}
+.login-brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.lb-1{font-family:var(--font-d);font-size:2.2rem;line-height:1}
+.lb-2{font-family:var(--font-m);font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sport)}
+.login-title{font-family:var(--font-d);font-size:1.9rem;letter-spacing:.04em;margin-bottom:4px}
+.login-sub{font-size:.78rem;color:var(--text-2);font-family:var(--font-m);letter-spacing:.06em;margin-bottom:22px}
+.login-err{background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.3);color:var(--medical);border-radius:8px;padding:10px 12px;font-size:.78rem;font-family:var(--font-m);margin-bottom:14px}
+.login-field{margin-bottom:12px}
+.login-lbl{display:block;font-family:var(--font-m);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-2);margin-bottom:6px}
+.login-inp{width:100%;background:var(--bg);border:1px solid var(--card-border);border-radius:8px;color:var(--text);padding:14px;font-size:1rem;outline:none;transition:border-color .15s;min-height:var(--touch)}
+.login-inp:focus{border-color:var(--sport)}
+.login-btn{width:100%;background:var(--text);color:var(--bg);border-radius:8px;padding:14px;font-family:var(--font-m);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;min-height:var(--touch);margin-top:6px;font-weight:700}
+.login-btn:active{opacity:.85}
+
+/* APP LAYOUT */
+#app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+
+/* TOP HEADER */
+.top{position:fixed;top:0;left:0;right:0;z-index:50;height:calc(var(--top-h) + var(--safe-t));padding-top:var(--safe-t);background:rgba(0,0,0,.92);border-bottom:1px solid var(--divider);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;padding-left:16px;padding-right:12px;gap:10px}
+.top-brand{font-family:var(--font-d);font-size:1.4rem;line-height:1}
+.top-sub{font-family:var(--font-m);font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sport)}
+.top-date{font-family:var(--font-m);font-size:.6rem;letter-spacing:.06em;color:var(--text-2);margin-left:auto}
+.top-btn{min-width:var(--touch);height:var(--touch);background:var(--card);border:1px solid var(--card-border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-2);padding:0 12px;gap:6px;font-family:var(--font-m);font-size:.65rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.top-btn:active{background:rgba(255,255,255,.06);color:var(--text)}
+.top-btn.pri{background:var(--text);color:var(--bg);border-color:var(--text)}
+.top-btn.pri:active{opacity:.85}
+
+/* SCREEN WRAP */
+.wrap{flex:1;overflow-y:auto;overflow-x:hidden;padding-top:calc(var(--top-h) + var(--safe-t));padding-bottom:calc(var(--bot-h) + var(--safe-b) + 12px);-webkit-overflow-scrolling:touch}
+
+/* SCREENS */
+.scr{display:none;padding:16px 16px 0}
+.scr.on{display:block;animation:fadein .15s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.scr-h{margin-bottom:16px}
+.scr-eye{font-family:var(--font-m);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sport);margin-bottom:3px}
+.scr-t{font-family:var(--font-d);font-size:1.9rem;letter-spacing:.03em;line-height:1}
+.scr-back{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-m);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);padding:6px 0;margin-bottom:8px}
+
+/* BOTTOM NAV */
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:50;height:calc(var(--bot-h) + var(--safe-b));background:var(--card);border-top:1px solid var(--divider);display:flex;align-items:flex-start;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:var(--bot-h);padding-bottom:var(--safe-b);color:var(--text-2);position:relative;transition:color .15s}
+.tab.on{color:var(--sport)}
+.tab:active{opacity:.6}
+.tab-i{font-size:1.3rem;line-height:1}
+.tab-l{font-family:var(--font-m);font-size:.55rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.tab-b{position:absolute;top:6px;right:calc(50% - 18px);min-width:18px;height:18px;background:var(--medical);color:var(--bg);border-radius:9px;font-family:var(--font-m);font-size:.55rem;display:none;align-items:center;justify-content:center;padding:0 5px;font-weight:700}
+.tab-b.on{display:flex}
+
+/* METRICS */
+.mr{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+.mc{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);padding:14px 14px 12px;border-top:2px solid transparent}
+.mc.r{border-top-color:var(--medical)}
+.mc.b{border-top-color:var(--sport)}
+.mc.g{border-top-color:var(--streak)}
+.mc.y{border-top-color:var(--warn)}
+.mc-n{font-family:var(--font-d);font-size:2rem;line-height:1;display:block}
+.mc-l{font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);display:block;margin-top:3px}
+
+/* SESSION CARDS (Hoy) */
+.sc{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.sc.urg{border-left:3px solid var(--medical)}
+.sc.wrn{border-left:3px solid var(--warn)}
+.sc.ok{border-left:3px solid var(--sport)}
+.sc-top{display:flex;align-items:center;gap:12px;padding:14px 14px 10px}
+.sc-time{font-family:var(--font-d);font-size:1.7rem;color:var(--sport);line-height:1;flex-shrink:0;min-width:60px}
+.sc-name{font-size:.98rem;font-weight:700}
+.sc-meta{font-size:.74rem;color:var(--text-2);margin-top:2px}
+.sc-rows{padding:0 14px}
+.sc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--divider);font-size:.8rem;gap:10px}
+.sc-k{color:var(--text-2);font-family:var(--font-m);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase}
+.sc-v{font-weight:600;text-align:right}
+.sc-acts{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--divider);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.sc-acts::-webkit-scrollbar{display:none}
+
+/* CLIENT CARDS */
+.cc{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.cc-top{display:flex;align-items:center;gap:12px;padding:14px 14px 0}
+.av{width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:1.05rem;background:rgba(0,200,232,.1);color:var(--sport);border:1px solid rgba(0,200,232,.2)}
+.cc-name{font-size:1rem;font-weight:700}
+.cc-meta{font-size:.72rem;color:var(--text-2);margin-top:2px}
+.cc-badges{display:flex;flex-direction:column;gap:4px;align-items:flex-end;margin-left:auto}
+.cc-rows{padding:6px 14px 0}
+.cc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--divider);font-size:.78rem;gap:8px}
+.cc-acts{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--divider);margin-top:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.cc-acts::-webkit-scrollbar{display:none}
+
+/* ALERT CARDS */
+.ac{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.ac.urg{border-left:3px solid var(--medical)}
+.ac.wrn{border-left:3px solid var(--warn)}
+.ac-top{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 14px 8px;gap:10px}
+.ac-cli{font-weight:700;font-size:.95rem}
+.ac-tipo{font-family:var(--font-m);font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin-top:3px}
+.ac-msg{padding:0 14px 12px;font-size:.84rem;color:var(--text-2);line-height:1.55}
+.ac-note{margin:0 14px 12px;background:rgba(0,200,232,.06);border-left:2px solid var(--sport);padding:8px 10px;font-size:.78rem;color:var(--sport);border-radius:0 6px 6px 0;line-height:1.5}
+.ac-acts{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--divider);overflow-x:auto;scrollbar-width:none}
+.ac-acts::-webkit-scrollbar{display:none}
+
+/* GENERIC CARD */
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+.card-body{padding:14px}
+.card-title{font-family:var(--font-d);font-size:1.05rem;letter-spacing:.04em;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-acts{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--divider);overflow-x:auto;scrollbar-width:none}
+.card-acts::-webkit-scrollbar{display:none}
+.dr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--divider);gap:10px}
+.dr:last-child{border-bottom:none}
+.dr:first-child{padding-top:0}
+.dk{font-family:var(--font-m);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);white-space:nowrap}
+.dv{font-size:.85rem;font-weight:600;text-align:right}
+.dv.wrap{white-space:normal;max-width:60%}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px 20px;color:var(--text-2)}
+.empty strong{display:block;font-family:var(--font-d);font-size:1.4rem;letter-spacing:.04em;color:var(--text);margin-bottom:6px}
+.empty.s{padding:20px}
+
+/* BADGES */
+.b{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;font-family:var(--font-m);font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;flex-shrink:0;font-weight:600}
+.b::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.b-activo,.b-pagado,.b-confirmada,.b-realizada,.b-ok{background:rgba(0,230,118,.1);color:var(--streak)}
+.b-activo::before,.b-pagado::before,.b-confirmada::before,.b-realizada::before,.b-ok::before{background:var(--streak)}
+.b-prospecto,.b-reservada,.b-info{background:rgba(0,200,232,.1);color:var(--sport)}
+.b-prospecto::before,.b-reservada::before,.b-info::before{background:var(--sport)}
+.b-pausado,.b-pendiente,.b-revisar,.b-leida{background:rgba(255,179,64,.1);color:var(--warn)}
+.b-pausado::before,.b-pendiente::before,.b-revisar::before,.b-leida::before{background:var(--warn)}
+.b-inactivo,.b-cancelada{background:rgba(255,255,255,.05);color:var(--text-2)}
+.b-inactivo::before,.b-cancelada::before{background:var(--text-2)}
+.b-alerta,.b-vencido,.b-critica{background:rgba(255,90,90,.1);color:var(--medical)}
+.b-alerta::before,.b-vencido::before,.b-critica::before{background:var(--medical)}
+.b-normal{background:rgba(0,230,118,.1);color:var(--streak)}
+.b-normal::before{background:var(--streak)}
+.b-resuelta{background:rgba(0,230,118,.1);color:var(--streak)}
+.b-resuelta::before{background:var(--streak)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 16px;font-family:var(--font-m);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;border-radius:8px;min-height:var(--touch);white-space:nowrap;flex-shrink:0;font-weight:700;transition:opacity .12s}
+.btn:active{opacity:.7;transform:scale(.97)}
+.btn-p{background:var(--text);color:var(--bg)}
+.btn-s{background:var(--card);color:var(--text-2);border:1px solid var(--card-border)}
+.btn-s:active{color:var(--text)}
+.btn-b{background:rgba(0,200,232,.12);color:var(--sport);border:1px solid rgba(0,200,232,.3)}
+.btn-wa{background:#25D366;color:#000}
+.btn-g{background:rgba(0,230,118,.12);color:var(--streak);border:1px solid rgba(0,230,118,.3)}
+.btn-r{background:rgba(255,90,90,.12);color:var(--medical);border:1px solid rgba(255,90,90,.3)}
+.btn-sm{min-height:40px;padding:0 12px;font-size:.6rem}
+.btn-wide{width:100%}
+
+/* SEARCH BAR */
+.search{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:0 14px;min-height:var(--touch);margin-bottom:12px}
+.search-i{color:var(--text-2);font-size:.9rem}
+.search input{background:none;border:none;outline:none;color:var(--text);font-size:1rem;flex:1;min-height:var(--touch)}
+.search input::placeholder{color:var(--text-2);opacity:.6}
+
+/* FILTER PILLS */
+.fr{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+.fr::-webkit-scrollbar{display:none}
+.fp{padding:0 14px;font-family:var(--font-m);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;background:var(--bg);border:1px solid var(--card-border);border-radius:999px;color:var(--text-2);white-space:nowrap;flex-shrink:0;min-height:38px;display:flex;align-items:center;font-weight:600}
+.fp.on{background:rgba(0,200,232,.1);color:var(--sport);border-color:rgba(0,200,232,.3)}
+.fp:active{opacity:.7}
+
+/* MAS GRID (tile menu) */
+.mas{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.mas-t{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);padding:18px 16px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;position:relative;min-height:96px;transition:background .15s}
+.mas-t:active{background:rgba(255,255,255,.04)}
+.mas-i{font-size:1.5rem;line-height:1;margin-bottom:4px}
+.mas-l{font-family:var(--font-m);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)}
+.mas-n{font-weight:700;font-size:.95rem}
+.mas-bdg{position:absolute;top:12px;right:12px;min-width:20px;height:20px;background:var(--medical);color:var(--bg);border-radius:10px;font-family:var(--font-m);font-size:.6rem;display:none;align-items:center;justify-content:center;padding:0 5px;font-weight:700}
+.mas-bdg.on{display:flex}
+
+/* PROFILE TABS */
+.ptabs{display:flex;gap:0;border-bottom:1px solid var(--divider);margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
+.ptabs::-webkit-scrollbar{display:none}
+.pt{padding:12px 14px;font-family:var(--font-m);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);border-bottom:2px solid transparent;white-space:nowrap;margin-bottom:-1px;min-height:var(--touch);display:flex;align-items:center;font-weight:700}
+.pt.on{color:var(--sport);border-bottom-color:var(--sport)}
+.pt:active{opacity:.7}
+.ptc{display:none}
+.ptc.on{display:block}
+
+/* MODAL (bottom sheet) */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.ov.on{display:flex}
+.ms{background:var(--card);border-top:1px solid var(--card-border);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:560px;max-height:92dvh;overflow-y:auto;padding:18px 20px calc(20px + var(--safe-b)) 20px;position:relative;animation:slide-up .2s ease}
+@keyframes slide-up{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.ms-handle{width:36px;height:4px;background:var(--card-border);border-radius:2px;margin:0 auto 16px}
+.ms-title{font-family:var(--font-d);font-size:1.4rem;letter-spacing:.04em;margin-bottom:16px;padding-right:40px}
+.ms-x{position:absolute;top:12px;right:12px;color:var(--text-2);padding:8px;min-width:var(--touch);min-height:var(--touch);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700}
+.ms-x:active{color:var(--text)}
+
+/* FORMS */
+.fld{margin-bottom:12px}
+.fld-l{display:block;font-family:var(--font-m);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:6px;font-weight:600}
+.fld-i,.fld-s,.fld-t{width:100%;background:var(--bg);border:1px solid var(--card-border);border-radius:8px;color:var(--text);padding:12px 14px;font-size:1rem;outline:none;transition:border-color .15s;min-height:var(--touch);font-family:inherit}
+.fld-i:focus,.fld-s:focus,.fld-t:focus{border-color:var(--sport)}
+.fld-i::placeholder,.fld-t::placeholder{color:var(--text-2);opacity:.5}
+.fld-t{resize:vertical;min-height:80px;line-height:1.5}
+.fld-num{font-family:var(--font-d);font-size:1.6rem;text-align:center;letter-spacing:.05em;min-height:64px;padding:14px}
+.fld-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fld-acts{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.fld-acts .btn{flex:1;min-width:130px}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--bot-h) + var(--safe-b) + 12px);left:16px;right:16px;background:var(--card);border:1px solid rgba(0,200,232,.3);color:var(--text);border-radius:10px;padding:13px 18px;z-index:300;font-size:.88rem;box-shadow:0 20px 50px rgba(0,0,0,.5);transform:translateY(20px);opacity:0;transition:.22s;pointer-events:none;text-align:center;font-weight:600}
+.toast.on{transform:translateY(0);opacity:1}
+.toast.err{border-color:rgba(255,90,90,.4);color:var(--medical)}
+.toast.ok{border-color:rgba(0,230,118,.4)}
+
+/* QUICK ROW (for profile, etc.) */
+.qrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.qrow::-webkit-scrollbar{display:none}
+
+/* PROFILE SUMMARY HEADER */
+.psum{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);padding:14px;margin-bottom:14px}
+.psum-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.psum-av{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:1.3rem;background:rgba(0,200,232,.1);color:var(--sport);border:1px solid rgba(0,200,232,.2);flex-shrink:0}
+.psum-name{font-weight:700;font-size:1.05rem}
+.psum-meta{font-size:.76rem;color:var(--text-2);margin-top:2px}
+.psum-code{font-family:var(--font-m);font-size:.72rem;color:var(--sport);margin-top:3px}
+
+/* SECTION HEADER */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:8px;gap:10px}
+.sh-t{font-family:var(--font-d);font-size:1.1rem;letter-spacing:.04em}
+
+/* DESKTOP REDIRECT NOTICE */
+.desktop-only{background:rgba(0,200,232,.05);border:1px solid rgba(0,200,232,.2);border-radius:var(--r);padding:18px 16px;margin-bottom:12px;text-align:center}
+.desktop-only-t{font-family:var(--font-d);font-size:1.1rem;color:var(--sport);margin-bottom:6px;letter-spacing:.04em}
+.desktop-only-s{font-size:.84rem;color:var(--text-2);line-height:1.6;margin-bottom:14px}
+
+/* SETTINGS */
+.set-sec{font-family:var(--font-d);font-size:1rem;letter-spacing:.04em;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--divider)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+
+/* RESPONSIVE - bigger screens still mobile-flavor */
+@media (min-width:640px){
+  .mr{grid-template-columns:repeat(4,1fr)}
+  .mas{grid-template-columns:repeat(3,1fr)}
+  .scr{padding-left:24px;padding-right:24px;max-width:720px;margin:0 auto}
+  .top{padding-left:24px;padding-right:24px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading"><div class="spin"></div><p>Cargando…</p></div>
+
+<!-- LOGIN -->
+<div id="login" class="hidden">
+  <div class="login-card">
+    <div class="login-brand"><span class="lb-1">AB</span><span class="lb-2">Field · Admin</span></div>
+    <div class="login-title">ACCESO SALA</div>
+    <div class="login-sub">Panel móvil · Health &amp; Performance</div>
+    <div id="login-err" class="login-err hidden"></div>
+    <div class="login-field">
+      <label class="login-lbl" for="li-user">Usuario</label>
+      <input class="login-inp" id="li-user" type="text" placeholder="admin" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="login-field">
+      <label class="login-lbl" for="li-pass">Contraseña</label>
+      <input class="login-inp" id="li-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="li-btn">Entrar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <!-- TOP -->
+  <header class="top">
+    <div>
+      <span class="top-brand">AB</span> <span class="top-sub">FIELD</span>
+    </div>
+    <span class="top-date" id="top-date"></span>
+    <button class="top-btn pri" onclick="openModal('reservation')">＋ Sesión</button>
+  </header>
+
+  <!-- SCREENS -->
+  <div class="wrap">
+
+    <!-- HOY -->
+    <div class="scr on" id="s-hoy">
+      <div class="scr-h">
+        <div class="scr-eye" id="hoy-eye">Operación de sala</div>
+        <div class="scr-t" id="hoy-title">Hoy</div>
+      </div>
+      <div class="mr" id="hoy-metrics"></div>
+      <div id="hoy-content"></div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="scr" id="s-clientes">
+      <div class="scr-h">
+        <div class="scr-eye">Base de datos</div>
+        <div class="scr-t">Clientes</div>
+      </div>
+      <div class="search">
+        <span class="search-i">⌕</span>
+        <input id="cli-search" type="search" placeholder="Buscar cliente…" autocapitalize="off" autocorrect="off" spellcheck="false" oninput="renderClientes()">
+      </div>
+      <div class="fr" id="cli-filters"></div>
+      <div id="cli-content"></div>
+    </div>
+
+    <!-- ALERTAS -->
+    <div class="scr" id="s-alertas">
+      <div class="scr-h">
+        <div class="scr-eye">Notificaciones</div>
+        <div class="scr-t">Alertas</div>
+      </div>
+      <div class="mr" id="al-metrics"></div>
+      <div class="fr" id="al-filters"></div>
+      <div id="al-content"></div>
+    </div>
+
+    <!-- MÁS -->
+    <div class="scr" id="s-mas">
+      <div class="scr-h">
+        <div class="scr-eye">Navegación</div>
+        <div class="scr-t">Más</div>
+      </div>
+      <div class="mas" id="mas-grid"></div>
+      <div class="sh"><span class="sh-t">Sesión</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="dr"><span class="dk">Coach</span><span class="dv" id="mas-coach">—</span></div>
+          <div class="dr"><span class="dk">Ciudad</span><span class="dv" id="mas-city">—</span></div>
+          <div class="dr"><span class="dk">Versión</span><span class="dv mono">FIELD v1.0</span></div>
+        </div>
+        <div class="card-acts">
+          <button class="btn btn-s btn-sm" onclick="showScr('ajustes')">Ajustes</button>
+          <button class="btn btn-wa btn-sm" onclick="openCoachWA()">☏ Mi WA</button>
+          <button class="btn btn-r btn-sm" onclick="doLogout()">⏻ Salir</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERFIL -->
+    <div class="scr" id="s-perfil">
+      <a class="scr-back" onclick="showScr('clientes')">← Clientes</a>
+      <div id="perfil-content"></div>
+    </div>
+
+    <!-- PAGOS -->
+    <div class="scr" id="s-pagos">
+      <a class="scr-back" onclick="showScr('mas')">← Más</a>
+      <div class="scr-h">
+        <div class="scr-eye">Gestión</div>
+        <div class="scr-t">Pagos</div>
+      </div>
+      <div class="mr" id="pag-metrics"></div>
+      <div class="fr" id="pag-filters"></div>
+      <div id="pag-content"></div>
+    </div>
+
+    <!-- CHECK-INS -->
+    <div class="scr" id="s-checkins">
+      <a class="scr-back" onclick="showScr('mas')">← Más</a>
+      <div class="scr-h">
+        <div class="scr-eye">Seguimiento diario</div>
+        <div class="scr-t">Check-ins</div>
+      </div>
+      <div class="mr" id="ci-metrics"></div>
+      <div id="ci-content"></div>
+    </div>
+
+    <!-- WHATSAPP -->
+    <div class="scr" id="s-whatsapp">
+      <a class="scr-back" onclick="showScr('mas')">← Más</a>
+      <div class="scr-h">
+        <div class="scr-eye">Comunicación</div>
+        <div class="scr-t">WhatsApp</div>
+      </div>
+      <div id="wa-content"></div>
+    </div>
+
+    <!-- AJUSTES -->
+    <div class="scr" id="s-ajustes">
+      <a class="scr-back" onclick="showScr('mas')">← Más</a>
+      <div class="scr-h">
+        <div class="scr-eye">Sistema</div>
+        <div class="scr-t">Ajustes</div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="set-sec">Coach</div>
+          <div class="fld">
+            <label class="fld-l">Nombre</label>
+            <input class="fld-i" id="st-name" autocapitalize="words">
+          </div>
+          <div class="fld">
+            <label class="fld-l">WhatsApp</label>
+            <input class="fld-i" id="st-phone" inputmode="tel" pattern="[0-9+\-\s]*">
+          </div>
+          <div class="set-sec">Seguridad</div>
+          <div class="fld">
+            <label class="fld-l">Usuario admin</label>
+            <input class="fld-i" id="st-user" autocapitalize="off">
+          </div>
+          <div class="fld">
+            <label class="fld-l">Nueva contraseña</label>
+            <input class="fld-i" id="st-pass" type="password" placeholder="Solo si quieres cambiarla">
+          </div>
+        </div>
+        <div class="card-acts">
+          <button class="btn btn-p btn-sm btn-wide" onclick="saveSettings()">Guardar cambios</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="set-sec">Notas</div>
+          <p style="font-size:.82rem;color:var(--text-2);line-height:1.6">El cierre de sesión es automático al cerrar el navegador. La gestión técnica de programas, evaluaciones y biblioteca de ejercicios se hace desde el admin de escritorio (<span class="mono">/admin</span>).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTAS RÁPIDAS (read-only para Training, Eval, F&F) -->
+    <div class="scr" id="s-entreno">
+      <a class="scr-back" onclick="showScr('mas')">← Más</a>
+      <div class="scr-h">
+        <div class="scr-eye">Programas asignados</div>
+        <div class="scr-t">Entrenamientos</div>
+      </div>
+      <div id="ent-content"></div>
+    </div>
+
+    <div class="scr" id="s-eval">
+      <a class="scr-back" onclick="showScr('mas')">← Más</a>
+      <div class="scr-h">
+        <div class="scr-eye">Lectura rápida</div>
+        <div class="scr-t">Evaluaciones</div>
+      </div>
+      <div id="eval-content"></div>
+    </div>
+
+  </div>
+  <!-- /wrap -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="nav">
+    <div class="tab on" id="tab-hoy" onclick="showScr('hoy')">
+      <span class="tab-i">📅</span><span class="tab-l">Hoy</span>
+    </div>
+    <div class="tab" id="tab-clientes" onclick="showScr('clientes')">
+      <span class="tab-i">👥</span><span class="tab-l">Clientes</span>
+    </div>
+    <div class="tab" id="tab-alertas" onclick="showScr('alertas')">
+      <span class="tab-i">🔔</span><span class="tab-l">Alertas</span>
+      <span class="tab-b" id="badge-al"></span>
+    </div>
+    <div class="tab" id="tab-mas" onclick="showScr('mas')">
+      <span class="tab-i">☰</span><span class="tab-l">Más</span>
+    </div>
+  </nav>
+</div>
+<!-- /app -->
+
+<!-- MODAL -->
+<div class="ov" id="modal-ov">
+  <div class="ms">
+    <div class="ms-handle"></div>
+    <button class="ms-x" onclick="closeModal()" aria-label="Cerrar">✕</button>
+    <div class="ms-title" id="modal-title">Acción</div>
+    <form id="modal-form"></form>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">OK</div>
+
+<!-- AUTH -->
+<script src="/auth.js"></script>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   AB FIELD · Fase 1 — Mobile-First Admin
+   Same Supabase DB as /admin
+   Uses /auth.js session keys (ab_role, ab_admin_ok)
+══════════════════════════════════════════════════════════ */
+const SUPA_URL = 'https://icjuuptbcnkpwgsoyiuj.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanV1cHRiY25rcHdnc295aXVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTIzMjQsImV4cCI6MjA5MzcyODMyNH0.L__PcG-5HUkV5hpnsujrWi8mkL1o1lCKRf-mrSeO5V8';
+const COACH_PHONE_DEFAULT = '381638112348';
+const ADMIN_USER_DEFAULT = 'abel_admin';
+const ADMIN_PASS_DEFAULT = 'ABcoach2024!';
+
+const db = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+/* ── STATE ── */
+const state = {
+  clients:[],
+  todayRes:[],
+  futureRes:[],
+  allRes:[],
+  payments:[],
+  alertas:[],
+  todayCheckins:[],
+  recentCheckins:[],
+  programs:[],
+  templates:[],
+  trainingPrograms:[],
+  assignments:[],
+  sessionLogs:[],
+  assessments:[],
+  metrics:[],
+  settings:{
+    coachName:'Abel Balsinde',
+    coachPhone:COACH_PHONE_DEFAULT,
+    coachCity:'Belgrado',
+    adminUsername:ADMIN_USER_DEFAULT
+  },
+  selectedClientId:null
+};
+
+let currentScr='hoy';
+let filterCli='todos';
+let filterAl='pendientes';
+let filterPag='todos';
+let activeModal=null;
+
+/* ── HELPERS ── */
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function money(n){return `${Number(n||0).toLocaleString('es-ES')}€`}
+function todayISO(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function formatDate(s){if(!s)return'—';const[y,m,d]=String(s).split('-');return y&&m&&d?`${d}/${m}/${y}`:s}
+function formatTime(s){return s?String(s).slice(0,5):'—'}
+function initials(name){return(name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'?'}
+function firstName(name){return String(name||'').split(/\s+/)[0]||''}
+function clientById(id){return state.clients.find(c=>String(c.id)===String(id))}
+
+function snakeToCamel(obj){
+  if(!obj||typeof obj!=='object')return obj;
+  const out={};
+  for(const[k,v] of Object.entries(obj)){
+    out[k.replace(/_([a-z])/g,(_,l)=>l.toUpperCase())]=v;
+  }
+  return out;
+}
+function camelToSnake(obj){
+  if(!obj||typeof obj!=='object')return obj;
+  const out={};
+  for(const[k,v] of Object.entries(obj)){
+    out[k.replace(/[A-Z]/g,l=>'_'+l.toLowerCase())]=v;
+  }
+  return out;
+}
+function mapArr(arr){return(arr||[]).map(snakeToCamel)}
+
+/* ── WHATSAPP ── */
+function waUrl(phone,msg){
+  const p=String(phone||state.settings.coachPhone||COACH_PHONE_DEFAULT).replace(/[\s+\-()]/g,'');
+  return 'https://wa.me/'+p+'?text='+encodeURIComponent(msg||'');
+}
+function openWA(phone,msg){window.open(waUrl(phone,msg),'_blank','noopener')}
+function openCoachWA(){openWA(state.settings.coachPhone||COACH_PHONE_DEFAULT,'Hola Abel.')}
+
+/* ── ALERT HELPERS ── */
+function getAlertClientId(a){return a.clientsId||a.clientesId||a.clienteId||a.clientId||a.client_id||''}
+function getAlertStatus(a){if(a.resueltaAt||a.estado==='resuelta')return'resuelta';if(a.leidaAt||a.estado==='leida')return'leida';return a.estado||'pendiente'}
+function isPendingAlert(a){return getAlertStatus(a)==='pendiente'}
+function alertCreatedAt(a){return a.createdAt||a.created_at||''}
+
+/* ── CHECK-IN STATUS ── */
+function getCheckinStatus(ci){
+  const sleep=Number(ci.sleepQuality||ci.sleep_quality||10);
+  const energy=Number(ci.energyLevel||ci.energy_level||10);
+  const sore=Number(ci.sorenessLevel||ci.soreness_level||ci.painLevel||ci.pain_level||0);
+  let txt=String(ci.comment||'').toLowerCase()
+    .replaceAll('á','a').replaceAll('é','e').replaceAll('í','i').replaceAll('ó','o').replaceAll('ú','u');
+  const noDolor=['sin dolor','sin molestia','todo bien','no tengo dolor','listo para entrenar'].some(p=>txt.includes(p));
+  const hayDolor=!noDolor&&['dolor','molestia','lesion','pare','rodilla','hombro','espalda','mareo'].some(p=>txt.includes(p));
+  if(sleep<=2||energy<=2||sore>=4||hayDolor)return'alerta';
+  if(sleep<=3||energy<=3||sore>=3)return'revisar';
+  return'normal';
+}
+function getClientTodayCheckin(clientId){
+  return state.todayCheckins.find(ci=>String(ci.clientId||ci.client_id)===String(clientId));
+}
+
+/* ── PROGRAM/ASSIGNMENT ── */
+function getClientActiveAssignment(clientId){
+  return state.assignments
+    .filter(a=>String(a.clientId||a.client_id)===String(clientId)&&String(a.status||'activo')==='activo')
+    .sort((a,b)=>String(b.startDate||b.start_date||'').localeCompare(String(a.startDate||a.start_date||'')))[0];
+}
+function getAssignmentProgram(a){
+  if(!a)return null;
+  return state.trainingPrograms.find(p=>String(p.id)===String(a.programId||a.program_id));
+}
+function getClientPendingPayments(clientId){
+  return state.payments.filter(p=>String(p.clientId||p.client_id)===String(clientId)&&String(p.status)!=='pagado');
+}
+function getClientPendingAlerts(clientId){
+  return state.alertas.filter(a=>String(getAlertClientId(a))===String(clientId)&&isPendingAlert(a));
+}
+
+/* ── UI HELPERS ── */
+function showToast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast on '+(type==='err'?'err':'ok');
+  setTimeout(()=>t.classList.remove('on'),2400);
+}
+function emptyState(strong,sub=''){
+  return `<div class="empty"><strong>${esc(strong)}</strong>${esc(sub)}</div>`;
+}
+function badge(label,kind){return `<span class="b b-${kind||'info'}">${esc(label)}</span>`}
+
+/* ── NAV ── */
+function showScr(id){
+  currentScr=id;
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+id)?.classList.add('on');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  const tabMap={hoy:'tab-hoy',clientes:'tab-clientes',alertas:'tab-alertas',mas:'tab-mas'};
+  if(tabMap[id])document.getElementById(tabMap[id])?.classList.add('on');
+  else{
+    // Sub-screen: highlight parent tab
+    if(['perfil'].includes(id))document.getElementById('tab-clientes')?.classList.add('on');
+    else document.getElementById('tab-mas')?.classList.add('on');
+  }
+  window.scrollTo(0,0);
+  renderScr(id);
+}
+
+function renderScr(id){
+  switch(id){
+    case'hoy':renderHoy();break;
+    case'clientes':renderClientes();break;
+    case'alertas':renderAlertas();break;
+    case'mas':renderMas();break;
+    case'perfil':renderPerfil();break;
+    case'pagos':renderPagos();break;
+    case'checkins':renderCheckins();break;
+    case'whatsapp':renderWhatsapp();break;
+    case'ajustes':renderAjustes();break;
+    case'entreno':renderEntreno();break;
+    case'eval':renderEval();break;
+  }
+}
+
+function renderAll(){
+  renderBadges();
+  renderScr(currentScr);
+}
+
+function renderBadges(){
+  const pending=state.alertas.filter(isPendingAlert).length;
+  const el=document.getElementById('badge-al');
+  if(el){el.textContent=pending||'';el.classList.toggle('on',pending>0)}
+}
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   INIT — Auth + Data load
+══════════════════════════════════════════════════════════ */
+
+document.getElementById('top-date').textContent = new Date()
+  .toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'short'}).toUpperCase();
+
+(async function pageInit(){
+  const params = new URLSearchParams(location.search);
+  if(params.has('auth')||params.has('logged_out')||params.has('v')){
+    history.replaceState({},'',location.pathname);
+  }
+
+  if(typeof Auth==='undefined'||!Auth.isAdmin()){
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('login').classList.remove('hidden');
+    setupLogin();
+    return;
+  }
+
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+
+  // Modal: close on backdrop tap
+  document.getElementById('modal-ov').addEventListener('click',e=>{
+    if(e.target.id==='modal-ov')closeModal();
+  });
+
+  await loadAllData();
+})();
+
+/* ── LOGIN (mobile, sets session directly, stays on /admin-mobile) ── */
+function setupLogin(){
+  document.getElementById('li-btn').addEventListener('click',attemptLogin);
+  ['li-user','li-pass'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown',e=>{
+      if(e.key==='Enter'){e.preventDefault();attemptLogin()}
+    });
+  });
+}
+async function attemptLogin(){
+  const user=document.getElementById('li-user').value.trim();
+  const pass=document.getElementById('li-pass').value;
+  const err=document.getElementById('login-err');
+  err.classList.add('hidden');
+  if(!user||!pass){
+    err.textContent='Introduce usuario y contraseña.';
+    err.classList.remove('hidden');
+    return;
+  }
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('loading').classList.remove('hidden');
+  try{
+    const{data:sett}=await db.from('settings').select('admin_username,admin_password').eq('id','main').maybeSingle();
+    const vu=sett?.admin_username||ADMIN_USER_DEFAULT;
+    const vp=sett?.admin_password||ADMIN_PASS_DEFAULT;
+    if(user===vu&&pass===vp){
+      // Set session keys directly (same as Auth.loginAsAdmin but stay on /admin-mobile)
+      sessionStorage.setItem('ab_role','admin');
+      sessionStorage.setItem('ab_admin_ok','true');
+      location.replace(location.pathname+'?v='+Date.now());
+    }else{
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('login').classList.remove('hidden');
+      err.textContent='Credenciales incorrectas.';
+      err.classList.remove('hidden');
+    }
+  }catch(e){
+    console.error(e);
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('login').classList.remove('hidden');
+    err.textContent='Error de conexión.';
+    err.classList.remove('hidden');
+  }
+}
+
+function doLogout(){
+  if(confirm('¿Cerrar sesión?'))Auth.logout();
+}
+
+/* ── DATA LOAD: server-side filtered for speed on mobile ── */
+async function loadAllData(){
+  try{
+    const today=todayISO();
+    const [
+      {data:clients},
+      {data:todayRes},
+      {data:futureRes},
+      {data:payments},
+      {data:alertas},
+      {data:todayCI},
+      {data:recentCI},
+      {data:tprograms},
+      {data:assignments},
+      {data:slogs},
+      {data:templates},
+      {data:assessments},
+      {data:metrics},
+      {data:settings}
+    ] = await Promise.all([
+      db.from('clients').select('*').order('name'),
+      db.from('reservations').select('*').eq('date',today).order('time'),
+      db.from('reservations').select('*').gt('date',today).order('date').limit(80),
+      db.from('payments').select('*').order('due_date',{ascending:false}).limit(300),
+      db.from('admin_alertas_detalle').select('*').order('created_at',{ascending:false}).limit(200),
+      db.from('client_daily_checkins').select('*').eq('checkin_date',today),
+      db.from('client_daily_checkins').select('*').order('checkin_date',{ascending:false}).limit(80),
+      db.from('training_programs').select('*'),
+      db.from('client_program_assignments').select('*'),
+      db.from('client_session_logs').select('*').order('created_at',{ascending:false}).limit(200),
+      db.from('templates').select('*').order('name'),
+      db.from('client_assessments').select('*').order('assessment_date',{ascending:false}).limit(80),
+      db.from('metrics').select('*').order('date',{ascending:false}).limit(150),
+      db.from('settings').select('*').eq('id','main').maybeSingle()
+    ]);
+
+    state.clients = mapArr(clients);
+    state.todayRes = mapArr(todayRes);
+    state.futureRes = mapArr(futureRes);
+    state.allRes = [...state.todayRes, ...state.futureRes];
+    state.payments = mapArr(payments);
+    state.alertas = mapArr(alertas);
+    state.todayCheckins = mapArr(todayCI);
+    state.recentCheckins = mapArr(recentCI);
+    state.trainingPrograms = mapArr(tprograms);
+    state.assignments = mapArr(assignments);
+    state.sessionLogs = mapArr(slogs);
+    state.templates = mapArr(templates);
+    state.assessments = mapArr(assessments);
+    state.metrics = mapArr(metrics);
+    if(settings)state.settings={...state.settings,...snakeToCamel(settings)};
+
+    renderAll();
+    showToast('Datos cargados ✓','ok');
+  }catch(err){
+    console.error('loadAllData error:',err);
+    showToast('Error cargando datos','err');
+  }
+}
+
+async function refresh(){
+  showToast('Actualizando…','ok');
+  await loadAllData();
+}
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   RENDER · HOY (operación de sala)
+══════════════════════════════════════════════════════════ */
+function renderHoy(){
+  const today=todayISO();
+  const sessions=state.todayRes.slice().sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
+  const clientsToday=new Set(sessions.map(r=>r.clientId||r.client_id));
+  const missing=[...clientsToday].filter(cid=>!state.todayCheckins.some(ci=>String(ci.clientId||ci.client_id)===String(cid))).length;
+  const pendingAlerts=state.alertas.filter(isPendingAlert).length;
+
+  // Date label
+  const dow=new Date().toLocaleDateString('es-ES',{weekday:'long'}).toUpperCase();
+  const dnum=new Date().getDate();
+  const mon=new Date().toLocaleDateString('es-ES',{month:'short'}).toUpperCase();
+  document.getElementById('hoy-eye').textContent='Hola, '+firstName(state.settings.coachName||'Abel');
+  document.getElementById('hoy-title').textContent=`${dow} ${dnum} ${mon}`;
+
+  // Metrics
+  document.getElementById('hoy-metrics').innerHTML=`
+    <div class="mc b"><span class="mc-n">${sessions.length}</span><span class="mc-l">Sesiones</span></div>
+    <div class="mc g"><span class="mc-n">${state.todayCheckins.length}</span><span class="mc-l">Check-ins</span></div>
+    <div class="mc y"><span class="mc-n">${missing}</span><span class="mc-l">CIs faltantes</span></div>
+    <div class="mc r"><span class="mc-n">${pendingAlerts}</span><span class="mc-l">Alertas</span></div>
+  `;
+
+  // Content
+  const body=document.getElementById('hoy-content');
+  if(!sessions.length){
+    body.innerHTML=emptyState('Sin sesiones hoy','Buen día para descansar 👊')+`
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn btn-p btn-wide" onclick="openModal('reservation')">+ Programar sesión</button>
+      </div>`;
+    return;
+  }
+  body.innerHTML=sessions.map(buildSessionCard).join('');
+}
+
+function buildSessionCard(r){
+  const c=clientById(r.clientId||r.client_id);
+  const ci=c?getClientTodayCheckin(c.id):null;
+  const ciStatus=ci?getCheckinStatus(ci):null;
+  const alerts=c?getClientPendingAlerts(c.id):[];
+  const critical=alerts.some(a=>a.nivel==='critica'||a.nivel==='alerta');
+  const pendPay=c?getClientPendingPayments(c.id):[];
+  const assignment=c?getClientActiveAssignment(c.id):null;
+  const program=getAssignmentProgram(assignment);
+  const phone=c?.phone||state.settings.coachPhone;
+  const status=r.status||'reservada';
+
+  const urgency=critical||ciStatus==='alerta'?'urg':(ciStatus==='revisar'||pendPay.length)?'wrn':'ok';
+
+  const ciBadge=!ci?badge('Sin CI','inactivo')
+    :ciStatus==='alerta'?badge('Alerta CI','alerta')
+    :ciStatus==='revisar'?badge('Revisar CI','revisar')
+    :badge('CI OK','normal');
+  const alertBadge=alerts.length===0?badge('Sin alertas','normal')
+    :critical?badge(`${alerts.length} ⚠`,'alerta')
+    :badge(`${alerts.length} revisar`,'revisar');
+  const payBadge=pendPay.length
+    ?badge(money(pendPay.reduce((s,p)=>s+Number(p.amount||0),0))+' pend.','pendiente')
+    :badge('Al día','pagado');
+
+  return `
+  <div class="sc ${urgency}">
+    <div class="sc-top">
+      <span class="sc-time">${formatTime(r.time)}</span>
+      <div style="flex:1;min-width:0">
+        <div class="sc-name">${esc(c?.name||'Cliente eliminado')}</div>
+        <div class="sc-meta">${esc(r.type||'Sesión')} · ${esc(r.place||'—')}</div>
+      </div>
+      ${badge(status,status)}
+    </div>
+    <div class="sc-rows">
+      <div class="sc-row"><span class="sc-k">Check-in</span><span>${ciBadge}</span></div>
+      <div class="sc-row"><span class="sc-k">Alertas</span><span>${alertBadge}</span></div>
+      <div class="sc-row"><span class="sc-k">Pago</span><span>${payBadge}</span></div>
+      ${program?`<div class="sc-row"><span class="sc-k">Programa</span><span class="sc-v" style="color:var(--sport);white-space:normal;max-width:60%">${esc(program.name||program.nameEs||'')}</span></div>`:''}
+      ${ci?.comment?`<div class="sc-row"><span class="sc-k">CI nota</span><span class="sc-v" style="color:var(--warn);white-space:normal;max-width:60%;font-weight:500;font-size:.78rem">${esc(ci.comment)}</span></div>`:''}
+    </div>
+    <div class="sc-acts">
+      ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
+      ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>`:''}
+      ${status!=='realizada'?`<button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Realizada</button>`:''}
+      ${status==='reservada'?`<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>`:''}
+      ${status!=='cancelada'&&status!=='realizada'?`<button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>`:''}
+    </div>
+  </div>`;
+}
+
+async function updateResStatus(id,status){
+  try{
+    const{data,error}=await db.from('reservations').update({status}).eq('id',id).select().single();
+    if(error)throw error;
+    const upd=snakeToCamel(data);
+    const idx=state.todayRes.findIndex(r=>r.id===id);
+    if(idx>=0)state.todayRes[idx]=upd;
+    const idxF=state.futureRes.findIndex(r=>r.id===id);
+    if(idxF>=0)state.futureRes[idxF]=upd;
+    renderScr(currentScr);
+    showToast(status==='realizada'?'✓ Marcada como realizada':'Reserva actualizada','ok');
+  }catch(err){console.error(err);showToast('Error actualizando','err')}
+}
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   RENDER · CLIENTES
+══════════════════════════════════════════════════════════ */
+function renderClientes(){
+  const filters=[
+    ['todos','Todos'],
+    ['activo','Activos'],
+    ['prospecto','Prospectos'],
+    ['pausado','Pausados'],
+    ['deuda','Deuda'],
+    ['alerta','Con alerta']
+  ];
+  document.getElementById('cli-filters').innerHTML=filters.map(([k,l])=>
+    `<button class="fp ${filterCli===k?'on':''}" onclick="filterCli='${k}';renderClientes()">${l}</button>`
+  ).join('');
+
+  const q=(document.getElementById('cli-search')?.value||'').toLowerCase().trim();
+  let rows=[...state.clients];
+
+  if(filterCli==='deuda'){
+    const ids=new Set(state.payments.filter(p=>p.status!=='pagado').map(p=>p.clientId||p.client_id));
+    rows=rows.filter(c=>ids.has(c.id));
+  }else if(filterCli==='alerta'){
+    const ids=new Set(state.alertas.filter(isPendingAlert).map(a=>getAlertClientId(a)));
+    rows=rows.filter(c=>ids.has(c.id));
+  }else if(filterCli!=='todos'){
+    rows=rows.filter(c=>c.status===filterCli);
+  }
+
+  if(q){
+    rows=rows.filter(c=>[c.name,c.phone,c.email,c.plan,c.status,c.accessCode]
+      .join(' ').toLowerCase().includes(q));
+  }
+
+  // Sort: alertas críticas primero, luego deuda, luego nombre
+  rows.sort((a,b)=>{
+    const aA=getClientPendingAlerts(a.id).some(x=>x.nivel==='critica'||x.nivel==='alerta');
+    const bA=getClientPendingAlerts(b.id).some(x=>x.nivel==='critica'||x.nivel==='alerta');
+    if(aA!==bA)return aA?-1:1;
+    const aD=getClientPendingPayments(a.id).length;
+    const bD=getClientPendingPayments(b.id).length;
+    if(!!aD!==!!bD)return aD?-1:1;
+    return String(a.name||'').localeCompare(String(b.name||''));
+  });
+
+  const body=document.getElementById('cli-content');
+  body.innerHTML=rows.length
+    ? rows.map(buildClientCard).join('')
+    : emptyState('Sin resultados', q?'Intenta otra búsqueda':'Crea el primer cliente con + Cliente');
+}
+
+function buildClientCard(c){
+  const next=state.allRes.filter(r=>(r.clientId||r.client_id)===c.id&&r.date>=todayISO())
+    .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
+  const pend=getClientPendingPayments(c.id);
+  const alerts=getClientPendingAlerts(c.id);
+  const critical=alerts.some(a=>a.nivel==='critica'||a.nivel==='alerta');
+  const ci=getClientTodayCheckin(c.id);
+  const ciStatus=ci?getCheckinStatus(ci):null;
+  const assign=getClientActiveAssignment(c.id);
+  const program=getAssignmentProgram(assign);
+
+  const statusBadge=badge(c.status||'prospecto',c.status||'prospecto');
+  const sideBadges=[];
+  if(alerts.length)sideBadges.push(badge(`${alerts.length} ${critical?'⚠':'!'}`,critical?'alerta':'revisar'));
+  if(ci&&ciStatus==='alerta')sideBadges.push(badge('CI ⚠','alerta'));
+  else if(ci&&ciStatus==='revisar')sideBadges.push(badge('CI revisar','revisar'));
+
+  return `
+  <div class="cc">
+    <div class="cc-top">
+      <div class="av">${initials(c.name)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="cc-name">${esc(c.name)}</div>
+        <div class="cc-meta">${esc(c.plan||'Sin plan')} · ${esc(c.phone||'Sin tel.')}</div>
+      </div>
+      <div class="cc-badges">
+        ${statusBadge}
+        ${sideBadges.join('')}
+      </div>
+    </div>
+    <div class="cc-rows">
+      <div class="cc-row"><span class="dk">Próx. sesión</span><span class="sc-v">${next?`${formatDate(next.date)} ${formatTime(next.time)}`:'—'}</span></div>
+      <div class="cc-row"><span class="dk">Pago</span><span>${pend.length?badge(money(pend.reduce((s,p)=>s+Number(p.amount||0),0))+' pend.','pendiente'):badge('Al día','pagado')}</span></div>
+      ${program?`<div class="cc-row"><span class="dk">Programa</span><span class="sc-v" style="color:var(--sport);white-space:normal;max-width:55%;font-size:.78rem">${esc(program.name||program.nameEs||'')}</span></div>`:''}
+      ${c.accessCode?`<div class="cc-row"><span class="dk">Código</span><span class="sc-v mono" style="color:var(--sport);font-size:.78rem">${esc(c.accessCode)}</span></div>`:''}
+    </div>
+    <div class="cc-acts">
+      <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
+      ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}.')">WA</button>`:''}
+      <button class="btn btn-s btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
+      <button class="btn btn-s btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
+      <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
+    </div>
+  </div>`;
+}
+
+function openProfile(id){
+  state.selectedClientId=id;
+  showScr('perfil');
+}
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   RENDER · PERFIL CLIENTE
+══════════════════════════════════════════════════════════ */
+function renderPerfil(){
+  const el=document.getElementById('perfil-content');
+  const c=clientById(state.selectedClientId);
+  if(!c){
+    el.innerHTML=emptyState('Sin cliente','Vuelve a la lista de clientes.');
+    return;
+  }
+
+  const reservs=state.allRes.filter(r=>(r.clientId||r.client_id)===c.id)
+    .sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const pays=state.payments.filter(p=>(p.clientId||p.client_id)===c.id)
+    .sort((a,b)=>String(b.dueDate||b.due_date||'').localeCompare(String(a.dueDate||a.due_date||'')));
+  const alerts=state.alertas.filter(a=>String(getAlertClientId(a))===String(c.id))
+    .sort((a,b)=>String(alertCreatedAt(b)).localeCompare(String(alertCreatedAt(a))));
+  const checkins=state.recentCheckins.filter(ci=>String(ci.clientId||ci.client_id)===String(c.id))
+    .sort((a,b)=>String(b.checkinDate||b.created_at||'').localeCompare(String(a.checkinDate||a.created_at||'')))
+    .slice(0,30);
+  const todayCI=getClientTodayCheckin(c.id);
+  const ciStatus=todayCI?getCheckinStatus(todayCI):null;
+  const assign=getClientActiveAssignment(c.id);
+  const program=getAssignmentProgram(assign);
+  const pendPay=getClientPendingPayments(c.id);
+  const cMetrics=state.metrics.filter(m=>(m.clientId||m.client_id)===c.id).slice(0,20);
+
+  el.innerHTML=`
+    <!-- Quick actions row -->
+    <div class="qrow">
+      ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}.')">WA</button>`:''}
+      <button class="btn btn-p btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
+      <button class="btn btn-p btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
+      <button class="btn btn-b btn-sm" onclick="openModal('metric',null,{clientId:'${c.id}'})">+ Métrica</button>
+      <button class="btn btn-b btn-sm" onclick="openModal('note',null,{clientId:'${c.id}'})">+ Nota</button>
+      <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
+    </div>
+
+    <!-- Summary -->
+    <div class="psum">
+      <div class="psum-top">
+        <div class="psum-av">${initials(c.name)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="psum-name">${esc(c.name)}</div>
+          <div class="psum-meta">${esc(c.plan||'Sin plan')} · ${esc(c.phone||'Sin tel.')}</div>
+          ${c.accessCode?`<div class="psum-code">Código: ${esc(c.accessCode)}</div>`:''}
+        </div>
+        ${badge(c.status||'prospecto',c.status||'prospecto')}
+      </div>
+      <div class="dr"><span class="dk">Objetivo</span><span class="dv wrap">${esc(c.objective||'—')}</span></div>
+      ${program?`<div class="dr"><span class="dk">Programa</span><span class="dv wrap" style="color:var(--sport)">${esc(program.name||program.nameEs||'')}</span></div>`:''}
+      ${todayCI
+        ?`<div class="dr"><span class="dk">CI hoy</span><span>${badge(ciStatus||'normal',ciStatus||'normal')}</span></div>`
+        :`<div class="dr"><span class="dk">CI hoy</span><span>${badge('Sin CI','inactivo')}</span></div>`}
+      ${pendPay.length?`<div class="dr"><span class="dk">Deuda</span><span class="dv" style="color:var(--warn)">${money(pendPay.reduce((s,p)=>s+Number(p.amount||0),0))}</span></div>`:''}
+    </div>
+
+    <!-- Tabs -->
+    <div class="ptabs">
+      <div class="pt on" onclick="switchPt(this,'pt-resumen')">Resumen</div>
+      <div class="pt" onclick="switchPt(this,'pt-sesiones')">Sesiones</div>
+      <div class="pt" onclick="switchPt(this,'pt-pagos')">Pagos</div>
+      <div class="pt" onclick="switchPt(this,'pt-metricas')">Métricas</div>
+      <div class="pt" onclick="switchPt(this,'pt-alertas')">Alertas</div>
+      <div class="pt" onclick="switchPt(this,'pt-ci')">Check-ins</div>
+      <div class="pt" onclick="switchPt(this,'pt-notas')">Notas</div>
+    </div>
+
+    <!-- RESUMEN TAB -->
+    <div id="pt-resumen" class="ptc on">
+      <div class="card">
+        <div class="card-body">
+          <div class="card-title">Contacto</div>
+          <div class="dr"><span class="dk">Email</span><span class="dv">${esc(c.email||'—')}</span></div>
+          <div class="dr"><span class="dk">Teléfono</span><span class="dv">${esc(c.phone||'—')}</span></div>
+          <div class="dr"><span class="dk">Ciudad</span><span class="dv">${esc(c.city||'—')}</span></div>
+          <div class="dr"><span class="dk">Idioma</span><span class="dv">${(c.preferredLang||'es')==='sr'?'🇷🇸 Srpski':'🇪🇸 Español'}</span></div>
+        </div>
+      </div>
+      ${alerts.filter(isPendingAlert).length?`
+        <div class="card" style="border-left:3px solid var(--medical)">
+          <div class="card-body">
+            <div class="card-title" style="color:var(--medical)">⚠ Alertas pendientes</div>
+            ${alerts.filter(isPendingAlert).slice(0,3).map(a=>`
+              <div class="dr"><span class="dk">${esc(a.tipoAlerta||'alerta')}</span><span class="dv wrap" style="color:var(--warn);font-weight:500;font-size:.78rem">${esc(String(a.mensaje||'').slice(0,90))}</span></div>
+            `).join('')}
+          </div>
+          <div class="card-acts">
+            <button class="btn btn-b btn-sm" onclick="showScr('alertas')">Ver todas</button>
+            ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, vi tu alerta. ¿Cómo estás?')">WA</button>`:''}
+          </div>
+        </div>`:''}
+    </div>
+
+    <!-- SESIONES TAB -->
+    <div id="pt-sesiones" class="ptc">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button class="btn btn-p btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
+      </div>
+      ${reservs.length?reservs.slice(0,30).map(r=>`
+        <div class="card">
+          <div class="card-body">
+            <div class="dr"><span class="dk">Fecha</span><span class="dv">${formatDate(r.date)} ${formatTime(r.time)}</span></div>
+            <div class="dr"><span class="dk">Tipo</span><span class="dv">${esc(r.type||'—')}</span></div>
+            <div class="dr"><span class="dk">Lugar</span><span class="dv">${esc(r.place||'—')}</span></div>
+            <div class="dr"><span class="dk">Estado</span><span>${badge(r.status||'reservada',r.status||'reservada')}</span></div>
+          </div>
+          ${r.status!=='realizada'&&r.status!=='cancelada'?`
+          <div class="card-acts">
+            ${r.status==='reservada'?`<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>`:''}
+            <button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Realizada</button>
+            <button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>
+          </div>`:''}
+        </div>`).join(''):emptyState('Sin sesiones','')}
+    </div>
+
+    <!-- PAGOS TAB -->
+    <div id="pt-pagos" class="ptc">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button class="btn btn-p btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
+      </div>
+      ${pays.length?pays.map(p=>`
+        <div class="card">
+          <div class="card-body">
+            <div class="dr"><span class="dk">Concepto</span><span class="dv">${esc(p.concept||'—')}</span></div>
+            <div class="dr"><span class="dk">Importe</span><span class="dv mono">${money(p.amount)}</span></div>
+            <div class="dr"><span class="dk">Vence</span><span class="dv">${formatDate(p.dueDate||p.due_date)}</span></div>
+            <div class="dr"><span class="dk">Estado</span><span>${badge(p.status,p.status)}</span></div>
+            ${p.method?`<div class="dr"><span class="dk">Método</span><span class="dv">${esc(p.method)}</span></div>`:''}
+          </div>
+          ${p.status!=='pagado'?`
+          <div class="card-acts">
+            <button class="btn btn-g btn-sm" onclick="markPaid('${p.id}')">✓ Pagado</button>
+            ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te recuerdo el pago de ${esc(p.concept||'tu plan')}.')">WA cobro</button>`:''}
+          </div>`:''}
+        </div>`).join(''):emptyState('Sin pagos','')}
+    </div>
+
+    <!-- MÉTRICAS TAB -->
+    <div id="pt-metricas" class="ptc">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button class="btn btn-p btn-sm" onclick="openModal('metric',null,{clientId:'${c.id}'})">+ Métrica</button>
+      </div>
+      ${cMetrics.length?cMetrics.map(m=>`
+        <div class="card">
+          <div class="card-body">
+            <div class="dr"><span class="dk">${esc(m.type||'—')}</span><span class="dv mono" style="font-size:1.1rem;color:var(--sport)">${esc(m.value)}</span></div>
+            <div class="dr"><span class="dk">Fecha</span><span class="dv">${formatDate(m.date)}</span></div>
+            ${m.note?`<div class="dr"><span class="dk">Nota</span><span class="dv wrap">${esc(m.note)}</span></div>`:''}
+          </div>
+        </div>`).join(''):emptyState('Sin métricas','')}
+    </div>
+
+    <!-- ALERTAS TAB -->
+    <div id="pt-alertas" class="ptc">
+      ${alerts.length?alerts.slice(0,30).map(a=>buildAlertCard(a)).join(''):emptyState('Sin alertas','')}
+    </div>
+
+    <!-- CHECK-INS TAB -->
+    <div id="pt-ci" class="ptc">
+      ${checkins.length?checkins.map(ci=>{
+        const st=getCheckinStatus(ci);
+        const fecha=String(ci.checkinDate||ci.created_at||'').slice(0,10);
+        return `
+        <div class="card">
+          <div class="card-body">
+            <div class="dr"><span class="dk">${formatDate(fecha)}</span><span>${badge(st,st)}</span></div>
+            <div class="dr"><span class="dk">💤 Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div>
+            <div class="dr"><span class="dk">⚡ Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div>
+            <div class="dr"><span class="dk">🩺 Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>
+            ${ci.comment?`<div class="dr"><span class="dk">Nota</span><span class="dv wrap" style="color:var(--warn);font-weight:500;font-size:.8rem">${esc(ci.comment)}</span></div>`:''}
+          </div>
+        </div>`;
+      }).join(''):emptyState('Sin check-ins','')}
+    </div>
+
+    <!-- NOTAS TAB -->
+    <div id="pt-notas" class="ptc">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button class="btn btn-p btn-sm" onclick="openModal('note',null,{clientId:'${c.id}'})">+ Nota</button>
+      </div>
+      ${(c.notes||[]).length?(c.notes||[]).map(n=>`
+        <div class="card">
+          <div class="card-body">
+            <div class="dr"><span class="dk">${esc(n.date||'')}</span><span></span></div>
+            <div style="font-size:.88rem;color:var(--text);line-height:1.6;margin-top:6px">${esc(n.text||'')}</div>
+          </div>
+        </div>`).join(''):emptyState('Sin notas','Empieza con + Nota')}
+    </div>
+  `;
+}
+
+function switchPt(btn,id){
+  document.querySelectorAll('#perfil-content .pt').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('#perfil-content .ptc').forEach(x=>x.classList.remove('on'));
+  document.getElementById(id)?.classList.add('on');
+}
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   RENDER · ALERTAS
+══════════════════════════════════════════════════════════ */
+function renderAlertas(){
+  const pendientes=state.alertas.filter(isPendingAlert);
+  const criticas=state.alertas.filter(a=>a.nivel==='critica'||a.nivel==='alerta');
+  const leidas=state.alertas.filter(a=>getAlertStatus(a)==='leida');
+  const resueltas=state.alertas.filter(a=>getAlertStatus(a)==='resuelta');
+
+  document.getElementById('al-metrics').innerHTML=`
+    <div class="mc r"><span class="mc-n">${pendientes.length}</span><span class="mc-l">Pendientes</span></div>
+    <div class="mc y"><span class="mc-n">${criticas.length}</span><span class="mc-l">Críticas</span></div>
+    <div class="mc b"><span class="mc-n">${leidas.length}</span><span class="mc-l">Leídas</span></div>
+    <div class="mc g"><span class="mc-n">${resueltas.length}</span><span class="mc-l">Resueltas</span></div>
+  `;
+
+  const filters=[['pendientes','Pendientes'],['criticas','Críticas'],['leidas','Leídas'],['resueltas','Resueltas'],['todas','Todas']];
+  document.getElementById('al-filters').innerHTML=filters.map(([k,l])=>
+    `<button class="fp ${filterAl===k?'on':''}" onclick="filterAl='${k}';renderAlertas()">${l}</button>`
+  ).join('');
+
+  let rows=[...state.alertas];
+  if(filterAl==='pendientes')rows=rows.filter(isPendingAlert);
+  else if(filterAl==='criticas')rows=rows.filter(a=>a.nivel==='critica'||a.nivel==='alerta');
+  else if(filterAl==='leidas')rows=rows.filter(a=>getAlertStatus(a)==='leida');
+  else if(filterAl==='resueltas')rows=rows.filter(a=>getAlertStatus(a)==='resuelta');
+  rows.sort((a,b)=>String(alertCreatedAt(b)).localeCompare(String(alertCreatedAt(a))));
+
+  const body=document.getElementById('al-content');
+  body.innerHTML=rows.length?rows.map(buildAlertCard).join(''):emptyState('Sin alertas','Todo bajo control 👊');
+}
+
+function buildAlertCard(a){
+  const estado=getAlertStatus(a);
+  const isUrg=a.nivel==='critica'||a.nivel==='alerta';
+  const isWrn=a.nivel==='precaucion';
+  const klass=isUrg?'urg':isWrn?'wrn':'';
+  const c=state.clients.find(cl=>String(cl.id)===String(getAlertClientId(a)));
+  const phone=a.clientPhone||a.client_phone||c?.phone||state.settings.coachPhone;
+  const created=String(alertCreatedAt(a)).slice(0,10);
+
+  return `
+  <div class="ac ${klass}">
+    <div class="ac-top">
+      <div>
+        <div class="ac-cli">${esc(a.clientName||a.client_name||c?.name||'Sin cliente')}</div>
+        <div class="ac-tipo">${esc(a.tipoAlerta||a.tipo_alerta||'alerta')} · ${formatDate(created)}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+        ${badge(a.nivel||'info',isUrg?'alerta':isWrn?'pendiente':'info')}
+        ${badge(estado,estado==='pendiente'?'pendiente':estado==='resuelta'?'resuelta':'leida')}
+      </div>
+    </div>
+    ${a.titulo?`<div style="padding:0 14px;font-weight:700;font-size:.92rem;margin-bottom:6px">${esc(a.titulo)}</div>`:''}
+    <div class="ac-msg">${esc(a.mensaje||'')}</div>
+    ${a.notaAdmin||a.nota_admin?`<div class="ac-note"><strong>Nota coach:</strong> ${esc(a.notaAdmin||a.nota_admin)}</div>`:''}
+    <div class="ac-acts">
+      ${estado!=='resuelta'?`<button class="btn btn-b btn-sm" onclick="resolverAlerta('${a.id}')">✓ Resolver</button>`:''}
+      ${!a.leidaAt&&!a.leida_at&&estado!=='resuelta'?`<button class="btn btn-s btn-sm" onclick="marcarLeida('${a.id}')">Leída</button>`:''}
+      ${phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(phone)}','${esc(buildAlertWAMsg(a))}')">WA</button>`:''}
+      ${c?.id?`<button class="btn btn-s btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
+    </div>
+  </div>`;
+}
+
+function buildAlertWAMsg(a){
+  const nombre=firstName(a.clientName||a.client_name||'cliente')||'cliente';
+  const tipo=a.tipoAlerta||a.tipo_alerta||'';
+  const txt=String(a.mensaje||'').toLowerCase();
+  if(tipo==='feedback_entrenamiento'||tipo==='molestia_entrenamiento'){
+    if(txt.includes('dolor')||txt.includes('molestia')||txt.includes('paré')||txt.includes('pare ')){
+      return `Hola ${nombre}, vi tu reporte. ¿Dónde sientes la molestia? ¿Sigue, aumentó o mejoró?`;
+    }
+    return `Hola ${nombre}, vi tu feedback del entrenamiento. ¿Todo bien o hay algo para revisar?`;
+  }
+  if(tipo==='resultado_medico_nuevo')return `Hola ${nombre}, vi tu resultado médico. Voy a revisarlo.`;
+  return `Hola ${nombre}, vi una alerta en tu perfil. ¿Cómo estás?`;
+}
+
+async function marcarLeida(id){
+  try{
+    const{data,error}=await db.rpc('admin_marcar_alerta_leida',{p_alerta_id:id});
+    if(error)throw error;
+    const upd=Array.isArray(data)?data[0]:null;
+    const idx=state.alertas.findIndex(a=>a.id===id);
+    if(idx>=0){
+      state.alertas[idx].estado=upd?.estado||'leida';
+      state.alertas[idx].leidaAt=upd?.leida_at||new Date().toISOString();
+    }
+    renderAll();
+    showToast('Alerta leída','ok');
+  }catch(err){console.error(err);showToast('Error marcando alerta','err')}
+}
+
+async function resolverAlerta(id){
+  const nota=prompt('Nota para el historial (opcional):','');
+  if(nota===null)return;
+  try{
+    const{data,error}=await db.rpc('admin_resolver_alerta',{p_alerta_id:id,p_nota_admin:nota});
+    if(error)throw error;
+    const upd=Array.isArray(data)?data[0]:null;
+    const idx=state.alertas.findIndex(a=>a.id===id);
+    if(idx>=0){
+      state.alertas[idx].estado=upd?.estado||'resuelta';
+      state.alertas[idx].leidaAt=upd?.leida_at||state.alertas[idx].leidaAt||new Date().toISOString();
+      state.alertas[idx].resueltaAt=upd?.resuelta_at||new Date().toISOString();
+      state.alertas[idx].notaAdmin=upd?.nota_admin||nota;
+    }
+    renderAll();
+    showToast('✓ Alerta resuelta','ok');
+  }catch(err){console.error(err);showToast('Error resolviendo','err')}
+}
+
+/* ════════════════════════════════════════════════════════
+   RENDER · MÁS (tile hub)
+══════════════════════════════════════════════════════════ */
+function renderMas(){
+  const pendPay=state.payments.filter(p=>p.status!=='pagado').length;
+  const todayCI=state.todayCheckins.length;
+  const activeAssign=state.assignments.filter(a=>String(a.status||'activo')==='activo').length;
+
+  document.getElementById('mas-grid').innerHTML=`
+    <div class="mas-t" onclick="showScr('pagos')">
+      <span class="mas-i">💳</span>
+      <span class="mas-l">Gestión</span>
+      <span class="mas-n">Pagos</span>
+      <span class="mas-bdg ${pendPay?'on':''}">${pendPay||''}</span>
+    </div>
+    <div class="mas-t" onclick="showScr('checkins')">
+      <span class="mas-i">🩺</span>
+      <span class="mas-l">Diario</span>
+      <span class="mas-n">Check-ins</span>
+      <span class="mas-bdg ${todayCI?'on':''}">${todayCI||''}</span>
+    </div>
+    <div class="mas-t" onclick="showScr('whatsapp')">
+      <span class="mas-i">📲</span>
+      <span class="mas-l">Comunicación</span>
+      <span class="mas-n">WhatsApp</span>
+    </div>
+    <div class="mas-t" onclick="showScr('entreno')">
+      <span class="mas-i">💪</span>
+      <span class="mas-l">Programas</span>
+      <span class="mas-n">Entrenos</span>
+      <span class="mas-bdg ${activeAssign?'on':''}">${activeAssign||''}</span>
+    </div>
+    <div class="mas-t" onclick="showScr('eval')">
+      <span class="mas-i">📊</span>
+      <span class="mas-l">Lectura</span>
+      <span class="mas-n">Evaluaciones</span>
+    </div>
+    <div class="mas-t" onclick="openModal('client')">
+      <span class="mas-i">➕</span>
+      <span class="mas-l">Acción</span>
+      <span class="mas-n">Nuevo cliente</span>
+    </div>
+  `;
+
+  document.getElementById('mas-coach').textContent=state.settings.coachName||'—';
+  document.getElementById('mas-city').textContent=state.settings.coachCity||'—';
+}
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   RENDER · PAGOS / CHECK-INS / WHATSAPP / AJUSTES
+══════════════════════════════════════════════════════════ */
+function renderPagos(){
+  const paid=state.payments.filter(p=>p.status==='pagado').reduce((s,p)=>s+Number(p.amount||0),0);
+  const pend=state.payments.filter(p=>p.status!=='pagado').reduce((s,p)=>s+Number(p.amount||0),0);
+  const overdue=state.payments.filter(p=>p.status==='vencido').length;
+  const debtClients=new Set(state.payments.filter(p=>p.status!=='pagado').map(p=>p.clientId||p.client_id)).size;
+
+  document.getElementById('pag-metrics').innerHTML=`
+    <div class="mc g"><span class="mc-n" style="font-size:1.5rem">${money(paid)}</span><span class="mc-l">Cobrado</span></div>
+    <div class="mc y"><span class="mc-n" style="font-size:1.5rem">${money(pend)}</span><span class="mc-l">Pendiente</span></div>
+    <div class="mc r"><span class="mc-n">${overdue}</span><span class="mc-l">Vencidos</span></div>
+    <div class="mc b"><span class="mc-n">${debtClients}</span><span class="mc-l">Con deuda</span></div>
+  `;
+
+  const filters=[['todos','Todos'],['pendiente','Pendientes'],['vencido','Vencidos'],['pagado','Pagados']];
+  document.getElementById('pag-filters').innerHTML=filters.map(([k,l])=>
+    `<button class="fp ${filterPag===k?'on':''}" onclick="filterPag='${k}';renderPagos()">${l}</button>`
+  ).join('');
+
+  let rows=[...state.payments].sort((a,b)=>String(b.dueDate||b.due_date||'').localeCompare(String(a.dueDate||a.due_date||'')));
+  if(filterPag!=='todos')rows=rows.filter(p=>p.status===filterPag);
+
+  document.getElementById('pag-content').innerHTML=rows.length?rows.map(p=>{
+    const c=clientById(p.clientId||p.client_id);
+    return `
+    <div class="card">
+      <div class="card-body">
+        <div class="dr"><span class="dk">Cliente</span><span class="dv">${esc(c?.name||'Cliente eliminado')}</span></div>
+        <div class="dr"><span class="dk">Concepto</span><span class="dv">${esc(p.concept||'—')}</span></div>
+        <div class="dr"><span class="dk">Importe</span><span class="dv mono" style="font-size:1.1rem">${money(p.amount)}</span></div>
+        <div class="dr"><span class="dk">Vence</span><span class="dv">${formatDate(p.dueDate||p.due_date)}</span></div>
+        <div class="dr"><span class="dk">Estado</span><span>${badge(p.status,p.status)}</span></div>
+        ${p.method?`<div class="dr"><span class="dk">Método</span><span class="dv">${esc(p.method)}</span></div>`:''}
+      </div>
+      <div class="card-acts">
+        ${p.status!=='pagado'?`<button class="btn btn-g btn-sm" onclick="markPaid('${p.id}')">✓ Pagado</button>`:''}
+        ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te recuerdo el pago de ${esc(p.concept||'tu plan')}.')">WA cobro</button>`:''}
+        ${c?.id?`<button class="btn btn-s btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
+      </div>
+    </div>`;
+  }).join(''):emptyState('Sin pagos','Registra el primer pago');
+
+  // Quick add at bottom
+  document.getElementById('pag-content').innerHTML+=`
+    <div style="margin-top:12px">
+      <button class="btn btn-p btn-wide" onclick="openModal('payment')">+ Registrar pago</button>
+    </div>`;
+}
+
+async function markPaid(id){
+  try{
+    const{data,error}=await db.from('payments').update({status:'pagado',method:'Registrado'}).eq('id',id).select().single();
+    if(error)throw error;
+    const upd=snakeToCamel(data);
+    const idx=state.payments.findIndex(p=>p.id===id);
+    if(idx>=0)state.payments[idx]=upd;
+    renderScr(currentScr);
+    showToast('✓ Pago cobrado','ok');
+  }catch(err){console.error(err);showToast('Error','err')}
+}
+
+/* ── CHECK-INS ── */
+function renderCheckins(){
+  const today=todayISO();
+  const todayList=state.todayCheckins;
+  const list=state.recentCheckins.slice().sort((a,b)=>String(b.checkinDate||b.created_at||'').localeCompare(String(a.checkinDate||a.created_at||'')));
+  const alertas=list.filter(ci=>getCheckinStatus(ci)==='alerta');
+  const revisar=list.filter(ci=>getCheckinStatus(ci)==='revisar');
+
+  document.getElementById('ci-metrics').innerHTML=`
+    <div class="mc b"><span class="mc-n">${todayList.length}</span><span class="mc-l">Hoy</span></div>
+    <div class="mc r"><span class="mc-n">${alertas.length}</span><span class="mc-l">Alertas</span></div>
+    <div class="mc y"><span class="mc-n">${revisar.length}</span><span class="mc-l">Revisar</span></div>
+    <div class="mc g"><span class="mc-n">${list.length}</span><span class="mc-l">Total</span></div>
+  `;
+
+  document.getElementById('ci-content').innerHTML=list.length?list.slice(0,40).map(ci=>{
+    const c=clientById(ci.clientId||ci.client_id);
+    const st=getCheckinStatus(ci);
+    const fecha=String(ci.checkinDate||ci.created_at||'').slice(0,10);
+    return `
+    <div class="card" ${st==='alerta'?'style="border-left:3px solid var(--medical)"':st==='revisar'?'style="border-left:3px solid var(--warn)"':''}>
+      <div class="card-body">
+        <div class="dr">
+          <span style="display:flex;align-items:center;gap:8px"><div class="av" style="width:32px;height:32px;font-size:.8rem">${initials(c?.name)}</div><span class="dv">${esc(c?.name||'—')}</span></span>
+          <span>${badge(st,st)}</span>
+        </div>
+        <div class="dr"><span class="dk">Fecha</span><span class="dv">${formatDate(fecha)}</span></div>
+        <div class="dr"><span class="dk">💤 Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div>
+        <div class="dr"><span class="dk">⚡ Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div>
+        <div class="dr"><span class="dk">🩺 Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>
+        ${ci.comment?`<div class="dr"><span class="dk">Nota</span><span class="dv wrap" style="color:var(--warn);font-weight:500;font-size:.8rem">${esc(ci.comment)}</span></div>`:''}
+      </div>
+      ${c?`<div class="card-acts">
+        <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
+        ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, vi tu check-in. ¿Cómo te encuentras?')">WA</button>`:''}
+      </div>`:''}
+    </div>`;
+  }).join(''):emptyState('Sin check-ins','Los clientes aún no han enviado check-ins.');
+}
+
+/* ── WHATSAPP ── */
+function renderWhatsapp(){
+  const box=document.getElementById('wa-content');
+  if(!state.clients.length){
+    box.innerHTML=emptyState('Sin clientes','Crea un cliente para enviar WhatsApp')+`
+      <div style="margin-top:12px"><button class="btn btn-wa btn-wide" onclick="openCoachWA()">☏ Abrir mi WhatsApp</button></div>`;
+    return;
+  }
+  const opts=state.clients.map(c=>`<option value="${c.id}">${esc(c.name)} — ${esc(c.phone||'sin tel.')}</option>`).join('');
+  const tpls=state.templates.length?state.templates.map(t=>`
+    <div class="card">
+      <div class="card-body">
+        <div style="font-weight:700;margin-bottom:8px">${esc(t.name||t.nameEs||'Plantilla')}</div>
+        <div style="font-size:.84rem;color:var(--text-2);line-height:1.6;background:var(--bg);border-left:2px solid rgba(0,200,232,.3);padding:10px 12px;border-radius:0 6px 6px 0" id="tpl-${t.id}">${esc(t.msg||t.msgEs||'')}</div>
+      </div>
+      <div class="card-acts">
+        <button class="btn btn-wa btn-sm" onclick="sendTemplate('${t.id}')">Enviar</button>
+        <button class="btn btn-s btn-sm" onclick="copyTemplate('${t.id}')">Copiar</button>
+      </div>
+    </div>`).join(''):emptyState('Sin plantillas','Créalas en el admin de escritorio');
+
+  box.innerHTML=`
+    <div class="fld">
+      <label class="fld-l">Cliente activo</label>
+      <select class="fld-s" id="wa-cli">${opts}</select>
+    </div>
+    ${tpls}
+    <div style="margin-top:14px">
+      <button class="btn btn-wa btn-wide" onclick="openCoachWA()">☏ Mi WhatsApp</button>
+    </div>`;
+}
+
+function sendTemplate(id){
+  const tpl=state.templates.find(t=>t.id===id);
+  const cid=document.getElementById('wa-cli')?.value;
+  const c=clientById(cid);
+  const msg=(tpl?.msg||tpl?.msgEs||'')
+    .replaceAll('[nombre]',firstName(c?.name||''))
+    .replaceAll('[hora]','')
+    .replaceAll('[concepto]','');
+  openWA(c?.phone||state.settings.coachPhone,msg);
+}
+function copyTemplate(id){
+  const el=document.getElementById('tpl-'+id);
+  if(!el)return;
+  navigator.clipboard.writeText(el.textContent).then(()=>showToast('Copiado','ok')).catch(()=>showToast('No se pudo copiar','err'));
+}
+
+/* ── AJUSTES ── */
+function renderAjustes(){
+  const s=state.settings;
+  const setV=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||''};
+  setV('st-name',s.coachName);
+  setV('st-phone',s.coachPhone);
+  setV('st-user',s.adminUsername||'abel_admin');
+  const passEl=document.getElementById('st-pass');
+  if(passEl)passEl.value='';
+}
+
+async function saveSettings(){
+  try{
+    const ids=['st-name','st-phone','st-user'];
+    const keyMap={'st-name':'coachName','st-phone':'coachPhone','st-user':'adminUsername'};
+    ids.forEach(id=>{
+      const el=document.getElementById(id);
+      if(el&&keyMap[id])state.settings[keyMap[id]]=el.value;
+    });
+    const passEl=document.getElementById('st-pass');
+    const newPass=passEl?passEl.value.trim():'';
+    if(newPass)state.settings.adminPassword=newPass;
+    if(!state.settings.adminUsername?.trim())state.settings.adminUsername='abel_admin';
+
+    const payload=camelToSnake({id:'main',...state.settings});
+    if(!newPass)delete payload.admin_password;
+
+    const{error}=await db.from('settings').upsert(payload,{onConflict:'id'}).select().single();
+    if(error)throw error;
+    if(passEl)passEl.value='';
+    showToast('Ajustes guardados ✓','ok');
+  }catch(err){console.error(err);showToast('Error guardando','err')}
+}
+
+/* ── ENTRENO (read-only mobile) ── */
+function renderEntreno(){
+  const active=state.assignments.filter(a=>String(a.status||'activo')==='activo');
+  const box=document.getElementById('ent-content');
+  if(!active.length){
+    box.innerHTML=`<div class="desktop-only">
+      <div class="desktop-only-t">Sin asignaciones activas</div>
+      <div class="desktop-only-s">Crea y asigna programas desde el admin de escritorio.</div>
+      <button class="btn btn-b btn-sm" onclick="window.open('/admin','_blank')">Abrir /admin</button>
+    </div>`;
+    return;
+  }
+  box.innerHTML=`<div class="desktop-only">
+    <div class="desktop-only-t">Vista rápida</div>
+    <div class="desktop-only-s">Edición técnica completa en /admin. Aquí ves quién tiene qué programa activo.</div>
+  </div>` + active.map(a=>{
+    const c=clientById(a.clientId||a.client_id);
+    const p=getAssignmentProgram(a);
+    const logs=state.sessionLogs.filter(l=>{
+      const cid=l.clientId||l.client_id;
+      const finished=l.status==='completed'||l.status==='realizada'||l.finishedAt||l.finished_at;
+      return String(cid)===String(a.clientId||a.client_id)&&finished;
+    });
+    return `
+    <div class="card">
+      <div class="card-body">
+        <div class="dr"><span class="dk">Cliente</span><span class="dv">${esc(c?.name||'—')}</span></div>
+        <div class="dr"><span class="dk">Programa</span><span class="dv wrap" style="color:var(--sport)">${esc(p?.name||p?.nameEs||'—')}</span></div>
+        <div class="dr"><span class="dk">Nivel</span><span class="dv">${esc(a.assignedLevel||a.assigned_level||'N1')}</span></div>
+        <div class="dr"><span class="dk">Semana actual</span><span class="dv">${esc(a.currentWeek||a.current_week||1)}</span></div>
+        <div class="dr"><span class="dk">Alcance</span><span class="dv">${esc(a.commercialLabel||a.commercial_label||'Plan completo')}</span></div>
+        <div class="dr"><span class="dk">Sesiones hechas</span><span class="dv">${logs.length}</span></div>
+      </div>
+      <div class="card-acts">
+        ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
+        ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c?.name))}, ¿cómo va el plan?')">WA</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── EVALUACIONES (read-only mobile) ── */
+function renderEval(){
+  const box=document.getElementById('eval-content');
+  const list=state.assessments.slice(0,30);
+  if(!list.length){
+    box.innerHTML=`<div class="desktop-only">
+      <div class="desktop-only-t">Sin evaluaciones</div>
+      <div class="desktop-only-s">Crea tests desde el admin de escritorio.</div>
+      <button class="btn btn-b btn-sm" onclick="window.open('/admin','_blank')">Abrir /admin</button>
+    </div>`;
+    return;
+  }
+  box.innerHTML=`<div class="desktop-only">
+    <div class="desktop-only-t">Solo lectura</div>
+    <div class="desktop-only-s">La creación y edición de tests se hace en /admin.</div>
+  </div>` + list.map(a=>{
+    const c=clientById(a.clientId||a.client_id);
+    return `
+    <div class="card">
+      <div class="card-body">
+        <div class="dr"><span class="dk">Cliente</span><span class="dv">${esc(c?.name||'—')}</span></div>
+        <div class="dr"><span class="dk">Test</span><span class="dv wrap">${esc(a.assessmentName||a.assessment_name||'Test')}</span></div>
+        <div class="dr"><span class="dk">Fecha</span><span class="dv">${formatDate(a.assessmentDate||a.assessment_date)}</span></div>
+        <div class="dr"><span class="dk">Estado</span><span>${badge(a.status||'realizada',a.status||'realizada')}</span></div>
+        ${a.coachNotes||a.coach_notes?`<div class="dr"><span class="dk">Notas</span><span class="dv wrap" style="font-size:.78rem">${esc(a.coachNotes||a.coach_notes)}</span></div>`:''}
+      </div>
+      ${c?`<div class="card-acts">
+        <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   MODAL SYSTEM · Bottom sheet
+══════════════════════════════════════════════════════════ */
+function closeModal(){
+  const ov=document.getElementById('modal-ov');
+  const fm=document.getElementById('modal-form');
+  if(ov)ov.classList.remove('on');
+  if(fm){fm.onsubmit=null;fm.innerHTML=''}
+  document.getElementById('modal-title').textContent='Acción';
+  activeModal=null;
+}
+
+function clientOpts(selectedId=''){
+  return state.clients.map(c=>`<option value="${c.id}" ${String(selectedId)===String(c.id)?'selected':''}>${esc(c.name)}</option>`).join('');
+}
+
+function formData(form){return Object.fromEntries(new FormData(form).entries())}
+
+const TABLE_MAP={
+  clients:'clients',reservations:'reservations',payments:'payments',
+  metrics:'metrics',healthAlerts:'health_alerts'
+};
+
+async function upsertItem(stateKey,tableName,data){
+  if(activeModal?.id){
+    const{data:saved,error}=await db.from(tableName).update(camelToSnake(data)).eq('id',activeModal.id).select().single();
+    if(error)throw error;
+    const idx=state[stateKey].findIndex(x=>x.id===activeModal.id);
+    if(idx>=0)state[stateKey][idx]=snakeToCamel(saved);
+    return snakeToCamel(saved);
+  }else{
+    const{data:saved,error}=await db.from(tableName).insert(camelToSnake({id:uid(),...data})).select().single();
+    if(error)throw error;
+    state[stateKey].push(snakeToCamel(saved));
+    return snakeToCamel(saved);
+  }
+}
+
+function openModal(type,id=null,prefill={}){
+  activeModal={type,id};
+  const form=document.getElementById('modal-form');
+  const title=document.getElementById('modal-title');
+  const P=prefill||{};
+  const actions=`<div class="fld-acts"><button type="button" class="btn btn-s" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-p">Guardar</button></div>`;
+
+  // Get existing record if editing
+  const get=(arrKey)=>state[arrKey]?.find(x=>x.id===id)||{};
+
+  if(type==='client'){
+    const c=get('clients');
+    title.textContent=id?'Editar cliente':'Nuevo cliente';
+    form.innerHTML=`
+      <div class="fld">
+        <label class="fld-l">Nombre completo *</label>
+        <input name="name" class="fld-i" value="${esc(c.name||'')}" required autocapitalize="words">
+      </div>
+      <div class="fld-2">
+        <div class="fld">
+          <label class="fld-l">Teléfono</label>
+          <input name="phone" class="fld-i" value="${esc(c.phone||'')}" inputmode="tel" pattern="[0-9+\\-\\s]*">
+        </div>
+        <div class="fld">
+          <label class="fld-l">Plan</label>
+          <select name="plan" class="fld-s">
+            <option ${c.plan==='Inicio'?'selected':''}>Inicio</option>
+            <option ${c.plan==='Performance'?'selected':''}>Performance</option>
+            <option ${c.plan==='Online'?'selected':''}>Online</option>
+            <option ${c.plan==='Sin plan'?'selected':''}>Sin plan</option>
+          </select>
+        </div>
+      </div>
+      <div class="fld-2">
+        <div class="fld">
+          <label class="fld-l">Estado</label>
+          <select name="status" class="fld-s">
+            <option value="prospecto" ${(c.status||'prospecto')==='prospecto'?'selected':''}>Prospecto</option>
+            <option value="activo" ${c.status==='activo'?'selected':''}>Activo</option>
+            <option value="pausado" ${c.status==='pausado'?'selected':''}>Pausado</option>
+            <option value="inactivo" ${c.status==='inactivo'?'selected':''}>Inactivo</option>
+          </select>
+        </div>
+        <div class="fld">
+          <label class="fld-l">Idioma</label>
+          <select name="preferred_lang" class="fld-s">
+            <option value="es" ${(c.preferredLang||'es')==='es'?'selected':''}>🇪🇸 ES</option>
+            <option value="sr" ${c.preferredLang==='sr'?'selected':''}>🇷🇸 SR</option>
+          </select>
+        </div>
+      </div>
+      <div class="fld">
+        <label class="fld-l">Código de acceso (área cliente)</label>
+        <input name="access_code" class="fld-i" value="${esc(c.accessCode||'')}" placeholder="Ej: AB1234" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:.08em">
+      </div>
+      <div class="fld">
+        <label class="fld-l">Email</label>
+        <input name="email" class="fld-i" value="${esc(c.email||'')}" inputmode="email" autocapitalize="off">
+      </div>
+      <div class="fld">
+        <label class="fld-l">Objetivo principal</label>
+        <input name="objective" class="fld-i" value="${esc(c.objective||'')}">
+      </div>
+      ${actions}`;
+  }
+
+  else if(type==='reservation'){
+    const r=get('todayRes');
+    title.textContent=id?'Editar sesión':'Nueva sesión';
+    form.innerHTML=`
+      <div class="fld">
+        <label class="fld-l">Cliente *</label>
+        <select name="clientId" class="fld-s" required>${clientOpts(r.clientId||P.clientId)}</select>
+      </div>
+      <div class="fld-2">
+        <div class="fld">
+          <label class="fld-l">Fecha *</label>
+          <input name="date" class="fld-i" type="date" value="${esc(r.date||todayISO())}" required>
+        </div>
+        <div class="fld">
+          <label class="fld-l">Hora *</label>
+          <input name="time" class="fld-i" type="time" value="${esc(r.time||'09:00')}" required>
+        </div>
+      </div>
+      <div class="fld">
+        <label class="fld-l">Tipo</label>
+        <input name="type" class="fld-i" value="${esc(r.type||'Sesión personal')}">
+      </div>
+      <div class="fld">
+        <label class="fld-l">Lugar</label>
+        <input name="place" class="fld-i" value="${esc(r.place||'Belgrado')}">
+      </div>
+      <div class="fld">
+        <label class="fld-l">Estado</label>
+        <select name="status" class="fld-s">
+          <option value="reservada" ${(r.status||'reservada')==='reservada'?'selected':''}>Reservada</option>
+          <option value="confirmada" ${r.status==='confirmada'?'selected':''}>Confirmada</option>
+          <option value="realizada" ${r.status==='realizada'?'selected':''}>Realizada</option>
+          <option value="cancelada" ${r.status==='cancelada'?'selected':''}>Cancelada</option>
+        </select>
+      </div>
+      ${actions}`;
+  }
+
+  else if(type==='payment'){
+    const p=get('payments');
+    title.textContent=id?'Editar pago':'Registrar pago';
+    form.innerHTML=`
+      <div class="fld">
+        <label class="fld-l">Cliente *</label>
+        <select name="clientId" class="fld-s" required>${clientOpts(p.clientId||P.clientId)}</select>
+      </div>
+      <div class="fld">
+        <label class="fld-l">Concepto</label>
+        <input name="concept" class="fld-i" value="${esc(p.concept||'Mensualidad')}" autocapitalize="sentences">
+      </div>
+      <div class="fld">
+        <label class="fld-l">Importe (€) *</label>
+        <input name="amount" class="fld-i fld-num" value="${esc(p.amount||'')}" inputmode="decimal" pattern="[0-9.,]*" placeholder="0" required>
+      </div>
+      <div class="fld-2">
+        <div class="fld">
+          <label class="fld-l">Estado</label>
+          <select name="status" class="fld-s">
+            <option value="pendiente" ${(p.status||'pendiente')==='pendiente'?'selected':''}>Pendiente</option>
+            <option value="pagado" ${p.status==='pagado'?'selected':''}>Pagado</option>
+            <option value="vencido" ${p.status==='vencido'?'selected':''}>Vencido</option>
+          </select>
+        </div>
+        <div class="fld">
+          <label class="fld-l">Vence</label>
+          <input name="dueDate" class="fld-i" type="date" value="${esc(p.dueDate||p.due_date||todayISO())}">
+        </div>
+      </div>
+      <div class="fld">
+        <label class="fld-l">Método</label>
+        <input name="method" class="fld-i" value="${esc(p.method||'')}" placeholder="Efectivo, transferencia, …">
+      </div>
+      ${actions}`;
+  }
+
+  else if(type==='metric'){
+    const m=get('metrics');
+    title.textContent='Registrar métrica';
+    form.innerHTML=`
+      <div class="fld">
+        <label class="fld-l">Cliente *</label>
+        <select name="clientId" class="fld-s" required>${clientOpts(m.clientId||P.clientId||state.selectedClientId)}</select>
+      </div>
+      <div class="fld">
+        <label class="fld-l">Tipo</label>
+        <select name="type" class="fld-s">
+          <option>Peso (kg)</option>
+          <option>Cintura (cm)</option>
+          <option>Fuerza (1-10)</option>
+          <option>Movilidad (1-10)</option>
+          <option>Resistencia (1-10)</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label class="fld-l">Valor *</label>
+        <input name="value" class="fld-i fld-num" value="${esc(m.value||'')}" inputmode="decimal" pattern="[0-9.,]*" placeholder="0" required>
+      </div>
+      <div class="fld-2">
+        <div class="fld">
+          <label class="fld-l">Fecha</label>
+          <input name="date" class="fld-i" type="date" value="${esc(m.date||todayISO())}">
+        </div>
+        <div class="fld">
+          <label class="fld-l">Nota</label>
+          <input name="note" class="fld-i" value="${esc(m.note||'')}">
+        </div>
+      </div>
+      ${actions}`;
+  }
+
+  else if(type==='note'){
+    title.textContent='Nueva nota';
+    form.innerHTML=`
+      <div class="fld">
+        <label class="fld-l">Cliente *</label>
+        <select name="clientId" class="fld-s" required>${clientOpts(P.clientId||state.selectedClientId)}</select>
+      </div>
+      <div class="fld">
+        <label class="fld-l">Nota</label>
+        <textarea name="text" class="fld-t" rows="4" required autocapitalize="sentences" placeholder="Observación rápida del coach…"></textarea>
+      </div>
+      ${actions}`;
+  }
+
+  else{
+    title.textContent='No disponible';
+    form.innerHTML=`<div class="empty"><strong>Acción no disponible</strong>Aún no soportada en móvil.</div>${actions}`;
+  }
+
+  form.onsubmit=saveModal;
+  document.getElementById('modal-ov').classList.add('on');
+
+  // Auto-focus first text input
+  setTimeout(()=>{
+    const fi=form.querySelector('input[type="text"]:not([readonly]), input:not([type]):not([readonly]), input[type="search"]:not([readonly])');
+    if(fi&&!('ontouchstart' in window))fi.focus();
+  },100);
+}
+
+async function saveModal(e){
+  e.preventDefault();
+  try{
+    const data=formData(e.target);
+    const{type,id}=activeModal||{};
+
+    if(type==='client'){
+      if(data.access_code)data.access_code=data.access_code.trim().toUpperCase();
+      await upsertItem('clients','clients',{...data,notes:id?(clientById(id)?.notes||[]):[]});
+      if(!state.selectedClientId&&!id){
+        state.selectedClientId=state.clients[state.clients.length-1]?.id||null;
+      }
+      showToast(id?'Cliente actualizado ✓':'Cliente guardado ✓','ok');
+    }
+    else if(type==='reservation'){
+      const saved=await upsertItem('todayRes','reservations',data);
+      // Re-bucket: today vs future
+      if(saved.date===todayISO()){
+        if(!state.todayRes.some(r=>r.id===saved.id))state.todayRes.push(saved);
+        state.futureRes=state.futureRes.filter(r=>r.id!==saved.id);
+      }else if(saved.date>todayISO()){
+        if(!state.futureRes.some(r=>r.id===saved.id))state.futureRes.push(saved);
+        state.todayRes=state.todayRes.filter(r=>r.id!==saved.id);
+      }
+      state.allRes=[...state.todayRes,...state.futureRes];
+      showToast('Sesión guardada ✓','ok');
+    }
+    else if(type==='payment'){
+      await upsertItem('payments','payments',data);
+      showToast('Pago registrado ✓','ok');
+    }
+    else if(type==='metric'){
+      await upsertItem('metrics','metrics',data);
+      showToast('Métrica guardada ✓','ok');
+    }
+    else if(type==='note'){
+      const c=clientById(data.clientId);
+      if(c){
+        const notes=Array.isArray(c.notes)?c.notes:[];
+        notes.unshift({id:uid(),text:data.text,date:todayISO()});
+        const{data:saved,error}=await db.from('clients').update({notes}).eq('id',c.id).select().single();
+        if(error)throw error;
+        Object.assign(c,snakeToCamel(saved));
+        showToast('Nota guardada ✓','ok');
+      }
+    }
+
+    closeModal();
+    renderAll();
+  }catch(err){
+    console.error('saveModal error:',err);
+    showToast('Error: '+(err?.message||'no se pudo guardar'),'err');
+  }
+}
+</script>
+
+</body>
+</html>
