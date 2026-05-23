@@ -2037,48 +2037,53 @@ async function resolverAlerta(id){
    RENDER · MÁS (tile hub)
 ══════════════════════════════════════════════════════════ */
 function renderMas(){
-  const pendPay=state.payments.filter(p=>p.status!=='pagado').length;
-  const todayCI=state.todayCheckins.length;
-  const activeAssign=state.assignments.filter(a=>String(a.status||'activo')==='activo').length;
+  const pendPay = state.payments.filter(p => p.status !== 'pagado').length;
+  const todayCI = state.todayCheckins.length;
+  const activeAssign = state.assignments.filter(a => String(a.status || 'activo') === 'activo').length;
 
-  document.getElementById('mas-grid').innerHTML=`
+  document.getElementById('mas-grid').innerHTML = `
     <div class="mas-t" onclick="showScr('pagos')">
-      <span class="mas-i">💳</span>
+      <span class="mas-i mono">PAY</span>
       <span class="mas-l">Gestión</span>
       <span class="mas-n">Pagos</span>
-      <span class="mas-bdg ${pendPay?'on':''}">${pendPay||''}</span>
+      <span class="mas-bdg ${pendPay ? 'on' : ''}">${pendPay || ''}</span>
     </div>
+
     <div class="mas-t" onclick="showScr('checkins')">
-      <span class="mas-i">🩺</span>
+      <span class="mas-i mono">CI</span>
       <span class="mas-l">Diario</span>
       <span class="mas-n">Check-ins</span>
-      <span class="mas-bdg ${todayCI?'on':''}">${todayCI||''}</span>
+      <span class="mas-bdg ${todayCI ? 'on' : ''}">${todayCI || ''}</span>
     </div>
+
     <div class="mas-t" onclick="showScr('whatsapp')">
-      <span class="mas-i">📲</span>
+      <span class="mas-i mono">WA</span>
       <span class="mas-l">Comunicación</span>
       <span class="mas-n">WhatsApp</span>
     </div>
+
     <div class="mas-t" onclick="showScr('entreno')">
-      <span class="mas-i">💪</span>
+      <span class="mas-i mono">TR</span>
       <span class="mas-l">Programas</span>
       <span class="mas-n">Entrenos</span>
-      <span class="mas-bdg ${activeAssign?'on':''}">${activeAssign||''}</span>
+      <span class="mas-bdg ${activeAssign ? 'on' : ''}">${activeAssign || ''}</span>
     </div>
+
     <div class="mas-t" onclick="showScr('eval')">
-      <span class="mas-i">📊</span>
+      <span class="mas-i mono">EV</span>
       <span class="mas-l">Lectura</span>
       <span class="mas-n">Evaluaciones</span>
     </div>
+
     <div class="mas-t" onclick="openModal('client')">
-      <span class="mas-i">➕</span>
+      <span class="mas-i mono">NEW</span>
       <span class="mas-l">Acción</span>
       <span class="mas-n">Nuevo cliente</span>
     </div>
   `;
 
-  document.getElementById('mas-coach').textContent=state.settings.coachName||'—';
-  document.getElementById('mas-city').textContent=state.settings.coachCity||'—';
+  document.getElementById('mas-coach').textContent = state.settings.coachName || '—';
+  document.getElementById('mas-city').textContent = state.settings.coachCity || '—';
 }
 </script>
 
@@ -3323,7 +3328,15 @@ function pauseWorkoutTimer(){
 
 function resetWorkoutTimer(){
   pauseWorkoutTimer();
-  state.workoutTimer.seconds = 0;
+  Object.keys(state.workoutChecks).forEach(k => {
+  if(k.startsWith(clientId + '__')){
+    delete state.workoutChecks[k];
+  }
+});
+
+state.workoutNotes[clientId] = '';
+state.workoutTimer.seconds = 0;
+state.workoutTimer.seconds = 0;
   updateClockUI();
   renderWorkout();
 }
@@ -3332,8 +3345,17 @@ function saveWorkoutNote(clientId, value){
   state.workoutNotes[clientId] = value;
 }
 
+function getExerciseId(ex, fallbackIndex=0){
+  return String(
+    ex.id ||
+    ex.exerciseId ||
+    ex.exercise_id ||
+    `${ex.blockId || ex.block_id || 'block'}-${ex.orderIndex || ex.order_index || fallbackIndex}-${ex.name || ex.nameEs || 'exercise'}`
+  );
+}
+
 function buildWorkoutExerciseCard(ex, index, clientId){
-  const exId = ex.id || `ex-${index}`;
+  const exId = getExerciseId(ex, index);
   const done = isExerciseDone(clientId, exId);
   const info = getExerciseInfo(ex);
 
@@ -3407,10 +3429,10 @@ function renderWorkout(){
   const plan = getWorkoutPlanForClient(c);
   const exercises = plan.exercises || [];
 
-  const doneCount = exercises.filter(ex => {
-    const exId = ex.id || `ex-${exercises.indexOf(ex)}`;
-    return isExerciseDone(c.id, exId);
-  }).length;
+  const doneCount = exercises.filter((ex, idx) => {
+  const exId = getExerciseId(ex, idx);
+  return isExerciseDone(c.id, exId);
+}).length;
 
   const totalCount = exercises.length;
   const note = state.workoutNotes[c.id] || '';
