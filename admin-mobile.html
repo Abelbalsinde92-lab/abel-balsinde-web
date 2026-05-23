@@ -1194,6 +1194,8 @@ async function loadAllData(){
       {data:todayCI},
       {data:recentCI},
       {data:tprograms},
+      {data:tblocks},
+      {data:texercises},
       {data:assignments},
       {data:slogs},
       {data:templates},
@@ -1240,10 +1242,18 @@ async function loadAllData(){
         .limit(80),
 
       db.from('training_programs')
-        .select('*'),
+  .select('*'),
 
-      db.from('client_program_assignments')
-        .select('*'),
+db.from('training_blocks')
+  .select('*')
+  .order('order_index'),
+
+db.from('training_exercises')
+  .select('*')
+  .order('order_index'),
+
+db.from('client_program_assignments')
+  .select('*'),
 
       db.from('client_session_logs')
         .select('*')
@@ -1281,7 +1291,9 @@ async function loadAllData(){
     state.todayCheckins = mapArr(todayCI);
     state.recentCheckins = mapArr(recentCI);
     state.trainingPrograms = mapArr(tprograms);
-    state.assignments = mapArr(assignments);
+state.trainingBlocks = mapArr(tblocks);
+state.trainingExercises = mapArr(texercises);
+state.assignments = mapArr(assignments);
     state.sessionLogs = mapArr(slogs);
     state.templates = mapArr(templates);
     state.assessments = mapArr(assessments);
@@ -1556,8 +1568,7 @@ function buildClientCard(c){
   return `
     <div class="cc">
       <div class="cc-top">
-        <div class="av">${initials(c.name)}</div>
-
+        ${getClientPhotoHTML(c,'sm')}
         <div style="flex:1;min-width:0">
           <div class="cc-name">${esc(c.name)}</div>
           <div class="cc-meta">${esc(c.plan || 'Sin plan')} · ${esc(c.phone || 'Sin tel.')}</div>
@@ -1677,17 +1688,18 @@ function renderPerfil(){
   <button class="btn btn-s btn-sm" onclick="copyClientLink('${c.id}')">Copiar acceso</button>
   ${c.phone?`<button class="btn btn-wa btn-sm" onclick="sendClientAccessWA('${c.id}')">Enviar acceso</button>`:''}
   <button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}')">Entrenamiento</button>
-<button class="btn btn-p btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
+   <button class="btn btn-p btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
   <button class="btn btn-p btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
   <button class="btn btn-b btn-sm" onclick="openModal('metric',null,{clientId:'${c.id}'})">+ Métrica</button>
   <button class="btn btn-b btn-sm" onclick="openModal('note',null,{clientId:'${c.id}'})">+ Nota</button>
-  <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
+  <button class="btn btn-b btn-sm" onclick="openModal('assignment',null,{clientId:'${c.id}'})">Asignar plan</button>
+   <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
 </div>
 
     <!-- Summary -->
     <div class="psum">
       <div class="psum-top">
-        <div class="psum-av">${initials(c.name)}</div>
+        ${getClientPhotoHTML(c)}
         <div style="flex:1;min-width:0">
           <div class="psum-name">${esc(c.name)}</div>
           <div class="psum-meta">${esc(c.plan||'Sin plan')} · ${esc(c.phone||'Sin tel.')}</div>
@@ -2381,42 +2393,62 @@ async function saveSettings(){
 
 /* ── ENTRENO (read-only mobile) ── */
 function renderEntreno(){
-  const active=state.assignments.filter(a=>String(a.status||'activo')==='activo');
-  const box=document.getElementById('ent-content');
+  const active = state.assignments.filter(a => String(a.status || 'activo') === 'activo');
+  const box = document.getElementById('ent-content');
+
+  const clientSelect = state.clients.length
+    ? `<div style="margin-bottom:12px">
+        <button class="btn btn-p btn-wide" onclick="openModal('assignment')">
+          + Asignar entrenamiento
+        </button>
+      </div>`
+    : '';
+
   if(!active.length){
-    box.innerHTML=`<div class="desktop-only">
-      <div class="desktop-only-t">Sin asignaciones activas</div>
-      <div class="desktop-only-s">Crea y asigna programas desde el admin de escritorio.</div>
-      <button class="btn btn-b btn-sm" onclick="window.open('/admin','_blank')">Abrir /admin</button>
-    </div>`;
+    box.innerHTML = clientSelect + `
+      <div class="desktop-only">
+        <div class="desktop-only-t">Sin asignaciones activas</div>
+        <div class="desktop-only-s">Puedes asignar un programa desde el móvil. La creación técnica completa sigue en /admin.</div>
+        <button class="btn btn-b btn-sm" onclick="window.open('/admin','_blank')">Abrir /admin</button>
+      </div>
+    `;
     return;
   }
-  box.innerHTML=`<div class="desktop-only">
-    <div class="desktop-only-t">Vista rápida</div>
-    <div class="desktop-only-s">Edición técnica completa en /admin. Aquí ves quién tiene qué programa activo.</div>
-  </div>` + active.map(a=>{
-    const c=clientById(a.clientId||a.client_id);
-    const p=getAssignmentProgram(a);
-    const logs=state.sessionLogs.filter(l=>{
-      const cid=l.clientId||l.client_id;
-      const finished=l.status==='completed'||l.status==='realizada'||l.finishedAt||l.finished_at;
-      return String(cid)===String(a.clientId||a.client_id)&&finished;
+
+  box.innerHTML = clientSelect + `
+    <div class="desktop-only">
+      <div class="desktop-only-t">Entrenamientos activos</div>
+      <div class="desktop-only-s">Desde aquí puedes abrir el entrenamiento operativo o reasignar un nuevo plan.</div>
+    </div>
+  ` + active.map(a => {
+    const c = clientById(a.clientId || a.client_id);
+    const p = getAssignmentProgram(a);
+
+    const logs = state.sessionLogs.filter(l => {
+      const cid = l.clientId || l.client_id;
+      const finished = l.status === 'completed' || l.status === 'realizada' || l.finishedAt || l.finished_at;
+      return String(cid) === String(a.clientId || a.client_id) && finished;
     });
+
     return `
-    <div class="card">
-      <div class="card-body">
-        <div class="dr"><span class="dk">Cliente</span><span class="dv">${esc(c?.name||'—')}</span></div>
-        <div class="dr"><span class="dk">Programa</span><span class="dv wrap" style="color:var(--sport)">${esc(p?.name||p?.nameEs||'—')}</span></div>
-        <div class="dr"><span class="dk">Nivel</span><span class="dv">${esc(a.assignedLevel||a.assigned_level||'N1')}</span></div>
-        <div class="dr"><span class="dk">Semana actual</span><span class="dv">${esc(a.currentWeek||a.current_week||1)}</span></div>
-        <div class="dr"><span class="dk">Alcance</span><span class="dv">${esc(a.commercialLabel||a.commercial_label||'Plan completo')}</span></div>
-        <div class="dr"><span class="dk">Sesiones hechas</span><span class="dv">${logs.length}</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="dr"><span class="dk">Cliente</span><span class="dv">${esc(c?.name || '—')}</span></div>
+          <div class="dr"><span class="dk">Programa</span><span class="dv wrap" style="color:var(--sport)">${esc(p?.name || p?.nameEs || '—')}</span></div>
+          <div class="dr"><span class="dk">Nivel</span><span class="dv">${esc(a.assignedLevel || a.assigned_level || 'N1')}</span></div>
+          <div class="dr"><span class="dk">Semana actual</span><span class="dv">${esc(a.currentWeek || a.current_week || 1)}</span></div>
+          <div class="dr"><span class="dk">Alcance</span><span class="dv">${esc(a.commercialLabel || a.commercial_label || 'Plan completo')}</span></div>
+          <div class="dr"><span class="dk">Sesiones hechas</span><span class="dv">${logs.length}</span></div>
+        </div>
+
+        <div class="card-acts">
+          ${c?.id ? `<button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}')">Entrenar</button>` : ''}
+          ${c?.id ? `<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>` : ''}
+          ${c?.id ? `<button class="btn btn-b btn-sm" onclick="openModal('assignment',null,{clientId:'${c.id}'})">Reasignar</button>` : ''}
+          ${c?.phone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c?.name))}, ¿cómo va el plan?')">WA</button>` : ''}
+        </div>
       </div>
-      <div class="card-acts">
-        ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
-        ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c?.name))}, ¿cómo va el plan?')">WA</button>`:''}
-      </div>
-    </div>`;
+    `;
   }).join('');
 }
 
@@ -2477,6 +2509,14 @@ function clientOpts(selectedId=''){
   return state.clients.map(c => `
     <option value="${c.id}" ${String(selectedId) === String(c.id) ? 'selected' : ''}>
       ${esc(c.name)}
+    </option>
+  `).join('');
+}
+
+function programOpts(selectedId=''){
+  return state.trainingPrograms.map(p => `
+    <option value="${p.id}" ${String(selectedId) === String(p.id) ? 'selected' : ''}>
+      ${esc(p.name || p.nameEs || 'Programa sin nombre')}
     </option>
   `).join('');
 }
@@ -2700,7 +2740,76 @@ function openModal(type, id=null, prefill={}){
     `;
   }
 
-  else if(type === 'metric'){
+  else if(type === 'assignment'){
+  const a = get('assignments');
+
+  title.textContent = id ? 'Editar asignación' : 'Asignar entrenamiento';
+
+  form.innerHTML = `
+    <div class="fld">
+      <label class="fld-l">Cliente *</label>
+      <select name="clientId" class="fld-s" required>
+        ${clientOpts(a.clientId || P.clientId || state.selectedClientId)}
+      </select>
+    </div>
+
+    <div class="fld">
+      <label class="fld-l">Programa *</label>
+      <select name="programId" class="fld-s" required>
+        ${programOpts(a.programId)}
+      </select>
+    </div>
+
+    <div class="fld-2">
+      <div class="fld">
+        <label class="fld-l">Nivel</label>
+        <select name="assignedLevel" class="fld-s">
+          <option value="N1" ${(a.assignedLevel || 'N1') === 'N1' ? 'selected' : ''}>N1</option>
+          <option value="N2" ${a.assignedLevel === 'N2' ? 'selected' : ''}>N2</option>
+          <option value="N3" ${a.assignedLevel === 'N3' ? 'selected' : ''}>N3</option>
+          <option value="N4" ${a.assignedLevel === 'N4' ? 'selected' : ''}>N4</option>
+        </select>
+      </div>
+
+      <div class="fld">
+        <label class="fld-l">Semana inicial</label>
+        <input name="currentWeek" class="fld-i" type="number" min="1" value="${esc(a.currentWeek || 1)}">
+      </div>
+    </div>
+
+    <div class="fld">
+      <label class="fld-l">Inicio</label>
+      <input name="startDate" class="fld-i" type="date" value="${esc(a.startDate || todayISO())}">
+    </div>
+
+    <div class="fld">
+      <label class="fld-l">Alcance comercial</label>
+      <select name="commercialLabel" class="fld-s">
+        <option value="Plan completo">Plan completo</option>
+        <option value="Mes">Mes</option>
+        <option value="Semana">Semana</option>
+        <option value="Día">Día</option>
+      </select>
+    </div>
+
+    <div class="fld">
+      <label class="fld-l">Cerrar plan activo anterior</label>
+      <select name="closeOld" class="fld-s">
+        <option value="yes" selected>Sí, cerrar anterior</option>
+        <option value="no">No, mantener anterior</option>
+      </select>
+    </div>
+
+    <div class="fld">
+      <label class="fld-l">Nota interna</label>
+      <textarea name="coachNotes" class="fld-t" rows="3" placeholder="Ej: Lázaro terminó el bloque anterior. Comienza nuevo ciclo desde semana 1.">${esc(a.coachNotes || '')}</textarea>
+    </div>
+
+    ${actions}
+  `;
+}
+
+else if(type === 'metric'){
     const m = get('metrics');
 
     title.textContent = 'Registrar métrica';
@@ -2871,7 +2980,46 @@ async function saveModal(e){
   showToast(id ? 'Pago actualizado ✓' : 'Pago registrado ✓','ok');
 }
 
-    else if(type === 'metric'){
+    else if(type === 'assignment'){
+  const closeOld = data.closeOld === 'yes';
+
+  delete data.closeOld;
+
+  data.status = 'activo';
+  data.currentWeek = Number(data.currentWeek || 1);
+
+  if(!data.clientId || !data.programId){
+    showToast('Selecciona cliente y programa','err');
+    return;
+  }
+
+  if(closeOld && !id){
+    await db
+      .from('client_program_assignments')
+      .update({ status:'finalizado' })
+      .eq('client_id', data.clientId)
+      .eq('status', 'activo');
+
+    state.assignments.forEach(a => {
+      if(String(a.clientId || a.client_id) === String(data.clientId) && String(a.status || 'activo') === 'activo'){
+        a.status = 'finalizado';
+      }
+    });
+  }
+
+  const saved = await upsertItem('assignments','client_program_assignments',data);
+
+  state.assignments = state.assignments.filter(a => String(a.id) !== String(saved.id));
+  state.assignments.push(saved);
+
+  state.assignments.sort((a,b) =>
+    String(b.startDate || b.start_date || '').localeCompare(String(a.startDate || a.start_date || ''))
+  );
+
+  showToast(id ? 'Asignación actualizada ✓' : 'Entrenamiento asignado ✓','ok');
+}
+   
+   else if(type === 'metric'){
   const value = normalizeNumberInput(data.value);
 
   if(value === null){
@@ -3289,7 +3437,13 @@ function renderWorkout(){
       </div>
     </div>
 
-    <div class="wt-timer">
+    <div style="display:flex;gap:8px;margin-top:12px">
+  <button class="btn btn-b btn-sm btn-wide" onclick="openModal('assignment',null,{clientId:'${c.id}'})">
+    Asignar nuevo entrenamiento
+  </button>
+</div>
+   
+   <div class="wt-timer">
       <div class="wt-clock" id="wt-clock">${formatClock(state.workoutTimer.seconds)}</div>
 
       <div class="wt-timer-actions">
