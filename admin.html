@@ -36,7 +36,7 @@
   --navy4: #222228;
   --red:   #FF5A5A;
   --red2:  #FF7070;
-  --blue:  #00A3FF;
+  --blue:  #00C8E8;
   --white: #FFFFFF;
   --gray:  #8E8E93;
   --gray2: #555560;
@@ -785,6 +785,10 @@ tr:hover td { background: rgba(255,255,255,.02); }
     ◈ Inicio
   </div>
 
+  <div class="nav-item" data-page="jornada" onclick="showPage('jornada')">
+  ▣ Jornada / Hoy <span class="nav-badge" id="badge-jornada"></span>
+</div>
+  
   <div class="nav-item" data-page="alertas" onclick="showPage('alertas')">
     🔔 Alertas <span class="nav-badge" id="badge-alertas"></span>
   </div>
@@ -797,6 +801,10 @@ tr:hover td { background: rgba(255,255,255,.02); }
     ◷ Agenda / Reservas <span class="nav-badge" id="badge-reservas"></span>
   </div>
 
+  <div class="nav-item" data-page="pagos" onclick="showPage('pagos')">
+  ◎ Pagos <span class="nav-badge" id="badge-pagos"></span>
+</div>
+  
   <div class="nav-section">Entrenamiento</div>
 
   <div class="nav-item" data-page="entrenamiento" onclick="showPage('entrenamiento')">
@@ -892,7 +900,8 @@ tr:hover td { background: rgba(255,255,255,.02); }
             <button class="btn btn-secondary btn-sm" onclick="openModal('client')">+ Nuevo cliente</button>
             <button class="btn btn-secondary btn-sm" onclick="openModal('reservation')">+ Nueva reserva</button>
             <button class="btn btn-secondary btn-sm" onclick="openModal('payment')">+ Registrar pago</button>
-            <button class="btn btn-primary btn-sm" onclick="openModal('program')">+ Crear plan</button>
+            <button class="btn btn-primary btn-sm" onclick="openModal('trainingProgram')">+ Crear programa base</button>
+<button class="btn btn-secondary btn-sm" onclick="openModal('trainingAssignment')">Asignar entrenamiento</button>
           </div>
         </div>
         <div class="metrics-row" id="dashboardMetrics"></div>
@@ -942,6 +951,25 @@ tr:hover td { background: rgba(255,255,255,.02); }
 </div>
 
 </div><!-- /page-dashboard -->
+
+<div class="page" id="page-jornada">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Operación diaria</div>
+      <div class="page-title">Jornada / Hoy</div>
+    </div>
+
+    <div class="page-actions">
+      <button class="btn btn-secondary btn-sm" onclick="showPage('checkins')">Ver check-ins</button>
+      <button class="btn btn-secondary btn-sm" onclick="showPage('alertas')">Ver alertas</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('reservation')">+ Nueva reserva</button>
+    </div>
+  </div>
+
+  <div class="metrics-row" id="jornadaMetrics"></div>
+
+  <div id="jornadaContent"></div>
+</div>
 
 <div class="page" id="page-alertas">
   <div class="page-header">
@@ -1548,7 +1576,15 @@ async function seedTemplates(){
 
 function esc(v){ return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
 function money(n){ return `${Number(n||0).toLocaleString('es-ES')}€`; }
-function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+function todayISO(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 function formatDate(dateStr){ if(!dateStr)return'—';const[y,m,d]=String(dateStr).split('-');if(!y||!m||!d)return dateStr;return`${d}/${m}/${y}`; }
 function formatTime(timeStr){ if(!timeStr)return'—';return String(timeStr).slice(0,5); }
 function formatDirectionLabel(direction){ if(direction==='higher_better')return'Mejor más alto';if(direction==='lower_better')return'Mejor más bajo';if(direction==='neutral')return'Referencia';return direction||'Referencia'; }
@@ -2499,7 +2535,7 @@ function showPage(id){
 }
 
 function renderAll(){
-  renderBadges();renderDashboard();renderAlertas();renderClients();renderReservations();renderPayments();renderProgress();renderCheckinsPage();
+  renderBadges();renderDashboard();renderJornada();renderAlertas();renderClients();renderReservations();renderPayments();renderProgress();renderCheckinsPage();
   renderAssessments();renderHealth();renderNutrition();renderWhatsapp();renderPartners();renderPrograms();
   renderTraining();renderTrainingDetail();renderTrainingWeekDetail();renderTrainingSessionDetail();
   renderTrainingBlockDetail();renderProfile();renderSettings();
@@ -2518,6 +2554,7 @@ function renderBadges(){
   set('badge-alertas', state.alertas.filter(a => isPendingAlert(a)).length);
   set('badge-clientes',state.clients.length);
   set('badge-reservas',state.reservations.length);
+  set('badge-jornada', state.reservations.filter(r => r.date === todayISO()).length);
   set('badge-pagos',state.payments.filter(p=>p.status!=='pagado').length);
   set('badge-progreso',state.metrics.length);
   set('badge-evaluaciones',state.clientAssessments.length);
@@ -2883,6 +2920,200 @@ function buildCheckinHistorial(clientId, dias=14){
     .slice(0, dias);
 }
 
+function getClientTodayCheckin(clientId){
+  return (state.dailyCheckins || []).find(ci =>
+    String(ci.clientId || ci.client_id) === String(clientId) &&
+    String(ci.checkinDate || ci.created_at || '').slice(0,10) === todayISO()
+  );
+}
+
+function getClientActiveAssignment(clientId){
+  return (state.clientProgramAssignments || [])
+    .filter(a =>
+      String(a.clientId || a.client_id) === String(clientId) &&
+      String(a.status || 'activo') === 'activo'
+    )
+    .sort((a,b) =>
+      String(b.startDate || b.start_date || '').localeCompare(String(a.startDate || a.start_date || ''))
+    )[0];
+}
+
+function getAssignmentProgram(assignment){
+  if(!assignment) return null;
+
+  return state.trainingPrograms.find(p =>
+    String(p.id) === String(assignment.programId || assignment.program_id)
+  );
+}
+
+function getClientPendingPayments(clientId){
+  return (state.payments || []).filter(p =>
+    String(p.clientId || p.client_id) === String(clientId) &&
+    String(p.status) !== 'pagado'
+  );
+}
+
+function getTodaySessionStatusCard(reservation){
+  const c = clientById(reservation.clientId);
+  const checkin = c ? getClientTodayCheckin(c.id) : null;
+  const checkinStatus = checkin ? getCheckinStatus(checkin) : 'no_recibido';
+
+  const assignment = c ? getClientActiveAssignment(c.id) : null;
+  const program = getAssignmentProgram(assignment);
+
+  const pendingPayments = c ? getClientPendingPayments(c.id) : [];
+  const pendingAmount = pendingPayments.reduce((sum,p) => sum + Number(p.amount || 0), 0);
+
+  const alerts = c
+    ? getClientAlertsForCoachTracking(c.id).filter(a => getAlertStatus(a) === 'pendiente')
+    : [];
+
+  const criticalAlert = alerts.some(a => a.nivel === 'critica' || a.nivel === 'alerta');
+
+  const checkinBadge =
+    !checkin
+      ? '<span class="badge badge-inactivo">No recibido</span>'
+      : checkinStatus === 'alerta'
+        ? '<span class="badge badge-alerta">Alerta</span>'
+        : checkinStatus === 'revisar'
+          ? '<span class="badge badge-pendiente">Revisar</span>'
+          : '<span class="badge badge-activo">Normal</span>';
+
+  const alertBadge =
+    alerts.length === 0
+      ? '<span class="badge badge-activo">Sin alertas</span>'
+      : criticalAlert
+        ? `<span class="badge badge-alerta">${alerts.length} alerta</span>`
+        : `<span class="badge badge-pendiente">${alerts.length} revisar</span>`;
+
+  const paymentBadge =
+    pendingPayments.length
+      ? `<span class="badge badge-pendiente">${money(pendingAmount)} pendiente</span>`
+      : '<span class="badge badge-pagado">Al día</span>';
+
+  const trainingLabel = assignment
+    ? `${esc(program?.name || 'Programa')} · ${esc(assignment.commercialLabel || getAssignmentScopeLabel(assignment.assignmentScope))}`
+    : 'Sin entrenamiento asignado';
+
+  return `
+    <div class="card" style="border-left:3px solid ${
+      criticalAlert || checkinStatus === 'alerta'
+        ? 'var(--medical)'
+        : checkinStatus === 'revisar' || pendingPayments.length
+          ? 'var(--warn)'
+          : 'var(--sport)'
+    }">
+      <div class="card-title">
+        <span>${formatTime(reservation.time)} · ${esc(c?.name || 'Cliente eliminado')}</span>
+        <span class="badge badge-${esc(reservation.status || 'reservada')}">${esc(reservation.status || 'reservada')}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Tipo</span>
+        <span class="data-val">${esc(reservation.type || 'Sesión')}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Lugar</span>
+        <span class="data-val">${esc(reservation.place || '—')}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Entrenamiento</span>
+        <span class="data-val" style="white-space:normal;max-width:420px">${trainingLabel}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Check-in</span>
+        <span>${checkinBadge}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Alertas</span>
+        <span>${alertBadge}</span>
+      </div>
+
+      <div class="data-row">
+        <span class="data-key">Pago</span>
+        <span>${paymentBadge}</span>
+      </div>
+
+      ${
+        checkin?.comment
+          ? `<div style="margin-top:10px;color:var(--warn);font-size:.82rem;line-height:1.6;">Comentario check-in: ${esc(checkin.comment)}</div>`
+          : ''
+      }
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        ${c?.id ? `<button class="btn btn-primary btn-sm" onclick="openProfile('${c.id}')">Abrir sesión</button>` : ''}
+        ${c?.id ? `<button class="btn btn-secondary btn-sm" onclick="openProfile('${c.id}')">Perfil</button>` : ''}
+        ${c?.phone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc((c.name || '').split(' ')[0])}, te escribo por la sesión de hoy a las ${formatTime(reservation.time)}.')">WhatsApp</button>` : ''}
+        ${reservation.status !== 'realizada' ? `<button class="btn btn-blue btn-sm" onclick="updateReservationStatus('${reservation.id}','realizada')">Marcar realizada</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderJornada(){
+  const metricsEl = document.getElementById('jornadaMetrics');
+  const contentEl = document.getElementById('jornadaContent');
+
+  if(!metricsEl || !contentEl) return;
+
+  const today = todayISO();
+
+  const todayReservations = (state.reservations || [])
+    .filter(r => r.date === today)
+    .sort((a,b) => String(a.time || '').localeCompare(String(b.time || '')));
+
+  const todayCheckins = (state.dailyCheckins || []).filter(ci =>
+    String(ci.checkinDate || ci.created_at || '').slice(0,10) === today
+  );
+
+  const todayClients = new Set(todayReservations.map(r => r.clientId));
+
+  const missingCheckins = [...todayClients].filter(clientId =>
+    !todayCheckins.some(ci => String(ci.clientId || ci.client_id) === String(clientId))
+  ).length;
+
+  const pendingAlerts = (state.alertas || []).filter(a => isPendingAlert(a)).length;
+
+  const pendingPayments = (state.payments || []).filter(p => p.status !== 'pagado').length;
+
+  metricsEl.innerHTML = `
+    <div class="metric-card blue">
+      <span class="metric-num">${todayReservations.length}</span>
+      <span class="metric-label">Sesiones hoy</span>
+    </div>
+
+    <div class="metric-card green">
+      <span class="metric-num">${todayCheckins.length}</span>
+      <span class="metric-label">Check-ins hoy</span>
+    </div>
+
+    <div class="metric-card yellow">
+      <span class="metric-num">${missingCheckins}</span>
+      <span class="metric-label">Check-ins faltantes</span>
+    </div>
+
+    <div class="metric-card red">
+      <span class="metric-num">${pendingAlerts}</span>
+      <span class="metric-label">Alertas pendientes</span>
+    </div>
+  `;
+
+  contentEl.innerHTML = todayReservations.length
+    ? todayReservations.map(getTodaySessionStatusCard).join('')
+    : `
+      <div class="card">
+        <div class="empty">
+          <strong>Sin sesiones para hoy</strong>
+          No hay reservas registradas para la jornada actual.
+        </div>
+      </div>
+    `;
+}
+
 function renderDashboard(){
   const today = todayISO();
 
@@ -2897,6 +3128,7 @@ function renderDashboard(){
   const alerts = state.alertas.filter(a => isPendingAlert(a)).length;
 
   const dashboardMetricsEl = document.getElementById('dashboardMetrics');
+
   if(dashboardMetricsEl){
     dashboardMetricsEl.innerHTML = `
       <div class="metric-card blue">
@@ -2932,8 +3164,11 @@ function renderDashboard(){
   }
 
   const agendaEl = document.getElementById('agendaToday');
+
   if(agendaEl){
-    const agenda = state.reservations.filter(r => r.date === today);
+    const agenda = state.reservations
+      .filter(r => r.date === today)
+      .sort((a,b) => String(a.time || '').localeCompare(String(b.time || '')));
 
     agendaEl.innerHTML = agenda.length
       ? agenda.map(r => {
@@ -2952,8 +3187,13 @@ function renderDashboard(){
   }
 
   const dashboardAlertsEl = document.getElementById('dashboardAlerts');
+
   if(dashboardAlertsEl){
-    const alertList = state.alertas.filter(a => isPendingAlert(a));
+    const alertList = state.alertas
+      .filter(a => isPendingAlert(a))
+      .sort((a,b) =>
+        String(getAlertCreatedAt(b) || '').localeCompare(String(getAlertCreatedAt(a) || ''))
+      );
 
     dashboardAlertsEl.innerHTML = alertList.length
       ? alertList.slice(0,4).map(a => `
@@ -2970,13 +3210,47 @@ function renderDashboard(){
       : emptyBlock('No hay alertas.');
   }
 
-    const trainingFeedbackEl = document.getElementById('dashboardTrainingFeedback');
+  const trainingFeedbackEl = document.getElementById('dashboardTrainingFeedback');
 
-  if (trainingFeedbackEl) {
+  if(trainingFeedbackEl){
     trainingFeedbackEl.innerHTML = buildTrainingReviewBlock();
   }
 
-  /* ── Check-ins de hoy ── */
+  const dashboardPaymentsEl = document.getElementById('dashboardPayments');
+
+  if(dashboardPaymentsEl){
+    const pendingList = state.payments
+      .filter(p => p.status !== 'pagado')
+      .sort((a,b) => String(a.dueDate || '').localeCompare(String(b.dueDate || '')))
+      .slice(0,5);
+
+    dashboardPaymentsEl.innerHTML = pendingList.length
+      ? pendingList.map(p => {
+          const c = clientById(p.clientId);
+
+          return `
+            <div class="data-row" style="align-items:flex-start">
+              <span style="white-space:normal">
+                <strong>${esc(c?.name || 'Cliente')}</strong><br>
+                <span style="color:var(--text-secondary);font-size:.78rem">
+                  ${esc(p.concept || 'Pago')} · ${money(p.amount)} · ${formatDate(p.dueDate)}
+                </span>
+              </span>
+
+              <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+                <button class="btn btn-blue btn-sm" onclick="showPage('pagos')">Ver</button>
+                ${
+                  c?.phone
+                    ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc((c.name || '').split(' ')[0])}, te recuerdo el pago pendiente de ${esc(p.concept || 'tu plan')}.')">WA</button>`
+                    : ''
+                }
+              </span>
+            </div>
+          `;
+        }).join('')
+      : emptyBlock('No hay pagos pendientes.');
+  }
+
   const checkinEl = document.getElementById('dashboardCheckins');
 
   if(checkinEl){
@@ -2988,6 +3262,7 @@ function renderDashboard(){
       ? todayCheckins.slice(0,5).map(ci => {
           const c = clientById(ci.clientId || ci.client_id);
           const st = getCheckinStatus(ci);
+
           const badge = st === 'alerta'
             ? 'badge-alerta'
             : st === 'revisar'
@@ -2999,12 +3274,18 @@ function renderDashboard(){
               <span style="white-space:normal">
                 <strong>${esc(c?.name || 'Cliente')}</strong>
                 <span style="margin-left:8px" class="badge ${badge}">${st}</span><br>
+
                 <span style="color:var(--text-secondary);font-size:.78rem;">
                   💤 ${esc(ci.sleepQuality ?? ci.sleep_quality ?? '—')}
                   &nbsp;⚡ ${esc(ci.energyLevel ?? ci.energy_level ?? '—')}
                   &nbsp;🩺 ${esc(ci.sorenessLevel ?? ci.soreness_level ?? ci.painLevel ?? ci.pain_level ?? '—')}
                 </span>
-                ${ci.comment ? `<br><span style="color:var(--warn);font-size:.78rem;">${esc(ci.comment)}</span>` : ''}
+
+                ${
+                  ci.comment
+                    ? `<br><span style="color:var(--warn);font-size:.78rem;">${esc(ci.comment)}</span>`
+                    : ''
+                }
               </span>
 
               ${
