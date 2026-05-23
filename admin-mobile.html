@@ -3136,6 +3136,39 @@ function sortByOrder(arr){
   );
 }
 
+function getBlockProgramId(b){
+  return (
+    b.programId ||
+    b.program_id ||
+    b.trainingProgramId ||
+    b.training_program_id ||
+    b.program ||
+    ''
+  );
+}
+
+function getExerciseBlockId(e){
+  return (
+    e.blockId ||
+    e.block_id ||
+    e.trainingBlockId ||
+    e.training_block_id ||
+    e.programBlockId ||
+    e.program_block_id ||
+    ''
+  );
+}
+
+function getExerciseProgramId(e){
+  return (
+    e.programId ||
+    e.program_id ||
+    e.trainingProgramId ||
+    e.training_program_id ||
+    ''
+  );
+}
+
 function getWorkoutPlanForClient(c){
   const assignment = getClientActiveAssignment(c.id);
   const program = getAssignmentProgram(assignment);
@@ -3150,15 +3183,9 @@ function getWorkoutPlanForClient(c){
     };
   }
 
-  let blocks = state.trainingBlocks.filter(b => {
-    const pid =
-      b.programId ||
-      b.program_id ||
-      b.trainingProgramId ||
-      b.training_program_id;
-
-    return String(pid) === String(program.id);
-  });
+  let blocks = state.trainingBlocks.filter(b =>
+    String(getBlockProgramId(b)) === String(program.id)
+  );
 
   const hasWeekBlocks = blocks.some(b =>
     Number(b.weekNumber || b.week_number || b.week || 0) === week
@@ -3175,7 +3202,7 @@ function getWorkoutPlanForClient(c){
   let blockData = blocks.map(b => {
     const exercises = sortByOrder(
       state.trainingExercises.filter(e =>
-        String(e.blockId || e.block_id) === String(b.id)
+        String(getExerciseBlockId(e)) === String(b.id)
       )
     );
 
@@ -3187,15 +3214,9 @@ function getWorkoutPlanForClient(c){
 
   if(!blockData.length){
     const looseExercises = sortByOrder(
-      state.trainingExercises.filter(e => {
-        const pid =
-          e.programId ||
-          e.program_id ||
-          e.trainingProgramId ||
-          e.training_program_id;
-
-        return String(pid) === String(program.id);
-      })
+      state.trainingExercises.filter(e =>
+        String(getExerciseProgramId(e)) === String(program.id)
+      )
     );
 
     if(looseExercises.length){
@@ -3295,11 +3316,11 @@ function toggleWorkoutExercise(clientId, exId){
 
 function setWorkoutBlockDone(clientId, blockId){
   const exercises = state.trainingExercises.filter(e =>
-    String(e.blockId || e.block_id) === String(blockId)
+    String(getExerciseBlockId(e)) === String(blockId)
   );
 
-  exercises.forEach(ex => {
-    const exId = ex.id || `${blockId}-${ex.orderIndex || ex.order_index || ex.name}`;
+  exercises.forEach((ex, idx) => {
+    const exId = getExerciseId(ex, idx);
     state.workoutChecks[getWorkoutKey(clientId, exId)] = true;
   });
 
@@ -3348,17 +3369,23 @@ function pauseWorkoutTimer(){
   renderWorkout();
 }
 
-function resetWorkoutTimer(){
-  pauseWorkoutTimer();
-  Object.keys(state.workoutChecks).forEach(k => {
-  if(k.startsWith(clientId + '__')){
-    delete state.workoutChecks[k];
-  }
-});
+function resetWorkoutTimer(clientId=null){
+  const cid = clientId || state.activeTrainingClientId || state.selectedClientId;
 
-state.workoutNotes[clientId] = '';
-state.workoutTimer.seconds = 0;
-state.workoutTimer.seconds = 0;
+  pauseWorkoutTimer();
+
+  if(cid){
+    Object.keys(state.workoutChecks).forEach(k => {
+      if(k.startsWith(cid + '__')){
+        delete state.workoutChecks[k];
+      }
+    });
+
+    state.workoutNotes[cid] = '';
+  }
+
+  state.workoutTimer.seconds = 0;
+
   updateClockUI();
   renderWorkout();
 }
@@ -3496,9 +3523,8 @@ function renderWorkout(){
             ? `<button class="btn btn-s btn-sm" onclick="pauseWorkoutTimer()">Pausar</button>`
             : `<button class="btn btn-p btn-sm" onclick="startWorkoutTimer()">Iniciar</button>`
         }
-
-        <button class="btn btn-s btn-sm" onclick="resetWorkoutTimer()">Reiniciar</button>
-      </div>
+      <button class="btn btn-s btn-sm" onclick="resetWorkoutTimer('${c.id}')">Reiniciar</button>
+        </div>
     </div>
 
     <div class="wt-ci">
@@ -3540,41 +3566,40 @@ function renderWorkout(){
     </div>
 
     ${
-      plan.blocks.length
-        ? plan.blocks.map((b, bi) => `
-          <div class="wt-sec">
-            <div class="wt-sec-h">
-              <div>
-                <div class="wt-sec-title">${esc(b.name || b.blockName || b.title || `Bloque ${bi + 1}`)}</div>
-                <div class="wt-sec-sub">${b.exercises.length} ejercicios</div>
-              </div>
-
-              ${
-                b.id && b.id !== 'general'
-                  ? `<button class="btn btn-s btn-sm" onclick="setWorkoutBlockDone('${c.id}','${b.id}')">Sección OK</button>`
-                  : ''
-              }
-            </div>
-
-            ${b.exercises.map((ex, i) => buildWorkoutExerciseCard(ex, i, c.id)).join('')}
+  plan.blocks.length
+    ? plan.blocks.map((b, bi) => `
+      <div class="wt-sec">
+        <div class="wt-sec-h">
+          <div>
+            <div class="wt-sec-title">${esc(b.name || b.blockName || b.title || `Bloque ${bi + 1}`)}</div>
+            <div class="wt-sec-sub">${b.exercises.length} ejercicios</div>
           </div>
-        `).join('')
-        : `
-  <div class="wt-empty">
-    Este cliente tiene programa asignado, pero el móvil todavía no encuentra ejercicios cargados para mostrar.
-    <br><br>
-    <span class="mono">
-      Asignación: ${plan.assignment ? 'sí' : 'no'} ·
-      Programa: ${plan.program ? 'sí' : 'no'} ·
-      Bloques cargados: ${state.trainingBlocks.length} ·
-      Ejercicios cargados: ${state.trainingExercises.length}
-    </span>
-    <br><br>
-    Si bloques o ejercicios aparecen en 0, el problema está en la carga desde Supabase o en el nombre de la tabla/campos.
-  </div>
-`
-        `
-    }
+
+          ${
+            b.id && b.id !== 'general'
+              ? `<button class="btn btn-s btn-sm" onclick="setWorkoutBlockDone('${c.id}','${b.id}')">Sección OK</button>`
+              : ''
+          }
+        </div>
+
+        ${b.exercises.map((ex, i) => buildWorkoutExerciseCard(ex, i, c.id)).join('')}
+      </div>
+    `).join('')
+    : `
+      <div class="wt-empty">
+        Este cliente tiene programa asignado, pero el móvil todavía no encuentra ejercicios cargados para mostrar.
+        <br><br>
+        <span class="mono">
+          Asignación: ${plan.assignment ? 'sí' : 'no'} ·
+          Programa: ${plan.program ? 'sí' : 'no'} ·
+          Bloques cargados: ${state.trainingBlocks.length} ·
+          Ejercicios cargados: ${state.trainingExercises.length}
+        </span>
+        <br><br>
+        Si bloques o ejercicios aparecen en 0, el problema está en la carga desde Supabase o en el nombre de la tabla/campos.
+      </div>
+    `
+}
 
     <div class="card">
       <div class="card-body">
