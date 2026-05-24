@@ -337,6 +337,77 @@ a{text-decoration:none;color:inherit}
 /* ════ v1.1 NUEVO: barra de progreso en bloques ════ */
 .block-progress-bar{margin-top:6px;height:3px;background:var(--divider);border-radius:2px;overflow:hidden}
 .block-progress-fill{height:100%;border-radius:2px;transition:width .3s ease}
+
+/* ═══ AJUSTE HEADER LOGO + MÉTRICAS COMPACTAS ═══ */
+
+.top-logo-wrap{
+  display:flex;
+  align-items:center;
+  min-width:110px;
+  max-width:150px;
+  height:44px;
+}
+
+.top-logo-img{
+  max-width:140px;
+  max-height:38px;
+  object-fit:contain;
+  display:block;
+}
+
+.top-logo-fallback{
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+}
+
+/* Tarjetas superiores más compactas */
+.mr{
+  grid-template-columns:repeat(4,1fr);
+  gap:7px;
+  margin-bottom:18px;
+}
+
+.mc{
+  padding:10px 9px 9px;
+  min-height:76px;
+  border-radius:12px;
+}
+
+.mc-n{
+  font-size:1.55rem;
+}
+
+.mc-l{
+  font-size:.43rem;
+  letter-spacing:.08em;
+  margin-top:4px;
+  line-height:1.2;
+}
+
+/* En pantallas muy estrechas mantiene 2 columnas, pero más pequeñas */
+@media(max-width:390px){
+  .mr{
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+  }
+
+  .mc{
+    min-height:72px;
+    padding:9px 10px;
+  }
+
+  .mc-n{
+    font-size:1.7rem;
+  }
+}
+
+/* En iPhone normal, 4 tarjetas en línea si cabe */
+@media(min-width:391px){
+  .mr{
+    grid-template-columns:repeat(4,1fr);
+  }
+}
 </style>
 </head>
 <body>
@@ -363,7 +434,18 @@ a{text-decoration:none;color:inherit}
 
 <div id="app" class="hidden">
   <header class="top">
-    <div><span class="top-brand">AB</span> <span class="top-sub">FIELD</span></div>
+       <div class="top-logo-wrap">
+  <img
+    class="top-logo-img"
+    src="/ab-logo-completo.svg"
+    alt="AB SYSTEM"
+    onerror="this.style.display='none';document.querySelector('.top-logo-fallback').style.display='flex';"
+  >
+  <div class="top-logo-fallback">
+    <span class="top-brand">AB</span>
+    <span class="top-sub">FIELD</span>
+  </div>
+</div>
     <span class="top-date" id="top-date"></span>
     <button class="top-btn" onclick="refresh()" title="Actualizar datos">↻</button>
     <button class="top-btn pri" onclick="openModal('reservation')">＋ Sesión</button>
