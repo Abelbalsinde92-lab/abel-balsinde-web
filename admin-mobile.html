@@ -376,6 +376,27 @@ a{text-decoration:none;color:inherit}
   .mc-n { font-size: 1.25rem; }
   .mc-l { font-size: .38rem; }
 }
+
+.top-logo-wrap {
+  display: flex;
+  align-items: center;
+  min-width: 105px;
+  max-width: 145px;
+  height: 44px;
+  flex-shrink: 0;
+}
+.top-logo-img {
+  max-width: 140px;
+  max-height: 38px;
+  object-fit: contain;
+  display: block;
+}
+.top-logo-fallback {
+  display: none;
+  align-items: baseline;
+  gap: 6px;
+}
+
 </style>
 </head>
 <body>
@@ -404,11 +425,12 @@ a{text-decoration:none;color:inherit}
   <header class="top">
        <div class="top-logo-wrap">
   <img
-    class="top-logo-img"
-    src="/ab-logo.png.WEBP"
-    alt="AB SYSTEM"
-    onerror="this.style.display='none';document.querySelector('.top-logo-fallback').style.display='flex';"
-  >
+  class="top-logo-img"
+  src="/ab-logo.png.WEBP"
+  alt="AB SYSTEM"
+  style="max-width:120px;max-height:36px;object-fit:contain"
+  onerror="this.style.display='none';document.querySelector('.top-logo-fallback').style.display='flex';"
+>
   <div class="top-logo-fallback">
     <span class="top-brand">AB</span>
     <span class="top-sub">FIELD</span>
