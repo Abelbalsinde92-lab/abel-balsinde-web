@@ -338,137 +338,43 @@ a{text-decoration:none;color:inherit}
 .block-progress-bar{margin-top:6px;height:3px;background:var(--divider);border-radius:2px;overflow:hidden}
 .block-progress-fill{height:100%;border-radius:2px;transition:width .3s ease}
 
-/* ═══ AJUSTE HEADER LOGO + MÉTRICAS COMPACTAS ═══ */
-
-.top-logo-wrap{
-  display:flex;
-  align-items:center;
-  min-width:110px;
-  max-width:150px;
-  height:44px;
+/* ═══ MÉTRICAS EN UNA LÍNEA ═══ */
+.mr {
+  display: flex;
+  gap: 0;
+  margin-bottom: 14px;
+  background: #0d0d0d;
+  border: 1px solid #1e1e1e;
+  border-radius: 12px;
+  overflow: hidden;
 }
-
-.top-logo-img{
-  max-width:140px;
-  max-height:38px;
-  object-fit:contain;
-  display:block;
+.mc {
+  flex: 1;
+  padding: 12px 10px 10px;
+  border-radius: 0;
+  border-top: 2px solid transparent;
+  border-right: 1px solid #1e1e1e;
+  position: relative;
+  min-height: unset;
 }
-
-.top-logo-fallback{
-  display:flex;
-  align-items:baseline;
-  gap:6px;
+.mc:last-child { border-right: none; }
+.mc-n {
+  font-size: 1.5rem;
+  line-height: 1;
+  display: block;
 }
-
-/* Tarjetas superiores más compactas */
-.mr{
-  grid-template-columns:repeat(4,1fr);
-  gap:7px;
-  margin-bottom:18px;
+.mc-l {
+  font-size: .42rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  display: block;
+  margin-top: 4px;
+  line-height: 1.2;
 }
-
-.mc{
-  padding:10px 9px 9px;
-  min-height:76px;
-  border-radius:12px;
-}
-
-.mc-n{
-  font-size:1.55rem;
-}
-
-.mc-l{
-  font-size:.43rem;
-  letter-spacing:.08em;
-  margin-top:4px;
-  line-height:1.2;
-}
-
-/* En pantallas muy estrechas mantiene 2 columnas, pero más pequeñas */
-@media(max-width:390px){
-  .mr{
-    grid-template-columns:repeat(2,1fr);
-    gap:8px;
-  }
-
-  .mc{
-    min-height:72px;
-    padding:9px 10px;
-  }
-
-  .mc-n{
-    font-size:1.7rem;
-  }
-}
-
-/* En iPhone normal, 4 tarjetas en línea si cabe */
-@media(min-width:391px){
-  .mr{
-    grid-template-columns:repeat(4,1fr);
-  }
-}
-
-/* ═══ HEADER LOGO + TARJETAS SUPERIORES COMPACTAS ═══ */
-
-.top-logo-wrap{
-  display:flex;
-  align-items:center;
-  min-width:105px;
-  max-width:145px;
-  height:44px;
-}
-
-.top-logo-img{
-  max-width:140px;
-  max-height:38px;
-  object-fit:contain;
-  display:block;
-}
-
-.top-logo-fallback{
-  display:none;
-  align-items:baseline;
-  gap:6px;
-}
-
-/* Métricas de arriba más pequeñas */
-.mr{
-  grid-template-columns:repeat(4,1fr);
-  gap:7px;
-  margin-bottom:18px;
-}
-
-.mc{
-  padding:9px 8px 8px;
-  min-height:72px;
-  border-radius:12px;
-}
-
-.mc-n{
-  font-size:1.55rem;
-}
-
-.mc-l{
-  font-size:.42rem;
-  letter-spacing:.08em;
-  margin-top:4px;
-  line-height:1.15;
-}
-
-/* Ajuste si la pantalla es muy estrecha */
-@media(max-width:390px){
-  .mr{
-    grid-template-columns:repeat(2,1fr);
-  }
-
-  .mc{
-    min-height:70px;
-  }
-
-  .mc-n{
-    font-size:1.65rem;
-  }
+@media(max-width:360px) {
+  .mc-n { font-size: 1.25rem; }
+  .mc-l { font-size: .38rem; }
 }
 </style>
 </head>
