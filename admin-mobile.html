@@ -559,6 +559,10 @@ const state = {
   assessments:[],metrics:[],
   settings:{coachName:'Abel Balsinde',coachPhone:COACH_PHONE_DEFAULT,coachCity:'Belgrado',adminUsername:ADMIN_USER_DEFAULT},
   selectedClientId:null
+adaptedTrainingCache:{},
+currentAdaptedRows:[],
+adaptedWorkoutChecks:{},
+activeAdaptedBlockKey:null,
 };
 
 let currentScr='hoy';
@@ -1758,7 +1762,10 @@ function openWorkout(clientId,reservationId=null){
     state.workoutNotes[clientId]='';
   }
   state.selectedClientId=clientId;state.activeTrainingClientId=clientId;
-  state.activeWorkoutReservationId=reservationId;state.activeWorkoutBlockId=null;state.activeWorkoutExerciseIndex=0;
+  state.activeWorkoutReservationId=reservationId;
+state.activeWorkoutBlockId=null;
+state.activeAdaptedBlockKey=null;
+state.activeWorkoutExerciseIndex=0;
   showScr('workout');
 }
 
@@ -2285,11 +2292,442 @@ function completeCircuitBlock(clientId,blockId){
   showToast('Circuito terminado ✓','ok');backToWorkoutBlocks();
 }
 
-function renderWorkout(){
+function jsArg(v){
+  return String(v ?? '')
+    .replace(/\\/g,'\\\\')
+    .replace(/'/g,"\\'")
+    .replace(/\n/g,'\\n')
+    .replace(/\r/g,'');
+}
+
+function detectPathologyForClient(c){
+  const ci = getClientTodayCheckin(c.id);
+  const txt = String(ci?.comment || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'');
+
+  const neg = [
+    'sin dolor',
+    'sin molestia',
+    'no tengo dolor',
+    'todo bien',
+    'estoy bien'
+  ];
+
+  if(neg.some(x => txt.includes(x))) return null;
+
+  const lumbar = [
+    'dolor lumbar',
+    'lumbar',
+    'lumbalgia',
+    'espalda baja',
+    'zona lumbar',
+    'dolor de espalda',
+    'espalda'
+  ];
+
+  if(lumbar.some(x => txt.includes(x))) return 'dolor_lumbar';
+
+  return null;
+}
+
+function getAssignmentWeek(a){
+  return Number(
+    a?.assignedWeek ||
+    a?.assigned_week ||
+    a?.currentWeek ||
+    a?.current_week ||
+    1
+  );
+}
+
+function getAssignmentSessionNumber(a){
+  return Number(
+    a?.assignedSessionNumber ||
+    a?.assigned_session_number ||
+    1
+  );
+}
+
+async function getAdaptedRowsForClient(c){
+  const plan = getWorkoutPlanForClient(c);
+  const assignment = plan.assignment;
+
+  if(!assignment) {
+    return { rows:null, pathology:null, plan:null };
+  }
+
+  const pathology = detectPathologyForClient(c);
+
+  if(!pathology) {
+    return { rows:null, pathology:null, plan };
+  }
+
+  const semana = getAssignmentWeek(assignment);
+  const sesion = getAssignmentSessionNumber(assignment);
+
+  const cacheKey = `${assignment.id}__${pathology}__${semana}__${sesion}`;
+
+  if(!state.adaptedTrainingCache) state.adaptedTrainingCache = {};
+
+  if(state.adaptedTrainingCache[cacheKey]) {
+    return {
+      rows: state.adaptedTrainingCache[cacheKey],
+      pathology,
+      plan
+    };
+  }
+
+  const { data, error } = await db.rpc('get_training_session_adapted', {
+    p_assignment_id: assignment.id,
+    p_patologia: pathology,
+    p_semana: semana,
+    p_sesion: sesion
+  });
+
+  if(error){
+    console.error('get_training_session_adapted error:', error);
+    showToast('No se pudo cargar adaptación', 'err');
+    return { rows:null, pathology:null, plan };
+  }
+
+  state.adaptedTrainingCache[cacheKey] = data || [];
+
+  return {
+    rows: data || [],
+    pathology,
+    plan
+  };
+}
+
+function openVideoUrl(title, url){
+  if(!url){
+    showToast('Sin vídeo disponible', 'err');
+    return;
+  }
+
+  document.getElementById('video-title').textContent = title || 'Vídeo';
+  document.getElementById('video-body').innerHTML = buildVideoHTML(url);
+  document.getElementById('video-ov').classList.add('on');
+}
+
+function getAdaptedClientMessage(rows){
+  const found = (rows || []).find(r => r.mensaje_cliente_whatsapp);
+  return found?.mensaje_cliente_whatsapp || '';
+}
+
+function copyAdaptedClientMessage(rows){
+  const msg = getAdaptedClientMessage(rows);
+
+  if(!msg){
+    showToast('No hay mensaje para copiar', 'err');
+    return;
+  }
+
+  navigator.clipboard.writeText(msg)
+    .then(() => showToast('Mensaje copiado ✓', 'ok'))
+    .catch(() => prompt('Copia este mensaje:', msg));
+}
+
+function sendAdaptedClientMessage(clientId, rows){
+  const c = clientById(clientId);
+  const msg = getAdaptedClientMessage(rows);
+
+  if(!c || !msg){
+    showToast('No hay mensaje para enviar', 'err');
+    return;
+  }
+
+  openWA(c.phone || state.settings.coachPhone, msg);
+}
+
+function getAdaptedBlockGroups(rows){
+  const grouped = {};
+
+  (rows || []).forEach(r => {
+    const order = String(r.orden_bloque || 0).padStart(2,'0');
+    const name = r.bloque || 'Bloque';
+    const key = `${order}__${name}`;
+
+    if(!grouped[key]) grouped[key] = [];
+    grouped[key].push(r);
+  });
+
+  return Object.entries(grouped).sort((a,b) => a[0].localeCompare(b[0]));
+}
+
+function getAdaptedBlockName(key){
+  return String(key || '').replace(/^\d+__/, '') || 'Bloque';
+}
+
+function getAdaptedRowReviewKey(c, r, index = 0){
+  return [
+    c.id,
+    'adapted',
+    r.semana || '',
+    r.sesion || '',
+    r.orden_bloque || '',
+    r.orden_ejercicio || index,
+    r.ejercicio_original || '',
+    r.ejercicio_final || ''
+  ].join('__');
+}
+
+function isAdaptedReviewed(key){
+  return !!state.adaptedWorkoutChecks?.[key];
+}
+
+function toggleAdaptedReviewed(key){
+  if(!state.adaptedWorkoutChecks) state.adaptedWorkoutChecks = {};
+
+  state.adaptedWorkoutChecks[key] = !state.adaptedWorkoutChecks[key];
+
+  try{
+    if(state.adaptedWorkoutChecks[key] && navigator.vibrate) navigator.vibrate(60);
+  }catch(e){}
+
+  renderWorkout();
+}
+
+function openAdaptedBlock(key){
+  state.activeAdaptedBlockKey = key;
+  renderWorkout();
+}
+
+function backToAdaptedBlocks(){
+  state.activeAdaptedBlockKey = null;
+  renderWorkout();
+}
+
+function markAdaptedBlockDone(clientId, blockKey){
+  const c = clientById(clientId);
+  if(!c) return;
+
+  const groups = getAdaptedBlockGroups(state.currentAdaptedRows || []);
+  const found = groups.find(([key]) => key === blockKey);
+
+  if(!found) return;
+
+  found[1].forEach((r, index) => {
+    const reviewKey = getAdaptedRowReviewKey(c, r, index);
+    state.adaptedWorkoutChecks[reviewKey] = true;
+  });
+
+  try{
+    if(navigator.vibrate) navigator.vibrate([50,30,90]);
+  }catch(e){}
+
+  showToast('Bloque revisado ✓', 'ok');
+  backToAdaptedBlocks();
+}
+
+function buildAdaptedWorkoutHTML(c, rows, pathology){
+  const substituted = rows.filter(r => r.estado_ejercicio === 'sustituido');
+  const msg = getAdaptedClientMessage(rows);
+  const groups = getAdaptedBlockGroups(rows);
+
+  const activeKey = state.activeAdaptedBlockKey;
+  const activeGroup = activeKey ? groups.find(([key]) => key === activeKey) : null;
+
+  if(activeGroup){
+    const [blockKey, list] = activeGroup;
+    const blockName = getAdaptedBlockName(blockKey);
+    const reviewed = list.filter((r, index) => {
+      const reviewKey = getAdaptedRowReviewKey(c, r, index);
+      return isAdaptedReviewed(reviewKey);
+    }).length;
+
+    return `
+      <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToAdaptedBlocks()">Volver a bloques</button>
+
+      <div style="margin-bottom:10px">
+        <div class="scr-eye">${pathology === 'dolor_lumbar' ? 'Adaptación lumbar activa' : esc(pathology)}</div>
+        <div class="scr-t" style="font-size:1.35rem">${esc(blockName)}</div>
+      </div>
+
+      ${buildTimerHTML()}
+
+      <div class="card" style="border-left:3px solid var(--warn)">
+        <div class="card-body" style="padding:12px 14px">
+          <div style="font-size:.78rem;color:var(--text-2);line-height:1.55">
+            Capa temporal de adaptación. El plan original no se modifica.
+          </div>
+          <div class="dr" style="margin-top:8px">
+            <span class="dk">Revisados</span>
+            <span class="dv">${reviewed}/${list.length}</span>
+          </div>
+        </div>
+      </div>
+
+      ${list.map((r, index) => {
+        const isSub = r.estado_ejercicio === 'sustituido';
+        const title = r.ejercicio_final || r.ejercicio_original || 'Ejercicio';
+        const original = r.ejercicio_original || '';
+        const video = r.video_sustituto || r.video_original || '';
+        const risk = r.nivel_riesgo || '';
+        const reviewKey = getAdaptedRowReviewKey(c, r, index);
+        const done = isAdaptedReviewed(reviewKey);
+
+        return `
+          <div class="ex-card ${done ? 'done' : ''}" style="${isSub ? 'border-left:3px solid var(--warn)' : ''}">
+            <div class="ex-main">
+              <div class="ex-top">
+                <div class="ex-num">${String(r.orden_ejercicio || index + 1).padStart(2,'0')}</div>
+
+                <div style="flex:1;min-width:0">
+                  <div class="ex-title">${esc(title)}</div>
+
+                  ${isSub ? `
+                    <div class="ex-dose" style="color:var(--warn)">
+                      Adaptado · Riesgo: ${esc(risk || 'medio')}
+                    </div>
+                    <div class="ex-desc">
+                      Sustituye: ${esc(original)}
+                    </div>
+                  ` : `
+                    <div class="ex-dose">Normal</div>
+                  `}
+
+                  ${isSub && r.explicacion_breve_coach ? `
+                    <div class="ex-desc">${esc(r.explicacion_breve_coach)}</div>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+
+            ${isSub ? `
+              <div class="ex-mini">
+                <details>
+                  <summary>Coach</summary>
+                  <p>${esc(r.explicacion_breve_coach || 'Revisar técnica, dolor y evolución durante la sesión.')}</p>
+                </details>
+                <details>
+                  <summary>Cliente</summary>
+                  <p>${esc(r.explicacion_cliente || 'Adaptación temporal del entrenamiento.')}</p>
+                </details>
+              </div>
+            ` : ''}
+
+            <div class="ex-actions">
+              ${video ? `
+                <button class="btn btn-b btn-sm" onclick="openVideoUrl('${jsArg(title)}','${jsArg(video)}')">Vídeo</button>
+              ` : `
+                <button class="btn btn-s btn-sm" disabled>Sin vídeo</button>
+              `}
+
+              ${isSub && r.video_original ? `
+                <button class="btn btn-s btn-sm" onclick="openVideoUrl('${jsArg(original)}','${jsArg(r.video_original)}')">Original</button>
+              ` : ''}
+
+              <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleAdaptedReviewed('${jsArg(reviewKey)}')">
+                ${done ? 'Revisado' : 'Marcar'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('')}
+
+      <div class="card">
+        <div class="card-acts">
+          <button class="btn btn-p btn-sm btn-wide" onclick="markAdaptedBlockDone('${c.id}','${jsArg(blockKey)}')">Bloque revisado</button>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="wt-head">
+      <div class="wt-head-top">
+        ${getClientPhotoHTML(c)}
+        <div style="flex:1;min-width:0">
+          <div class="wt-name">${esc(c.name)}</div>
+          <div class="wt-meta">${esc(c.plan || 'Sin plan')} · Adaptación activa</div>
+          <div class="wt-program">${pathology === 'dolor_lumbar' ? 'DOLOR LUMBAR · PROCESO 15 DÍAS' : esc(pathology)}</div>
+        </div>
+        ${badge('Adaptado','revisar')}
+      </div>
+
+      <div class="dr">
+        <span class="dk">Ejercicios adaptados</span>
+        <span class="dv">${substituted.length}/${rows.length}</span>
+      </div>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--warn)">
+      <div class="card-body" style="padding:12px 14px">
+        <div style="font-family:var(--font-d);font-size:1rem;letter-spacing:.04em;margin-bottom:4px">
+          Proceso de adaptación
+        </div>
+        <div style="font-size:.78rem;color:var(--text-2);line-height:1.55">
+          Molestia lumbar detectada. Durante 15 días se trabaja con enfoque técnico, controlado y seguro.
+        </div>
+      </div>
+
+      <div class="card-acts">
+        ${msg ? `<button class="btn btn-b btn-sm" onclick="copyAdaptedClientMessage(state.currentAdaptedRows)">Copiar mensaje</button>` : ''}
+        ${msg && c.phone ? `<button class="btn btn-wa btn-sm" onclick="sendAdaptedClientMessage('${c.id}', state.currentAdaptedRows)">Enviar WA</button>` : ''}
+      </div>
+    </div>
+
+    ${groups.map(([key, list]) => {
+      const blockName = getAdaptedBlockName(key);
+      const subs = list.filter(r => r.estado_ejercicio === 'sustituido').length;
+      const reviewed = list.filter((r, index) => {
+        const reviewKey = getAdaptedRowReviewKey(c, r, index);
+        return isAdaptedReviewed(reviewKey);
+      }).length;
+
+      const pct = list.length ? Math.round((reviewed / list.length) * 100) : 0;
+      const finished = list.length > 0 && reviewed === list.length;
+
+      return `
+        <button class="card block-closed" onclick="openAdaptedBlock('${jsArg(key)}')">
+          <div class="card-body">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <div style="min-width:0;text-align:left;flex:1">
+                <div class="block-closed-title">${esc(blockName)}</div>
+                <div class="block-closed-sub">
+                  ${reviewed}/${list.length} revisados · ${subs} adaptados
+                </div>
+                <div class="block-progress-bar">
+                  <div class="block-progress-fill" style="width:${pct}%;background:${finished ? 'var(--streak)' : 'var(--sport)'}"></div>
+                </div>
+              </div>
+
+              <div class="block-closed-action" style="${finished ? 'background:rgba(0,230,118,.12);color:var(--streak);border-color:rgba(0,230,118,.3)' : ''}">
+                ${finished ? '✓ Hecho' : 'Abrir'}
+              </div>
+            </div>
+          </div>
+        </button>
+      `;
+    }).join('')}
+
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title">Observaciones</div>
+        <textarea class="wt-note" placeholder="Ej: dolor bajó, técnica controlada, respiración mejoró..." oninput="saveWorkoutNote('${c.id}',this.value)">${esc(state.workoutNotes[c.id] || '')}</textarea>
+      </div>
+      <div class="card-acts">
+        <button class="btn btn-p btn-sm btn-wide" onclick="finishWorkout('${c.id}')">Cerrar sesión adaptada</button>
+      </div>
+    </div>
+  `;
+}
+
+async function renderWorkout(){
   const box=document.getElementById('workout-content');
   const c=clientById(state.activeTrainingClientId||state.selectedClientId);
   if(!c){box.innerHTML=emptyState('Sin cliente','Vuelve a clientes y abre un perfil.');return}
   state.activeTrainingClientId=c.id;
+const adapted = await getAdaptedRowsForClient(c);
+
+if(adapted.rows && adapted.rows.length){
+  state.currentAdaptedRows = adapted.rows;
+  box.innerHTML = buildAdaptedWorkoutHTML(c, adapted.rows, adapted.pathology);
+  return;
+}
   const ci=getClientTodayCheckin(c.id);const ciStatus=ci?getCheckinStatus(ci):null;
   const plan=getWorkoutPlanForClient(c);const exercises=plan.exercises||[];
   const doneCount=exercises.filter((ex,idx)=>isExerciseDone(c.id,getExerciseId(ex,idx))).length;
