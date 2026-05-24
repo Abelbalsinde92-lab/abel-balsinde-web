@@ -898,11 +898,11 @@ function renderHoy(){
   document.getElementById('hoy-title').textContent=`${dow} ${dnum} ${mon}`;
 
   document.getElementById('hoy-metrics').innerHTML=`
-    <div class="mc b"><span class="mc-n">${sessions.length}</span><span class="mc-l">Sesiones</span></div>
-    <div class="mc g"><span class="mc-n">${state.todayCheckins.length}</span><span class="mc-l">Check-ins</span></div>
-    <div class="mc y"><span class="mc-n">${missing}</span><span class="mc-l">CIs faltantes</span></div>
-    <div class="mc r"><span class="mc-n">${pendingAlerts}</span><span class="mc-l">Alertas</span></div>
-  `;
+  <div class="mc b"><span class="mc-n">${sessions.length}</span><span class="mc-l">Sesiones</span></div>
+  <div class="mc g"><span class="mc-n">${state.todayCheckins.length}</span><span class="mc-l">Check‑ins</span></div>
+  <div class="mc y"><span class="mc-n">${missing}</span><span class="mc-l">CI falt.</span></div>
+  <div class="mc r"><span class="mc-n">${pendingAlerts}</span><span class="mc-l">Alertas</span></div>
+`;
 
   const body=document.getElementById('hoy-content');
   if(!sessions.length){
