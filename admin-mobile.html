@@ -558,12 +558,11 @@ const state = {
   workoutIntervals:{enabled:false,workSec:40,restSec:20,totalRounds:8,phase:'idle',currentRound:1,phaseSecsLeft:0},
   assessments:[],metrics:[],
   settings:{coachName:'Abel Balsinde',coachPhone:COACH_PHONE_DEFAULT,coachCity:'Belgrado',adminUsername:ADMIN_USER_DEFAULT},
-  selectedClientId:null
+selectedClientId:null,
 adaptedTrainingCache:{},
 currentAdaptedRows:[],
 adaptedWorkoutChecks:{},
 activeAdaptedBlockKey:null,
-};
 
 let currentScr='hoy';
 let filterCli='todos';
@@ -2740,7 +2739,13 @@ if(adapted.rows && adapted.rows.length){
 async function finishWorkout(clientId){
   const c=clientById(clientId);if(!c){showToast('Cliente no encontrado','err');return}
   const note=state.workoutNotes[clientId]||'';
-  const completedKeys=Object.keys(state.workoutChecks).filter(k=>k.startsWith(clientId+'__')&&state.workoutChecks[k]);
+  const normalCompletedKeys = Object.keys(state.workoutChecks || {})
+  .filter(k => k.startsWith(clientId + '__') && state.workoutChecks[k]);
+
+const adaptedCompletedKeys = Object.keys(state.adaptedWorkoutChecks || {})
+  .filter(k => k.startsWith(clientId + '__adapted__') && state.adaptedWorkoutChecks[k]);
+
+const completedKeys = [...normalCompletedKeys, ...adaptedCompletedKeys];
   try{
     const plan=getWorkoutPlanForClient(c);const now=new Date().toISOString();
     const payload={id:uid(),client_id:clientId,assignment_id:plan.assignment?.id||null,session_id:plan.sessions?.[0]?.id||null,status:'realizada',completed_at:now,client_note:null,coach_note:`Duración: ${formatClock(state.workoutTimer.seconds)}.\nEjercicios marcados: ${completedKeys.length}.\nObservaciones: ${note||'Sin observaciones.'}`,program_id:plan.program?.id||null,week_id:plan.week?.id||null,training_date:todayISO(),completed_block_ids:[],is_finished:true,started_at:null,updated_at:now,finished_at:now};
