@@ -3294,13 +3294,11 @@ if (pid) {
   db
   .from('v_client_training_display_knowledge')
   .select('*')
-    .eq('client_id', clientId)
-    .eq('program_id', pid)
-    .order('week_order', { ascending: true })
-    .order('session_order', { ascending: true })
-    .order('block_order', { ascending: true })
-    .order('exercise_order', { ascending: true })
-]);
+  .eq('client_id', clientId)
+  .order('week_order', { ascending: true })
+  .order('session_order', { ascending: true })
+  .order('block_order', { ascending: true })
+  .order('exercise_order', { ascending: true })
 
   window.__AB_DEBUG_CLIENT__ = {
     baseRows: baseR.data?.length || 0,
@@ -3313,6 +3311,18 @@ if (pid) {
   let baseRows = baseR.error ? [] : (baseR.data || []);
   let displayRows = displayR.error ? [] : (displayR.data || []);
 
+  if (!displayR.error && displayRows.some(r => r.program_id)) {
+  displayRows = displayRows.filter(r =>
+    String(r.program_id) === String(pid)
+  );
+}
+
+console.log('AB KNOWLEDGE VIEW:', {
+  displayError: displayR.error,
+  displayRows: displayRows.length,
+  firstDisplayRow: displayRows[0] || null
+});
+  
   const scope = getAssignmentScope();
 
 function getVisibleAssignmentWeek() {
@@ -6680,6 +6690,99 @@ function hasExerciseKnowledge(ex) {
   );
 }
 
+function sameNum(a, b) {
+  return Number(a || 0) === Number(b || 0);
+}
+
+function cleanExerciseNameForKnowledge(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function findKnowledgeRowForExercise(ex) {
+  if (!ex || !Array.isArray(clientTrainingDisplayRows) || !clientTrainingDisplayRows.length) {
+    return null;
+  }
+
+  const block = clientTrainingBlocks.find(b =>
+    String(b.id) === String(ex.block_id)
+  );
+
+  const session = block
+    ? clientTrainingSessions.find(s => String(s.id) === String(block.session_id))
+    : null;
+
+  const week = session
+    ? clientTrainingWeeks.find(w => String(w.id) === String(session.week_id))
+    : null;
+
+  const byOrder = clientTrainingDisplayRows.find(r =>
+    sameNum(r.week_order, week?.week_number) &&
+    sameNum(r.session_order, session?.session_number) &&
+    sameNum(r.block_order, block?.block_order) &&
+    sameNum(r.exercise_order, ex.exercise_order)
+  );
+
+  if (byOrder) return byOrder;
+
+  const exName = cleanExerciseNameForKnowledge(ex.name);
+
+  const byName = clientTrainingDisplayRows.find(r =>
+    cleanExerciseNameForKnowledge(r.exercise_name) === exName
+  );
+
+  if (byName) return byName;
+
+  const byVideo = clientTrainingDisplayRows.find(r =>
+    r.video_url &&
+    ex.video_url &&
+    String(r.video_url).trim() === String(ex.video_url).trim()
+  );
+
+  if (byVideo) return byVideo;
+
+  return null;
+}
+
+function enrichExerciseWithKnowledge(ex) {
+  if (!ex) return ex;
+
+  if (hasExerciseKnowledge(ex)) {
+    return ex;
+  }
+
+  const k = findKnowledgeRowForExercise(ex);
+
+  if (!k) {
+    return ex;
+  }
+
+  return {
+    ...ex,
+
+    video_url: ex.video_url || k.video_url || '',
+
+    knowledge_video_family: ex.knowledge_video_family || k.knowledge_video_family || '',
+    knowledge_title: ex.knowledge_title || k.knowledge_title || '',
+    knowledge_category: ex.knowledge_category || k.knowledge_category || '',
+    knowledge_client_summary: ex.knowledge_client_summary || k.knowledge_client_summary || '',
+    knowledge_main_goal: ex.knowledge_main_goal || k.knowledge_main_goal || '',
+    knowledge_body_zone: ex.knowledge_body_zone || k.knowledge_body_zone || '',
+    knowledge_why_it_matters: ex.knowledge_why_it_matters || k.knowledge_why_it_matters || '',
+    knowledge_technique_cues: ex.knowledge_technique_cues || k.knowledge_technique_cues || '',
+    knowledge_breathing_cues: ex.knowledge_breathing_cues || k.knowledge_breathing_cues || '',
+    knowledge_common_errors: ex.knowledge_common_errors || k.knowledge_common_errors || '',
+    knowledge_safety_notes: ex.knowledge_safety_notes || k.knowledge_safety_notes || '',
+    knowledge_regressions: ex.knowledge_regressions || k.knowledge_regressions || '',
+    knowledge_progressions: ex.knowledge_progressions || k.knowledge_progressions || '',
+    knowledge_coach_notes: ex.knowledge_coach_notes || k.knowledge_coach_notes || '',
+    knowledge_priority: ex.knowledge_priority || k.knowledge_priority || ''
+  };
+}
+
 function toggleExerciseKnowledge(id) {
   const card = document.getElementById(id);
   if (!card) return;
@@ -6706,6 +6809,7 @@ function buildKnowledgeRow(label, value) {
 }
 
 function buildExerciseHTML(ex){
+  ex = enrichExerciseWithKnowledge(ex);
   ex = getExerciseWithActiveAdaptation(ex);
 
   const lvl = getAssignedTrainingLevel();
