@@ -577,6 +577,39 @@ input, textarea { outline: none; font-family: var(--font-body); }
   margin-top: 0;
   line-height: 1.8;
 }
+
+/* CONSTANCIA — BARRAS DE SESIONES */
+.constancia-segments {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin: 22px auto 24px;
+}
+
+.constancia-segment {
+  width: 28px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--divider);
+  opacity: .65;
+}
+
+.constancia-segment.done {
+  background: var(--sport);
+  opacity: 1;
+  box-shadow: 0 0 8px rgba(0,163,255,.45);
+}
+
+.home-ring-card-constancia .home-ring-value {
+  display: none;
+}
+
+.home-ring-card-constancia .home-ring-note-constancia {
+  margin-top: 0;
+  line-height: 1.8;
+}
+
 .home-ring-svg-wrap {
   width: 100%; height: 40px;
   display: flex; align-items: flex-end; justify-content: center;
@@ -3948,7 +3981,7 @@ function getTrainingProgressStats(){
     finishedIds
   };
 }
-function buildHomeRing_v2(label,value,unit,svgContent,note,color,targetSection){
+function buildHomeRing_v2(label,value,unit,svgContent,note,color,targetSection,extraHTML = ''){
   const isConstancia = String(label || '').toLowerCase() === 'constancia';
 
   return (
@@ -3964,66 +3997,32 @@ function buildHomeRing_v2(label,value,unit,svgContent,note,color,targetSection){
       '</div>' +
 
       (svgContent
-        ? '<div class="home-ring-svg-wrap"><svg viewBox="0 0 100 40" preserveAspectRatio="none">' + svgContent + '</svg></div>'
-        : ''
-      ) +
+  ? '<div class="home-ring-svg-wrap"><svg viewBox="0 0 100 40" preserveAspectRatio="none">' + svgContent + '</svg></div>'
+  : ''
+) +
 
-      '<div class="home-ring-note ' + (isConstancia ? 'home-ring-note-constancia' : '') + '">' + note + '</div>' +
+(extraHTML || '') +
+
+'<div class="home-ring-note ' + (isConstancia ? 'home-ring-note-constancia' : '') + '">' + note + '</div>' +
     '</div>'
   );
 }
 
-function getConstanciaState(finishedSessions, totalSessions){
-  const total = Number(totalSessions || 0);
-  const finished = Number(finishedSessions || 0);
+function buildConstanciaSegments(done, total = 3) {
+  const completed = Math.max(0, Math.min(total, Number(done || 0)));
 
-  if(total <= 0){
-    return {
-      value: '0%',
-      note: uiText('startYourStreak'),
-      dotsPercent: 0
-    };
+  let html = '<div class="constancia-segments">';
+
+  for (let i = 1; i <= total; i++) {
+    html +=
+      '<span class="constancia-segment ' +
+      (i <= completed ? 'done' : '') +
+      '"></span>';
   }
 
-  const percent = clampPercent((finished / total) * 100);
+  html += '</div>';
 
-  if(finished <= 0){
-    return {
-      value: '0%',
-      note: uiText('firstPendingTraining'),
-      dotsPercent: 0
-    };
-  }
-
-  if(finished === 1 && total > 1){
-    return {
-      value: '🔥',
-      note: uiText('firstStepCompleted'),
-      dotsPercent: 0
-    };
-  }
-
-  if(finished === 2 && total > 2){
-    return {
-      value: '🔥🔥',
-      note: uiText('goodStreak'),
-      dotsPercent: 0
-    };
-  }
-
-  if(percent >= 100){
-    return {
-      value: '🔥🔥🔥',
-      note: uiText('weekCompleted'),
-      dotsPercent: 0
-    };
-  }
-
-  return {
-    value: '🔥🔥',
-    note: finished + ' ' + uiText('of') + ' ' + total + ' ' + uiText('sessions'),
-    dotsPercent: 0
-  };
+  return html;
 }
 
 function getHealthHomeState(){
@@ -4084,13 +4083,7 @@ function buildHomeProgressRings(){
     ? finishedSessions + ' ' + uiText('of') + ' ' + totalSessions + ' sesiones esta semana'
     : uiText('noTrainingVisible');
 
-  const constanciaValue = historicalFinishedCount <= 0
-  ? '0'
-  : historicalFinishedCount === 1
-    ? '🔥'
-    : historicalFinishedCount === 2
-      ? '🔥🔥'
-      : '🔥🔥🔥';
+  const constanciaValue = '';
 
 const constanciaNote = historicalFinishedCount > 0
   ? (
@@ -4120,14 +4113,15 @@ const constanciaNote = historicalFinishedCount > 0
   );
 
   const card3 = buildHomeRing_v2(
-    uiText('consistency'),
-    constanciaValue,
-    '',
-    '',
-    constanciaNote,
-    'var(--streak)',
-    'section-training'
-  );
+  uiText('consistency'),
+  constanciaValue,
+  '',
+  '',
+  constanciaNote,
+  'var(--sport)',
+  'section-training',
+  buildConstanciaSegments(historicalFinishedCount, 3)
+);
 
   return '<div class="home-rings-grid">' + card1 + card2 + card3 + '</div>';
 }
