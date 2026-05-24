@@ -4084,17 +4084,20 @@ function buildHomeProgressRings(){
     ? finishedSessions + ' ' + uiText('of') + ' ' + totalSessions + ' sesiones esta semana'
     : uiText('noTrainingVisible');
 
-  const constanciaValue = historicalFinishedCount > 0
-    ? String(historicalFinishedCount)
-    : '0';
+  const constanciaValue = historicalFinishedCount <= 0
+  ? '0'
+  : historicalFinishedCount === 1
+    ? '🔥'
+    : historicalFinishedCount === 2
+      ? '🔥🔥'
+      : '🔥🔥🔥';
 
-  const constanciaNote = historicalFinishedCount > 0
-    ? (
-        lastFinishedDate
-          ? 'Última: ' + formatDate(lastFinishedDate)
-          : historicalFinishedCount + ' sesiones registradas'
-      )
-    : 'Sin sesiones cerradas todavía';
+const constanciaNote = historicalFinishedCount > 0
+  ? (
+      historicalFinishedCount + ' sesiones' +
+      (lastFinishedDate ? ' · ' + formatDate(lastFinishedDate) : '')
+    )
+  : 'Sin sesiones cerradas todavía';
 
   const card1 = buildHomeRing_v2(
     advanceLabel,
@@ -5471,6 +5474,258 @@ function buildActiveProcessAdaptationCard() {
   );
 }
 
+function normalizeAdaptationText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function adaptationArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function getAdaptationText(a) {
+  return normalizeAdaptationText([
+    a.adaptation_summary,
+    a.coach_warning,
+    a.technique_priority,
+    a.breathing_priority,
+    a.volume_adjustment,
+    a.impact_adjustment,
+    a.load_adjustment,
+    a.cardio_adjustment,
+    ...adaptationArray(a.reason_tags),
+    ...adaptationArray(a.adaptation_focus)
+  ].filter(Boolean).join(' '));
+}
+
+function getSessionOrderIndex(sessionId) {
+  return clientTrainingSessions.findIndex(s =>
+    String(s.id) === String(sessionId)
+  );
+}
+
+function adaptationAppliesToSession(a, sessionId) {
+  if (!a) return false;
+
+  const status = String(a.status || 'activo').toLowerCase();
+
+  const isActive =
+    status === 'activo' ||
+    status === 'active';
+
+  const notNormalized =
+    !a.normalized_at &&
+    status !== 'normalizado' &&
+    status !== 'normalized' &&
+    status !== 'cerrado' &&
+    status !== 'closed' &&
+    status !== 'inactivo' &&
+    status !== 'inactive';
+
+  const dateOk =
+    !a.applies_until ||
+    String(a.applies_until).slice(0, 10) >= todayISO();
+
+  if (!isActive || !notNormalized || !dateOk) return false;
+
+  if (!sessionId) return true;
+
+  if (a.session_id && String(a.session_id) === String(sessionId)) {
+    return true;
+  }
+
+  if (a.apply_to_following_sessions === false) {
+    return false;
+  }
+
+  // Si la adaptación viene de una semana anterior y esa sesión ya no está visible,
+  // seguimos aplicándola porque está marcada como activa para sesiones siguientes.
+  if (!a.session_id) return true;
+
+  const sourceIndex = getSessionOrderIndex(a.session_id);
+  const targetIndex = getSessionOrderIndex(sessionId);
+
+  if (sourceIndex === -1) return true;
+  if (targetIndex === -1) return true;
+
+  return targetIndex >= sourceIndex;
+}
+
+function getActiveAdaptationsForSession(sessionId) {
+  if (!Array.isArray(clientActiveTrainingAdaptations)) return [];
+
+  return clientActiveTrainingAdaptations.filter(a =>
+    adaptationAppliesToSession(a, sessionId)
+  );
+}
+
+function mergeExerciseNotes(originalNote, extraNotes) {
+  const parts = [];
+
+  if (originalNote) parts.push(String(originalNote).trim());
+
+  extraNotes.forEach(n => {
+    const clean = String(n || '').trim();
+    if (clean && !parts.includes(clean)) parts.push(clean);
+  });
+
+  return parts.join(' ');
+}
+
+function getExerciseWithActiveAdaptation(ex) {
+  if (!ex) return ex;
+
+  const sessionId = getSessionIdByBlockId(ex.block_id);
+  const activeAdaptations = getActiveAdaptationsForSession(sessionId);
+
+  if (!activeAdaptations.length) return ex;
+
+  const exerciseText = normalizeAdaptationText([
+    ex.name,
+    ex.description,
+    ex.client_variant,
+    ex.variant_n1,
+    ex.variant_n2,
+    ex.variant_n3,
+    ex.variant_n4,
+    ex.coaching_notes
+  ].filter(Boolean).join(' '));
+
+  const adaptationText = activeAdaptations
+    .map(getAdaptationText)
+    .join(' ');
+
+  const hasKneeCare =
+    adaptationText.includes('rodilla') ||
+    adaptationText.includes('knee');
+
+  const noJog =
+    adaptationText.includes('no_trote') ||
+    adaptationText.includes('no trote') ||
+    adaptationText.includes('no correr') ||
+    adaptationText.includes('sin trote');
+
+  const noImpact =
+    adaptationText.includes('sin_impacto') ||
+    adaptationText.includes('sin impacto') ||
+    adaptationText.includes('no saltos') ||
+    adaptationText.includes('no realizar saltos');
+
+  const reduceVolume =
+    adaptationText.includes('reducir') ||
+    adaptationText.includes('bajar volumen') ||
+    adaptationText.includes('volumen reducir');
+
+  const keepLoad =
+    adaptationText.includes('no_subir_carga') ||
+    adaptationText.includes('no subir carga') ||
+    adaptationText.includes('carga mantener') ||
+    adaptationText.includes('mantener nivel');
+
+  const observeBreathing =
+    adaptationText.includes('respiracion') ||
+    adaptationText.includes('breathing');
+
+  const match = keywords => keywords.some(k =>
+    exerciseText.includes(normalizeAdaptationText(k))
+  );
+
+  let adaptedVariant = ex.client_variant || '';
+  let adaptedStatus = ex.client_exercise_status || '';
+  const notes = [];
+
+  // Cinta / trote / correr
+  if (noJog && match(['cinta', 'trote', 'correr', 'carrera', 'running', 'run'])) {
+    adaptedStatus = 'Adaptado';
+    adaptedVariant = 'Caminar progresivo o trabajo cardiovascular suave, sin trote todavía. Mantener ritmo cómodo y controlado.';
+    notes.push('Evitar trote por ahora. Priorizar técnica de apoyo, respiración y control de rodilla.');
+  }
+
+  // Remo
+  if (match(['remo', 'rowing'])) {
+    adaptedStatus = adaptedStatus || 'Controlado';
+    notes.push('Mantener remo suave y técnico. No buscar potencia ni fatiga alta.');
+  }
+
+  // Saltos / impacto
+  if (noImpact && match(['salto', 'saltos', 'jump', 'burpee', 'pliometria', 'plyo'])) {
+    adaptedStatus = 'Sustituido';
+    adaptedVariant = 'Versión sin salto: realizar el patrón con paso controlado, sin impacto y sin rebote.';
+    notes.push('Eliminar impacto. Mantener control de rodilla, cadera y respiración.');
+  }
+
+  // Step up
+  if (match(['step up', 'step-up', 'subida al cajon', 'subida al banco', 'cajon'])) {
+    adaptedStatus = 'Adaptado';
+    adaptedVariant = 'Step up bajo, lento y controlado. Subir sin impulso, apoyar completo el pie y bajar con control.';
+    notes.push('Vigilar rodilla. No aumentar altura ni velocidad aunque el cliente se sienta capaz.');
+  }
+
+  // Pelota medicinal
+  if (match(['pelota medicinal', 'medicine ball', 'balon medicinal', 'med ball'])) {
+    adaptedStatus = 'Adaptado';
+    adaptedVariant = 'Trabajo con pelota medicinal reducido. Mantener gesto técnico, menos volumen y sin buscar potencia máxima.';
+    notes.push('Reducir volumen e intensidad. Priorizar control antes que fuerza explosiva.');
+  }
+
+  // Soga / cuerda
+  if (match(['soga', 'cuerda', 'rope', 'battle rope'])) {
+    adaptedStatus = 'Adaptado';
+    adaptedVariant = 'Trabajo de soga con pies apoyados y postura estable. No colgarse, no tirar con impulso brusco.';
+    notes.push('Mantener apoyo firme y respiración constante. Evitar tensión innecesaria en rodilla y zona lumbar.');
+  }
+
+  // Woodchop / rotaciones
+  if (match(['woodchop', 'wood chop', 'rotacion', 'rotación', 'corte', 'chop'])) {
+    adaptedStatus = 'Adaptado';
+    adaptedVariant = 'Woodchop lento y controlado. Movimiento corto, estable y sin rotación brusca.';
+    notes.push('Controlar tronco, cadera y respiración. No acelerar el gesto.');
+  }
+
+  // Piernas cargadas / rodilla
+  if (
+    hasKneeCare &&
+    match(['sentadilla', 'squat', 'zancada', 'lunge', 'pierna', 'rodilla'])
+  ) {
+    adaptedStatus = adaptedStatus || 'Controlado';
+    notes.push('Trabajar en rango cómodo. Si aparece molestia en rodilla, reducir recorrido o detener el ejercicio.');
+  }
+
+  // Swing / bisagra
+  if (match(['swing', 'kettlebell swing', 'bisagra'])) {
+    adaptedStatus = adaptedStatus || 'Controlado';
+    notes.push('Mantener bisagra controlada. No buscar velocidad ni fatiga alta.');
+  }
+
+  // Solo añadir notas generales si ya hubo una adaptación específica
+  if (notes.length) {
+    if (keepLoad) {
+      notes.push('No subir carga aunque el cliente se sienta capaz.');
+    }
+
+    if (reduceVolume) {
+      notes.push('Reducir volumen si aparece fatiga temprana.');
+    }
+
+    if (observeBreathing) {
+      notes.push('Observar respiración: no bloquear el aire durante el esfuerzo.');
+    }
+  }
+
+  if (!notes.length && !adaptedVariant && !adaptedStatus) {
+    return ex;
+  }
+
+  return {
+    ...ex,
+    client_variant: adaptedVariant || ex.client_variant,
+    client_exercise_status: adaptedStatus || ex.client_exercise_status || 'Adaptado',
+    client_coaching_note: mergeExerciseNotes(ex.client_coaching_note, notes)
+  };
+}
+
 function buildClientMobilityBlock(sessionId) {
   if (!clientMobilityChain || !clientMobilityChain.length) return '';
 
@@ -6001,6 +6256,8 @@ function buildExerciseVideoGuide(ex) {
 }
 
 function buildExerciseHTML(ex){
+  ex = getExerciseWithActiveAdaptation(ex);
+
   const lvl = getAssignedTrainingLevel();
   const _lg = getLang();
 
