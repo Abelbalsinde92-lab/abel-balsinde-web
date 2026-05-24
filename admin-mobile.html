@@ -630,8 +630,9 @@ const state = {
   workoutIntervals:{enabled:false,workSec:40,restSec:20,totalRounds:8,phase:'idle',currentRound:1,phaseSecsLeft:0},
   assessments:[],metrics:[],
   settings:{coachName:'Abel Balsinde',coachPhone:COACH_PHONE_DEFAULT,coachCity:'Belgrado',adminUsername:ADMIN_USER_DEFAULT},
-  settings:{coachName:'Abel Balsinde',coachPhone:COACH_PHONE_DEFAULT,coachCity:'Belgrado',adminUsername:ADMIN_USER_DEFAULT},
-  selectedClientId:null,
+  activeWorkoutSessionNumber:1,
+   manualPathologyByClient:{},
+   selectedClientId:null,
   adaptedTrainingCache:{},
   currentAdaptedRows:[],
   adaptedWorkoutChecks:{},
@@ -1825,6 +1826,104 @@ async function saveModal(e){
    C4: Háptica al marcar ejercicio
 ══════════════════════════════════════════════════════════ */
 
+function cleanTxt(v){
+  return String(v || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function detectSessionNumberFromReservation(r){
+  if(!r) return null;
+
+  const direct = Number(
+    r.sessionNumber ||
+    r.session_number ||
+    r.trainingSessionNumber ||
+    r.training_session_number ||
+    r.dayNumber ||
+    r.day_number ||
+    0
+  );
+
+  if(direct > 0) return direct;
+
+  const txt = cleanTxt([
+    r.type,
+    r.title,
+    r.name,
+    r.notes,
+    r.description
+  ].join(' '));
+
+  if(txt.includes('dia a') || txt.includes('day a')) return 1;
+  if(txt.includes('dia b') || txt.includes('day b')) return 2;
+  if(txt.includes('dia c') || txt.includes('day c')) return 3;
+  if(txt.includes('dia d') || txt.includes('day d')) return 4;
+
+  const m = txt.match(/sesion\s*(\d+)/);
+  if(m) return Number(m[1]);
+
+  return null;
+}
+
+function setWorkoutSessionNumber(n){
+  state.activeWorkoutSessionNumber = Number(n || 1);
+  state.activeWorkoutBlockId = null;
+  state.activeAdaptedBlockKey = null;
+  state.activeWorkoutExerciseIndex = 0;
+  state.currentAdaptedRows = [];
+  renderWorkout();
+}
+
+function setManualPathology(clientId, pathology){
+  if(!state.manualPathologyByClient) state.manualPathologyByClient = {};
+
+  if(!pathology || pathology === 'normal'){
+    state.manualPathologyByClient[clientId] = 'normal';
+  }else{
+    state.manualPathologyByClient[clientId] = pathology;
+  }
+
+  state.activeWorkoutBlockId = null;
+  state.activeAdaptedBlockKey = null;
+  state.currentAdaptedRows = [];
+  renderWorkout();
+}
+
+function buildWorkoutSessionControls(plan, c){
+  if(!plan || !c) return '';
+
+  const weekSessions = plan.weekSessions || plan.sessions || [];
+  const activeN = Number(state.activeWorkoutSessionNumber || 1);
+  const manual = state.manualPathologyByClient?.[c.id] || '';
+
+  const sessionButtons = weekSessions.length
+    ? weekSessions.map((s, index) => {
+        const n = getSessionNumberFromRow(s) || index + 1;
+        return `<button class="fp ${activeN === n ? 'on' : ''}" onclick="setWorkoutSessionNumber(${n})">Día ${String.fromCharCode(64+n)}</button>`;
+      }).join('')
+    : `
+      <button class="fp ${activeN===1?'on':''}" onclick="setWorkoutSessionNumber(1)">Día A</button>
+      <button class="fp ${activeN===2?'on':''}" onclick="setWorkoutSessionNumber(2)">Día B</button>
+      <button class="fp ${activeN===3?'on':''}" onclick="setWorkoutSessionNumber(3)">Día C</button>
+    `;
+
+  return `
+    <div class="fr" style="margin-bottom:10px">
+      ${sessionButtons}
+    </div>
+
+    <div class="fr" style="margin-bottom:12px">
+      <button class="fp ${manual === 'normal' || !manual ? 'on' : ''}" onclick="setManualPathology('${c.id}','normal')">Normal</button>
+      <button class="fp ${manual === 'dolor_lumbar' ? 'on' : ''}" onclick="setManualPathology('${c.id}','dolor_lumbar')">Lumbar</button>
+    </div>
+  `;
+}
+
 function openWorkout(clientId,reservationId=null){
   const previousKey=`${state.activeTrainingClientId||''}__${state.activeWorkoutReservationId||'manual'}`;
   const nextKey=`${clientId}__${reservationId||'manual'}`;
@@ -1834,8 +1933,18 @@ function openWorkout(clientId,reservationId=null){
     Object.keys(state.workoutChecks).forEach(k=>{if(k.startsWith(clientId+'__'))delete state.workoutChecks[k]});
     state.workoutNotes[clientId]='';
   }
-  state.selectedClientId=clientId;state.activeTrainingClientId=clientId;
-  state.activeWorkoutReservationId=reservationId;
+  state.selectedClientId = clientId;
+state.activeTrainingClientId = clientId;
+state.activeWorkoutReservationId = reservationId;
+
+const r = reservationById(reservationId);
+const detectedSession = detectSessionNumberFromReservation(r);
+const c = clientById(clientId);
+const assignment = c ? getClientActiveAssignment(c.id) : null;
+
+state.activeWorkoutSessionNumber =
+  detectedSession ||
+  Number(assignment?.assignedSessionNumber || assignment?.assigned_session_number || 1);
 state.activeWorkoutBlockId=null;
 state.activeAdaptedBlockKey=null;
 state.activeWorkoutExerciseIndex=0;
@@ -1877,7 +1986,12 @@ function getWorkoutPlanForClient(c){
   const program=getAssignmentProgram(assignment);
   const assignmentProgramId=assignment?.programId||assignment?.program_id||'';
   const targetWeek=Number(assignment?.assignedWeek||assignment?.assigned_week||assignment?.currentWeek||assignment?.current_week||1);
-  const targetSessionNumber=Number(assignment?.assignedSessionNumber||assignment?.assigned_session_number||0);
+  const targetSessionNumber = Number(
+  state.activeWorkoutSessionNumber ||
+  assignment?.assignedSessionNumber ||
+  assignment?.assigned_session_number ||
+  0
+);
   const debug={assignmentId:assignment?.id||'',assignmentProgramId,programId:program?.id||'',programName:program?.name||program?.nameEs||'',week:targetWeek,loadedWeeks:state.trainingWeeks.length,loadedSessions:state.trainingSessions.length,loadedBlocks:state.trainingBlocks.length,loadedExercises:state.trainingExercises.length,matchedWeeks:0,selectedWeeks:0,matchedSessions:0,selectedSessions:0,matchedBlocks:0,blocksWithExercises:0};
   if(!program)return{assignment:null,program:null,week:null,sessions:[],blocks:[],exercises:[],debug};
   let weeks=state.trainingWeeks.filter(w=>sameId(getWeekProgramId(w),program.id)||sameId(getWeekProgramId(w),assignmentProgramId));
@@ -1888,7 +2002,8 @@ function getWorkoutPlanForClient(c){
   const selectedWeekIds=new Set(selectedWeeks.map(w=>toId(w.id)).filter(Boolean));
   let sessions=state.trainingSessions.filter(s=>selectedWeekIds.has(toId(getSessionWeekId(s))));
   sessions=sortByOrder(sessions);debug.matchedSessions=sessions.length;
-  if(targetSessionNumber>0){const exactSessions=sessions.filter(s=>getSessionNumberFromRow(s)===targetSessionNumber);if(exactSessions.length)sessions=exactSessions}
+  const weekSessions = sessions.slice();
+if(targetSessionNumber>0){const exactSessions=sessions.filter(s=>getSessionNumberFromRow(s)===targetSessionNumber);if(exactSessions.length)sessions=exactSessions}
   else if(sessions.length)sessions=[sessions[0]];
   debug.selectedSessions=sessions.length;
   const selectedSessionIds=new Set(sessions.map(s=>toId(s.id)).filter(Boolean));
@@ -1900,7 +2015,16 @@ function getWorkoutPlanForClient(c){
     return{...b,sessionId:session?.id||'',sessionTitle:[session?.title,session?.titleEs,session?.title_es,session?.name,session?.nameEs,session?.name_es,session?.type,session?.typeEs,session?.type_es].filter(Boolean).join(' '),sessionNumber:getSessionNumberFromRow(session||{}),exercises};
   }).filter(b=>b.exercises.length);
   debug.blocksWithExercises=blockData.length;
-  return{assignment,program,week:selectedWeeks[0]||null,sessions,blocks:blockData,exercises:blockData.flatMap(b=>b.exercises),debug};
+  return{
+  assignment,
+  program,
+  week:selectedWeeks[0]||null,
+  sessions,
+  weekSessions,
+  blocks:blockData,
+  exercises:blockData.flatMap(b=>b.exercises),
+  debug
+};
 }
 
 function getExerciseDose(ex){
@@ -2192,14 +2316,10 @@ function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,not
       </div>
       <div class="dr"><span class="dk">Progreso sesión</span><span class="dv">${doneCount}/${totalCount||0}</span></div>
     </div>
+
+    ${buildWorkoutSessionControls(plan, c)}
+
     <div class="wt-ci">
-      <div class="wt-ci-row"><span class="dk">Check-in hoy</span><span>${ci?badge(ciStatus||'normal',ciStatus||'normal'):badge('Sin CI','inactivo')}</span></div>
-      ${ci?`
-        <div class="wt-ci-row"><span class="dk">Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div>
-        <div class="wt-ci-row"><span class="dk">Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>
-        ${ci.comment?`<div class="wt-ci-row"><span class="dk">Nota</span><span style="font-size:.78rem;color:var(--warn);font-weight:500">${esc(ci.comment)}</span></div>`:''}
-      `:`<div style="font-size:.78rem;color:var(--text-2);line-height:1.5;margin-top:6px">Preguntar sueño, energía y molestias antes de empezar.</div>`}
-    </div>
     ${plan.blocks.map((b,bi)=>{
       const info=getBlockDoneInfo(c.id,b);
       const title=getBlockName(b)||`Bloque ${bi+1}`;
@@ -2374,7 +2494,12 @@ function jsArg(v){
 }
 
 function detectPathologyForClient(c){
-  const ci = getClientTodayCheckin(c.id);
+  const manual = state.manualPathologyByClient?.[c.id];
+
+if(manual === 'normal') return null;
+if(manual) return manual;
+
+const ci = getClientTodayCheckin(c.id);
   const txt = String(ci?.comment || '')
     .toLowerCase()
     .normalize('NFD')
@@ -2417,6 +2542,7 @@ function getAssignmentWeek(a){
 
 function getAssignmentSessionNumber(a){
   return Number(
+    state.activeWorkoutSessionNumber ||
     a?.assignedSessionNumber ||
     a?.assigned_session_number ||
     1
@@ -2595,7 +2721,7 @@ function markAdaptedBlockDone(clientId, blockKey){
   backToAdaptedBlocks();
 }
 
-function buildAdaptedWorkoutHTML(c, rows, pathology){
+function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
   const substituted = rows.filter(r => r.estado_ejercicio === 'sustituido');
   const msg = getAdaptedClientMessage(rows);
   const groups = getAdaptedBlockGroups(rows);
@@ -2798,9 +2924,12 @@ const adapted = await getAdaptedRowsForClient(c);
 
 if(adapted.rows && adapted.rows.length){
   state.currentAdaptedRows = adapted.rows;
-  box.innerHTML = buildAdaptedWorkoutHTML(c, adapted.rows, adapted.pathology);
+  box.innerHTML = buildAdaptedWorkoutHTML(c, adapted.rows, adapted.pathology, adapted.plan);
   return;
 }
+
+state.currentAdaptedRows = [];
+
   const ci=getClientTodayCheckin(c.id);const ciStatus=ci?getCheckinStatus(ci):null;
   const plan=getWorkoutPlanForClient(c);const exercises=plan.exercises||[];
   const doneCount=exercises.filter((ex,idx)=>isExerciseDone(c.id,getExerciseId(ex,idx))).length;
