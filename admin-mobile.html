@@ -1900,6 +1900,7 @@ function buildWorkoutSessionControls(plan, c){
   const weekSessions = plan.weekSessions || plan.sessions || [];
   const activeN = Number(state.activeWorkoutSessionNumber || 1);
   const manual = state.manualPathologyByClient?.[c.id] || '';
+const activePathology = manual || detectPathologyForClient(c) || 'normal';
 
   const sessionButtons = weekSessions.length
     ? weekSessions.map((s, index) => {
@@ -1918,8 +1919,8 @@ function buildWorkoutSessionControls(plan, c){
     </div>
 
     <div class="fr" style="margin-bottom:12px">
-      <button class="fp ${manual === 'normal' || !manual ? 'on' : ''}" onclick="setManualPathology('${c.id}','normal')">Normal</button>
-      <button class="fp ${manual === 'dolor_lumbar' ? 'on' : ''}" onclick="setManualPathology('${c.id}','dolor_lumbar')">Lumbar</button>
+      <button class="fp ${activePathology === 'normal' ? 'on' : ''}" onclick="setManualPathology('${c.id}','normal')">Normal</button>
+<button class="fp ${activePathology === 'dolor_lumbar' ? 'on' : ''}" onclick="setManualPathology('${c.id}','dolor_lumbar')">Lumbar</button>
     </div>
   `;
 }
@@ -2319,8 +2320,37 @@ function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,not
 
     ${buildWorkoutSessionControls(plan, c)}
 
-    <div class="wt-ci">
-    ${plan.blocks.map((b,bi)=>{
+<div class="wt-ci">
+  <div class="wt-ci-row">
+    <span class="dk">Check-in hoy</span>
+    <span>${ci ? badge(ciStatus || 'normal', ciStatus || 'normal') : badge('Sin CI','inactivo')}</span>
+  </div>
+
+  ${ci ? `
+    <div class="wt-ci-row">
+      <span class="dk">Energía</span>
+      <span class="dv">${esc(ci.energyLevel ?? ci.energy_level ?? '—')}/10</span>
+    </div>
+
+    <div class="wt-ci-row">
+      <span class="dk">Molestias</span>
+      <span class="dv">${esc(ci.sorenessLevel ?? ci.soreness_level ?? ci.painLevel ?? ci.pain_level ?? '—')}/5</span>
+    </div>
+
+    ${ci.comment ? `
+      <div class="wt-ci-row">
+        <span class="dk">Nota</span>
+        <span style="font-size:.78rem;color:var(--warn);font-weight:500">${esc(ci.comment)}</span>
+      </div>
+    ` : ''}
+  ` : `
+    <div style="font-size:.78rem;color:var(--text-2);line-height:1.5;margin-top:6px">
+      Preguntar sueño, energía y molestias antes de empezar.
+    </div>
+  `}
+</div>
+
+${plan.blocks.map((b,bi)=>{
       const info=getBlockDoneInfo(c.id,b);
       const title=getBlockName(b)||`Bloque ${bi+1}`;
       const pct=info.total>0?Math.round((info.done/info.total)*100):0;
@@ -2853,7 +2883,9 @@ function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
       </div>
     </div>
 
-    <div class="card" style="border-left:3px solid var(--warn)">
+${buildWorkoutSessionControls(plan, c)}
+
+<div class="card" style="border-left:3px solid var(--warn)">
       <div class="card-body" style="padding:12px 14px">
         <div style="font-family:var(--font-d);font-size:1rem;letter-spacing:.04em;margin-bottom:4px">
           Proceso de adaptación
