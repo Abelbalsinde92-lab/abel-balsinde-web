@@ -3380,16 +3380,46 @@ function applyScopeFilter(list) {
 
   const displayMap = new Map();
 
-  displayRows.forEach(r => {
-    const key = [
-      Number(r.week_order || 0),
-      Number(r.session_order || 0),
-      Number(r.block_order || 0),
-      Number(r.exercise_order || 0)
-    ].join('|');
+function cleanKeyValue(v) {
+  return String(v || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
 
+function getDisplayKeys(r) {
+  const keys = [];
+
+  if (r.exercise_id) {
+    keys.push('exercise_id|' + String(r.exercise_id));
+  }
+
+  keys.push([
+    'order',
+    Number(r.week_order || 0),
+    Number(r.session_order || 0),
+    Number(r.block_order || 0),
+    Number(r.exercise_order || 0)
+  ].join('|'));
+
+  keys.push([
+    'name_order',
+    cleanKeyValue(r.exercise_name),
+    Number(r.week_order || 0),
+    Number(r.session_order || 0),
+    Number(r.block_order || 0),
+    Number(r.exercise_order || 0)
+  ].join('|'));
+
+  return keys;
+}
+
+displayRows.forEach(r => {
+  getDisplayKeys(r).forEach(key => {
     displayMap.set(key, r);
   });
+});
 
   // Si la vista base falla, usamos la vista display como fallback mínimo
   const rows = baseRows.length ? baseRows : displayRows;
@@ -3410,15 +3440,26 @@ function applyScopeFilter(list) {
     const sessionsMap = new Map();
     const blocksMap = new Map();
 
-    rows.forEach(r => {
-      const displayKey = [
-        Number(r.week_order || 0),
-        Number(r.session_order || 0),
-        Number(r.block_order || 0),
-        Number(r.exercise_order || 0)
-      ].join('|');
-
-      const d = displayMap.get(displayKey) || r;
+    rows.forEach((r, rowIndex) => {
+      const d =
+  displayMap.get('exercise_id|' + String(r.exercise_id || '')) ||
+  displayMap.get([
+    'order',
+    Number(r.week_order || 0),
+    Number(r.session_order || 0),
+    Number(r.block_order || 0),
+    Number(r.exercise_order || 0)
+  ].join('|')) ||
+  displayMap.get([
+    'name_order',
+    cleanKeyValue(r.exercise_name),
+    Number(r.week_order || 0),
+    Number(r.session_order || 0),
+    Number(r.block_order || 0),
+    Number(r.exercise_order || 0)
+  ].join('|')) ||
+  displayRows[rowIndex] ||
+  r;
 
       const weekId = r.week_id || `week-${r.week_order}`;
       const sessionId = r.session_id || `week-${r.week_order}-session-${r.session_order}`;
@@ -6660,79 +6701,6 @@ function buildKnowledgeRow(label, value) {
     '<div class="exercise-knowledge-row">' +
       '<div class="exercise-knowledge-label">' + escHTML(label) + '</div>' +
       '<div class="exercise-knowledge-text">' + escHTML(clean) + '</div>' +
-    '</div>'
-  );
-}
-
-function buildExerciseKnowledgeGuide(ex) {
-  if (!hasExerciseKnowledge(ex)) return '';
-
-  const guideId = 'knowledge-guide-' + String(ex.id || Math.random())
-    .replace(/[^a-zA-Z0-9_-]/g, '');
-
-  const title =
-    normalizeKnowledgeText(ex.knowledge_title) ||
-    normalizeKnowledgeText(ex.name) ||
-    'Guía técnica';
-
-  const summary = normalizeKnowledgeText(ex.knowledge_client_summary);
-
-  const category = normalizeKnowledgeText(ex.knowledge_category);
-  const bodyZone = normalizeKnowledgeText(ex.knowledge_body_zone);
-  const priority = normalizeKnowledgeText(ex.knowledge_priority);
-
-  let chips = '';
-
-  if (category || bodyZone || priority) {
-    chips += '<div class="exercise-knowledge-chips">';
-
-    if (category) {
-      chips += '<span class="exercise-knowledge-chip">' + escHTML(category) + '</span>';
-    }
-
-    if (bodyZone) {
-      chips += '<span class="exercise-knowledge-chip">' + escHTML(bodyZone) + '</span>';
-    }
-
-    if (priority) {
-      chips += '<span class="exercise-knowledge-chip">Prioridad ' + escHTML(priority) + '</span>';
-    }
-
-    chips += '</div>';
-  }
-
-  return (
-    '<div class="exercise-knowledge-guide" id="' + guideId + '">' +
-
-      '<button class="exercise-knowledge-toggle" onclick="toggleExerciseKnowledge(\'' + guideId + '\')">' +
-        '<span class="exercise-knowledge-toggle-left">' +
-          '<span class="exercise-knowledge-icon">i</span>' +
-          '<span class="exercise-knowledge-title">Guía técnica · ' + escHTML(title) + '</span>' +
-        '</span>' +
-        '<span class="exercise-knowledge-symbol">+</span>' +
-      '</button>' +
-
-      '<div class="exercise-knowledge-body">' +
-
-        (
-          summary
-            ? '<div class="exercise-knowledge-summary">' + escHTML(summary) + '</div>'
-            : ''
-        ) +
-
-        chips +
-
-        buildKnowledgeRow('Objetivo', ex.knowledge_main_goal) +
-        buildKnowledgeRow('Por qué va aquí', ex.knowledge_why_it_matters) +
-        buildKnowledgeRow('Técnica', ex.knowledge_technique_cues) +
-        buildKnowledgeRow('Respiración', ex.knowledge_breathing_cues) +
-        buildKnowledgeRow('Errores comunes', ex.knowledge_common_errors) +
-        buildKnowledgeRow('Seguridad', ex.knowledge_safety_notes) +
-        buildKnowledgeRow('Versión más fácil', ex.knowledge_regressions) +
-        buildKnowledgeRow('Progresión', ex.knowledge_progressions) +
-        buildKnowledgeRow('Coach', ex.knowledge_coach_notes) +
-
-      '</div>' +
     '</div>'
   );
 }
