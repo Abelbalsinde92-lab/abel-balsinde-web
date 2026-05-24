@@ -408,6 +408,68 @@ a{text-decoration:none;color:inherit}
     grid-template-columns:repeat(4,1fr);
   }
 }
+
+/* ═══ HEADER LOGO + TARJETAS SUPERIORES COMPACTAS ═══ */
+
+.top-logo-wrap{
+  display:flex;
+  align-items:center;
+  min-width:105px;
+  max-width:145px;
+  height:44px;
+}
+
+.top-logo-img{
+  max-width:140px;
+  max-height:38px;
+  object-fit:contain;
+  display:block;
+}
+
+.top-logo-fallback{
+  display:none;
+  align-items:baseline;
+  gap:6px;
+}
+
+/* Métricas de arriba más pequeñas */
+.mr{
+  grid-template-columns:repeat(4,1fr);
+  gap:7px;
+  margin-bottom:18px;
+}
+
+.mc{
+  padding:9px 8px 8px;
+  min-height:72px;
+  border-radius:12px;
+}
+
+.mc-n{
+  font-size:1.55rem;
+}
+
+.mc-l{
+  font-size:.42rem;
+  letter-spacing:.08em;
+  margin-top:4px;
+  line-height:1.15;
+}
+
+/* Ajuste si la pantalla es muy estrecha */
+@media(max-width:390px){
+  .mr{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .mc{
+    min-height:70px;
+  }
+
+  .mc-n{
+    font-size:1.65rem;
+  }
+}
 </style>
 </head>
 <body>
@@ -437,7 +499,7 @@ a{text-decoration:none;color:inherit}
        <div class="top-logo-wrap">
   <img
     class="top-logo-img"
-    src="/ab-logo-completo.svg"
+    src="/ab-logo.png.WEBP"
     alt="AB SYSTEM"
     onerror="this.style.display='none';document.querySelector('.top-logo-fallback').style.display='flex';"
   >
