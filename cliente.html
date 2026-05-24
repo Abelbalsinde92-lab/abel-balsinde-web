@@ -1936,6 +1936,239 @@ input, textarea { outline: none; font-family: var(--font-body); }
   border: 1px solid var(--card-border) !important;
   color: var(--text-secondary) !important;
 }
+
+/* ═══ GUÍA TÉCNICA DE EJERCICIOS ═══ */
+
+.exercise-knowledge-guide {
+  margin-top: 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255,255,255,.025);
+}
+
+.exercise-knowledge-toggle {
+  width: 100%;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.exercise-knowledge-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exercise-knowledge-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,163,255,.38);
+  color: var(--sport);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.exercise-knowledge-symbol {
+  color: var(--text-secondary);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.exercise-knowledge-body {
+  display: none;
+  padding: 12px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.exercise-knowledge-guide.open .exercise-knowledge-body {
+  display: block;
+}
+
+.exercise-knowledge-head {
+  margin-bottom: 10px;
+}
+
+.exercise-knowledge-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.exercise-knowledge-category {
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--sport);
+}
+
+.exercise-knowledge-summary {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin-bottom: 10px;
+}
+
+.exercise-knowledge-block {
+  padding: 10px 0;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.exercise-knowledge-block:first-of-type {
+  border-top: none;
+}
+
+.exercise-knowledge-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--sport);
+  margin-bottom: 4px;
+}
+
+.exercise-knowledge-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+/* ═══ GUÍA TÉCNICA DEL EJERCICIO ═══ */
+
+.exercise-knowledge-guide {
+  margin-top: 12px;
+  border: 1px solid rgba(0,163,255,.22);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0,163,255,.025);
+}
+
+.exercise-knowledge-toggle {
+  width: 100%;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: transparent;
+  color: var(--sport);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.exercise-knowledge-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.exercise-knowledge-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 1px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.exercise-knowledge-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exercise-knowledge-symbol {
+  color: var(--text-secondary);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.exercise-knowledge-body {
+  display: none;
+  padding: 12px;
+  border-top: 1px solid rgba(0,163,255,.14);
+}
+
+.exercise-knowledge-guide.open .exercise-knowledge-body {
+  display: block;
+}
+
+.exercise-knowledge-summary {
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.65;
+  margin-bottom: 10px;
+}
+
+.exercise-knowledge-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 12px;
+}
+
+.exercise-knowledge-chip {
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  background: rgba(255,255,255,.025);
+}
+
+.exercise-knowledge-row {
+  border-top: 1px solid var(--divider);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.exercise-knowledge-row:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.exercise-knowledge-label {
+  color: var(--sport);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.exercise-knowledge-text {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.65;
+}
 </style>
 </head>
 <body>
@@ -3059,8 +3292,8 @@ if (pid) {
     .order('exercise_order', { ascending: true }),
 
   db
-    .from('v_client_training_display')
-    .select('*')
+  .from('v_client_training_display_knowledge')
+  .select('*')
     .eq('client_id', clientId)
     .eq('program_id', pid)
     .order('week_order', { ascending: true })
@@ -3235,31 +3468,47 @@ function applyScopeFilter(list) {
       }
 
       clientTrainingExercises.push({
-        id: exerciseId,
-        block_id: blockId,
-        exercise_order: r.exercise_order,
+  id: exerciseId,
+  block_id: blockId,
+  exercise_order: r.exercise_order,
 
-        name: r.exercise_name || d.exercise_name || '',
-        description: r.exercise_description || d.exercise_description || '',
+  name: r.exercise_name || d.exercise_name || '',
+  description: r.exercise_description || d.exercise_description || '',
 
-        sets: r.sets || '',
-        reps: r.reps || '',
-        time: r.time || r.duration || '',
-        rest: r.rest || '',
+  sets: r.sets || '',
+  reps: r.reps || '',
+  time: r.time || r.duration || '',
+  rest: r.rest || '',
 
-        variant_n1: r.variant_n1 || '',
-        variant_n2: r.variant_n2 || '',
-        variant_n3: r.variant_n3 || '',
-        variant_n4: r.variant_n4 || '',
+  variant_n1: r.variant_n1 || '',
+  variant_n2: r.variant_n2 || '',
+  variant_n3: r.variant_n3 || '',
+  variant_n4: r.variant_n4 || '',
 
-        coaching_notes: r.coaching_notes || '',
-        video_url: r.video_url || d.video_url || '',
+  coaching_notes: r.coaching_notes || '',
+  video_url: r.video_url || d.video_url || '',
 
-        client_variant: d.client_variant || '',
-        client_exercise_status: d.client_exercise_status || '',
-        client_coaching_note: d.client_coaching_note || '',
-        final_decision: d.final_decision || ''
-      });
+  client_variant: d.client_variant || '',
+  client_exercise_status: d.client_exercise_status || '',
+  client_coaching_note: d.client_coaching_note || '',
+  final_decision: d.final_decision || '',
+
+  knowledge_video_family: d.knowledge_video_family || r.knowledge_video_family || '',
+  knowledge_title: d.knowledge_title || r.knowledge_title || '',
+  knowledge_category: d.knowledge_category || r.knowledge_category || '',
+  knowledge_main_goal: d.knowledge_main_goal || r.knowledge_main_goal || '',
+  knowledge_body_zone: d.knowledge_body_zone || r.knowledge_body_zone || '',
+  knowledge_why_it_matters: d.knowledge_why_it_matters || r.knowledge_why_it_matters || '',
+  knowledge_technique_cues: d.knowledge_technique_cues || r.knowledge_technique_cues || '',
+  knowledge_breathing_cues: d.knowledge_breathing_cues || r.knowledge_breathing_cues || '',
+  knowledge_common_errors: d.knowledge_common_errors || r.knowledge_common_errors || '',
+  knowledge_safety_notes: d.knowledge_safety_notes || r.knowledge_safety_notes || '',
+  knowledge_regressions: d.knowledge_regressions || r.knowledge_regressions || '',
+  knowledge_progressions: d.knowledge_progressions || r.knowledge_progressions || '',
+  knowledge_coach_notes: d.knowledge_coach_notes || r.knowledge_coach_notes || '',
+  knowledge_client_summary: d.knowledge_client_summary || r.knowledge_client_summary || '',
+  knowledge_priority: d.knowledge_priority || r.knowledge_priority || ''
+});
     });
 
     clientTrainingWeeks = Array.from(weeksMap.values()).sort((a, b) =>
@@ -6210,6 +6459,110 @@ function toggleExerciseVideo(id) {
   }
 }
 
+function toggleExerciseKnowledge(id) {
+  const card = document.getElementById(id);
+  if (!card) return;
+
+  card.classList.toggle('open');
+
+  const symbol = card.querySelector('.exercise-knowledge-symbol');
+
+  if (symbol) {
+    symbol.textContent = card.classList.contains('open') ? '−' : '+';
+  }
+}
+
+function buildExerciseKnowledgeGuide(ex) {
+  const hasKnowledge =
+    ex.knowledge_title ||
+    ex.knowledge_client_summary ||
+    ex.knowledge_why_it_matters ||
+    ex.knowledge_technique_cues ||
+    ex.knowledge_breathing_cues ||
+    ex.knowledge_common_errors ||
+    ex.knowledge_safety_notes ||
+    ex.knowledge_coach_notes;
+
+  if (!hasKnowledge) return '';
+
+  const id = 'knowledge-guide-' + String(ex.id || Math.random()).replace(/[^a-zA-Z0-9_-]/g, '');
+
+  const blocks = [
+    {
+      label: 'Por qué',
+      value: ex.knowledge_why_it_matters || ex.knowledge_client_summary
+    },
+    {
+      label: 'Técnica',
+      value: ex.knowledge_technique_cues
+    },
+    {
+      label: 'Respira',
+      value: ex.knowledge_breathing_cues
+    },
+    {
+      label: 'Errores',
+      value: ex.knowledge_common_errors
+    },
+    {
+      label: 'Seguridad',
+      value: ex.knowledge_safety_notes
+    },
+    {
+      label: 'Coach',
+      value: ex.knowledge_coach_notes
+    }
+  ].filter(item => item.value);
+
+  let html =
+    '<div class="exercise-knowledge-guide" id="' + id + '">' +
+
+      '<button class="exercise-knowledge-toggle" onclick="toggleExerciseKnowledge(\'' + id + '\')">' +
+        '<span class="exercise-knowledge-toggle-left">' +
+          '<span class="exercise-knowledge-icon">i</span>' +
+          '<span>Guía técnica</span>' +
+        '</span>' +
+        '<span class="exercise-knowledge-symbol">+</span>' +
+      '</button>' +
+
+      '<div class="exercise-knowledge-body">';
+
+  if (ex.knowledge_title || ex.knowledge_category) {
+    html +=
+      '<div class="exercise-knowledge-head">' +
+        (ex.knowledge_title
+          ? '<div class="exercise-knowledge-title">' + escHTML(ex.knowledge_title) + '</div>'
+          : ''
+        ) +
+        (ex.knowledge_category
+          ? '<div class="exercise-knowledge-category">' + escHTML(ex.knowledge_category) + '</div>'
+          : ''
+        ) +
+      '</div>';
+  }
+
+  if (ex.knowledge_client_summary) {
+    html +=
+      '<div class="exercise-knowledge-summary">' +
+        escHTML(ex.knowledge_client_summary) +
+      '</div>';
+  }
+
+  blocks.forEach(item => {
+    html +=
+      '<div class="exercise-knowledge-block">' +
+        '<div class="exercise-knowledge-label">' + escHTML(item.label) + '</div>' +
+        '<div class="exercise-knowledge-text">' + escHTML(item.value) + '</div>' +
+      '</div>';
+  });
+
+  html +=
+      '</div>' +
+    '</div>';
+
+  return html;
+}
+
 function buildExerciseVideoGuide(ex) {
   const videoUrl = ex.video_url || '';
 
@@ -6257,6 +6610,144 @@ function buildExerciseVideoGuide(ex) {
     '</div>';
 
   return html;
+}
+
+function normalizeKnowledgeText(value) {
+  if (value === null || value === undefined) return '';
+
+  if (Array.isArray(value)) {
+    return value
+      .map(v => String(v || '').trim())
+      .filter(Boolean)
+      .join(' · ');
+  }
+
+  if (typeof value === 'object') {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return '';
+    }
+  }
+
+  return String(value || '').trim();
+}
+
+function hasExerciseKnowledge(ex) {
+  if (!ex) return false;
+
+  return Boolean(
+    normalizeKnowledgeText(ex.knowledge_title) ||
+    normalizeKnowledgeText(ex.knowledge_client_summary) ||
+    normalizeKnowledgeText(ex.knowledge_main_goal) ||
+    normalizeKnowledgeText(ex.knowledge_body_zone) ||
+    normalizeKnowledgeText(ex.knowledge_why_it_matters) ||
+    normalizeKnowledgeText(ex.knowledge_technique_cues) ||
+    normalizeKnowledgeText(ex.knowledge_breathing_cues) ||
+    normalizeKnowledgeText(ex.knowledge_common_errors) ||
+    normalizeKnowledgeText(ex.knowledge_safety_notes) ||
+    normalizeKnowledgeText(ex.knowledge_regressions) ||
+    normalizeKnowledgeText(ex.knowledge_progressions) ||
+    normalizeKnowledgeText(ex.knowledge_coach_notes)
+  );
+}
+
+function toggleExerciseKnowledge(id) {
+  const card = document.getElementById(id);
+  if (!card) return;
+
+  card.classList.toggle('open');
+
+  const symbol = card.querySelector('.exercise-knowledge-symbol');
+
+  if (symbol) {
+    symbol.textContent = card.classList.contains('open') ? '−' : '+';
+  }
+}
+
+function buildKnowledgeRow(label, value) {
+  const clean = normalizeKnowledgeText(value);
+  if (!clean) return '';
+
+  return (
+    '<div class="exercise-knowledge-row">' +
+      '<div class="exercise-knowledge-label">' + escHTML(label) + '</div>' +
+      '<div class="exercise-knowledge-text">' + escHTML(clean) + '</div>' +
+    '</div>'
+  );
+}
+
+function buildExerciseKnowledgeGuide(ex) {
+  if (!hasExerciseKnowledge(ex)) return '';
+
+  const guideId = 'knowledge-guide-' + String(ex.id || Math.random())
+    .replace(/[^a-zA-Z0-9_-]/g, '');
+
+  const title =
+    normalizeKnowledgeText(ex.knowledge_title) ||
+    normalizeKnowledgeText(ex.name) ||
+    'Guía técnica';
+
+  const summary = normalizeKnowledgeText(ex.knowledge_client_summary);
+
+  const category = normalizeKnowledgeText(ex.knowledge_category);
+  const bodyZone = normalizeKnowledgeText(ex.knowledge_body_zone);
+  const priority = normalizeKnowledgeText(ex.knowledge_priority);
+
+  let chips = '';
+
+  if (category || bodyZone || priority) {
+    chips += '<div class="exercise-knowledge-chips">';
+
+    if (category) {
+      chips += '<span class="exercise-knowledge-chip">' + escHTML(category) + '</span>';
+    }
+
+    if (bodyZone) {
+      chips += '<span class="exercise-knowledge-chip">' + escHTML(bodyZone) + '</span>';
+    }
+
+    if (priority) {
+      chips += '<span class="exercise-knowledge-chip">Prioridad ' + escHTML(priority) + '</span>';
+    }
+
+    chips += '</div>';
+  }
+
+  return (
+    '<div class="exercise-knowledge-guide" id="' + guideId + '">' +
+
+      '<button class="exercise-knowledge-toggle" onclick="toggleExerciseKnowledge(\'' + guideId + '\')">' +
+        '<span class="exercise-knowledge-toggle-left">' +
+          '<span class="exercise-knowledge-icon">i</span>' +
+          '<span class="exercise-knowledge-title">Guía técnica · ' + escHTML(title) + '</span>' +
+        '</span>' +
+        '<span class="exercise-knowledge-symbol">+</span>' +
+      '</button>' +
+
+      '<div class="exercise-knowledge-body">' +
+
+        (
+          summary
+            ? '<div class="exercise-knowledge-summary">' + escHTML(summary) + '</div>'
+            : ''
+        ) +
+
+        chips +
+
+        buildKnowledgeRow('Objetivo', ex.knowledge_main_goal) +
+        buildKnowledgeRow('Por qué va aquí', ex.knowledge_why_it_matters) +
+        buildKnowledgeRow('Técnica', ex.knowledge_technique_cues) +
+        buildKnowledgeRow('Respiración', ex.knowledge_breathing_cues) +
+        buildKnowledgeRow('Errores comunes', ex.knowledge_common_errors) +
+        buildKnowledgeRow('Seguridad', ex.knowledge_safety_notes) +
+        buildKnowledgeRow('Versión más fácil', ex.knowledge_regressions) +
+        buildKnowledgeRow('Progresión', ex.knowledge_progressions) +
+        buildKnowledgeRow('Coach', ex.knowledge_coach_notes) +
+
+      '</div>' +
+    '</div>'
+  );
 }
 
 function buildExerciseHTML(ex){
@@ -6355,6 +6846,8 @@ const variant = ex.client_variant || baseVariant;
       ex.client_coaching_note +
     '</div>';
 }
+
+  html += buildExerciseKnowledgeGuide(ex);
 
   html += buildExerciseVideoGuide(ex);
 
