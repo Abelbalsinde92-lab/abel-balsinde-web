@@ -3292,26 +3292,27 @@ if (pid) {
     .order('exercise_order', { ascending: true }),
 
   db
-  .from('v_client_training_display_knowledge')
-  .select('*')
-  .eq('client_id', clientId)
-  .order('week_order', { ascending: true })
-  .order('session_order', { ascending: true })
-  .order('block_order', { ascending: true })
-  .order('exercise_order', { ascending: true })
+    .from('v_client_training_display_knowledge')
+    .select('*')
+    .eq('client_id', clientId)
+    .order('week_order', { ascending: true })
+    .order('session_order', { ascending: true })
+    .order('block_order', { ascending: true })
+    .order('exercise_order', { ascending: true })
+]);
 
-  window.__AB_DEBUG_CLIENT__ = {
-    baseRows: baseR.data?.length || 0,
-    displayRows: displayR.data?.length || 0,
-    baseError: baseR.error || null,
-    displayError: displayR.error || null,
-    assignment: clientTrainingAssignment || null
-  };
+window.__AB_DEBUG_CLIENT__ = {
+  baseRows: baseR.data?.length || 0,
+  displayRows: displayR.data?.length || 0,
+  baseError: baseR.error || null,
+  displayError: displayR.error || null,
+  assignment: clientTrainingAssignment || null
+};
 
-  let baseRows = baseR.error ? [] : (baseR.data || []);
-  let displayRows = displayR.error ? [] : (displayR.data || []);
+let baseRows = baseR.error ? [] : (baseR.data || []);
+let displayRows = displayR.error ? [] : (displayR.data || []);
 
-  if (!displayR.error && displayRows.some(r => r.program_id)) {
+if (!displayR.error && displayRows.some(r => r.program_id)) {
   displayRows = displayRows.filter(r =>
     String(r.program_id) === String(pid)
   );
