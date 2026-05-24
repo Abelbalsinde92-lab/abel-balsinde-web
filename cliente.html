@@ -2068,6 +2068,7 @@ let completedTrainingBlocks  = new Set();
 let activeTrainingBlockKey   = null;
 let currentTrainingLog       = null;
 let clientSessionLogs        = [];
+let clientActiveTrainingAdaptations = [];
 let clientDailyCheckins      = [];
 let clientMobilityChain      = [];
 let clientMobilityDebug      = {
@@ -2887,6 +2888,7 @@ AB_LANG = (clientData.preferred_lang || 'es').toLowerCase();
   assignHistoryR,
   assR,
   logsR,
+  adaptR,
   checkinR,
   mobilityR
 ] = await Promise.all([
@@ -2902,6 +2904,10 @@ AB_LANG = (clientData.preferred_lang || 'es').toLowerCase();
   .order('created_at', { ascending: false }),
       db.from('client_assessments').select('*').eq('client_id', clientId).order('assessment_date', { ascending: false }),
       db.from('client_session_logs').select('*').eq('client_id', clientId).order('training_date', { ascending: false }),
+      db.from('training_session_adaptations')
+  .select('*')
+  .eq('client_id', clientId)
+  .order('created_at', { ascending: false }),
       db.from('client_daily_checkins')
         .select('*')
         .eq('client_id', clientId)
@@ -2922,7 +2928,43 @@ AB_LANG = (clientData.preferred_lang || 'es').toLowerCase();
   clientTrainingAssignment = assignR.data?.[0] || null;
   clientProgramAssignmentsHistory = assignHistoryR.data || [];
   clientAssessments = assR.data || [];
-    clientSessionLogs = logsR.data || [];
+clientSessionLogs = logsR.data || [];
+
+const activeProgramIdForAdaptations = clientTrainingAssignment?.program_id || null;
+
+clientActiveTrainingAdaptations = (adaptR.data || []).filter(a => {
+  const status = String(a.status || 'activo').toLowerCase();
+
+  const isActive =
+    status === 'activo' ||
+    status === 'active';
+
+  const notNormalized =
+    !a.normalized_at &&
+    status !== 'normalizado' &&
+    status !== 'normalized' &&
+    status !== 'cerrado' &&
+    status !== 'closed' &&
+    status !== 'inactivo' &&
+    status !== 'inactive';
+
+  const sameProgram =
+    !activeProgramIdForAdaptations ||
+    !a.program_id ||
+    String(a.program_id) === String(activeProgramIdForAdaptations);
+
+  const dateOk =
+    !a.applies_until ||
+    String(a.applies_until).slice(0, 10) >= todayISO();
+
+  const follows =
+    a.apply_to_following_sessions !== false;
+
+  return isActive && notNormalized && sameProgram && dateOk && follows;
+});
+
+console.log('AB Active Adaptations:', clientActiveTrainingAdaptations);
+
 clientDailyCheckins = checkinR.data || [];
 
 clientMobilityChain = mobilityR?.data || [];
@@ -4049,7 +4091,7 @@ function buildHomeProgressRings(){
   const constanciaNote = historicalFinishedCount > 0
     ? (
         lastFinishedDate
-          ? historicalFinishedCount + ' sesiones registradas · Última: ' + formatDate(lastFinishedDate)
+          ? 'Última: ' + formatDate(lastFinishedDate)
           : historicalFinishedCount + ' sesiones registradas'
       )
     : 'Sin sesiones cerradas todavía';
@@ -4862,7 +4904,7 @@ function showTrainingDay(sessionId) {
   const trainingRoot = document.getElementById('sectionTrainingClient');
 
   if (trainingRoot) {
-    const oldAdaptedCard = trainingRoot.querySelector('.training-collapsible-card.adjusted');
+    const oldAdaptedCard = trainingRoot.querySelector('#adaptedPlanCard');
 
     if (oldAdaptedCard) {
       const newCardHTML = buildClientAdaptedSessionCard(sessionId);
@@ -5341,6 +5383,94 @@ function buildClientAdaptedSessionCard(sessionId) {
   );
 }
 
+function getActiveProcessAdaptation() {
+  if (!Array.isArray(clientActiveTrainingAdaptations)) return null;
+
+  return clientActiveTrainingAdaptations.find(a => {
+    const status = String(a.status || 'activo').toLowerCase();
+
+    return (
+      status === 'activo' ||
+      status === 'active'
+    );
+  }) || null;
+}
+
+function buildActiveProcessAdaptationCard() {
+  const a = getActiveProcessAdaptation();
+
+  if (!a) return '';
+
+  const tags = Array.isArray(a.reason_tags)
+    ? a.reason_tags
+    : [];
+
+  const detailParts = [
+    a.volume_adjustment ? 'Volumen: ' + a.volume_adjustment : '',
+    a.impact_adjustment ? 'Impacto: ' + a.impact_adjustment : '',
+    a.load_adjustment ? 'Carga: ' + a.load_adjustment : '',
+    a.cardio_adjustment ? 'Cardio: ' + a.cardio_adjustment : '',
+    a.breathing_priority ? 'Respiración: ' + a.breathing_priority : ''
+  ].filter(Boolean);
+
+  const clientMessage =
+    getLang() === 'sr'
+      ? 'Nastavljamo sa kontrolisanim i progresivnim radom. Abel održava aktivna prilagođavanja radi tehnike, disanja, opterećenja i reakcije tela. Prilagođavanje ostaje aktivno dok trener ne odluči da se plan normalizuje.'
+      : 'Seguimos con un trabajo controlado y progresivo. Abel mantiene ajustes activos para cuidar la técnica, la respiración, la carga y la respuesta del cuerpo. La adaptación seguirá activa hasta que el coach decida normalizar el plan.';
+
+  return (
+    '<div class="training-collapsible-card adjusted" id="activeProcessAdaptationCard">' +
+
+      '<button class="training-collapsible-header" onclick="toggleTrainingCollapsible(\'activeProcessAdaptationCard\')">' +
+        '<div class="training-collapsible-info">' +
+          '<div class="training-collapsible-label">Adaptación activa</div>' +
+          '<div class="training-collapsible-title">Plan controlado</div>' +
+          '<div class="training-collapsible-sub">Toca para ver las indicaciones generales de continuidad.</div>' +
+
+          '<div class="training-difficulty-pill medium">' +
+            '<span class="training-difficulty-dot"></span>' +
+            '<span>Seguimiento activo</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="training-collapsible-icon">+</div>' +
+      '</button>' +
+
+      '<div class="training-collapsible-body">' +
+
+        '<div class="training-adapted-message" style="margin-top:14px;">' +
+          clientMessage +
+        '</div>' +
+
+        (
+          detailParts.length
+            ? '<div class="training-adapted-summary" style="margin-top:10px;">' +
+                detailParts.map(escHTML).join(' · ') +
+              '</div>'
+            : ''
+        ) +
+
+        (
+          a.adaptation_summary
+            ? '<div class="training-client-note" style="margin-top:10px;">' +
+                '<strong>Resumen del coach</strong>' +
+                escHTML(a.adaptation_summary) +
+              '</div>'
+            : ''
+        ) +
+
+        (
+          tags.length
+            ? '<div class="training-adapted-summary" style="margin-top:10px;">' +
+                tags.map(escHTML).join(' · ') +
+              '</div>'
+            : ''
+        ) +
+
+      '</div>' +
+    '</div>'
+  );
+}
+
 function buildClientMobilityBlock(sessionId) {
   if (!clientMobilityChain || !clientMobilityChain.length) return '';
 
@@ -5610,7 +5740,8 @@ currentTrainingLog = null;
     '</div>';
 
   html += buildClientAdaptedSessionCard(initialActiveSessionId);
-  html += buildClientMobilityBlock(initialActiveSessionId);
+html += buildActiveProcessAdaptationCard();
+html += buildClientMobilityBlock(initialActiveSessionId);
 
   html += '<div class="training-day-tabs">';
 
