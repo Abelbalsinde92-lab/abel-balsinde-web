@@ -6459,19 +6459,6 @@ function toggleExerciseVideo(id) {
   }
 }
 
-function toggleExerciseKnowledge(id) {
-  const card = document.getElementById(id);
-  if (!card) return;
-
-  card.classList.toggle('open');
-
-  const symbol = card.querySelector('.exercise-knowledge-symbol');
-
-  if (symbol) {
-    symbol.textContent = card.classList.contains('open') ? '−' : '+';
-  }
-}
-
 function buildExerciseKnowledgeGuide(ex) {
   const hasKnowledge =
     ex.knowledge_title ||
