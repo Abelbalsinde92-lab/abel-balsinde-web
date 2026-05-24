@@ -2623,7 +2623,7 @@ function getLumbarFrontendFallback(r){
 
   if(name.includes('swing') || name.includes('kettlebell')){
     return {
-      final:'Puente de cadera en fitball',
+      final:'Puente de cadera controlado',
       coach:'Evitar bisagra explosiva y sustituir por extensión de cadera controlada sin impacto lumbar.',
       cliente:'Hoy evitamos movimientos explosivos de cadera y usamos una variante más segura y controlada.',
       riesgo:'medio'
@@ -2654,28 +2654,93 @@ function getLumbarFrontendFallback(r){
 function applyLumbarFrontendFallback(rows, pathology){
   if(pathology !== 'dolor_lumbar') return rows || [];
 
+  const usedFinalNames = new Set();
+
   return (rows || []).map(r => {
+
     const estado = String(r.estado_ejercicio || '').toLowerCase();
 
-    // Si Supabase ya trae sustitución real, la respetamos
+    // Si Supabase ya hizo sustitución real → respetar
     if(estado === 'sustituido') return r;
 
     const fb = getLumbarFrontendFallback(r);
 
     if(!fb) return r;
 
+    // Evitar repetir exactamente el mismo ejercicio adaptado
+    let finalName = fb.final;
+
+    if(usedFinalNames.has(finalName)){
+      finalName = finalName + ' · Variante';
+    }
+
+    usedFinalNames.add(finalName);
+
     return {
       ...r,
+
+      // SOLO campos mínimos
       estado_ejercicio:'sustituido',
-      ejercicio_original: r.ejercicio_original || r.ejercicio_final || '',
-      ejercicio_final: fb.final,
-      explicacion_breve_coach: fb.coach,
-      explicacion_cliente: fb.cliente,
-      nivel_riesgo: fb.riesgo,
-      video_sustituto: r.video_sustituto || '',
+
+      ejercicio_original:
+        r.ejercicio_original ||
+        r.ejercicio_final ||
+        r.name ||
+        '',
+
+      ejercicio_final: finalName,
+
+      // Mantener estructura original
+      why_text:
+        r.why_text ||
+        r.description ||
+        '',
+
+      technique_text:
+        r.technique_text ||
+        '',
+
+      breathing_text:
+        r.breathing_text ||
+        '',
+
+      coaching_notes:
+        r.coaching_notes ||
+        fb.coach,
+
+      explicacion_breve_coach:
+        r.explicacion_breve_coach ||
+        fb.coach,
+
+      explicacion_cliente:
+        r.explicacion_cliente ||
+        fb.cliente,
+
+      nivel_riesgo:
+        r.nivel_riesgo ||
+        fb.riesgo,
+
+      // IMPORTANTÍSIMO:
+      // NO borrar variantes ni datos originales
+      variant_n1: r.variant_n1,
+      variant_n2: r.variant_n2,
+      variant_n3: r.variant_n3,
+      variant_n4: r.variant_n4,
+
+      sets: r.sets,
+      reps: r.reps,
+      duration: r.duration,
+      rest: r.rest,
+      tempo: r.tempo,
+
+      video_url:
+        r.video_sustituto ||
+        r.video_url ||
+        '',
+
       mensaje_cliente_whatsapp:
         r.mensaje_cliente_whatsapp ||
-        'Durante los próximos días vamos a trabajar con un enfoque más técnico y controlado para cuidar la zona lumbar. Mantendremos el entrenamiento activo, pero ajustando los ejercicios que puedan cargar demasiado la espalda baja.'
+        'Durante los próximos días vamos a trabajar con una adaptación temporal enfocada en control técnico, estabilidad y reducción de carga lumbar.'
     };
   });
 }
