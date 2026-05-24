@@ -2579,6 +2579,107 @@ function getAssignmentSessionNumber(a){
   );
 }
 
+function getLumbarFrontendFallback(r){
+  const name = cleanTxt(r.ejercicio_original || r.ejercicio_final || '');
+
+  if(!name) return null;
+
+  // No sustituir textos organizativos del circuito
+  if(
+    name.includes('rondas') ||
+    name.includes('circuito') ||
+    name.includes('round') ||
+    name.includes('bloque')
+  ){
+    return null;
+  }
+
+  if(name.includes('plancha')){
+    return {
+      final:'Dead bug controlado',
+      coach:'Sustituir plancha por dead bug para reducir carga lumbar directa y trabajar control lumbopélvico.',
+      cliente:'Hoy usamos una variante más controlada para proteger la zona lumbar y mantener el trabajo de core.',
+      riesgo:'medio'
+    };
+  }
+
+  if(name.includes('lagartija') || name.includes('flexion') || name.includes('push up')){
+    return {
+      final:'Lagartija inclinada con apoyo alto',
+      coach:'Usar apoyo elevado, abdomen activo y pelvis neutra. Evitar que la zona lumbar se hunda.',
+      cliente:'Mantenemos el trabajo de empuje, pero con una posición más estable para cuidar la espalda baja.',
+      riesgo:'bajo'
+    };
+  }
+
+  if(name.includes('remo')){
+    return {
+      final:'Remo con liga sentado o con apoyo estable',
+      coach:'Mantener columna neutra, evitar tirones y controlar respiración. Priorizar control escapular.',
+      cliente:'Mantenemos el trabajo de espalda, pero con una posición más estable y segura para la zona lumbar.',
+      riesgo:'bajo'
+    };
+  }
+
+  if(name.includes('swing') || name.includes('kettlebell')){
+    return {
+      final:'Puente de cadera en fitball',
+      coach:'Evitar bisagra explosiva y sustituir por extensión de cadera controlada sin impacto lumbar.',
+      cliente:'Hoy evitamos movimientos explosivos de cadera y usamos una variante más segura y controlada.',
+      riesgo:'medio'
+    };
+  }
+
+  if(name.includes('burpee') || name.includes('salto') || name.includes('jump')){
+    return {
+      final:'Step up bajo controlado',
+      coach:'Reducir impacto y flexo-extensión rápida de columna. Mantener trabajo cardiovascular con menor carga lumbar.',
+      cliente:'Cambiamos el ejercicio por una opción más controlada, manteniendo intensidad sin impacto lumbar.',
+      riesgo:'medio'
+    };
+  }
+
+  if(name.includes('mountain') || name.includes('escalador')){
+    return {
+      final:'Marcha de rodillas controlada en apoyo alto',
+      coach:'Elevar manos en banco o soporte, controlar pelvis y evitar flexión lumbar repetida.',
+      cliente:'Usamos una variante más estable para activar core sin castigar la zona lumbar.',
+      riesgo:'medio'
+    };
+  }
+
+  return null;
+}
+
+function applyLumbarFrontendFallback(rows, pathology){
+  if(pathology !== 'dolor_lumbar') return rows || [];
+
+  return (rows || []).map(r => {
+    const estado = String(r.estado_ejercicio || '').toLowerCase();
+
+    // Si Supabase ya trae sustitución real, la respetamos
+    if(estado === 'sustituido') return r;
+
+    const fb = getLumbarFrontendFallback(r);
+
+    if(!fb) return r;
+
+    return {
+      ...r,
+      estado_ejercicio:'sustituido',
+      ejercicio_original: r.ejercicio_original || r.ejercicio_final || '',
+      ejercicio_final: fb.final,
+      explicacion_breve_coach: fb.coach,
+      explicacion_cliente: fb.cliente,
+      nivel_riesgo: fb.riesgo,
+      video_sustituto: r.video_sustituto || '',
+      mensaje_cliente_whatsapp:
+        r.mensaje_cliente_whatsapp ||
+        'Durante los próximos días vamos a trabajar con un enfoque más técnico y controlado para cuidar la zona lumbar. Mantendremos el entrenamiento activo, pero ajustando los ejercicios que puedan cargar demasiado la espalda baja.'
+    };
+  });
+}
+
 async function getAdaptedRowsForClient(c){
   const plan = getWorkoutPlanForClient(c);
   const assignment = plan.assignment;
@@ -2596,7 +2697,8 @@ async function getAdaptedRowsForClient(c){
   const semana = getAssignmentWeek(assignment);
   const sesion = getAssignmentSessionNumber(assignment);
 
-  const cacheKey = `${assignment.id}__${pathology}__${semana}__${sesion}`;
+  // Cache nueva para evitar que use datos viejos normales
+  const cacheKey = `${assignment.id}__${pathology}__${semana}__${sesion}__fb_lumbar_v2`;
 
   if(!state.adaptedTrainingCache) state.adaptedTrainingCache = {};
 
@@ -2644,10 +2746,12 @@ async function getAdaptedRowsForClient(c){
     return { rows:null, pathology:null, plan };
   }
 
-  state.adaptedTrainingCache[cacheKey] = data || [];
+  const adaptedRows = applyLumbarFrontendFallback(data || [], pathology);
+
+  state.adaptedTrainingCache[cacheKey] = adaptedRows;
 
   return {
-    rows: data || [],
+    rows: adaptedRows,
     pathology,
     plan
   };
