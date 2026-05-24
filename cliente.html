@@ -2917,37 +2917,53 @@ if (pid) {
 
   const scope = getAssignmentScope();
 
-  function applyScopeFilter(list) {
-    if (scope === 'day') {
-      const aw = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
-      const as = Number(clientTrainingAssignment?.assigned_session_number || 1);
+function getVisibleAssignmentWeek() {
+  return Number(
+    clientTrainingAssignment?.assigned_week ||
+    clientTrainingAssignment?.current_week ||
+    1
+  );
+}
 
-      return list.filter(r =>
-        Number(r.week_order) === aw &&
-        Number(r.session_order) === as
-      );
-    }
+function applyScopeFilter(list) {
+  const visibleWeek = getVisibleAssignmentWeek();
 
-    if (scope === 'week') {
-      const aw = Number(clientTrainingAssignment?.assigned_week || clientTrainingAssignment?.current_week || 1);
+  if (scope === 'day') {
+    const as = Number(clientTrainingAssignment?.assigned_session_number || 1);
 
-      return list.filter(r =>
-        Number(r.week_order) === aw
-      );
-    }
-
-    if (scope === 'month') {
-      const am = Number(clientTrainingAssignment?.assigned_month || 1);
-      const sw = (am - 1) * 4 + 1;
-
-      return list.filter(r =>
-        Number(r.week_order) >= sw &&
-        Number(r.week_order) <= sw + 3
-      );
-    }
-
-    return list;
+    return list.filter(r =>
+      Number(r.week_order) === visibleWeek &&
+      Number(r.session_order) === as
+    );
   }
+
+  if (scope === 'week') {
+    return list.filter(r =>
+      Number(r.week_order) === visibleWeek
+    );
+  }
+
+  if (scope === 'month') {
+    const am = Number(clientTrainingAssignment?.assigned_month || 1);
+    const sw = (am - 1) * 4 + 1;
+
+    return list.filter(r =>
+      Number(r.week_order) >= sw &&
+      Number(r.week_order) <= sw + 3
+    );
+  }
+
+  // IMPORTANTE:
+  // Aunque el alcance sea full, la vista inicial del cliente debe abrir
+  // la semana actual asignada por el admin, no volver a Semana 1.
+  if (scope === 'full') {
+    return list.filter(r =>
+      Number(r.week_order) === visibleWeek
+    );
+  }
+
+  return list;
+}
 
   baseRows = applyScopeFilter(baseRows);
   displayRows = applyScopeFilter(displayRows);
@@ -4873,7 +4889,11 @@ function buildTrainingSteps(sessionIdFilter){
 function getActiveTrainingWeek(){
   if(!clientTrainingAssignment) return null;
 
-  const currentWeek = Number(clientTrainingAssignment?.current_week || 1);
+  const currentWeek = Number(
+    clientTrainingAssignment?.assigned_week ||
+    clientTrainingAssignment?.current_week ||
+    1
+  );
 
   return clientTrainingWeeks.find(w => Number(w.week_number) === currentWeek) ||
          clientTrainingWeeks[0] ||
