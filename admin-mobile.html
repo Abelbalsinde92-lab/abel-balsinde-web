@@ -982,14 +982,14 @@ function buildSessionCard(r){
       </div>
     </div>
     ${ciNote}
-    <div class="sc-acts">
-      ${c?.id?`<button class="btn ${done?'btn-g':'btn-s'} btn-sm" ...>`:''}
-      ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
+        <div class="sc-acts">
+      ${c?.id ? `<button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}','${r.id}')">Entrenar</button>` : ''}
+      ${c?.id ? `<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>` : ''}
       <button class="btn btn-s btn-sm" onclick="openModal('reservation','${r.id}')">Editar</button>
-      ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>`:''}
-      ${status!=='realizada'?`<button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Hecha</button>`:''}
-      ${status==='reservada'?`<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>`:''}
-      ${status!=='cancelada'&&status!=='realizada'?`<button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>`:''}
+      ${c?.phone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>` : ''}
+      ${status !== 'realizada' ? `<button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Hecha</button>` : ''}
+      ${status === 'reservada' ? `<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>` : ''}
+      ${status !== 'cancelada' && status !== 'realizada' ? `<button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>` : ''}
     </div>
   </div>`;
 }
@@ -2454,7 +2454,7 @@ function buildActiveSingleExerciseScreen(c,plan,block){
       </div>
       <div class="ex-actions">
         ${videoUrl?`<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`:''}
-        <button class="btn btn-p btn-sm" onclick="completeActiveExercise('${c.id}','${block.id}','${exId}')">Terminado</button>('${c.id}','${block.id}','${exId}')">Terminado</button>
+      <button class="btn btn-p btn-sm" onclick="completeActiveExercise('${c.id}','${block.id}','${exId}')">Terminado</button>
       </div>
     </div>`;
 }
