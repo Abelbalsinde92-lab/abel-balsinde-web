@@ -396,6 +396,180 @@ a{text-decoration:none;color:inherit}
   align-items: baseline;
   gap: 6px;
 }
+
+<style>
+/* ════════════════════════════════════════════════════════
+   AB FIELD · VISUAL OVERRIDE v3
+   MOBILE OPERATIVO · SALA + EXTERIOR
+   Solo visual, cero JS
+══════════════════════════════════════════════════════════ */
+
+/* ── 1. TOKENS BASE ── */
+:root {
+  --bg: #050507;
+  --card: #111114;
+  --card-border: #2A2A32;
+  --divider: #1C1C22;
+  --text: #FFFFFF;
+  --text-2: #B4B4BE;
+  --sport: #00E5FF;
+  --medical: #FF3B3B;
+  --streak: #00FF88;
+  --warn: #FFC02E;
+  --touch: 60px;
+  --r: 18px;
+  font-size: 18px;
+  --font-d: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  --font-m: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* MODO EXTERIOR AUTOMÁTICO */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #FFFFFF;
+    --card: #F6F7F9;
+    --card-border: #D1D5DB;
+    --divider: #E5E7EB;
+    --text: #000000;
+    --text-2: #4B5563;
+    --sport: #007AFF;
+    --medical: #D70015;
+    --streak: #008A3C;
+    --warn: #B05A00;
+  }
+}
+
+/* Alto contraste sistema */
+@media (prefers-contrast: high) {
+  :root {
+    --card-border: #FFFFFF;
+    --text-2: #FFFFFF;
+  }
+}
+
+/* ── 2. TIPOGRAFÍA ── */
+.scr-t {
+  font-size: 2.4rem;
+  letter-spacing: .01em;
+  line-height: .95;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35);
+}
+.scr-eye {
+  font-size: .68rem;
+  letter-spacing: .24em;
+  color: var(--sport);
+  margin-bottom: 6px;
+  font-weight: 800;
+}
+
+/* ── 3. CARD SESIÓN HOY ── */
+.sc {
+  background: var(--card);
+  border: 2px solid var(--card-border);
+  border-radius: var(--r);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.sc.urg { border-left: 5px solid var(--medical); }
+.sc.wrn { border-left: 5px solid var(--warn); }
+.sc.ok  { border-left: 5px solid var(--streak); }
+
+.sc-top { padding: 16px 18px 12px; gap: 14px; }
+
+.sc-time {
+  font-family: var(--font-d);
+  font-size: 2.8rem;
+  color: var(--sport);
+  line-height: 1;
+  min-width: 92px;
+  font-weight: 900;
+}
+@media (prefers-color-scheme: light) {
+  .sc-time { font-size: 3.2rem; color: var(--text); }
+}
+
+.sc-name { font-size: 1.15rem; font-weight: 900; letter-spacing: -.01em; }
+.sc-meta { font-size: .8rem; color: var(--text-2); margin-top: 4px; line-height: 1.4; font-weight: 500; }
+
+/* Acciones */
+.sc-acts { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px 14px; border-top: 2px solid var(--divider); }
+.sc-acts .btn-entrenar-primary {
+  width: 100%; min-height: 64px; font-size: .85rem; letter-spacing: .14em;
+  background: var(--sport); color: #000; border-radius: 12px; font-weight: 900;
+}
+@media (prefers-color-scheme: light) {
+  .sc-acts .btn-entrenar-primary { background: var(--text); color: #FFF; }
+}
+.sc-acts-secondary { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.sc-acts-secondary::-webkit-scrollbar { display: none; }
+.sc-acts-secondary .btn { min-height: 48px; padding: 0 14px; font-size: .65rem; border-radius: 10px; flex-shrink: 0; font-weight: 800; }
+
+/* ── 4. WORKOUT ── */
+.ex-main { padding: 16px 18px 14px; }
+.ex-num { width: 36px; height: 36px; border-radius: 11px; background: var(--sport); color: #000; font-size: .78rem; font-weight: 900; border: none; }
+.ex-title { font-weight: 900; font-size: 1.15rem; line-height: 1.2; }
+.ex-dose { font-family: var(--font-m); font-size: .78rem; color: var(--sport); margin-top: 6px; letter-spacing: .05em; font-weight: 700; }
+
+.ex-actions { display: flex; gap: 10px; padding: 12px 14px 14px; border-top: 2px solid var(--divider); }
+.ex-actions .btn-done-primary, .ex-actions .btn-done-done {
+  flex: 1; min-height: 60px; border-radius: 12px; font-size: .78rem; letter-spacing: .1em; font-weight: 900;
+}
+.ex-actions .btn-done-primary { background: var(--streak); color: #000; border: 2px solid var(--streak); }
+.ex-actions .btn-done-done { background: transparent; color: var(--streak); border: 2px solid var(--streak); }
+
+.ex-card.done { border-color: var(--streak); opacity: .72; }
+.ex-card.done .ex-title { text-decoration: line-through; text-decoration-thickness: 2px; }
+
+/* ── 5. TIMER ── */
+.wt-clock { font-family: var(--font-d); font-size: 3.4rem; letter-spacing: .04em; text-align: center; color: var(--text); margin-bottom: 12px; line-height: 1; font-weight: 900; }
+@media (prefers-color-scheme: light) { .wt-clock { font-size: 4rem; } }
+
+.wt-phase { font-size: .78rem; letter-spacing: .18em; padding: 8px 14px; border-radius: 10px; margin-bottom: 12px; font-weight: 900; }
+.wt-phase.work { background: var(--streak); color: #000; }
+.wt-phase.rest { background: var(--warn); color: #000; }
+.wt-phase.done { background: var(--sport); color: #000; }
+
+.wt-timer-actions .btn { min-height: 56px; font-size: .75rem; }
+
+/* ── 6. BLOQUES ── */
+.block-progress-bar { margin-top: 10px; height: 6px; background: var(--divider); border-radius: 3px; overflow: hidden; }
+.block-progress-fill { height: 100%; border-radius: 3px; }
+.block-closed-title { font-size: 1.2rem; font-family: var(--font-d); font-weight: 900; }
+.block-closed-sub { font-size: .7rem; letter-spacing: .08em; color: var(--text-2); margin-top: 4px; text-transform: uppercase; font-weight: 700; }
+.block-closed-action { font-size: .68rem; min-height: 48px; padding: 0 16px; border-radius: 11px; font-weight: 800; }
+
+/* ── 7. HEADER WORKOUT ── */
+.wt-name { font-weight: 900; font-size: 1.2rem; }
+.wt-program { font-family: var(--font-m); color: var(--sport); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; margin-top: 4px; font-weight: 800; }
+.client-photo { border: 2px solid var(--sport); width: 44px; height: 44px; }
+
+/* ── 8. MÉTRICAS ── */
+.mc-n { font-size: 1.9rem; font-weight: 900; }
+.mc-l { font-size: .5rem; letter-spacing: .12em; font-weight: 800; }
+.mc { border-right: 2px solid var(--card-border); }
+
+/* ── 9. NAV Y BOTONES ── */
+.wrap { padding-bottom: calc(80px + env(safe-area-inset-bottom)); scroll-behavior: smooth; }
+.tab { min-height: 68px; padding-bottom: env(safe-area-inset-bottom); }
+.tab-l { font-size: .6rem; letter-spacing: .08em; font-weight: 800; }
+.tab-i { font-size: 1.45rem; }
+
+.btn { min-height: var(--touch); letter-spacing: .08em; border-radius: 12px; font-size: .7rem; font-weight: 900; }
+.btn-sm { min-height: 48px; padding: 0 16px; font-size: .68rem; }
+.btn:active { opacity: .7; transform: scale(.94); }
+
+/* ── 10. BADGES Y OTROS ── */
+.b { padding: 5px 11px; border-radius: 8px; font-size: .62rem; letter-spacing: .08em; font-weight: 800; }
+.toast { font-size: 1.02rem; font-weight: 800; padding: 16px 22px; border-radius: 14px; }
+.search { min-height: 56px; border-radius: 14px; border: 2px solid var(--card-border); }
+.search input { font-size: 1.1rem; font-weight: 600; }
+.fp { min-height: 46px; padding: 0 18px; font-size: .68rem; border-radius: 999px; font-weight: 800; border-width: 2px; }
+
+/* ── 11. REDUCIR ANIMACIÓN EN EXTERIOR ── */
+@media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+}
 </style>
 </head>
 <body>
