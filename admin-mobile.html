@@ -666,6 +666,41 @@ function roundedTime(){
   return`${String(h%24).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
 }
 
+function sortReservationsLocal(){
+  state.todayRes.sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
+  state.futureRes.sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare(String((b.date||'')+(b.time||''))));
+  state.pastRes.sort((a,b)=>String((b.date||'')+(b.time||'')).localeCompare(String((a.date||'')+(a.time||''))));
+  state.allRes=[...state.todayRes,...state.futureRes,...state.pastRes];
+}
+
+function replaceReservationLocal(row){
+  if(!row || !row.id)return;
+
+  const id=String(row.id);
+
+  state.todayRes=state.todayRes.filter(r=>String(r.id)!==id);
+  state.futureRes=state.futureRes.filter(r=>String(r.id)!==id);
+  state.pastRes=state.pastRes.filter(r=>String(r.id)!==id);
+
+  const today=todayISO();
+  const date=String(row.date||'');
+
+  if(date===today)state.todayRes.push(row);
+  else if(date>today)state.futureRes.push(row);
+  else state.pastRes.push(row);
+
+  sortReservationsLocal();
+}
+
+function patchReservationLocal(id,patch){
+  const old=reservationById(id);
+  if(!old)return null;
+
+  const updated={...old,...patch};
+  replaceReservationLocal(updated);
+  return updated;
+}
+
 function reservationById(id){
   if(!id)return{};
   return[...state.todayRes,...state.futureRes,...state.pastRes].find(r=>String(r.id)===String(id))||{};
@@ -995,24 +1030,47 @@ function buildSessionCard(r){
 }
 
 async function updateResStatus(id,status){
+  const current=reservationById(id);
+
+  if(!current){
+    showToast('Reserva no encontrada','err');
+    return;
+  }
+
   try{
-    const{data,error}=await db.from('reservations').update({status}).eq('id',id).select().single();
+    const {error}=await db
+      .from('reservations')
+      .update({status})
+      .eq('id',id);
+
     if(error)throw error;
-    const upd=snakeToCamel(data);
-    state.todayRes=state.todayRes.filter(r=>String(r.id)!==String(upd.id));
-    state.futureRes=state.futureRes.filter(r=>String(r.id)!==String(upd.id));
-    state.pastRes=state.pastRes.filter(r=>String(r.id)!==String(upd.id));
-    const today=todayISO();
-    if(upd.date===today)state.todayRes.push(upd);
-    else if(upd.date>today)state.futureRes.push(upd);
-    else state.pastRes.push(upd);
-    state.todayRes.sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
-    state.futureRes.sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare(String((b.date||'')+(b.time||''))));
-    state.pastRes.sort((a,b)=>String((b.date||'')+(b.time||'')).localeCompare(String((a.date||'')+(a.time||''))));
-    state.allRes=[...state.todayRes,...state.futureRes,...state.pastRes];
-    renderScr(currentScr);
-    showToast(status==='realizada'?'✓ Marcada como realizada':'Reserva actualizada','ok');
-  }catch(err){console.error(err);showToast('Error actualizando','err')}
+
+    patchReservationLocal(id,{status});
+
+    renderAll();
+
+    const msg={
+      realizada:'✓ Marcada como realizada',
+      confirmada:'Sesión confirmada',
+      cancelada:'Sesión cancelada',
+      reservada:'Sesión reservada'
+    }[status] || 'Reserva actualizada';
+
+    showToast(msg,'ok');
+
+  }catch(err){
+    console.error('updateResStatus error:',{
+      id,
+      status,
+      message:err?.message,
+      details:err?.details,
+      hint:err?.hint,
+      code:err?.code,
+      raw:err
+    });
+
+    showToast('Error reserva: '+(err?.message||'no se pudo actualizar'),'err');
+  }
 }
 </script>
 
@@ -3162,40 +3220,184 @@ state.currentAdaptedRows = [];
   box.innerHTML=buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,note);
 }
 
+function pickPayload(obj,keys){
+  const out={};
+
+  keys.forEach(k=>{
+    if(obj[k]!==undefined)out[k]=obj[k];
+  });
+
+  return out;
+}
+
+async function insertSessionLogSafe(payload){
+  const attempts=[
+    payload,
+
+    pickPayload(payload,[
+      'id',
+      'client_id',
+      'assignment_id',
+      'session_id',
+      'program_id',
+      'week_id',
+      'status',
+      'training_date',
+      'coach_note',
+      'updated_at'
+    ]),
+
+    pickPayload(payload,[
+      'id',
+      'client_id',
+      'assignment_id',
+      'session_id',
+      'status',
+      'training_date',
+      'coach_note'
+    ]),
+
+    pickPayload(payload,[
+      'id',
+      'client_id',
+      'status',
+      'coach_note'
+    ])
+  ];
+
+  let lastError=null;
+
+  for(const p of attempts){
+    try{
+      const {error}=await db
+        .from('client_session_logs')
+        .insert(p);
+
+      if(!error)return snakeToCamel(p);
+
+      lastError=error;
+      console.warn('Intento client_session_logs fallido:',error,p);
+
+    }catch(e){
+      lastError=e;
+      console.warn('Intento client_session_logs exception:',e,p);
+    }
+  }
+
+  throw lastError;
+}
+
 async function finishWorkout(clientId){
-  const c=clientById(clientId);if(!c){showToast('Cliente no encontrado','err');return}
+  const c=clientById(clientId);
+
+  if(!c){
+    showToast('Cliente no encontrado','err');
+    return;
+  }
+
   const note=state.workoutNotes[clientId]||'';
-  const normalCompletedKeys = Object.keys(state.workoutChecks || {})
-  .filter(k => k.startsWith(clientId + '__') && state.workoutChecks[k]);
 
-const adaptedCompletedKeys = Object.keys(state.adaptedWorkoutChecks || {})
-  .filter(k => k.startsWith(clientId + '__adapted__') && state.adaptedWorkoutChecks[k]);
+  const normalCompletedKeys=Object.keys(state.workoutChecks||{})
+    .filter(k=>k.startsWith(clientId+'__')&&state.workoutChecks[k]);
 
-const completedKeys = [...normalCompletedKeys, ...adaptedCompletedKeys];
+  const adaptedCompletedKeys=Object.keys(state.adaptedWorkoutChecks||{})
+    .filter(k=>k.startsWith(clientId+'__adapted__')&&state.adaptedWorkoutChecks[k]);
+
+  const completedKeys=[...normalCompletedKeys,...adaptedCompletedKeys];
+
+  const plan=getWorkoutPlanForClient(c);
+  const now=new Date().toISOString();
+
+  const coachNote=`Duración: ${formatClock(state.workoutTimer.seconds)}.
+Ejercicios marcados: ${completedKeys.length}.
+Observaciones: ${note||'Sin observaciones.'}`;
+
+  let savedInLogs=false;
+
   try{
-    const plan=getWorkoutPlanForClient(c);const now=new Date().toISOString();
-    const payload={id:uid(),client_id:clientId,assignment_id:plan.assignment?.id||null,session_id:plan.sessions?.[0]?.id||null,status:'realizada',completed_at:now,client_note:null,coach_note:`Duración: ${formatClock(state.workoutTimer.seconds)}.\nEjercicios marcados: ${completedKeys.length}.\nObservaciones: ${note||'Sin observaciones.'}`,program_id:plan.program?.id||null,week_id:plan.week?.id||null,training_date:todayISO(),completed_block_ids:[],is_finished:true,started_at:null,updated_at:now,finished_at:now};
-    const{data:savedLog,error}=await db.from('client_session_logs').insert(payload).select().single();
-    if(error)throw error;
-    state.sessionLogs.unshift(snakeToCamel(savedLog));
+    const payload={
+      id:uid(),
+      client_id:clientId,
+      assignment_id:plan.assignment?.id||null,
+      session_id:plan.sessions?.[0]?.id||null,
+      status:'realizada',
+      completed_at:now,
+      client_note:null,
+      coach_note:coachNote,
+      program_id:plan.program?.id||null,
+      week_id:plan.week?.id||null,
+      training_date:todayISO(),
+      completed_block_ids:[],
+      is_finished:true,
+      started_at:null,
+      updated_at:now,
+      finished_at:now
+    };
+
+    const savedLog=await insertSessionLogSafe(payload);
+    state.sessionLogs.unshift(savedLog);
+    savedInLogs=true;
+
     showToast('Sesión guardada ✓','ok');
+
   }catch(err){
-    console.warn('client_session_logs fallback:',err);
+    console.warn('client_session_logs fallback:',{
+      message:err?.message,
+      details:err?.details,
+      hint:err?.hint,
+      code:err?.code,
+      raw:err
+    });
+
     try{
       const notes=Array.isArray(c.notes)?c.notes:[];
-      notes.unshift({id:uid(),date:todayISO(),text:`Sesión registrada desde AB Field.\nDuración: ${formatClock(state.workoutTimer.seconds)}.\nEjercicios marcados: ${completedKeys.length}.\nObservaciones: ${note||'Sin observaciones.'}`});
-      const{data:saved,error}=await db.from('clients').update({notes}).eq('id',clientId).select().single();
+
+      notes.unshift({
+        id:uid(),
+        date:todayISO(),
+        text:`Sesión registrada desde AB Field.
+${coachNote}`
+      });
+
+      const {data:saved,error}=await db
+        .from('clients')
+        .update({notes})
+        .eq('id',clientId)
+        .select()
+        .single();
+
       if(error)throw error;
-      Object.assign(c,snakeToCamel(saved));showToast('Sesión guardada como nota ✓','ok');
-    }catch(e){console.error(e);showToast('No se pudo guardar la sesión','err');return}
+
+      Object.assign(c,snakeToCamel(saved));
+
+      showToast('Sesión guardada como nota ✓','ok');
+
+    }catch(e){
+      console.error('finishWorkout fallback error:',e);
+      showToast('No se pudo guardar la sesión','err');
+      return;
+    }
   }
+
   pauseWorkoutTimer();
+
   if(state.activeWorkoutReservationId){
     try{
-      await db.from('reservations').update({status:'realizada'}).eq('id',state.activeWorkoutReservationId);
-      const r=reservationById(state.activeWorkoutReservationId);if(r)r.status='realizada';
-    }catch(e){console.warn('No se pudo marcar reserva realizada:',e)}
+      const {error}=await db
+        .from('reservations')
+        .update({status:'realizada'})
+        .eq('id',state.activeWorkoutReservationId);
+
+      if(error)throw error;
+
+      patchReservationLocal(state.activeWorkoutReservationId,{status:'realizada'});
+
+    }catch(e){
+      console.warn('No se pudo marcar reserva realizada:',e);
+      showToast('Sesión guardada, pero no se actualizó la reserva','err');
+    }
   }
+
   renderAll();
 }
 </script>
