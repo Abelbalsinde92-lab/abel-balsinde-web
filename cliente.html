@@ -1758,78 +1758,6 @@ input, textarea { outline: none; font-family: var(--font-body); }
   line-height: 1.6;
 }
 
-/* ═══ AB SYSTEM — LOGO FINAL PANEL CLIENTE ═══ */
-
-.dash-header {
-  min-height: 72px !important;
-  height: 72px !important;
-  padding: 0 24px !important;
-}
-
-.brand-logo-header {
-  width: 72px !important;
-  height: auto !important;
-  max-height: 46px !important;
-  border-radius: 0 !important;
-  object-fit: contain !important;
-}
-
-.brand-logo-login {
-  width: 110px !important;
-  height: auto !important;
-  max-height: 80px !important;
-  border-radius: 0 !important;
-  object-fit: contain !important;
-}
-
-.client-nav {
-  top: 72px !important;
-}
-
-@media (max-width: 480px) {
-  .dash-header {
-    min-height: 74px !important;
-    height: 74px !important;
-    padding: 0 28px !important;
-  }
-
-  .brand-logo-header {
-    width: 78px !important;
-    height: auto !important;
-    max-height: 48px !important;
-  }
-
-  .brand-logo-login {
-    width: 112px !important;
-    height: auto !important;
-    max-height: 82px !important;
-  }
-
-  .client-nav {
-    top: 74px !important;
-  }
-}
-
-/* FIX LOGO HEADER MÓVIL — AB */
-@media (max-width: 480px) {
-
-  .dash-header{
-    height: 82px !important;
-    padding: 0 18px !important;
-  }
-
-  .brand-logo-header{
-    width: 84px !important;
-    height: auto !important;
-    object-fit: contain !important;
-  }
-
-  .client-nav{
-    top: 82px !important;
-  }
-
-}
-
 .metric-edit-card {
   cursor: pointer;
   transition: border-color .15s, background .15s, transform .08s;
@@ -2169,6 +2097,66 @@ input, textarea { outline: none; font-family: var(--font-body); }
   font-size: 12px;
   line-height: 1.65;
 }
+
+/* ═══ HEADER + NAV — FUENTE ÚNICA DE VERDAD ═══════════════
+   Sin !important. Sin conflictos. Una sola definición.
+══════════════════════════════════════════════════════════ */
+
+.dash-header {
+  height: 68px;
+  min-height: 68px;
+  padding: 0 20px;
+  background: rgba(0,0,0,.96);
+  border-bottom: 1px solid var(--divider);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand-logo-header {
+  width: 80px;
+  height: auto;
+  max-height: 44px;
+  object-fit: contain;
+  display: block;
+  border-radius: 0;
+}
+
+.brand-logo-login {
+  width: 110px;
+  height: auto;
+  max-height: 80px;
+  object-fit: contain;
+  display: block;
+  border-radius: 0;
+}
+
+.client-nav {
+  top: 68px;
+}
+
+@media (max-width: 480px) {
+  .dash-header {
+    height: 72px;
+    min-height: 72px;
+    padding: 0 16px;
+  }
+
+  .brand-logo-header {
+    width: 72px;
+    max-height: 40px;
+  }
+
+  .client-nav {
+    top: 72px;
+  }
+}
 </style>
 </head>
 <body>
@@ -2234,11 +2222,12 @@ input, textarea { outline: none; font-family: var(--font-body); }
   </header>
 
   <nav class="client-nav" id="clientNav">
-  <button id="navHome" onclick="goClientSection('section-home')">Inicio</button>
-  <button id="navTraining" onclick="goClientSection('section-training')">Entrenar</button>
-  <button id="navProgress" onclick="goClientSection('section-assessments')">Progreso</button>
-  <button id="navHealth" onclick="goClientSection('section-health')">Salud</button>
-  <button id="navProfile" onclick="goClientSection('section-client-data')">Perfil</button>
+  <button id="navHome"         onclick="goClientSection('section-home')">Inicio</button>
+  <button id="navTraining"     onclick="goClientSection('section-training')">Entrenar</button>
+  <button id="navReservations" onclick="goClientSection('section-reservations')">Reservas</button>
+  <button id="navProgress"     onclick="goClientSection('section-assessments')">Progreso</button>
+  <button id="navHealth"       onclick="goClientSection('section-health')">Salud</button>
+  <button id="navProfile"      onclick="goClientSection('section-client-data')">Perfil</button>
 </nav>
 
   <main class="dash-main">
@@ -4182,6 +4171,7 @@ function applyStaticTranslations() {
 
   set('navHome', uiText('home'));
   set('navTraining', uiText('train'));
+  set('navReservations', getLang() === 'sr' ? 'Termini' : 'Reservas');
   set('navProgress', uiText('progress'));
   set('navHealth', uiText('health'));
   set('navProfile', uiText('profile'));
@@ -9875,7 +9865,46 @@ function renderHealthAlerts() {
 }
 
 /* ══ NAVIGATION ══ */
-function goClientSection(sectionId){document.querySelectorAll('.dash-main .section').forEach(s=>s.classList.add('section-hidden'));const target=document.getElementById(sectionId);if(!target)return;target.classList.remove('section-hidden');document.querySelectorAll('.client-nav button').forEach(b=>b.classList.remove('active'));const activeBtn=Array.from(document.querySelectorAll('.client-nav button')).find(b=>b.getAttribute('onclick')?.includes(sectionId));if(activeBtn){activeBtn.classList.add('active');activeBtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}window.scrollTo({top:0,behavior:'smooth'});}
+function goClientSection(sectionId) {
+  document.querySelectorAll('.dash-main .section').forEach(s =>
+    s.classList.add('section-hidden')
+  );
+
+  const target = document.getElementById(sectionId);
+  if (!target) return;
+  target.classList.remove('section-hidden');
+
+  // Mapa sección → tab activo
+  const tabMap = {
+    'section-home':        'navHome',
+    'section-training':    'navTraining',
+    'section-reservations':'navReservations',
+    'section-assessments': 'navProgress',
+    'section-health':      'navHealth',
+    'section-client-data': 'navProfile',
+    // Secciones secundarias → tab padre
+    'section-plan':        'navProfile',
+    'section-notes':       'navProfile',
+    'section-payments':    'navProfile',
+    'section-summary':     'navProfile',
+  };
+
+  document.querySelectorAll('.client-nav button').forEach(b =>
+    b.classList.remove('active')
+  );
+
+  const activeId = tabMap[sectionId];
+  if (activeId) {
+    const btn = document.getElementById(activeId);
+    if (btn) {
+      btn.classList.add('active');
+      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 function toggleAccordion(button){const block=button.closest('.accordion-block');if(!block)return;const symbol=block.querySelector('.accordion-symbol');const isOpen=block.classList.contains('open');block.classList.toggle('open',!isOpen);if(symbol)symbol.textContent=isOpen?'+':'−';}
 
 /* ══ EVENTOS ══ */
