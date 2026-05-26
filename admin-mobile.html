@@ -618,7 +618,7 @@ const db = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 const state = {
   clients:[],todayRes:[],futureRes:[],pastRes:[],allRes:[],
-  payments:[],alertas:[],todayCheckins:[],recentCheckins:[],
+  payments:[],alertas:[],todayCheckins:[],recentCheckins:[],clientConditions:[],
   programs:[],templates:[],trainingPrograms:[],trainingWeeks:[],
   trainingSessions:[],trainingBlocks:[],trainingExercises:[],
   videoLibrary:[],assignments:[],sessionLogs:[],
@@ -872,7 +872,7 @@ async function loadAllData(){
       {data:payments},{data:alertas},{data:todayCI},{data:recentCI},
       {data:tprograms},{data:tweeks},{data:tsessions},{data:tblocks},
       {data:texercises},{data:videos},{data:assignments},{data:slogs},
-      {data:templates},{data:assessments},{data:metrics},{data:settings}
+      {data:templates},{data:assessments},{data:metrics},{data:conditions},{data:settings}
     ]=await Promise.all([
       db.from('clients').select('*').order('name'),
       db.from('reservations').select('*').eq('date',today).order('time'),
@@ -902,6 +902,7 @@ async function loadAllData(){
     state.trainingBlocks=mapArr(tblocks);state.trainingExercises=mapArr(texercises);state.videoLibrary=mapArr(videos);
     state.assignments=mapArr(assignments);state.sessionLogs=mapArr(slogs);state.templates=mapArr(templates);
     state.assessments=mapArr(assessments);state.metrics=mapArr(metrics);
+   state.clientConditions=mapArr(conditions);
     if(settings)state.settings={...state.settings,...snakeToCamel(settings)};
     renderAll();showToast('Datos cargados ✓','ok');
   }catch(err){console.error('loadAllData error:',err);showToast('Error cargando datos','err')}
@@ -2580,13 +2581,29 @@ function jsArg(v){
     .replace(/\r/g,'');
 }
 
+function getActiveConditionForClient(c){
+  const cid = String(c?.id || '');
+  if(!cid) return null;
+
+  return (state.clientConditions || []).find(cc => {
+    const clientId = cc.clientId || cc.client_id;
+    const status = String(cc.status || 'active').toLowerCase();
+    return String(clientId) === cid && status === 'active';
+  }) || null;
+}
+
 function detectPathologyForClient(c){
   const manual = state.manualPathologyByClient?.[c.id];
 
-if(manual === 'normal') return null;
-if(manual) return manual;
+  if(manual === 'normal') return null;
+  if(manual) return manual;
 
-const ci = getClientTodayCheckin(c.id);
+  const activeCondition = getActiveConditionForClient(c);
+  if(activeCondition){
+    return activeCondition.conditionKey || activeCondition.condition_key || null;
+  }
+
+  const ci = getClientTodayCheckin(c.id);
   const txt = String(ci?.comment || '')
     .toLowerCase()
     .normalize('NFD')
@@ -2806,25 +2823,37 @@ async function getAdaptedRowsForClient(c){
   const plan = getWorkoutPlanForClient(c);
   const assignment = plan.assignment;
 
-  if(!assignment) {
+  if(!assignment){
     return { rows:null, pathology:null, plan:null };
   }
 
-  const pathology = detectPathologyForClient(c);
+  const manual = state.manualPathologyByClient?.[c.id] || '';
+  if(manual === 'normal'){
+    return { rows:null, pathology:null, plan };
+  }
 
-  if(!pathology) {
+  const activeCondition = getActiveConditionForClient(c);
+  const detected = detectPathologyForClient(c);
+
+  const pathology =
+    manual ||
+    activeCondition?.conditionKey ||
+    activeCondition?.condition_key ||
+    detected ||
+    null;
+
+  if(!pathology){
     return { rows:null, pathology:null, plan };
   }
 
   const semana = getAssignmentWeek(assignment);
   const sesion = getAssignmentSessionNumber(assignment);
 
-  // Cache nueva para evitar que use datos viejos normales
-  const cacheKey = `${assignment.id}__${pathology}__${semana}__${sesion}__fb_lumbar_v2`;
+  const cacheKey = `${assignment.id}__v2__${pathology}__${semana}__${sesion}`;
 
   if(!state.adaptedTrainingCache) state.adaptedTrainingCache = {};
 
-  if(state.adaptedTrainingCache[cacheKey]) {
+  if(state.adaptedTrainingCache[cacheKey]){
     return {
       rows: state.adaptedTrainingCache[cacheKey],
       pathology,
@@ -2832,26 +2861,29 @@ async function getAdaptedRowsForClient(c){
     };
   }
 
-  console.log('AB ADAPTATION DEBUG', {
+  const rpcPathology = manual ? manual : null;
+
+  console.log('AB ADAPTATION V2 DEBUG', {
     assignment_id: assignment.id,
     pathology,
+    rpcPathology,
     semana,
     sesion,
     client: c.name
   });
 
-  const { data, error } = await db.rpc('get_training_session_adapted', {
+  const { data, error } = await db.rpc('get_training_session_adapted_v2', {
     p_assignment_id: assignment.id,
-    p_patologia: pathology,
+    p_patologia: rpcPathology,
     p_semana: semana,
     p_sesion: sesion
   });
 
   if(error){
-    console.error('get_training_session_adapted error:', error);
+    console.error('get_training_session_adapted_v2 error:', error);
 
     alert(
-      'Error adaptación AB:\n\n' +
+      'Error adaptación AB v2:\n\n' +
       'Cliente: ' + c.name + '\n' +
       'Assignment: ' + assignment.id + '\n' +
       'Patología: ' + pathology + '\n' +
@@ -2863,17 +2895,16 @@ async function getAdaptedRowsForClient(c){
       'Code: ' + (error.code || '')
     );
 
-    showToast('Error cargando adaptación', 'err');
+    showToast('Error cargando adaptación v2', 'err');
 
     return { rows:null, pathology:null, plan };
   }
 
-  const adaptedRows = applyLumbarFrontendFallback(data || [], pathology);
-
-  state.adaptedTrainingCache[cacheKey] = adaptedRows;
+  const rows = data || [];
+  state.adaptedTrainingCache[cacheKey] = rows;
 
   return {
-    rows: adaptedRows,
+    rows,
     pathology,
     plan
   };
@@ -2987,10 +3018,12 @@ function markAdaptedBlockDone(clientId, blockKey){
 
   if(!found) return;
 
-  found[1].forEach((r, index) => {
-    const reviewKey = getAdaptedRowReviewKey(c, r, index);
-    state.adaptedWorkoutChecks[reviewKey] = true;
-  });
+  found[1]
+    .filter(r => String(r.estado_ejercicio || '') !== 'instruction_only')
+    .forEach((r, index) => {
+      const reviewKey = getAdaptedRowReviewKey(c, r, index);
+      state.adaptedWorkoutChecks[reviewKey] = true;
+    });
 
   try{
     if(navigator.vibrate) navigator.vibrate([50,30,90]);
@@ -2998,6 +3031,37 @@ function markAdaptedBlockDone(clientId, blockKey){
 
   showToast('Bloque revisado ✓', 'ok');
   backToAdaptedBlocks();
+}
+
+function isAdaptedInstruction(r){
+  return String(r.estado_ejercicio || '') === 'instruction_only';
+}
+
+function adaptedStatusText(r){
+  const st = String(r.estado_ejercicio || 'normal');
+  if(st === 'sustituido') return 'Sustituido';
+  if(st === 'modificado') return 'Modificado';
+  if(st === 'mantener') return 'Mantener';
+  if(st === 'instruction_only') return 'Instrucción';
+  if(st === 'derivar') return 'Derivar';
+  return 'Normal';
+}
+
+function adaptedStatusKind(r){
+  const st = String(r.estado_ejercicio || 'normal');
+  if(st === 'sustituido') return 'alerta';
+  if(st === 'modificado') return 'revisar';
+  if(st === 'mantener') return 'normal';
+  if(st === 'derivar') return 'critica';
+  return 'info';
+}
+
+function adaptedBorderStyle(r){
+  const st = String(r.estado_ejercicio || 'normal');
+  if(st === 'sustituido') return 'border-left:3px solid var(--medical)';
+  if(st === 'modificado') return 'border-left:3px solid var(--warn)';
+  if(st === 'mantener') return 'border-left:3px solid var(--streak)';
+  return '';
 }
 
 function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
@@ -3039,7 +3103,11 @@ function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
       </div>
 
       ${list.map((r, index) => {
-        const isSub = r.estado_ejercicio === 'sustituido';
+        const status = String(r.estado_ejercicio || 'normal');
+const isSub = status === 'sustituido';
+const isMod = status === 'modificado';
+const isKeep = status === 'mantener';
+const isInstruction = status === 'instruction_only';
         const title = r.ejercicio_final || r.ejercicio_original || 'Ejercicio';
         const original = r.ejercicio_original || '';
         const video = r.video_sustituto || r.video_original || '';
@@ -3048,7 +3116,7 @@ function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
         const done = isAdaptedReviewed(reviewKey);
 
         return `
-          <div class="ex-card ${done ? 'done' : ''}" style="${isSub ? 'border-left:3px solid var(--warn)' : ''}">
+          <div class="ex-card ${done ? 'done' : ''}" style="${adaptedBorderStyle(r)}">
             <div class="ex-main">
               <div class="ex-top">
                 <div class="ex-num">${String(r.orden_ejercicio || index + 1).padStart(2,'0')}</div>
@@ -3056,16 +3124,17 @@ function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
                 <div style="flex:1;min-width:0">
                   <div class="ex-title">${esc(title)}</div>
 
-                  ${isSub ? `
-                    <div class="ex-dose" style="color:var(--warn)">
-                      Adaptado · Riesgo: ${esc(risk || 'medio')}
-                    </div>
-                    <div class="ex-desc">
-                      Sustituye: ${esc(original)}
-                    </div>
-                  ` : `
-                    <div class="ex-dose">Normal</div>
-                  `}
+                  <div class="ex-dose" style="${isSub ? 'color:var(--medical)' : isMod ? 'color:var(--warn)' : isKeep ? 'color:var(--streak)' : ''}">
+  ${adaptedStatusText(r)}${risk ? ` · Riesgo: ${esc(risk)}` : ''}
+</div>
+
+${isSub ? `
+  <div class="ex-desc">Sustituye: ${esc(original)}</div>
+` : ''}
+
+${isMod && r.modification_text ? `
+  <div class="ex-desc">${esc(r.modification_text)}</div>
+` : ''}
 
                   ${isSub && r.explicacion_breve_coach ? `
                     <div class="ex-desc">${esc(r.explicacion_breve_coach)}</div>
@@ -3074,8 +3143,8 @@ function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
               </div>
             </div>
 
-            ${isSub ? `
-              <div class="ex-mini">
+            ${(isSub || isMod || isKeep) ? `
+  <div class="ex-mini">
                 <details>
                   <summary>Coach</summary>
                   <p>${esc(r.explicacion_breve_coach || 'Revisar técnica, dolor y evolución durante la sesión.')}</p>
