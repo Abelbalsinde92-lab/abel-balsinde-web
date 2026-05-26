@@ -821,6 +821,277 @@ function getClientActiveAssignment(clientId){
   return rows[0]||null;
 }
 function getAssignmentProgram(a){if(!a)return null;return state.trainingPrograms.find(p=>String(p.id)===String(a.programId||a.program_id))}
+
+function getAssignmentScopeLabel(scope){
+  scope = String(scope || 'full').toLowerCase();
+
+  if(scope === 'day') return 'Día suelto';
+  if(scope === 'week') return 'Semana completa';
+  if(scope === 'month') return 'Mes completo';
+  if(scope === 'full') return 'Plan completo';
+
+  return 'Plan completo';
+}
+
+function getAssignmentScope(a){
+  return String(
+    a?.assignmentScope ||
+    a?.assignment_scope ||
+    'full'
+  ).toLowerCase();
+}
+
+function getFinishedAssignmentSessionIds(assignmentId){
+  const finished = new Set();
+
+  (state.sessionLogs || [])
+    .filter(log => {
+      const logAssignmentId = log.assignmentId || log.assignment_id || '';
+      const logSessionId = log.sessionId || log.session_id || '';
+      const status = String(log.status || '').toLowerCase();
+
+      const isFinished =
+        log.isFinished === true ||
+        log.is_finished === true ||
+        status === 'realizada' ||
+        status === 'completed' ||
+        status === 'done' ||
+        Boolean(log.finishedAt || log.finished_at) ||
+        Boolean(log.completedAt || log.completed_at);
+
+      return (
+        String(logAssignmentId) === String(assignmentId) &&
+        String(logSessionId || '').trim() !== '' &&
+        isFinished
+      );
+    })
+    .forEach(log => {
+      finished.add(String(log.sessionId || log.session_id));
+    });
+
+  return finished;
+}
+
+function getAssignmentVisibleSessions(assignment){
+  if(!assignment) return [];
+
+  const programId = assignment.programId || assignment.program_id;
+  if(!programId) return [];
+
+  const scope = getAssignmentScope(assignment);
+
+  const programWeeks = sortByOrder(
+    state.trainingWeeks.filter(w =>
+      sameId(getWeekProgramId(w), programId)
+    )
+  );
+
+  const weekIds = new Set(programWeeks.map(w => toId(w.id)));
+
+  let sessions = sortByOrder(
+    state.trainingSessions.filter(s =>
+      weekIds.has(toId(getSessionWeekId(s)))
+    )
+  );
+
+  if(scope === 'day'){
+    const assignedWeek = Number(
+      assignment.assignedWeek ||
+      assignment.assigned_week ||
+      assignment.currentWeek ||
+      assignment.current_week ||
+      1
+    );
+
+    const assignedSessionNumber = Number(
+      assignment.assignedSessionNumber ||
+      assignment.assigned_session_number ||
+      1
+    );
+
+    const validWeekIds = programWeeks
+      .filter(w => Number(w.weekNumber || w.week_number || w.orderIndex || w.order_index) === assignedWeek)
+      .map(w => toId(w.id));
+
+    sessions = sessions.filter(s =>
+      validWeekIds.includes(toId(getSessionWeekId(s))) &&
+      Number(getSessionNumberFromRow(s)) === assignedSessionNumber
+    );
+  }
+
+  if(scope === 'week'){
+    const assignedWeek = Number(
+      assignment.assignedWeek ||
+      assignment.assigned_week ||
+      assignment.currentWeek ||
+      assignment.current_week ||
+      1
+    );
+
+    const validWeekIds = programWeeks
+      .filter(w => Number(w.weekNumber || w.week_number || w.orderIndex || w.order_index) === assignedWeek)
+      .map(w => toId(w.id));
+
+    sessions = sessions.filter(s =>
+      validWeekIds.includes(toId(getSessionWeekId(s)))
+    );
+  }
+
+  if(scope === 'month'){
+    const assignedMonth = Number(
+      assignment.assignedMonth ||
+      assignment.assigned_month ||
+      1
+    );
+
+    const startWeek = (assignedMonth - 1) * 4 + 1;
+    const endWeek = startWeek + 3;
+
+    const validWeekIds = programWeeks
+      .filter(w => {
+        const n = Number(w.weekNumber || w.week_number || w.orderIndex || w.order_index);
+        return n >= startWeek && n <= endWeek;
+      })
+      .map(w => toId(w.id));
+
+    sessions = sessions.filter(s =>
+      validWeekIds.includes(toId(getSessionWeekId(s)))
+    );
+  }
+
+  return sortByOrder(sessions);
+}
+
+function getNextVisibleSessionNumber(assignment,currentSessionNumber){
+  const visible = getAssignmentVisibleSessions(assignment);
+
+  if(!visible.length) return Number(currentSessionNumber || 1);
+
+  const current = Number(currentSessionNumber || 1);
+
+  const idx = visible.findIndex(s =>
+    Number(getSessionNumberFromRow(s)) === current
+  );
+
+  if(idx >= 0 && idx < visible.length - 1){
+    return Number(getSessionNumberFromRow(visible[idx + 1])) || current;
+  }
+
+  return current;
+}
+
+async function advanceWorkoutAfterFinish(c,plan){
+  if(!c || !plan?.assignment) return;
+
+  const assignment = plan.assignment;
+  const scope = getAssignmentScope(assignment);
+
+  // Si vendiste solo un día, no avanza automáticamente.
+  if(scope === 'day') return;
+
+  const current = Number(state.activeWorkoutSessionNumber || 1);
+  const next = getNextVisibleSessionNumber(assignment,current);
+
+  if(next && next !== current){
+    state.activeWorkoutSessionNumber = next;
+    state.activeWorkoutBlockId = null;
+    state.activeAdaptedBlockKey = null;
+    state.activeWorkoutExerciseIndex = 0;
+
+    await persistCurrentSessionState(c);
+
+    const letter =
+      next === 1 ? 'A' :
+      next === 2 ? 'B' :
+      next === 3 ? 'C' :
+      next;
+
+    showToast(`Siguiente sesión: Día ${letter}`,'ok');
+  }
+}
+
+function getBlockType(b){
+  return cleanTxt(
+    b?.type ||
+    b?.typeEs ||
+    b?.type_es ||
+    b?.blockType ||
+    b?.block_type ||
+    ''
+  );
+}
+
+function getBlockDescription(b){
+  return getVal(b,[
+    'description',
+    'descriptionEs',
+    'description_es',
+    'body',
+    'bodyEs',
+    'body_es',
+    'notes',
+    'coachNotes',
+    'coach_notes'
+  ]);
+}
+
+function getBlockObjective(b){
+  return getVal(b,[
+    'objective',
+    'objectiveEs',
+    'objective_es',
+    'goal',
+    'goalEs',
+    'goal_es'
+  ]);
+}
+
+function getBlockDuration(b){
+  return getVal(b,[
+    'duration',
+    'duracion',
+    'time',
+    'tiempo'
+  ]);
+}
+
+function hasVisibleBlockContent(block,exercises=[]){
+  if((exercises || []).length > 0) return true;
+
+  const type = getBlockType(block);
+
+  const guidedTypes = [
+    'movilidad',
+    'mobility',
+    'estiramiento',
+    'stretching',
+    'vuelta calma',
+    'vuelta_calma',
+    'cooldown',
+    'calentamiento',
+    'warm up',
+    'warmup',
+    'respiracion',
+    'respiración'
+  ];
+
+  const isGuidedType = guidedTypes.some(t =>
+    type.includes(cleanTxt(t))
+  );
+
+  const hasText =
+    Boolean(getBlockName(block)) ||
+    Boolean(getBlockDescription(block)) ||
+    Boolean(getBlockObjective(block)) ||
+    Boolean(getBlockDuration(block));
+
+  return isGuidedType || hasText;
+}
+
+function getGuidedBlockExerciseKey(blockId){
+  return `guided_block__${blockId}`;
+}
+
 function getClientPendingPayments(clientId){return state.payments.filter(p=>String(p.clientId||p.client_id)===String(clientId)&&String(p.status)!=='pagado')}
 function getClientPendingAlerts(clientId){return state.alertas.filter(a=>String(getAlertClientId(a))===String(clientId)&&isPendingAlert(a))}
 
@@ -2139,49 +2410,163 @@ function getBlockName(b){return getVal(b,['name','nameEs','name_es','blockName',
 function getExerciseBlockId(e){return getVal(e,['blockId','block_id','trainingBlockId','training_block_id'])}
 
 function getWorkoutPlanForClient(c){
-  const assignment=getClientActiveAssignment(c.id);
-  const program=getAssignmentProgram(assignment);
-  const assignmentProgramId=assignment?.programId||assignment?.program_id||'';
-  const targetWeek=Number(assignment?.assignedWeek||assignment?.assigned_week||assignment?.currentWeek||assignment?.current_week||1);
-  const targetSessionNumber = Number(
-  state.activeWorkoutSessionNumber ||
-  assignment?.assignedSessionNumber ||
-  assignment?.assigned_session_number ||
-  0
-);
-  const debug={assignmentId:assignment?.id||'',assignmentProgramId,programId:program?.id||'',programName:program?.name||program?.nameEs||'',week:targetWeek,loadedWeeks:state.trainingWeeks.length,loadedSessions:state.trainingSessions.length,loadedBlocks:state.trainingBlocks.length,loadedExercises:state.trainingExercises.length,matchedWeeks:0,selectedWeeks:0,matchedSessions:0,selectedSessions:0,matchedBlocks:0,blocksWithExercises:0};
-  if(!program)return{assignment:null,program:null,week:null,sessions:[],blocks:[],exercises:[],debug};
-  let weeks=state.trainingWeeks.filter(w=>sameId(getWeekProgramId(w),program.id)||sameId(getWeekProgramId(w),assignmentProgramId));
-  weeks=sortByOrder(weeks);debug.matchedWeeks=weeks.length;
-  let selectedWeeks=weeks.filter(w=>getWeekNumberFromRow(w)===targetWeek);
-  if(!selectedWeeks.length&&weeks.length)selectedWeeks=[weeks[0]];
-  debug.selectedWeeks=selectedWeeks.length;
-  const selectedWeekIds=new Set(selectedWeeks.map(w=>toId(w.id)).filter(Boolean));
-  let sessions=state.trainingSessions.filter(s=>selectedWeekIds.has(toId(getSessionWeekId(s))));
-  sessions=sortByOrder(sessions);debug.matchedSessions=sessions.length;
-  const weekSessions = sessions.slice();
-if(targetSessionNumber>0){const exactSessions=sessions.filter(s=>getSessionNumberFromRow(s)===targetSessionNumber);if(exactSessions.length)sessions=exactSessions}
-  else if(sessions.length)sessions=[sessions[0]];
-  debug.selectedSessions=sessions.length;
-  const selectedSessionIds=new Set(sessions.map(s=>toId(s.id)).filter(Boolean));
-  let blocks=state.trainingBlocks.filter(b=>selectedSessionIds.has(toId(getBlockSessionId(b))));
-  blocks=sortByOrder(blocks);debug.matchedBlocks=blocks.length;
-  const blockData=blocks.map(b=>{
-    const session=sessions.find(s=>sameId(s.id,getBlockSessionId(b)));
-    const exercises=sortByOrder(state.trainingExercises.filter(e=>sameId(getExerciseBlockId(e),b.id)));
-    return{...b,sessionId:session?.id||'',sessionTitle:[session?.title,session?.titleEs,session?.title_es,session?.name,session?.nameEs,session?.name_es,session?.type,session?.typeEs,session?.type_es].filter(Boolean).join(' '),sessionNumber:getSessionNumberFromRow(session||{}),exercises};
-  }).filter(b=>b.exercises.length);
-  debug.blocksWithExercises=blockData.length;
-  return{
-  assignment,
-  program,
-  week:selectedWeeks[0]||null,
-  sessions,
-  weekSessions,
-  blocks:blockData,
-  exercises:blockData.flatMap(b=>b.exercises),
-  debug
-};
+  const assignment = getClientActiveAssignment(c.id);
+  const program = getAssignmentProgram(assignment);
+
+  const assignmentProgramId = assignment?.programId || assignment?.program_id || '';
+  const targetWeek = Number(
+    assignment?.assignedWeek ||
+    assignment?.assigned_week ||
+    assignment?.currentWeek ||
+    assignment?.current_week ||
+    1
+  );
+
+  const debug = {
+    assignmentId: assignment?.id || '',
+    assignmentProgramId,
+    programId: program?.id || '',
+    programName: program?.name || program?.nameEs || '',
+    scope: getAssignmentScope(assignment),
+    week: targetWeek,
+    loadedWeeks: state.trainingWeeks.length,
+    loadedSessions: state.trainingSessions.length,
+    loadedBlocks: state.trainingBlocks.length,
+    loadedExercises: state.trainingExercises.length,
+    matchedWeeks: 0,
+    selectedWeeks: 0,
+    matchedSessions: 0,
+    selectedSessions: 0,
+    matchedBlocks: 0,
+    blocksWithExercises: 0,
+    visibleBlocks: 0
+  };
+
+  if(!program){
+    return {
+      assignment:null,
+      program:null,
+      week:null,
+      sessions:[],
+      weekSessions:[],
+      blocks:[],
+      exercises:[],
+      debug
+    };
+  }
+
+  const visibleSessions = getAssignmentVisibleSessions(assignment);
+  debug.matchedSessions = visibleSessions.length;
+
+  const defaultSessionNumber =
+    Number(state.activeWorkoutSessionNumber) ||
+    Number(assignment?.assignedSessionNumber || assignment?.assigned_session_number) ||
+    Number(getSessionNumberFromRow(visibleSessions[0] || {})) ||
+    1;
+
+  let selectedSessions = visibleSessions.filter(s =>
+    Number(getSessionNumberFromRow(s)) === Number(defaultSessionNumber)
+  );
+
+  if(!selectedSessions.length && visibleSessions.length){
+    selectedSessions = [visibleSessions[0]];
+    state.activeWorkoutSessionNumber = Number(getSessionNumberFromRow(visibleSessions[0])) || 1;
+  }
+
+  debug.selectedSessions = selectedSessions.length;
+
+  const selectedSessionIds = new Set(
+    selectedSessions.map(s => toId(s.id)).filter(Boolean)
+  );
+
+  const selectedWeekIdsFromSessions = new Set(
+    selectedSessions.map(s => toId(getSessionWeekId(s))).filter(Boolean)
+  );
+
+  let weeks = state.trainingWeeks.filter(w =>
+    sameId(getWeekProgramId(w), program.id) ||
+    sameId(getWeekProgramId(w), assignmentProgramId)
+  );
+
+  weeks = sortByOrder(weeks);
+  debug.matchedWeeks = weeks.length;
+
+  let selectedWeeks = weeks.filter(w =>
+    selectedWeekIdsFromSessions.has(toId(w.id))
+  );
+
+  if(!selectedWeeks.length){
+    selectedWeeks = weeks.filter(w =>
+      Number(getWeekNumberFromRow(w)) === Number(targetWeek)
+    );
+  }
+
+  if(!selectedWeeks.length && weeks.length){
+    selectedWeeks = [weeks[0]];
+  }
+
+  debug.selectedWeeks = selectedWeeks.length;
+
+  const activeWeekId = toId(selectedWeeks[0]?.id);
+
+  const weekSessions = activeWeekId
+    ? sortByOrder(
+        visibleSessions.filter(s =>
+          toId(getSessionWeekId(s)) === activeWeekId
+        )
+      )
+    : sortByOrder(visibleSessions);
+
+  let blocks = state.trainingBlocks.filter(b =>
+    selectedSessionIds.has(toId(getBlockSessionId(b)))
+  );
+
+  blocks = sortByOrder(blocks);
+  debug.matchedBlocks = blocks.length;
+
+  const blockData = blocks.map(b => {
+    const session = selectedSessions.find(s =>
+      sameId(s.id, getBlockSessionId(b))
+    );
+
+    const exercises = sortByOrder(
+      state.trainingExercises.filter(e =>
+        sameId(getExerciseBlockId(e), b.id)
+      )
+    );
+
+    return {
+      ...b,
+      sessionId: session?.id || '',
+      sessionTitle: [
+        session?.title,
+        session?.titleEs,
+        session?.title_es,
+        session?.name,
+        session?.nameEs,
+        session?.name_es,
+        session?.type,
+        session?.typeEs,
+        session?.type_es
+      ].filter(Boolean).join(' '),
+      sessionNumber: getSessionNumberFromRow(session || {}),
+      exercises
+    };
+  }).filter(b => hasVisibleBlockContent(b,b.exercises));
+
+  debug.blocksWithExercises = blockData.filter(b => b.exercises.length).length;
+  debug.visibleBlocks = blockData.length;
+
+  return {
+    assignment,
+    program,
+    week:selectedWeeks[0] || null,
+    sessions:selectedSessions,
+    weekSessions,
+    blocks:blockData,
+    exercises:blockData.flatMap(b => b.exercises || []),
+    debug
+  };
 }
 
 function getExerciseDose(ex){
@@ -2251,12 +2636,58 @@ function getLumbarDefaultDose(row){
 function getDoseData(row){
   const fallback = getLumbarDefaultDose(row);
 
-  const sets = doseVal(row, ['sets','series','set_count','total_sets']) || fallback.sets || '';
-  const reps = doseVal(row, ['reps','repetitions','repeticiones','rep_range']) || fallback.reps || '';
-  const duration = doseVal(row, ['duration','duracion','work_duration','workDuration','trabajo','work_time','workTime']) || fallback.duration || '';
-  const rest = doseVal(row, ['rest','descanso','rest_time','restTime','recovery','recuperacion']) || fallback.rest || '';
-  const tempo = doseVal(row, ['tempo','ritmo','cadence','cadencia']) || fallback.tempo || '';
-  const load = doseVal(row, ['load','carga','weight','peso','intensity','intensidad','rpe']);
+  const sets = doseVal(row, [
+    'sets',
+    'series',
+    'set_count',
+    'total_sets'
+  ]) || fallback.sets || '';
+
+  const reps = doseVal(row, [
+    'reps',
+    'repetitions',
+    'repeticiones',
+    'rep_range'
+  ]) || fallback.reps || '';
+
+  const duration = doseVal(row, [
+    'duration',
+    'duracion',
+    'time',
+    'tiempo',
+    'work_duration',
+    'workDuration',
+    'trabajo',
+    'work_time',
+    'workTime'
+  ]) || fallback.duration || '';
+
+  const rest = doseVal(row, [
+    'rest',
+    'descanso',
+    'rest_time',
+    'restTime',
+    'recovery',
+    'recuperacion'
+  ]) || fallback.rest || '';
+
+  const tempo = doseVal(row, [
+    'tempo',
+    'ritmo',
+    'cadence',
+    'cadencia'
+  ]) || fallback.tempo || '';
+
+  const load = doseVal(row, [
+    'load',
+    'carga',
+    'weight',
+    'peso',
+    'intensity',
+    'intensidad',
+    'rpe'
+  ]);
+
   const variant = getDoseVariant(row);
 
   return {sets,reps,duration,rest,tempo,load,variant};
@@ -2647,7 +3078,7 @@ ${plan.blocks.map((b,bi)=>{
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
             <div style="min-width:0;text-align:left;flex:1">
               <div class="block-closed-title">${esc(title)}</div>
-              <div class="block-closed-sub">${info.done}/${info.total} ejercicios</div>
+              <div class="block-closed-sub">${info.done}/${info.total} ${info.guided?'bloque guiado':'ejercicios'}</div>
               ${info.total>0?`<div class="block-progress-bar"><div class="block-progress-fill" style="width:${pct}%;background:${info.finished?'var(--streak)':'var(--sport)'}"></div></div>`:''}
             </div>
             <div class="block-closed-action" style="${info.finished?'background:rgba(0,230,118,.12);color:var(--streak);border-color:rgba(0,230,118,.3)':''}">
@@ -2667,9 +3098,39 @@ ${plan.blocks.map((b,bi)=>{
 }
 
 function getBlockDoneInfo(clientId,block){
-  const exercises=block?.exercises||[];
-  const done=exercises.filter((ex,idx)=>isExerciseDone(clientId,getExerciseId(ex,idx))).length;
-  return{done,total:exercises.length,finished:exercises.length>0&&done===exercises.length};
+  const exercises = block?.exercises || [];
+
+  if(exercises.length){
+    const done = exercises.filter((ex,idx) =>
+      isExerciseDone(clientId,getExerciseId(ex,idx))
+    ).length;
+
+    return {
+      done,
+      total:exercises.length,
+      finished:exercises.length > 0 && done === exercises.length,
+      guided:false
+    };
+  }
+
+  if(hasVisibleBlockContent(block,exercises)){
+    const key = getGuidedBlockExerciseKey(block.id);
+    const done = isExerciseDone(clientId,key) ? 1 : 0;
+
+    return {
+      done,
+      total:1,
+      finished:done === 1,
+      guided:true
+    };
+  }
+
+  return {
+    done:0,
+    total:0,
+    finished:false,
+    guided:false
+  };
 }
 
 function openWorkoutBlock(blockId){state.activeWorkoutBlockId=blockId;state.activeWorkoutExerciseIndex=0;renderWorkout()}
@@ -2799,7 +3260,130 @@ function isCircuitBlock(block){
 }
 
 function buildActiveBlockScreen(c,plan,block){
-  return isCircuitBlock(block)?buildActiveCircuitScreen(c,plan,block):buildActiveSingleExerciseScreen(c,plan,block);
+  const exercises = block?.exercises || [];
+
+  if(!exercises.length){
+    return buildGuidedBlockScreen(c,plan,block);
+  }
+
+  return isCircuitBlock(block)
+    ? buildActiveCircuitScreen(c,plan,block)
+    : buildActiveSingleExerciseScreen(c,plan,block);
+}
+
+function buildGuidedBlockScreen(c,plan,block){
+  const blockTitle = getBlockName(block) || 'Bloque guiado';
+  const type = getBlockType(block);
+  const duration = getBlockDuration(block);
+  const objective = getBlockObjective(block);
+  const description = getBlockDescription(block);
+  const key = getGuidedBlockExerciseKey(block.id);
+  const done = isExerciseDone(c.id,key);
+
+  return `
+    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">
+      Volver a bloques
+    </button>
+
+    <div style="margin-bottom:10px">
+      <div class="scr-eye">${esc(type || 'Bloque guiado')}</div>
+      <div class="scr-t" style="font-size:1.35rem">${esc(blockTitle)}</div>
+    </div>
+
+    ${buildTimerHTML()}
+
+    <div class="card ${done ? 'done' : ''}" style="border-left:3px solid var(--sport)">
+      <div class="card-body">
+        <div class="card-title">
+          ${esc(blockTitle)}
+          ${done ? badge('Realizado','pagado') : badge('Pendiente','pendiente')}
+        </div>
+
+        ${duration ? `
+          <div class="dr">
+            <span class="dk">Duración</span>
+            <span class="dv">${esc(duration)}</span>
+          </div>
+        ` : ''}
+
+        ${objective ? `
+          <div class="dr">
+            <span class="dk">Objetivo</span>
+            <span class="dv val-wrap">${esc(objective)}</span>
+          </div>
+        ` : ''}
+
+        ${description ? `
+          <div style="margin-top:10px;font-size:.84rem;color:var(--text-2);line-height:1.65">
+            ${esc(description)}
+          </div>
+        ` : `
+          <div style="margin-top:10px;font-size:.84rem;color:var(--text-2);line-height:1.65">
+            Bloque sin ejercicios individuales. Ejecutar como bloque guiado según indicación del coach.
+          </div>
+        `}
+
+        <div style="margin-top:12px;background:rgba(0,200,232,.06);border-left:2px solid var(--sport);padding:9px 10px;border-radius:0 6px 6px 0;font-size:.78rem;color:var(--text-2);line-height:1.55">
+          Revisar control respiratorio, calidad del movimiento, molestias y sensación general antes de pasar al siguiente bloque.
+        </div>
+      </div>
+
+      <div class="card-acts">
+        <button class="btn ${done?'btn-g':'btn-p'} btn-sm btn-wide" onclick="completeGuidedBlock('${c.id}','${block.id}')">
+          ${done ? 'Bloque realizado' : 'Marcar bloque realizado'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+async function completeGuidedBlock(clientId,blockId){
+  const c = clientById(clientId);
+
+  if(!c){
+    showToast('Cliente no encontrado','err');
+    return;
+  }
+
+  const plan = getWorkoutPlanForClient(c);
+  const block = plan.blocks.find(b =>
+    String(b.id) === String(blockId)
+  );
+
+  if(!block){
+    showToast('Bloque no encontrado','err');
+    return;
+  }
+
+  const blockName = getBlockName(block) || 'Bloque guiado';
+  const key = getGuidedBlockExerciseKey(blockId);
+
+  state.workoutChecks[getWorkoutKey(clientId,key)] = true;
+
+  try{
+    if(navigator.vibrate) navigator.vibrate([50,30,90]);
+  }catch(e){}
+
+  try{
+    await saveWorkoutProgressRow({
+      c,
+      exerciseKey:key,
+      exerciseName:blockName,
+      blockKey:blockId,
+      blockName,
+      isAdapted:false,
+      isDone:true
+    });
+
+    await persistCurrentSessionState(c);
+
+    showToast('Bloque realizado ✓','ok');
+  }catch(err){
+    console.error('Error guardando bloque guiado:',err);
+    showToast('Bloque marcado local, no guardado','err');
+  }
+
+  backToWorkoutBlocks();
 }
 
 function buildActiveCircuitScreen(c,plan,block){
@@ -4240,6 +4824,12 @@ ${coachNote}`
   }catch(e){
     console.warn('No se pudo avanzar el entrenamiento:', e);
     showToast('Sesión guardada, pero no avanzó al próximo día', 'err');
+  }
+
+  try{
+    await advanceWorkoutAfterFinish(c,plan);
+  }catch(e){
+    console.warn('No se pudo avanzar al siguiente día:',e);
   }
 
   renderAll();
