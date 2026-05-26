@@ -1195,7 +1195,10 @@ function renderPerfil(){
       ${program?`<div class="dr"><span class="dk">Programa</span><span class="dv val-wrap" style="color:var(--sport)">${esc(program.name||program.nameEs||'')}</span></div>`:''}
       ${todayCI?`<div class="dr"><span class="dk">CI hoy</span><span>${badge(ciStatus||'normal',ciStatus||'normal')}</span></div>`:`<div class="dr"><span class="dk">CI hoy</span><span>${badge('Sin CI','inactivo')}</span></div>`}
       ${pendPay.length?`<div class="dr"><span class="dk">Deuda</span><span class="dv" style="color:var(--warn)">${money(pendPay.reduce((s,p)=>s+Number(p.amount||0),0))}</span></div>`:''}
-    </div>
+        </div>
+
+    ${buildClientConditionCard(c)}
+
     <div class="ptabs">
       <div class="pt ${defaultTab==='pt-resumen'?'on':''}" onclick="switchPt(this,'pt-resumen')">Resumen</div>
       <div class="pt ${defaultTab==='pt-sesiones'?'on':''}" onclick="switchPt(this,'pt-sesiones')">Sesiones</div>
@@ -2600,6 +2603,64 @@ function getActiveConditionForClient(c){
   }) || null;
 }
 
+function buildClientConditionCard(c){
+  const cond = getActiveConditionForClient(c);
+
+  if(!cond) return '';
+
+  const key = cond.conditionKey || cond.condition_key || '';
+  const name = cond.conditionName || cond.condition_name || key || 'Condición activa';
+  const severity = cond.severity || '—';
+  const start = cond.startDate || cond.start_date || '';
+  const review = cond.reviewDate || cond.review_date || '';
+  const notes = cond.coachNotes || cond.coach_notes || '';
+
+  const isLumbar = key === 'dolor_lumbar';
+
+  return `
+    <div class="card" style="border-left:3px solid ${isLumbar ? 'var(--warn)' : 'var(--medical)'}">
+      <div class="card-body">
+        <div class="card-title" style="color:${isLumbar ? 'var(--warn)' : 'var(--medical)'}">
+          ${isLumbar ? 'Adaptación lumbar activa' : 'Condición activa'}
+        </div>
+
+        <div class="dr">
+          <span class="dk">Condición</span>
+          <span class="dv val-wrap">${esc(name)}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Severidad</span>
+          <span>${badge(severity, severity === 'alta' ? 'alerta' : severity === 'media' ? 'revisar' : 'normal')}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Inicio</span>
+          <span class="dv">${start ? formatDate(start) : '—'}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Revisión</span>
+          <span class="dv">${review ? formatDate(review) : '—'}</span>
+        </div>
+
+        ${notes ? `
+          <div class="dr">
+            <span class="dk">Nota coach</span>
+            <span class="dv val-wrap" style="font-size:.78rem;color:var(--text-2);font-weight:500">
+              ${esc(notes)}
+            </span>
+          </div>
+        ` : ''}
+      </div>
+
+      <div class="card-acts">
+        <button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}')">Abrir entrenamiento adaptado</button>
+      </div>
+    </div>
+  `;
+}
+
 function detectPathologyForClient(c){
   const manual = state.manualPathologyByClient?.[c.id];
 
@@ -2703,7 +2764,7 @@ function getLumbarFrontendFallback(r){
     };
   }
 
-  if(name.includes('swing') || name.includes('kettlebell')){
+  if(name.includes('swing')){
     return {
       final:'Puente de cadera controlado',
       coach:'Evitar bisagra explosiva y sustituir por extensión de cadera controlada sin impacto lumbar.',
@@ -2869,7 +2930,7 @@ async function getAdaptedRowsForClient(c){
     };
   }
 
-  const rpcPathology = manual ? manual : null;
+  const rpcPathology = pathology;
 
   console.log('AB ADAPTATION V2 DEBUG', {
     assignment_id: assignment.id,
@@ -3073,7 +3134,8 @@ function adaptedBorderStyle(r){
 }
 
 function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
-  const substituted = rows.filter(r => r.estado_ejercicio === 'sustituido');
+  const executableRows = rows.filter(r => !isAdaptedInstruction(r));
+const substituted = executableRows.filter(r => r.estado_ejercicio === 'sustituido');
   const msg = getAdaptedClientMessage(rows);
   const groups = getAdaptedBlockGroups(rows);
 
@@ -3124,6 +3186,20 @@ const isInstruction = status === 'instruction_only';
         const risk = r.nivel_riesgo || '';
         const reviewKey = getAdaptedRowReviewKey(c, r, index);
         const done = isAdaptedReviewed(reviewKey);
+      if(isInstruction){
+  return `
+    <div class="card" style="border-left:3px solid var(--sport)">
+      <div class="card-body" style="padding:12px 14px">
+        <div style="font-family:var(--font-d);font-size:1rem;letter-spacing:.04em;margin-bottom:4px">
+          ${esc(title)}
+        </div>
+        <div style="font-size:.78rem;color:var(--text-2);line-height:1.55">
+          Instrucción del bloque. No cuenta como ejercicio revisable.
+        </div>
+      </div>
+    </div>
+  `;
+}
 
         return `
           <div class="ex-card ${done ? 'done' : ''}" style="${adaptedBorderStyle(r)}">
@@ -3207,7 +3283,7 @@ ${isMod && r.modification_text ? `
 
       <div class="dr">
         <span class="dk">Ejercicios adaptados</span>
-        <span class="dv">${substituted.length}/${rows.length}</span>
+        <span class="dv">${substituted.length}/${executableRows.length}</span>
       </div>
     </div>
 
