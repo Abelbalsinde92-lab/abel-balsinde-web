@@ -4042,42 +4042,64 @@ async function advanceAssignmentAfterWorkout(c, plan, completedWeek, completedSe
 
   if(!assignment?.id){
     console.warn('No hay assignment activo para avanzar.');
+    showToast('No hay asignación activa para avanzar', 'err');
     return null;
   }
 
   const next = getNextTrainingPosition(plan, completedWeek, completedSession);
-  const now = new Date().toISOString();
+
+  console.log('AB ADVANCE DEBUG', {
+    client: c.name,
+    assignmentId: assignment.id,
+    completedWeek,
+    completedSession,
+    nextWeek: next.week,
+    nextSession: next.session
+  });
 
   const payload = {
-    current_week: next.week,
-    assigned_session_number: next.session,
-    updated_at: now
+    current_week: Number(next.week),
+    assigned_session_number: Number(next.session)
   };
 
-  const {data, error} = await db
+  const { error } = await db
     .from('client_program_assignments')
     .update(payload)
-    .eq('id', assignment.id)
-    .select()
-    .single();
+    .eq('id', assignment.id);
 
   if(error){
-    console.error('advanceAssignmentAfterWorkout error:', error);
+    console.error('advanceAssignmentAfterWorkout error:', {
+      message:error.message,
+      details:error.details,
+      hint:error.hint,
+      code:error.code,
+      payload
+    });
+
+    alert(
+      'Error avanzando entrenamiento:\n\n' +
+      'Mensaje: ' + (error.message || '') + '\n' +
+      'Detalles: ' + (error.details || '') + '\n' +
+      'Hint: ' + (error.hint || '') + '\n' +
+      'Code: ' + (error.code || '')
+    );
+
     throw error;
   }
-
-  const saved = snakeToCamel(data);
 
   const idx = state.assignments.findIndex(a => String(a.id) === String(assignment.id));
 
   if(idx >= 0){
     state.assignments[idx] = {
       ...state.assignments[idx],
-      ...saved
+      currentWeek: Number(next.week),
+      current_week: Number(next.week),
+      assignedSessionNumber: Number(next.session),
+      assigned_session_number: Number(next.session)
     };
   }
 
-  state.activeWorkoutSessionNumber = next.session;
+  state.activeWorkoutSessionNumber = Number(next.session);
 
   clearWorkoutLocalProgressForClient(c.id);
 
