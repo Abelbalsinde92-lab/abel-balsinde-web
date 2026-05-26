@@ -396,6 +396,61 @@ a{text-decoration:none;color:inherit}
   align-items: baseline;
   gap: 6px;
 }
+
+/* ═══ DOSIS / VOLUMEN DE TRABAJO ═══ */
+.dose-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:8px;
+}
+.dose-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:5px 8px;
+  border-radius:8px;
+  background:rgba(255,255,255,.045);
+  border:1px solid var(--divider);
+  font-family:var(--font-m);
+  font-size:.55rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--text-2);
+}
+.dose-chip strong{
+  color:var(--text);
+  font-weight:800;
+}
+.dose-chip.work{
+  border-color:rgba(0,200,232,.25);
+  background:rgba(0,200,232,.07);
+}
+.dose-chip.work strong{
+  color:var(--sport);
+}
+.dose-chip.rest{
+  border-color:rgba(255,179,64,.25);
+  background:rgba(255,179,64,.07);
+}
+.dose-chip.rest strong{
+  color:var(--warn);
+}
+.dose-chip.load{
+  border-color:rgba(0,230,118,.22);
+  background:rgba(0,230,118,.06);
+}
+.dose-chip.load strong{
+  color:var(--streak);
+}
+.dose-variant{
+  margin-top:7px;
+  font-family:var(--font-m);
+  font-size:.6rem;
+  color:var(--text-2);
+  letter-spacing:.04em;
+  line-height:1.45;
+}
 </style>
 </head>
 <body>
@@ -2099,6 +2154,97 @@ function getExerciseDose(ex){
   return parts.length?parts.join(' · '):'Carga según ficha';
 }
 
+function doseVal(obj, keys){
+  for(const k of keys){
+    const v = obj?.[k];
+    if(v !== null && v !== undefined && String(v).trim() !== ''){
+      return String(v).trim();
+    }
+  }
+  return '';
+}
+
+function getActiveAssignedLevelNumber(){
+  const c = clientById(state.activeTrainingClientId || state.selectedClientId);
+  const a = c ? getClientActiveAssignment(c.id) : null;
+  const lvl = String(a?.assignedLevel || a?.assigned_level || 'N1').toUpperCase();
+  const m = lvl.match(/\d+/);
+  return m ? m[0] : '1';
+}
+
+function getDoseVariant(row){
+  const n = getActiveAssignedLevelNumber();
+
+  return doseVal(row, [
+    `variantN${n}`,
+    `variant_n${n}`,
+    `variantN${n}Es`,
+    `variant_n${n}_es`,
+    'variant',
+    'variante',
+    'dose',
+    'dosificacion'
+  ]);
+}
+
+function getLumbarDefaultDose(row){
+  const family = cleanTxt(
+    row.substitute_family ||
+    row.video_family ||
+    row.detected_family ||
+    row.ejercicio_final ||
+    row.name ||
+    ''
+  );
+
+  if(family.includes('dead bug')) return {sets:'2', reps:'8-10/lado', rest:'40-60s', tempo:'controlado'};
+  if(family.includes('bird dog')) return {sets:'2', reps:'6-8/lado', rest:'40-60s', tempo:'lento'};
+  if(family.includes('puente')) return {sets:'2-3', reps:'10-12', rest:'45-60s', tempo:'controlado'};
+  if(family.includes('pallof')) return {sets:'2', reps:'10-12/lado', rest:'45-60s', tempo:'sin rotar'};
+  if(family.includes('step')) return {sets:'2-3', reps:'8-10/lado', rest:'60s', tempo:'controlado'};
+  if(family.includes('bicicleta')) return {duration:'6-10 min', rest:'según tolerancia', tempo:'suave'};
+  if(family.includes('remo sentado')) return {sets:'2-3', reps:'12-15', rest:'45-60s', tempo:'estable'};
+  if(family.includes('marcha')) return {sets:'2-3', duration:'30-45s', rest:'45s', tempo:'controlado'};
+
+  return {};
+}
+
+function getDoseData(row){
+  const fallback = getLumbarDefaultDose(row);
+
+  const sets = doseVal(row, ['sets','series','set_count','total_sets']) || fallback.sets || '';
+  const reps = doseVal(row, ['reps','repetitions','repeticiones','rep_range']) || fallback.reps || '';
+  const duration = doseVal(row, ['duration','duracion','work_duration','workDuration','trabajo','work_time','workTime']) || fallback.duration || '';
+  const rest = doseVal(row, ['rest','descanso','rest_time','restTime','recovery','recuperacion']) || fallback.rest || '';
+  const tempo = doseVal(row, ['tempo','ritmo','cadence','cadencia']) || fallback.tempo || '';
+  const load = doseVal(row, ['load','carga','weight','peso','intensity','intensidad','rpe']);
+  const variant = getDoseVariant(row);
+
+  return {sets,reps,duration,rest,tempo,load,variant};
+}
+
+function buildDoseHTML(row){
+  const d = getDoseData(row);
+
+  const chips = [];
+
+  if(d.sets) chips.push(`<span class="dose-chip"><span>Series</span><strong>${esc(d.sets)}</strong></span>`);
+  if(d.reps) chips.push(`<span class="dose-chip"><span>Reps</span><strong>${esc(d.reps)}</strong></span>`);
+  if(d.duration) chips.push(`<span class="dose-chip work"><span>Trabajo</span><strong>${esc(d.duration)}</strong></span>`);
+  if(d.rest) chips.push(`<span class="dose-chip rest"><span>Descanso</span><strong>${esc(d.rest)}</strong></span>`);
+  if(d.tempo) chips.push(`<span class="dose-chip"><span>Tempo</span><strong>${esc(d.tempo)}</strong></span>`);
+  if(d.load) chips.push(`<span class="dose-chip load"><span>Carga</span><strong>${esc(d.load)}</strong></span>`);
+
+  if(!chips.length && !d.variant){
+    return `<div class="ex-dose">Carga según ficha</div>`;
+  }
+
+  return `
+    <div class="dose-grid">${chips.join('')}</div>
+    ${d.variant ? `<div class="dose-variant">${esc(d.variant)}</div>` : ''}
+  `;
+}
+
 function getExerciseInfo(ex){
   const desc=ex.description||ex.descriptionEs||'';
   return{
@@ -2468,7 +2614,7 @@ function buildWorkoutExerciseCard(ex,index,clientId){
       <div class="ex-num">${String(index+1).padStart(2,'0')}</div>
       <div style="flex:1;min-width:0">
         <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
-        <div class="ex-dose">${esc(getExerciseDose(ex))}</div>
+        ${buildDoseHTML(ex)}
         ${ex.description||ex.descriptionEs||ex.description_es?`<div class="ex-desc">${esc(ex.description||ex.descriptionEs||ex.description_es)}</div>`:''}
       </div>
     </div></div>
@@ -2504,7 +2650,7 @@ function buildActiveSingleExerciseScreen(c,plan,block){
         <div class="ex-num">${String(idx+1).padStart(2,'0')}</div>
         <div style="flex:1;min-width:0">
           <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
-          <div class="ex-dose">${esc(getExerciseDose(ex))}</div>
+          ${buildDoseHTML(ex)}
           ${ex.description||ex.descriptionEs||ex.description_es?`<div class="ex-desc">${esc(ex.description||ex.descriptionEs||ex.description_es)}</div>`:''}
         </div>
       </div></div>
@@ -2552,7 +2698,7 @@ function buildCircuitExerciseCard(ex,index,clientId){
       <div class="ex-num">${String(index+1).padStart(2,'0')}</div>
       <div style="flex:1;min-width:0">
         <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
-        <div class="ex-dose">${esc(getExerciseDose(ex))}</div>
+        ${buildDoseHTML(ex)}
         ${ex.description||ex.descriptionEs||ex.description_es?`<div class="ex-desc">${esc(ex.description||ex.descriptionEs||ex.description_es)}</div>`:''}
       </div>
     </div></div>
@@ -3213,6 +3359,8 @@ const isInstruction = status === 'instruction_only';
                   <div class="ex-dose" style="${isSub ? 'color:var(--medical)' : isMod ? 'color:var(--warn)' : isKeep ? 'color:var(--streak)' : ''}">
   ${adaptedStatusText(r)}${risk ? ` · Riesgo: ${esc(risk)}` : ''}
 </div>
+
+${buildDoseHTML(r)}
 
 ${isSub ? `
   <div class="ex-desc">Sustituye: ${esc(original)}</div>
