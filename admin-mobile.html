@@ -689,8 +689,10 @@ const state = {
    selectedClientId:null,
   adaptedTrainingCache:{},
   currentAdaptedRows:[],
-  adaptedWorkoutChecks:{},
-  activeAdaptedBlockKey:null
+    adaptedWorkoutChecks:{},
+  activeAdaptedBlockKey:null,
+  workoutProgressLoaded:{},
+  workoutStateLoaded:{}
 };
 
 let currentScr='hoy';
@@ -1987,12 +1989,24 @@ function detectSessionNumberFromReservation(r){
   return null;
 }
 
-function setWorkoutSessionNumber(n){
+async function setWorkoutSessionNumber(n){
   state.activeWorkoutSessionNumber = Number(n || 1);
   state.activeWorkoutBlockId = null;
   state.activeAdaptedBlockKey = null;
   state.activeWorkoutExerciseIndex = 0;
   state.currentAdaptedRows = [];
+
+  const c = clientById(state.activeTrainingClientId || state.selectedClientId);
+
+  if(c){
+    try{
+      await persistCurrentSessionState(c);
+    }catch(err){
+      console.warn('No se pudo guardar el día activo:', err);
+      showToast('Día cambiado, pero no guardado', 'err');
+    }
+  }
+
   renderWorkout();
 }
 
@@ -2042,30 +2056,55 @@ const activePathology = manual || detectPathologyForClient(c) || 'normal';
   `;
 }
 
-function openWorkout(clientId,reservationId=null){
+async function openWorkout(clientId,reservationId=null){
   const previousKey=`${state.activeTrainingClientId||''}__${state.activeWorkoutReservationId||'manual'}`;
   const nextKey=`${clientId}__${reservationId||'manual'}`;
+
   if(previousKey!==nextKey){
-    if(state.workoutTimer.interval){clearInterval(state.workoutTimer.interval);state.workoutTimer.interval=null}
-    state.workoutTimer.running=false;state.workoutTimer.seconds=0;
-    Object.keys(state.workoutChecks).forEach(k=>{if(k.startsWith(clientId+'__'))delete state.workoutChecks[k]});
+    if(state.workoutTimer.interval){
+      clearInterval(state.workoutTimer.interval);
+      state.workoutTimer.interval=null;
+    }
+
+    state.workoutTimer.running=false;
+    state.workoutTimer.seconds=0;
+
+    Object.keys(state.workoutChecks).forEach(k=>{
+      if(k.startsWith(clientId+'__')) delete state.workoutChecks[k];
+    });
+
     state.workoutNotes[clientId]='';
   }
+
   state.selectedClientId = clientId;
-state.activeTrainingClientId = clientId;
-state.activeWorkoutReservationId = reservationId;
+  state.activeTrainingClientId = clientId;
+  state.activeWorkoutReservationId = reservationId;
 
-const r = reservationById(reservationId);
-const detectedSession = detectSessionNumberFromReservation(r);
-const c = clientById(clientId);
-const assignment = c ? getClientActiveAssignment(c.id) : null;
+  const r = reservationById(reservationId);
+  const detectedSession = detectSessionNumberFromReservation(r);
+  const c = clientById(clientId);
+  const assignment = c ? getClientActiveAssignment(c.id) : null;
 
-state.activeWorkoutSessionNumber =
-  detectedSession ||
-  Number(assignment?.assignedSessionNumber || assignment?.assigned_session_number || 1);
-state.activeWorkoutBlockId=null;
-state.activeAdaptedBlockKey=null;
-state.activeWorkoutExerciseIndex=0;
+  state.activeWorkoutSessionNumber =
+    detectedSession ||
+    Number(assignment?.assignedSessionNumber || assignment?.assigned_session_number || 1);
+
+  state.activeWorkoutBlockId = null;
+  state.activeAdaptedBlockKey = null;
+  state.activeWorkoutExerciseIndex = 0;
+
+  if(c && assignment){
+    try{
+      if(detectedSession){
+        await persistCurrentSessionState(c);
+      }else{
+        await loadPersistedSessionState(c, assignment);
+      }
+    }catch(err){
+      console.warn('No se pudo cargar estado previo:', err);
+    }
+  }
+
   showScr('workout');
 }
 
@@ -2260,12 +2299,53 @@ function getWorkoutKey(clientId,exId){return`${clientId}__${exId}`}
 function isExerciseDone(clientId,exId){return!!state.workoutChecks[getWorkoutKey(clientId,exId)]}
 
 /* v1.1 C4: Háptica integrada en toggle */
-function toggleWorkoutExercise(clientId,exId){
-  const wasDone=isExerciseDone(clientId,exId);
-  const key=getWorkoutKey(clientId,exId);
-  state.workoutChecks[key]=!state.workoutChecks[key];
-  try{if(!wasDone&&navigator.vibrate)navigator.vibrate(80)}catch(e){}
+async function toggleWorkoutExercise(clientId,exId){
+  const c = clientById(clientId);
+
+  if(!c){
+    showToast('Cliente no encontrado','err');
+    return;
+  }
+
+  const wasDone = isExerciseDone(clientId, exId);
+  const nextDone = !wasDone;
+  const key = getWorkoutKey(clientId, exId);
+
+  state.workoutChecks[key] = nextDone;
+
+  try{
+    if(nextDone && navigator.vibrate) navigator.vibrate(80);
+  }catch(e){}
+
   renderWorkout();
+
+  try{
+    const ex = findExerciseById(exId);
+    const blockId = state.activeWorkoutBlockId || null;
+    let blockName = null;
+
+    if(blockId){
+      const plan = getWorkoutPlanForClient(c);
+      const block = plan.blocks.find(b => String(b.id) === String(blockId));
+      blockName = block ? getBlockName(block) : null;
+    }
+
+    await saveWorkoutProgressRow({
+      c,
+      exerciseKey: exId,
+      exerciseName: ex ? getExerciseTitle(ex) : exId,
+      blockKey: blockId,
+      blockName,
+      isAdapted: false,
+      isDone: nextDone
+    });
+
+    await persistCurrentSessionState(c);
+
+  }catch(err){
+    console.error('Error guardando ejercicio normal:', err);
+    showToast('Marcado local, no guardado', 'err');
+  }
 }
 
 function setWorkoutBlockDone(clientId,blockId){
@@ -2596,15 +2676,60 @@ function openWorkoutBlock(blockId){state.activeWorkoutBlockId=blockId;state.acti
 function backToWorkoutBlocks(){state.activeWorkoutBlockId=null;state.activeWorkoutExerciseIndex=0;renderWorkout()}
 
 /* v1.1 C4: háptica en completeActiveExercise */
-function completeActiveExercise(clientId,blockId,exId){
-  try{if(navigator.vibrate)navigator.vibrate([50,30,100])}catch(e){}
-  state.workoutChecks[getWorkoutKey(clientId,exId)]=true;
-  const c=clientById(clientId);const plan=getWorkoutPlanForClient(c);
-  const block=plan.blocks.find(b=>String(b.id)===String(blockId));
-  if(!block){backToWorkoutBlocks();return}
-  const nextIndex=Number(state.activeWorkoutExerciseIndex||0)+1;
-  if(nextIndex<block.exercises.length){state.activeWorkoutExerciseIndex=nextIndex;renderWorkout();return}
-  showToast('Bloque terminado ✓','ok');backToWorkoutBlocks();
+async function completeActiveExercise(clientId,blockId,exId){
+  const c = clientById(clientId);
+
+  if(!c){
+    showToast('Cliente no encontrado','err');
+    return;
+  }
+
+  try{
+    if(navigator.vibrate) navigator.vibrate([50,30,100]);
+  }catch(e){}
+
+  state.workoutChecks[getWorkoutKey(clientId,exId)] = true;
+
+  try{
+    const ex = findExerciseById(exId);
+    const planNow = getWorkoutPlanForClient(c);
+    const blockNow = planNow.blocks.find(b => String(b.id) === String(blockId));
+
+    await saveWorkoutProgressRow({
+      c,
+      exerciseKey: exId,
+      exerciseName: ex ? getExerciseTitle(ex) : exId,
+      blockKey: blockId,
+      blockName: blockNow ? getBlockName(blockNow) : null,
+      isAdapted: false,
+      isDone: true
+    });
+
+    await persistCurrentSessionState(c);
+
+  }catch(err){
+    console.error('Error guardando ejercicio terminado:', err);
+    showToast('Ejercicio marcado local, no guardado', 'err');
+  }
+
+  const plan = getWorkoutPlanForClient(c);
+  const block = plan.blocks.find(b => String(b.id) === String(blockId));
+
+  if(!block){
+    backToWorkoutBlocks();
+    return;
+  }
+
+  const nextIndex = Number(state.activeWorkoutExerciseIndex || 0) + 1;
+
+  if(nextIndex < block.exercises.length){
+    state.activeWorkoutExerciseIndex = nextIndex;
+    renderWorkout();
+    return;
+  }
+
+  showToast('Bloque terminado ✓','ok');
+  backToWorkoutBlocks();
 }
 
 function buildWorkoutExerciseCard(ex,index,clientId){
@@ -2715,12 +2840,52 @@ function buildCircuitExerciseCard(ex,index,clientId){
   </div>`;
 }
 
-function completeCircuitBlock(clientId,blockId){
-  const c=clientById(clientId);if(!c){showToast('Cliente no encontrado','err');return}
-  const plan=getWorkoutPlanForClient(c);const block=plan.blocks.find(b=>String(b.id)===String(blockId));
-  if(!block){showToast('Bloque no encontrado','err');return}
-  (block.exercises||[]).forEach((ex,idx)=>{state.workoutChecks[getWorkoutKey(clientId,getExerciseId(ex,idx))]=true});
-  showToast('Circuito terminado ✓','ok');backToWorkoutBlocks();
+async function completeCircuitBlock(clientId,blockId){
+  const c = clientById(clientId);
+
+  if(!c){
+    showToast('Cliente no encontrado','err');
+    return;
+  }
+
+  const plan = getWorkoutPlanForClient(c);
+  const block = plan.blocks.find(b => String(b.id) === String(blockId));
+
+  if(!block){
+    showToast('Bloque no encontrado','err');
+    return;
+  }
+
+  const blockName = getBlockName(block);
+  const promises = [];
+
+  (block.exercises || []).forEach((ex,idx) => {
+    const exId = getExerciseId(ex,idx);
+    state.workoutChecks[getWorkoutKey(clientId,exId)] = true;
+
+    promises.push(
+      saveWorkoutProgressRow({
+        c,
+        exerciseKey: exId,
+        exerciseName: getExerciseTitle(ex),
+        blockKey: blockId,
+        blockName,
+        isAdapted: false,
+        isDone: true
+      })
+    );
+  });
+
+  try{
+    await Promise.all(promises);
+    await persistCurrentSessionState(c);
+    showToast('Circuito terminado ✓','ok');
+  }catch(err){
+    console.error('Error guardando circuito:', err);
+    showToast('Circuito marcado local, no guardado', 'err');
+  }
+
+  backToWorkoutBlocks();
 }
 
 function jsArg(v){
@@ -3202,16 +3367,47 @@ function isAdaptedReviewed(key){
   return !!state.adaptedWorkoutChecks?.[key];
 }
 
-function toggleAdaptedReviewed(key){
+async function toggleAdaptedReviewed(key){
   if(!state.adaptedWorkoutChecks) state.adaptedWorkoutChecks = {};
 
-  state.adaptedWorkoutChecks[key] = !state.adaptedWorkoutChecks[key];
+  const c = clientById(state.activeTrainingClientId || state.selectedClientId);
+
+  if(!c){
+    showToast('Cliente no encontrado','err');
+    return;
+  }
+
+  const nextDone = !state.adaptedWorkoutChecks[key];
+  state.adaptedWorkoutChecks[key] = nextDone;
 
   try{
-    if(state.adaptedWorkoutChecks[key] && navigator.vibrate) navigator.vibrate(60);
+    if(nextDone && navigator.vibrate) navigator.vibrate(60);
   }catch(e){}
 
   renderWorkout();
+
+  try{
+    const found = findAdaptedRowByReviewKey(key);
+
+    const row = found?.row || {};
+    const title = row.ejercicio_final || row.ejercicio_original || 'Ejercicio adaptado';
+
+    await saveWorkoutProgressRow({
+      c,
+      exerciseKey: key,
+      exerciseName: title,
+      blockKey: state.activeAdaptedBlockKey || null,
+      blockName: state.activeAdaptedBlockKey ? getAdaptedBlockName(state.activeAdaptedBlockKey) : null,
+      isAdapted: true,
+      isDone: nextDone
+    });
+
+    await persistCurrentSessionState(c);
+
+  }catch(err){
+    console.error('Error guardando ejercicio adaptado:', err);
+    showToast('Marcado local, no guardado', 'err');
+  }
 }
 
 function openAdaptedBlock(key){
@@ -3224,8 +3420,9 @@ function backToAdaptedBlocks(){
   renderWorkout();
 }
 
-function markAdaptedBlockDone(clientId, blockKey){
+async function markAdaptedBlockDone(clientId, blockKey){
   const c = clientById(clientId);
+
   if(!c) return;
 
   const groups = getAdaptedBlockGroups(state.currentAdaptedRows || []);
@@ -3233,18 +3430,42 @@ function markAdaptedBlockDone(clientId, blockKey){
 
   if(!found) return;
 
-  found[1]
-    .filter(r => String(r.estado_ejercicio || '') !== 'instruction_only')
-    .forEach((r, index) => {
-      const reviewKey = getAdaptedRowReviewKey(c, r, index);
-      state.adaptedWorkoutChecks[reviewKey] = true;
-    });
+  const blockName = getAdaptedBlockName(blockKey);
+  const promises = [];
+
+  found[1].forEach((r, index) => {
+    if(String(r.estado_ejercicio || '') === 'instruction_only') return;
+
+    const reviewKey = getAdaptedRowReviewKey(c, r, index);
+    state.adaptedWorkoutChecks[reviewKey] = true;
+
+    promises.push(
+      saveWorkoutProgressRow({
+        c,
+        exerciseKey: reviewKey,
+        exerciseName: r.ejercicio_final || r.ejercicio_original || 'Ejercicio adaptado',
+        blockKey,
+        blockName,
+        isAdapted: true,
+        isDone: true
+      })
+    );
+  });
 
   try{
     if(navigator.vibrate) navigator.vibrate([50,30,90]);
   }catch(e){}
 
   showToast('Bloque revisado ✓', 'ok');
+
+  try{
+    await Promise.all(promises);
+    await persistCurrentSessionState(c);
+  }catch(err){
+    console.error('Error guardando bloque adaptado:', err);
+    showToast('Bloque marcado local, no guardado', 'err');
+  }
+
   backToAdaptedBlocks();
 }
 
@@ -3502,14 +3723,188 @@ const finished = totalReview > 0 && reviewed === totalReview;
   `;
 }
 
+function getWorkoutPersistenceContext(c){
+  const plan = getWorkoutPlanForClient(c);
+  const assignment = plan.assignment;
+
+  if(!c || !assignment){
+    return { plan, assignment:null };
+  }
+
+  return {
+    plan,
+    assignment,
+    clientId: c.id,
+    assignmentId: assignment.id,
+    reservationId: state.activeWorkoutReservationId || null,
+    weekNumber: getAssignmentWeek(assignment),
+    sessionNumber: getAssignmentSessionNumber(assignment)
+  };
+}
+
+function getWorkoutProgressLoadKey(ctx){
+  return `${ctx.clientId}__${ctx.assignmentId}__${ctx.weekNumber}__${ctx.sessionNumber}`;
+}
+
+async function persistCurrentSessionState(c){
+  const ctx = getWorkoutPersistenceContext(c);
+
+  if(!ctx.assignmentId) return;
+
+  const { error } = await db.rpc('field_set_session_state', {
+    p_client_id: ctx.clientId,
+    p_assignment_id: ctx.assignmentId,
+    p_week_number: ctx.weekNumber,
+    p_session_number: ctx.sessionNumber,
+    p_reservation_id: ctx.reservationId,
+    p_timer_seconds: Number(state.workoutTimer.seconds || 0)
+  });
+
+  if(error) throw error;
+
+  if(!state.workoutStateLoaded) state.workoutStateLoaded = {};
+  state.workoutStateLoaded[`${ctx.clientId}__${ctx.assignmentId}`] = true;
+}
+
+async function loadPersistedSessionState(c, assignment){
+  if(!c || !assignment) return null;
+
+  if(!state.workoutStateLoaded) state.workoutStateLoaded = {};
+
+  const stateKey = `${c.id}__${assignment.id}`;
+
+  if(state.workoutStateLoaded[stateKey]) return null;
+
+  const { data, error } = await db.rpc('field_get_session_state', {
+    p_client_id: c.id,
+    p_assignment_id: assignment.id
+  });
+
+  if(error){
+    console.warn('field_get_session_state error:', error);
+    return null;
+  }
+
+  const row = Array.isArray(data) ? data[0] : null;
+
+  if(row){
+    state.activeWorkoutSessionNumber = Number(row.session_number || row.sessionNumber || 1);
+
+    const savedReservationId = row.reservation_id || row.reservationId || null;
+    if(!state.activeWorkoutReservationId && savedReservationId){
+      state.activeWorkoutReservationId = savedReservationId;
+    }
+
+    const savedSeconds = Number(row.timer_seconds || row.timerSeconds || 0);
+    if(savedSeconds > 0 && !state.workoutTimer.running){
+      state.workoutTimer.seconds = savedSeconds;
+    }
+  }
+
+  state.workoutStateLoaded[stateKey] = true;
+
+  return row;
+}
+
+async function loadPersistedWorkoutProgress(c, plan){
+  if(!c || !plan?.assignment) return;
+
+  if(!state.workoutProgressLoaded) state.workoutProgressLoaded = {};
+
+  const ctx = getWorkoutPersistenceContext(c);
+  if(!ctx.assignmentId) return;
+
+  const loadKey = getWorkoutProgressLoadKey(ctx);
+
+  if(state.workoutProgressLoaded[loadKey]) return;
+
+  const { data, error } = await db.rpc('field_get_workout_progress', {
+    p_client_id: ctx.clientId,
+    p_assignment_id: ctx.assignmentId,
+    p_week_number: ctx.weekNumber,
+    p_session_number: ctx.sessionNumber
+  });
+
+  if(error){
+    console.warn('field_get_workout_progress error:', error);
+    return;
+  }
+
+  (data || []).forEach(row => {
+    const exerciseKey = row.exercise_key || row.exerciseKey;
+    const isAdapted = row.is_adapted ?? row.isAdapted;
+
+    if(!exerciseKey) return;
+
+    if(isAdapted){
+      state.adaptedWorkoutChecks[exerciseKey] = true;
+    }else{
+      state.workoutChecks[getWorkoutKey(c.id, exerciseKey)] = true;
+    }
+  });
+
+  state.workoutProgressLoaded[loadKey] = true;
+}
+
+async function saveWorkoutProgressRow({
+  c,
+  exerciseKey,
+  exerciseName,
+  blockKey = null,
+  blockName = null,
+  isAdapted = false,
+  isDone = true
+}){
+  const ctx = getWorkoutPersistenceContext(c);
+
+  if(!ctx.assignmentId || !exerciseKey) return;
+
+  const { error } = await db.rpc('field_save_workout_progress', {
+    p_client_id: ctx.clientId,
+    p_assignment_id: ctx.assignmentId,
+    p_reservation_id: ctx.reservationId,
+    p_week_number: ctx.weekNumber,
+    p_session_number: ctx.sessionNumber,
+    p_block_key: blockKey,
+    p_block_name: blockName,
+    p_exercise_key: exerciseKey,
+    p_exercise_name: exerciseName || exerciseKey,
+    p_is_adapted: !!isAdapted,
+    p_is_done: !!isDone
+  });
+
+  if(error) throw error;
+}
+
+function findAdaptedRowByReviewKey(reviewKey){
+  const c = clientById(state.activeTrainingClientId || state.selectedClientId);
+
+  if(!c) return null;
+
+  const rows = state.currentAdaptedRows || [];
+
+  for(let i = 0; i < rows.length; i++){
+    const key = getAdaptedRowReviewKey(c, rows[i], i);
+    if(key === reviewKey){
+      return { row: rows[i], index: i };
+    }
+  }
+
+  return null;
+}
+
 async function renderWorkout(){
   const box=document.getElementById('workout-content');
   const c=clientById(state.activeTrainingClientId||state.selectedClientId);
   if(!c){box.innerHTML=emptyState('Sin cliente','Vuelve a clientes y abre un perfil.');return}
-  state.activeTrainingClientId=c.id;
-const adapted = await getAdaptedRowsForClient(c);
+    state.activeTrainingClientId = c.id;
 
-if(adapted.rows && adapted.rows.length){
+  const basePlan = getWorkoutPlanForClient(c);
+  await loadPersistedWorkoutProgress(c, basePlan);
+
+  const adapted = await getAdaptedRowsForClient(c);
+
+  if(adapted.rows && adapted.rows.length){
   state.currentAdaptedRows = adapted.rows;
   box.innerHTML = buildAdaptedWorkoutHTML(c, adapted.rows, adapted.pathology, adapted.plan);
   return;
