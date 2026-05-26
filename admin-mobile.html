@@ -893,7 +893,8 @@ async function loadAllData(){
       db.from('templates').select('*').order('name'),
       db.from('client_assessments').select('*').order('assessment_date',{ascending:false}).limit(80),
       db.from('metrics').select('*').order('date',{ascending:false}).limit(150),
-      db.from('settings').select('*').eq('id','main').maybeSingle()
+db.from('client_conditions').select('*').eq('status','active').order('start_date',{ascending:false}),
+db.from('settings').select('*').eq('id','main').maybeSingle()
     ]);
     state.clients=mapArr(clients);state.todayRes=mapArr(todayRes);state.futureRes=mapArr(futureRes);state.pastRes=mapArr(pastRes);
     state.allRes=[...state.todayRes,...state.futureRes,...state.pastRes];
@@ -902,7 +903,7 @@ async function loadAllData(){
     state.trainingBlocks=mapArr(tblocks);state.trainingExercises=mapArr(texercises);state.videoLibrary=mapArr(videos);
     state.assignments=mapArr(assignments);state.sessionLogs=mapArr(slogs);state.templates=mapArr(templates);
     state.assessments=mapArr(assessments);state.metrics=mapArr(metrics);
-   state.clientConditions=mapArr(conditions);
+   state.clientConditions=Array.isArray(conditions) ? mapArr(conditions) : [];
     if(settings)state.settings={...state.settings,...snakeToCamel(settings)};
     renderAll();showToast('Datos cargados ✓','ok');
   }catch(err){console.error('loadAllData error:',err);showToast('Error cargando datos','err')}
@@ -2583,12 +2584,19 @@ function jsArg(v){
 
 function getActiveConditionForClient(c){
   const cid = String(c?.id || '');
-  if(!cid) return null;
+  const cname = cleanTxt(c?.name || '');
+
+  if(!cid && !cname) return null;
 
   return (state.clientConditions || []).find(cc => {
     const clientId = cc.clientId || cc.client_id;
+    const name = cleanTxt(cc.name || cc.clientName || cc.client_name || '');
     const status = String(cc.status || 'active').toLowerCase();
-    return String(clientId) === cid && status === 'active';
+
+    const matchById = clientId && String(clientId) === cid;
+    const matchByName = !clientId && name && name === cname;
+
+    return status === 'active' && (matchById || matchByName);
   }) || null;
 }
 
@@ -3075,10 +3083,12 @@ function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
   if(activeGroup){
     const [blockKey, list] = activeGroup;
     const blockName = getAdaptedBlockName(blockKey);
-    const reviewed = list.filter((r, index) => {
-      const reviewKey = getAdaptedRowReviewKey(c, r, index);
-      return isAdaptedReviewed(reviewKey);
-    }).length;
+    const executableList = list.filter(r => !isAdaptedInstruction(r));
+
+const reviewed = executableList.filter((r, index) => {
+  const reviewKey = getAdaptedRowReviewKey(c, r, index);
+  return isAdaptedReviewed(reviewKey);
+}).length;
 
     return `
       <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToAdaptedBlocks()">Volver a bloques</button>
@@ -3097,7 +3107,7 @@ function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
           </div>
           <div class="dr" style="margin-top:8px">
             <span class="dk">Revisados</span>
-            <span class="dv">${reviewed}/${list.length}</span>
+            <span class="dv">${reviewed}/${executableList.length}</span>
           </div>
         </div>
       </div>
@@ -3222,13 +3232,16 @@ ${buildWorkoutSessionControls(plan, c)}
     ${groups.map(([key, list]) => {
       const blockName = getAdaptedBlockName(key);
       const subs = list.filter(r => r.estado_ejercicio === 'sustituido').length;
-      const reviewed = list.filter((r, index) => {
-        const reviewKey = getAdaptedRowReviewKey(c, r, index);
-        return isAdaptedReviewed(reviewKey);
-      }).length;
+      const executableList = list.filter(r => !isAdaptedInstruction(r));
 
-      const pct = list.length ? Math.round((reviewed / list.length) * 100) : 0;
-      const finished = list.length > 0 && reviewed === list.length;
+const reviewed = executableList.filter((r, index) => {
+  const reviewKey = getAdaptedRowReviewKey(c, r, index);
+  return isAdaptedReviewed(reviewKey);
+}).length;
+
+const totalReview = executableList.length;
+const pct = totalReview ? Math.round((reviewed / totalReview) * 100) : 100;
+const finished = totalReview > 0 && reviewed === totalReview;
 
       return `
         <button class="card block-closed" onclick="openAdaptedBlock('${jsArg(key)}')">
@@ -3237,7 +3250,7 @@ ${buildWorkoutSessionControls(plan, c)}
               <div style="min-width:0;text-align:left;flex:1">
                 <div class="block-closed-title">${esc(blockName)}</div>
                 <div class="block-closed-sub">
-                  ${reviewed}/${list.length} revisados · ${subs} adaptados
+                  ${reviewed}/${totalReview} revisados · ${subs} adaptados
                 </div>
                 <div class="block-progress-bar">
                   <div class="block-progress-fill" style="width:${pct}%;background:${finished ? 'var(--streak)' : 'var(--sport)'}"></div>
