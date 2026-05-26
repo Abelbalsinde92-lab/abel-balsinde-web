@@ -3988,6 +3988,102 @@ async function insertSessionLogSafe(payload){
   throw lastError;
 }
 
+function getMaxSessionNumberForCurrentWeek(plan){
+  const sessions = plan?.weekSessions || plan?.sessions || [];
+
+  const nums = sessions
+    .map(s => getSessionNumberFromRow(s))
+    .filter(n => Number(n) > 0);
+
+  if(nums.length) return Math.max(...nums);
+
+  return 3;
+}
+
+function getNextTrainingPosition(plan, completedWeek, completedSession){
+  const maxSession = getMaxSessionNumberForCurrentWeek(plan);
+
+  if(Number(completedSession) < maxSession){
+    return {
+      week: Number(completedWeek),
+      session: Number(completedSession) + 1
+    };
+  }
+
+  return {
+    week: Number(completedWeek) + 1,
+    session: 1
+  };
+}
+
+function sessionLetter(n){
+  return String.fromCharCode(64 + Number(n || 1));
+}
+
+function clearWorkoutLocalProgressForClient(clientId){
+  Object.keys(state.workoutChecks || {}).forEach(k => {
+    if(k.startsWith(clientId + '__')) delete state.workoutChecks[k];
+  });
+
+  Object.keys(state.adaptedWorkoutChecks || {}).forEach(k => {
+    if(k.startsWith(clientId + '__adapted__')) delete state.adaptedWorkoutChecks[k];
+  });
+
+  state.workoutProgressLoaded = {};
+  state.currentAdaptedRows = [];
+  state.adaptedTrainingCache = {};
+  state.activeWorkoutBlockId = null;
+  state.activeAdaptedBlockKey = null;
+  state.activeWorkoutExerciseIndex = 0;
+}
+
+async function advanceAssignmentAfterWorkout(c, plan, completedWeek, completedSession){
+  const assignment = plan?.assignment;
+
+  if(!assignment?.id){
+    console.warn('No hay assignment activo para avanzar.');
+    return null;
+  }
+
+  const next = getNextTrainingPosition(plan, completedWeek, completedSession);
+  const now = new Date().toISOString();
+
+  const payload = {
+    current_week: next.week,
+    assigned_session_number: next.session,
+    updated_at: now
+  };
+
+  const {data, error} = await db
+    .from('client_program_assignments')
+    .update(payload)
+    .eq('id', assignment.id)
+    .select()
+    .single();
+
+  if(error){
+    console.error('advanceAssignmentAfterWorkout error:', error);
+    throw error;
+  }
+
+  const saved = snakeToCamel(data);
+
+  const idx = state.assignments.findIndex(a => String(a.id) === String(assignment.id));
+
+  if(idx >= 0){
+    state.assignments[idx] = {
+      ...state.assignments[idx],
+      ...saved
+    };
+  }
+
+  state.activeWorkoutSessionNumber = next.session;
+
+  clearWorkoutLocalProgressForClient(c.id);
+
+  return next;
+}
+
 async function finishWorkout(clientId){
   const c=clientById(clientId);
 
@@ -4007,7 +4103,10 @@ async function finishWorkout(clientId){
   const completedKeys=[...normalCompletedKeys,...adaptedCompletedKeys];
 
   const plan=getWorkoutPlanForClient(c);
-  const now=new Date().toISOString();
+const now=new Date().toISOString();
+
+const completedWeekNumber = getAssignmentWeek(plan.assignment);
+const completedSessionNumber = getAssignmentSessionNumber(plan.assignment);
 
   const coachNote=`Duración: ${formatClock(state.workoutTimer.seconds)}.
 Ejercicios marcados: ${completedKeys.length}.
@@ -4022,7 +4121,9 @@ Observaciones: ${note||'Sin observaciones.'}`;
       assignment_id:plan.assignment?.id||null,
       session_id:plan.sessions?.[0]?.id||null,
       status:'realizada',
-      completed_at:now,
+week_number: completedWeekNumber,
+session_number: completedSessionNumber,
+completed_at:now,
       client_note:null,
       coach_note:coachNote,
       program_id:plan.program?.id||null,
@@ -4097,6 +4198,26 @@ ${coachNote}`
       console.warn('No se pudo marcar reserva realizada:',e);
       showToast('Sesión guardada, pero no se actualizó la reserva','err');
     }
+  }
+
+    try{
+    const next = await advanceAssignmentAfterWorkout(
+      c,
+      plan,
+      completedWeekNumber,
+      completedSessionNumber
+    );
+
+    if(next){
+      showToast(
+        `Sesión guardada ✓ Próximo: Semana ${next.week} · Día ${sessionLetter(next.session)}`,
+        'ok'
+      );
+    }
+
+  }catch(e){
+    console.warn('No se pudo avanzar el entrenamiento:', e);
+    showToast('Sesión guardada, pero no avanzó al próximo día', 'err');
   }
 
   renderAll();
