@@ -3185,6 +3185,7 @@ function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,not
     </div>
 
     ${buildWorkoutSessionControls(plan, c)}
+${buildWorkoutStepCard(plan)}
 
 <div class="wt-ci">
   <div class="wt-ci-row">
@@ -4388,6 +4389,7 @@ ${isMod && r.modification_text ? `
     </div>
 
 ${buildWorkoutSessionControls(plan, c)}
+${buildWorkoutStepCard(plan)}
 
 <div class="card" style="border-left:3px solid var(--warn)">
       <div class="card-body" style="padding:12px 14px">
@@ -4751,6 +4753,49 @@ function sessionLetter(n){
   return String.fromCharCode(64 + Number(n || 1));
 }
 
+function workoutStepLabel(week, session){
+  return `Semana ${Number(week || 1)} · Día ${sessionLetter(session)}`;
+}
+
+function buildWorkoutStepCard(plan){
+  const assignment = plan?.assignment;
+
+  if(!assignment) return '';
+
+  const currentWeek = getAssignmentWeek(assignment);
+  const currentSession = getAssignmentSessionNumber(assignment);
+  const scope = getAssignmentScope(assignment);
+
+  const next = scope === 'day'
+    ? null
+    : getNextTrainingPosition(plan, currentWeek, currentSession);
+
+  return `
+    <div class="card" style="border-left:3px solid var(--sport)">
+      <div class="card-body" style="padding:12px 14px">
+        <div class="card-title" style="margin-bottom:8px">
+          Próximo paso
+          ${badge(getAssignmentScopeLabel(scope),'info')}
+        </div>
+
+        <div class="dr">
+          <span class="dk">Activo ahora</span>
+          <span class="dv" style="color:var(--sport)">
+            ${esc(workoutStepLabel(currentWeek,currentSession))}
+          </span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Al cerrar</span>
+          <span class="dv val-wrap">
+            ${next ? esc(workoutStepLabel(next.week,next.session)) : 'No avanza automáticamente'}
+          </span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function clearWorkoutLocalProgressForClient(clientId){
   Object.keys(state.workoutChecks || {}).forEach(k => {
     if(k.startsWith(clientId + '__')) delete state.workoutChecks[k];
@@ -4777,11 +4822,20 @@ async function advanceAssignmentAfterWorkout(c, plan, completedWeek, completedSe
     return null;
   }
 
+  const scope = getAssignmentScope(assignment);
+
+  // Si es día suelto, se guarda la sesión pero NO avanza.
+  if(scope === 'day'){
+    showToast('Sesión guardada ✓ Día suelto sin avance automático', 'ok');
+    return null;
+  }
+
   const next = getNextTrainingPosition(plan, completedWeek, completedSession);
 
   console.log('AB ADVANCE DEBUG', {
     client: c.name,
     assignmentId: assignment.id,
+    scope,
     completedWeek,
     completedSession,
     nextWeek: next.week,
@@ -4793,10 +4847,12 @@ async function advanceAssignmentAfterWorkout(c, plan, completedWeek, completedSe
     assigned_session_number: Number(next.session)
   };
 
-  const { error } = await db
+  const { data, error } = await db
     .from('client_program_assignments')
     .update(payload)
-    .eq('id', assignment.id);
+    .eq('id', assignment.id)
+    .select()
+    .single();
 
   if(error){
     console.error('advanceAssignmentAfterWorkout error:', {
@@ -4818,11 +4874,16 @@ async function advanceAssignmentAfterWorkout(c, plan, completedWeek, completedSe
     throw error;
   }
 
-  const idx = state.assignments.findIndex(a => String(a.id) === String(assignment.id));
+  const saved = snakeToCamel(data || { ...assignment, ...payload });
+
+  const idx = state.assignments.findIndex(a =>
+    String(a.id) === String(assignment.id)
+  );
 
   if(idx >= 0){
     state.assignments[idx] = {
       ...state.assignments[idx],
+      ...saved,
       currentWeek: Number(next.week),
       current_week: Number(next.week),
       assignedSessionNumber: Number(next.session),
@@ -4833,6 +4894,15 @@ async function advanceAssignmentAfterWorkout(c, plan, completedWeek, completedSe
   state.activeWorkoutSessionNumber = Number(next.session);
 
   clearWorkoutLocalProgressForClient(c.id);
+
+  // MUY IMPORTANTE:
+  // Guardar también el nuevo estado de sala para que field_get_session_state
+  // no vuelva a cargar el día anterior.
+  try{
+    await persistCurrentSessionState(c);
+  }catch(stateErr){
+    console.warn('No se pudo persistir el próximo paso en field session state:', stateErr);
+  }
 
   return next;
 }
