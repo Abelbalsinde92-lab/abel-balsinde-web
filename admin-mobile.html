@@ -2492,6 +2492,10 @@ async function openWorkout(clientId,reservationId=null){
     });
 
     state.workoutNotes[clientId]='';
+
+    // Limpiar estado de carga para forzar releer desde Supabase
+    if(!state.workoutStateLoaded) state.workoutStateLoaded = {};
+    delete state.workoutStateLoaded[`${clientId}__${(getClientActiveAssignment(clientId)||{}).id||''}`];
   }
 
   state.selectedClientId = clientId;
@@ -2503,9 +2507,14 @@ async function openWorkout(clientId,reservationId=null){
   const c = clientById(clientId);
   const assignment = c ? getClientActiveAssignment(c.id) : null;
 
-  state.activeWorkoutSessionNumber =
-    detectedSession ||
-    Number(assignment?.assignedSessionNumber || assignment?.assigned_session_number || 1);
+  // Partir siempre del valor de la asignación activa.
+  // loadPersistedSessionState puede ajustarlo si el estado guardado
+  // es coherente, pero la asignación manda como base.
+  state.activeWorkoutSessionNumber = Number(
+    assignment?.assignedSessionNumber ||
+    assignment?.assigned_session_number ||
+    1
+  );
 
   state.activeWorkoutBlockId = null;
   state.activeAdaptedBlockKey = null;
@@ -2514,8 +2523,12 @@ async function openWorkout(clientId,reservationId=null){
   if(c && assignment){
     try{
       if(detectedSession){
+        // Reservación con día detectado: forzar ese día y guardarlo
+        state.activeWorkoutSessionNumber = detectedSession;
         await persistCurrentSessionState(c);
       }else{
+        // Sin día detectado: intentar restaurar estado guardado
+        // loadPersistedSessionState respeta la asignación si hay conflicto
         await loadPersistedSessionState(c, assignment);
       }
     }catch(err){
@@ -3764,6 +3777,18 @@ function getAssignmentSessionNumber(a){
     1
   );
 }
+function getAssignmentSessionNumber(a){
+  // state.activeWorkoutSessionNumber solo manda si ya fue
+  // cargado/restaurado para esta sesión activa.
+  // Para leer el valor persistido de la asignación usar
+  // getAssignmentWeek / assigned_session_number directamente.
+  return Number(
+    a?.assignedSessionNumber ||
+    a?.assigned_session_number ||
+    state.activeWorkoutSessionNumber ||
+    1
+  );
+}
 
 function getLumbarFrontendFallback(r){
   const name = cleanTxt(r.ejercicio_original || r.ejercicio_final || '');
@@ -4464,14 +4489,26 @@ function getWorkoutPersistenceContext(c){
     return { plan, assignment:null };
   }
 
+  // sessionNumber: si el coach cambió de día manualmente en pantalla,
+  // usar ese valor. Si no, usar el de la asignación.
+  const sessionNumber = Number(
+    state.activeWorkoutSessionNumber ||
+    assignment?.assignedSessionNumber ||
+    assignment?.assigned_session_number ||
+    1
+  );
+
+  // weekNumber: siempre de la asignación activa.
+  const weekNumber = getAssignmentWeek(assignment);
+
   return {
     plan,
     assignment,
     clientId: c.id,
     assignmentId: assignment.id,
     reservationId: state.activeWorkoutReservationId || null,
-    weekNumber: getAssignmentWeek(assignment),
-    sessionNumber: getAssignmentSessionNumber(assignment)
+    weekNumber,
+    sessionNumber
   };
 }
 
@@ -4515,22 +4552,52 @@ async function loadPersistedSessionState(c, assignment){
 
   if(error){
     console.warn('field_get_session_state error:', error);
+    state.workoutStateLoaded[stateKey] = true;
     return null;
   }
 
   const row = Array.isArray(data) ? data[0] : null;
 
   if(row){
-    state.activeWorkoutSessionNumber = Number(row.session_number || row.sessionNumber || 1);
+    // REGLA: la asignación activa manda.
+    // Solo restaurar el estado guardado si coincide con
+    // la semana/sesión actual de la asignación.
+    // Si no coincide, la asignación ya avanzó → ignorar estado viejo.
 
-    const savedReservationId = row.reservation_id || row.reservationId || null;
-    if(!state.activeWorkoutReservationId && savedReservationId){
-      state.activeWorkoutReservationId = savedReservationId;
-    }
+    const assignmentWeek = getAssignmentWeek(assignment);
+    const assignmentSession = Number(
+      assignment?.assignedSessionNumber ||
+      assignment?.assigned_session_number ||
+      1
+    );
 
-    const savedSeconds = Number(row.timer_seconds || row.timerSeconds || 0);
-    if(savedSeconds > 0 && !state.workoutTimer.running){
-      state.workoutTimer.seconds = savedSeconds;
+    const savedWeek = Number(row.week_number || row.weekNumber || 1);
+    const savedSession = Number(row.session_number || row.sessionNumber || 1);
+
+    const matches =
+      savedWeek === assignmentWeek &&
+      savedSession === assignmentSession;
+
+    if(matches){
+      // Estado guardado es coherente con la asignación actual → restaurar
+      state.activeWorkoutSessionNumber = savedSession;
+
+      const savedReservationId = row.reservation_id || row.reservationId || null;
+      if(!state.activeWorkoutReservationId && savedReservationId){
+        state.activeWorkoutReservationId = savedReservationId;
+      }
+
+      const savedSeconds = Number(row.timer_seconds || row.timerSeconds || 0);
+      if(savedSeconds > 0 && !state.workoutTimer.running){
+        state.workoutTimer.seconds = savedSeconds;
+      }
+    } else {
+      // Estado guardado es de una sesión anterior → la asignación ya avanzó.
+      // Usar el número de sesión de la asignación, no el estado viejo.
+      console.log('AB STATE: estado guardado obsoleto, usando asignación activa', {
+        savedWeek, savedSession, assignmentWeek, assignmentSession
+      });
+      state.activeWorkoutSessionNumber = assignmentSession;
     }
   }
 
@@ -4805,9 +4872,24 @@ function clearWorkoutLocalProgressForClient(clientId){
     if(k.startsWith(clientId + '__adapted__')) delete state.adaptedWorkoutChecks[k];
   });
 
-  state.workoutProgressLoaded = {};
+  // Limpiar solo el progreso del cliente activo, no de todos
+  Object.keys(state.workoutProgressLoaded || {}).forEach(k => {
+    if(k.startsWith(clientId + '__')) delete state.workoutProgressLoaded[k];
+  });
+
+  // NO resetear workoutStateLoaded aquí.
+  // advanceAssignmentAfterWorkout ya llama a persistCurrentSessionState
+  // que marca el nuevo estado como cargado.
+  // Si se borrara aquí, la próxima apertura leería el estado viejo
+  // antes de que Supabase confirme el nuevo.
+
   state.currentAdaptedRows = [];
-  state.adaptedTrainingCache = {};
+
+  // Limpiar solo caché del cliente activo
+  Object.keys(state.adaptedTrainingCache || {}).forEach(k => {
+    if(k.startsWith(clientId + '__')) delete state.adaptedTrainingCache[k];
+  });
+
   state.activeWorkoutBlockId = null;
   state.activeAdaptedBlockKey = null;
   state.activeWorkoutExerciseIndex = 0;
