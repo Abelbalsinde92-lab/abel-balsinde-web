@@ -791,11 +791,78 @@ function sendClientAccessWA(clientId){
 }
 
 /* ── ALERT HELPERS ── */
-function getAlertClientId(a){return a.clientsId||a.clientesId||a.clienteId||a.clientId||a.client_id||''}
-function getAlertStatus(a){if(a.resueltaAt||a.estado==='resuelta')return'resuelta';if(a.leidaAt||a.estado==='leida')return'leida';return a.estado||'pendiente'}
-function isPendingAlert(a){return getAlertStatus(a)==='pendiente'}
-function alertCreatedAt(a){return a.createdAt||a.created_at||''}
+function getAlertClientId(a){
+  return String(
+    a?.clientId ||
+    a?.client_id ||
+    a?.clienteId ||
+    a?.cliente_id ||
+    a?.clientsId ||
+    a?.clients_id ||
+    a?.clientesId ||
+    a?.clientes_id ||
+    a?.idCliente ||
+    a?.id_cliente ||
+    ''
+  ).trim();
+}
 
+function getAlertClientName(a){
+  return cleanTxt(
+    a?.clientName ||
+    a?.client_name ||
+    a?.clienteNombre ||
+    a?.cliente_nombre ||
+    a?.name ||
+    ''
+  );
+}
+
+function alertBelongsToClient(a,c){
+  const alertClientId = getAlertClientId(a);
+  const clientId = String(c?.id || '').trim();
+
+  if(alertClientId && clientId && alertClientId === clientId){
+    return true;
+  }
+
+  const alertName = getAlertClientName(a);
+  const clientName = cleanTxt(c?.name || '');
+
+  return !alertClientId && alertName && clientName && alertName === clientName;
+}
+
+function getAlertStatus(a){
+  const estado = String(a?.estado || a?.status || '').toLowerCase();
+
+  if(
+    a?.resueltaAt ||
+    a?.resuelta_at ||
+    estado === 'resuelta' ||
+    estado === 'resolved'
+  ){
+    return 'resuelta';
+  }
+
+  if(
+    a?.leidaAt ||
+    a?.leida_at ||
+    estado === 'leida' ||
+    estado === 'read'
+  ){
+    return 'leida';
+  }
+
+  return estado || 'pendiente';
+}
+
+function isPendingAlert(a){
+  return getAlertStatus(a) === 'pendiente';
+}
+
+function alertCreatedAt(a){
+  return a.createdAt || a.created_at || '';
+}
 /* ── CHECK-IN STATUS ── */
 function getCheckinStatus(ci){
   const sleep=Number(ci.sleepQuality||ci.sleep_quality||10);
@@ -1093,7 +1160,14 @@ function getGuidedBlockExerciseKey(blockId){
 }
 
 function getClientPendingPayments(clientId){return state.payments.filter(p=>String(p.clientId||p.client_id)===String(clientId)&&String(p.status)!=='pagado')}
-function getClientPendingAlerts(clientId){return state.alertas.filter(a=>String(getAlertClientId(a))===String(clientId)&&isPendingAlert(a))}
+function getClientPendingAlerts(clientId){
+  const c = clientById(clientId) || { id:clientId };
+
+  return state.alertas.filter(a =>
+    isPendingAlert(a) &&
+    alertBelongsToClient(a,c)
+  );
+}
 
 /* ── UI HELPERS ── */
 function showToast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast on '+(type==='err'?'err':'ok');setTimeout(()=>t.classList.remove('on'),2400)}
@@ -1409,24 +1483,90 @@ async function updateResStatus(id,status){
    CLIENTES
 ══════════════════════════════════════════════════════════ */
 function renderClientes(){
-  const filters=[['todos','Todos'],['activo','Activos'],['prospecto','Prospectos'],['pausado','Pausados'],['deuda','Deuda'],['alerta','Con alerta']];
-  document.getElementById('cli-filters').innerHTML=filters.map(([k,l])=>`<button class="fp ${filterCli===k?'on':''}" onclick="filterCli='${k}';renderClientes()">${l}</button>`).join('');
-  const q=(document.getElementById('cli-search')?.value||'').toLowerCase().trim();
+  const filters=[
+    ['todos','Todos'],
+    ['activo','Activos'],
+    ['prospecto','Prospectos'],
+    ['pausado','Pausados'],
+    ['deuda','Deuda'],
+    ['alerta','Con alerta']
+  ];
+
+  document.getElementById('cli-filters').innerHTML=filters.map(([k,l])=>`
+    <button class="fp ${filterCli===k?'on':''}" onclick="filterCli='${k}';renderClientes()">
+      ${l}
+    </button>
+  `).join('');
+
+  const q=(document.getElementById('cli-search')?.value||'')
+    .toLowerCase()
+    .trim();
+
   let rows=[...state.clients];
-  if(filterCli==='deuda'){const ids=new Set(state.payments.filter(p=>p.status!=='pagado').map(p=>p.clientId||p.client_id));rows=rows.filter(c=>ids.has(c.id))}
-  else if(filterCli==='alerta'){const ids=new Set(state.alertas.filter(isPendingAlert).map(a=>getAlertClientId(a)));rows=rows.filter(c=>ids.has(c.id))}
-  else if(filterCli!=='todos')rows=rows.filter(c=>c.status===filterCli);
-  if(q)rows=rows.filter(c=>[c.name,c.phone,c.email,c.plan,c.status,c.accessCode].join(' ').toLowerCase().includes(q));
+
+  if(filterCli==='deuda'){
+    rows=rows.filter(c=>getClientPendingPayments(c.id).length>0);
+  }
+
+  else if(filterCli==='alerta'){
+    rows=rows.filter(c=>getClientPendingAlerts(c.id).length>0);
+  }
+
+  else if(filterCli!=='todos'){
+    rows=rows.filter(c=>
+      String(c.status||'').toLowerCase()===filterCli
+    );
+  }
+
+  if(q){
+    rows=rows.filter(c=>
+      [
+        c.name,
+        c.phone,
+        c.email,
+        c.plan,
+        c.status,
+        c.accessCode
+      ].join(' ').toLowerCase().includes(q)
+    );
+  }
+
   rows.sort((a,b)=>{
-    const aA=getClientPendingAlerts(a.id).some(x=>x.nivel==='critica'||x.nivel==='alerta');
-    const bA=getClientPendingAlerts(b.id).some(x=>x.nivel==='critica'||x.nivel==='alerta');
+    const aA=getClientPendingAlerts(a.id).some(x=>
+      x.nivel==='critica'||x.nivel==='alerta'
+    );
+
+    const bA=getClientPendingAlerts(b.id).some(x=>
+      x.nivel==='critica'||x.nivel==='alerta'
+    );
+
     if(aA!==bA)return aA?-1:1;
-    const aD=getClientPendingPayments(a.id).length;const bD=getClientPendingPayments(b.id).length;
+
+    const aD=getClientPendingPayments(a.id).length;
+    const bD=getClientPendingPayments(b.id).length;
+
     if(!!aD!==!!bD)return aD?-1:1;
+
     return String(a.name||'').localeCompare(String(b.name||''));
   });
+
   const body=document.getElementById('cli-content');
-  body.innerHTML=rows.length?rows.map(buildClientCard).join(''):emptyState('Sin resultados',q?'Intenta otra búsqueda':'Crea el primer cliente con + Cliente');
+
+  let emptySub='';
+
+  if(q){
+    emptySub='Intenta otra búsqueda.';
+  }else if(filterCli==='alerta'){
+    emptySub='No hay clientes con alertas pendientes en este filtro.';
+  }else if(filterCli==='deuda'){
+    emptySub='No hay clientes con deuda pendiente.';
+  }else{
+    emptySub='No hay clientes que coincidan con este filtro.';
+  }
+
+  body.innerHTML=rows.length
+    ? rows.map(buildClientCard).join('')
+    : emptyState('Sin resultados',emptySub);
 }
 
 function buildClientCard(c){
@@ -1670,7 +1810,7 @@ function buildAlertCard(a){
   const isUrg=a.nivel==='critica'||a.nivel==='alerta';
   const isWrn=a.nivel==='precaucion';
   const klass=isUrg?'urg':isWrn?'wrn':'';
-  const c=state.clients.find(cl=>String(cl.id)===String(getAlertClientId(a)));
+  const c=state.clients.find(cl=>alertBelongsToClient(a,cl));
   const phone=a.clientPhone||a.client_phone||c?.phone||state.settings.coachPhone;
   const created=String(alertCreatedAt(a)).slice(0,10);
   return`
@@ -1951,8 +2091,15 @@ function renderEval(){
       <div class="dr"><span class="dk">Test</span><span class="dv val-wrap">${esc(a.assessmentName||a.assessment_name||'Test')}</span></div>
       <div class="dr"><span class="dk">Fecha</span><span class="dv">${formatDate(a.assessmentDate||a.assessment_date)}</span></div>
       <div class="dr"><span class="dk">Estado</span><span>${badge(a.status||'realizada',a.status||'realizada')}</span></div>
-      ${a.coachNotes||a.coach_notes?`<div class="dr"><span class="dk">Notas</span><span class="dv val-wrap" style="font-size:.78rem">${esc(a.coachNotes||a.coach_notes)}</span></div>`:''}
     </div>
+      ${a.coachNotes||a.coach_notes?`
+  <div style="margin-top:10px;border-top:1px solid var(--divider);padding-top:10px">
+    <div class="dk" style="margin-bottom:6px">Notas</div>
+    <div style="font-size:.84rem;color:var(--text);line-height:1.65;text-align:left">
+      ${esc(a.coachNotes||a.coach_notes)}
+    </div>
+  </div>
+`:''}
     ${c?`<div class="card-acts"><button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button></div>`:''}
     </div>`;
   }).join('');
@@ -4826,11 +4973,9 @@ ${coachNote}`
     showToast('Sesión guardada, pero no avanzó al próximo día', 'err');
   }
 
-  try{
-    await advanceWorkoutAfterFinish(c,plan);
-  }catch(e){
-    console.warn('No se pudo avanzar al siguiente día:',e);
-  }
+    state.activeWorkoutBlockId = null;
+  state.activeAdaptedBlockKey = null;
+  state.activeWorkoutExerciseIndex = 0;
 
   renderAll();
 }
