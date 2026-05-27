@@ -3880,17 +3880,23 @@ function getAssignmentSessionNumber(a){
     1
   );
 }
-function getAssignmentSessionNumber(a){
-  // state.activeWorkoutSessionNumber solo manda si ya fue
-  // cargado/restaurado para esta sesión activa.
-  // Para leer el valor persistido de la asignación usar
-  // getAssignmentWeek / assigned_session_number directamente.
+
+function getStoredAssignmentSessionNumber(a){
   return Number(
     a?.assignedSessionNumber ||
     a?.assigned_session_number ||
-    state.activeWorkoutSessionNumber ||
     1
   );
+}
+
+function getAssignmentSessionNumber(a){
+  const active = Number(state.activeWorkoutSessionNumber || 0);
+
+  if(active > 0){
+    return active;
+  }
+
+  return getStoredAssignmentSessionNumber(a);
 }
 
 function getLumbarFrontendFallback(r){
@@ -4189,7 +4195,7 @@ async function getAdaptedRowsForClient(c){
   const semana = getAssignmentWeek(assignment);
   const sesion = getAssignmentSessionNumber(assignment);
 
-  const cacheKey = `${assignment.id}__v2__${pathology}__${semana}__${sesion}`;
+  const cacheKey = `${c.id}__${assignment.id}__v2__${pathology}__${semana}__${sesion}`;
 
   if(!state.adaptedTrainingCache) state.adaptedTrainingCache = {};
 
