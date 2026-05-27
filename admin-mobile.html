@@ -451,6 +451,41 @@ a{text-decoration:none;color:inherit}
   letter-spacing:.04em;
   line-height:1.45;
 }
+
+/* ── NAV: línea indicadora en tab activo ── */
+.tab.on::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:22%;
+  right:22%;
+  height:2px;
+  background:var(--sport);
+  border-radius:0 0 3px 3px;
+}
+.tab.on .tab-i{
+  font-size:1.5rem;
+  transition:font-size .15s;
+}
+
+/* ── PATOLOGÍA ACTIVA: más contraste ── */
+.fp.on{
+  background:rgba(0,200,232,.18);
+  color:var(--sport);
+  border-color:var(--sport);
+  font-weight:800;
+  box-shadow:0 0 0 1px rgba(0,200,232,.25);
+}
+
+/* ── BLOQUE HECHO: borde lateral verde ── */
+.block-closed.finished{
+  border-left:3px solid var(--streak);
+}
+
+/* ── TARJETA SESIÓN GUARDADA: brillo sutil ── */
+.wt-complete-glow{
+  box-shadow:0 0 24px rgba(0,230,118,.12);
+}
 </style>
 </head>
 <body>
@@ -1981,9 +2016,9 @@ function renderCheckins(){
           <span>${badge(st,st)}</span>
         </div>
         <div class="dr"><span class="dk">Fecha</span><span class="dv">${formatDate(fecha)}</span></div>
-        <div class="dr"><span class="dk">💤 Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div>
-        <div class="dr"><span class="dk">⚡ Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div>
-        <div class="dr"><span class="dk">🩺 Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>
+        <div class="dr"><span class="dk">ZZZ Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div>
+        <div class="dr"><span class="dk">NRG Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div>
+        <div class="dr"><span class="dk">DOL Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>
         ${ci.comment?`<div class="dr"><span class="dk">Nota</span><span class="dv val-wrap" style="color:var(--warn);font-weight:500;font-size:.8rem">${esc(ci.comment)}</span></div>`:''}
       </div>
       ${c?`<div class="card-acts">
@@ -3272,7 +3307,7 @@ ${plan.blocks.map((b,bi)=>{
       const info=getBlockDoneInfo(c.id,b);
       const title=getBlockName(b)||`Bloque ${bi+1}`;
       const pct=info.total>0?Math.round((info.done/info.total)*100):0;
-      return`<button class="card block-closed" onclick="openWorkoutBlock('${b.id}')">
+      return`<button class="card block-closed ${info.finished?'finished':''}" onclick="openWorkoutBlock('${b.id}')">
         <div class="card-body">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
             <div style="min-width:0;text-align:left;flex:1">
@@ -4620,7 +4655,7 @@ const pct = totalReview ? Math.round((reviewed / totalReview) * 100) : 100;
 const finished = totalReview > 0 && reviewed === totalReview;
 
       return `
-        <button class="card block-closed" onclick="openAdaptedBlock('${jsArg(key)}')">
+        <button class="card block-closed ${finished?'finished':''}" onclick="openAdaptedBlock('${jsArg(key)}')">
           <div class="card-body">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
               <div style="min-width:0;text-align:left;flex:1">
