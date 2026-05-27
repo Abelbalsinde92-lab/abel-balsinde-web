@@ -908,6 +908,24 @@ function getPathologyLabel(p){
   }[String(p||'')] || String(p||'').replace(/_/g,' ');
 }
 
+function getPathologyColor(p){
+  if(p==='fatiga_alta') return 'var(--sport)';
+  if(['dolor_lumbar','rodilla','hombro','cervical','tobillo'].includes(String(p||'')))
+    return 'var(--warn)';
+  return 'var(--medical)';
+}
+
+function getPathologyAdaptationText(p){
+  return {
+    dolor_lumbar: 'Molestia lumbar activa. Se trabaja con enfoque técnico, controlado y seguro durante el proceso de adaptación.',
+    rodilla:      'Adaptación por rodilla. Se evita el impacto, se limita el rango y se sustituyen ejercicios de alto riesgo articular.',
+    hombro:       'Adaptación por hombro. Sin movimientos overhead ni empujes en posición de riesgo. Rango libre de dolor.',
+    cervical:     'Adaptación cervical. Cuello neutro en todo momento. Sin jalones detrás de la nuca ni extensión cervical.',
+    tobillo:      'Adaptación por tobillo. Sin impacto ni dorsiflexión forzada bajo carga. Trabajo en descarga donde aplica.',
+    fatiga_alta:  'Fatiga alta detectada. Volumen e intensidad reducidos para respetar la recuperación del cliente.'
+  }[String(p||'')] || `Adaptación activa por ${getPathologyLabel(p)}. Los ejercicios de riesgo están modificados o sustituidos.`;
+}
+
 function getAssignmentScope(a){
   return String(
     a?.assignmentScope ||
@@ -4563,13 +4581,13 @@ ${isMod && r.modification_text ? `
 ${buildWorkoutSessionControls(plan, c)}
 ${buildWorkoutStepCard(plan)}
 
-<div class="card" style="border-left:3px solid var(--warn)">
+<div class="card" style="border-left:3px solid ${getPathologyColor(pathology)}">
       <div class="card-body" style="padding:12px 14px">
-        <div style="font-family:var(--font-d);font-size:1rem;letter-spacing:.04em;margin-bottom:4px">
-          Proceso de adaptación
+        <div style="font-family:var(--font-d);font-size:1rem;letter-spacing:.04em;margin-bottom:4px;color:${getPathologyColor(pathology)}">
+          ${getPathologyLabel(pathology)} · Adaptación activa
         </div>
         <div style="font-size:.78rem;color:var(--text-2);line-height:1.55">
-          Molestia lumbar detectada. Durante 15 días se trabaja con enfoque técnico, controlado y seguro.
+          ${getPathologyAdaptationText(pathology)}
         </div>
       </div>
 
