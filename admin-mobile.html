@@ -900,6 +900,14 @@ function getAssignmentScopeLabel(scope){
   return 'Plan completo';
 }
 
+function getPathologyLabel(p){
+  return {
+    normal:'Normal', dolor_lumbar:'Dolor lumbar',
+    rodilla:'Rodilla', hombro:'Hombro',
+    cervical:'Cervical', tobillo:'Tobillo', fatiga_alta:'Fatiga alta'
+  }[String(p||'')] || String(p||'').replace(/_/g,' ');
+}
+
 function getAssignmentScope(a){
   return String(
     a?.assignmentScope ||
@@ -2062,15 +2070,13 @@ function renderEval(){
       <div class="dr"><span class="dk">Test</span><span class="dv val-wrap">${esc(a.assessmentName||a.assessment_name||'Test')}</span></div>
       <div class="dr"><span class="dk">Fecha</span><span class="dv">${formatDate(a.assessmentDate||a.assessment_date)}</span></div>
       <div class="dr"><span class="dk">Estado</span><span>${badge(a.status||'realizada',a.status||'realizada')}</span></div>
+          ${a.coachNotes||a.coach_notes?`
+        <div style="margin-top:10px;border-top:1px solid var(--divider);padding-top:10px">
+          <div class="dk" style="margin-bottom:6px">Notas</div>
+          <div style="font-size:.84rem;color:var(--text);line-height:1.65">${esc(a.coachNotes||a.coach_notes)}</div>
+        </div>
+      `:''}
     </div>
-      ${a.coachNotes||a.coach_notes?`
-  <div style="margin-top:10px;border-top:1px solid var(--divider);padding-top:10px">
-    <div class="dk" style="margin-bottom:6px">Notas</div>
-    <div style="font-size:.84rem;color:var(--text);line-height:1.65;text-align:left">
-      ${esc(a.coachNotes||a.coach_notes)}
-    </div>
-  </div>
-`:''}
     ${c?`<div class="card-acts"><button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button></div>`:''}
     </div>`;
   }).join('');
@@ -2479,9 +2485,11 @@ const activePathology = manual || detectPathologyForClient(c) || 'normal';
       ${sessionButtons}
     </div>
 
-    <div class="fr" style="margin-bottom:12px">
-      <button class="fp ${activePathology === 'normal' ? 'on' : ''}" onclick="setManualPathology('${c.id}','normal')">Normal</button>
-<button class="fp ${activePathology === 'dolor_lumbar' ? 'on' : ''}" onclick="setManualPathology('${c.id}','dolor_lumbar')">Lumbar</button>
+        <div class="fr" style="margin-bottom:12px;flex-wrap:wrap">
+      ${['normal','dolor_lumbar','rodilla','hombro','cervical','tobillo','fatiga_alta'].map(p=>`
+        <button class="fp ${activePathology===p?'on':''}" onclick="setManualPathology('${c.id}','${p}')">
+          ${getPathologyLabel(p)}
+        </button>`).join('')}
     </div>
   `;
 }
@@ -3874,6 +3882,106 @@ function getLumbarFrontendFallback(r){
   return null;
 }
 
+function getKneeFrontendFallback(r){
+  const name=cleanTxt(r.ejercicio_original||r.ejercicio_final||'');
+  if(!name)return null;
+  if(name.includes('sentadilla'))return{final:'Sentadilla en caja con control',coach:'Limitar rango de rodilla con caja. Pie neutro, rodilla alineada. Sin colapso de rodilla.',cliente:'Usamos una variante que protege la rodilla y mantiene el trabajo de pierna.',riesgo:'medio'};
+  if(name.includes('zancada')||name.includes('lunge'))return{final:'Step lateral controlado',coach:'Plano frontal, sin impacto en rodilla. Controlar alineación de rodilla sobre pie.',cliente:'Sustituimos la zancada por un movimiento lateral más seguro.',riesgo:'bajo'};
+  if(name.includes('salto')||name.includes('jump')||name.includes('burpee'))return{final:'Marcha elevada controlada',coach:'Eliminar impacto. Trabajo cardiovascular sin carga articular en rodilla.',cliente:'Sin saltos hoy. Misma intensidad, sin impacto.',riesgo:'bajo'};
+  if(name.includes('peso muerto')||name.includes('deadlift'))return{final:'Puente de cadera bilateral',coach:'Cadena posterior sin carga axial sobre rodilla. Activar glúteo y controlar pelvis.',cliente:'Cambiamos a un ejercicio que trabaja la espalda sin sobrecargar la rodilla.',riesgo:'bajo'};
+  return null;
+}
+
+function getShoulderFrontendFallback(r){
+  const name=cleanTxt(r.ejercicio_original||r.ejercicio_final||'');
+  if(!name)return null;
+  if(name.includes('press'))return{final:'Press neutro con mancuernas',coach:'Agarre neutro (palmas enfrentadas), rango reducido. Evitar elevación sobre 90°.',cliente:'Usamos un agarre neutro que reduce la carga sobre el hombro.',riesgo:'bajo'};
+  if(name.includes('remo'))return{final:'Remo con apoyo en banco inclinado',coach:'Apoyo de pecho en banco. Codo pegado al cuerpo, sin retracción forzada.',cliente:'Mantenemos el trabajo de espalda con una posición que cuida el hombro.',riesgo:'bajo'};
+  if(name.includes('jalon')||name.includes('jalón')||name.includes('dominada'))return{final:'Jalón neutro agarre cerrado',coach:'Agarre neutro, tirar hacia el pecho. Nunca detrás de la nuca.',cliente:'Variante más segura de jalón que no compromete el hombro.',riesgo:'bajo'};
+  if(name.includes('lagartija')||name.includes('flexion')||name.includes('push'))return{final:'Fondos en banco altos',coach:'Manos en banco elevado. Codos a 45°, sin bajar por debajo del paralelo.',cliente:'Variante de empuje con menos carga sobre el hombro.',riesgo:'bajo'};
+  if(name.includes('elevacion')||name.includes('lateral'))return{final:'Elevación lateral con liga (carga mínima)',coach:'Rango hasta horizontal. Control excéntrico. Sin dolor en arco doloroso.',cliente:'Ejercicio de hombro con carga reducida y movimiento controlado.',riesgo:'medio'};
+  return null;
+}
+
+function getCervicalFrontendFallback(r){
+  const name=cleanTxt(r.ejercicio_original||r.ejercicio_final||'');
+  if(!name)return null;
+  if(name.includes('peso muerto')||name.includes('deadlift'))return{final:'Hip hinge con mancuernas (cuello neutro)',coach:'Mirada al suelo, cuello neutro en todo momento. No extender cuello al subir.',cliente:'Ajustamos el movimiento para que el cuello no trabaje en exceso.',riesgo:'medio'};
+  if(name.includes('press over')||name.includes('militar')||name.includes('overhead'))return{final:'Press frontal sentado con mancuernas',coach:'Sin extensión cervical al presionar. Mentón adentro. Rango moderado.',cliente:'Trabajamos el hombro sin forzar el cuello hacia atrás.',riesgo:'bajo'};
+  if(name.includes('jalon')||name.includes('jalón')||name.includes('dominada'))return{final:'Jalón frontal neutro al pecho',coach:'Tirar al pecho, nunca detrás de la nuca. Cuello neutro durante todo el movimiento.',cliente:'Sin jalones detrás de la cabeza. Mantenemos el trabajo de espalda.',riesgo:'bajo'};
+  if(name.includes('encogimiento')||name.includes('shrug'))return{final:'Retracción escapular en banco',coach:'Sustituir elevación de hombros por retracción controlada. Sin compresión cervical.',cliente:'Cambiamos el ejercicio por uno que no comprime el cuello.',riesgo:'bajo'};
+  return null;
+}
+
+function getAnkleFrontendFallback(r){
+  const name=cleanTxt(r.ejercicio_original||r.ejercicio_final||'');
+  if(!name)return null;
+  if(name.includes('sentadilla'))return{final:'Prensa bilateral con apoyo',coach:'Sin carga sobre tobillo. Trabajo de pierna en prensa. Pie en posición neutra.',cliente:'Sustituimos la sentadilla por un ejercicio que no carga el tobillo.',riesgo:'bajo'};
+  if(name.includes('salto')||name.includes('jump')||name.includes('burpee'))return{final:'Bicicleta estática o marcha sentado',coach:'Sin impacto. Trabajo cardiovascular sin dorsiflexión de tobillo bajo carga.',cliente:'Sin impacto hoy. Misma intensidad en bicicleta o marcha sentado.',riesgo:'bajo'};
+  if(name.includes('zancada')||name.includes('lunge')||name.includes('step'))return{final:'Leg extension + curl de isquio',coach:'Trabajo de pierna en máquina. Sin carga sobre tobillo.',cliente:'Trabajamos las piernas sin apoyar el pie en posiciones de riesgo.',riesgo:'bajo'};
+  if(name.includes('gemelo')||name.includes('calf'))return{final:'Movilidad de tobillo en descarga',coach:'Movilización activa sin carga. Rotaciones y flexoextensión pasiva.',cliente:'Movilidad de tobillo sin carga para no sobrecargar la zona.',riesgo:'bajo'};
+  return null;
+}
+
+function getFatigueFrontendFallback(r){
+  const name=cleanTxt(r.ejercicio_original||r.ejercicio_final||'');
+  if(!name)return null;
+  if(name.includes('burpee')||name.includes('salto')||name.includes('jump')||name.includes('sprint'))
+    return{final:'Marcha controlada o movilidad activa',coach:'Alta fatiga. Eliminar ejercicios de alto impacto metabólico. Priorizar recuperación activa.',cliente:'Hoy trabajamos con menor intensidad para respetar tu recuperación.',riesgo:'bajo'};
+  if(name.includes('peso muerto')||name.includes('sentadilla con barra'))
+    return{final:name+' (carga −30%, series −1)',coach:'Alta fatiga. Reducir carga y eliminar una serie. Técnica sobre rendimiento.',cliente:'Ajustamos la carga de hoy para respetar tu recuperación.',riesgo:'bajo'};
+  return{final:name+' (intensidad reducida)',coach:'Alta fatiga. Reducir volumen y carga. Observar signos de sobreentrenamiento.',cliente:'Trabajamos hoy con menor intensidad para recuperarnos bien.',riesgo:'bajo'};
+}
+
+function getPathologyFrontendFallback(r, pathology){
+  if(pathology==='dolor_lumbar') return getLumbarFrontendFallback(r);
+  if(pathology==='rodilla')      return getKneeFrontendFallback(r);
+  if(pathology==='hombro')       return getShoulderFrontendFallback(r);
+  if(pathology==='cervical')     return getCervicalFrontendFallback(r);
+  if(pathology==='tobillo')      return getAnkleFrontendFallback(r);
+  if(pathology==='fatiga_alta')  return getFatigueFrontendFallback(r);
+  return null;
+}
+
+function buildFrontendAdaptedRows(plan, pathology){
+  const rows=[];let ordenBloque=0;
+  const semana=getAssignmentWeek(plan?.assignment);
+  const sesion=plan?.assignment?getAssignmentSessionNumber(plan.assignment):1;
+
+  (plan?.blocks||[]).forEach(block=>{
+    ordenBloque++;
+    const blockName=getBlockName(block)||`Bloque ${ordenBloque}`;
+    const exercises=block.exercises||[];
+
+    if(!exercises.length){
+      rows.push({bloque:blockName,orden_bloque:ordenBloque,orden_ejercicio:1,
+        ejercicio_original:blockName,ejercicio_final:blockName,
+        estado_ejercicio:'mantener',semana,sesion});
+      return;
+    }
+
+    exercises.forEach((ex,idx)=>{
+      const exName=getExerciseTitle(ex);
+      const base={
+        bloque:blockName,orden_bloque:ordenBloque,orden_ejercicio:idx+1,
+        ejercicio_original:exName,ejercicio_final:exName,
+        estado_ejercicio:'mantener',semana,sesion,
+        sets:ex.sets,reps:ex.reps,duration:ex.duration,
+        rest:ex.rest,tempo:ex.tempo,video_url:getExerciseVideoUrl(ex),
+        variant_n1:ex.variantN1||ex.variant_n1,
+        variant_n2:ex.variantN2||ex.variant_n2,
+        variant_n3:ex.variantN3||ex.variant_n3,
+        variant_n4:ex.variantN4||ex.variant_n4
+      };
+      const fb=getPathologyFrontendFallback(base,pathology);
+      rows.push(fb?{...base,ejercicio_final:fb.final,estado_ejercicio:'sustituido',
+        explicacion_breve_coach:fb.coach,explicacion_cliente:fb.cliente,
+        nivel_riesgo:fb.riesgo,video_sustituto:fb.video||''}:base);
+    });
+  });
+  return rows;
+}
+
 function applyLumbarFrontendFallback(rows, pathology){
   if(pathology !== 'dolor_lumbar') return rows || [];
 
@@ -4049,7 +4157,12 @@ async function getAdaptedRowsForClient(c){
     return { rows:null, pathology:null, plan };
   }
 
-  const rows = data || [];
+    let rows = data || [];
+
+  if(!rows.length){
+    rows = buildFrontendAdaptedRows(getWorkoutPlanForClient(c), pathology);
+  }
+
   state.adaptedTrainingCache[cacheKey] = rows;
 
   return {
@@ -4292,7 +4405,7 @@ const reviewed = executableList.filter((r, index) => {
       <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToAdaptedBlocks()">Volver a bloques</button>
 
       <div style="margin-bottom:10px">
-        <div class="scr-eye">${pathology === 'dolor_lumbar' ? 'Adaptación lumbar activa' : esc(pathology)}</div>
+                <div class="scr-eye">${getPathologyLabel(pathology)} · Adaptación activa</div>
         <div class="scr-t" style="font-size:1.35rem">${esc(blockName)}</div>
       </div>
 
@@ -4414,7 +4527,7 @@ ${isMod && r.modification_text ? `
         <div style="flex:1;min-width:0">
           <div class="wt-name">${esc(c.name)}</div>
           <div class="wt-meta">${esc(c.plan || 'Sin plan')} · Adaptación activa</div>
-          <div class="wt-program">${pathology === 'dolor_lumbar' ? 'DOLOR LUMBAR · PROCESO 15 DÍAS' : esc(pathology)}</div>
+                    <div class="wt-program">${pathology==='dolor_lumbar'?'DOLOR LUMBAR · PROCESO 15 DÍAS':(getPathologyLabel(pathology)+' · ADAPTACIÓN ACTIVA').toUpperCase()}</div>
         </div>
         ${badge('Adaptado','revisar')}
       </div>
@@ -5144,10 +5257,8 @@ function buildCheckoutHTML(c){
 
 function selectCoField(field, value, gridId){
   document.querySelectorAll('#' + gridId + ' .fp').forEach(b => b.classList.remove('on'));
-  document.getElementById(field === 'rpe' ? 'rpe-' + value : field.split('-')[0] + '-' + value)?.classList.add('on');
-  const input = document.getElementById('co-' + field);
-  if(input) input.value = value;
-}
+  const prefix = {rpe:'rpe', soreness:'sore', breath:'breath', fatigue:'fatigue'}[field] || field;
+  document.getElementById(prefix + '-' + value)?.classList.add('on');
 
 function toggleZone(v){
   const wrap = document.getElementById('co-zone-wrap');
