@@ -1047,36 +1047,6 @@ function getNextVisibleSessionNumber(assignment,currentSessionNumber){
   return current;
 }
 
-async function advanceWorkoutAfterFinish(c,plan){
-  if(!c || !plan?.assignment) return;
-
-  const assignment = plan.assignment;
-  const scope = getAssignmentScope(assignment);
-
-  // Si vendiste solo un día, no avanza automáticamente.
-  if(scope === 'day') return;
-
-  const current = Number(state.activeWorkoutSessionNumber || 1);
-  const next = getNextVisibleSessionNumber(assignment,current);
-
-  if(next && next !== current){
-    state.activeWorkoutSessionNumber = next;
-    state.activeWorkoutBlockId = null;
-    state.activeAdaptedBlockKey = null;
-    state.activeWorkoutExerciseIndex = 0;
-
-    await persistCurrentSessionState(c);
-
-    const letter =
-      next === 1 ? 'A' :
-      next === 2 ? 'B' :
-      next === 3 ? 'C' :
-      next;
-
-    showToast(`Siguiente sesión: Día ${letter}`,'ok');
-  }
-}
-
 function getBlockType(b){
   return cleanTxt(
     b?.type ||
@@ -1623,7 +1593,7 @@ function renderPerfil(){
   if(!c){el.innerHTML=emptyState('Sin cliente','Vuelve a la lista de clientes.');return}
   const reservs=state.allRes.filter(r=>(r.clientId||r.client_id)===c.id).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
   const pays=state.payments.filter(p=>(p.clientId||p.client_id)===c.id).sort((a,b)=>String(b.dueDate||b.due_date||'').localeCompare(String(a.dueDate||a.due_date||'')));
-  const alerts=state.alertas.filter(a=>String(getAlertClientId(a))===String(c.id)).sort((a,b)=>String(alertCreatedAt(b)).localeCompare(String(alertCreatedAt(a))));
+  const alerts=state.alertas.filter(a=>alertBelongsToClient(a,c)).sort((a,b)=>String(alertCreatedAt(b)).localeCompare(String(alertCreatedAt(a))));
   const checkins=state.recentCheckins.filter(ci=>String(ci.clientId||ci.client_id)===String(c.id)).sort((a,b)=>String(b.checkinDate||b.created_at||'').localeCompare(String(a.checkinDate||a.created_at||''))).slice(0,30);
   const todayCI=getClientTodayCheckin(c.id);
   const ciStatus=todayCI?getCheckinStatus(todayCI):null;
@@ -2067,7 +2037,8 @@ function renderEntreno(){
       <div class="dr"><span class="dk">Cliente</span><span class="dv">${esc(c?.name||'—')}</span></div>
       <div class="dr"><span class="dk">Programa</span><span class="dv val-wrap" style="color:var(--sport)">${esc(p?.name||p?.nameEs||'—')}</span></div>
       <div class="dr"><span class="dk">Nivel</span><span class="dv">${esc(a.assignedLevel||a.assigned_level||'N1')}</span></div>
-      <div class="dr"><span class="dk">Semana</span><span class="dv">${esc(a.currentWeek||a.current_week||1)}</span></div>
+            <div class="dr"><span class="dk">Posición</span><span class="dv">Sem. ${esc(a.currentWeek||a.current_week||1)} · Día ${sessionLetter(a.assignedSessionNumber||a.assigned_session_number||1)}</span></div>
+      <div class="dr"><span class="dk">Alcance</span><span class="dv">${esc(getAssignmentScopeLabel(getAssignmentScope(a)))}</span></div>
       <div class="dr"><span class="dk">Sesiones hechas</span><span class="dv">${logs.length}</span></div>
     </div>
     <div class="card-acts">
@@ -2131,6 +2102,16 @@ async function upsertItem(stateKey,tableName,data){
   const{data:saved,error}=await db.from(tableName).insert(camelToSnake({id:uid(),...data})).select().single();
   if(error)throw error;
   const item=snakeToCamel(saved);state[stateKey].push(item);return item;
+}
+
+function updateAssignmentScopeFields(scope){
+  const sfMonth = document.getElementById('sf-month');
+  const sfWeek  = document.getElementById('sf-week');
+  const sfDay   = document.getElementById('sf-day');
+  if(!sfMonth) return;
+  sfMonth.style.display = scope === 'month' ? '' : 'none';
+  sfWeek.style.display  = scope === 'week'  ? '' : 'none';
+  sfDay.style.display   = scope === 'day'   ? '' : 'none';
 }
 
 function openModal(type,id=null,prefill={}){
@@ -2230,15 +2211,41 @@ function openModal(type,id=null,prefill={}){
         <div class="fld"><label class="fld-l">Semana inicial</label><input name="currentWeek" class="fld-i" type="number" min="1" value="${esc(a.currentWeek||1)}"></div>
       </div>
       <div class="fld"><label class="fld-l">Inicio</label><input name="startDate" class="fld-i" type="date" value="${esc(a.startDate||todayISO())}"></div>
-      <div class="fld"><label class="fld-l">Alcance comercial</label><select name="commercialLabel" class="fld-s">
-        <option value="Plan completo">Plan completo</option><option value="Mes">Mes</option>
-        <option value="Semana">Semana</option><option value="Día">Día</option>
-      </select></div>
+            <div class="fld"><label class="fld-l">Alcance *</label>
+        <select name="assignmentScope" class="fld-s" onchange="updateAssignmentScopeFields(this.value)">
+          <option value="full"  ${(a.assignmentScope||a.assignment_scope||'full')==='full' ?'selected':''}>Plan completo</option>
+          <option value="month" ${(a.assignmentScope||a.assignment_scope||'')==='month'?'selected':''}>Mes</option>
+          <option value="week"  ${(a.assignmentScope||a.assignment_scope||'')==='week' ?'selected':''}>Semana</option>
+          <option value="day"   ${(a.assignmentScope||a.assignment_scope||'')==='day'  ?'selected':''}>Día suelto</option>
+        </select>
+      </div>
+      <div id="scope-fields">
+        <div id="sf-month" class="fld" style="display:none">
+          <label class="fld-l">Mes asignado</label>
+          <input name="assignedMonth" class="fld-i" type="number" min="1" max="12" value="${esc(a.assignedMonth||a.assigned_month||1)}">
+        </div>
+        <div id="sf-week" class="fld" style="display:none">
+          <label class="fld-l">Semana asignada</label>
+          <input name="assignedWeek" class="fld-i" type="number" min="1" value="${esc(a.assignedWeek||a.assigned_week||a.currentWeek||1)}">
+        </div>
+        <div id="sf-day" class="fld-2" style="display:none">
+          <div class="fld"><label class="fld-l">Semana</label>
+            <input name="assignedWeek" class="fld-i" type="number" min="1" value="${esc(a.assignedWeek||a.assigned_week||a.currentWeek||1)}">
+          </div>
+          <div class="fld"><label class="fld-l">Día (1=A, 2=B…)</label>
+            <input name="assignedSessionNumber" class="fld-i" type="number" min="1" value="${esc(a.assignedSessionNumber||a.assigned_session_number||1)}">
+          </div>
+        </div>
+      </div>
+      <div class="fld"><label class="fld-l">Etiqueta comercial</label>
+        <input name="commercialLabel" class="fld-i" value="${esc(a.commercialLabel||a.commercial_label||'')}" placeholder="Ej: Semana de prueba, Mes 1…">
+      </div>
       <div class="fld"><label class="fld-l">Cerrar plan activo anterior</label><select name="closeOld" class="fld-s">
         <option value="yes" selected>Sí, cerrar anterior</option><option value="no">No, mantener anterior</option>
       </select></div>
-      <div class="fld"><label class="fld-l">Nota interna</label><textarea name="coachNotes" class="fld-t" rows="3">${esc(a.coachNotes||'')}</textarea></div>
+            <div class="fld"><label class="fld-l">Nota interna</label><textarea name="coachNotes" class="fld-t" rows="3">${esc(a.coachNotes||'')}</textarea></div>
       ${actions}`;
+    updateAssignmentScopeFields(a.assignmentScope||a.assignment_scope||'full');
   }
 
   else if(type==='metric'){
@@ -2318,6 +2325,11 @@ async function saveModal(e){
     else if(type==='assignment'){
       const closeOld=data.closeOld==='yes';delete data.closeOld;
       data.status='activo';data.currentWeek=Number(data.currentWeek||1);
+      data.assignmentScope = data.assignmentScope || 'full';
+      data.currentWeek = Number(data.assignedWeek || data.currentWeek || 1);
+      data.assignedWeek = data.currentWeek;
+      data.assignedMonth = Number(data.assignedMonth || 1);
+      data.assignedSessionNumber = Number(data.assignedSessionNumber || 1);
       if(!data.clientId||!data.programId){showToast('Selecciona cliente y programa','err');return}
       if(closeOld&&!id){
         const{error:closeErr}=await db.from('client_program_assignments').update({status:'finalizado'}).eq('client_id',data.clientId).or('status.eq.activo,status.is.null');
@@ -2935,7 +2947,7 @@ async function toggleWorkoutExercise(clientId,exId){
 
   }catch(err){
     console.error('Error guardando ejercicio normal:', err);
-    showToast('Marcado local, no guardado', 'err');
+    showToast('Local ✓ · ' + (err?.message?.slice(0,35) || 'sin conexión'), 'err');
   }
 }
 
@@ -3178,7 +3190,7 @@ function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,not
           <div class="card-title">Sesión libre</div>
           <textarea class="wt-note" placeholder="Describe lo que hicisteis hoy…" oninput="saveWorkoutNote('${c.id}',this.value)">${esc(note)}</textarea>
         </div>
-        <div class="card-acts"><button class="btn btn-p btn-sm btn-wide" onclick="finishWorkout('${c.id}')">Cerrar sesión libre</button></div>
+        <div class="card-acts"><button class="btn btn-p btn-sm btn-wide" onclick="openCheckout('${c.id}')">Cerrar sesión libre</button></div>
       </div>`;
   }
 
@@ -3254,7 +3266,7 @@ ${plan.blocks.map((b,bi)=>{
         <div class="card-title">Observaciones</div>
         <textarea class="wt-note" placeholder="Ej: respiración bloqueada, molestia leve, técnica mejoró..." oninput="saveWorkoutNote('${c.id}',this.value)">${esc(note)}</textarea>
       </div>
-      <div class="card-acts"><button class="btn btn-p btn-sm btn-wide" onclick="finishWorkout('${c.id}')">Cerrar sesión</button></div>
+      <div class="card-acts"><button class="btn btn-p btn-sm btn-wide" onclick="openCheckout('${c.id}')">Cerrar sesión</button></div>
     </div>`;
 }
 
@@ -3331,7 +3343,7 @@ async function completeActiveExercise(clientId,blockId,exId){
 
   }catch(err){
     console.error('Error guardando ejercicio terminado:', err);
-    showToast('Ejercicio marcado local, no guardado', 'err');
+    showToast('Local ✓ · ' + (err?.message?.slice(0,35) || 'sin conexión'), 'err');
   }
 
   const plan = getWorkoutPlanForClient(c);
@@ -3541,7 +3553,7 @@ async function completeGuidedBlock(clientId,blockId){
     showToast('Bloque realizado ✓','ok');
   }catch(err){
     console.error('Error guardando bloque guiado:',err);
-    showToast('Bloque marcado local, no guardado','err');
+        showToast('Local ✓ · ' + (err?.message?.slice(0,35) || 'sin conexión'), 'err');
   }
 
   backToWorkoutBlocks();
@@ -3627,7 +3639,7 @@ async function completeCircuitBlock(clientId,blockId){
     showToast('Circuito terminado ✓','ok');
   }catch(err){
     console.error('Error guardando circuito:', err);
-    showToast('Circuito marcado local, no guardado', 'err');
+        showToast('Local ✓ · ' + (err?.message?.slice(0,35) || 'sin conexión'), 'err');
   }
 
   backToWorkoutBlocks();
@@ -4163,7 +4175,7 @@ async function toggleAdaptedReviewed(key){
 
   }catch(err){
     console.error('Error guardando ejercicio adaptado:', err);
-    showToast('Marcado local, no guardado', 'err');
+    showToast('Local ✓ · ' + (err?.message?.slice(0,35) || 'sin conexión'), 'err');
   }
 }
 
@@ -4220,7 +4232,7 @@ async function markAdaptedBlockDone(clientId, blockKey){
     await persistCurrentSessionState(c);
   }catch(err){
     console.error('Error guardando bloque adaptado:', err);
-    showToast('Bloque marcado local, no guardado', 'err');
+        showToast('Local ✓ · ' + (err?.message?.slice(0,35) || 'sin conexión'), 'err');
   }
 
   backToAdaptedBlocks();
@@ -4475,7 +4487,7 @@ const finished = totalReview > 0 && reviewed === totalReview;
         <textarea class="wt-note" placeholder="Ej: dolor bajó, técnica controlada, respiración mejoró..." oninput="saveWorkoutNote('${c.id}',this.value)">${esc(state.workoutNotes[c.id] || '')}</textarea>
       </div>
       <div class="card-acts">
-        <button class="btn btn-p btn-sm btn-wide" onclick="finishWorkout('${c.id}')">Cerrar sesión adaptada</button>
+        <button class="btn btn-p btn-sm btn-wide" onclick="openCheckout('${c.id}')">Cerrar sesión adaptada</button>
       </div>
     </div>
   `;
@@ -4989,7 +5001,173 @@ async function advanceAssignmentAfterWorkout(c, plan, completedWeek, completedSe
   return next;
 }
 
-async function finishWorkout(clientId){
+function showWorkoutCompleteCard(c, next){
+  const box = document.getElementById('workout-content');
+  if(!box || !c) return;
+
+  const plan = getWorkoutPlanForClient(c);
+  const programName = plan?.program?.name || plan?.program?.nameEs || '—';
+
+  const nextLabel = next
+    ? `Semana ${next.week} · Día ${sessionLetter(next.session)}`
+    : null;
+
+  box.innerHTML = `
+    <div class="card" style="border-top:2px solid var(--streak);margin-bottom:12px">
+      <div class="card-body">
+        <div style="text-align:center;padding:10px 0 14px">
+          <div style="font-family:var(--font-d);font-size:2.2rem;letter-spacing:.04em;
+                      color:var(--streak);line-height:1;margin-bottom:8px">
+            Sesión guardada ✓
+          </div>
+          <div style="font-size:.82rem;color:var(--text-2);line-height:1.6">
+            ${esc(c.name)} · ${new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}
+          </div>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Programa</span>
+          <span class="dv val-wrap" style="color:var(--sport)">${esc(programName)}</span>
+        </div>
+
+        ${nextLabel ? `
+          <div class="dr">
+            <span class="dk">Próximo entrenamiento</span>
+            <span class="dv" style="color:var(--text);font-weight:700">${esc(nextLabel)}</span>
+          </div>
+        ` : `
+          <div class="dr">
+            <span class="dk">Estado</span>
+            <span class="dv" style="color:var(--streak)">Día suelto completado</span>
+          </div>
+        `}
+      </div>
+      <div class="card-acts">
+        ${nextLabel ? `
+          <button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}')">Abrir próximo día</button>
+        ` : ''}
+        <button class="btn btn-b btn-sm" onclick="showScr('hoy')">Volver a Hoy</button>
+        <button class="btn btn-s btn-sm" onclick="openProfile('${c.id}')">Ver perfil</button>
+      </div>
+    </div>
+  `;
+}
+
+function openCheckout(clientId){
+  const c = clientById(clientId);
+  if(!c) return;
+  const box = document.getElementById('workout-content');
+  if(!box) return;
+  box.innerHTML = buildCheckoutHTML(c);
+  window.scrollTo(0,0);
+}
+
+function buildCheckoutHTML(c){
+  const note = state.workoutNotes[c.id] || '';
+  const plan = getWorkoutPlanForClient(c);
+  const completedWeek = getAssignmentWeek(plan.assignment);
+  const completedSession = getAssignmentSessionNumber(plan.assignment);
+
+  return `
+    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:12px" onclick="renderWorkout()">← Volver</button>
+
+    <div class="scr-h">
+      <div class="scr-eye">Cierre de sesión · ${esc(workoutStepLabel(completedWeek,completedSession))}</div>
+      <div class="scr-t">${esc(c.name)}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title">Valoración</div>
+
+        <div style="margin-bottom:16px">
+          <div class="dk" style="margin-bottom:8px">Esfuerzo percibido · RPE 1–10</div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px" id="rpe-grid">
+            ${[1,2,3,4,5,6,7,8,9,10].map(n=>`
+              <button type="button" class="fp" id="rpe-${n}" onclick="selectCoField('rpe',${n},'rpe-grid')"
+                style="min-height:44px;justify-content:center;font-family:var(--font-d);font-size:1.15rem">
+                ${n}
+              </button>`).join('')}
+          </div>
+          <input type="hidden" id="co-rpe" value="">
+        </div>
+
+        <div style="margin-bottom:14px">
+          <div class="dk" style="margin-bottom:8px">Molestias durante la sesión</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="sore-grid">
+            ${['Ninguna','Leve','Media','Fuerte'].map(v=>`
+              <button type="button" class="fp" id="sore-${v}"
+                onclick="selectCoField('soreness','${v}','sore-grid');toggleZone('${v}')">${v}</button>`).join('')}
+          </div>
+          <input type="hidden" id="co-soreness" value="">
+        </div>
+
+        <div id="co-zone-wrap" style="margin-bottom:14px;display:none">
+          <div class="dk" style="margin-bottom:6px">Zona de molestia</div>
+          <input id="co-zone" class="fld-i" placeholder="Ej: rodilla derecha, zona lumbar…" style="min-height:44px">
+        </div>
+
+        <div style="margin-bottom:14px">
+          <div class="dk" style="margin-bottom:8px">Control respiratorio</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="breath-grid">
+            ${['Buena','Agitada','Bloqueó aire','Recuperó lento'].map(v=>`
+              <button type="button" class="fp" id="breath-${v}"
+                onclick="selectCoField('breath','${v}','breath-grid')">${v}</button>`).join('')}
+          </div>
+          <input type="hidden" id="co-breath" value="">
+        </div>
+
+        <div style="margin-bottom:16px">
+          <div class="dk" style="margin-bottom:8px">Fatiga al final</div>
+          <div style="display:flex;gap:6px" id="fatigue-grid">
+            ${['Baja','Media','Alta'].map(v=>`
+              <button type="button" class="fp" id="fatigue-${v}"
+                onclick="selectCoField('fatigue','${v}','fatigue-grid')">${v}</button>`).join('')}
+          </div>
+          <input type="hidden" id="co-fatigue" value="">
+        </div>
+
+        <div class="fld" style="margin-bottom:0">
+          <label class="fld-l">Observación del coach</label>
+          <textarea id="co-note" class="wt-note" style="min-height:88px"
+            placeholder="Técnica, carga, comportamiento, lo que destacar…">${esc(note)}</textarea>
+        </div>
+      </div>
+      <div class="card-acts">
+        <button class="btn btn-p btn-sm btn-wide" onclick="submitCheckout('${c.id}')">
+          Guardar y avanzar
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function selectCoField(field, value, gridId){
+  document.querySelectorAll('#' + gridId + ' .fp').forEach(b => b.classList.remove('on'));
+  document.getElementById(field === 'rpe' ? 'rpe-' + value : field.split('-')[0] + '-' + value)?.classList.add('on');
+  const input = document.getElementById('co-' + field);
+  if(input) input.value = value;
+}
+
+function toggleZone(v){
+  const wrap = document.getElementById('co-zone-wrap');
+  if(wrap) wrap.style.display = v !== 'Ninguna' ? '' : 'none';
+}
+
+async function submitCheckout(clientId){
+  const rpe      = document.getElementById('co-rpe')?.value || '';
+  const soreness = document.getElementById('co-soreness')?.value || '';
+  const zone     = document.getElementById('co-zone')?.value?.trim() || '';
+  const breath   = document.getElementById('co-breath')?.value || '';
+  const fatigue  = document.getElementById('co-fatigue')?.value || '';
+  const note     = document.getElementById('co-note')?.value?.trim() || '';
+
+  state.workoutNotes[clientId] = note;
+
+  await finishWorkout(clientId, { rpe, soreness, zone, breath, fatigue });
+}
+
+async function finishWorkout(clientId, checkoutData = {}){
   const c=clientById(clientId);
 
   if(!c){
@@ -5013,9 +5191,15 @@ const now=new Date().toISOString();
 const completedWeekNumber = getAssignmentWeek(plan.assignment);
 const completedSessionNumber = getAssignmentSessionNumber(plan.assignment);
 
-  const coachNote=`Duración: ${formatClock(state.workoutTimer.seconds)}.
-Ejercicios marcados: ${completedKeys.length}.
-Observaciones: ${note||'Sin observaciones.'}`;
+    const coachNote = [
+    `Duración: ${formatClock(state.workoutTimer.seconds)}`,
+    `Ejercicios marcados: ${completedKeys.length}`,
+    checkoutData.rpe      ? `RPE: ${checkoutData.rpe}/10`                                            : '',
+    checkoutData.soreness ? `Molestias: ${checkoutData.soreness}${checkoutData.zone ? ' · '+checkoutData.zone : ''}` : '',
+    checkoutData.breath   ? `Respiración: ${checkoutData.breath}`                                    : '',
+    checkoutData.fatigue  ? `Fatiga: ${checkoutData.fatigue}`                                        : '',
+    note                  ? `Observaciones: ${note}`                                                 : 'Sin observaciones.'
+  ].filter(Boolean).join('\n');
 
   let savedInLogs=false;
 
@@ -5125,11 +5309,22 @@ ${coachNote}`
     showToast('Sesión guardada, pero no avanzó al próximo día', 'err');
   }
 
-    state.activeWorkoutBlockId = null;
+      state.activeWorkoutBlockId = null;
   state.activeAdaptedBlockKey = null;
   state.activeWorkoutExerciseIndex = 0;
 
-  renderAll();
+  // Actualizar otras pantallas sin re-renderizar workout
+  renderBadges();
+  renderScr('hoy');
+
+  // Mostrar tarjeta persistente con el próximo paso
+  const nextForCard = (() => {
+    const scope = getAssignmentScope(plan?.assignment);
+    if(scope === 'day') return null;
+    return getNextTrainingPosition(plan, completedWeekNumber, completedSessionNumber);
+  })();
+
+  showWorkoutCompleteCard(c, nextForCard);
 }
 </script>
 
