@@ -2148,6 +2148,14 @@ function closeModal(){
   activeModal=null;
 }
 function clientOpts(selectedId=''){return state.clients.map(c=>`<option value="${c.id}" ${String(selectedId)===String(c.id)?'selected':''}>${esc(c.name)}</option>`).join('')}
+function toggleClientTypeFields(){
+  const sel = document.querySelector('#modal-form select[name="clientType"]');
+  const box = document.getElementById('client-athlete-fields');
+
+  if(!box || !sel) return;
+
+  box.style.display = sel.value === 'general' ? 'none' : '';
+}
 function programOpts(selectedId=''){return state.trainingPrograms.map(p=>`<option value="${p.id}" ${String(selectedId)===String(p.id)?'selected':''}>${esc(p.name||p.nameEs||'Programa sin nombre')}</option>`).join('')}
 function formData(form){return Object.fromEntries(new FormData(form).entries())}
 
@@ -2182,36 +2190,114 @@ function openModal(type,id=null,prefill={}){
   const get=(arrKey)=>state[arrKey]?.find(x=>String(x.id)===String(id))||{};
 
   if(type==='client'){
-    const c=get('clients');
-    title.textContent=id?'Editar cliente':'Nuevo cliente';
-    form.innerHTML=`
-      <div class="fld"><label class="fld-l">Nombre completo *</label><input name="name" class="fld-i" value="${esc(c.name||'')}" required autocapitalize="words"></div>
-      <div class="fld-2">
-        <div class="fld"><label class="fld-l">Teléfono</label><input name="phone" class="fld-i" value="${esc(c.phone||'')}" inputmode="tel"></div>
-        <div class="fld"><label class="fld-l">Plan</label><select name="plan" class="fld-s">
+  const c=get('clients');
+
+  const currentType = String(
+    c.athleteProfile ||
+    c.athlete_profile ||
+    'general'
+  ).toLowerCase();
+
+  title.textContent=id?'Editar cliente':'Nuevo cliente';
+
+  form.innerHTML=`
+    <div class="fld">
+      <label class="fld-l">Nombre completo *</label>
+      <input name="name" class="fld-i" value="${esc(c.name||'')}" required autocapitalize="words">
+    </div>
+
+    <div class="fld-2">
+      <div class="fld">
+        <label class="fld-l">Teléfono</label>
+        <input name="phone" class="fld-i" value="${esc(c.phone||'')}" inputmode="tel">
+      </div>
+
+      <div class="fld">
+        <label class="fld-l">Plan</label>
+        <select name="plan" class="fld-s">
           <option ${c.plan==='Inicio'?'selected':''}>Inicio</option>
           <option ${c.plan==='Performance'?'selected':''}>Performance</option>
           <option ${c.plan==='Online'?'selected':''}>Online</option>
           <option ${c.plan==='Sin plan'?'selected':''}>Sin plan</option>
-        </select></div>
+        </select>
       </div>
-      <div class="fld-2">
-        <div class="fld"><label class="fld-l">Estado</label><select name="status" class="fld-s">
+    </div>
+
+    <div class="fld-2">
+      <div class="fld">
+        <label class="fld-l">Estado</label>
+        <select name="status" class="fld-s">
           <option value="prospecto" ${(c.status||'prospecto')==='prospecto'?'selected':''}>Prospecto</option>
           <option value="activo" ${c.status==='activo'?'selected':''}>Activo</option>
           <option value="pausado" ${c.status==='pausado'?'selected':''}>Pausado</option>
           <option value="inactivo" ${c.status==='inactivo'?'selected':''}>Inactivo</option>
-        </select></div>
-        <div class="fld"><label class="fld-l">Idioma</label><select name="preferred_lang" class="fld-s">
+        </select>
+      </div>
+
+      <div class="fld">
+        <label class="fld-l">Idioma</label>
+        <select name="preferred_lang" class="fld-s">
           <option value="es" ${(c.preferredLang||'es')==='es'?'selected':''}>🇪🇸 ES</option>
           <option value="sr" ${c.preferredLang==='sr'?'selected':''}>🇷🇸 SR</option>
-        </select></div>
+        </select>
       </div>
-      <div class="fld"><label class="fld-l">Código de acceso</label><input name="access_code" class="fld-i" value="${esc(c.accessCode||'')}" placeholder="Ej: AB1234" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:.08em"></div>
-      <div class="fld"><label class="fld-l">Email</label><input name="email" class="fld-i" value="${esc(c.email||'')}" inputmode="email" autocapitalize="off"></div>
-      <div class="fld"><label class="fld-l">Objetivo principal</label><input name="objective" class="fld-i" value="${esc(c.objective||'')}"></div>
-      ${actions}`;
-  }
+    </div>
+
+    <div class="fld">
+      <label class="fld-l">Tipo de cliente</label>
+      <select name="clientType" class="fld-s" onchange="toggleClientTypeFields()">
+        <option value="general" ${currentType==='general'?'selected':''}>Cliente general</option>
+        <option value="combat" ${currentType==='combat'?'selected':''}>Atleta combate</option>
+        <option value="athlete" ${currentType==='athlete'||currentType==='rendimiento'?'selected':''}>Atleta rendimiento</option>
+      </select>
+    </div>
+
+    <div id="client-athlete-fields" style="display:none">
+      <div class="fld">
+        <label class="fld-l">Deporte / modalidad</label>
+        <input name="athleteSport" class="fld-i" value="" placeholder="Ej: Lucha / Combate / Rendimiento">
+      </div>
+
+      <div class="fld-2">
+        <div class="fld">
+          <label class="fld-l">Categoría / peso</label>
+          <input name="athleteWeightClass" class="fld-i" value="" placeholder="Ej: 74 kg">
+        </div>
+
+        <div class="fld">
+          <label class="fld-l">Nivel competitivo</label>
+          <select name="athleteCompetitiveLevel" class="fld-s">
+            <option value="por_definir">Por definir</option>
+            <option value="amateur">Amateur</option>
+            <option value="regional">Regional</option>
+            <option value="nacional">Nacional</option>
+            <option value="internacional">Internacional</option>
+            <option value="profesional">Profesional</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="fld">
+      <label class="fld-l">Código de acceso</label>
+      <input name="access_code" class="fld-i" value="${esc(c.accessCode||'')}" placeholder="Ej: AB1234" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:.08em">
+    </div>
+
+    <div class="fld">
+      <label class="fld-l">Email</label>
+      <input name="email" class="fld-i" value="${esc(c.email||'')}" inputmode="email" autocapitalize="off">
+    </div>
+
+    <div class="fld">
+      <label class="fld-l">Objetivo principal</label>
+      <input name="objective" class="fld-i" value="${esc(c.objective||'')}">
+    </div>
+
+    ${actions}
+  `;
+
+  setTimeout(toggleClientTypeFields,0);
+}
 
   else if(type==='reservation'){
     const r=id?reservationById(id):{};
@@ -2346,11 +2432,58 @@ async function saveModal(e){
   try{
     const data=formData(e.target);const{type,id}=activeModal||{};
     if(type==='client'){
-      if(data.access_code)data.access_code=data.access_code.trim().toUpperCase();
-      const saved=await upsertItem('clients','clients',{...data,notes:id?(clientById(id)?.notes||[]):[]});
-      if(!state.selectedClientId&&!id)state.selectedClientId=saved.id;
-      showToast(id?'Cliente actualizado ✓':'Cliente guardado ✓','ok');
+  const clientType = String(data.clientType || 'general').toLowerCase();
+
+  const athleteSport = data.athleteSport || null;
+  const athleteWeightClass = data.athleteWeightClass || null;
+  const athleteCompetitiveLevel = data.athleteCompetitiveLevel || null;
+
+  delete data.clientType;
+  delete data.athleteSport;
+  delete data.athleteWeightClass;
+  delete data.athleteCompetitiveLevel;
+
+  if(data.access_code){
+    data.access_code = data.access_code.trim().toUpperCase();
+  }
+
+  data.athlete_profile = clientType === 'athlete' ? 'athlete' : clientType;
+  data.enable_combat_metrics = clientType === 'combat';
+
+  const saved = await upsertItem(
+    'clients',
+    'clients',
+    {
+      ...data,
+      notes:id ? (clientById(id)?.notes || []) : []
     }
+  );
+
+  const { error: typeError } = await db.rpc('admin_set_client_type', {
+    p_client_id: saved.id,
+    p_client_type: clientType,
+    p_sport: athleteSport,
+    p_weight_class: athleteWeightClass,
+    p_competitive_level: athleteCompetitiveLevel
+  });
+
+  if(typeError) throw typeError;
+
+  const localClient = clientById(saved.id);
+
+  if(localClient){
+    localClient.athleteProfile = clientType === 'athlete' ? 'athlete' : clientType;
+    localClient.athlete_profile = clientType === 'athlete' ? 'athlete' : clientType;
+    localClient.enableCombatMetrics = clientType === 'combat';
+    localClient.enable_combat_metrics = clientType === 'combat';
+  }
+
+  if(!state.selectedClientId && !id){
+    state.selectedClientId = saved.id;
+  }
+
+  showToast(id ? 'Cliente actualizado ✓' : 'Cliente guardado ✓','ok');
+}
     else if(type==='reservation'){
       let saved;
       if(id){
