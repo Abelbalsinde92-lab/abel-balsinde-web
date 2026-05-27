@@ -650,6 +650,14 @@ a{text-decoration:none;color:inherit}
       <a class="scr-back" onclick="showScr('mas')">← Más</a>
       <div class="scr-h"><div class="scr-eye">Lectura rápida</div><div class="scr-t">Evaluaciones</div></div>
       <div id="eval-content"></div>
+      <div class="scr" id="s-atletas">
+  <a class="scr-back" onclick="showScr('mas')">← Más</a>
+  <div class="scr-h">
+    <div class="scr-eye">Rendimiento</div>
+    <div class="scr-t">Atletas</div>
+  </div>
+  <div id="ath-content"></div>
+</div>
     </div>
 
   </div>
@@ -718,7 +726,9 @@ const state = {
   workoutTimer:{seconds:0,running:false,interval:null},
   workoutIntervals:{enabled:false,workSec:40,restSec:20,totalRounds:8,phase:'idle',currentRound:1,phaseSecsLeft:0},
   assessments:[],metrics:[],
-  settings:{coachName:'Abel Balsinde',coachPhone:COACH_PHONE_DEFAULT,coachCity:'Belgrado',adminUsername:ADMIN_USER_DEFAULT},
+  athletes:[],
+   activeAthleteDashboard:null,
+   settings:{coachName:'Abel Balsinde',coachPhone:COACH_PHONE_DEFAULT,coachCity:'Belgrado',adminUsername:ADMIN_USER_DEFAULT},
   activeWorkoutSessionNumber:1,
    manualPathologyByClient:{},
    selectedClientId:null,
@@ -1228,7 +1238,9 @@ function renderScr(id){
     case'perfil':renderPerfil();break;case'workout':renderWorkout();break;
     case'pagos':renderPagos();break;case'checkins':renderCheckins();break;
     case'whatsapp':renderWhatsapp();break;case'ajustes':renderAjustes();break;
-    case'entreno':renderEntreno();break;case'eval':renderEval();break;
+    case'entreno':renderEntreno();break;
+   case'eval':renderEval();break;
+   case'atletas':renderAtletas();break;
   }
 }
 
@@ -1338,7 +1350,22 @@ db.from('settings').select('*').eq('id','main').maybeSingle()
     state.assessments=mapArr(assessments);state.metrics=mapArr(metrics);
    state.clientConditions=Array.isArray(conditions) ? mapArr(conditions) : [];
     if(settings)state.settings={...state.settings,...snakeToCamel(settings)};
-    renderAll();showToast('Datos cargados ✓','ok');
+
+try{
+  const {data:athletes,error:athErr}=await db.rpc('get_admin_athlete_list');
+
+  if(athErr){
+    console.warn('get_admin_athlete_list error:',athErr);
+    state.athletes=[];
+  }else{
+    state.athletes=mapArr(athletes||[]);
+  }
+}catch(e){
+  console.warn('No se pudo cargar lista de atletas:',e);
+  state.athletes=[];
+}
+
+renderAll();showToast('Datos cargados ✓','ok');
   }catch(err){console.error('loadAllData error:',err);showToast('Error cargando datos','err')}
 }
 
@@ -1916,7 +1943,8 @@ function renderMas(){
   const pendPay=state.payments.filter(p=>p.status!=='pagado').length;
   const todayCI=state.todayCheckins.length;
   const activeAssign=state.assignments.filter(a=>String(a.status||'activo')==='activo').length;
-  document.getElementById('mas-grid').innerHTML=`
+  const athleteCount=state.athletes.length;
+   document.getElementById('mas-grid').innerHTML=`
     <div class="mas-t" onclick="showScr('pagos')">
       <span class="mas-i mono">PAY</span><span class="mas-l">Gestión</span><span class="mas-n">Pagos</span>
       <span class="mas-bdg ${pendPay?'on':''}">${pendPay||''}</span>
@@ -1932,6 +1960,10 @@ function renderMas(){
       <span class="mas-i mono">TR</span><span class="mas-l">Programas</span><span class="mas-n">Entrenos</span>
       <span class="mas-bdg ${activeAssign?'on':''}">${activeAssign||''}</span>
     </div>
+   <div class="mas-t" onclick="showScr('atletas')">
+  <span class="mas-i mono">ATH</span><span class="mas-l">Rendimiento</span><span class="mas-n">Atletas</span>
+  <span class="mas-bdg ${athleteCount?'on':''}">${athleteCount||''}</span>
+</div>
     <div class="mas-t" onclick="showScr('eval')">
       <span class="mas-i mono">EV</span><span class="mas-l">Lectura</span><span class="mas-n">Evaluaciones</span>
     </div>
@@ -2109,6 +2141,250 @@ function renderEntreno(){
       ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c?.name))}, ¿cómo va el plan?')">WA</button>`:''}
     </div></div>`;
   }).join('');
+}
+
+function renderAtletas(){
+  const box=document.getElementById('ath-content');
+
+  const rows=state.athletes||[];
+
+  if(!rows.length){
+    box.innerHTML=`
+      <div class="card" style="border-left:3px solid var(--sport)">
+        <div class="card-body">
+          <div class="card-title">Sin atletas activos</div>
+          <div style="font-size:.84rem;color:var(--text-2);line-height:1.65">
+            Todavía no hay clientes convertidos en atleta combate o atleta rendimiento.
+            Cuando edites un cliente y cambies su tipo, aparecerá aquí automáticamente.
+          </div>
+        </div>
+        <div class="card-acts">
+          <button class="btn btn-p btn-sm" onclick="showScr('clientes')">Ir a clientes</button>
+          <button class="btn btn-s btn-sm" onclick="openModal('client')">Nuevo cliente</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  box.innerHTML=`
+    <div class="mr">
+      <div class="mc b"><span class="mc-n">${rows.length}</span><span class="mc-l">Atletas</span></div>
+      <div class="mc g"><span class="mc-n">${rows.filter(a=>a.clientType==='combat').length}</span><span class="mc-l">Combate</span></div>
+      <div class="mc y"><span class="mc-n">${rows.filter(a=>a.nextEventDate).length}</span><span class="mc-l">Compiten</span></div>
+      <div class="mc r"><span class="mc-n">${rows.filter(a=>a.latestRpe>=8).length}</span><span class="mc-l">Carga alta</span></div>
+    </div>
+
+    ${rows.map(buildAthleteCard).join('')}
+  `;
+}
+
+function buildAthleteCard(a){
+  const typeLabel =
+    a.clientType==='combat'
+      ? 'Atleta combate'
+      : a.clientType==='athlete'
+        ? 'Atleta rendimiento'
+        : 'Atleta';
+
+  const nextEvent = a.nextEventDate
+    ? `${formatDate(a.nextEventDate)} · ${a.nextEventName||'Competición'}`
+    : 'Sin competición próxima';
+
+  return `
+    <div class="card">
+      <div class="card-body">
+        <div class="dr">
+          <span class="dk">Atleta</span>
+          <span class="dv">${esc(a.clientName||'—')}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Tipo</span>
+          <span>${badge(typeLabel,a.clientType==='combat'?'alerta':'info')}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Deporte</span>
+          <span class="dv val-wrap">${esc(a.sport||'—')}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Categoría</span>
+          <span class="dv">${esc(a.weightClass||'—')}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Próxima comp.</span>
+          <span class="dv val-wrap" style="color:${a.nextEventDate?'var(--warn)':'var(--text-2)'}">${esc(nextEvent)}</span>
+        </div>
+
+        ${a.activePhaseName?`
+          <div class="dr">
+            <span class="dk">Fase</span>
+            <span class="dv val-wrap" style="color:var(--sport)">${esc(a.activePhaseName)}</span>
+          </div>
+        `:''}
+
+        ${a.latestMetricDate?`
+          <div class="dr">
+            <span class="dk">Última métrica</span>
+            <span class="dv">${formatDate(String(a.latestMetricDate).slice(0,10))}</span>
+          </div>
+        `:''}
+      </div>
+
+      <div class="card-acts">
+        <button class="btn btn-p btn-sm" onclick="openAthleteDashboard('${a.clientId}')">Dashboard</button>
+        <button class="btn btn-b btn-sm" onclick="openProfile('${a.clientId}')">Perfil cliente</button>
+        ${a.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(a.phone)}','Hola ${esc(firstName(a.clientName))}.')">WA</button>`:''}
+      </div>
+    </div>
+  `;
+}
+
+async function openAthleteDashboard(clientId){
+  try{
+    showToast('Cargando atleta…','ok');
+
+    const {data,error}=await db.rpc('get_athlete_dashboard',{
+      p_client_id:clientId
+    });
+
+    if(error) throw error;
+
+    const row=Array.isArray(data) ? data[0] : null;
+
+    if(!row){
+      showToast('Atleta no encontrado','err');
+      return;
+    }
+
+    state.activeAthleteDashboard=snakeToCamel(row);
+
+    const box=document.getElementById('ath-content');
+    box.innerHTML=buildAthleteDashboardHTML(state.activeAthleteDashboard);
+
+    showScr('atletas');
+
+  }catch(err){
+    console.error('openAthleteDashboard error:',err);
+    showToast('Error cargando atleta','err');
+  }
+}
+
+function buildAthleteDashboardHTML(a){
+  const record = [
+    Number(a.wins||0),
+    Number(a.losses||0),
+    Number(a.draws||0)
+  ].join('-');
+
+  return `
+    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:12px" onclick="renderAtletas()">← Lista de atletas</button>
+
+    <div class="psum">
+      <div class="psum-top">
+        <div class="client-photo">${initials(a.clientName)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="psum-name">${esc(a.clientName||'Atleta')}</div>
+          <div class="psum-meta">${esc(a.sport||'Deporte sin definir')} · ${esc(a.competitiveLevel||'Nivel sin definir')}</div>
+          <div class="psum-code">${esc(a.weightClass||'Categoría pendiente')}</div>
+        </div>
+        ${badge(a.clientType||'athlete',a.clientType==='combat'?'alerta':'info')}
+      </div>
+
+      <div class="dr"><span class="dk">Récord</span><span class="dv mono">${record}</span></div>
+      <div class="dr"><span class="dk">Equipo</span><span class="dv">${esc(a.team||'—')}</span></div>
+      <div class="dr"><span class="dk">Nacionalidad</span><span class="dv">${esc(a.nationality||'—')}</span></div>
+      <div class="dr"><span class="dk">Altura</span><span class="dv">${a.heightCm?esc(a.heightCm)+' cm':'—'}</span></div>
+      <div class="dr"><span class="dk">Peso habitual</span><span class="dv">${a.walkAroundWeightKg?esc(a.walkAroundWeightKg)+' kg':'—'}</span></div>
+    </div>
+
+    <div class="mr">
+      <div class="mc b"><span class="mc-n">${a.totalCompetitions||0}</span><span class="mc-l">Comp.</span></div>
+      <div class="mc y"><span class="mc-n">${a.upcomingCompetitions||0}</span><span class="mc-l">Próx.</span></div>
+      <div class="mc g"><span class="mc-n">${a.completedCompetitions||0}</span><span class="mc-l">Hechas</span></div>
+      <div class="mc r"><span class="mc-n">${a.rpeSesion||'—'}</span><span class="mc-l">RPE</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title">Competición</div>
+
+        <div class="dr">
+          <span class="dk">Próxima</span>
+          <span class="dv val-wrap">${a.nextEventDate?`${formatDate(a.nextEventDate)} · ${esc(a.nextEventName||'Competición')}`:'—'}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Rival</span>
+          <span class="dv">${esc(a.nextOpponent||'—')}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Lugar</span>
+          <span class="dv">${esc(a.nextLocation||'—')}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Última</span>
+          <span class="dv val-wrap">${a.lastEventDate?`${formatDate(a.lastEventDate)} · ${esc(a.lastResult||'Resultado pendiente')}`:'—'}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title">Fase actual</div>
+
+        <div class="dr">
+          <span class="dk">Fase</span>
+          <span class="dv val-wrap" style="color:var(--sport)">${esc(a.activePhaseName||'—')}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Tipo</span>
+          <span class="dv">${esc(a.activePhaseType||'—')}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Fechas</span>
+          <span class="dv">${a.activePhaseStart?`${formatDate(a.activePhaseStart)} - ${formatDate(a.activePhaseEnd)}`:'—'}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Prioridad</span>
+          <span class="dv val-wrap">${esc(a.activePhasePriorityCapacity||'—')}</span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Semanas comp.</span>
+          <span class="dv">${a.weeksToCompetition??'—'}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title">Métricas combate</div>
+
+        <div class="dr"><span class="dk">Peso</span><span class="dv">${a.pesoCorporal?esc(a.pesoCorporal)+' kg':'—'}</span></div>
+        <div class="dr"><span class="dk">CK</span><span class="dv">${esc(a.creatinaQuinasa||'—')}</span></div>
+        <div class="dr"><span class="dk">Cortisol</span><span class="dv">${esc(a.cortisol||'—')}</span></div>
+        <div class="dr"><span class="dk">VO2 máx</span><span class="dv">${esc(a.vo2Max||'—')}</span></div>
+        <div class="dr"><span class="dk">Umbral lactato</span><span class="dv">${esc(a.lactatoUmbral||'—')}</span></div>
+        <div class="dr"><span class="dk">VBT</span><span class="dv">${esc(a.vbtVelocidad||'—')}</span></div>
+        <div class="dr"><span class="dk">Pull isométrico</span><span class="dv">${esc(a.fuerzaIsometricaPull||'—')}</span></div>
+        <div class="dr"><span class="dk">FC rec. 1 min</span><span class="dv">${esc(a.fcRecuperacion1min||'—')}</span></div>
+      </div>
+
+      <div class="card-acts">
+        <button class="btn btn-b btn-sm" onclick="openProfile('${a.clientId}')">Perfil cliente</button>
+        ${a.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(a.phone)}','Hola ${esc(firstName(a.clientName))}.')">WA</button>`:''}
+      </div>
+    </div>
+  `;
 }
 
 function renderEval(){
