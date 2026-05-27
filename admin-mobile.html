@@ -647,10 +647,15 @@ a{text-decoration:none;color:inherit}
     </div>
 
     <div class="scr" id="s-eval">
-      <a class="scr-back" onclick="showScr('mas')">← Más</a>
-      <div class="scr-h"><div class="scr-eye">Lectura rápida</div><div class="scr-t">Evaluaciones</div></div>
-      <div id="eval-content"></div>
-      <div class="scr" id="s-atletas">
+  <a class="scr-back" onclick="showScr('mas')">← Más</a>
+  <div class="scr-h">
+    <div class="scr-eye">Lectura rápida</div>
+    <div class="scr-t">Evaluaciones</div>
+  </div>
+  <div id="eval-content"></div>
+</div>
+
+<div class="scr" id="s-atletas">
   <a class="scr-back" onclick="showScr('mas')">← Más</a>
   <div class="scr-h">
     <div class="scr-eye">Rendimiento</div>
@@ -1218,16 +1223,42 @@ function badge(label,kind){return`<span class="b b-${kind||'info'}">${esc(label)
 /* ── NAV ── */
 function showScr(id){
   currentScr=id;
+
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
-  document.getElementById('s-'+id)?.classList.add('on');
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  const tabMap={hoy:'tab-hoy',clientes:'tab-clientes',alertas:'tab-alertas',mas:'tab-mas'};
-  if(tabMap[id])document.getElementById(tabMap[id])?.classList.add('on');
-  else{
-    if(['perfil','workout'].includes(id))document.getElementById('tab-clientes')?.classList.add('on');
-    else document.getElementById('tab-mas')?.classList.add('on');
+
+  const screen=document.getElementById('s-'+id);
+  if(screen){
+    screen.classList.add('on');
+  }else{
+    console.warn('Pantalla no encontrada:',id);
   }
+
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+
+  const tabMap={
+    hoy:'tab-hoy',
+    clientes:'tab-clientes',
+    alertas:'tab-alertas',
+    mas:'tab-mas'
+  };
+
+  if(tabMap[id]){
+    document.getElementById(tabMap[id])?.classList.add('on');
+  }else{
+    if(['perfil','workout'].includes(id)){
+      document.getElementById('tab-clientes')?.classList.add('on');
+    }else{
+      document.getElementById('tab-mas')?.classList.add('on');
+    }
+  }
+
+  const wrap=document.querySelector('.wrap');
+  if(wrap){
+    wrap.scrollTop=0;
+  }
+
   window.scrollTo(0,0);
+
   renderScr(id);
 }
 
@@ -2143,6 +2174,38 @@ function renderEntreno(){
   }).join('');
 }
 
+async function refreshAthletes(){
+  const {data,error}=await db.rpc('get_admin_athlete_list');
+
+  if(error){
+    console.warn('get_admin_athlete_list error:',error);
+    state.athletes=[];
+    throw error;
+  }
+
+  state.athletes=mapArr(data||[]);
+  return state.athletes;
+}
+
+async function refreshAthleteDashboard(clientId){
+  const {data,error}=await db.rpc('get_athlete_dashboard',{
+    p_client_id:clientId
+  });
+
+  if(error) throw error;
+
+  const row=Array.isArray(data) ? data[0] : null;
+
+  if(!row) return null;
+
+  state.activeAthleteDashboard=snakeToCamel(row);
+  return state.activeAthleteDashboard;
+}
+
+function backToAthleteDashboard(clientId){
+  openAthleteDashboard(clientId);
+}
+
 function renderAtletas(){
   const box=document.getElementById('ath-content');
 
@@ -2282,7 +2345,14 @@ function buildAthleteDashboardHTML(a){
 
   return `
     <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:12px" onclick="renderAtletas()">← Lista de atletas</button>
-
+   
+       <div class="qrow">
+      <button class="btn btn-p btn-sm" onclick="openModal('athleteProfile',null,{clientId:'${a.clientId}'})">Editar perfil</button>
+      <button class="btn btn-b btn-sm" onclick="openModal('competitionEvent',null,{clientId:'${a.clientId}'})">+ Competición</button>
+      <button class="btn btn-b btn-sm" onclick="openModal('trainingPhase',null,{clientId:'${a.clientId}'})">+ Fase</button>
+      <button class="btn btn-b btn-sm" onclick="openModal('combatMetric',null,{clientId:'${a.clientId}'})">+ Métrica</button>
+    </div>
+   
     <div class="psum">
       <div class="psum-top">
         <div class="client-photo">${initials(a.clientName)}</div>
