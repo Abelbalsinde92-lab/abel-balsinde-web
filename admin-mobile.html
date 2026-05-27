@@ -3681,23 +3681,30 @@ function getActiveConditionForClient(c){
 
 function buildClientConditionCard(c){
   const cond = getActiveConditionForClient(c);
-
   if(!cond) return '';
 
-  const key = cond.conditionKey || cond.condition_key || '';
-  const name = cond.conditionName || cond.condition_name || key || 'Condición activa';
+  const key  = cond.conditionKey || cond.condition_key || '';
+  const name = cond.conditionName || cond.condition_name || getPathologyLabel(key) || 'Condición activa';
   const severity = cond.severity || '—';
-  const start = cond.startDate || cond.start_date || '';
+  const start  = cond.startDate  || cond.start_date  || '';
   const review = cond.reviewDate || cond.review_date || '';
-  const notes = cond.coachNotes || cond.coach_notes || '';
+  const notes  = cond.coachNotes || cond.coach_notes || '';
+  const msg    = cond.clientMessage || cond.client_message || '';
 
-  const isLumbar = key === 'dolor_lumbar';
+  // Color según tipo de condición
+  const color = key === 'fatiga_alta'
+    ? 'var(--sport)'
+    : ['rodilla','hombro','cervical','tobillo','dolor_lumbar'].includes(key)
+      ? 'var(--warn)'
+      : 'var(--medical)';
+
+  const label = getPathologyLabel(key) || name;
 
   return `
-    <div class="card" style="border-left:3px solid ${isLumbar ? 'var(--warn)' : 'var(--medical)'}">
+    <div class="card" style="border-left:3px solid ${color}">
       <div class="card-body">
-        <div class="card-title" style="color:${isLumbar ? 'var(--warn)' : 'var(--medical)'}">
-          ${isLumbar ? 'Adaptación lumbar activa' : 'Condición activa'}
+        <div class="card-title" style="color:${color}">
+          ${esc(label)} · Adaptación activa
         </div>
 
         <div class="dr">
@@ -3707,18 +3714,20 @@ function buildClientConditionCard(c){
 
         <div class="dr">
           <span class="dk">Severidad</span>
-          <span>${badge(severity, severity === 'alta' ? 'alerta' : severity === 'media' ? 'revisar' : 'normal')}</span>
+          <span>${badge(severity, severity==='alta'?'alerta':severity==='media'?'revisar':'normal')}</span>
         </div>
 
-        <div class="dr">
-          <span class="dk">Inicio</span>
-          <span class="dv">${start ? formatDate(start) : '—'}</span>
-        </div>
+        ${start ? `
+          <div class="dr">
+            <span class="dk">Inicio</span>
+            <span class="dv">${formatDate(start)}</span>
+          </div>` : ''}
 
-        <div class="dr">
-          <span class="dk">Revisión</span>
-          <span class="dv">${review ? formatDate(review) : '—'}</span>
-        </div>
+        ${review ? `
+          <div class="dr">
+            <span class="dk">Revisión</span>
+            <span class="dv">${formatDate(review)}</span>
+          </div>` : ''}
 
         ${notes ? `
           <div class="dr">
@@ -3726,12 +3735,25 @@ function buildClientConditionCard(c){
             <span class="dv val-wrap" style="font-size:.78rem;color:var(--text-2);font-weight:500">
               ${esc(notes)}
             </span>
-          </div>
-        ` : ''}
+          </div>` : ''}
+
+        ${msg ? `
+          <div style="margin-top:10px;background:rgba(0,200,232,.06);border-left:2px solid var(--sport);
+                      padding:8px 10px;border-radius:0 6px 6px 0;font-size:.78rem;
+                      color:var(--text-2);line-height:1.55">
+            ${esc(msg)}
+          </div>` : ''}
       </div>
 
       <div class="card-acts">
-        <button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}')">Abrir entrenamiento adaptado</button>
+        <button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}')">
+          Abrir entrenamiento adaptado
+        </button>
+        ${msg && c.phone ? `
+          <button class="btn btn-wa btn-sm"
+            onclick="openWA('${esc(c.phone)}','${esc(msg)}')">
+            WA cliente
+          </button>` : ''}
       </div>
     </div>
   `;
