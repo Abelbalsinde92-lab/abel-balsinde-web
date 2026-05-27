@@ -1398,7 +1398,7 @@ function renderHoy(){
 
   const body=document.getElementById('hoy-content');
   if(!sessions.length){
-    body.innerHTML=emptyState('Sin sesiones hoy','Buen día para descansar 👊')+`
+    body.innerHTML=emptyState('Sin sesiones hoy','Buen día para descansar.')+`
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
         <button class="btn btn-p btn-wide" onclick="openModal('reservation')">+ Programar sesión</button>
       </div>`;
@@ -1782,9 +1782,9 @@ function renderPerfil(){
         const fecha=String(ci.checkinDate||ci.created_at||'').slice(0,10);
         return`<div class="card"><div class="card-body">
           <div class="dr"><span class="dk">${formatDate(fecha)}</span><span>${badge(st,st)}</span></div>
-          <div class="dr"><span class="dk">💤 Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div>
-          <div class="dr"><span class="dk">⚡ Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div>
-          <div class="dr"><span class="dk">🩺 Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>
+          <div class="dr"><span class="dk">ZZZ Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div>
+          <div class="dr"><span class="dk">NRG Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div>
+          <div class="dr"><span class="dk">DOL Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>
           ${ci.comment?`<div class="dr"><span class="dk">Nota</span><span class="dv val-wrap" style="color:var(--warn);font-weight:500;font-size:.8rem">${esc(ci.comment)}</span></div>`:''}
         </div></div>`;
       }).join(''):emptyState('Sin check-ins','')}
@@ -1833,7 +1833,7 @@ function renderAlertas(){
   else if(filterAl==='leidas')rows=rows.filter(a=>getAlertStatus(a)==='leida');
   else if(filterAl==='resueltas')rows=rows.filter(a=>getAlertStatus(a)==='resuelta');
   rows.sort((a,b)=>String(alertCreatedAt(b)).localeCompare(String(alertCreatedAt(a))));
-  document.getElementById('al-content').innerHTML=rows.length?rows.map(buildAlertCard).join(''):emptyState('Sin alertas','Todo bajo control 👊');
+  document.getElementById('al-content').innerHTML=rows.length?rows.map(buildAlertCard).join(''):emptyState('Sin alertas','Todo bajo control.');
 }
 
 function buildAlertCard(a){
