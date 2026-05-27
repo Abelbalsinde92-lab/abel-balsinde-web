@@ -3779,7 +3779,6 @@ function buildClientConditionCard(c){
 
 function detectPathologyForClient(c){
   const manual = state.manualPathologyByClient?.[c.id];
-
   if(manual === 'normal') return null;
   if(manual) return manual;
 
@@ -3789,32 +3788,41 @@ function detectPathologyForClient(c){
   }
 
   const ci = getClientTodayCheckin(c.id);
-  const txt = String(ci?.comment || '')
+  if(!ci) return null;
+
+  // ── Detección numérica: fatiga alta ──
+  const energy = Number(ci.energyLevel ?? ci.energy_level ?? 10);
+  const sleep  = Number(ci.sleepQuality ?? ci.sleep_quality ?? 10);
+  if(energy <= 2 || (energy <= 3 && sleep <= 3)){
+    return 'fatiga_alta';
+  }
+
+  const txt = String(ci.comment || '')
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g,'');
 
+  // Patrones negativos — si aparecen, no activar adaptación
   const neg = [
-    'sin dolor',
-    'sin molestia',
-    'no tengo dolor',
-    'todo bien',
-    'estoy bien'
+    'sin dolor','sin molestia','no tengo dolor',
+    'todo bien','estoy bien','sin problemas','todo ok'
   ];
-
   if(neg.some(x => txt.includes(x))) return null;
 
-  const lumbar = [
-    'dolor lumbar',
-    'lumbar',
-    'lumbalgia',
-    'espalda baja',
-    'zona lumbar',
-    'dolor de espalda',
-    'espalda'
+  // ── Detección por texto, de más específico a más general ──
+
+  const patrones = [
+    ['rodilla',    ['rodilla','menisco','rotula','ligamento rodilla']],
+    ['hombro',     ['hombro','manguito','deltoides','supraespinoso','impingement','escapula','omoplato']],
+    ['cervical',   ['cervical','cervicales','cuello','nuca','cervicalgia','torticolis','contractura cuello']],
+    ['tobillo',    ['tobillo','esguince','torcedura','ligamento tobillo']],
+    ['dolor_lumbar',['lumbar','lumbalgia','espalda baja','zona lumbar','dolor lumbar','dolor de espalda','espalda']],
+    ['fatiga_alta', ['muy cansado','agotado','exhausto','sin energia','no dormi','apenas dormi','fatiga','extenuado','sobreentrenamiento']]
   ];
 
-  if(lumbar.some(x => txt.includes(x))) return 'dolor_lumbar';
+  for(const [key, keywords] of patrones){
+    if(keywords.some(k => txt.includes(k))) return key;
+  }
 
   return null;
 }
