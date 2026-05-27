@@ -2351,6 +2351,8 @@ function buildAthleteDashboardHTML(a){
       <button class="btn btn-b btn-sm" onclick="openModal('competitionEvent',null,{clientId:'${a.clientId}'})">+ Competición</button>
       <button class="btn btn-b btn-sm" onclick="openModal('trainingPhase',null,{clientId:'${a.clientId}'})">+ Fase</button>
       <button class="btn btn-b btn-sm" onclick="openModal('combatMetric',null,{clientId:'${a.clientId}'})">+ Métrica</button>
+      <button class="btn btn-b btn-sm" onclick="openModal('combatMetric',null,{clientId:'${a.clientId}'})">+ Métrica</button>
+      <button class="btn btn-b btn-sm" onclick="openModal('injuryHistory',null,{clientId:'${a.clientId}'})">+ Lesión</button>
     </div>
    
     <div class="psum">
@@ -2764,6 +2766,159 @@ function openModal(type,id=null,prefill={}){
       ${actions}`;
   }
 
+else if(type==='athleteProfile'){
+  const cid = P.clientId || state.activeAthleteDashboard?.clientId;
+  const a = state.athletes.find(x=>String(x.clientId)===String(cid)) || state.activeAthleteDashboard || {};
+  title.textContent='Perfil atleta';
+  form.innerHTML=`
+    <div class="fld"><label class="fld-l">Deporte / modalidad</label>
+      <input name="sport" class="fld-i" value="${esc(a.sport||'')}" placeholder="MMA, Lucha Greco, BJJ..."></div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Categoría</label>
+        <input name="weight_class" class="fld-i" value="${esc(a.weightClass||'')}"></div>
+      <div class="fld"><label class="fld-l">Nivel</label>
+        <select name="competitive_level" class="fld-s">
+          ${['amateur','regional','nacional','internacional','profesional'].map(v=>`<option value="${v}" ${a.competitiveLevel===v?'selected':''}>${v.charAt(0).toUpperCase()+v.slice(1)}</option>`).join('')}
+        </select></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Victorias</label><input name="wins" type="number" class="fld-i" value="${esc(a.wins||0)}" min="0"></div>
+      <div class="fld"><label class="fld-l">Derrotas</label><input name="losses" type="number" class="fld-i" value="${esc(a.losses||0)}" min="0"></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Empates</label><input name="draws" type="number" class="fld-i" value="${esc(a.draws||0)}" min="0"></div>
+      <div class="fld"><label class="fld-l">Altura (cm)</label><input name="height_cm" type="number" class="fld-i" value="${esc(a.heightCm||'')}" step="0.1"></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Peso habitual (kg)</label><input name="walk_around_weight_kg" type="number" class="fld-i" value="${esc(a.walkAroundWeightKg||'')}" step="0.1"></div>
+      <div class="fld"><label class="fld-l">Equipo / club</label><input name="team" class="fld-i" value="${esc(a.team||'')}"></div>
+    </div>
+    <input type="hidden" name="client_id" value="${esc(cid||'')}">
+    ${actions}`;
+}
+
+else if(type==='competitionEvent'){
+  const cid = P.clientId || state.activeAthleteDashboard?.clientId;
+  title.textContent='Nueva competición';
+  form.innerHTML=`
+    <div class="fld"><label class="fld-l">Nombre del evento</label>
+      <input name="event_name" class="fld-i" placeholder="Copa Nacional 2026..."></div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Fecha</label><input name="event_date" type="date" class="fld-i" value="${todayISO()}"></div>
+      <div class="fld"><label class="fld-l">Resultado</label>
+        <select name="result" class="fld-s">
+          <option value="">— Pendiente —</option>
+          <option value="victoria">Victoria</option>
+          <option value="derrota">Derrota</option>
+          <option value="empate">Empate</option>
+          <option value="no_contest">No Contest</option>
+        </select></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Método</label><input name="method" class="fld-i" placeholder="KO, TKO, Sumisión, Puntos..."></div>
+      <div class="fld"><label class="fld-l">Peso pesaje (kg)</label><input name="weight_at_weigh_in" type="number" class="fld-i" step="0.1"></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Rival</label><input name="opponent" class="fld-i"></div>
+      <div class="fld"><label class="fld-l">Lugar</label><input name="location" class="fld-i" placeholder="Ciudad / venue"></div>
+    </div>
+    <div class="fld"><label class="fld-l">Notas</label><textarea name="notes" class="fld-t" rows="2"></textarea></div>
+    <input type="hidden" name="client_id" value="${esc(cid||'')}">
+    ${actions}`;
+}
+
+else if(type==='trainingPhase'){
+  const cid = P.clientId || state.activeAthleteDashboard?.clientId;
+  title.textContent='Nueva fase de entrenamiento';
+  form.innerHTML=`
+    <div class="fld"><label class="fld-l">Nombre de la fase</label>
+      <input name="phase_name" class="fld-i" placeholder="Ej: Preparación base S1-4"></div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Tipo</label>
+        <select name="phase_type" class="fld-s">
+          ${['base','especifica','competicion','tapering','recuperacion'].map(v=>`<option value="${v}">${v.charAt(0).toUpperCase()+v.slice(1)}</option>`).join('')}
+        </select></div>
+      <div class="fld"><label class="fld-l">Intensidad objetivo (1-10)</label>
+        <input name="intensity_target" type="number" class="fld-i" min="1" max="10" step="1" placeholder="7"></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Inicio</label><input name="start_date" type="date" class="fld-i" value="${todayISO()}"></div>
+      <div class="fld"><label class="fld-l">Fin</label><input name="end_date" type="date" class="fld-i"></div>
+    </div>
+    <div class="fld"><label class="fld-l">Capacidad prioritaria</label>
+      <input name="priority_capacity" class="fld-i" placeholder="Fuerza máxima, Resistencia aeróbica..."></div>
+    <div class="fld"><label class="fld-l">Notas</label><textarea name="notes" class="fld-t" rows="2"></textarea></div>
+    <input type="hidden" name="client_id" value="${esc(cid||'')}">
+    ${actions}`;
+}
+
+else if(type==='combatMetric'){
+  const cid = P.clientId || state.activeAthleteDashboard?.clientId;
+  title.textContent='Registrar métricas';
+  form.innerHTML=`
+    <div class="fld"><label class="fld-l">Fecha</label>
+      <input name="metric_date" type="date" class="fld-i" value="${todayISO()}"></div>
+    <div class="set-sec">Carga de sesión</div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Duración (min)</label><input name="duration_minutes" type="number" class="fld-i" min="0"></div>
+      <div class="fld"><label class="fld-l">RPE (1-10)</label><input name="rpe" type="number" class="fld-i" min="1" max="10" step="0.5"></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Carga aguda</label><input name="acute_load" type="number" class="fld-i" step="1"></div>
+      <div class="fld"><label class="fld-l">Carga crónica</label><input name="chronic_load" type="number" class="fld-i" step="1"></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">HRV</label><input name="hrv" type="number" class="fld-i" step="0.1"></div>
+      <div class="fld"><label class="fld-l">Ratio AC</label><input name="ac_ratio" type="number" class="fld-i" step="0.01" placeholder="0.8–1.3"></div>
+    </div>
+    <div class="set-sec">Fisiología</div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Peso corporal (kg)</label><input name="peso_corporal" type="number" class="fld-i" step="0.1"></div>
+      <div class="fld"><label class="fld-l">CK (U/L)</label><input name="creatina_quinasa" type="number" class="fld-i"></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Cortisol (µg/dL)</label><input name="cortisol" type="number" class="fld-i" step="0.1"></div>
+      <div class="fld"><label class="fld-l">FC rec. 1 min (ppm)</label><input name="fc_recuperacion_1min" type="number" class="fld-i"></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">VO2 máx</label><input name="vo2_max" type="number" class="fld-i" step="0.1"></div>
+      <div class="fld"><label class="fld-l">VBT (m/s)</label><input name="vbt_velocidad" type="number" class="fld-i" step="0.01"></div>
+    </div>
+    <input type="hidden" name="client_id" value="${esc(cid||'')}">
+    ${actions}`;
+}
+
+else if(type==='injuryHistory'){
+  const cid = P.clientId || state.activeAthleteDashboard?.clientId;
+  title.textContent='Registrar lesión';
+  form.innerHTML=`
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Zona corporal</label><input name="body_part" class="fld-i" placeholder="Rodilla derecha..."></div>
+      <div class="fld"><label class="fld-l">Tipo</label><input name="injury_type" class="fld-i" placeholder="Esguince, contractura..."></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Severidad</label>
+        <select name="severity" class="fld-s">
+          <option value="leve">Leve</option>
+          <option value="media">Media</option>
+          <option value="alta">Alta</option>
+        </select></div>
+      <div class="fld"><label class="fld-l">Impacto entrenamiento</label>
+        <select name="training_impact" class="fld-s">
+          <option value="sin_impacto">Sin impacto</option>
+          <option value="limitacion_parcial">Limitación parcial</option>
+          <option value="limitacion_total">Limitación total</option>
+        </select></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label class="fld-l">Fecha inicio</label><input name="start_date" type="date" class="fld-i" value="${todayISO()}"></div>
+      <div class="fld"><label class="fld-l">Fecha recuperación</label><input name="recovery_date" type="date" class="fld-i"></div>
+    </div>
+    <div class="fld"><label class="fld-l">Notas</label><textarea name="notes" class="fld-t" rows="2"></textarea></div>
+    <input type="hidden" name="client_id" value="${esc(cid||'')}">
+    ${actions}`;
+}
+
   else{
     title.textContent='No disponible';
     form.innerHTML=`<div class="empty"><strong>Acción no disponible</strong>Aún no soportada en móvil.</div>${actions}`;
@@ -2901,7 +3056,110 @@ async function saveModal(e){
         Object.assign(c,snakeToCamel(saved));showToast('Nota guardada ✓','ok');
       }
     }
-    closeModal();renderAll();
+    
+   else if(type==='athleteProfile'){
+  const cid = data.client_id;
+  if(!cid){ showToast('Sin cliente','err'); return; }
+  const {error:e1} = await db.rpc('admin_set_client_type',{
+    p_client_id:cid, p_client_type:'combat',
+    p_sport:data.sport||null, p_weight_class:data.weight_class||null,
+    p_competitive_level:data.competitive_level||null
+  });
+  if(e1) throw e1;
+  const {error:e2} = await db.from('athlete_profiles').upsert({
+    client_id:cid,
+    wins:Number(data.wins||0), losses:Number(data.losses||0), draws:Number(data.draws||0),
+    height_cm:data.height_cm?Number(data.height_cm):null,
+    walk_around_weight_kg:data.walk_around_weight_kg?Number(data.walk_around_weight_kg):null,
+    team:data.team||null, updated_at:new Date().toISOString()
+  },{onConflict:'client_id'});
+  if(e2) throw e2;
+  await refreshAthletes();
+  showToast('Perfil atleta guardado ✓','ok');
+}
+
+else if(type==='competitionEvent'){
+  const cid = data.client_id;
+  if(!cid){ showToast('Sin cliente','err'); return; }
+  const payload = {
+    client_id:cid, event_name:data.event_name||null,
+    event_date:data.event_date||null, result:data.result||null,
+    method:data.method||null,
+    weight_at_weigh_in:data.weight_at_weigh_in?Number(data.weight_at_weigh_in):null,
+    opponent:data.opponent||null, location:data.location||null,
+    notes:data.notes||null
+  };
+  const {error} = id
+    ? await db.from('competition_events').update(payload).eq('id',id)
+    : await db.from('competition_events').insert({...payload,id:uid()});
+  if(error) throw error;
+  showToast('Competición guardada ✓','ok');
+}
+
+else if(type==='trainingPhase'){
+  const cid = data.client_id;
+  if(!cid){ showToast('Sin cliente','err'); return; }
+  const payload = {
+    client_id:cid, phase_name:data.phase_name||null,
+    phase_type:data.phase_type||'base',
+    intensity_target:data.intensity_target?Number(data.intensity_target):null,
+    start_date:data.start_date||null, end_date:data.end_date||null,
+    priority_capacity:data.priority_capacity||null, notes:data.notes||null
+  };
+  const {error} = id
+    ? await db.from('training_phases').update(payload).eq('id',id)
+    : await db.from('training_phases').insert({...payload,id:uid()});
+  if(error) throw error;
+  showToast('Fase guardada ✓','ok');
+}
+
+else if(type==='combatMetric'){
+  const cid = data.client_id;
+  if(!cid){ showToast('Sin cliente','err'); return; }
+  const num = v => v!==''&&v!=null ? Number(v) : null;
+  // session_load
+  if(data.duration_minutes||data.rpe){
+    const {error:e1} = await db.from('session_load').insert({
+      id:uid(), client_id:cid,
+      session_date:data.metric_date||todayISO(),
+      duration_minutes:num(data.duration_minutes), rpe:num(data.rpe),
+      acute_load:num(data.acute_load), chronic_load:num(data.chronic_load),
+      ac_ratio:num(data.ac_ratio), hrv:num(data.hrv)
+    });
+    if(e1) throw e1;
+  }
+  // metricas_combate (fisiología)
+  if(data.peso_corporal||data.creatina_quinasa||data.cortisol||data.fc_recuperacion_1min){
+    const {error:e2} = await db.from('metricas_combate').insert({
+      id:uid(), atleta_id:cid,
+      created_at:data.metric_date?new Date(data.metric_date).toISOString():new Date().toISOString(),
+      peso_corporal:num(data.peso_corporal), creatina_quinasa:num(data.creatina_quinasa),
+      cortisol:num(data.cortisol), fc_recuperacion_1min:num(data.fc_recuperacion_1min),
+      vo2_max:num(data.vo2_max), vbt_velocidad:num(data.vbt_velocidad)
+    });
+    if(e2) throw e2;
+  }
+  showToast('Métricas guardadas ✓','ok');
+}
+
+else if(type==='injuryHistory'){
+  const cid = data.client_id;
+  if(!cid){ showToast('Sin cliente','err'); return; }
+  const payload = {
+    client_id:cid, body_part:data.body_part||null,
+    injury_type:data.injury_type||null, severity:data.severity||'leve',
+    training_impact:data.training_impact||'sin_impacto',
+    start_date:data.start_date||null, recovery_date:data.recovery_date||null,
+    notes:data.notes||null
+  };
+  const {error} = id
+    ? await db.from('injury_history').update(payload).eq('id',id)
+    : await db.from('injury_history').insert({...payload,id:uid()});
+  if(error) throw error;
+  showToast('Lesión registrada ✓','ok');
+}
+   
+   closeModal();renderAll();
   }catch(err){console.error('saveModal error:',err);showToast('Error: '+(err?.message||'no se pudo guardar'),'err')}
 }
 </script>
