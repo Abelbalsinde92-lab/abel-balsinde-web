@@ -2157,6 +2157,76 @@ input, textarea { outline: none; font-family: var(--font-body); }
     top: 72px;
   }
 }
+
+/* ═══ CRONÓMETRO ═════════════════════════════════════════ */
+.wt-timer {
+  background: rgba(18,18,20,.96);
+  border: 1px solid var(--card-border);
+  border-top: 2px solid var(--sport);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 14px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.wt-clock {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  line-height: 1;
+  letter-spacing: .04em;
+  text-align: center;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.wt-timer-actions { display: flex; gap: 8px; }
+.wt-timer-actions .client-action-btn { flex: 1; min-height: 44px; }
+.wt-mode-row { display: flex; gap: 6px; margin-bottom: 10px; }
+.wt-mode-pill {
+  flex: 1; padding: 8px 10px;
+  font-family: var(--font-mono); font-size: .58rem;
+  letter-spacing: .08em; text-transform: uppercase;
+  background: var(--bg); border: 1px solid var(--card-border);
+  color: var(--text-secondary); border-radius: 999px;
+  text-align: center; font-weight: 700;
+}
+.wt-mode-pill.on {
+  background: rgba(0,163,255,.12); color: var(--sport);
+  border-color: rgba(0,163,255,.35);
+}
+.wt-phase {
+  text-align: center; font-family: var(--font-mono);
+  font-size: .62rem; letter-spacing: .18em; text-transform: uppercase;
+  padding: 6px 10px; border-radius: 6px; margin-bottom: 8px; font-weight: 800;
+}
+.wt-phase.work  { background: rgba(0,230,118,.15); color: var(--streak); }
+.wt-phase.rest  { background: rgba(255,179,64,.15); color: var(--warn); }
+.wt-phase.done  { background: rgba(0,163,255,.15); color: var(--sport); }
+.wt-round {
+  text-align: center; font-family: var(--font-mono); font-size: .62rem;
+  color: var(--text-secondary); margin-top: 6px; letter-spacing: .08em; text-transform: uppercase;
+}
+.wt-iv-config { border-top: 1px solid var(--divider); margin-top: 10px; padding-top: 10px; }
+.wt-iv-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.wt-iv-field { display: flex; flex-direction: column; gap: 3px; }
+.wt-iv-field label {
+  font-family: var(--font-mono); font-size: .5rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--text-secondary); text-align: center;
+}
+.wt-iv-input {
+  background: var(--bg); border: 1px solid var(--card-border);
+  color: var(--text-primary); border-radius: 8px; padding: 8px;
+  font-family: var(--font-display); font-size: 1.2rem; text-align: center; outline: none; width: 100%;
+}
+.wt-iv-input:focus { border-color: var(--sport); }
+.wt-iv-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.wt-iv-preset {
+  flex: 1; min-width: 80px; padding: 7px 8px;
+  background: var(--bg); border: 1px solid var(--card-border);
+  color: var(--text-secondary); border-radius: 8px;
+  font-family: var(--font-mono); font-size: .55rem; letter-spacing: .06em;
+  text-transform: uppercase; font-weight: 700;
+}
+.wt-iv-preset:active { background: rgba(0,163,255,.08); color: var(--sport); }
 </style>
 </head>
 <body>
@@ -2331,6 +2401,13 @@ let clientTrainingDisplayRows = [];
 let clientTrainingSessionDisplay = null;
 let completedTrainingBlocks  = new Set();
 let activeTrainingBlockKey   = null;
+// ── TIMER ──────────────────────────────────────────────
+let workoutTimer = { seconds: 0, running: false, interval: null };
+let workoutIntervals = {
+  enabled: false, workSec: 40, restSec: 20,
+  totalRounds: 8, phase: 'idle', currentRound: 1, phaseSecsLeft: 0
+};
+
 let currentTrainingLog       = null;
 let clientSessionLogs        = [];
 let clientActiveTrainingAdaptations = [];
@@ -6416,11 +6493,12 @@ const metaP = [
         '<div class="training-step-status" id="status-' + blockId + '">' + tClient('pending') + '</div>' +
       '</button>' +
       '<div class="training-step-body">' +
-        (
-          blockObj
-            ? '<div class="training-step-objective">' + blockObj + '</div>'
-            : ''
-        );
+  '<div data-timer-wrap>' + buildTimerHTML() + '</div>' +
+  (
+    blockObj
+      ? '<div class="training-step-objective">' + blockObj + '</div>'
+      : ''
+  );
 
   step.exercises.forEach(ex => {
     html += buildExerciseHTML(ex);
@@ -9956,6 +10034,166 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+/* ═══════════════════════════════════════════════════════
+   CRONÓMETRO + INTERVALOS
+═══════════════════════════════════════════════════════ */
+function renderTimerOnly() {
+  document.querySelectorAll('[data-timer-wrap]').forEach(wrap => {
+    wrap.innerHTML = buildTimerHTML();
+  });
+}
+
+function formatClock(seconds) {
+  const s = Math.max(0, Number(seconds || 0));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function beep(freq=880, durMs=160, vol=0.35) {
+  try {
+    if (!beep._ctx) { const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx)return; beep._ctx=new Ctx(); }
+    if (beep._ctx.state==='suspended') beep._ctx.resume();
+    const o=beep._ctx.createOscillator(), g=beep._ctx.createGain();
+    o.connect(g); g.connect(beep._ctx.destination);
+    o.type='sine'; o.frequency.value=freq; g.gain.value=vol;
+    o.start(); o.stop(beep._ctx.currentTime+durMs/1000);
+  } catch(e) {}
+}
+function beepWork() { beep(880,180); }
+function beepRest() { beep(440,220); }
+function beepDone() { beep(660,250); setTimeout(()=>beep(880,350),280); }
+
+function setIntervalMode(enabled) {
+  workoutIntervals.enabled = !!enabled;
+  pauseWorkoutTimer();
+  resetIntervalState();
+  renderTimerOnly();
+}
+
+function resetIntervalState() {
+  workoutIntervals.phase = 'idle';
+  workoutIntervals.currentRound = 1;
+  workoutIntervals.phaseSecsLeft = 0;
+}
+
+function applyIntervalPreset(work, rest, rounds) {
+  workoutIntervals.workSec = Number(work)||40;
+  workoutIntervals.restSec = Number(rest)||20;
+  workoutIntervals.totalRounds = Number(rounds)||8;
+  pauseWorkoutTimer();
+  resetIntervalState();
+  renderTimerOnly();
+}
+
+function updateIntervalField(field, value) {
+  workoutIntervals[field] = Math.max(0, Number(value)||0);
+}
+
+function updateClockUI() {
+  const iv = workoutIntervals;
+  const clockEl = document.getElementById('wt-clock');
+  if (iv.enabled && iv.phase !== 'idle') {
+    if (clockEl) clockEl.textContent = formatClock(iv.phaseSecsLeft);
+    const phaseEl = document.getElementById('wt-phase');
+    if (phaseEl) {
+      phaseEl.textContent = {work:'TRABAJO',rest:'DESCANSO',done:'COMPLETADO'}[iv.phase]||'';
+      phaseEl.className = 'wt-phase '+(iv.phase==='work'?'work':iv.phase==='rest'?'rest':'done');
+    }
+    const roundEl = document.getElementById('wt-round');
+    if (roundEl) roundEl.textContent = iv.phase==='done'?`Completado · ${iv.totalRounds} rondas`:`Ronda ${iv.currentRound} / ${iv.totalRounds}`;
+  } else {
+    if (clockEl) clockEl.textContent = formatClock(workoutTimer.seconds);
+  }
+}
+
+function startWorkoutTimer() {
+  if (workoutTimer.running) return;
+  try { if(!beep._ctx){const Ctx=window.AudioContext||window.webkitAudioContext;if(Ctx)beep._ctx=new Ctx();} if(beep._ctx&&beep._ctx.state==='suspended')beep._ctx.resume(); } catch(e){}
+  const iv = workoutIntervals;
+  if (iv.enabled && (iv.phase==='idle'||iv.phase==='done')) { iv.phase='work'; iv.currentRound=1; iv.phaseSecsLeft=Number(iv.workSec)||40; beepWork(); }
+  workoutTimer.running = true;
+  workoutTimer.interval = setInterval(() => {
+    workoutTimer.seconds += 1;
+    if (iv.enabled && iv.phase!=='idle' && iv.phase!=='done') {
+      iv.phaseSecsLeft -= 1;
+      if (iv.phaseSecsLeft <= 0) advanceIntervalPhase();
+    }
+    updateClockUI();
+  }, 1000);
+  renderTimerOnly();
+}
+
+function advanceIntervalPhase() {
+  const iv = workoutIntervals;
+  if (iv.phase === 'work') {
+    const last = iv.currentRound >= Number(iv.totalRounds);
+    const hasRest = Number(iv.restSec) > 0;
+    if (last && !hasRest) { iv.phase='done'; beepDone(); pauseWorkoutTimer(); return; }
+    if (hasRest) { iv.phase='rest'; iv.phaseSecsLeft=Number(iv.restSec); beepRest(); }
+    else { iv.currentRound+=1; iv.phaseSecsLeft=Number(iv.workSec)||40; beepWork(); }
+    return;
+  }
+  if (iv.phase === 'rest') {
+    if (iv.currentRound >= Number(iv.totalRounds)) { iv.phase='done'; beepDone(); pauseWorkoutTimer(); return; }
+    iv.currentRound+=1; iv.phase='work'; iv.phaseSecsLeft=Number(iv.workSec)||40; beepWork();
+  }
+}
+
+function pauseWorkoutTimer() {
+  workoutTimer.running = false;
+  if (workoutTimer.interval) { clearInterval(workoutTimer.interval); workoutTimer.interval=null; }
+  if (document.getElementById('wt-clock')) renderTimerOnly();
+}
+
+function resetWorkoutTimerOnly() {
+  workoutTimer.running = false;
+  if (workoutTimer.interval) { clearInterval(workoutTimer.interval); workoutTimer.interval=null; }
+  workoutTimer.seconds = 0;
+  resetIntervalState();
+  updateClockUI();
+  renderTimerOnly();
+}
+
+function buildTimerHTML() {
+  const iv = workoutIntervals;
+  const on = iv.enabled;
+  const pcls = iv.phase==='work'?'work':iv.phase==='rest'?'rest':iv.phase==='done'?'done':'';
+  const clock = on&&iv.phase!=='idle' ? formatClock(iv.phaseSecsLeft) : formatClock(workoutTimer.seconds);
+  const label = {work:'TRABAJO',rest:'DESCANSO',done:'COMPLETADO',idle:'INTERVALOS'}[iv.phase]||'';
+
+  return `<div class="wt-timer">
+    <div class="wt-mode-row">
+      <button type="button" class="wt-mode-pill ${!on?'on':''}" onclick="setIntervalMode(false)">Libre</button>
+      <button type="button" class="wt-mode-pill ${on?'on':''}" onclick="setIntervalMode(true)">Intervalos</button>
+    </div>
+    ${on?`<div id="wt-phase" class="wt-phase ${pcls}">${label}</div>`:''}
+    <div class="wt-clock" id="wt-clock">${clock}</div>
+    ${on?`<div id="wt-round" class="wt-round">${iv.phase==='idle'?`${iv.workSec}s · ${iv.restSec}s · ${iv.totalRounds} rondas`:iv.phase==='done'?`Completado · ${iv.totalRounds} rondas`:`Ronda ${iv.currentRound} / ${iv.totalRounds}`}</div>`:''}
+    <div class="wt-timer-actions" style="margin-top:10px">
+      ${workoutTimer.running
+        ?`<button class="client-action-btn" style="background:transparent;border:1px solid var(--card-border);color:var(--text-secondary);" onclick="pauseWorkoutTimer()">Pausar</button>`
+        :`<button class="client-action-btn" onclick="startWorkoutTimer()">${on&&iv.phase==='done'?'Nueva ronda':'Iniciar'}</button>`}
+      <button class="client-action-btn" style="background:transparent;border:1px solid var(--card-border);color:var(--text-secondary);" onclick="resetWorkoutTimerOnly()">Reiniciar</button>
+    </div>
+    ${on?`<div class="wt-iv-config">
+      <div class="wt-iv-row">
+        <div class="wt-iv-field"><label>Trabajo (s)</label><input type="number" inputmode="numeric" class="wt-iv-input" value="${iv.workSec}" min="1" oninput="updateIntervalField('workSec',this.value)"></div>
+        <div class="wt-iv-field"><label>Descanso (s)</label><input type="number" inputmode="numeric" class="wt-iv-input" value="${iv.restSec}" min="0" oninput="updateIntervalField('restSec',this.value)"></div>
+        <div class="wt-iv-field"><label>Rondas</label><input type="number" inputmode="numeric" class="wt-iv-input" value="${iv.totalRounds}" min="1" oninput="updateIntervalField('totalRounds',this.value)"></div>
+      </div>
+      <div class="wt-iv-presets">
+        <button type="button" class="wt-iv-preset" onclick="applyIntervalPreset(180,60,5)">Box 3'/1' x5</button>
+        <button type="button" class="wt-iv-preset" onclick="applyIntervalPreset(20,10,8)">Tabata 20/10</button>
+        <button type="button" class="wt-iv-preset" onclick="applyIntervalPreset(40,20,8)">HIIT 40/20</button>
+        <button type="button" class="wt-iv-preset" onclick="applyIntervalPreset(60,0,10)">EMOM 1' x10</button>
+      </div>
+    </div>`:''}
+  </div>`;
+}
 
 </body>
 </html>
