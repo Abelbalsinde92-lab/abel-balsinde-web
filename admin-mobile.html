@@ -5259,6 +5259,9 @@ function selectCoField(field, value, gridId){
   document.querySelectorAll('#' + gridId + ' .fp').forEach(b => b.classList.remove('on'));
   const prefix = {rpe:'rpe', soreness:'sore', breath:'breath', fatigue:'fatigue'}[field] || field;
   document.getElementById(prefix + '-' + value)?.classList.add('on');
+  const input = document.getElementById('co-' + field);
+  if(input) input.value = value;
+}
 
 function toggleZone(v){
   const wrap = document.getElementById('co-zone-wrap');
