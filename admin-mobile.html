@@ -3126,13 +3126,6 @@ function getWorkoutPlanForClient(c){
   const program = getAssignmentProgram(assignment);
 
   const assignmentProgramId = assignment?.programId || assignment?.program_id || '';
-  const targetWeek = Number(
-    assignment?.assignedWeek ||
-    assignment?.assigned_week ||
-    assignment?.currentWeek ||
-    assignment?.current_week ||
-    1
-  );
 
   const debug = {
     assignmentId: assignment?.id || '',
@@ -3140,7 +3133,7 @@ function getWorkoutPlanForClient(c){
     programId: program?.id || '',
     programName: program?.name || program?.nameEs || '',
     scope: getAssignmentScope(assignment),
-    week: targetWeek,
+    week: getAssignmentWeek(assignment),
     loadedWeeks: state.trainingWeeks.length,
     loadedSessions: state.trainingSessions.length,
     loadedBlocks: state.trainingBlocks.length,
@@ -3167,32 +3160,43 @@ function getWorkoutPlanForClient(c){
     };
   }
 
-  const visibleSessions = getAssignmentVisibleSessions(assignment);
-  debug.matchedSessions = visibleSessions.length;
+  const visiblePositions = getVisibleSessionPositions(assignment);
 
-  const defaultSessionNumber =
-    Number(state.activeWorkoutSessionNumber) ||
-    Number(assignment?.assignedSessionNumber || assignment?.assigned_session_number) ||
-    Number(getSessionNumberFromRow(visibleSessions[0] || {})) ||
-    1;
+  debug.matchedSessions = visiblePositions.length;
 
-  let selectedSessions = visibleSessions.filter(s =>
-    Number(getSessionNumberFromRow(s)) === Number(defaultSessionNumber)
+  const targetWeek = getAssignmentWeek(assignment);
+
+  const targetSession = Number(
+    state.activeWorkoutSessionNumber ||
+    assignment?.assignedSessionNumber ||
+    assignment?.assigned_session_number ||
+    1
   );
 
-  if(!selectedSessions.length && visibleSessions.length){
-    selectedSessions = [visibleSessions[0]];
-    state.activeWorkoutSessionNumber = Number(getSessionNumberFromRow(visibleSessions[0])) || 1;
+  let activePosition = visiblePositions.find(p =>
+    Number(p.weekNumber) === Number(targetWeek) &&
+    Number(p.sessionNumber) === Number(targetSession)
+  );
+
+  if(!activePosition){
+    activePosition =
+      visiblePositions.find(p =>
+        Number(p.weekNumber) === Number(targetWeek)
+      ) ||
+      visiblePositions[0] ||
+      null;
+
+    if(activePosition){
+      state.activeWorkoutSessionNumber = Number(activePosition.sessionNumber || 1);
+    }
   }
+
+  const selectedSessions = activePosition ? [activePosition.session] : [];
 
   debug.selectedSessions = selectedSessions.length;
 
   const selectedSessionIds = new Set(
     selectedSessions.map(s => toId(s.id)).filter(Boolean)
-  );
-
-  const selectedWeekIdsFromSessions = new Set(
-    selectedSessions.map(s => toId(getSessionWeekId(s))).filter(Boolean)
   );
 
   let weeks = state.trainingWeeks.filter(w =>
@@ -3201,15 +3205,19 @@ function getWorkoutPlanForClient(c){
   );
 
   weeks = sortByOrder(weeks);
+
   debug.matchedWeeks = weeks.length;
 
+  const selectedWeekNumber = activePosition?.weekNumber || targetWeek;
+
   let selectedWeeks = weeks.filter(w =>
-    selectedWeekIdsFromSessions.has(toId(w.id))
+    Number(getWeekNumberFromRow(w)) === Number(selectedWeekNumber)
   );
 
-  if(!selectedWeeks.length){
+  if(!selectedWeeks.length && selectedSessions.length){
+    const activeWeekId = toId(getSessionWeekId(selectedSessions[0]));
     selectedWeeks = weeks.filter(w =>
-      Number(getWeekNumberFromRow(w)) === Number(targetWeek)
+      toId(w.id) === activeWeekId
     );
   }
 
@@ -3219,21 +3227,18 @@ function getWorkoutPlanForClient(c){
 
   debug.selectedWeeks = selectedWeeks.length;
 
-  const activeWeekId = toId(selectedWeeks[0]?.id);
-
-  const weekSessions = activeWeekId
-    ? sortByOrder(
-        visibleSessions.filter(s =>
-          toId(getSessionWeekId(s)) === activeWeekId
-        )
-      )
-    : sortByOrder(visibleSessions);
+  const weekSessions = visiblePositions
+    .filter(p =>
+      Number(p.weekNumber) === Number(selectedWeekNumber)
+    )
+    .map(p => p.session);
 
   let blocks = state.trainingBlocks.filter(b =>
     selectedSessionIds.has(toId(getBlockSessionId(b)))
   );
 
   blocks = sortByOrder(blocks);
+
   debug.matchedBlocks = blocks.length;
 
   const blockData = blocks.map(b => {
@@ -4343,12 +4348,49 @@ function detectPathologyForClient(c){
 
 function getAssignmentWeek(a){
   return Number(
-    a?.assignedWeek ||
-    a?.assigned_week ||
     a?.currentWeek ||
     a?.current_week ||
+    a?.assignedWeek ||
+    a?.assigned_week ||
     1
   );
+}
+
+function getVisibleSessionPositions(assignment){
+  if(!assignment) return [];
+
+  const programId = assignment.programId || assignment.program_id;
+
+  const programWeeks = sortByOrder(
+    state.trainingWeeks.filter(w =>
+      sameId(getWeekProgramId(w), programId)
+    )
+  );
+
+  const weekNumberById = new Map(
+    programWeeks.map(w => [
+      toId(w.id),
+      Number(w.weekNumber || w.week_number || w.orderIndex || w.order_index || 0)
+    ])
+  );
+
+  const visibleSessions = getAssignmentVisibleSessions(assignment);
+
+  return visibleSessions
+    .map(s => {
+      const weekId = toId(getSessionWeekId(s));
+
+      return {
+        weekNumber: weekNumberById.get(weekId) || 0,
+        sessionNumber: Number(getSessionNumberFromRow(s) || 0),
+        session: s
+      };
+    })
+    .filter(x => x.weekNumber > 0 && x.sessionNumber > 0)
+    .sort((a,b) =>
+      Number(a.weekNumber) - Number(b.weekNumber) ||
+      Number(a.sessionNumber) - Number(b.sessionNumber)
+    );
 }
 
 function getAssignmentSessionNumber(a){
@@ -5494,6 +5536,47 @@ function getMaxSessionNumberForCurrentWeek(plan){
 }
 
 function getNextTrainingPosition(plan, completedWeek, completedSession){
+  const assignment = plan?.assignment;
+
+  if(assignment){
+    const positions = getVisibleSessionPositions(assignment);
+
+    const idx = positions.findIndex(p =>
+      Number(p.weekNumber) === Number(completedWeek) &&
+      Number(p.sessionNumber) === Number(completedSession)
+    );
+
+    if(idx >= 0){
+      const next = positions[idx + 1];
+
+      if(next){
+        return {
+          week: Number(next.weekNumber),
+          session: Number(next.sessionNumber)
+        };
+      }
+
+      return null;
+    }
+
+    const nextAfter = positions.find(p =>
+      Number(p.weekNumber) > Number(completedWeek) ||
+      (
+        Number(p.weekNumber) === Number(completedWeek) &&
+        Number(p.sessionNumber) > Number(completedSession)
+      )
+    );
+
+    if(nextAfter){
+      return {
+        week: Number(nextAfter.weekNumber),
+        session: Number(nextAfter.sessionNumber)
+      };
+    }
+
+    return null;
+  }
+
   const maxSession = getMaxSessionNumberForCurrentWeek(plan);
 
   if(Number(completedSession) < maxSession){
@@ -5607,7 +5690,12 @@ async function advanceAssignmentAfterWorkout(c, plan, completedWeek, completedSe
 
   const next = getNextTrainingPosition(plan, completedWeek, completedSession);
 
-  console.log('AB ADVANCE DEBUG', {
+if(!next){
+  showToast('Sesión guardada ✓ Alcance completado','ok');
+  return null;
+}
+
+console.log('AB ADVANCE DEBUG', {
     client: c.name,
     assignmentId: assignment.id,
     scope,
