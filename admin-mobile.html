@@ -7922,16 +7922,15 @@ function assessStretchExerciseSafetyBase(exercise) {
 </div>
 
 <script>
-// ================================================================
-// AB SYSTEM — EVALUACIÓN INICIAL — ADMIN FIELD (COACH MODE)
-// ================================================================
+/* ================================================================
+   AB SYSTEM — EVALUACIÓN INICIAL — ADMIN FIELD (COACH MODE)
+   ================================================================ */
 
 const escHTML = esc;
 
-// ── ESTADO ───────────────────────────────────────────────────────
 let evalState = {
   clientId: null, clientName: '', clientSexo: null, clientEdad: null,
-  type: 'general', // 'general' | 'atleta'
+  type: 'general',
   assessmentId: null, evaluacionId: null,
   items: [], results: {}, currentIdx: 0,
   timerInt: null, timerSecs: 0, timerRunning: false,
@@ -7943,54 +7942,25 @@ const EVAL_TEMPLATES = {
   atleta:  '00000000-0000-0000-0000-000000000102',
 };
 
-// ── ABRIR ─────────────────────────────────────────────────────────
 async function openEvalModal(clientId, clientName, sexo, edad) {
   evalState = {
-    clientId,
-    clientName: clientName || '',
-    clientSexo: sexo || null,
-    clientEdad: edad || null,
-    type: 'general',
-    assessmentId: null,
-    evaluacionId: null,
-    items: [],
-    results: {},
-    currentIdx: 0,
-    timerInt: null,
-    timerSecs: 0,
-    timerRunning: false,
-    counterVal: 0,
+    clientId, clientName: clientName || '',
+    clientSexo: sexo || null, clientEdad: edad || null,
+    type: 'general', assessmentId: null, evaluacionId: null,
+    items: [], results: {}, currentIdx: 0,
+    timerInt: null, timerSecs: 0, timerRunning: false, counterVal: 0,
   };
-
-  const modal = document.getElementById('modal-evaluacion');
-  if (!modal) {
-    showToast('Modal de evaluación no encontrado', 'err');
-    return;
-  }
-
-  modal.style.display = 'flex';
+  document.getElementById('modal-evaluacion').style.display = 'flex';
   document.body.style.overflow = 'hidden';
-
   renderEvalModal();
 }
 
 function closeEvalModal() {
   stopEvalTimer();
-
-  const modal = document.getElementById('modal-evaluacion');
-  if (modal) {
-    modal.style.display = 'none';
-  }
-
+  document.getElementById('modal-evaluacion').style.display = 'none';
   document.body.style.overflow = '';
-
-  const el = document.getElementById('modal-eval-content');
-  if (el) {
-    el.innerHTML = '';
-  }
 }
 
-// ── RENDER PRINCIPAL ──────────────────────────────────────────────
 function renderEvalModal() {
   const el = document.getElementById('modal-eval-content');
   if (!el) return;
@@ -8006,28 +7976,31 @@ function renderEvalModal() {
   renderEvalTest();
 }
 
-// ── VISTA 1: DATOS PREVIOS ────────────────────────────────────────
 function renderEvalSetup() {
-  document.getElementById('modal-eval-content').innerHTML =`
-    <div class="eval-header">
-      <div class="eval-client">${escHTML(evalState.clientName || 'Cliente')}</div>
-      <div class="eval-subtitle">Datos necesarios para normalizar resultados</div>
-    </div>
-    <div class="eval-setup-form">
-      <div class="fld">
-        <label class="fld-l">Sexo biológico</label>
-        <select id="eval-sexo" class="fld-s">
-          <option value="">— Seleccionar —</option>
-          <option value="masculino">Masculino</option>
-          <option value="femenino">Femenino</option>
-        </select>
+  const el = document.getElementById('modal-eval-content');
+  if (!el) return;
+  el.innerHTML = `
+    <div style="padding:16px 20px 80px">
+      <div class="eval-header">
+        <div class="eval-client">${escHTML(evalState.clientName || 'Cliente')}</div>
+        <div class="eval-subtitle">Datos necesarios para normalizar resultados</div>
       </div>
-      <div class="fld">
-        <label class="fld-l">Edad (años)</label>
-        <input id="eval-edad" type="number" class="fld-i" min="16" max="90" placeholder="Ej: 32">
+      <div class="eval-setup-form">
+        <div class="fld">
+          <label class="fld-l">Sexo biológico</label>
+          <select id="eval-sexo" class="fld-s">
+            <option value="">— Seleccionar —</option>
+            <option value="masculino">Masculino</option>
+            <option value="femenino">Femenino</option>
+          </select>
+        </div>
+        <div class="fld">
+          <label class="fld-l">Edad (años)</label>
+          <input id="eval-edad" type="number" class="fld-i" min="16" max="90" placeholder="Ej: 32">
+        </div>
       </div>
-    </div>
-    <button class="btn btn-p btn-full" onclick="confirmEvalSetup()">Continuar →</button>`;
+      <button class="btn btn-p btn-wide" onclick="confirmEvalSetup()">Continuar →</button>
+    </div>`;
 }
 
 function confirmEvalSetup() {
@@ -8040,54 +8013,39 @@ function confirmEvalSetup() {
   renderEvalTypeSelect();
 }
 
-// ── VISTA 2: TIPO DE EVALUACIÓN ───────────────────────────────────
 function renderEvalTypeSelect() {
-  document.getElementById('modal-eval-content').innerHTML = `
-    <div class="eval-header">
-      <div class="eval-client">${escHTML(evalState.clientName)}</div>
-      <div class="eval-meta">${evalState.clientSexo === 'femenino' ? 'Mujer' : 'Hombre'} · ${evalState.clientEdad} años</div>
-    </div>
-    <div class="eval-type-grid">
-      <button class="eval-type-btn" onclick="startEval('general')">
-        <span class="eval-type-icon">🏃</span>
-        <span class="eval-type-title">Cliente general</span>
-        <span class="eval-type-sub">6 tests · ~20 min</span>
-      </button>
-      <button class="eval-type-btn" onclick="startEval('atleta')">
-        <span class="eval-type-icon">🥊</span>
-        <span class="eval-type-title">Atleta combate</span>
-        <span class="eval-type-sub">10 tests · ~35 min</span>
-      </button>
+  const el = document.getElementById('modal-eval-content');
+  if (!el) return;
+  el.innerHTML = `
+    <div style="padding:16px 20px 80px">
+      <div class="eval-header">
+        <div class="eval-client">${escHTML(evalState.clientName)}</div>
+        <div class="eval-meta">${evalState.clientSexo === 'femenino' ? 'Mujer' : 'Hombre'} · ${evalState.clientEdad} años</div>
+      </div>
+      <div class="eval-type-grid">
+        <button class="eval-type-btn" onclick="startEval('general')">
+          <span class="eval-type-icon">🏃</span>
+          <span class="eval-type-title">Cliente general</span>
+          <span class="eval-type-sub">6 tests · ~20 min</span>
+        </button>
+        <button class="eval-type-btn" onclick="startEval('atleta')">
+          <span class="eval-type-icon">🥊</span>
+          <span class="eval-type-title">Atleta combate</span>
+          <span class="eval-type-sub">10 tests · ~35 min</span>
+        </button>
+      </div>
     </div>`;
 }
 
-// ── INICIAR EVALUACIÓN ────────────────────────────────────────────
 async function startEval(type) {
   evalState.type = type;
   showToast('Cargando protocolo...', 'ok');
 
-  // Cargar items del template
   const templateId = EVAL_TEMPLATES[type];
-  const const { data: items, error: itemsError } = await db
-  .from('assessment_template_items')
-  .select('*')
-  .eq('template_id', templateId)
-  .order('item_order');
+  const { data: items } = await db.from('assessment_template_items')
+    .select('*').eq('template_id', templateId).order('item_order');
+  evalState.items = items || [];
 
-if (itemsError) {
-  console.error('assessment_template_items error:', itemsError);
-  showToast('Error cargando tests: ' + itemsError.message, 'err');
-  return;
-}
-
-if (!items || !items.length) {
-  showToast('No hay tests cargados para este protocolo', 'err');
-  return;
-}
-
-evalState.items = items;
-
-  // Crear client_assessment en BD
   const aid = uid();
   const { error: ae } = await db.from('client_assessments').insert({
     id: aid, client_id: evalState.clientId,
@@ -8098,7 +8056,6 @@ evalState.items = items;
   if (ae) { showToast('Error al crear evaluación', 'err'); return; }
   evalState.assessmentId = aid;
 
-  // Crear registro en evaluaciones
   const eid = uid();
   const { error: ee } = await db.from('evaluaciones').insert({
     id: eid, cliente_id: evalState.clientId,
@@ -8114,47 +8071,48 @@ evalState.items = items;
   renderEvalTest();
 }
 
-// ── VISTA 3: TEST ACTUAL ──────────────────────────────────────────
 function renderEvalTest() {
   stopEvalTimer();
   evalState.timerSecs = 0;
-  evalState.counterVal = evalState.results[currentItem()?.exercise_name] || 0;
+  evalState.counterVal = evalState.results[currentEvalItem()?.exercise_name] || 0;
 
-  const item = currentItem();
+  const item = currentEvalItem();
   if (!item) { renderEvalRecommendation(); return; }
+
+  const el = document.getElementById('modal-eval-content');
+  if (!el) return;
 
   const total = evalState.items.length;
   const idx   = evalState.currentIdx;
   const prev  = evalState.results[item.exercise_name];
 
-  const inputHTML = buildEvalInput(item, prev);
-
-  document.getElementById('modal-eval-content').innerHTML = `
-    <div class="eval-progress-bar">
-      <div class="eval-progress-fill" style="width:${Math.round((idx/total)*100)}%"></div>
-    </div>
-    <div class="eval-test-header">
-      <span class="eval-step">${idx + 1} / ${total}</span>
-      <span class="eval-test-name">${escHTML(item.exercise_name.replace(/_/g,' ').toUpperCase())}</span>
-    </div>
-    <div class="eval-instruction">${escHTML(item.target_note || '')}</div>
-    <div class="eval-input-wrap" id="eval-input-wrap">
-      ${inputHTML}
-    </div>
-    <div class="eval-nav">
-      <button class="btn btn-b ${idx === 0 ? 'btn-disabled' : ''}"
-        onclick="evalBack()" ${idx === 0 ? 'disabled' : ''}>← Atrás</button>
-      <button class="btn btn-p" onclick="evalNext()">
-        ${idx === total - 1 ? 'Ver resultado ✓' : 'Siguiente →'}
-      </button>
+  el.innerHTML = `
+    <div style="padding:16px 20px 80px">
+      <div class="eval-progress-bar">
+        <div class="eval-progress-fill" style="width:${Math.round((idx/total)*100)}%"></div>
+      </div>
+      <div class="eval-test-header">
+        <span class="eval-step">${idx + 1} / ${total}</span>
+        <span class="eval-test-name">${escHTML(item.exercise_name.replace(/_/g,' ').toUpperCase())}</span>
+      </div>
+      <div class="eval-instruction">${escHTML(item.target_note || '')}</div>
+      <div id="eval-input-wrap">
+        ${buildEvalInput(item, prev)}
+      </div>
+      <div class="eval-nav">
+        <button class="btn btn-b ${idx === 0 ? 'btn-disabled' : ''}"
+          onclick="evalBack()" ${idx === 0 ? 'disabled' : ''}>← Atrás</button>
+        <button class="btn btn-p" onclick="evalNext()">
+          ${idx === total - 1 ? 'Ver resultado ✓' : 'Siguiente →'}
+        </button>
+      </div>
     </div>`;
 }
 
-function currentItem() {
+function currentEvalItem() {
   return evalState.items[evalState.currentIdx] || null;
 }
 
-// ── INPUTS POR TIPO ───────────────────────────────────────────────
 function buildEvalInput(item, prevValue) {
   const t = item.metric_type;
   const unit = item.unit || '';
@@ -8193,33 +8151,25 @@ function buildEvalInput(item, prevValue) {
       </div>`;
   }
 
-if (t === 'level_1_3') {
-  return `
-    <div class="eval-level-grid">
-      <button class="eval-level-btn ${prev==1?'eval-level-active':''}"
-        onclick="selectEvalLevel(1,this)">
-        <span class="eval-level-num">1</span>
-        <span class="eval-level-label">No llega a paralelo o pierde equilibrio</span>
-      </button>
+  if (t === 'level_1_3') {
+    return `
+      <div class="eval-level-grid">
+        <button class="eval-level-btn ${prev==1?'eval-level-active':''}" onclick="selectEvalLevel(1)">
+          <span class="eval-level-num">1</span>
+          <span class="eval-level-label">No llega a paralelo o pierde equilibrio</span>
+        </button>
+        <button class="eval-level-btn ${prev==2?'eval-level-active':''}" onclick="selectEvalLevel(2)">
+          <span class="eval-level-num">2</span>
+          <span class="eval-level-label">Paralelo con compensaciones</span>
+        </button>
+        <button class="eval-level-btn ${prev==3?'eval-level-active':''}" onclick="selectEvalLevel(3)">
+          <span class="eval-level-num">3</span>
+          <span class="eval-level-label">Profunda · talones en suelo · sin compensación</span>
+        </button>
+      </div>
+      <input id="eval-val" type="hidden" value="${prev || ''}">`;
+  }
 
-      <button class="eval-level-btn ${prev==2?'eval-level-active':''}"
-        onclick="selectEvalLevel(2,this)">
-        <span class="eval-level-num">2</span>
-        <span class="eval-level-label">Paralelo con compensaciones</span>
-      </button>
-
-      <button class="eval-level-btn ${prev==3?'eval-level-active':''}"
-        onclick="selectEvalLevel(3,this)">
-        <span class="eval-level-num">3</span>
-        <span class="eval-level-label">Profunda · talones en suelo · sin compensación</span>
-      </button>
-    </div>
-
-    <input id="eval-val" type="hidden" value="${prev || ''}">
-  `;
-}
-
-  // default: number
   return `
     <div class="eval-number-wrap">
       <input id="eval-val" type="number" class="fld-i eval-number-input"
@@ -8230,14 +8180,14 @@ if (t === 'level_1_3') {
     ${unit === 'cm' && item.exercise_name === 'sit_reach' ? '<div class="eval-hint">Negativo si no llega a los pies. Ej: -5</div>' : ''}`;
 }
 
-// ── TIMER ─────────────────────────────────────────────────────────
 function toggleEvalTimer() {
   if (evalState.timerRunning) { pauseEvalTimer(); } else { startEvalTimer(); }
 }
 
 function startEvalTimer() {
   evalState.timerRunning = true;
-  document.getElementById('eval-timer-btn').textContent = '⏸ Pausar';
+  const btn = document.getElementById('eval-timer-btn');
+  if (btn) btn.textContent = '⏸ Pausar';
   evalState.timerInt = setInterval(() => {
     evalState.timerSecs++;
     updateEvalTimerDisplay();
@@ -8247,7 +8197,8 @@ function startEvalTimer() {
 function pauseEvalTimer() {
   evalState.timerRunning = false;
   clearInterval(evalState.timerInt);
-  document.getElementById('eval-timer-btn').textContent = '▶ Continuar';
+  const btn = document.getElementById('eval-timer-btn');
+  if (btn) btn.textContent = '▶ Continuar';
   const valEl = document.getElementById('eval-val');
   if (valEl) valEl.value = evalState.timerSecs;
 }
@@ -8261,7 +8212,8 @@ function resetEvalTimer() {
   stopEvalTimer();
   evalState.timerSecs = 0;
   updateEvalTimerDisplay();
-  document.getElementById('eval-timer-btn').textContent = '▶ Iniciar';
+  const btn = document.getElementById('eval-timer-btn');
+  if (btn) btn.textContent = '▶ Iniciar';
   const valEl = document.getElementById('eval-val');
   if (valEl) valEl.value = '';
 }
@@ -8274,7 +8226,6 @@ function updateEvalTimerDisplay() {
   el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-// ── CONTADOR ──────────────────────────────────────────────────────
 function evalCountChange(delta) {
   evalState.counterVal = Math.max(0, evalState.counterVal + delta);
   const display = document.getElementById('eval-counter-num');
@@ -8291,35 +8242,23 @@ function evalCountReset() {
   if (input)   input.value = 0;
 }
 
-// ── NIVEL 1-3 ────────────────────────────────────────────────────
-function selectEvalLevel(level, btn) {
-  document.querySelectorAll('.eval-level-btn').forEach(b => {
-    b.classList.remove('eval-level-active');
-  });
-
-  if (btn) {
-    btn.classList.add('eval-level-active');
-  }
-
+function selectEvalLevel(level) {
+  document.querySelectorAll('.eval-level-btn').forEach(b => b.classList.remove('eval-level-active'));
+  event.currentTarget.classList.add('eval-level-active');
   const input = document.getElementById('eval-val');
-  if (input) {
-    input.value = level;
-  }
+  if (input) input.value = level;
 }
 
-// ── NAVEGACIÓN ────────────────────────────────────────────────────
 async function evalNext() {
-  const item = currentItem();
+  const item = currentEvalItem();
   if (!item) return;
   const valEl = document.getElementById('eval-val');
   const raw = valEl ? valEl.value.trim() : '';
   const val = raw !== '' ? parseFloat(raw) : null;
 
-  // Guardar resultado
   evalState.results[item.exercise_name] = val;
   stopEvalTimer();
 
-  // Persistir en BD
   if (val !== null) {
     await db.from('client_assessment_results').upsert({
       id: uid(), assessment_id: evalState.assessmentId,
@@ -8346,111 +8285,102 @@ function evalBack() {
   }
 }
 
-// ── VISTA 4: RECOMENDACIÓN FINAL ──────────────────────────────────
 async function renderEvalRecommendation() {
-  document.getElementById('modal-eval-content').innerHTML =
-    '<div class="eval-loading">Calculando resultado...</div>';
+  const el = document.getElementById('modal-eval-content');
+  if (!el) return;
+  el.innerHTML = '<div style="padding:20px"><div class="eval-loading">Calculando resultado...</div></div>';
 
-  // Llamar a la función de cálculo
   const { error: fe } = await db.rpc('calcular_nivel_evaluacion', {
     p_evaluacion_id: evalState.evaluacionId,
     p_assessment_id: evalState.assessmentId,
   });
 
-  // Marcar assessment como completado
   await db.from('client_assessments').update({ status: 'completado' })
     .eq('id', evalState.assessmentId);
 
   if (fe) { showToast('Error al calcular: ' + fe.message, 'err'); return; }
 
-  // Leer resultado
   const { data: ev } = await db.from('evaluaciones')
     .select('*, training_programs(name), mobility_chains(name, level)')
     .eq('id', evalState.evaluacionId).single();
 
   if (!ev) { showToast('No se pudo cargar el resultado', 'err'); return; }
 
-  const nivel = ev.recommended_level || '—';
+  const nivel = ev.recommended_level || 0;
   const planName = ev.training_programs?.name || '—';
   const chainName = ev.mobility_chains?.name || '—';
   const chainLevel = ev.mobility_chains?.level || '';
 
-  const nivelNum = Number(nivel) || 0;
+  const stars = Array(4).fill(0).map((_,i) =>
+    `<span class="${i < nivel ? 'eval-star-on' : 'eval-star'}">★</span>`
+  ).join('');
 
-const stars = Array(4).fill(0).map((_, i) =>
-  `<span class="eval-star ${i < nivelNum ? 'eval-star-on' : ''}">★</span>`
-).join('');
+  el.innerHTML = `
+    <div style="padding:16px 20px 80px">
+      <div class="eval-result-hero">
+        <div class="eval-result-label">Resultado de la evaluación</div>
+        <div class="eval-result-client">${escHTML(evalState.clientName)}</div>
+        <div class="eval-stars">${stars}</div>
+        <div class="eval-result-level">Nivel ${nivel} / 4</div>
+      </div>
 
-  document.getElementById('modal-eval-content').innerHTML = `
-    <div class="eval-result-hero">
-      <div class="eval-result-label">Resultado de la evaluación</div>
-      <div class="eval-result-client">${escHTML(evalState.clientName)}</div>
-      <div class="eval-stars">${stars}</div>
-      <div class="eval-result-level">Nivel ${nivel} / 4</div>
-    </div>
+      <div class="eval-result-grid">
+        <div class="eval-result-card">
+          <div class="eval-rc-label">Fuerza</div>
+          <div class="eval-rc-val">${ev.nivel_fuerza || '—'}/4</div>
+        </div>
+        <div class="eval-result-card">
+          <div class="eval-rc-label">Movilidad</div>
+          <div class="eval-rc-val">${ev.nivel_movilidad || '—'}/4</div>
+        </div>
+        <div class="eval-result-card">
+          <div class="eval-rc-label">Resistencia</div>
+          <div class="eval-rc-val">${ev.nivel_resistencia || '—'}/4</div>
+        </div>
+      </div>
 
-    <div class="eval-result-grid">
-      <div class="eval-result-card">
-        <div class="eval-rc-label">Fuerza</div>
-        <div class="eval-rc-val">${ev.nivel_fuerza || '—'}/4</div>
+      <div class="eval-recommendation">
+        <div class="eval-rec-title">Recomendación del sistema</div>
+        <div class="eval-rec-item">
+          <span class="eval-rec-label">Plan</span>
+          <span class="eval-rec-value">${escHTML(planName)}</span>
+        </div>
+        <div class="eval-rec-item">
+          <span class="eval-rec-label">Movilidad</span>
+          <span class="eval-rec-value">${escHTML(chainName)}${chainLevel ? ' ('+chainLevel+')' : ''}</span>
+        </div>
+        ${ev.recommendation_notes ? `<div class="eval-rec-notes">${escHTML(ev.recommendation_notes)}</div>` : ''}
       </div>
-      <div class="eval-result-card">
-        <div class="eval-rc-label">Movilidad</div>
-        <div class="eval-rc-val">${ev.nivel_movilidad || '—'}/4</div>
-      </div>
-      <div class="eval-result-card">
-        <div class="eval-rc-label">Resistencia</div>
-        <div class="eval-rc-val">${ev.nivel_resistencia || '—'}/4</div>
-      </div>
-    </div>
 
-    <div class="eval-recommendation">
-      <div class="eval-rec-title">Recomendación del sistema</div>
-      <div class="eval-rec-item">
-        <span class="eval-rec-label">Plan</span>
-        <span class="eval-rec-value">${escHTML(planName)}</span>
+      <div class="eval-confirm-btns">
+        <button class="btn btn-p btn-wide" onclick="confirmEvalAssignment()">
+          ✓ Confirmar y asignar plan
+        </button>
+        <button class="btn btn-b btn-wide" style="margin-top:8px" onclick="closeEvalModal()">
+          Cerrar sin asignar
+        </button>
       </div>
-      <div class="eval-rec-item">
-        <span class="eval-rec-label">Movilidad</span>
-        <span class="eval-rec-value">${escHTML(chainName)} ${chainLevel ? '('+chainLevel+')' : ''}</span>
-      </div>
-      ${ev.recommendation_notes ? `
-      <div class="eval-rec-notes">${escHTML(ev.recommendation_notes)}</div>` : ''}
-    </div>
-
-    <div class="eval-confirm-btns">
-      <button class="btn btn-p btn-full" onclick="confirmEvalAssignment()">
-        ✓ Confirmar y asignar plan
-      </button>
-      <button class="btn btn-b btn-full" onclick="closeEvalModal()">
-        Cerrar sin asignar
-      </button>
     </div>`;
 }
 
-// ── CONFIRMAR ASIGNACIÓN ──────────────────────────────────────────
 async function confirmEvalAssignment() {
   const { data: ev } = await db.from('evaluaciones')
-    .select('recommended_plan_id, recommended_chain_id, cliente_id')
+    .select('recommended_plan_id, recommended_chain_id, recommended_level, cliente_id')
     .eq('id', evalState.evaluacionId).single();
 
   if (!ev) { showToast('Error al obtener recomendación', 'err'); return; }
 
-  // Asignar cadena de movilidad
   if (ev.recommended_chain_id) {
-    const { error: ce } = await db.from('client_mobility_assignments').insert({
+    await db.from('client_mobility_assignments').insert({
       id: uid(), client_id: ev.cliente_id,
       chain_id: ev.recommended_chain_id,
       status: 'activo',
-      assigned_reason: 'Evaluación inicial · nivel ' + (await db.from('evaluaciones')
-        .select('recommended_level').eq('id', evalState.evaluacionId).single())?.data?.recommended_level,
+      assigned_reason: `Evaluación inicial · nivel ${ev.recommended_level || '—'}`,
       start_date: todayISO(),
     });
-    if (ce) console.error('Error asignando cadena:', ce);
   }
 
   showToast('Plan y movilidad asignados ✓', 'ok');
-  await refreshAthletes?.();
   closeEvalModal();
 }
 </script> 
