@@ -8068,9 +8068,24 @@ async function startEval(type) {
 
   // Cargar items del template
   const templateId = EVAL_TEMPLATES[type];
-  const { data: items } = await db.from('assessment_template_items')
-    .select('*').eq('template_id', templateId).order('item_order');
-  evalState.items = items || [];
+  const const { data: items, error: itemsError } = await db
+  .from('assessment_template_items')
+  .select('*')
+  .eq('template_id', templateId)
+  .order('item_order');
+
+if (itemsError) {
+  console.error('assessment_template_items error:', itemsError);
+  showToast('Error cargando tests: ' + itemsError.message, 'err');
+  return;
+}
+
+if (!items || !items.length) {
+  showToast('No hay tests cargados para este protocolo', 'err');
+  return;
+}
+
+evalState.items = items;
 
   // Crear client_assessment en BD
   const aid = uid();
@@ -8178,27 +8193,31 @@ function buildEvalInput(item, prevValue) {
       </div>`;
   }
 
-  if (t === 'level_1_3') {
-    return `
-      <div class="eval-level-grid">
-        <button class="eval-level-btn ${prev==1?'eval-level-active':''}"
-          onclick="selectEvalLevel(1,this)">
-          <span class="eval-level-num">1</span>
-          <span class="eval-level-label">No llega a paralelo o pierde equilibrio</span>
-        </button>
-        <button class="eval-level-btn ${prev==2?'eval-level-active':''}"
-          onclick="selectEvalLevel(2,this)"
-          <span class="eval-level-num">2</span>
-          <span class="eval-level-label">Paralelo con compensaciones</span>
-        </button>
-        <button class="eval-level-btn ${prev==3?'eval-level-active':''}"
-          onclick="selectEvalLevel(3,this)"
-          <span class="eval-level-num">3</span>
-          <span class="eval-level-label">Profunda · talones en suelo · sin compensación</span>
-        </button>
-      </div>
-      <input id="eval-val" type="hidden" value="${prev || ''}">`;
-  }
+if (t === 'level_1_3') {
+  return `
+    <div class="eval-level-grid">
+      <button class="eval-level-btn ${prev==1?'eval-level-active':''}"
+        onclick="selectEvalLevel(1,this)">
+        <span class="eval-level-num">1</span>
+        <span class="eval-level-label">No llega a paralelo o pierde equilibrio</span>
+      </button>
+
+      <button class="eval-level-btn ${prev==2?'eval-level-active':''}"
+        onclick="selectEvalLevel(2,this)">
+        <span class="eval-level-num">2</span>
+        <span class="eval-level-label">Paralelo con compensaciones</span>
+      </button>
+
+      <button class="eval-level-btn ${prev==3?'eval-level-active':''}"
+        onclick="selectEvalLevel(3,this)">
+        <span class="eval-level-num">3</span>
+        <span class="eval-level-label">Profunda · talones en suelo · sin compensación</span>
+      </button>
+    </div>
+
+    <input id="eval-val" type="hidden" value="${prev || ''}">
+  `;
+}
 
   // default: number
   return `
