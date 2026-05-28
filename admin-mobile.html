@@ -486,6 +486,345 @@ a{text-decoration:none;color:inherit}
 .wt-complete-glow{
   box-shadow:0 0 24px rgba(0,230,118,.12);
 }
+
+/* ================================================================
+   AB SYSTEM — GUÍA ESTIRAMIENTOS — ADMIN FIELD MOBILE
+   ================================================================ */
+
+#modal-stretching {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: none;
+  flex-direction: column;
+  background: var(--bg-primary);
+  overflow-y: auto;
+}
+
+.stretch-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-primary);
+  z-index: 10;
+}
+
+.stretch-modal-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+#stretch-content {
+  padding: 16px 20px 80px;
+}
+
+/* Header / navegación */
+.stretch-back {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stretch-zone-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stretch-progress {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-left: auto;
+}
+
+/* Cliente */
+.stretch-header {
+  margin-bottom: 14px;
+}
+
+.stretch-client-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stretch-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Alerta de seguridad */
+.stretch-alert {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(255,179,64,.1);
+  border: 1px solid rgba(255,179,64,.3);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+/* Zonas */
+.stretch-zones-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.stretch-zone-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+
+.stretch-zone-btn:active {
+  background: var(--bg-tertiary);
+}
+
+.stretch-zone-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Resumen */
+.stretch-summary {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+/* Lista de ejercicios */
+.stretch-ex-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stretch-ex-item {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.stretch-ex-item.stretch-avoid {
+  opacity: .55;
+  cursor: not-allowed;
+  border-color: rgba(255,80,80,.25);
+  background: rgba(255,80,80,.04);
+}
+
+.stretch-ex-item.stretch-modify,
+.stretch-ex-item.stretch-caution {
+  border-color: rgba(255,179,64,.35);
+}
+
+.stretch-ex-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stretch-ex-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.stretch-ex-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.stretch-ex-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stretch-ex-meta {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.stretch-chevron {
+  color: var(--text-secondary);
+  font-size: 20px;
+}
+
+.stretch-level-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: .5px;
+  flex-shrink: 0;
+}
+
+.stretch-tag-avoid {
+  background: rgba(255,80,80,.15);
+  color: #ff5050;
+}
+
+.stretch-tag-modify,
+.stretch-tag-caution {
+  background: rgba(255,179,64,.15);
+  color: #ffb340;
+}
+
+.stretch-ex-reason {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.stretch-ex-mod {
+  font-size: 11px;
+  color: #ffb340;
+  margin-top: 4px;
+}
+
+/* Ejecución */
+.stretch-exec-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.stretch-exec-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.stretch-exec-reps {
+  font-size: 13px;
+  color: var(--sport);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.stretch-exec-desc {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.stretch-exec-alert {
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+.stretch-exec-mod {
+  background: rgba(255,179,64,.1);
+  border: 1px solid rgba(255,179,64,.3);
+  color: #ffb340;
+}
+
+.stretch-exec-caution {
+  background: rgba(255,179,64,.08);
+  border: 1px solid rgba(255,179,64,.2);
+  color: #ffb340;
+}
+
+.stretch-exec-mod-text {
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* Timer */
+.stretch-timer-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.stretch-timer-display {
+  font-family: var(--font-mono);
+  font-size: 52px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 2px;
+}
+
+.stretch-timer-btns {
+  display: flex;
+  gap: 10px;
+}
+
+/* Indicaciones */
+.stretch-cue {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--text-primary);
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+}
+
+.stretch-cue-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* Navegación inferior */
+.stretch-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stretch-empty,
+.stretch-loading {
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-align: center;
+  padding: 40px 0;
+}
 </style>
 </head>
 <body>
@@ -6354,7 +6693,866 @@ ${coachNote}`
 
   showWorkoutCompleteCard(c, nextForCard);
 }
+
+// ================================================================
+// AB SYSTEM — GUÍA DE ESTIRAMIENTOS — JS BASE
+// Paso 3: abrir/cerrar modal y mostrar zonas
+// ================================================================
+
+// ── ESTADO BASE ─────────────────────────────────────────────────
+let stretchClientId    = null;
+let stretchClientName  = '';
+let stretchZone        = null;
+let stretchSafety      = { conditions: [], injuries: [], rules: [] };
+let stretchExercises   = [];
+let stretchIndex       = 0;
+let stretchTimerInt    = null;
+let stretchTimerSecs   = 0;
+let stretchTimerActive = false;
+
+// ── ZONAS DISPONIBLES ───────────────────────────────────────────
+const STRETCH_ZONES = [
+  {
+    key: 'cervical',
+    label: 'Cervical',
+    keywords: ['cervical', 'cuello', 'trapecio']
+  },
+  {
+    key: 'hombros',
+    label: 'Hombros',
+    keywords: ['hombro', 'pecho', 'rotacion de hombro', 'rotación de hombro', 'apertura de pecho', 'trapecio']
+  },
+  {
+    key: 'toracica',
+    label: 'Torácica',
+    keywords: ['toracica', 'torácica', 'columna', 'extension toracica', 'extensión torácica', 'cat cow']
+  },
+  {
+    key: 'cadera',
+    label: 'Cadera',
+    keywords: ['cadera', 'hip', 'flexor de cadera', 'apertura de cadera', '90/90']
+  },
+  {
+    key: 'isquios',
+    label: 'Isquios',
+    keywords: ['isquio', 'isquiotibial', 'hamstring']
+  },
+  {
+    key: 'aductores',
+    label: 'Aductores',
+    keywords: ['aductor', 'aductores', 'sumo']
+  },
+  {
+    key: 'lumbar',
+    label: 'Lumbar',
+    keywords: ['lumbar', 'espalda baja']
+  },
+  {
+    key: 'tobillo',
+    label: 'Tobillo',
+    keywords: ['tobillo', 'dorsiflexion', 'dorsiflexión', 'ankle']
+  },
+  {
+    key: 'cuadriceps',
+    label: 'Cuádriceps',
+    keywords: ['cuadriceps', 'cuádriceps', 'cuadricep']
+  }
+];
+
+// ── ESCAPE HTML SEGURO ──────────────────────────────────────────
+function stretchEscHTML(value) {
+  return String(value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+// ── ABRIR MODAL ─────────────────────────────────────────────────
+async function openStretching(clientId, clientName) {
+  stretchClientId   = clientId || null;
+  stretchClientName = clientName || '';
+  stretchZone       = null;
+  stretchExercises  = [];
+  stretchIndex      = 0;
+
+  stopStretchTimerBase();
+
+  const overlay = document.getElementById('modal-overlay');
+  const modal   = document.getElementById('modal-stretching');
+  const content = document.getElementById('stretch-content');
+
+  if (overlay) overlay.style.display = 'flex';
+  if (modal)   modal.style.display   = 'flex';
+
+  if (content) {
+    content.innerHTML = '<div class="stretch-loading">Preparando guía de estiramientos...</div>';
+  }
+
+  if (stretchClientId && typeof loadStretchSafetyBase === 'function') {
+    await loadStretchSafetyBase(stretchClientId);
+  } else {
+    stretchSafety = {
+      conditions: [],
+      injuries: [],
+      rules: []
+    };
+  }
+
+  renderStretch();
+}
+
+// ── CERRAR MODAL ────────────────────────────────────────────────
+function closeStretching() {
+  stopStretchTimerBase();
+
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('modal-stretching');
+
+  if (overlay) overlay.style.display = 'none';
+  if (modal) modal.style.display = 'none';
+}
+
+// ── TIMER BASE, SOLO PARA LIMPIAR ESTADO ─────────────────────────
+function stopStretchTimerBase() {
+  stretchTimerActive = false;
+
+  if (stretchTimerInt) {
+    clearInterval(stretchTimerInt);
+  }
+
+  stretchTimerInt = null;
+  stretchTimerSecs = 0;
+}
+
+// ── VOLVER A ZONAS ──────────────────────────────────────────────
+function backToStretchZones() {
+  stretchZone = null;
+  stretchExercises = [];
+  stretchIndex = 0;
+  stopStretchTimerBase();
+  renderStretchZoneSelector();
+}
+
+// ── SELECCIÓN DE ZONA, POR AHORA SIN SUPABASE ───────────────────
+function selectStretchZone(zoneKey) {
+  stretchZone = zoneKey;
+  stretchExercises = [];
+  stretchIndex = 0;
+  stopStretchTimerBase();
+
+  renderStretchZonePlaceholder();
+}
+
+// ── RENDER: SELECTOR DE ZONA ────────────────────────────────────
+function renderStretchZoneSelector() {
+  const el = document.getElementById('stretch-content');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div class="stretch-header">
+      <div class="stretch-client">
+        ${
+          stretchClientName
+            ? `<span class="stretch-client-name">${stretchEscHTML(stretchClientName)}</span>`
+            : ''
+        }
+        <span class="stretch-subtitle">Selecciona la zona que quieres trabajar</span>
+      </div>
+    </div>
+
+    <div class="stretch-zones-grid">
+      ${STRETCH_ZONES.map(zone => `
+        <button class="stretch-zone-btn" onclick="selectStretchZone('${zone.key}')">
+          <span class="stretch-zone-label">${stretchEscHTML(zone.label)}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ── RENDER TEMPORAL: ZONA SELECCIONADA ──────────────────────────
+// En el paso siguiente esto se reemplaza por carga real desde Supabase.
+function renderStretchZonePlaceholder() {
+  const el = document.getElementById('stretch-content');
+  if (!el) return;
+
+  const zone = STRETCH_ZONES.find(z => z.key === stretchZone);
+
+  el.innerHTML = `
+    <div class="stretch-back">
+      <button class="btn btn-sm" onclick="backToStretchZones()">← Zonas</button>
+      <span class="stretch-zone-title">${stretchEscHTML(zone?.label || '')}</span>
+    </div>
+
+    <div class="stretch-empty">
+      Zona seleccionada correctamente.<br>
+      En el siguiente paso cargamos los ejercicios desde Supabase.
+    </div>
+  `;
+}
+
+// ================================================================
+// AB SYSTEM — GUÍA DE ESTIRAMIENTOS — CARGA DESDE SUPABASE
+// Paso 4: cargar ejercicios reales por zona
+// ================================================================
+
+// ── NORMALIZAR TEXTO PARA BÚSQUEDA ──────────────────────────────
+function stretchNormalizeText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+// ── CARGAR EJERCICIOS DESDE mobility_chain_exercises ────────────
+async function loadZoneExercises(zoneKey) {
+  const zone = STRETCH_ZONES.find(z => z.key === zoneKey);
+  if (!zone) return [];
+
+  let result = await db
+    .from('mobility_chain_exercises')
+    .select('*')
+    .order('exercise_order', { ascending: true });
+
+  // Fallback por si la columna exercise_order no existe o falla el order
+  if (result.error) {
+    console.warn('Error ordenando por exercise_order. Reintentando sin orden:', result.error);
+
+    result = await db
+      .from('mobility_chain_exercises')
+      .select('*');
+  }
+
+  if (result.error) {
+    console.error('Error cargando mobility_chain_exercises:', result.error);
+    return [];
+  }
+
+  const rows = result.data || [];
+
+  const keywords = zone.keywords.map(k => stretchNormalizeText(k));
+
+  return rows.filter(exercise => {
+    const searchText = stretchNormalizeText([
+      exercise.name,
+      exercise.description,
+      exercise.zone,
+      exercise.body_zone,
+      exercise.target_area,
+      exercise.muscle_group,
+      exercise.movement_pattern,
+      exercise.contraindication_note,
+      exercise.coaching_notes
+    ].join(' '));
+
+    return keywords.some(keyword => searchText.includes(keyword));
+  });
+}
+
+// ── SELECCIONAR ZONA Y CARGAR EJERCICIOS ────────────────────────
+// Esta función reemplaza la versión temporal del paso anterior.
+async function selectStretchZone(zoneKey) {
+  stretchZone = zoneKey;
+  stretchIndex = 0;
+  stopStretchTimerBase();
+
+  const el = document.getElementById('stretch-content');
+  if (el) {
+    el.innerHTML = '<div class="stretch-loading">Cargando ejercicios y seguridad...</div>';
+  }
+
+  // Carga lesiones / patologías / reglas solo si hay cliente
+  if (stretchClientId) {
+    await loadStretchSafetyBase(stretchClientId);
+  }
+
+  stretchExercises = await loadZoneExercises(zoneKey);
+  renderStretchList();
+}
+
+// ── RENDER: LISTA REAL DE EJERCICIOS ────────────────────────────
+function renderStretchList() {
+  const el = document.getElementById('stretch-content');
+  if (!el) return;
+
+  const zone = STRETCH_ZONES.find(z => z.key === stretchZone);
+
+  if (!stretchExercises.length) {
+    el.innerHTML = `
+      <div class="stretch-back">
+        <button class="btn btn-sm" onclick="stretchZone=null; renderStretchZoneSelector()">← Zonas</button>
+        <span class="stretch-zone-title">${stretchEscHTML(zone?.label || '')}</span>
+      </div>
+
+      <div class="stretch-empty">
+        No hay ejercicios registrados para esta zona.
+      </div>
+    `;
+    return;
+  }
+
+  const safeCount = stretchExercises.filter(ex => {
+    return assessStretchExerciseSafetyBase(ex).level === 'safe';
+  }).length;
+
+  const modifyCount = stretchExercises.filter(ex => {
+    return assessStretchExerciseSafetyBase(ex).level === 'modify';
+  }).length;
+
+  const cautionCount = stretchExercises.filter(ex => {
+    return assessStretchExerciseSafetyBase(ex).level === 'caution';
+  }).length;
+
+  const avoidCount = stretchExercises.filter(ex => {
+    return assessStretchExerciseSafetyBase(ex).level === 'avoid';
+  }).length;
+
+  const itemsHTML = stretchExercises.map((exercise, index) => {
+    const safety = assessStretchExerciseSafetyBase(exercise);
+
+    const levelClass = {
+      safe: 'stretch-safe',
+      modify: 'stretch-modify',
+      caution: 'stretch-caution',
+      avoid: 'stretch-avoid'
+    }[safety.level] || 'stretch-safe';
+
+    const levelIcon = {
+      safe: '●',
+      modify: '●',
+      caution: '●',
+      avoid: '●'
+    }[safety.level] || '●';
+
+    const levelTag = {
+      safe: '',
+      modify: 'MODIFICAR',
+      caution: 'PRECAUCIÓN',
+      avoid: 'EVITAR'
+    }[safety.level] || '';
+
+    const canOpen = safety.level !== 'avoid';
+
+    return `
+      <div
+        class="stretch-ex-item ${levelClass}"
+        ${canOpen ? `onclick="openStretchExerciseBasic(${index})"` : ''}
+      >
+        <div class="stretch-ex-row">
+          <span class="stretch-ex-icon">${levelIcon}</span>
+
+          <div class="stretch-ex-info">
+            <div class="stretch-ex-name">
+              ${stretchEscHTML(exercise.name || 'Ejercicio sin nombre')}
+            </div>
+
+            ${
+              exercise.reps
+                ? `<div class="stretch-ex-meta">${stretchEscHTML(exercise.reps)}</div>`
+                : ''
+            }
+
+            ${
+              exercise.duration
+                ? `<div class="stretch-ex-meta">${stretchEscHTML(exercise.duration)}</div>`
+                : ''
+            }
+          </div>
+
+          ${
+            levelTag
+              ? `<span class="stretch-level-tag stretch-tag-${safety.level}">${levelTag}</span>`
+              : `<span class="stretch-chevron">›</span>`
+          }
+        </div>
+
+        ${
+          safety.reason
+            ? `<div class="stretch-ex-reason">${stretchEscHTML(safety.reason)}</div>`
+            : ''
+        }
+
+        ${
+          safety.mod
+            ? `<div class="stretch-ex-mod">${stretchEscHTML(safety.mod)}</div>`
+            : ''
+        }
+      </div>
+    `;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="stretch-back">
+      <button class="btn btn-sm" onclick="stretchZone=null; stopStretchTimerBase(); renderStretchZoneSelector()">← Zonas</button>
+      <span class="stretch-zone-title">${stretchEscHTML(zone?.label || '')}</span>
+    </div>
+
+    <div class="stretch-summary">
+      <span>Seguros: ${safeCount}</span>
+      ${modifyCount ? `<span>Modificar: ${modifyCount}</span>` : ''}
+      ${cautionCount ? `<span>Precaución: ${cautionCount}</span>` : ''}
+      ${avoidCount ? `<span>Evitar: ${avoidCount}</span>` : ''}
+    </div>
+
+    <div class="stretch-ex-list">
+      ${itemsHTML}
+    </div>
+  `;
+}
+
+// ── ABRIR EJERCICIO BÁSICO ──────────────────────────────────────
+// Temporal: en el paso siguiente añadimos timer, respiración y navegación.
+function openStretchExerciseBasic(index) {
+  stretchIndex = index;
+
+  const el = document.getElementById('stretch-content');
+  if (!el) return;
+
+  const exercise = stretchExercises[stretchIndex];
+
+  el.innerHTML = `
+    <div class="stretch-back">
+      <button class="btn btn-sm" onclick="renderStretchList()">← Lista</button>
+      <span class="stretch-progress">${stretchIndex + 1} / ${stretchExercises.length}</span>
+    </div>
+
+    <div class="stretch-exec-card">
+      <div class="stretch-exec-name">
+        ${stretchEscHTML(exercise.name || 'Ejercicio sin nombre')}
+      </div>
+
+      ${
+        exercise.duration
+          ? `<div class="stretch-exec-reps">${stretchEscHTML(exercise.duration)}</div>`
+          : ''
+      }
+
+      ${
+        exercise.reps
+          ? `<div class="stretch-exec-reps">${stretchEscHTML(exercise.reps)}</div>`
+          : ''
+      }
+
+      ${
+        exercise.description
+          ? `<div class="stretch-exec-desc">${stretchEscHTML(exercise.description)}</div>`
+          : ''
+      }
+
+      ${
+        exercise.breathing_cue
+          ? `
+            <div class="stretch-cue">
+              <span class="stretch-cue-label">Respiración</span>
+              <span>${stretchEscHTML(exercise.breathing_cue)}</span>
+            </div>
+          `
+          : ''
+      }
+
+      ${
+        exercise.coaching_notes
+          ? `
+            <div class="stretch-cue">
+              <span class="stretch-cue-label">Coach</span>
+              <span>${stretchEscHTML(exercise.coaching_notes)}</span>
+            </div>
+          `
+          : ''
+      }
+    </div>
+  `;
+}
+
+// ================================================================
+// AB SYSTEM — GUÍA DE ESTIRAMIENTOS
+// Paso 5: ejecución del ejercicio + cronómetro + navegación
+// ================================================================
+
+// ── PARSEAR DURACIÓN ────────────────────────────────────────────
+function parseStretchDurationBase(exercise) {
+  const text = String(exercise?.duration || exercise?.reps || '').toLowerCase();
+
+  // Ej: "2 min", "12 min", "1 minuto"
+  const minMatch = text.match(/(\d+)\s*(min|minuto|minutos)/i);
+  if (minMatch) return parseInt(minMatch[1], 10) * 60;
+
+  // Ej: "30 s", "45 seg", "60 segundos"
+  const secMatch = text.match(/(\d+)\s*(s|seg|segundo|segundos)/i);
+  if (secMatch) return parseInt(secMatch[1], 10);
+
+  // Default útil para estiramientos sin duración clara
+  return 30;
+}
+
+// ── FORMATEAR TIEMPO ────────────────────────────────────────────
+function formatStretchTimeBase(seconds) {
+  const safeSeconds = Math.max(0, Number(seconds || 0));
+  const m = Math.floor(safeSeconds / 60);
+  const s = safeSeconds % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+// ── ACTUALIZAR DISPLAY DEL TIMER ────────────────────────────────
+function updateStretchTimerDisplayBase() {
+  const el = document.getElementById('stretch-timer-display');
+  if (!el) return;
+  el.textContent = formatStretchTimeBase(stretchTimerSecs);
+}
+
+// ── INICIAR / PAUSAR TIMER ──────────────────────────────────────
+function startStretchTimerBase() {
+  const btn = document.getElementById('stretch-timer-btn');
+
+  if (stretchTimerActive) {
+    stretchTimerActive = false;
+    clearInterval(stretchTimerInt);
+    if (btn) btn.textContent = 'Continuar';
+    return;
+  }
+
+  if (!stretchTimerSecs) {
+    const exercise = stretchExercises[stretchIndex];
+    stretchTimerSecs = parseStretchDurationBase(exercise);
+  }
+
+  stretchTimerActive = true;
+  if (btn) btn.textContent = 'Pausar';
+
+  clearInterval(stretchTimerInt);
+
+  stretchTimerInt = setInterval(() => {
+    stretchTimerSecs -= 1;
+    updateStretchTimerDisplayBase();
+
+    if (stretchTimerSecs <= 0) {
+      clearInterval(stretchTimerInt);
+      stretchTimerActive = false;
+      stretchTimerSecs = 0;
+      updateStretchTimerDisplayBase();
+
+      const endBtn = document.getElementById('stretch-timer-btn');
+      if (endBtn) endBtn.textContent = 'Completado';
+    }
+  }, 1000);
+}
+
+// ── DETENER TIMER ────────────────────────────────────────────────
+function stopStretchTimerBase() {
+  stretchTimerActive = false;
+  clearInterval(stretchTimerInt);
+  stretchTimerSecs = 0;
+}
+
+// ── REINICIAR TIMER ──────────────────────────────────────────────
+function resetStretchTimerBase() {
+  clearInterval(stretchTimerInt);
+  stretchTimerActive = false;
+
+  const exercise = stretchExercises[stretchIndex];
+  stretchTimerSecs = parseStretchDurationBase(exercise);
+
+  updateStretchTimerDisplayBase();
+
+  const btn = document.getElementById('stretch-timer-btn');
+  if (btn) btn.textContent = 'Iniciar';
+}
+
+// ── ABRIR EJERCICIO ──────────────────────────────────────────────
+// Reemplaza la versión temporal del Paso 4.
+function openStretchExerciseBasic(index) {
+  stretchIndex = index;
+  stopStretchTimerBase();
+  renderStretchExecutionBasic();
+}
+
+// ── EJERCICIO SIGUIENTE ──────────────────────────────────────────
+function nextStretchExerciseBasic() {
+  if (stretchIndex >= stretchExercises.length - 1) return;
+
+  stretchIndex += 1;
+  stopStretchTimerBase();
+  renderStretchExecutionBasic();
+}
+
+// ── EJERCICIO ANTERIOR ───────────────────────────────────────────
+function prevStretchExerciseBasic() {
+  if (stretchIndex <= 0) return;
+
+  stretchIndex -= 1;
+  stopStretchTimerBase();
+  renderStretchExecutionBasic();
+}
+
+// ── RENDER: EJECUCIÓN DEL EJERCICIO ──────────────────────────────
+function renderStretchExecutionBasic() {
+  const el = document.getElementById('stretch-content');
+  if (!el) return;
+
+  const exercise = stretchExercises[stretchIndex];
+  if (!exercise) {
+    renderStretchList();
+    return;
+  }
+
+  stretchTimerSecs = parseStretchDurationBase(exercise);
+
+  const isFirst = stretchIndex === 0;
+  const isLast  = stretchIndex >= stretchExercises.length - 1;
+
+  el.innerHTML = `
+    <div class="stretch-back">
+      <button class="btn btn-sm" onclick="stopStretchTimerBase(); renderStretchList()">← Lista</button>
+      <span class="stretch-progress">${stretchIndex + 1} / ${stretchExercises.length}</span>
+    </div>
+
+    <div class="stretch-exec-card">
+      <div class="stretch-exec-name">
+        ${stretchEscHTML(exercise.name || 'Ejercicio sin nombre')}
+      </div>
+
+      ${
+        exercise.duration
+          ? `<div class="stretch-exec-reps">${stretchEscHTML(exercise.duration)}</div>`
+          : ''
+      }
+
+      ${
+        exercise.reps
+          ? `<div class="stretch-exec-reps">${stretchEscHTML(exercise.reps)}</div>`
+          : ''
+      }
+
+      ${
+        exercise.description
+          ? `<div class="stretch-exec-desc">${stretchEscHTML(exercise.description)}</div>`
+          : ''
+      }
+
+      <div class="stretch-timer-wrap">
+        <div id="stretch-timer-display" class="stretch-timer-display">
+          ${formatStretchTimeBase(stretchTimerSecs)}
+        </div>
+
+        <div class="stretch-timer-btns">
+          <button id="stretch-timer-btn" class="btn btn-p" onclick="startStretchTimerBase()">
+            Iniciar
+          </button>
+
+          <button class="btn btn-b btn-sm" onclick="resetStretchTimerBase()">
+            Reiniciar
+          </button>
+        </div>
+      </div>
+
+      ${
+        exercise.breathing_cue
+          ? `
+            <div class="stretch-cue">
+              <span class="stretch-cue-label">Respiración</span>
+              <span>${stretchEscHTML(exercise.breathing_cue)}</span>
+            </div>
+          `
+          : ''
+      }
+
+      ${
+        exercise.coaching_notes
+          ? `
+            <div class="stretch-cue">
+              <span class="stretch-cue-label">Coach</span>
+              <span>${stretchEscHTML(exercise.coaching_notes)}</span>
+            </div>
+          `
+          : ''
+      }
+
+      ${
+        exercise.contraindication_note
+          ? `
+            <div class="stretch-cue">
+              <span class="stretch-cue-label">Precaución</span>
+              <span>${stretchEscHTML(exercise.contraindication_note)}</span>
+            </div>
+          `
+          : ''
+      }
+    </div>
+
+    <div class="stretch-nav">
+      <button
+        class="btn btn-b ${isFirst ? 'btn-disabled' : ''}"
+        onclick="prevStretchExerciseBasic()"
+        ${isFirst ? 'disabled' : ''}
+      >
+        ← Anterior
+      </button>
+
+      <button
+        class="btn btn-p ${isLast ? 'btn-disabled' : ''}"
+        onclick="nextStretchExerciseBasic()"
+        ${isLast ? 'disabled' : ''}
+      >
+        Siguiente →
+      </button>
+    </div>
+  `;
+}
+
+// ================================================================
+// AB SYSTEM — GUÍA DE ESTIRAMIENTOS
+// Paso 6: seguridad por patologías / lesiones del cliente
+// ================================================================
+
+// ── CARGAR PERFIL DE SEGURIDAD DEL CLIENTE ──────────────────────
+async function loadStretchSafetyBase(clientId) {
+  if (!clientId) {
+    stretchSafety = {
+      conditions: [],
+      injuries: [],
+      rules: []
+    };
+    return;
+  }
+
+  try {
+    const [conditionsRes, injuriesRes, rulesRes] = await Promise.all([
+      db
+        .from('client_conditions')
+        .select('condition_key, area, severity, status')
+        .eq('client_id', clientId)
+        .in('status', ['activo', 'activa', 'active']),
+
+      db
+        .from('injury_history')
+        .select('body_part, severity, status, training_impact')
+        .eq('client_id', clientId)
+        .in('status', ['activo', 'activa', 'active']),
+
+      db
+        .from('condition_exercise_rules')
+        .select('*')
+        .eq('active', true)
+    ]);
+
+    stretchSafety = {
+      conditions: conditionsRes.data || [],
+      injuries: injuriesRes.data || [],
+      rules: rulesRes.data || []
+    };
+
+  } catch (error) {
+    console.error('Error cargando seguridad de estiramientos:', error);
+
+    stretchSafety = {
+      conditions: [],
+      injuries: [],
+      rules: []
+    };
+  }
+}
+
+// ── EVALUAR SEGURIDAD DE UN EJERCICIO ───────────────────────────
+function assessStretchExerciseSafetyBase(exercise) {
+  if (!exercise) return { level: 'safe' };
+
+  const conditions = stretchSafety?.conditions || [];
+  const injuries   = stretchSafety?.injuries || [];
+  const rules      = stretchSafety?.rules || [];
+
+  const exerciseName = String(exercise.name || '').toLowerCase();
+  const exerciseDesc = String(exercise.description || '').toLowerCase();
+  const exerciseNote = String(exercise.contraindication_note || '').toLowerCase();
+
+  const fullText = `${exerciseName} ${exerciseDesc} ${exerciseNote}`;
+
+  const activeConditionKeys = conditions
+    .map(c => c.condition_key)
+    .filter(Boolean);
+
+  // Reglas conectadas con patologías activas
+  const applicableRules = rules.filter(rule => {
+    if (!activeConditionKeys.includes(rule.condition_key)) return false;
+
+    const pattern = String(rule.movement_pattern || '').toLowerCase();
+    const family  = String(rule.exercise_family || '').toLowerCase();
+
+    const matchPattern = pattern && fullText.includes(pattern);
+    const matchFamily  = family && fullText.includes(family);
+
+    return matchPattern || matchFamily;
+  });
+
+  const avoidRule = applicableRules.find(r => r.action === 'avoid');
+  const modRule   = applicableRules.find(r => r.action === 'modify');
+
+  // Conflicto básico con lesiones activas
+  const injuryConflict = injuries.find(injury => {
+    const bodyPart = String(injury.body_part || '').toLowerCase();
+    if (!bodyPart) return false;
+
+    return fullText.includes(bodyPart);
+  });
+
+  if (avoidRule) {
+    return {
+      level: 'avoid',
+      reason: avoidRule.coach_reason || avoidRule.client_reason || 'Evitar por condición activa.'
+    };
+  }
+
+  if (injuryConflict?.training_impact === 'limitacion_total') {
+    return {
+      level: 'avoid',
+      reason: `Limitación total activa: ${injuryConflict.body_part}`
+    };
+  }
+
+  if (modRule) {
+    return {
+      level: 'modify',
+      reason: modRule.coach_reason || modRule.client_reason || 'Requiere modificación.',
+      mod: modRule.modification_text || ''
+    };
+  }
+
+  if (injuryConflict) {
+    return {
+      level: 'caution',
+      reason: `Precaución por lesión activa: ${injuryConflict.body_part}`
+    };
+  }
+
+  if (exercise.contraindication_note) {
+    return {
+      level: 'caution',
+      reason: exercise.contraindication_note
+    };
+  }
+
+  return { level: 'safe' };
+}
 </script>
 
+<!-- ================================================================
+     AB SYSTEM — MODAL GUÍA DE ESTIRAMIENTOS
+     Admin Field Mobile
+     ================================================================ -->
+
+<div id="modal-stretching" style="display:none;flex-direction:column;">
+
+  <div class="stretch-modal-header">
+    <span class="stretch-modal-title">Guía de estiramientos</span>
+
+    <button class="btn btn-b btn-sm" onclick="closeStretching()">
+      Cerrar
+    </button>
+  </div>
+
+  <div id="stretch-content"></div>
+
+</div>
 </body>
 </html>
