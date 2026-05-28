@@ -8034,36 +8034,84 @@ function renderEvalTypeSelect() {
 
 async function startEval(type) {
   evalState.type = type;
-  showToast('Cargando protocolo...', 'ok');
+
+  const el = document.getElementById('modal-eval-content');
+  if (el) el.innerHTML = '<div style="padding:20px"><div class="eval-loading">Cargando protocolo...</div></div>';
 
   const templateId = EVAL_TEMPLATES[type];
-  const { data: items } = await db.from('assessment_template_items')
-    .select('*').eq('template_id', templateId).order('item_order');
-  evalState.items = items || [];
 
+  // ── Cargar items del template ──
+  const { data: items, error: ie } = await db
+    .from('assessment_template_items')
+    .select('*')
+    .eq('template_id', templateId)
+    .order('item_order');
+
+  console.log('EVAL items:', { templateId, count: items?.length, error: ie });
+
+  if (ie || !items?.length) {
+    showToast('Sin protocolo en BD. Revisa assessment_template_items.', 'err');
+    // Mostrar tests de fallback para poder usar la evaluación de todos modos
+    evalState.items = getFallbackItems(type);
+  } else {
+    evalState.items = items;
+  }
+
+  // ── Crear client_assessment ──
   const aid = uid();
-  const { error: ae } = await db.from('client_assessments').insert({
-    id: aid, client_id: evalState.clientId,
-    template_id: templateId,
-    assessment_name: `Evaluación ${type} — ${new Date().toLocaleDateString('es-ES')}`,
-    assessment_date: todayISO(), status: 'en_progreso',
-  });
-  if (ae) { showToast('Error al crear evaluación', 'err'); return; }
   evalState.assessmentId = aid;
 
-  const eid = uid();
-  const { error: ee } = await db.from('evaluaciones').insert({
-    id: eid, cliente_id: evalState.clientId,
-    fecha: todayISO(),
-    sexo: evalState.clientSexo, edad: evalState.clientEdad,
-    evaluation_type: type, evaluation_mode: 'coach',
-    evaluation_status: 'draft', assessment_id: aid,
+  db.from('client_assessments').insert({
+    id: aid,
+    client_id: evalState.clientId,
+    template_id: templateId,
+    assessment_name: `Evaluación ${type} — ${new Date().toLocaleDateString('es-ES')}`,
+    assessment_date: todayISO(),
+    status: 'en_progreso',
+  }).then(({ error }) => {
+    if (error) console.warn('client_assessments insert error:', error);
   });
-  if (ee) { showToast('Error al crear registro', 'err'); return; }
+
+  // ── Crear evaluacion ──
+  const eid = uid();
   evalState.evaluacionId = eid;
+
+  db.from('evaluaciones').insert({
+    id: eid,
+    cliente_id: evalState.clientId,
+    fecha: todayISO(),
+    sexo: evalState.clientSexo,
+    edad: evalState.clientEdad,
+    evaluation_type: type,
+    evaluation_mode: 'coach',
+    evaluation_status: 'draft',
+    assessment_id: aid,
+  }).then(({ error }) => {
+    if (error) console.warn('evaluaciones insert error (no bloquea):', error);
+  });
 
   evalState.currentIdx = 0;
   renderEvalTest();
+}
+
+function getFallbackItems(type) {
+  const base = [
+    { exercise_name: 'flexiones',       metric_type: 'counter', unit: 'reps',   direction: 'max', item_order: 1, target_note: 'Máximo de flexiones correctas sin parar.' },
+    { exercise_name: 'plancha',         metric_type: 'timer',   unit: 's',      direction: 'max', item_order: 2, target_note: 'Mantener posición de plancha. Registrar segundos.' },
+    { exercise_name: 'wall_sit',        metric_type: 'timer',   unit: 's',      direction: 'max', item_order: 3, target_note: 'Sentadilla isométrica en pared. Registrar segundos.' },
+    { exercise_name: 'sentadilla_nivel',metric_type: 'level_1_3',unit:'nivel',  direction: 'max', item_order: 4, target_note: '1=No llega a paralelo · 2=Paralelo con comp. · 3=Profunda sin comp.' },
+    { exercise_name: 'sit_reach',       metric_type: 'number',  unit: 'cm',     direction: 'max', item_order: 5, target_note: 'Flexión de tronco sentado. Negativo si no llega a los pies.' },
+    { exercise_name: 'step_fc',         metric_type: 'number',  unit: 'ppm',    direction: 'min', item_order: 6, target_note: 'FC medida al minuto exacto tras 3 min de step.' },
+  ];
+  if (type === 'atleta') {
+    base.push(
+      { exercise_name: 'salto_vertical',  metric_type: 'number', unit: 'cm',  direction: 'max', item_order: 7,  target_note: 'Salto vertical máximo desde parado.' },
+      { exercise_name: 'burpees_1min',    metric_type: 'counter',unit: 'reps',direction: 'max', item_order: 8,  target_note: 'Número de burpees completos en 1 minuto.' },
+      { exercise_name: 'dead_hang',       metric_type: 'timer',  unit: 's',   direction: 'max', item_order: 9,  target_note: 'Colgado en barra sin moverse. Registrar segundos.' },
+      { exercise_name: 'abdominales_1min',metric_type: 'counter',unit: 'reps',direction: 'max', item_order: 10, target_note: 'Número de abdominales completos en 1 minuto.' }
+    );
+  }
+  return base;
 }
 
 function renderEvalTest() {
