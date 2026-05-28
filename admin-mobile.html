@@ -7125,12 +7125,8 @@ async function renderStretchAssistedList() {
   el.innerHTML = '<div class="stretch-loading">Cargando técnicas asistidas...</div>';
 
   try {
-    const { data, error } = await db
-      .from('mobility_chain_exercises')
-      .select('*')
-      .eq('execution_mode', 'assisted')
-      .order('zone')
-      .order('exercise_order');
+        const { data, error } = await db
+      .rpc('get_assisted_stretches');
 
     if (error) throw error;
 
