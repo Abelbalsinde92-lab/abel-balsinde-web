@@ -2348,8 +2348,7 @@ function renderPerfil(){
       <button class="btn btn-b btn-sm" onclick="openModal('note',null,{clientId:'${c.id}'})">+ Nota</button>
       <button class="btn btn-b btn-sm" onclick="openModal('assignment',null,{clientId:'${c.id}'})">Asignar plan</button>
       <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
-      `<button class="btn btn-p btn-sm" onclick="openEvalModal('${a.clientId}','${a.clientName}',null,null)">Evaluación</button>` +
-</button>
+            <button class="btn btn-p btn-sm" onclick="openEvalModal('${c.id}','${esc(c.name)}',null,null)">Evaluación</button>
     </div>
     <div class="psum">
       <div class="psum-top">
@@ -7205,11 +7204,10 @@ function stretchNormalizeText(value) {
 // ── CARGAR EJERCICIOS DESDE mobility_chain_exercises ────────────
 async function loadZoneExercises(zoneKey) {
   const clientId = stretchClientId || null;
-  const zone = zoneKey || 'all';
+  const zone = zoneKey || 'general';
 
   let rows = [];
 
-  // 1) Intento principal: RPC con seguridad del cliente
   try {
     const { data, error } = await db.rpc('get_coach_utilities_for_client', {
       p_client_id: clientId,
@@ -7217,7 +7215,7 @@ async function loadZoneExercises(zoneKey) {
       p_utility_type: 'mobility_assisted'
     });
 
-    console.log('STRETCH RPC RESULT:', {
+    console.log('STRETCH RPC OK:', {
       clientId,
       zone,
       count: data?.length || 0,
@@ -7230,83 +7228,56 @@ async function loadZoneExercises(zoneKey) {
     rows = data || [];
 
   } catch (error) {
-    console.warn('RPC get_coach_utilities_for_client falló:', error);
+    console.error('STRETCH RPC ERROR:', error);
+    showToast('Error cargando movilidad', 'err');
+    return [];
   }
 
-  // 2) Fallback: cargar directo desde mobility_chain_exercises
-  // Esto permite que la guía no quede vacía si falla la RPC.
   if (!rows.length) {
-    try {
-      let q = db
-        .from('mobility_chain_exercises')
-        .select(`
-          id,
-          name,
-          description,
-          reps,
-          duration,
-          breathing_cue,
-          coaching_notes,
-          contraindication_note,
-          zone,
-          body_zone,
-          target_area,
-          muscle_group,
-          movement_pattern,
-          status,
-          exercise_order
-        `)
-        .or('status.eq.active,status.is.null')
-        .order('exercise_order', { ascending: true });
-
-      if (zone && zone !== 'all') {
-        q = q.eq('zone', zone);
-      }
-
-      const { data, error } = await q;
-
-      console.log('STRETCH FALLBACK RESULT:', {
-        zone,
-        count: data?.length || 0,
-        data,
-        error
-      });
-
-      if (error) throw error;
-
-      rows = data || [];
-
-    } catch (fallbackError) {
-      console.error('Fallback mobility_chain_exercises falló:', fallbackError);
-      showToast('Error cargando ejercicios', 'err');
-      return [];
-    }
+    console.warn('STRETCH: RPC devolvió 0 filas para zona:', zone);
+    return [];
   }
 
-  return (rows || []).map(row => ({
-    id: row.id,
+  return rows.map(row => ({
+    id: row.utility_id || row.id,
     name: row.title || row.name || 'Ejercicio',
     title: row.title || row.name || 'Ejercicio',
 
-    zone: row.zone,
-    body_zone: row.body_zone,
-    target_area: row.target_area,
-    muscle_group: row.muscle_group,
-
-    description: row.description || row.coach_description || '',
-    reps: row.reps || '',
-    duration: row.duration || '',
-    breathing_cue: row.breathing_cue || '',
-    coaching_notes: row.coaching_notes || row.coach_note || '',
-    contraindication_note: row.contraindication_note || '',
+    utility_type: row.utility_type || 'mobility_assisted',
+    category: row.category || '',
+    zone: row.zone || zone,
 
     movement_pattern: row.movement_pattern || '',
-    exercise_family: row.exercise_family || row.movement_pattern || '',
+    exercise_family: row.exercise_family || '',
     video_family: row.video_family || '',
     video_url: row.video_url || '',
 
+    reps: row.reps || '',
+    duration: row.duration || '',
+
+    description:
+      row.client_reason ||
+      row.short_goal ||
+      row.description ||
+      'Ejercicio de movilidad asistida para mejorar rango, control y recuperación.',
+
+    breathing_cue:
+      row.breathing_cue ||
+      'Respirar lento, sin bloquear el aire.',
+
+    coaching_notes:
+      row.coach_reason ||
+      row.coach_cues ||
+      row.coaching_notes ||
+      'Observar rango cómodo, compensaciones, dolor y control respiratorio.',
+
+    contraindication_note:
+      row.modification_text ||
+      row.contraindication_note ||
+      '',
+
     safety_action: row.safety_action || 'permitir',
-    safety_level: normalizeStretchSafetyLevel(row),
+    safety_level: row.safety_level || 'safe',
     risk_level: row.risk_level || 'bajo',
     rule_condition_key: row.rule_condition_key || null,
     modification_text: row.modification_text || '',
@@ -7848,6 +7819,16 @@ async function loadStretchSafetyBase(clientId) {
 function assessStretchExerciseSafetyBase(exercise) {
   if (!exercise) return { level: 'safe' };
 
+  if (exercise.can_use === false) {
+    return {
+      level: 'avoid',
+      reason:
+        exercise.modification_text ||
+        exercise.contraindication_note ||
+        'Evitar por condición activa del cliente.'
+    };
+  }
+
   const level = normalizeStretchSafetyLevel(exercise);
 
   if (level === 'avoid') {
@@ -7855,7 +7836,6 @@ function assessStretchExerciseSafetyBase(exercise) {
       level: 'avoid',
       reason:
         exercise.modification_text ||
-        exercise.client_reason ||
         exercise.contraindication_note ||
         'Evitar por condición activa.'
     };
