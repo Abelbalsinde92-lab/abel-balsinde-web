@@ -7196,42 +7196,138 @@ async function loadZoneExercises(zoneKey) {
   const clientId = stretchClientId || null;
   const zone = zoneKey || 'all';
 
-  const { data, error } = await db.rpc('get_coach_utilities_for_client', {
-    p_client_id: clientId,
-    p_zone: zone,
-    p_utility_type: 'mobility_assisted'
-  });
+  let rows = [];
 
-  if (error) {
-    console.error('Error cargando utilidades:', error);
-    showToast('Error cargando utilidades', 'err');
-    return [];
+  // 1) Intento principal: RPC con seguridad del cliente
+  try {
+    const { data, error } = await db.rpc('get_coach_utilities_for_client', {
+      p_client_id: clientId,
+      p_zone: zone,
+      p_utility_type: 'mobility_assisted'
+    });
+
+    console.log('STRETCH RPC RESULT:', {
+      clientId,
+      zone,
+      count: data?.length || 0,
+      data,
+      error
+    });
+
+    if (error) throw error;
+
+    rows = data || [];
+
+  } catch (error) {
+    console.warn('RPC get_coach_utilities_for_client falló:', error);
   }
 
-  return (data || []).map(row => ({
+  // 2) Fallback: cargar directo desde mobility_chain_exercises
+  // Esto permite que la guía no quede vacía si falla la RPC.
+  if (!rows.length) {
+    try {
+      let q = db
+        .from('mobility_chain_exercises')
+        .select(`
+          id,
+          name,
+          description,
+          reps,
+          duration,
+          breathing_cue,
+          coaching_notes,
+          contraindication_note,
+          zone,
+          body_zone,
+          target_area,
+          muscle_group,
+          movement_pattern,
+          status,
+          exercise_order
+        `)
+        .or('status.eq.active,status.is.null')
+        .order('exercise_order', { ascending: true });
+
+      if (zone && zone !== 'all') {
+        q = q.eq('zone', zone);
+      }
+
+      const { data, error } = await q;
+
+      console.log('STRETCH FALLBACK RESULT:', {
+        zone,
+        count: data?.length || 0,
+        data,
+        error
+      });
+
+      if (error) throw error;
+
+      rows = data || [];
+
+    } catch (fallbackError) {
+      console.error('Fallback mobility_chain_exercises falló:', fallbackError);
+      showToast('Error cargando ejercicios', 'err');
+      return [];
+    }
+  }
+
+  return (rows || []).map(row => ({
     id: row.id,
     name: row.title || row.name || 'Ejercicio',
     title: row.title || row.name || 'Ejercicio',
+
     zone: row.zone,
+    body_zone: row.body_zone,
+    target_area: row.target_area,
+    muscle_group: row.muscle_group,
+
     description: row.description || row.coach_description || '',
-    reps: row.reps,
-    duration: row.duration,
-    breathing_cue: row.breathing_cue,
-    coaching_notes: row.coaching_notes,
-    contraindication_note: row.contraindication_note,
+    reps: row.reps || '',
+    duration: row.duration || '',
+    breathing_cue: row.breathing_cue || '',
+    coaching_notes: row.coaching_notes || row.coach_note || '',
+    contraindication_note: row.contraindication_note || '',
 
-    movement_pattern: row.movement_pattern,
-    exercise_family: row.exercise_family,
-    video_family: row.video_family,
-    video_url: row.video_url,
+    movement_pattern: row.movement_pattern || '',
+    exercise_family: row.exercise_family || row.movement_pattern || '',
+    video_family: row.video_family || '',
+    video_url: row.video_url || '',
 
-    safety_action: row.safety_action,
-    safety_level: row.safety_level,
-    risk_level: row.risk_level,
-    rule_condition_key: row.rule_condition_key,
-    modification_text: row.modification_text,
-    can_use: row.can_use
+    safety_action: row.safety_action || 'permitir',
+    safety_level: normalizeStretchSafetyLevel(row),
+    risk_level: row.risk_level || 'bajo',
+    rule_condition_key: row.rule_condition_key || null,
+    modification_text: row.modification_text || '',
+    can_use: row.can_use !== false
   }));
+}
+
+function normalizeStretchSafetyLevel(row) {
+  const raw = String(
+    row?.safety_level ||
+    row?.safety_action ||
+    row?.action ||
+    ''
+  )
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+
+  if (['avoid', 'evitar', 'sustituir', 'derivar', 'alto'].includes(raw)) {
+    return 'avoid';
+  }
+
+  if (['modify', 'modificar', 'modificado', 'modificar_o_sustituir'].includes(raw)) {
+    return 'modify';
+  }
+
+  if (['caution', 'precaucion', 'warning', 'revisar'].includes(raw)) {
+    return 'caution';
+  }
+
+  return 'safe';
 }
 
 // ── SELECCIONAR ZONA Y CARGAR EJERCICIOS ────────────────────────
@@ -7741,27 +7837,40 @@ async function loadStretchSafetyBase(clientId) {
 function assessStretchExerciseSafetyBase(exercise) {
   if (!exercise) return { level: 'safe' };
 
-  const level = exercise.safety_level || 'safe';
+  const level = normalizeStretchSafetyLevel(exercise);
 
   if (level === 'avoid') {
     return {
       level: 'avoid',
-      reason: exercise.modification_text || exercise.client_reason || 'Evitar por condición activa.'
+      reason:
+        exercise.modification_text ||
+        exercise.client_reason ||
+        exercise.contraindication_note ||
+        'Evitar por condición activa.'
     };
   }
 
   if (level === 'modify') {
     return {
       level: 'modify',
-      reason: exercise.modification_text || 'Requiere modificación.',
-      mod: exercise.modification_text || ''
+      reason:
+        exercise.modification_text ||
+        exercise.contraindication_note ||
+        'Requiere modificación.',
+      mod:
+        exercise.modification_text ||
+        exercise.contraindication_note ||
+        ''
     };
   }
 
   if (level === 'caution') {
     return {
       level: 'caution',
-      reason: exercise.modification_text || 'Usar con precaución.'
+      reason:
+        exercise.modification_text ||
+        exercise.contraindication_note ||
+        'Usar con precaución.'
     };
   }
 
