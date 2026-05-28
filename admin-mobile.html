@@ -709,6 +709,20 @@ a{text-decoration:none;color:inherit}
   color: #ffb340;
 }
 
+.stretch-tag-assisted {
+  background: rgba(0,200,232,.15);
+  color: var(--sport);
+}
+.stretch-section-label {
+  font-family: var(--font-m);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-2);
+  padding: 8px 0 4px;
+  margin-top: 8px;
+}
+
 .stretch-ex-reason {
   font-size: 11px;
   color: var(--text-secondary);
@@ -7242,8 +7256,41 @@ async function loadZoneExercises(zoneKey) {
     return [];
   }
 
+    // Fallback directo si la RPC devuelve 0
   if (!rows.length) {
-    console.warn('STRETCH: RPC devolvió 0 filas para zona:', zone);
+    console.warn('STRETCH: RPC vacía, usando fallback directo:', zone);
+    try {
+      const { data: fbData } = await db
+        .from('mobility_chain_exercises')
+        .select('*')
+        .eq('zone', zone)
+        .order('exercise_order');
+      rows = fbData || [];
+    } catch(fbErr) {
+      console.error('STRETCH fallback error:', fbErr);
+    }
+  }
+
+  // Siempre añadir asistidos de la zona (no los devuelve la RPC)
+  try {
+    const { data: assistedData } = await db
+      .from('mobility_chain_exercises')
+      .select('*')
+      .eq('zone', zone)
+      .eq('execution_mode', 'assisted')
+      .order('exercise_order');
+
+    if (assistedData?.length) {
+      const existingIds = new Set(rows.map(r => r.id || r.utility_id));
+      const newAssisted = assistedData.filter(r => !existingIds.has(r.id));
+      rows = [...rows, ...newAssisted];
+    }
+  } catch(ae) {
+    console.warn('STRETCH: No se pudieron cargar asistidos:', ae);
+  }
+
+  if (!rows.length) {
+    console.warn('STRETCH: Sin ejercicios para zona:', zone);
     return [];
   }
 
@@ -7292,7 +7339,8 @@ return (rows || []).map(row => ({
   risk_level: row.risk_level || 'bajo',
   rule_condition_key: row.rule_condition_key || null,
   modification_text: row.modification_text || '',
-  can_use: row.can_use !== false
+  can_use: row.can_use !== false,
+  execution_mode: row.execution_mode || 'individual',
 }));
 }
 
@@ -7381,92 +7429,45 @@ function renderStretchList() {
     return assessStretchExerciseSafetyBase(ex).level === 'avoid';
   }).length;
 
-  const itemsHTML = stretchExercises.map((exercise, index) => {
+    function buildStretchItem(exercise, index) {
     const safety = assessStretchExerciseSafetyBase(exercise);
-
-    const levelClass = {
-      safe: 'stretch-safe',
-      modify: 'stretch-modify',
-      caution: 'stretch-caution',
-      avoid: 'stretch-avoid'
-    }[safety.level] || 'stretch-safe';
-
-    const levelIcon = {
-      safe: '●',
-      modify: '●',
-      caution: '●',
-      avoid: '●'
-    }[safety.level] || '●';
-
-    const levelTag = {
-      safe: '',
-      modify: 'MODIFICAR',
-      caution: 'PRECAUCIÓN',
-      avoid: 'EVITAR'
-    }[safety.level] || '';
-
+    const isAssisted = exercise.execution_mode === 'assisted';
+    const levelClass = { safe:'stretch-safe', modify:'stretch-modify', caution:'stretch-caution', avoid:'stretch-avoid' }[safety.level] || 'stretch-safe';
+    const levelTag   = { safe:'', modify:'MODIFICAR', caution:'PRECAUCIÓN', avoid:'EVITAR' }[safety.level] || '';
     const canOpen = safety.level !== 'avoid';
-
-   const hasVideo = !!exercise.video_url;
+    const hasVideo = !!exercise.video_url;
 
     return `
-      <div
-        class="stretch-ex-item ${levelClass}"
-        ${canOpen ? `onclick="openStretchExerciseBasic(${index})"` : ''}
-      >
+      <div class="stretch-ex-item ${levelClass}" ${canOpen ? `onclick="openStretchExerciseBasic(${index})"` : ''}>
         <div class="stretch-ex-row">
-          <span class="stretch-ex-icon">${levelIcon}</span>
-
+          <span class="stretch-ex-icon">●</span>
           <div class="stretch-ex-info">
-            <div class="stretch-ex-name">
-              ${stretchEscHTML(exercise.name || 'Ejercicio sin nombre')}
-            </div>
-
-            ${
-              exercise.reps
-                ? `<div class="stretch-ex-meta">${stretchEscHTML(exercise.reps)}</div>`
-                : ''
-            }
-
-            ${
-              exercise.duration
-                ? `<div class="stretch-ex-meta">${stretchEscHTML(exercise.duration)}</div>`
-                : ''
-            }
+            <div class="stretch-ex-name">${stretchEscHTML(exercise.name || 'Ejercicio')}</div>
+            ${exercise.reps     ? `<div class="stretch-ex-meta">${stretchEscHTML(exercise.reps)}</div>` : ''}
+            ${exercise.duration ? `<div class="stretch-ex-meta">${stretchEscHTML(exercise.duration)}</div>` : ''}
           </div>
-
-${
-  hasVideo
-    ? `<button
-        class="btn btn-b btn-sm"
-        style="min-height:34px;padding:0 10px;font-size:.55rem"
-        onclick="event.stopPropagation(); openVideoUrl('${jsArg(exercise.name || exercise.title)}','${jsArg(exercise.video_url)}')">
-        Vídeo
-      </button>`
-    : ''
-}
-
-${
-  levelTag
-    ? `<span class="stretch-level-tag stretch-tag-${safety.level}">${levelTag}</span>`
-    : `<span class="stretch-chevron">›</span>`
-}
+          ${hasVideo ? `<button class="btn btn-b btn-sm" style="min-height:34px;padding:0 10px;font-size:.55rem" onclick="event.stopPropagation();openVideoUrl('${jsArg(exercise.name||exercise.title)}','${jsArg(exercise.video_url)}')">Vídeo</button>` : ''}
+          ${isAssisted
+            ? `<span class="stretch-level-tag stretch-tag-assisted">ASISTIDO</span>`
+            : levelTag
+              ? `<span class="stretch-level-tag stretch-tag-${safety.level}">${levelTag}</span>`
+              : `<span class="stretch-chevron">›</span>`
+          }
         </div>
+        ${safety.reason ? `<div class="stretch-ex-reason">${stretchEscHTML(safety.reason)}</div>` : ''}
+        ${safety.mod    ? `<div class="stretch-ex-mod">${stretchEscHTML(safety.mod)}</div>` : ''}
+      </div>`;
+  }
 
-        ${
-          safety.reason
-            ? `<div class="stretch-ex-reason">${stretchEscHTML(safety.reason)}</div>`
-            : ''
-        }
+  const individual = stretchExercises.filter(e => e.execution_mode !== 'assisted');
+  const assisted   = stretchExercises.filter(e => e.execution_mode === 'assisted');
 
-        ${
-          safety.mod
-            ? `<div class="stretch-ex-mod">${stretchEscHTML(safety.mod)}</div>`
-            : ''
-        }
-      </div>
-    `;
-  }).join('');
+  const itemsHTML =
+    individual.map((ex, i) => buildStretchItem(ex, i)).join('') +
+    (assisted.length
+      ? `<div class="stretch-section-label">🤝 Asistidos por coach</div>` +
+        assisted.map((ex, i) => buildStretchItem(ex, individual.length + i)).join('')
+      : '');
 
   el.innerHTML = `
     <div class="stretch-back">
@@ -7694,9 +7695,15 @@ function renderStretchExecutionBasic() {
     </div>
 
     <div class="stretch-exec-card">
-      <div class="stretch-exec-name">
+          <div class="stretch-exec-name">
         ${stretchEscHTML(exercise.name || 'Ejercicio sin nombre')}
       </div>
+
+      ${exercise.execution_mode === 'assisted' ? `
+        <div style="display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;padding:4px 10px;background:rgba(0,200,232,.12);border:1px solid rgba(0,200,232,.3);border-radius:8px;font-family:var(--font-m);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--sport)">
+          🤝 Estiramiento asistido por coach
+        </div>
+      ` : ''}
 
       ${
         exercise.duration
