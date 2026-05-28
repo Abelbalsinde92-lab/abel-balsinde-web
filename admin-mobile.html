@@ -29,6 +29,14 @@
   --top-h:56px;--bot-h:62px;--touch:48px;--r:14px;
   --safe-b:env(safe-area-inset-bottom,0px);
   --safe-t:env(safe-area-inset-top,0px);
+   --bg-primary: var(--bg);
+   --bg-secondary: var(--card);
+   --bg-tertiary: #18181c;
+   --border: var(--card-border);
+   --text-primary: var(--text);
+   --text-secondary: var(--text-2);
+   --font-mono: var(--font-m);
+   --font-display: var(--font-d);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;font-family:var(--font-b);background:var(--bg);color:var(--text);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;overscroll-behavior:none;text-size-adjust:none;-webkit-text-size-adjust:none}
@@ -6990,34 +6998,45 @@ function stretchNormalizeText(value) {
 
 // ── CARGAR EJERCICIOS DESDE mobility_chain_exercises ────────────
 async function loadZoneExercises(zoneKey) {
-  if (!zoneKey) return [];
+  const clientId = stretchClientId || null;
+  const zone = zoneKey || 'all';
 
-  let result = await db
-    .from('mobility_chain_exercises')
-    .select('*')
-    .eq('zone', zoneKey)
-    .order('exercise_order', { ascending: true })
-    .order('name', { ascending: true });
+  const { data, error } = await db.rpc('get_coach_utilities_for_client', {
+    p_client_id: clientId,
+    p_zone: zone,
+    p_utility_type: 'mobility_assisted'
+  });
 
-  if (result.error) {
-    console.error('Error cargando ejercicios por zona:', result.error);
-    showToast('Error cargando estiramientos', 'err');
+  if (error) {
+    console.error('Error cargando utilidades:', error);
+    showToast('Error cargando utilidades', 'err');
     return [];
   }
 
-  const rows = result.data || [];
+  return (data || []).map(row => ({
+    id: row.id,
+    name: row.title || row.name || 'Ejercicio',
+    title: row.title || row.name || 'Ejercicio',
+    zone: row.zone,
+    description: row.description || row.coach_description || '',
+    reps: row.reps,
+    duration: row.duration,
+    breathing_cue: row.breathing_cue,
+    coaching_notes: row.coaching_notes,
+    contraindication_note: row.contraindication_note,
 
-  // Eliminar duplicados visuales por nombre + zona
-  const seen = new Set();
+    movement_pattern: row.movement_pattern,
+    exercise_family: row.exercise_family,
+    video_family: row.video_family,
+    video_url: row.video_url,
 
-  return rows.filter(exercise => {
-    const key = `${exercise.zone || ''}__${exercise.name || ''}`.toLowerCase();
-
-    if (seen.has(key)) return false;
-
-    seen.add(key);
-    return true;
-  });
+    safety_action: row.safety_action,
+    safety_level: row.safety_level,
+    risk_level: row.risk_level,
+    rule_condition_key: row.rule_condition_key,
+    modification_text: row.modification_text,
+    can_use: row.can_use
+  }));
 }
 
 // ── SELECCIONAR ZONA Y CARGAR EJERCICIOS ────────────────────────
@@ -7527,77 +7546,27 @@ async function loadStretchSafetyBase(clientId) {
 function assessStretchExerciseSafetyBase(exercise) {
   if (!exercise) return { level: 'safe' };
 
-  const conditions = stretchSafety?.conditions || [];
-  const injuries   = stretchSafety?.injuries || [];
-  const rules      = stretchSafety?.rules || [];
+  const level = exercise.safety_level || 'safe';
 
-  const exerciseName = String(exercise.name || '').toLowerCase();
-  const exerciseDesc = String(exercise.description || '').toLowerCase();
-  const exerciseNote = String(exercise.contraindication_note || '').toLowerCase();
-
-  const fullText = `${exerciseName} ${exerciseDesc} ${exerciseNote}`;
-
-  const activeConditionKeys = conditions
-    .map(c => c.condition_key)
-    .filter(Boolean);
-
-  // Reglas conectadas con patologías activas
-  const applicableRules = rules.filter(rule => {
-    if (!activeConditionKeys.includes(rule.condition_key)) return false;
-
-    const pattern = String(rule.movement_pattern || '').toLowerCase();
-    const family  = String(rule.exercise_family || '').toLowerCase();
-
-    const matchPattern = pattern && fullText.includes(pattern);
-    const matchFamily  = family && fullText.includes(family);
-
-    return matchPattern || matchFamily;
-  });
-
-  const avoidRule = applicableRules.find(r => r.action === 'avoid');
-  const modRule   = applicableRules.find(r => r.action === 'modify');
-
-  // Conflicto básico con lesiones activas
-  const injuryConflict = injuries.find(injury => {
-    const bodyPart = String(injury.body_part || '').toLowerCase();
-    if (!bodyPart) return false;
-
-    return fullText.includes(bodyPart);
-  });
-
-  if (avoidRule) {
+  if (level === 'avoid') {
     return {
       level: 'avoid',
-      reason: avoidRule.coach_reason || avoidRule.client_reason || 'Evitar por condición activa.'
+      reason: exercise.modification_text || exercise.client_reason || 'Evitar por condición activa.'
     };
   }
 
-  if (injuryConflict?.training_impact === 'limitacion_total') {
-    return {
-      level: 'avoid',
-      reason: `Limitación total activa: ${injuryConflict.body_part}`
-    };
-  }
-
-  if (modRule) {
+  if (level === 'modify') {
     return {
       level: 'modify',
-      reason: modRule.coach_reason || modRule.client_reason || 'Requiere modificación.',
-      mod: modRule.modification_text || ''
+      reason: exercise.modification_text || 'Requiere modificación.',
+      mod: exercise.modification_text || ''
     };
   }
 
-  if (injuryConflict) {
+  if (level === 'caution') {
     return {
       level: 'caution',
-      reason: `Precaución por lesión activa: ${injuryConflict.body_part}`
-    };
-  }
-
-  if (exercise.contraindication_note) {
-    return {
-      level: 'caution',
-      reason: exercise.contraindication_note
+      reason: exercise.modification_text || 'Usar con precaución.'
     };
   }
 
