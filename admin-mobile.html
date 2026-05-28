@@ -890,6 +890,199 @@ a{text-decoration:none;color:inherit}
   font-family: var(--font-m) !important;
   color: var(--text) !important;
 }
+
+/* ================================================================
+   AB SYSTEM — EVALUACIÓN INICIAL — ADMIN FIELD
+   ================================================================ */
+
+#modal-evaluacion {
+  position: fixed; inset: 0; z-index: 1000;
+  display: none; flex-direction: column;
+  background: var(--bg-primary); overflow-y: auto;
+}
+.eval-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: var(--bg-primary); z-index: 10;
+}
+.eval-modal-title {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--text-secondary);
+}
+#eval-content { padding: 16px 20px 80px; }
+
+/* Header */
+.eval-header { margin-bottom: 20px; }
+.eval-client {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 700; color: var(--text-primary);
+}
+.eval-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+.eval-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+/* Setup form */
+.eval-setup-form { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+
+/* Type select */
+.eval-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.eval-type-btn {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer; transition: border-color .15s, background .15s;
+}
+.eval-type-btn:active { background: var(--bg-tertiary); }
+.eval-type-icon { font-size: 28px; }
+.eval-type-title {
+  font-family: var(--font-display); font-size: 14px; font-weight: 700;
+  color: var(--text-primary);
+}
+.eval-type-sub { font-size: 11px; color: var(--text-secondary); }
+
+/* Progress bar */
+.eval-progress-bar {
+  height: 3px; background: var(--border); border-radius: 2px;
+  margin-bottom: 16px; overflow: hidden;
+}
+.eval-progress-fill {
+  height: 100%; background: var(--sport);
+  border-radius: 2px; transition: width .3s;
+}
+
+/* Test header */
+.eval-test-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.eval-step {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--text-secondary); flex-shrink: 0;
+}
+.eval-test-name {
+  font-family: var(--font-display); font-size: 16px; font-weight: 700;
+  color: var(--text-primary);
+}
+.eval-instruction {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.5; margin-bottom: 20px;
+  background: var(--bg-secondary);
+  border-radius: 10px; padding: 12px 14px;
+  border: 1px solid var(--border);
+}
+
+/* Timer */
+.eval-timer-display {
+  font-family: var(--font-mono); font-size: 60px; font-weight: 700;
+  color: var(--text-primary); text-align: center;
+  letter-spacing: 2px; margin: 10px 0;
+}
+.eval-timer-btns {
+  display: flex; gap: 10px; justify-content: center; margin-bottom: 16px;
+}
+.eval-unit-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; color: var(--text-secondary); margin-top: 8px;
+}
+.eval-val-input { width: 100px; flex-shrink: 0; }
+.eval-hint { font-size: 11px; color: var(--text-secondary); margin-top: 6px; }
+
+/* Counter */
+.eval-counter-display {
+  font-family: var(--font-mono); font-size: 72px; font-weight: 700;
+  color: var(--text-primary); text-align: center; margin: 10px 0;
+}
+.eval-counter-btns {
+  display: flex; gap: 8px; justify-content: center; margin-bottom: 16px;
+}
+.eval-count-btn { min-width: 60px; font-size: 20px; }
+
+/* Level 1-3 */
+.eval-level-grid { display: flex; flex-direction: column; gap: 10px; }
+.eval-level-btn {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; text-align: left; transition: border-color .15s;
+}
+.eval-level-btn.eval-level-active {
+  border-color: var(--sport); background: rgba(0,163,255,.08);
+}
+.eval-level-num {
+  font-family: var(--font-mono); font-size: 22px; font-weight: 700;
+  color: var(--sport); flex-shrink: 0; min-width: 28px;
+}
+.eval-level-label { font-size: 13px; color: var(--text-primary); line-height: 1.4; }
+
+/* Number input */
+.eval-number-wrap {
+  display: flex; align-items: center; gap: 10px; margin: 10px 0;
+}
+.eval-number-input { flex: 1; font-size: 24px !important; text-align: center; }
+.eval-unit-label { font-size: 16px; color: var(--text-secondary); }
+
+/* Navigation */
+.eval-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+
+/* Result */
+.eval-result-hero { text-align: center; padding: 20px 0 16px; }
+.eval-result-label {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--text-secondary); margin-bottom: 6px;
+}
+.eval-result-client {
+  font-family: var(--font-display); font-size: 22px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 12px;
+}
+.eval-stars { font-size: 28px; margin-bottom: 6px; }
+.eval-star { color: var(--border); }
+.eval-star-on { color: #ffb340; }
+.eval-result-level {
+  font-family: var(--font-mono); font-size: 16px;
+  font-weight: 700; color: var(--sport);
+}
+
+.eval-result-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin: 16px 0;
+}
+.eval-result-card {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 8px; text-align: center;
+}
+.eval-rc-label {
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--text-secondary); margin-bottom: 4px;
+}
+.eval-rc-val {
+  font-family: var(--font-display); font-size: 22px;
+  font-weight: 700; color: var(--text-primary);
+}
+
+/* Recommendation */
+.eval-recommendation {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px; margin-bottom: 16px;
+}
+.eval-rec-title {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--text-secondary); margin-bottom: 12px;
+}
+.eval-rec-item {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.eval-rec-item:last-of-type { border-bottom: none; }
+.eval-rec-label { font-size: 12px; color: var(--text-secondary); }
+.eval-rec-value { font-size: 13px; font-weight: 600; color: var(--text-primary); text-align: right; max-width: 60%; }
+.eval-rec-notes { font-size: 12px; color: var(--text-secondary); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+
+.eval-confirm-btns { display: flex; flex-direction: column; gap: 8px; }
+.eval-loading { text-align: center; padding: 40px; color: var(--text-secondary); }
 </style>
 </head>
 <body>
@@ -2151,6 +2344,7 @@ function renderPerfil(){
       <button class="btn btn-b btn-sm" onclick="openModal('note',null,{clientId:'${c.id}'})">+ Nota</button>
       <button class="btn btn-b btn-sm" onclick="openModal('assignment',null,{clientId:'${c.id}'})">Asignar plan</button>
       <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
+      <button class="btn btn-p btn-sm" onclick="openEvalModal('${c.id}','${esc(c.name)}',null,null)">📋 Evaluación</button>
     </div>
     <div class="psum">
       <div class="psum-top">
@@ -2767,7 +2961,8 @@ function buildAthleteDashboardHTML(a){
       <button class="btn btn-b btn-sm" onclick="openModal('combatMetric',null,{clientId:'${a.clientId}'})">+ Métrica</button>
       <button class="btn btn-b btn-sm" onclick="openModal('combatMetric',null,{clientId:'${a.clientId}'})">+ Métrica</button>
       <button class="btn btn-b btn-sm" onclick="openModal('injuryHistory',null,{clientId:'${a.clientId}'})">+ Lesión</button>
-    </div>
+       '<button class="btn btn-p btn-sm" onclick="openEvalModal(\''+a.clientId+'\',\''+a.clientName+'\',null,null)">📋 Evaluación</button>' +
+   </div>
    
     <div class="psum">
       <div class="psum-top">
@@ -2874,7 +3069,7 @@ function buildAthleteDashboardHTML(a){
 }
 
 function renderEval(){
-  const box=document.getElementById('eval-content');const list=state.assessments.slice(0,30);
+  const box=document.getElementById('modal-eval-content');const list=state.assessments.slice(0,30);
   if(!list.length){
     box.innerHTML=`<div class="desktop-only"><div class="desktop-only-t">Sin evaluaciones</div><div class="desktop-only-s">Crea tests desde el admin de escritorio.</div><button class="btn btn-b btn-sm" onclick="window.open('/admin','_blank')">Abrir /admin</button></div>`;return;
   }
@@ -7578,6 +7773,14 @@ function assessStretchExerciseSafetyBase(exercise) {
      AB SYSTEM — MODAL GUÍA DE ESTIRAMIENTOS
      Admin Field Mobile
      ================================================================ -->
+<div id="modal-evaluacion" style="display:none;flex-direction:column;">
+  <div class="eval-modal-header">
+    <span class="eval-modal-title">Evaluación inicial</span>
+    <button class="btn btn-b btn-sm" onclick="closeEvalModal()">✕</button>
+  </div>
+  <div id="modal-eval-content"></div>
+</div>
+
 
 <div id="modal-stretching" style="display:none;flex-direction:column;">
 
@@ -7592,5 +7795,480 @@ function assessStretchExerciseSafetyBase(exercise) {
   <div id="stretch-content"></div>
 
 </div>
+
+// ================================================================
+// AB SYSTEM — EVALUACIÓN INICIAL — ADMIN FIELD (COACH MODE)
+// ================================================================
+
+// ── ESTADO ───────────────────────────────────────────────────────
+let evalState = {
+  clientId: null, clientName: '', clientSexo: null, clientEdad: null,
+  type: 'general', // 'general' | 'atleta'
+  assessmentId: null, evaluacionId: null,
+  items: [], results: {}, currentIdx: 0,
+  timerInt: null, timerSecs: 0, timerRunning: false,
+  counterVal: 0,
+};
+
+const EVAL_TEMPLATES = {
+  general: '00000000-0000-0000-0000-000000000101',
+  atleta:  '00000000-0000-0000-0000-000000000102',
+};
+
+// ── ABRIR ─────────────────────────────────────────────────────────
+async function openEvalModal(clientId, clientName, sexo, edad) {
+  evalState = {
+    clientId, clientName: clientName || '',
+    clientSexo: sexo || null, clientEdad: edad || null,
+    type: 'general', assessmentId: null, evaluacionId: null,
+    items: [], results: {}, currentIdx: 0,
+    timerInt: null, timerSecs: 0, timerRunning: false, counterVal: 0,
+  };
+  renderEvalModal();
+  document.getElementById('modal-evaluacion').style.display = 'flex';
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function closeEvalModal() {
+  stopEvalTimer();
+  document.getElementById('modal-evaluacion').style.display = 'none';
+  document.getElementById('modal-overlay').style.display = 'none';
+}
+
+// ── RENDER PRINCIPAL ──────────────────────────────────────────────
+function renderEvalModal() {
+  const el = document.getElementById('eval-content');
+  if (!el) return;
+  if (!evalState.clientSexo || !evalState.clientEdad) {
+    renderEvalSetup(); return;
+  }
+  if (!evalState.items.length) {
+    renderEvalTypeSelect(); return;
+  }
+  if (evalState.currentIdx >= evalState.items.length) {
+    renderEvalRecommendation(); return;
+  }
+  renderEvalTest();
+}
+
+// ── VISTA 1: DATOS PREVIOS ────────────────────────────────────────
+function renderEvalSetup() {
+  document.getElementById('eval-content').innerHTML = `
+    <div class="eval-header">
+      <div class="eval-client">${escHTML(evalState.clientName || 'Cliente')}</div>
+      <div class="eval-subtitle">Datos necesarios para normalizar resultados</div>
+    </div>
+    <div class="eval-setup-form">
+      <div class="fld">
+        <label class="fld-l">Sexo biológico</label>
+        <select id="eval-sexo" class="fld-s">
+          <option value="">— Seleccionar —</option>
+          <option value="masculino">Masculino</option>
+          <option value="femenino">Femenino</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label class="fld-l">Edad (años)</label>
+        <input id="eval-edad" type="number" class="fld-i" min="16" max="90" placeholder="Ej: 32">
+      </div>
+    </div>
+    <button class="btn btn-p btn-full" onclick="confirmEvalSetup()">Continuar →</button>`;
+}
+
+function confirmEvalSetup() {
+  const sexo = document.getElementById('eval-sexo').value;
+  const edad = parseInt(document.getElementById('eval-edad').value);
+  if (!sexo) { showToast('Selecciona el sexo', 'err'); return; }
+  if (!edad || edad < 16 || edad > 90) { showToast('Edad no válida', 'err'); return; }
+  evalState.clientSexo = sexo;
+  evalState.clientEdad = edad;
+  renderEvalTypeSelect();
+}
+
+// ── VISTA 2: TIPO DE EVALUACIÓN ───────────────────────────────────
+function renderEvalTypeSelect() {
+  document.getElementById('eval-content').innerHTML = `
+    <div class="eval-header">
+      <div class="eval-client">${escHTML(evalState.clientName)}</div>
+      <div class="eval-meta">${evalState.clientSexo === 'femenino' ? 'Mujer' : 'Hombre'} · ${evalState.clientEdad} años</div>
+    </div>
+    <div class="eval-type-grid">
+      <button class="eval-type-btn" onclick="startEval('general')">
+        <span class="eval-type-icon">🏃</span>
+        <span class="eval-type-title">Cliente general</span>
+        <span class="eval-type-sub">6 tests · ~20 min</span>
+      </button>
+      <button class="eval-type-btn" onclick="startEval('atleta')">
+        <span class="eval-type-icon">🥊</span>
+        <span class="eval-type-title">Atleta combate</span>
+        <span class="eval-type-sub">10 tests · ~35 min</span>
+      </button>
+    </div>`;
+}
+
+// ── INICIAR EVALUACIÓN ────────────────────────────────────────────
+async function startEval(type) {
+  evalState.type = type;
+  showToast('Cargando protocolo...', 'ok');
+
+  // Cargar items del template
+  const templateId = EVAL_TEMPLATES[type];
+  const { data: items } = await db.from('assessment_template_items')
+    .select('*').eq('template_id', templateId).order('item_order');
+  evalState.items = items || [];
+
+  // Crear client_assessment en BD
+  const aid = uid();
+  const { error: ae } = await db.from('client_assessments').insert({
+    id: aid, client_id: evalState.clientId,
+    template_id: templateId,
+    assessment_name: `Evaluación ${type} — ${new Date().toLocaleDateString('es-ES')}`,
+    assessment_date: todayISO(), status: 'en_progreso',
+  });
+  if (ae) { showToast('Error al crear evaluación', 'err'); return; }
+  evalState.assessmentId = aid;
+
+  // Crear registro en evaluaciones
+  const eid = uid();
+  const { error: ee } = await db.from('evaluaciones').insert({
+    id: eid, cliente_id: evalState.clientId,
+    fecha: todayISO(),
+    sexo: evalState.clientSexo, edad: evalState.clientEdad,
+    evaluation_type: type, evaluation_mode: 'coach',
+    evaluation_status: 'draft', assessment_id: aid,
+  });
+  if (ee) { showToast('Error al crear registro', 'err'); return; }
+  evalState.evaluacionId = eid;
+
+  evalState.currentIdx = 0;
+  renderEvalTest();
+}
+
+// ── VISTA 3: TEST ACTUAL ──────────────────────────────────────────
+function renderEvalTest() {
+  stopEvalTimer();
+  evalState.timerSecs = 0;
+  evalState.counterVal = evalState.results[currentItem()?.exercise_name] || 0;
+
+  const item = currentItem();
+  if (!item) { renderEvalRecommendation(); return; }
+
+  const total = evalState.items.length;
+  const idx   = evalState.currentIdx;
+  const prev  = evalState.results[item.exercise_name];
+
+  const inputHTML = buildEvalInput(item, prev);
+
+  document.getElementById('eval-content').innerHTML = `
+    <div class="eval-progress-bar">
+      <div class="eval-progress-fill" style="width:${Math.round((idx/total)*100)}%"></div>
+    </div>
+    <div class="eval-test-header">
+      <span class="eval-step">${idx + 1} / ${total}</span>
+      <span class="eval-test-name">${escHTML(item.exercise_name.replace(/_/g,' ').toUpperCase())}</span>
+    </div>
+    <div class="eval-instruction">${escHTML(item.target_note || '')}</div>
+    <div class="eval-input-wrap" id="eval-input-wrap">
+      ${inputHTML}
+    </div>
+    <div class="eval-nav">
+      <button class="btn btn-b ${idx === 0 ? 'btn-disabled' : ''}"
+        onclick="evalBack()" ${idx === 0 ? 'disabled' : ''}>← Atrás</button>
+      <button class="btn btn-p" onclick="evalNext()">
+        ${idx === total - 1 ? 'Ver resultado ✓' : 'Siguiente →'}
+      </button>
+    </div>`;
+}
+
+function currentItem() {
+  return evalState.items[evalState.currentIdx] || null;
+}
+
+// ── INPUTS POR TIPO ───────────────────────────────────────────────
+function buildEvalInput(item, prevValue) {
+  const t = item.metric_type;
+  const unit = item.unit || '';
+  const prev = prevValue !== undefined ? prevValue : '';
+
+  if (t === 'timer') {
+    return `
+      <div class="eval-timer-display" id="eval-timer-num">00:00</div>
+      <div class="eval-timer-btns">
+        <button id="eval-timer-btn" class="btn btn-p" onclick="toggleEvalTimer()">▶ Iniciar</button>
+        <button class="btn btn-b btn-sm" onclick="resetEvalTimer()">↺ Reset</button>
+      </div>
+      <div class="eval-unit-row">
+        <span>Valor final:</span>
+        <input id="eval-val" type="number" class="fld-i eval-val-input"
+          value="${prev}" placeholder="0" min="0">
+        <span>${unit}</span>
+      </div>
+      <div class="eval-hint">El timer rellena automáticamente el campo al parar</div>`;
+  }
+
+  if (t === 'counter') {
+    return `
+      <div class="eval-counter-display" id="eval-counter-num">${evalState.counterVal}</div>
+      <div class="eval-counter-btns">
+        <button class="btn btn-b eval-count-btn" onclick="evalCountChange(-1)">−</button>
+        <button class="btn btn-p eval-count-btn" onclick="evalCountChange(1)">+1</button>
+        <button class="btn btn-b eval-count-btn" onclick="evalCountChange(5)">+5</button>
+        <button class="btn btn-b btn-sm" onclick="evalCountReset()">↺</button>
+      </div>
+      <div class="eval-unit-row">
+        <span>Total:</span>
+        <input id="eval-val" type="number" class="fld-i eval-val-input"
+          value="${evalState.counterVal}" min="0">
+        <span>${unit}</span>
+      </div>`;
+  }
+
+  if (t === 'level_1_3') {
+    return `
+      <div class="eval-level-grid">
+        <button class="eval-level-btn ${prev==1?'eval-level-active':''}"
+          onclick="selectEvalLevel(1)">
+          <span class="eval-level-num">1</span>
+          <span class="eval-level-label">No llega a paralelo o pierde equilibrio</span>
+        </button>
+        <button class="eval-level-btn ${prev==2?'eval-level-active':''}"
+          onclick="selectEvalLevel(2)">
+          <span class="eval-level-num">2</span>
+          <span class="eval-level-label">Paralelo con compensaciones</span>
+        </button>
+        <button class="eval-level-btn ${prev==3?'eval-level-active':''}"
+          onclick="selectEvalLevel(3)">
+          <span class="eval-level-num">3</span>
+          <span class="eval-level-label">Profunda · talones en suelo · sin compensación</span>
+        </button>
+      </div>
+      <input id="eval-val" type="hidden" value="${prev || ''}">`;
+  }
+
+  // default: number
+  return `
+    <div class="eval-number-wrap">
+      <input id="eval-val" type="number" class="fld-i eval-number-input"
+        value="${prev}" placeholder="Introduce el valor" step="0.1">
+      <span class="eval-unit-label">${unit}</span>
+    </div>
+    ${unit === 'ppm' ? '<div class="eval-hint">FC medida al minuto exacto de recuperación</div>' : ''}
+    ${unit === 'cm' && item.exercise_name === 'sit_reach' ? '<div class="eval-hint">Negativo si no llega a los pies. Ej: -5</div>' : ''}`;
+}
+
+// ── TIMER ─────────────────────────────────────────────────────────
+function toggleEvalTimer() {
+  if (evalState.timerRunning) { pauseEvalTimer(); } else { startEvalTimer(); }
+}
+
+function startEvalTimer() {
+  evalState.timerRunning = true;
+  document.getElementById('eval-timer-btn').textContent = '⏸ Pausar';
+  evalState.timerInt = setInterval(() => {
+    evalState.timerSecs++;
+    updateEvalTimerDisplay();
+  }, 1000);
+}
+
+function pauseEvalTimer() {
+  evalState.timerRunning = false;
+  clearInterval(evalState.timerInt);
+  document.getElementById('eval-timer-btn').textContent = '▶ Continuar';
+  const valEl = document.getElementById('eval-val');
+  if (valEl) valEl.value = evalState.timerSecs;
+}
+
+function stopEvalTimer() {
+  evalState.timerRunning = false;
+  clearInterval(evalState.timerInt);
+}
+
+function resetEvalTimer() {
+  stopEvalTimer();
+  evalState.timerSecs = 0;
+  updateEvalTimerDisplay();
+  document.getElementById('eval-timer-btn').textContent = '▶ Iniciar';
+  const valEl = document.getElementById('eval-val');
+  if (valEl) valEl.value = '';
+}
+
+function updateEvalTimerDisplay() {
+  const el = document.getElementById('eval-timer-num');
+  if (!el) return;
+  const m = Math.floor(evalState.timerSecs / 60);
+  const s = evalState.timerSecs % 60;
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// ── CONTADOR ──────────────────────────────────────────────────────
+function evalCountChange(delta) {
+  evalState.counterVal = Math.max(0, evalState.counterVal + delta);
+  const display = document.getElementById('eval-counter-num');
+  const input   = document.getElementById('eval-val');
+  if (display) display.textContent = evalState.counterVal;
+  if (input)   input.value = evalState.counterVal;
+}
+
+function evalCountReset() {
+  evalState.counterVal = 0;
+  const display = document.getElementById('eval-counter-num');
+  const input   = document.getElementById('eval-val');
+  if (display) display.textContent = 0;
+  if (input)   input.value = 0;
+}
+
+// ── NIVEL 1-3 ────────────────────────────────────────────────────
+function selectEvalLevel(level) {
+  document.querySelectorAll('.eval-level-btn').forEach(b => b.classList.remove('eval-level-active'));
+  event.currentTarget.classList.add('eval-level-active');
+  const input = document.getElementById('eval-val');
+  if (input) input.value = level;
+}
+
+// ── NAVEGACIÓN ────────────────────────────────────────────────────
+async function evalNext() {
+  const item = currentItem();
+  if (!item) return;
+  const valEl = document.getElementById('eval-val');
+  const raw = valEl ? valEl.value.trim() : '';
+  const val = raw !== '' ? parseFloat(raw) : null;
+
+  // Guardar resultado
+  evalState.results[item.exercise_name] = val;
+  stopEvalTimer();
+
+  // Persistir en BD
+  if (val !== null) {
+    await db.from('client_assessment_results').upsert({
+      id: uid(), assessment_id: evalState.assessmentId,
+      client_id: evalState.clientId,
+      exercise_name: item.exercise_name,
+      metric_type: item.metric_type,
+      value_numeric: val,
+      unit: item.unit,
+      direction: item.direction,
+      template_item_id: item.id,
+      item_order: item.item_order,
+    }, { onConflict: 'assessment_id,exercise_name' });
+  }
+
+  evalState.currentIdx++;
+  renderEvalModal();
+}
+
+function evalBack() {
+  stopEvalTimer();
+  if (evalState.currentIdx > 0) {
+    evalState.currentIdx--;
+    renderEvalModal();
+  }
+}
+
+// ── VISTA 4: RECOMENDACIÓN FINAL ──────────────────────────────────
+async function renderEvalRecommendation() {
+  document.getElementById('eval-content').innerHTML =
+    '<div class="eval-loading">Calculando resultado...</div>';
+
+  // Llamar a la función de cálculo
+  const { error: fe } = await db.rpc('calcular_nivel_evaluacion', {
+    p_evaluacion_id: evalState.evaluacionId,
+    p_assessment_id: evalState.assessmentId,
+  });
+
+  // Marcar assessment como completado
+  await db.from('client_assessments').update({ status: 'completado' })
+    .eq('id', evalState.assessmentId);
+
+  if (fe) { showToast('Error al calcular: ' + fe.message, 'err'); return; }
+
+  // Leer resultado
+  const { data: ev } = await db.from('evaluaciones')
+    .select('*, training_programs(name), mobility_chains(name, level)')
+    .eq('id', evalState.evaluacionId).single();
+
+  if (!ev) { showToast('No se pudo cargar el resultado', 'err'); return; }
+
+  const nivel = ev.recommended_level || '—';
+  const planName = ev.training_programs?.name || '—';
+  const chainName = ev.mobility_chains?.name || '—';
+  const chainLevel = ev.mobility_chains?.level || '';
+
+  const stars = Array(4).fill(0).map((_,i) =>
+    `<span class="eval-star ${i < nivel ? 'eval-star-on' : ''}"">★</span>`
+  ).join('');
+
+  document.getElementById('eval-content').innerHTML = `
+    <div class="eval-result-hero">
+      <div class="eval-result-label">Resultado de la evaluación</div>
+      <div class="eval-result-client">${escHTML(evalState.clientName)}</div>
+      <div class="eval-stars">${stars}</div>
+      <div class="eval-result-level">Nivel ${nivel} / 4</div>
+    </div>
+
+    <div class="eval-result-grid">
+      <div class="eval-result-card">
+        <div class="eval-rc-label">Fuerza</div>
+        <div class="eval-rc-val">${ev.nivel_fuerza || '—'}/4</div>
+      </div>
+      <div class="eval-result-card">
+        <div class="eval-rc-label">Movilidad</div>
+        <div class="eval-rc-val">${ev.nivel_movilidad || '—'}/4</div>
+      </div>
+      <div class="eval-result-card">
+        <div class="eval-rc-label">Resistencia</div>
+        <div class="eval-rc-val">${ev.nivel_resistencia || '—'}/4</div>
+      </div>
+    </div>
+
+    <div class="eval-recommendation">
+      <div class="eval-rec-title">Recomendación del sistema</div>
+      <div class="eval-rec-item">
+        <span class="eval-rec-label">Plan</span>
+        <span class="eval-rec-value">${escHTML(planName)}</span>
+      </div>
+      <div class="eval-rec-item">
+        <span class="eval-rec-label">Movilidad</span>
+        <span class="eval-rec-value">${escHTML(chainName)} ${chainLevel ? '('+chainLevel+')' : ''}</span>
+      </div>
+      ${ev.recommendation_notes ? `
+      <div class="eval-rec-notes">${escHTML(ev.recommendation_notes)}</div>` : ''}
+    </div>
+
+    <div class="eval-confirm-btns">
+      <button class="btn btn-p btn-full" onclick="confirmEvalAssignment()">
+        ✓ Confirmar y asignar plan
+      </button>
+      <button class="btn btn-b btn-full" onclick="closeEvalModal()">
+        Cerrar sin asignar
+      </button>
+    </div>`;
+}
+
+// ── CONFIRMAR ASIGNACIÓN ──────────────────────────────────────────
+async function confirmEvalAssignment() {
+  const { data: ev } = await db.from('evaluaciones')
+    .select('recommended_plan_id, recommended_chain_id, cliente_id')
+    .eq('id', evalState.evaluacionId).single();
+
+  if (!ev) { showToast('Error al obtener recomendación', 'err'); return; }
+
+  // Asignar cadena de movilidad
+  if (ev.recommended_chain_id) {
+    const { error: ce } = await db.from('client_mobility_assignments').insert({
+      id: uid(), client_id: ev.cliente_id,
+      chain_id: ev.recommended_chain_id,
+      status: 'activo',
+      assigned_reason: 'Evaluación inicial · nivel ' + (await db.from('evaluaciones')
+        .select('recommended_level').eq('id', evalState.evaluacionId).single())?.data?.recommended_level,
+      start_date: todayISO(),
+    });
+    if (ce) console.error('Error asignando cadena:', ce);
+  }
+
+  showToast('Plan y movilidad asignados ✓', 'ok');
+  await refreshAthletes?.();
+  closeEvalModal();
+}
+
 </body>
 </html>
