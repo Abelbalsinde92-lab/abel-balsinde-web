@@ -7005,6 +7005,7 @@ ${coachNote}`
 // ── ESTADO BASE ─────────────────────────────────────────────────
 let stretchClientId    = null;
 let stretchClientName  = '';
+let stretchMode        = null;
 let stretchZone        = null;
 let stretchSafety      = { conditions: [], injuries: [], rules: [] };
 let stretchExercises   = [];
@@ -7073,18 +7074,147 @@ function stretchEscHTML(value) {
 }
 
 function renderStretch() {
+  if (!stretchMode) {
+    renderStretchModeSelector();
+    return;
+  }
+  if (stretchMode === 'assisted') {
+    renderStretchAssistedList();
+    return;
+  }
   if (!stretchZone) {
     renderStretchZoneSelector();
     return;
   }
-
   renderStretchList();
+}
+
+function renderStretchModeSelector() {
+  const el = document.getElementById('stretch-content');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="stretch-header" style="margin-bottom:20px">
+      ${stretchClientName ? `<span class="stretch-client-name">${stretchEscHTML(stretchClientName)}</span>` : ''}
+      <span class="stretch-subtitle">¿Qué tipo de estiramiento vas a hacer?</span>
+    </div>
+
+    <button class="stretch-zone-btn" style="width:100%;margin-bottom:12px;padding:22px 16px;text-align:left;display:flex;align-items:center;gap:16px"
+      onclick="stretchMode='individual'; renderStretch()">
+      <span style="font-size:2rem">🧘</span>
+      <div>
+        <div class="stretch-zone-label" style="font-size:15px;margin-bottom:4px">Individual</div>
+        <div style="font-size:12px;color:var(--text-2);font-weight:400">El cliente trabaja solo · Selecciona zona</div>
+      </div>
+    </button>
+
+    <button class="stretch-zone-btn" style="width:100%;padding:22px 16px;text-align:left;display:flex;align-items:center;gap:16px;border-color:rgba(0,200,232,.35)"
+      onclick="stretchMode='assisted'; renderStretch()">
+      <span style="font-size:2rem">🤝</span>
+      <div>
+        <div class="stretch-zone-label" style="font-size:15px;margin-bottom:4px;color:var(--sport)">Asistido por coach</div>
+        <div style="font-size:12px;color:var(--text-2);font-weight:400">El coach estira al cliente · 16 técnicas</div>
+      </div>
+    </button>
+  `;
+}
+
+async function renderStretchAssistedList() {
+  const el = document.getElementById('stretch-content');
+  if (!el) return;
+
+  el.innerHTML = '<div class="stretch-loading">Cargando técnicas asistidas...</div>';
+
+  try {
+    const { data, error } = await db
+      .from('mobility_chain_exercises')
+      .select('*')
+      .eq('execution_mode', 'assisted')
+      .order('zone')
+      .order('exercise_order');
+
+    if (error) throw error;
+
+    stretchExercises = (data || []).map(row => ({
+      id: row.id,
+      name: row.name || 'Técnica asistida',
+      zone: row.zone,
+      description: row.description || row.coaching_notes || '',
+      reps: row.reps || '',
+      duration: row.duration || '',
+      breathing_cue: row.breathing_cue || '',
+      coaching_notes: row.coaching_notes || '',
+      contraindication_note: row.contraindication_note || '',
+      video_url: row.video_url || '',
+      execution_mode: 'assisted',
+      safety_level: 'safe',
+      can_use: true,
+    }));
+
+  } catch(err) {
+    console.error('STRETCH ASSISTED ERROR:', err);
+    el.innerHTML = '<div class="stretch-empty">Error cargando técnicas asistidas.</div>';
+    return;
+  }
+
+  if (!stretchExercises.length) {
+    el.innerHTML = `
+      <div class="stretch-back">
+        <button class="btn btn-sm" onclick="stretchMode=null; renderStretch()">← Volver</button>
+      </div>
+      <div class="stretch-empty">No hay técnicas asistidas registradas.</div>`;
+    return;
+  }
+
+  // Agrupar por zona
+  const byZone = {};
+  stretchExercises.forEach((ex, i) => {
+    const z = ex.zone || 'general';
+    if (!byZone[z]) byZone[z] = [];
+    byZone[z].push({ ex, i });
+  });
+
+  const zoneLabels = {
+    isquios:'Isquios', cadera:'Cadera', toracica:'Torácica',
+    hombros:'Hombros', cervical:'Cervical', aductores:'Aductores',
+    cuadriceps:'Cuádriceps', lumbar:'Lumbar', tobillo:'Tobillo', general:'General'
+  };
+
+  const html = Object.entries(byZone).map(([zone, items]) => `
+    <div class="stretch-section-label" style="margin-top:16px">${zoneLabels[zone] || zone}</div>
+    ${items.map(({ ex, i }) => `
+      <div class="stretch-ex-item" onclick="openStretchExerciseBasic(${i})" style="border-color:rgba(0,200,232,.25)">
+        <div class="stretch-ex-row">
+          <span class="stretch-ex-icon">🤝</span>
+          <div class="stretch-ex-info">
+            <div class="stretch-ex-name">${stretchEscHTML(ex.name)}</div>
+            ${ex.duration ? `<div class="stretch-ex-meta">${stretchEscHTML(ex.duration)}</div>` : ''}
+            ${ex.reps     ? `<div class="stretch-ex-meta">${stretchEscHTML(ex.reps)}</div>` : ''}
+          </div>
+          ${ex.video_url
+            ? `<button class="btn btn-b btn-sm" style="min-height:34px;padding:0 10px;font-size:.55rem"
+                onclick="event.stopPropagation();openVideoUrl('${jsArg(ex.name)}','${jsArg(ex.video_url)}')">Vídeo</button>`
+            : `<span style="font-family:var(--font-m);font-size:.5rem;color:var(--text-2);letter-spacing:.08em">SIN VÍDEO</span>`
+          }
+          <span class="stretch-chevron">›</span>
+        </div>
+      </div>`).join('')}
+  `).join('');
+
+  el.innerHTML = `
+    <div class="stretch-back">
+      <button class="btn btn-sm" onclick="stretchMode=null; stopStretchTimerBase(); renderStretch()">← Volver</button>
+      <span class="stretch-zone-title" style="color:var(--sport)">Asistidos por coach</span>
+      <span class="stretch-progress">${stretchExercises.length} técnicas</span>
+    </div>
+    <div class="stretch-ex-list">${html}</div>
+  `;
 }
 
 // ── ABRIR MODAL ─────────────────────────────────────────────────
 async function openStretching(clientId, clientName) {
-  stretchClientId   = clientId || null;
+    stretchClientId   = clientId || null;
   stretchClientName = clientName || '';
+  stretchMode       = null;
   stretchZone       = null;
   stretchExercises  = [];
   stretchIndex      = 0;
@@ -7260,10 +7390,11 @@ async function loadZoneExercises(zoneKey) {
   if (!rows.length) {
     console.warn('STRETCH: RPC vacía, usando fallback directo:', zone);
     try {
-      const { data: fbData } = await db
+            const { data: fbData } = await db
         .from('mobility_chain_exercises')
         .select('*')
         .eq('zone', zone)
+        .eq('execution_mode', 'individual')
         .order('exercise_order');
       rows = fbData || [];
     } catch(fbErr) {
@@ -7429,14 +7560,12 @@ function renderStretchList() {
     return assessStretchExerciseSafetyBase(ex).level === 'avoid';
   }).length;
 
-    function buildStretchItem(exercise, index) {
+      const itemsHTML = stretchExercises.map((exercise, index) => {
     const safety = assessStretchExerciseSafetyBase(exercise);
-    const isAssisted = exercise.execution_mode === 'assisted';
     const levelClass = { safe:'stretch-safe', modify:'stretch-modify', caution:'stretch-caution', avoid:'stretch-avoid' }[safety.level] || 'stretch-safe';
     const levelTag   = { safe:'', modify:'MODIFICAR', caution:'PRECAUCIÓN', avoid:'EVITAR' }[safety.level] || '';
     const canOpen = safety.level !== 'avoid';
     const hasVideo = !!exercise.video_url;
-
     return `
       <div class="stretch-ex-item ${levelClass}" ${canOpen ? `onclick="openStretchExerciseBasic(${index})"` : ''}>
         <div class="stretch-ex-row">
@@ -7446,28 +7575,14 @@ function renderStretchList() {
             ${exercise.reps     ? `<div class="stretch-ex-meta">${stretchEscHTML(exercise.reps)}</div>` : ''}
             ${exercise.duration ? `<div class="stretch-ex-meta">${stretchEscHTML(exercise.duration)}</div>` : ''}
           </div>
-          ${hasVideo ? `<button class="btn btn-b btn-sm" style="min-height:34px;padding:0 10px;font-size:.55rem" onclick="event.stopPropagation();openVideoUrl('${jsArg(exercise.name||exercise.title)}','${jsArg(exercise.video_url)}')">Vídeo</button>` : ''}
-          ${isAssisted
-            ? `<span class="stretch-level-tag stretch-tag-assisted">ASISTIDO</span>`
-            : levelTag
-              ? `<span class="stretch-level-tag stretch-tag-${safety.level}">${levelTag}</span>`
-              : `<span class="stretch-chevron">›</span>`
-          }
+          ${hasVideo ? `<button class="btn btn-b btn-sm" style="min-height:34px;padding:0 10px;font-size:.55rem"
+            onclick="event.stopPropagation();openVideoUrl('${jsArg(exercise.name||exercise.title)}','${jsArg(exercise.video_url)}')">Vídeo</button>` : ''}
+          ${levelTag ? `<span class="stretch-level-tag stretch-tag-${safety.level}">${levelTag}</span>` : `<span class="stretch-chevron">›</span>`}
         </div>
         ${safety.reason ? `<div class="stretch-ex-reason">${stretchEscHTML(safety.reason)}</div>` : ''}
         ${safety.mod    ? `<div class="stretch-ex-mod">${stretchEscHTML(safety.mod)}</div>` : ''}
       </div>`;
-  }
-
-  const individual = stretchExercises.filter(e => e.execution_mode !== 'assisted');
-  const assisted   = stretchExercises.filter(e => e.execution_mode === 'assisted');
-
-  const itemsHTML =
-    individual.map((ex, i) => buildStretchItem(ex, i)).join('') +
-    (assisted.length
-      ? `<div class="stretch-section-label">🤝 Asistidos por coach</div>` +
-        assisted.map((ex, i) => buildStretchItem(ex, individual.length + i)).join('')
-      : '');
+  }).join('');
 
   el.innerHTML = `
     <div class="stretch-back">
