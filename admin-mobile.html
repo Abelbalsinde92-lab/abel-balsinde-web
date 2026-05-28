@@ -1087,6 +1087,15 @@ a{text-decoration:none;color:inherit}
 
 .eval-confirm-btns { display: flex; flex-direction: column; gap: 8px; }
 .eval-loading { text-align: center; padding: 40px; color: var(--text-secondary); }
+
+/* PATCH · vídeo por encima del modal de estiramientos */
+#video-ov{
+  z-index: 1600 !important;
+}
+
+#video-ov .ms{
+  max-height: 92dvh;
+}
 </style>
 </head>
 <body>
@@ -7238,51 +7247,53 @@ async function loadZoneExercises(zoneKey) {
     return [];
   }
 
-  return rows.map(row => ({
-    id: row.utility_id || row.id,
-    name: row.title || row.name || 'Ejercicio',
-    title: row.title || row.name || 'Ejercicio',
+return (rows || []).map(row => ({
+  id: row.utility_id || row.id,
+  name: row.title || row.name || 'Ejercicio',
+  title: row.title || row.name || 'Ejercicio',
 
-    utility_type: row.utility_type || 'mobility_assisted',
-    category: row.category || '',
-    zone: row.zone || zone,
+  zone: row.zone,
+  body_zone: row.body_zone,
+  target_area: row.target_area,
+  muscle_group: row.muscle_group,
 
-    movement_pattern: row.movement_pattern || '',
-    exercise_family: row.exercise_family || '',
-    video_family: row.video_family || '',
-    video_url: row.video_url || '',
+  description:
+    row.description ||
+    row.short_goal ||
+    row.client_objective ||
+    row.client_reason ||
+    '',
 
-    reps: row.reps || '',
-    duration: row.duration || '',
+  reps: row.reps || '',
+  duration: row.duration || '',
 
-    description:
-      row.client_reason ||
-      row.short_goal ||
-      row.description ||
-      'Ejercicio de movilidad asistida para mejorar rango, control y recuperación.',
+  breathing_cue:
+    row.breathing_cue ||
+    '',
 
-    breathing_cue:
-      row.breathing_cue ||
-      'Respirar lento, sin bloquear el aire.',
+  coaching_notes:
+    row.coaching_notes ||
+    row.coach_cues ||
+    row.coach_reason ||
+    row.coach_objective ||
+    '',
 
-    coaching_notes:
-      row.coach_reason ||
-      row.coach_cues ||
-      row.coaching_notes ||
-      'Observar rango cómodo, compensaciones, dolor y control respiratorio.',
+  contraindication_note:
+    row.contraindication_note ||
+    '',
 
-    contraindication_note:
-      row.modification_text ||
-      row.contraindication_note ||
-      '',
+  movement_pattern: row.movement_pattern || '',
+  exercise_family: row.exercise_family || row.movement_pattern || '',
+  video_family: row.video_family || '',
+  video_url: row.video_url || '',
 
-    safety_action: row.safety_action || 'permitir',
-    safety_level: row.safety_level || 'safe',
-    risk_level: row.risk_level || 'bajo',
-    rule_condition_key: row.rule_condition_key || null,
-    modification_text: row.modification_text || '',
-    can_use: row.can_use !== false
-  }));
+  safety_action: row.safety_action || 'permitir',
+  safety_level: normalizeStretchSafetyLevel(row),
+  risk_level: row.risk_level || 'bajo',
+  rule_condition_key: row.rule_condition_key || null,
+  modification_text: row.modification_text || '',
+  can_use: row.can_use !== false
+}));
 }
 
 function normalizeStretchSafetyLevel(row) {
@@ -7396,6 +7407,8 @@ function renderStretchList() {
 
     const canOpen = safety.level !== 'avoid';
 
+   const hasVideo = !!exercise.video_url;
+
     return `
       <div
         class="stretch-ex-item ${levelClass}"
@@ -7422,11 +7435,22 @@ function renderStretchList() {
             }
           </div>
 
-          ${
-            levelTag
-              ? `<span class="stretch-level-tag stretch-tag-${safety.level}">${levelTag}</span>`
-              : `<span class="stretch-chevron">›</span>`
-          }
+${
+  hasVideo
+    ? `<button
+        class="btn btn-b btn-sm"
+        style="min-height:34px;padding:0 10px;font-size:.55rem"
+        onclick="event.stopPropagation(); openVideoUrl('${jsArg(exercise.name || exercise.title)}','${jsArg(exercise.video_url)}')">
+        Vídeo
+      </button>`
+    : ''
+}
+
+${
+  levelTag
+    ? `<span class="stretch-level-tag stretch-tag-${safety.level}">${levelTag}</span>`
+    : `<span class="stretch-chevron">›</span>`
+}
         </div>
 
         ${
@@ -7691,6 +7715,19 @@ function renderStretchExecutionBasic() {
           ? `<div class="stretch-exec-desc">${stretchEscHTML(exercise.description)}</div>`
           : ''
       }
+      
+      ${
+  exercise.video_url
+    ? `
+      <button
+        class="btn btn-b btn-full"
+        style="margin-bottom:14px"
+        onclick="openVideoUrl('${jsArg(exercise.name || exercise.title)}','${jsArg(exercise.video_url)}')">
+        Ver vídeo
+      </button>
+    `
+    : ''
+}
 
       <div class="stretch-timer-wrap">
         <div id="stretch-timer-display" class="stretch-timer-display">
