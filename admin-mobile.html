@@ -2348,12 +2348,7 @@ function renderPerfil(){
       <button class="btn btn-b btn-sm" onclick="openModal('note',null,{clientId:'${c.id}'})">+ Nota</button>
       <button class="btn btn-b btn-sm" onclick="openModal('assignment',null,{clientId:'${c.id}'})">Asignar plan</button>
       <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
-      <button 
-  class="btn btn-p btn-sm"
-  data-client-id="${esc(c.id)}"
-  data-client-name="${esc(c.name)}"
-  onclick="openEvalModal(this.dataset.clientId,this.dataset.clientName,null,null)">
-  Evaluación
+      `<button class="btn btn-p btn-sm" onclick="openEvalModal('${a.clientId}','${a.clientName}',null,null)">Evaluación</button>` +
 </button>
     </div>
     <div class="psum">
