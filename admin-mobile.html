@@ -825,6 +825,63 @@ a{text-decoration:none;color:inherit}
   text-align: center;
   padding: 40px 0;
 }
+
+/* PATCH ESTIRAMIENTOS · Variables adaptadas a AB Field */
+#modal-stretching {
+  background: var(--bg) !important;
+  color: var(--text);
+}
+
+.stretch-modal-header {
+  background: var(--bg) !important;
+  border-bottom: 1px solid var(--divider) !important;
+}
+
+.stretch-modal-title,
+.stretch-progress,
+.stretch-cue-label {
+  font-family: var(--font-m) !important;
+  color: var(--text-2) !important;
+}
+
+.stretch-zone-title,
+.stretch-client-name,
+.stretch-exec-name {
+  font-family: var(--font-d) !important;
+  color: var(--text) !important;
+}
+
+.stretch-subtitle,
+.stretch-summary,
+.stretch-ex-meta,
+.stretch-chevron,
+.stretch-ex-reason,
+.stretch-empty,
+.stretch-loading {
+  color: var(--text-2) !important;
+}
+
+.stretch-zone-btn,
+.stretch-ex-item,
+.stretch-exec-card {
+  background: var(--card) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+.stretch-zone-btn:active {
+  background: rgba(255,255,255,.04) !important;
+}
+
+.stretch-ex-name,
+.stretch-exec-desc,
+.stretch-cue {
+  color: var(--text) !important;
+}
+
+.stretch-timer-display {
+  font-family: var(--font-m) !important;
+  color: var(--text) !important;
+}
 </style>
 </head>
 <body>
@@ -1851,6 +1908,7 @@ function buildSessionCard(r){
     ${ciNote}
         <div class="sc-acts">
       ${c?.id ? `<button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}','${r.id}')">Entrenar</button>` : ''}
+      ${c?.id ? `<button class="btn btn-b btn-sm" data-client-id="${esc(c.id)}" data-client-name="${esc(c.name)}" onclick="openStretching(this.dataset.clientId,this.dataset.clientName)">Estiramientos</button>` : ''}
       ${c?.id ? `<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>` : ''}
       <button class="btn btn-s btn-sm" onclick="openModal('reservation','${r.id}')">Editar</button>
       ${c?.phone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>` : ''}
@@ -2070,6 +2128,15 @@ function renderPerfil(){
       <button class="btn btn-s btn-sm" onclick="copyClientLink('${c.id}')">Copiar acceso</button>
       ${c.phone?`<button class="btn btn-wa btn-sm" onclick="sendClientAccessWA('${c.id}')">Enviar acceso</button>`:''}
       <button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}')">Entrenamiento</button>
+      
+      <button
+        class="btn btn-b btn-sm"
+        data-client-id="${esc(c.id)}"
+        data-client-name="${esc(c.name)}"
+        onclick="openStretching(this.dataset.clientId,this.dataset.clientName)">
+        Estiramientos
+      </button>
+      
       <button class="btn btn-p btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
       <button class="btn btn-p btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
       <button class="btn btn-b btn-sm" onclick="openModal('metric',null,{clientId:'${c.id}'})">+ Métrica</button>
@@ -6769,6 +6836,15 @@ function stretchEscHTML(value) {
     .replaceAll("'", '&#039;');
 }
 
+function renderStretch() {
+  if (!stretchZone) {
+    renderStretchZoneSelector();
+    return;
+  }
+
+  renderStretchList();
+}
+
 // ── ABRIR MODAL ─────────────────────────────────────────────────
 async function openStretching(clientId, clientName) {
   stretchClientId   = clientId || null;
@@ -6779,18 +6855,22 @@ async function openStretching(clientId, clientName) {
 
   stopStretchTimerBase();
 
-  const overlay = document.getElementById('modal-overlay');
   const modal   = document.getElementById('modal-stretching');
   const content = document.getElementById('stretch-content');
 
-  if (overlay) overlay.style.display = 'flex';
-  if (modal)   modal.style.display   = 'flex';
+  if (!modal) {
+    showToast('Modal de estiramientos no encontrado', 'err');
+    return;
+  }
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
 
   if (content) {
     content.innerHTML = '<div class="stretch-loading">Preparando guía de estiramientos...</div>';
   }
 
-  if (stretchClientId && typeof loadStretchSafetyBase === 'function') {
+  if (stretchClientId) {
     await loadStretchSafetyBase(stretchClientId);
   } else {
     stretchSafety = {
@@ -6807,11 +6887,13 @@ async function openStretching(clientId, clientName) {
 function closeStretching() {
   stopStretchTimerBase();
 
-  const overlay = document.getElementById('modal-overlay');
   const modal = document.getElementById('modal-stretching');
 
-  if (overlay) overlay.style.display = 'none';
-  if (modal) modal.style.display = 'none';
+  if (modal) {
+    modal.style.display = 'none';
+  }
+
+  document.body.style.overflow = '';
 }
 
 // ── TIMER BASE, SOLO PARA LIMPIAR ESTADO ─────────────────────────
