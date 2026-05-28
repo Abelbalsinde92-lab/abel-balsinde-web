@@ -193,6 +193,7 @@ a{text-decoration:none;color:inherit}
 .btn-r{background:rgba(255,90,90,.12);color:var(--medical);border:1px solid rgba(255,90,90,.3)}
 .btn-sm{min-height:40px;padding:0 12px;font-size:.6rem}
 .btn-wide{width:100%}
+.btn-full{width:100%}
 
 .search{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:0 14px;min-height:var(--touch);margin-bottom:12px}
 .search-i{color:var(--text-2);font-size:.9rem}
@@ -912,7 +913,10 @@ a{text-decoration:none;color:inherit}
   font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase;
   color: var(--text-secondary);
 }
-#eval-content { padding: 16px 20px 80px; }
+#eval-content,
+#modal-eval-content {
+  padding: 16px 20px 80px;
+}
 
 /* Header */
 .eval-header { margin-bottom: 20px; }
@@ -2344,7 +2348,13 @@ function renderPerfil(){
       <button class="btn btn-b btn-sm" onclick="openModal('note',null,{clientId:'${c.id}'})">+ Nota</button>
       <button class="btn btn-b btn-sm" onclick="openModal('assignment',null,{clientId:'${c.id}'})">Asignar plan</button>
       <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
-      <button class="btn btn-p btn-sm" onclick="openEvalModal('${c.id}','${esc(c.name)}',null,null)">📋 Evaluación</button>
+      <button 
+  class="btn btn-p btn-sm"
+  data-client-id="${esc(c.id)}"
+  data-client-name="${esc(c.name)}"
+  onclick="openEvalModal(this.dataset.clientId,this.dataset.clientName,null,null)">
+  Evaluación
+</button>
     </div>
     <div class="psum">
       <div class="psum-top">
@@ -2955,14 +2965,19 @@ function buildAthleteDashboardHTML(a){
     <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:12px" onclick="renderAtletas()">← Lista de atletas</button>
    
        <div class="qrow">
-      <button class="btn btn-p btn-sm" onclick="openModal('athleteProfile',null,{clientId:'${a.clientId}'})">Editar perfil</button>
-      <button class="btn btn-b btn-sm" onclick="openModal('competitionEvent',null,{clientId:'${a.clientId}'})">+ Competición</button>
-      <button class="btn btn-b btn-sm" onclick="openModal('trainingPhase',null,{clientId:'${a.clientId}'})">+ Fase</button>
-      <button class="btn btn-b btn-sm" onclick="openModal('combatMetric',null,{clientId:'${a.clientId}'})">+ Métrica</button>
-      <button class="btn btn-b btn-sm" onclick="openModal('combatMetric',null,{clientId:'${a.clientId}'})">+ Métrica</button>
-      <button class="btn btn-b btn-sm" onclick="openModal('injuryHistory',null,{clientId:'${a.clientId}'})">+ Lesión</button>
-       '<button class="btn btn-p btn-sm" onclick="openEvalModal(\''+a.clientId+'\',\''+a.clientName+'\',null,null)">📋 Evaluación</button>' +
-   </div>
+  <button class="btn btn-p btn-sm" onclick="openModal('athleteProfile',null,{clientId:'${a.clientId}'})">Editar perfil</button>
+  <button class="btn btn-b btn-sm" onclick="openModal('competitionEvent',null,{clientId:'${a.clientId}'})">+ Competición</button>
+  <button class="btn btn-b btn-sm" onclick="openModal('trainingPhase',null,{clientId:'${a.clientId}'})">+ Fase</button>
+  <button class="btn btn-b btn-sm" onclick="openModal('combatMetric',null,{clientId:'${a.clientId}'})">+ Métrica</button>
+  <button class="btn btn-b btn-sm" onclick="openModal('injuryHistory',null,{clientId:'${a.clientId}'})">+ Lesión</button>
+  <button 
+  class="btn btn-p btn-sm"
+  data-client-id="${esc(a.clientId)}"
+  data-client-name="${esc(a.clientName)}"
+  onclick="openEvalModal(this.dataset.clientId,this.dataset.clientName,null,null)">
+  Evaluación
+</button>
+</div>
    
     <div class="psum">
       <div class="psum-top">
@@ -3068,8 +3083,9 @@ function buildAthleteDashboardHTML(a){
   `;
 }
 
-function renderEval(){
-  const box=document.getElementById('modal-eval-content');const list=state.assessments.slice(0,30);
+  function renderEval(){
+  const box = document.getElementById('eval-content');
+  const list = state.assessments.slice(0,30);
   if(!list.length){
     box.innerHTML=`<div class="desktop-only"><div class="desktop-only-t">Sin evaluaciones</div><div class="desktop-only-s">Crea tests desde el admin de escritorio.</div><button class="btn btn-b btn-sm" onclick="window.open('/admin','_blank')">Abrir /admin</button></div>`;return;
   }
@@ -7905,9 +7921,12 @@ function assessStretchExerciseSafetyBase(exercise) {
 
 </div>
 
+<script>
 // ================================================================
 // AB SYSTEM — EVALUACIÓN INICIAL — ADMIN FIELD (COACH MODE)
 // ================================================================
+
+const escHTML = esc;
 
 // ── ESTADO ───────────────────────────────────────────────────────
 let evalState = {
@@ -7927,26 +7946,53 @@ const EVAL_TEMPLATES = {
 // ── ABRIR ─────────────────────────────────────────────────────────
 async function openEvalModal(clientId, clientName, sexo, edad) {
   evalState = {
-    clientId, clientName: clientName || '',
-    clientSexo: sexo || null, clientEdad: edad || null,
-    type: 'general', assessmentId: null, evaluacionId: null,
-    items: [], results: {}, currentIdx: 0,
-    timerInt: null, timerSecs: 0, timerRunning: false, counterVal: 0,
+    clientId,
+    clientName: clientName || '',
+    clientSexo: sexo || null,
+    clientEdad: edad || null,
+    type: 'general',
+    assessmentId: null,
+    evaluacionId: null,
+    items: [],
+    results: {},
+    currentIdx: 0,
+    timerInt: null,
+    timerSecs: 0,
+    timerRunning: false,
+    counterVal: 0,
   };
+
+  const modal = document.getElementById('modal-evaluacion');
+  if (!modal) {
+    showToast('Modal de evaluación no encontrado', 'err');
+    return;
+  }
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
   renderEvalModal();
-  document.getElementById('modal-evaluacion').style.display = 'flex';
-  document.getElementById('modal-overlay').style.display = 'flex';
 }
 
 function closeEvalModal() {
   stopEvalTimer();
-  document.getElementById('modal-evaluacion').style.display = 'none';
-  document.getElementById('modal-overlay').style.display = 'none';
+
+  const modal = document.getElementById('modal-evaluacion');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+
+  document.body.style.overflow = '';
+
+  const el = document.getElementById('modal-eval-content');
+  if (el) {
+    el.innerHTML = '';
+  }
 }
 
 // ── RENDER PRINCIPAL ──────────────────────────────────────────────
 function renderEvalModal() {
-  const el = document.getElementById('eval-content');
+  const el = document.getElementById('modal-eval-content');
   if (!el) return;
   if (!evalState.clientSexo || !evalState.clientEdad) {
     renderEvalSetup(); return;
@@ -7962,7 +8008,7 @@ function renderEvalModal() {
 
 // ── VISTA 1: DATOS PREVIOS ────────────────────────────────────────
 function renderEvalSetup() {
-  document.getElementById('eval-content').innerHTML = `
+  document.getElementById('modal-eval-content').innerHTML =`
     <div class="eval-header">
       <div class="eval-client">${escHTML(evalState.clientName || 'Cliente')}</div>
       <div class="eval-subtitle">Datos necesarios para normalizar resultados</div>
@@ -7996,7 +8042,7 @@ function confirmEvalSetup() {
 
 // ── VISTA 2: TIPO DE EVALUACIÓN ───────────────────────────────────
 function renderEvalTypeSelect() {
-  document.getElementById('eval-content').innerHTML = `
+  document.getElementById('modal-eval-content').innerHTML = `
     <div class="eval-header">
       <div class="eval-client">${escHTML(evalState.clientName)}</div>
       <div class="eval-meta">${evalState.clientSexo === 'femenino' ? 'Mujer' : 'Hombre'} · ${evalState.clientEdad} años</div>
@@ -8068,7 +8114,7 @@ function renderEvalTest() {
 
   const inputHTML = buildEvalInput(item, prev);
 
-  document.getElementById('eval-content').innerHTML = `
+  document.getElementById('modal-eval-content').innerHTML = `
     <div class="eval-progress-bar">
       <div class="eval-progress-fill" style="width:${Math.round((idx/total)*100)}%"></div>
     </div>
@@ -8136,17 +8182,17 @@ function buildEvalInput(item, prevValue) {
     return `
       <div class="eval-level-grid">
         <button class="eval-level-btn ${prev==1?'eval-level-active':''}"
-          onclick="selectEvalLevel(1)">
+          onclick="selectEvalLevel(1,this)">
           <span class="eval-level-num">1</span>
           <span class="eval-level-label">No llega a paralelo o pierde equilibrio</span>
         </button>
         <button class="eval-level-btn ${prev==2?'eval-level-active':''}"
-          onclick="selectEvalLevel(2)">
+          onclick="selectEvalLevel(2,this)"
           <span class="eval-level-num">2</span>
           <span class="eval-level-label">Paralelo con compensaciones</span>
         </button>
         <button class="eval-level-btn ${prev==3?'eval-level-active':''}"
-          onclick="selectEvalLevel(3)">
+          onclick="selectEvalLevel(3,this)"
           <span class="eval-level-num">3</span>
           <span class="eval-level-label">Profunda · talones en suelo · sin compensación</span>
         </button>
@@ -8227,11 +8273,19 @@ function evalCountReset() {
 }
 
 // ── NIVEL 1-3 ────────────────────────────────────────────────────
-function selectEvalLevel(level) {
-  document.querySelectorAll('.eval-level-btn').forEach(b => b.classList.remove('eval-level-active'));
-  event.currentTarget.classList.add('eval-level-active');
+function selectEvalLevel(level, btn) {
+  document.querySelectorAll('.eval-level-btn').forEach(b => {
+    b.classList.remove('eval-level-active');
+  });
+
+  if (btn) {
+    btn.classList.add('eval-level-active');
+  }
+
   const input = document.getElementById('eval-val');
-  if (input) input.value = level;
+  if (input) {
+    input.value = level;
+  }
 }
 
 // ── NAVEGACIÓN ────────────────────────────────────────────────────
@@ -8275,7 +8329,7 @@ function evalBack() {
 
 // ── VISTA 4: RECOMENDACIÓN FINAL ──────────────────────────────────
 async function renderEvalRecommendation() {
-  document.getElementById('eval-content').innerHTML =
+  document.getElementById('modal-eval-content').innerHTML =
     '<div class="eval-loading">Calculando resultado...</div>';
 
   // Llamar a la función de cálculo
@@ -8302,11 +8356,13 @@ async function renderEvalRecommendation() {
   const chainName = ev.mobility_chains?.name || '—';
   const chainLevel = ev.mobility_chains?.level || '';
 
-  const stars = Array(4).fill(0).map((_,i) =>
-    `<span class="eval-star ${i < nivel ? 'eval-star-on' : ''}"">★</span>`
-  ).join('');
+  const nivelNum = Number(nivel) || 0;
 
-  document.getElementById('eval-content').innerHTML = `
+const stars = Array(4).fill(0).map((_, i) =>
+  `<span class="eval-star ${i < nivelNum ? 'eval-star-on' : ''}">★</span>`
+).join('');
+
+  document.getElementById('modal-eval-content').innerHTML = `
     <div class="eval-result-hero">
       <div class="eval-result-label">Resultado de la evaluación</div>
       <div class="eval-result-client">${escHTML(evalState.clientName)}</div>
@@ -8378,6 +8434,6 @@ async function confirmEvalAssignment() {
   await refreshAthletes?.();
   closeEvalModal();
 }
-
+</script> 
 </body>
 </html>
