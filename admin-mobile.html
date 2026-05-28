@@ -6990,46 +6990,33 @@ function stretchNormalizeText(value) {
 
 // ── CARGAR EJERCICIOS DESDE mobility_chain_exercises ────────────
 async function loadZoneExercises(zoneKey) {
-  const zone = STRETCH_ZONES.find(z => z.key === zoneKey);
-  if (!zone) return [];
+  if (!zoneKey) return [];
 
   let result = await db
     .from('mobility_chain_exercises')
     .select('*')
-    .order('exercise_order', { ascending: true });
-
-  // Fallback por si la columna exercise_order no existe o falla el order
-  if (result.error) {
-    console.warn('Error ordenando por exercise_order. Reintentando sin orden:', result.error);
-
-    result = await db
-      .from('mobility_chain_exercises')
-      .select('*');
-  }
+    .eq('zone', zoneKey)
+    .order('exercise_order', { ascending: true })
+    .order('name', { ascending: true });
 
   if (result.error) {
-    console.error('Error cargando mobility_chain_exercises:', result.error);
+    console.error('Error cargando ejercicios por zona:', result.error);
+    showToast('Error cargando estiramientos', 'err');
     return [];
   }
 
   const rows = result.data || [];
 
-  const keywords = zone.keywords.map(k => stretchNormalizeText(k));
+  // Eliminar duplicados visuales por nombre + zona
+  const seen = new Set();
 
   return rows.filter(exercise => {
-    const searchText = stretchNormalizeText([
-      exercise.name,
-      exercise.description,
-      exercise.zone,
-      exercise.body_zone,
-      exercise.target_area,
-      exercise.muscle_group,
-      exercise.movement_pattern,
-      exercise.contraindication_note,
-      exercise.coaching_notes
-    ].join(' '));
+    const key = `${exercise.zone || ''}__${exercise.name || ''}`.toLowerCase();
 
-    return keywords.some(keyword => searchText.includes(keyword));
+    if (seen.has(key)) return false;
+
+    seen.add(key);
+    return true;
   });
 }
 
