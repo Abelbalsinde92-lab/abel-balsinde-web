@@ -7125,8 +7125,10 @@ async function renderStretchAssistedList() {
   el.innerHTML = '<div class="stretch-loading">Cargando técnicas asistidas...</div>';
 
   try {
-        const { data, error } = await db
+    const { data, error } = await db
       .rpc('get_assisted_stretches');
+
+    showToast('RPC: ' + (error ? error.message : (data?.length || 0) + ' filas'), error ? 'err' : 'ok');
 
     if (error) throw error;
 
