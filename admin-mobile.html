@@ -2906,7 +2906,16 @@ function renderHoy(){
       </div>`;
     return;
   }
-  body.innerHTML=sessions.map(buildSessionCard).join('');
+    body.innerHTML=sessions.map(buildSessionCard).join('')+`
+    ${sessions.length<3?`
+      <div style="margin-top:16px;padding:16px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">Añadir sesión</div>
+          <div style="font-size:.84rem;color:var(--text-2)">¿Falta alguien en el día?</div>
+        </div>
+        <button class="btn btn-p btn-sm" onclick="openModal('reservation')">+ Sesión</button>
+      </div>`:''
+    }`;
 }
 
 /* v1.1: tarjeta compacta con foto + badges en línea */
@@ -2955,12 +2964,18 @@ function buildSessionCard(r){
     </div>
     ${ciNote}
         <div class="sc-acts">
-      ${c?.id ? `<button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}','${r.id}')">Entrenar</button>` : ''}
-            ${c?.id ? `<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>` : ''}
-      ${c?.phone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>` : ''}
-      ${status !== 'realizada' ? `<button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Hecha</button>` : ''}
-      ${status === 'reservada' ? `<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>` : ''}
-      ${status !== 'cancelada' && status !== 'realizada' ? `<button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>` : ''}
+      ${status==='cancelada'||status==='realizada' ? `
+        ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
+        ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}.')">WA</button>`:''}
+        <button class="btn btn-s btn-sm" onclick="openModal('reservation','${r.id}')">Editar</button>
+      ` : `
+        ${c?.id?`<button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}','${r.id}')">Entrenar</button>`:''}
+        ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
+        ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>`:''}
+        ${status==='reservada'?`<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>`:''}
+        <button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Hecha</button>
+        <button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>
+      `}
     </div>
   </div>`;
 }
@@ -5424,9 +5439,9 @@ function getCoachAvatarHTML(){
     `;
   }
 
-  return `
-    <div class="hoy-coach-avatar">
-      <span>${initials(state.settings.coachName || 'AB')}</span>
+    return `
+    <div class="hoy-coach-avatar" style="background:rgba(0,200,232,.12)">
+      <span style="font-family:var(--font-d);font-size:1.2rem;color:var(--sport);letter-spacing:.04em">${initials(state.settings.coachName||'AB')}</span>
     </div>
   `;
 }
