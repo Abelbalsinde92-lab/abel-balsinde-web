@@ -3780,28 +3780,51 @@ async function saveSettings(){
 function renderEntreno(){
   const active=state.assignments.filter(a=>String(a.status||'activo')==='activo');
   const box=document.getElementById('ent-content');
-  const clientSelect=state.clients.length?`<div style="margin-bottom:12px"><button class="btn btn-p btn-wide" onclick="openModal('assignment')">+ Asignar entrenamiento</button></div>`:'';
-  if(!active.length){
-    box.innerHTML=clientSelect+`<div class="desktop-only"><div class="desktop-only-t">Sin asignaciones activas</div><div class="desktop-only-s">Puedes asignar un programa desde el móvil.</div><button class="btn btn-b btn-sm" onclick="window.open('/admin','_blank')">Abrir /admin</button></div>`;return;
-  }
-  box.innerHTML=clientSelect+active.map(a=>{
-    const c=clientById(a.clientId||a.client_id);const p=getAssignmentProgram(a);
-    const logs=state.sessionLogs.filter(l=>{const cid=l.clientId||l.client_id;const fin=l.status==='completed'||l.status==='realizada'||l.finishedAt||l.finished_at;return String(cid)===String(a.clientId||a.client_id)&&fin});
-    return`<div class="card"><div class="card-body">
-      <div class="dr"><span class="dk">Cliente</span><span class="dv">${esc(c?.name||'—')}</span></div>
-      <div class="dr"><span class="dk">Programa</span><span class="dv val-wrap" style="color:var(--sport)">${esc(p?.name||p?.nameEs||'—')}</span></div>
-      <div class="dr"><span class="dk">Nivel</span><span class="dv">${esc(a.assignedLevel||a.assigned_level||'N1')}</span></div>
-            <div class="dr"><span class="dk">Posición</span><span class="dv">Sem. ${esc(a.currentWeek||a.current_week||1)} · Día ${sessionLetter(a.assignedSessionNumber||a.assigned_session_number||1)}</span></div>
-      <div class="dr"><span class="dk">Alcance</span><span class="dv">${esc(getAssignmentScopeLabel(getAssignmentScope(a)))}</span></div>
-      <div class="dr"><span class="dk">Sesiones hechas</span><span class="dv">${logs.length}</span></div>
+
+  box.innerHTML=`
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+      <button class="btn btn-p btn-sm" onclick="openModal('assignment')">+ Asignar plan</button>
     </div>
-    <div class="card-acts">
-      ${c?.id?`<button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}')">Entrenar</button>`:''}
-      ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
-      ${c?.id?`<button class="btn btn-b btn-sm" onclick="openModal('assignment',null,{clientId:'${c.id}'})">Reasignar</button>`:''}
-      ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c?.name))}, ¿cómo va el plan?')">WA</button>`:''}
-    </div></div>`;
-  }).join('');
+
+    ${active.length ? active.map(a=>{
+      const c=clientById(a.clientId||a.client_id);
+      const p=getAssignmentProgram(a);
+      const logs=state.sessionLogs.filter(l=>{
+        const cid=l.clientId||l.client_id;
+        const fin=l.status==='completed'||l.status==='realizada'||l.finishedAt||l.finished_at;
+        return String(cid)===String(a.clientId||a.client_id)&&fin;
+      });
+
+      return`
+        <details class="card" style="margin-bottom:8px">
+          <summary style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none">
+            ${getClientPhotoHTML(c,'sm')}
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:800;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c?.name||'—')}</div>
+              <div style="font-family:var(--font-m);font-size:.58rem;color:var(--sport);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p?.name||p?.nameEs||'Sin programa')}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-family:var(--font-m);font-size:.62rem;color:var(--text-2)">Sem. ${esc(a.currentWeek||a.current_week||1)} · Día ${sessionLetter(a.assignedSessionNumber||a.assigned_session_number||1)}</div>
+              <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);margin-top:2px">${logs.length} sesiones</div>
+            </div>
+            <span style="color:var(--text-2);font-size:1rem;flex-shrink:0">›</span>
+          </summary>
+
+          <div style="padding:0 14px 12px;border-top:1px solid var(--divider)">
+            <div class="dr" style="padding:6px 0"><span class="dk">Nivel</span><span class="dv">${esc(a.assignedLevel||a.assigned_level||'N1')}</span></div>
+            <div class="dr" style="padding:6px 0"><span class="dk">Alcance</span><span class="dv">${esc(getAssignmentScopeLabel(getAssignmentScope(a)))}</span></div>
+            <div class="dr" style="padding:6px 0"><span class="dk">Sesiones hechas</span><span class="dv">${logs.length}</span></div>
+            ${a.coachNotes||a.coach_notes?`<div class="dr" style="padding:6px 0"><span class="dk">Nota</span><span class="dv val-wrap" style="font-size:.78rem;color:var(--text-2)">${esc(a.coachNotes||a.coach_notes)}</span></div>`:''}
+            <div style="display:flex;gap:6px;margin-top:10px">
+              ${c?.id?`<button class="btn btn-p btn-sm" style="flex:1" onclick="openWorkout('${c.id}')">Entrenar</button>`:''}
+              ${c?.id?`<button class="btn btn-s btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
+              ${c?.id?`<button class="btn btn-s btn-sm" onclick="openModal('assignment',null,{clientId:'${c.id}'})">Reasignar</button>`:''}
+              ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c?.name))}, ¿cómo va el plan?')">WA</button>`:''}
+            </div>
+          </div>
+        </details>`;
+    }).join('') : emptyState('Sin planes activos','Asigna un programa desde el perfil de cada cliente.')}
+  `;
 }
 
 async function refreshAthletes(){
