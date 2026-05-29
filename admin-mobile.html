@@ -3789,11 +3789,16 @@ function renderCheckins(){
 
       return`
         <details class="card" style="margin-bottom:8px;border-left:3px solid ${borderColor}">
-          <summary style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none">
+                    <summary style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none">
             ${getClientPhotoHTML(c,'sm')}
             <div style="flex:1;min-width:0">
               <div style="font-weight:800;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c?.name||'—')}</div>
-              <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);margin-top:1px">${formatDate(fecha)}</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:nowrap">
+                <span style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2)">${formatDate(fecha)}</span>
+                <span style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2)">ZZZ ${esc(ci.sleepQuality??ci.sleep_quality??'—')}</span>
+                <span style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2)">NRG ${esc(ci.energyLevel??ci.energy_level??'—')}</span>
+                <span style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2)">DOL ${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}</span>
+              </div>
             </div>
             ${badge(st,st)}
             <span style="color:var(--text-2);font-size:1rem;flex-shrink:0">›</span>
