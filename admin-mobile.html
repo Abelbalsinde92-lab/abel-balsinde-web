@@ -4285,27 +4285,48 @@ function buildAthleteDashboardHTML(a){
 }
 
   function renderEval(){
-  const box = document.getElementById('eval-content');
-  const list = state.assessments.slice(0,30);
+  const box=document.getElementById('eval-content');
+  const list=state.assessments.slice(0,30);
+
   if(!list.length){
-    box.innerHTML=`<div class="desktop-only"><div class="desktop-only-t">Sin evaluaciones</div><div class="desktop-only-s">Crea tests desde el admin de escritorio.</div><button class="btn btn-b btn-sm" onclick="window.open('/admin','_blank')">Abrir /admin</button></div>`;return;
+    box.innerHTML=`<div class="desktop-only"><div class="desktop-only-t">Sin evaluaciones</div><div class="desktop-only-s">Crea tests desde el admin de escritorio.</div><button class="btn btn-b btn-sm" onclick="window.open('/admin','_blank')">Abrir /admin</button></div>`;
+    return;
   }
+
   box.innerHTML=list.map(a=>{
     const c=clientById(a.clientId||a.client_id);
-    return`<div class="card"><div class="card-body">
-      <div class="dr"><span class="dk">Cliente</span><span class="dv">${esc(c?.name||'—')}</span></div>
-      <div class="dr"><span class="dk">Test</span><span class="dv val-wrap">${esc(a.assessmentName||a.assessment_name||'Test')}</span></div>
-      <div class="dr"><span class="dk">Fecha</span><span class="dv">${formatDate(a.assessmentDate||a.assessment_date)}</span></div>
-      <div class="dr"><span class="dk">Estado</span><span>${badge(a.status||'realizada',a.status||'realizada')}</span></div>
+    const fecha=formatDate(a.assessmentDate||a.assessment_date);
+    const status=String(a.status||'realizada').toLowerCase().replace(/_/g,' ');
+    const statusKind=status.includes('progreso')?'pendiente':status==='completado'?'pagado':'info';
+    const testName=a.assessmentName||a.assessment_name||'Evaluación';
+
+    return`
+      <details class="card" style="margin-bottom:8px">
+        <summary style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none">
+          ${getClientPhotoHTML(c,'sm')}
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:800;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c?.name||'—')}</div>
+            <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);margin-top:1px">${fecha}</div>
+          </div>
+          ${badge(status,statusKind)}
+          <span style="color:var(--text-2);font-size:1rem;flex-shrink:0">›</span>
+        </summary>
+
+        <div style="padding:0 14px 12px;border-top:1px solid var(--divider)">
+          <div class="dr" style="padding:5px 0">
+            <span class="dk">Test</span>
+            <span class="dv val-wrap" style="font-size:.8rem">${esc(testName)}</span>
+          </div>
           ${a.coachNotes||a.coach_notes?`
-        <div style="margin-top:10px;border-top:1px solid var(--divider);padding-top:10px">
-          <div class="dk" style="margin-bottom:6px">Notas</div>
-          <div style="font-size:.84rem;color:var(--text);line-height:1.65">${esc(a.coachNotes||a.coach_notes)}</div>
+            <div style="margin-top:8px;padding:8px 10px;background:rgba(0,200,232,.05);border-left:2px solid var(--sport);border-radius:0 6px 6px 0;font-size:.78rem;color:var(--text-2);line-height:1.55">
+              ${esc(a.coachNotes||a.coach_notes)}
+            </div>`:''}
+          ${c?`<div style="display:flex;gap:6px;margin-top:10px">
+            <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
+            <button class="btn btn-p btn-sm" onclick="openEvalModal('${c.id}','${esc(c.name)}',null,null)">Nueva evaluación</button>
+          </div>`:''}
         </div>
-      `:''}
-    </div>
-    ${c?`<div class="card-acts"><button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button></div>`:''}
-    </div>`;
+      </details>`;
   }).join('');
 }
 </script>
