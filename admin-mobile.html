@@ -3627,7 +3627,7 @@ function renderMas(){
 
   const items=[
     {icon:ICONS.pay,  label:'Pagos',        badge:pendPay,      action:`showScr('pagos')`},
-    {icon:ICONS.ci,   label:'Check-ins',    badge:todayCI,      action:`showScr('checkins')`},
+        {icon:ICONS.ci,   label:'Check-ins',    badge:todayCI,      action:`showScr('checkins')`, extraBtn:true},
     {icon:ICONS.wa,   label:'WhatsApp',     badge:0,            action:`showScr('whatsapp')`},
     {icon:ICONS.train,label:'Entrenos',     badge:activeAssign, action:`showScr('entreno')`},
     {icon:ICONS.ath,  label:'Atletas',      badge:athleteCount, action:`showScr('atletas')`},
@@ -3656,17 +3656,14 @@ function renderMas(){
 
   masEl.innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
-      ${items.map(item=>`
+            ${items.map(item=>`
         <button class="card" style="padding:18px 12px;display:flex;align-items:center;gap:12px;margin-bottom:0;position:relative;text-align:left" onclick="${item.action}">
           ${item.badge?`<span style="position:absolute;top:8px;right:8px;min-width:18px;height:18px;background:var(--medical);color:#000;border-radius:9px;font-family:var(--font-m);font-size:.52rem;display:flex;align-items:center;justify-content:center;padding:0 5px;font-weight:700">${item.badge}</span>`:''}
+          ${item.extraBtn?`<span onclick="event.stopPropagation();doLogout()" style="position:absolute;bottom:8px;right:8px;background:rgba(255,90,90,.15);border:1px solid rgba(255,90,90,.3);color:var(--medical);border-radius:6px;padding:2px 7px;font-family:var(--font-m);font-size:.48rem;letter-spacing:.06em;font-weight:700">⏻ SALIR</span>`:''}
           <div style="flex-shrink:0">${item.icon}</div>
           <span style="font-size:.82rem;font-weight:700;color:var(--text);line-height:1.3">${item.label}</span>
         </button>`).join('')}
       ${coachCard}
-    </div>
-    <div style="display:flex;gap:6px">
-      <button class="btn btn-wa btn-sm" style="flex:1" onclick="openCoachWA()">Mi WhatsApp</button>
-      <button class="btn btn-r btn-sm" onclick="doLogout()">⏻ Salir</button>
     </div>
   `;
 }
