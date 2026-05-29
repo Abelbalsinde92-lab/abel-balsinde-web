@@ -2043,6 +2043,7 @@ const state = {
   athletes:[],
    activeAthleteDashboard:null,
    checkinFilter:'semana',
+   evalFilter:'todo',
    activeAthleteSection:null,
    activeAthleteSectionData:null,
    settings:{coachName:'Abel Balsinde',coachPhone:COACH_PHONE_DEFAULT,coachCity:'Belgrado',adminUsername:ADMIN_USER_DEFAULT},
@@ -4286,48 +4287,77 @@ function buildAthleteDashboardHTML(a){
 
   function renderEval(){
   const box=document.getElementById('eval-content');
-  const list=state.assessments.slice(0,30);
 
-  if(!list.length){
-    box.innerHTML=`<div class="desktop-only"><div class="desktop-only-t">Sin evaluaciones</div><div class="desktop-only-s">Crea tests desde el admin de escritorio.</div><button class="btn btn-b btn-sm" onclick="window.open('/admin','_blank')">Abrir /admin</button></div>`;
-    return;
-  }
+  const q=(document.getElementById('eval-search')?.value||'').toLowerCase().trim();
+  const activeFilter=state.evalFilter||'todo';
+  const today=todayISO();
+  const d7=new Date();d7.setDate(d7.getDate()-7);const d7str=d7.toISOString().slice(0,10);
+  const d30=new Date();d30.setDate(d30.getDate()-30);const d30str=d30.toISOString().slice(0,10);
 
-  box.innerHTML=list.map(a=>{
-    const c=clientById(a.clientId||a.client_id);
-    const fecha=formatDate(a.assessmentDate||a.assessment_date);
-    const status=String(a.status||'realizada').toLowerCase().replace(/_/g,' ');
-    const statusKind=status.includes('progreso')?'pendiente':status==='completado'?'pagado':'info';
-    const testName=a.assessmentName||a.assessment_name||'Evaluación';
+  let list=state.assessments.slice(0,60).filter(a=>{
+    const fecha=String(a.assessmentDate||a.assessment_date||'').slice(0,10);
+    if(activeFilter==='hoy'&&fecha!==today) return false;
+    if(activeFilter==='semana'&&fecha<d7str) return false;
+    if(activeFilter==='mes'&&fecha<d30str) return false;
+    if(q){
+      const c=clientById(a.clientId||a.client_id);
+      if(!String(c?.name||'').toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
 
-    return`
-      <details class="card" style="margin-bottom:8px">
-        <summary style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none">
-          ${getClientPhotoHTML(c,'sm')}
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:800;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c?.name||'—')}</div>
-            <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);margin-top:1px">${fecha}</div>
-          </div>
-          ${badge(status,statusKind)}
-          <span style="color:var(--text-2);font-size:1rem;flex-shrink:0">›</span>
-        </summary>
+  box.innerHTML=`
+    <div class="search" style="margin-bottom:10px">
+      <span class="search-i">⌕</span>
+      <input id="eval-search" type="search" placeholder="Buscar cliente…"
+        autocapitalize="off" autocorrect="off" spellcheck="false"
+        value="${esc(q)}"
+        oninput="renderEval()">
+    </div>
 
-        <div style="padding:0 14px 12px;border-top:1px solid var(--divider)">
-          <div class="dr" style="padding:5px 0">
-            <span class="dk">Test</span>
-            <span class="dv val-wrap" style="font-size:.8rem">${esc(testName)}</span>
-          </div>
-          ${a.coachNotes||a.coach_notes?`
-            <div style="margin-top:8px;padding:8px 10px;background:rgba(0,200,232,.05);border-left:2px solid var(--sport);border-radius:0 6px 6px 0;font-size:.78rem;color:var(--text-2);line-height:1.55">
-              ${esc(a.coachNotes||a.coach_notes)}
+    <div class="fr" style="margin-bottom:12px">
+      ${[['hoy','Hoy'],['semana','7 días'],['mes','30 días'],['todo','Todo']].map(([k,l])=>`
+        <button class="fp ${activeFilter===k?'on':''}"
+          onclick="state.evalFilter='${k}';renderEval()">${l}</button>
+      `).join('')}
+    </div>
+
+    ${list.length ? list.map(a=>{
+      const c=clientById(a.clientId||a.client_id);
+      const fecha=formatDate(a.assessmentDate||a.assessment_date);
+      const status=String(a.status||'realizada').toLowerCase().replace(/_/g,' ');
+      const statusKind=status.includes('progreso')?'pendiente':status==='completado'?'pagado':'info';
+      const testName=a.assessmentName||a.assessment_name||'Evaluación';
+
+      return`
+        <details class="card" style="margin-bottom:8px">
+          <summary style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none">
+            ${getClientPhotoHTML(c,'sm')}
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:800;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c?.name||'—')}</div>
+              <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);margin-top:1px">${fecha}</div>
+            </div>
+            ${badge(status,statusKind)}
+            <span style="color:var(--text-2);font-size:1rem;flex-shrink:0">›</span>
+          </summary>
+
+          <div style="padding:0 14px 12px;border-top:1px solid var(--divider)">
+            <div class="dr" style="padding:5px 0">
+              <span class="dk">Test</span>
+              <span class="dv val-wrap" style="font-size:.8rem">${esc(testName)}</span>
+            </div>
+            ${a.coachNotes||a.coach_notes?`
+              <div style="margin-top:8px;padding:8px 10px;background:rgba(0,200,232,.05);border-left:2px solid var(--sport);border-radius:0 6px 6px 0;font-size:.78rem;color:var(--text-2);line-height:1.55">
+                ${esc(a.coachNotes||a.coach_notes)}
+              </div>`:''}
+            ${c?`<div style="display:flex;gap:6px;margin-top:10px">
+              <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
+              <button class="btn btn-p btn-sm" onclick="openEvalModal('${c.id}','${esc(c.name)}',null,null)">Nueva evaluación</button>
             </div>`:''}
-          ${c?`<div style="display:flex;gap:6px;margin-top:10px">
-            <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
-            <button class="btn btn-p btn-sm" onclick="openEvalModal('${c.id}','${esc(c.name)}',null,null)">Nueva evaluación</button>
-          </div>`:''}
-        </div>
-      </details>`;
-  }).join('');
+          </div>
+        </details>`;
+    }).join('') : emptyState('Sin evaluaciones en este período','')}
+  `;
 }
 </script>
 
