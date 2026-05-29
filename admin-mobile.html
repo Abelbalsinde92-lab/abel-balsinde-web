@@ -1655,6 +1655,137 @@ a{text-decoration:none;color:inherit}
   line-height:1.45;
   margin-top:3px;
 }
+
+/* =========================================================
+   PATCH ADMIN LOBBY · TOP BAR + HERO COACH
+========================================================= */
+
+.top{
+  gap:10px;
+  padding-left:18px;
+  padding-right:18px;
+}
+
+.top-logo-wrap{
+  display:flex;
+  align-items:center;
+  min-width:126px;
+  max-width:170px;
+  height:44px;
+  flex-shrink:0;
+}
+
+.top-logo-img{
+  max-width:165px !important;
+  max-height:42px !important;
+  object-fit:contain;
+  display:block;
+}
+
+.top-logo-fallback{
+  display:none;
+  align-items:center;
+  gap:7px;
+}
+
+.top-brand{
+  font-family:var(--font-d);
+  font-size:1.55rem;
+  line-height:1;
+  color:var(--text);
+  letter-spacing:.04em;
+}
+
+.top-sub{
+  font-family:var(--font-m);
+  font-size:.55rem;
+  letter-spacing:.18em;
+  color:var(--sport);
+  text-transform:uppercase;
+}
+
+.top-spacer{
+  flex:1;
+}
+
+.top-date{
+  display:none !important;
+}
+
+.top-refresh{
+  min-width:46px;
+  width:46px;
+  padding:0;
+  opacity:.72;
+}
+
+.top-session{
+  min-width:128px;
+  font-size:.68rem;
+}
+
+/* Avatar coach en lobby */
+.hoy-hero{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:16px;
+}
+
+.hoy-hero-text{
+  min-width:0;
+}
+
+.hoy-coach-avatar{
+  width:76px;
+  height:76px;
+  border-radius:22px;
+  border:1.5px solid rgba(0,200,232,.45);
+  background:rgba(0,200,232,.08);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  flex-shrink:0;
+  box-shadow:0 0 28px rgba(0,200,232,.10);
+}
+
+.hoy-coach-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.hoy-coach-avatar span{
+  font-family:var(--font-d);
+  font-size:1.65rem;
+  color:var(--sport);
+  letter-spacing:.04em;
+}
+
+@media(max-width:390px){
+  .top-logo-wrap{
+    min-width:108px;
+    max-width:138px;
+  }
+
+  .top-logo-img{
+    max-width:135px !important;
+  }
+
+  .top-session{
+    min-width:116px;
+    padding:0 12px;
+  }
+
+  .hoy-coach-avatar{
+    width:68px;
+    height:68px;
+    border-radius:20px;
+  }
+}
 </style>
 </head>
 <body>
@@ -1681,31 +1812,35 @@ a{text-decoration:none;color:inherit}
 
 <div id="app" class="hidden">
   <header class="top">
-       <div class="top-logo-wrap">
-  <img
-  class="top-logo-img"
-  src="/ab-logo.png.WEBP"
-  alt="AB SYSTEM"
-  style="max-width:120px;max-height:36px;object-fit:contain"
-  onerror="this.style.display='none';document.querySelector('.top-logo-fallback').style.display='flex';"
->
-  <div class="top-logo-fallback">
-    <span class="top-brand">AB</span>
-    <span class="top-sub">FIELD</span>
+  <div class="top-logo-wrap">
+    <img
+      class="top-logo-img"
+      src="/ab-logo.png.WEBP"
+      alt="AB SYSTEM"
+      onerror="this.style.display='none';document.querySelector('.top-logo-fallback').style.display='flex';"
+    >
+    <div class="top-logo-fallback">
+      <span class="top-brand">[AB]</span>
+      <span class="top-sub">SYSTEM</span>
+    </div>
   </div>
-</div>
-    <span class="top-date" id="top-date"></span>
-    <button class="top-btn" onclick="refresh()" title="Actualizar datos">↻</button>
-    <button class="top-btn pri" onclick="openModal('reservation')">＋ Sesión</button>
-  </header>
+
+  <div class="top-spacer"></div>
+
+  <button class="top-btn top-refresh" onclick="refresh()" title="Actualizar datos">↻</button>
+  <button class="top-btn pri top-session" onclick="openModal('reservation')">＋ Sesión</button>
+</header>
 
   <div class="wrap">
 
     <div class="scr on" id="s-hoy">
-      <div class="scr-h">
-        <div class="scr-eye" id="hoy-eye">Operación de sala</div>
-        <div class="scr-t" id="hoy-title">Hoy</div>
-      </div>
+      <div class="hoy-hero">
+  <div class="hoy-hero-text">
+    <div class="scr-eye" id="hoy-eye">Operación de sala</div>
+    <div class="scr-t" id="hoy-title">Hoy</div>
+  </div>
+  <div id="hoy-coach-avatar"></div>
+</div>
       <div class="mr" id="hoy-metrics"></div>
       <div id="hoy-content"></div>
     </div>
@@ -2530,7 +2665,6 @@ function renderBadges(){
 /* ════════════════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════════════════ */
-document.getElementById('top-date').textContent=new Date().toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'short'}).toUpperCase();
 
 (async function pageInit(){
   try{
@@ -2744,6 +2878,10 @@ function renderHoy(){
   const mon=new Date().toLocaleDateString('es-ES',{month:'short'}).toUpperCase();
   document.getElementById('hoy-eye').textContent='Hola, '+firstName(state.settings.coachName||'Abel');
   document.getElementById('hoy-title').textContent=`${dow} ${dnum} ${mon}`;
+   const coachAvatarBox = document.getElementById('hoy-coach-avatar');
+   if(coachAvatarBox){
+     coachAvatarBox.innerHTML = getCoachAvatarHTML();
+   }
 
   document.getElementById('hoy-metrics').innerHTML=`
   <div class="mc b"><span class="mc-n">${sessions.length}</span><span class="mc-l">Sesiones</span></div>
@@ -4961,6 +5099,49 @@ function getClientPhotoHTML(c,size=''){
   }
 
   return `<div class="client-photo ${size}">${esc(initialsText)}</div>`;
+}
+
+function getCoachAvatarHTML(){
+  const coachPhone = String(state.settings.coachPhone || COACH_PHONE_DEFAULT || '')
+    .replace(/[\s+\-()]/g,'');
+
+  const coachName = cleanTxt(state.settings.coachName || 'Abel');
+
+  const coachClient = state.clients.find(c => {
+    const phone = String(c.phone || '')
+      .replace(/[\s+\-()]/g,'');
+
+    return (
+      phone && coachPhone && phone === coachPhone
+    ) || (
+      cleanTxt(c.name || '') === coachName
+    );
+  });
+
+  const url =
+    coachClient?.photoUrl ||
+    coachClient?.photo_url ||
+    coachClient?.avatarUrl ||
+    coachClient?.avatar_url ||
+    coachClient?.profilePhoto ||
+    coachClient?.profile_photo ||
+    coachClient?.imageUrl ||
+    coachClient?.image_url ||
+    '';
+
+  if(url){
+    return `
+      <div class="hoy-coach-avatar">
+        <img src="${esc(url)}" alt="${esc(state.settings.coachName || 'Coach')}">
+      </div>
+    `;
+  }
+
+  return `
+    <div class="hoy-coach-avatar">
+      <span>${initials(state.settings.coachName || 'AB')}</span>
+    </div>
+  `;
 }
 
 function sortByOrder(arr){
