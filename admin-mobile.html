@@ -3066,9 +3066,10 @@ async function openAthleteDashboard(clientId){
     state.activeAthleteDashboard=snakeToCamel(row);
 
     const box=document.getElementById('ath-content');
-    box.innerHTML=buildAthleteDashboardHTML(state.activeAthleteDashboard);
-
     showScr('atletas');
+
+const box=document.getElementById('ath-content');
+box.innerHTML=buildAthleteDashboardHTML(state.activeAthleteDashboard);
 
   }catch(err){
     console.error('openAthleteDashboard error:',err);
