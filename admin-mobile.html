@@ -1123,6 +1123,60 @@ a{text-decoration:none;color:inherit}
 .eval-confirm-btns { display: flex; flex-direction: column; gap: 8px; }
 .eval-loading { text-align: center; padding: 40px; color: var(--text-secondary); }
 
+/* PATCH EVALUACIÓN · pantalla inicial unificada */
+.eval-start-wrap{
+  padding:16px 20px 80px;
+}
+
+.eval-start-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:18px;
+}
+
+.eval-start-card{
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:14px;
+  padding:20px 12px;
+  min-height:150px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  text-align:center;
+}
+
+.eval-start-card:active{
+  background:rgba(255,255,255,.04);
+  transform:scale(.98);
+}
+
+.eval-start-icon{
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--sport);
+  margin-bottom:4px;
+}
+
+.eval-start-title{
+  font-family:var(--font-d);
+  font-size:1.05rem;
+  letter-spacing:.04em;
+  color:var(--text);
+}
+
+.eval-start-sub{
+  font-size:.74rem;
+  color:var(--text-2);
+  line-height:1.4;
+}
+
 /* PATCH · vídeo por encima del modal de estiramientos */
 #video-ov{
   z-index: 1600 !important;
@@ -9149,77 +9203,123 @@ function closeEvalModal() {
 function renderEvalModal() {
   const el = document.getElementById('modal-eval-content');
   if (!el) return;
-  if (!evalState.clientSexo || !evalState.clientEdad) {
-    renderEvalSetup(); return;
-  }
+
   if (!evalState.items.length) {
-    renderEvalTypeSelect(); return;
+    renderEvalStartScreen();
+    return;
   }
+
   if (evalState.currentIdx >= evalState.items.length) {
-    renderEvalRecommendation(); return;
+    renderEvalRecommendation();
+    return;
   }
+
   renderEvalTest();
 }
 
-function renderEvalSetup() {
-  const el = document.getElementById('modal-eval-content');
-  if (!el) return;
-  el.innerHTML = `
-    <div style="padding:16px 20px 80px">
-      <div class="eval-header">
-        <div class="eval-client">${escHTML(evalState.clientName || 'Cliente')}</div>
-        <div class="eval-subtitle">Datos necesarios para normalizar resultados</div>
-      </div>
-      <div class="eval-setup-form">
-        <div class="fld">
-          <label class="fld-l">Sexo biológico</label>
-          <select id="eval-sexo" class="fld-s">
-            <option value="">— Seleccionar —</option>
-            <option value="masculino">Masculino</option>
-            <option value="femenino">Femenino</option>
-          </select>
-        </div>
-        <div class="fld">
-          <label class="fld-l">Edad (años)</label>
-          <input id="eval-edad" type="number" class="fld-i" min="16" max="90" placeholder="Ej: 32">
-        </div>
-      </div>
-      <button class="btn btn-p btn-wide" onclick="confirmEvalSetup()">Continuar →</button>
-    </div>`;
+function evalIconSVG(type){
+  if(type === 'combat'){
+    return `
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--sport)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 8h10"/>
+        <path d="M6 8v8"/>
+        <path d="M18 8v8"/>
+        <path d="M4 10v4"/>
+        <path d="M20 10v4"/>
+        <path d="M9 16h6"/>
+      </svg>
+    `;
+  }
+
+  return `
+    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--sport)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 13h4l2-6 4 12 2-6h4"/>
+      <path d="M5 20h14"/>
+    </svg>
+  `;
 }
 
-function confirmEvalSetup() {
-  const sexo = document.getElementById('eval-sexo').value;
-  const edad = parseInt(document.getElementById('eval-edad').value);
-  if (!sexo) { showToast('Selecciona el sexo', 'err'); return; }
-  if (!edad || edad < 16 || edad > 90) { showToast('Edad no válida', 'err'); return; }
+function renderEvalStartScreen() {
+  const el = document.getElementById('modal-eval-content');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div class="eval-start-wrap">
+      <div class="eval-header">
+        <div class="eval-client">${escHTML(evalState.clientName || 'Cliente')}</div>
+        <div class="eval-subtitle">Datos iniciales y protocolo de evaluación</div>
+      </div>
+
+      <div class="fld">
+        <label class="fld-l">Sexo biológico</label>
+        <select id="eval-sexo" class="fld-s">
+          <option value="">— Seleccionar —</option>
+          <option value="masculino" ${evalState.clientSexo === 'masculino' ? 'selected' : ''}>Hombre</option>
+          <option value="femenino" ${evalState.clientSexo === 'femenino' ? 'selected' : ''}>Mujer</option>
+        </select>
+      </div>
+
+      <div class="fld">
+        <label class="fld-l">Edad (años)</label>
+        <input 
+          id="eval-edad" 
+          type="number" 
+          class="fld-i" 
+          min="16" 
+          max="90" 
+          placeholder="Ej: 32"
+          value="${evalState.clientEdad || ''}">
+      </div>
+
+      <div class="eval-start-grid">
+        <button class="eval-start-card" onclick="startEvalFromForm('general')">
+          <span class="eval-start-icon">${evalIconSVG('general')}</span>
+          <span class="eval-start-title">Cliente general</span>
+          <span class="eval-start-sub">6 tests · 20 min</span>
+        </button>
+
+        <button class="eval-start-card" onclick="startEvalFromForm('atleta')">
+          <span class="eval-start-icon">${evalIconSVG('combat')}</span>
+          <span class="eval-start-title">Atleta combate</span>
+          <span class="eval-start-sub">10 tests · 35 min</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function startEvalFromForm(type) {
+  const sexo = document.getElementById('eval-sexo')?.value || '';
+  const edad = parseInt(document.getElementById('eval-edad')?.value || '', 10);
+
+  if (!sexo) {
+    showToast('Selecciona el sexo biológico', 'err');
+    return;
+  }
+
+  if (!edad || edad < 16 || edad > 90) {
+    showToast('Edad no válida', 'err');
+    return;
+  }
+
   evalState.clientSexo = sexo;
   evalState.clientEdad = edad;
-  renderEvalTypeSelect();
+  evalState.type = type;
+
+  startEval(type);
+}
+
+/* Compatibilidad: ya no usamos pantalla separada */
+function renderEvalSetup() {
+  renderEvalStartScreen();
 }
 
 function renderEvalTypeSelect() {
-  const el = document.getElementById('modal-eval-content');
-  if (!el) return;
-  el.innerHTML = `
-    <div style="padding:16px 20px 80px">
-      <div class="eval-header">
-        <div class="eval-client">${escHTML(evalState.clientName)}</div>
-        <div class="eval-meta">${evalState.clientSexo === 'femenino' ? 'Mujer' : 'Hombre'} · ${evalState.clientEdad} años</div>
-      </div>
-      <div class="eval-type-grid">
-        <button class="eval-type-btn" onclick="startEval('general')">
-          <span class="eval-type-icon">🏃</span>
-          <span class="eval-type-title">Cliente general</span>
-          <span class="eval-type-sub">6 tests · ~20 min</span>
-        </button>
-        <button class="eval-type-btn" onclick="startEval('atleta')">
-          <span class="eval-type-icon">🥊</span>
-          <span class="eval-type-title">Atleta combate</span>
-          <span class="eval-type-sub">10 tests · ~35 min</span>
-        </button>
-      </div>
-    </div>`;
+  renderEvalStartScreen();
+}
+
+function confirmEvalSetup() {
+  startEvalFromForm('general');
 }
 
 async function startEval(type) {
