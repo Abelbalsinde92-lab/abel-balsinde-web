@@ -1467,6 +1467,194 @@ a{text-decoration:none;color:inherit}
   gap:5px;
   flex-shrink:0;
 }
+
+/* =========================================================
+   PATCH UI · BOTONES / ICONOS / ALERTAS CERRADAS
+========================================================= */
+
+/* Botón principal: ya no blanco, ahora cian AB */
+.btn-p,
+.top-btn.pri,
+.login-btn{
+  background:var(--sport) !important;
+  color:#000 !important;
+  border:1px solid var(--sport) !important;
+}
+
+.btn-p:active,
+.top-btn.pri:active,
+.login-btn:active{
+  opacity:.86;
+}
+
+/* WhatsApp transparente, sin verde sólido */
+.btn-wa{
+  background:rgba(37,211,102,.10) !important;
+  color:#25D366 !important;
+  border:1px solid rgba(37,211,102,.35) !important;
+}
+
+.btn-wa:active{
+  background:rgba(37,211,102,.16) !important;
+}
+
+/* Cards de acción sin emojis */
+.ab-line-icon{
+  width:34px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--sport);
+  flex-shrink:0;
+}
+
+.ab-line-icon svg{
+  width:100%;
+  height:100%;
+  stroke:var(--sport);
+}
+
+/* Alertas compactas */
+.ac-compact{
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:var(--r);
+  margin-bottom:10px;
+  overflow:hidden;
+  border-left:3px solid var(--sport);
+}
+
+.ac-compact.urg{border-left-color:var(--medical)}
+.ac-compact.wrn{border-left-color:var(--warn)}
+.ac-compact.ok{border-left-color:var(--sport)}
+
+.ac-compact-head{
+  width:100%;
+  padding:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  text-align:left;
+}
+
+.ac-compact-title{
+  font-weight:800;
+  font-size:.96rem;
+  line-height:1.25;
+  color:var(--text);
+}
+
+.ac-compact-meta{
+  font-family:var(--font-m);
+  font-size:.56rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text-2);
+  margin-top:4px;
+}
+
+.ac-compact-msg{
+  font-size:.78rem;
+  color:var(--text-2);
+  line-height:1.5;
+  margin-top:6px;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.ac-compact-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:5px;
+  flex-shrink:0;
+}
+
+.ac-compact-count{
+  font-family:var(--font-m);
+  font-size:.55rem;
+  color:var(--sport);
+  border:1px solid rgba(0,200,232,.28);
+  background:rgba(0,200,232,.08);
+  border-radius:999px;
+  padding:4px 8px;
+  white-space:nowrap;
+}
+
+.ac-compact-body{
+  display:none;
+  border-top:1px solid var(--divider);
+  padding:0 14px 12px;
+}
+
+.ac-compact.open .ac-compact-body{
+  display:block;
+}
+
+.ac-item-mini{
+  padding:10px 0;
+  border-bottom:1px solid var(--divider);
+}
+
+.ac-item-mini:last-child{
+  border-bottom:none;
+}
+
+.ac-item-date{
+  font-family:var(--font-m);
+  font-size:.54rem;
+  letter-spacing:.08em;
+  color:var(--text-2);
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+
+.ac-item-text{
+  font-size:.78rem;
+  color:var(--text-2);
+  line-height:1.5;
+}
+
+/* Modal de estiramientos: iconos sin emojis */
+.stretch-mode-card{
+  width:100%;
+  margin-bottom:12px;
+  padding:20px 16px;
+  text-align:left;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:14px;
+}
+
+.stretch-mode-card:active{
+  background:rgba(255,255,255,.04);
+  transform:scale(.98);
+}
+
+.stretch-mode-title{
+  font-family:var(--font-d);
+  font-size:1rem;
+  letter-spacing:.04em;
+  color:var(--text);
+}
+
+.stretch-mode-title.cyan{
+  color:var(--sport);
+}
+
+.stretch-mode-sub{
+  font-size:.76rem;
+  color:var(--text-2);
+  line-height:1.45;
+  margin-top:3px;
+}
 </style>
 </head>
 <body>
@@ -2328,7 +2516,7 @@ function renderAll(){renderBadges();renderScr(currentScr)}
 
 /* ── v1.1 C5: Badges mejorados (alertas + pagos vencidos) ── */
 function renderBadges(){
-  const pending=state.alertas.filter(isPendingAlert).length;
+  const pending=state.alertas.filter(a => getEffectiveAlertStatus(a)==='pendiente').length;
   const el=document.getElementById('badge-al');
   if(el){el.textContent=pending||'';el.classList.toggle('on',pending>0)}
 
@@ -3004,58 +3192,231 @@ function switchPt(btn,id){
 /* ════════════════════════════════════════════════════════
    ALERTAS
 ══════════════════════════════════════════════════════════ */
+function getAlertMessage(a){
+  return String(a.mensaje || a.message || a.body || '').trim();
+}
+
+function getAlertTitle(a){
+  return String(a.titulo || a.title || 'Alerta').trim();
+}
+
+function isFalsePositiveAlert(a){
+  const txt = cleanTxt([
+    getAlertTitle(a),
+    getAlertMessage(a)
+  ].join(' '));
+
+  const isPainAlert =
+    txt.includes('molestia') ||
+    txt.includes('dolor') ||
+    txt.includes('posible molestia');
+
+  const neg =
+    txt.includes('sin molestias') ||
+    txt.includes('sin molestia') ||
+    txt.includes('sin dolor') ||
+    txt.includes('todo bien') ||
+    txt.includes('no tengo dolor') ||
+    txt.includes('no hay dolor');
+
+  return isPainAlert && neg;
+}
+
+function getEffectiveAlertLevel(a){
+  if(isFalsePositiveAlert(a)) return 'info';
+  return String(a.nivel || a.level || 'info').toLowerCase();
+}
+
+function getEffectiveAlertStatus(a){
+  if(isFalsePositiveAlert(a)) return 'leida';
+  return getAlertStatus(a);
+}
+
+function getAlertClientNameSmart(a){
+  const direct = getAlertClientName(a);
+  if(direct) return direct;
+
+  const msg = getAlertMessage(a);
+  const beforeColon = msg.split(':')[0]?.trim();
+
+  if(beforeColon && beforeColon.length > 2 && beforeColon.length < 40){
+    return beforeColon;
+  }
+
+  return '';
+}
+
+function getAlertClientSmart(a){
+  const id = getAlertClientId(a);
+  if(id){
+    const byId = clientById(id);
+    if(byId) return byId;
+  }
+
+  const name = cleanTxt(getAlertClientNameSmart(a));
+
+  if(name){
+    return state.clients.find(c => cleanTxt(c.name) === name) || null;
+  }
+
+  return null;
+}
+
+function groupAlerts(rows){
+  const map = new Map();
+
+  rows.forEach(a => {
+    const c = getAlertClientSmart(a);
+    const clientName = c?.name || getAlertClientNameSmart(a) || 'Sin cliente';
+    const type = String(a.tipoAlerta || a.tipo_alerta || 'alerta');
+    const title = getAlertTitle(a);
+
+    const key = [
+      c?.id || cleanTxt(clientName),
+      cleanTxt(type),
+      cleanTxt(title)
+    ].join('__');
+
+    if(!map.has(key)){
+      map.set(key,{
+        key,
+        client:c,
+        clientName,
+        type,
+        title,
+        level:getEffectiveAlertLevel(a),
+        status:getEffectiveAlertStatus(a),
+        items:[]
+      });
+    }
+
+    const g = map.get(key);
+    g.items.push(a);
+
+    if(getEffectiveAlertLevel(a) === 'critica' || getEffectiveAlertLevel(a) === 'alerta'){
+      g.level = getEffectiveAlertLevel(a);
+    }
+
+    if(getEffectiveAlertStatus(a) === 'pendiente'){
+      g.status = 'pendiente';
+    }
+  });
+
+  return [...map.values()].map(g => {
+    g.items.sort((a,b) => String(alertCreatedAt(b)).localeCompare(String(alertCreatedAt(a))));
+    g.latest = g.items[0];
+    return g;
+  });
+}
+
+function toggleAlertGroup(key){
+  const el = document.getElementById('ag-' + CSS.escape(key));
+  if(el) el.classList.toggle('open');
+}
+
 function renderAlertas(){
-  const pendientes=state.alertas.filter(isPendingAlert);
-  const criticas=state.alertas.filter(a=>a.nivel==='critica'||a.nivel==='alerta');
-  const leidas=state.alertas.filter(a=>getAlertStatus(a)==='leida');
-  const resueltas=state.alertas.filter(a=>getAlertStatus(a)==='resuelta');
+  const effectiveRows = state.alertas.filter(a => !isFalsePositiveAlert(a) || filterAl === 'leidas' || filterAl === 'todas');
+
+  const pendientes = effectiveRows.filter(a => getEffectiveAlertStatus(a) === 'pendiente');
+  const criticas = effectiveRows.filter(a => {
+    const lvl = getEffectiveAlertLevel(a);
+    return lvl === 'critica' || lvl === 'alerta';
+  });
+  const leidas = effectiveRows.filter(a => getEffectiveAlertStatus(a) === 'leida');
+  const resueltas = effectiveRows.filter(a => getEffectiveAlertStatus(a) === 'resuelta');
+
   document.getElementById('al-metrics').innerHTML=`
     <div class="mc r"><span class="mc-n">${pendientes.length}</span><span class="mc-l">Pendientes</span></div>
     <div class="mc y"><span class="mc-n">${criticas.length}</span><span class="mc-l">Críticas</span></div>
     <div class="mc b"><span class="mc-n">${leidas.length}</span><span class="mc-l">Leídas</span></div>
     <div class="mc g"><span class="mc-n">${resueltas.length}</span><span class="mc-l">Resueltas</span></div>
   `;
-  const filters=[['pendientes','Pendientes'],['criticas','Críticas'],['leidas','Leídas'],['resueltas','Resueltas'],['todas','Todas']];
-  document.getElementById('al-filters').innerHTML=filters.map(([k,l])=>`<button class="fp ${filterAl===k?'on':''}" onclick="filterAl='${k}';renderAlertas()">${l}</button>`).join('');
-  let rows=[...state.alertas];
-  if(filterAl==='pendientes')rows=rows.filter(isPendingAlert);
-  else if(filterAl==='criticas')rows=rows.filter(a=>a.nivel==='critica'||a.nivel==='alerta');
-  else if(filterAl==='leidas')rows=rows.filter(a=>getAlertStatus(a)==='leida');
-  else if(filterAl==='resueltas')rows=rows.filter(a=>getAlertStatus(a)==='resuelta');
+
+  const filters=[
+    ['pendientes','Pendientes'],
+    ['criticas','Críticas'],
+    ['leidas','Leídas'],
+    ['resueltas','Resueltas'],
+    ['todas','Todas']
+  ];
+
+  document.getElementById('al-filters').innerHTML=filters.map(([k,l])=>`
+    <button class="fp ${filterAl===k?'on':''}" onclick="filterAl='${k}';renderAlertas()">${l}</button>
+  `).join('');
+
+  let rows=[...effectiveRows];
+
+  if(filterAl==='pendientes') rows=rows.filter(a => getEffectiveAlertStatus(a)==='pendiente');
+  else if(filterAl==='criticas') rows=rows.filter(a => {
+    const lvl = getEffectiveAlertLevel(a);
+    return lvl === 'critica' || lvl === 'alerta';
+  });
+  else if(filterAl==='leidas') rows=rows.filter(a => getEffectiveAlertStatus(a)==='leida');
+  else if(filterAl==='resueltas') rows=rows.filter(a => getEffectiveAlertStatus(a)==='resuelta');
+
   rows.sort((a,b)=>String(alertCreatedAt(b)).localeCompare(String(alertCreatedAt(a))));
-  document.getElementById('al-content').innerHTML=rows.length?rows.map(buildAlertCard).join(''):emptyState('Sin alertas','Todo bajo control.');
+
+  const groups = groupAlerts(rows);
+
+  document.getElementById('al-content').innerHTML = groups.length
+    ? groups.map(buildAlertGroupCard).join('')
+    : emptyState('Sin alertas','Todo bajo control.');
 }
 
+function buildAlertGroupCard(g){
+  const a = g.latest;
+  const level = g.level;
+  const status = g.status;
+  const isUrg = level === 'critica' || level === 'alerta';
+  const isWrn = level === 'precaucion' || level === 'revisar';
+  const klass = isUrg ? 'urg' : isWrn ? 'wrn' : 'ok';
+
+  const c = g.client;
+  const phone = a.clientPhone || a.client_phone || c?.phone || state.settings.coachPhone;
+  const created = String(alertCreatedAt(a)).slice(0,10);
+  const msg = getAlertMessage(a);
+
+  return `
+    <div class="ac-compact ${klass}" id="ag-${esc(g.key)}">
+      <button class="ac-compact-head" onclick="this.closest('.ac-compact').classList.toggle('open')">
+        <div style="min-width:0;flex:1">
+          <div class="ac-compact-title">${esc(g.clientName)}</div>
+          <div class="ac-compact-meta">${esc(g.type)} · ${formatDate(created)}</div>
+          <div class="ac-compact-msg">${esc(g.title)} · ${esc(msg)}</div>
+        </div>
+
+        <div class="ac-compact-right">
+          ${badge(level,isUrg?'alerta':isWrn?'pendiente':'info')}
+          ${badge(status,status==='pendiente'?'pendiente':status==='resuelta'?'resuelta':'leida')}
+          ${g.items.length > 1 ? `<span class="ac-compact-count">${g.items.length} alertas</span>` : ''}
+        </div>
+      </button>
+
+      <div class="ac-compact-body">
+        ${g.items.map(item => `
+          <div class="ac-item-mini">
+            <div class="ac-item-date">${formatDate(String(alertCreatedAt(item)).slice(0,10))}</div>
+            <div class="ac-item-text">
+              <strong style="color:var(--text)">${esc(getAlertTitle(item))}</strong><br>
+              ${esc(getAlertMessage(item))}
+            </div>
+          </div>
+        `).join('')}
+
+        <div class="ac-acts" style="padding:10px 0 0;border-top:1px solid var(--divider)">
+          ${status!=='resuelta'?`<button class="btn btn-b btn-sm" onclick="resolverAlerta('${a.id}')">✓ Resolver</button>`:''}
+          ${status==='pendiente'?`<button class="btn btn-s btn-sm" onclick="marcarLeida('${a.id}')">Leída</button>`:''}
+          ${phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(phone)}','${esc(buildAlertWAMsg(a))}')">WA</button>`:''}
+          ${c?.id?`<button class="btn btn-s btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* Compatibilidad por si otra parte llama buildAlertCard */
 function buildAlertCard(a){
-  const estado=getAlertStatus(a);
-  const isUrg=a.nivel==='critica'||a.nivel==='alerta';
-  const isWrn=a.nivel==='precaucion';
-  const klass=isUrg?'urg':isWrn?'wrn':'';
-  const c=state.clients.find(cl=>alertBelongsToClient(a,cl));
-  const phone=a.clientPhone||a.client_phone||c?.phone||state.settings.coachPhone;
-  const created=String(alertCreatedAt(a)).slice(0,10);
-  return`
-  <div class="ac ${klass}">
-    <div class="ac-top">
-      <div>
-        <div class="ac-cli">${esc(a.clientName||a.client_name||c?.name||'Sin cliente')}</div>
-        <div class="ac-tipo">${esc(a.tipoAlerta||a.tipo_alerta||'alerta')} · ${formatDate(created)}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
-        ${badge(a.nivel||'info',isUrg?'alerta':isWrn?'pendiente':'info')}
-        ${badge(estado,estado==='pendiente'?'pendiente':estado==='resuelta'?'resuelta':'leida')}
-      </div>
-    </div>
-    ${a.titulo?`<div style="padding:0 14px;font-weight:700;font-size:.92rem;margin-bottom:6px">${esc(a.titulo)}</div>`:''}
-    <div class="ac-msg">${esc(a.mensaje||'')}</div>
-    ${a.notaAdmin||a.nota_admin?`<div class="ac-note"><strong>Nota coach:</strong> ${esc(a.notaAdmin||a.nota_admin)}</div>`:''}
-    <div class="ac-acts">
-      ${estado!=='resuelta'?`<button class="btn btn-b btn-sm" onclick="resolverAlerta('${a.id}')">✓ Resolver</button>`:''}
-      ${!a.leidaAt&&!a.leida_at&&estado!=='resuelta'?`<button class="btn btn-s btn-sm" onclick="marcarLeida('${a.id}')">Leída</button>`:''}
-      ${phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(phone)}','${esc(buildAlertWAMsg(a))}')">WA</button>`:''}
-      ${c?.id?`<button class="btn btn-s btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
-    </div>
-  </div>`;
+  return buildAlertGroupCard(groupAlerts([a])[0]);
 }
 
 function buildAlertWAMsg(a){
@@ -8187,30 +8548,49 @@ function renderStretch() {
   renderStretchList();
 }
 
+function abIcon(name){
+  const icons = {
+    user: '<circle cx="12" cy="7" r="4"/><path d="M5 21c1.5-4 12.5-4 14 0"/>',
+    assist: '<path d="M8 12l-3-3a2 2 0 013-3l4 4"/><path d="M16 12l3-3a2 2 0 00-3-3l-4 4"/><path d="M8 12l4 4 4-4"/><path d="M12 16v5"/>',
+    mobility: '<circle cx="12" cy="5" r="2"/><path d="M12 7v5l-3 5"/><path d="M12 12l3 5"/><path d="M9 11l-3-1"/><path d="M15 11l3-1"/>',
+    combat: '<path d="M7 8h10"/><path d="M6 8v8"/><path d="M18 8v8"/><path d="M4 10v4"/><path d="M20 10v4"/><path d="M9 16h6"/>',
+    general: '<path d="M4 13h4l2-6 4 12 2-6h4"/><path d="M5 20h14"/>',
+    alert: '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.6L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.6a2 2 0 00-3.4 0z"/>',
+    note: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/>'
+  };
+
+  return `
+    <span class="ab-line-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--sport)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        ${icons[name] || icons.note}
+      </svg>
+    </span>
+  `;
+}
+
 function renderStretchModeSelector() {
   const el = document.getElementById('stretch-content');
   if (!el) return;
+
   el.innerHTML = `
     <div class="stretch-header" style="margin-bottom:20px">
       ${stretchClientName ? `<span class="stretch-client-name">${stretchEscHTML(stretchClientName)}</span>` : ''}
       <span class="stretch-subtitle">¿Qué tipo de estiramiento vas a hacer?</span>
     </div>
 
-    <button class="stretch-zone-btn" style="width:100%;margin-bottom:12px;padding:22px 16px;text-align:left;display:flex;align-items:center;gap:16px"
-      onclick="stretchMode='individual'; renderStretch()">
-      <span style="font-size:2rem">🧘</span>
+    <button class="stretch-mode-card" onclick="stretchMode='individual'; renderStretch()">
+      ${abIcon('mobility')}
       <div>
-        <div class="stretch-zone-label" style="font-size:15px;margin-bottom:4px">Individual</div>
-        <div style="font-size:12px;color:var(--text-2);font-weight:400">El cliente trabaja solo · Selecciona zona</div>
+        <div class="stretch-mode-title">Individual</div>
+        <div class="stretch-mode-sub">El cliente trabaja solo · selecciona zona</div>
       </div>
     </button>
 
-    <button class="stretch-zone-btn" style="width:100%;padding:22px 16px;text-align:left;display:flex;align-items:center;gap:16px;border-color:rgba(0,200,232,.35)"
-      onclick="stretchMode='assisted'; renderStretch()">
-      <span style="font-size:2rem">🤝</span>
+    <button class="stretch-mode-card" onclick="stretchMode='assisted'; renderStretch()">
+      ${abIcon('assist')}
       <div>
-        <div class="stretch-zone-label" style="font-size:15px;margin-bottom:4px;color:var(--sport)">Asistido por coach</div>
-        <div style="font-size:12px;color:var(--text-2);font-weight:400">El coach estira al cliente · 16 técnicas</div>
+        <div class="stretch-mode-title cyan">Asistido por coach</div>
+        <div class="stretch-mode-sub">El coach estira al cliente · 16 técnicas</div>
       </div>
     </button>
   `;
