@@ -2039,6 +2039,8 @@ const state = {
   assessments:[],metrics:[],
   athletes:[],
    activeAthleteDashboard:null,
+   activeAthleteSection:null,
+   activeAthleteSectionData:null,
    settings:{coachName:'Abel Balsinde',coachPhone:COACH_PHONE_DEFAULT,coachCity:'Belgrado',adminUsername:ADMIN_USER_DEFAULT},
   activeWorkoutSessionNumber:1,
    manualPathologyByClient:{},
@@ -3835,6 +3837,9 @@ function backToAthleteDashboard(clientId){
 }
 
 function renderAtletas(){
+     state.activeAthleteSection=null;
+  state.activeAthleteSectionData=null;
+   
   const box=document.getElementById('ath-content');
 
   const rows=state.athletes||[];
@@ -3964,132 +3969,245 @@ box.innerHTML=buildAthleteDashboardHTML(state.activeAthleteDashboard);
   }
 }
 
-function buildAthleteDashboardHTML(a){
-  const record = [
-    Number(a.wins||0),
-    Number(a.losses||0),
-    Number(a.draws||0)
-  ].join('-');
+async function openAthleteSection(section, clientId){
+  state.activeAthleteSection = section;
+  state.activeAthleteSectionData = null;
 
-  return `
-    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:12px" onclick="renderAtletas()">← Lista de atletas</button>
-   
-       <div class="qrow">
-  <button class="btn btn-p btn-sm" onclick="openModal('athleteProfile',null,{clientId:'${a.clientId}'})">Editar perfil</button>
-  <button class="btn btn-b btn-sm" onclick="openModal('competitionEvent',null,{clientId:'${a.clientId}'})">+ Competición</button>
-  <button class="btn btn-b btn-sm" onclick="openModal('trainingPhase',null,{clientId:'${a.clientId}'})">+ Fase</button>
-  <button class="btn btn-b btn-sm" onclick="openModal('combatMetric',null,{clientId:'${a.clientId}'})">+ Métrica</button>
-  <button class="btn btn-b btn-sm" onclick="openModal('injuryHistory',null,{clientId:'${a.clientId}'})">+ Lesión</button>
-  <button 
-  class="btn btn-p btn-sm"
-  data-client-id="${esc(a.clientId)}"
-  data-client-name="${esc(a.clientName)}"
-  onclick="openEvalModal(this.dataset.clientId,this.dataset.clientName,null,null)">
-  Evaluación
-</button>
-</div>
-   
-    <div class="psum">
-      <div class="psum-top">
-        <div class="client-photo">${initials(a.clientName)}</div>
+  const box = document.getElementById('ath-content');
+  if(!box) return;
+
+  box.innerHTML = buildAthleteDashboardHTML(state.activeAthleteDashboard);
+
+  const contentEl = document.getElementById('ath-section-content');
+  if(contentEl) contentEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-2);font-size:.84rem">Cargando...</div>';
+
+  try{
+    let html = '';
+
+    if(section === 'perfil'){
+      const a = state.activeAthleteDashboard;
+      html = `
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+          <button class="btn btn-p btn-sm" onclick="openModal('athleteProfile',null,{clientId:'${clientId}'})">Editar perfil</button>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="dr"><span class="dk">Deporte</span><span class="dv val-wrap">${esc(a.sport||'—')}</span></div>
+            <div class="dr"><span class="dk">Categoría</span><span class="dv">${esc(a.weightClass||'—')}</span></div>
+            <div class="dr"><span class="dk">Nivel</span><span class="dv">${esc(a.competitiveLevel||'—')}</span></div>
+            <div class="dr"><span class="dk">Récord</span><span class="dv mono">${[Number(a.wins||0),Number(a.losses||0),Number(a.draws||0)].join('-')}</span></div>
+            <div class="dr"><span class="dk">Equipo</span><span class="dv">${esc(a.team||'—')}</span></div>
+            <div class="dr"><span class="dk">Nacionalidad</span><span class="dv">${esc(a.nationality||'—')}</span></div>
+            <div class="dr"><span class="dk">Altura</span><span class="dv">${a.heightCm?a.heightCm+' cm':'—'}</span></div>
+            <div class="dr"><span class="dk">Peso habitual</span><span class="dv">${a.walkAroundWeightKg?a.walkAroundWeightKg+' kg':'—'}</span></div>
+          </div>
+        </div>`;
+    }
+
+    else if(section === 'competiciones'){
+      const {data,error} = await db.from('competition_events')
+        .select('*').eq('client_id',clientId)
+        .order('event_date',{ascending:false});
+      if(error) throw error;
+      html = `
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+          <button class="btn btn-p btn-sm" onclick="openModal('competitionEvent',null,{clientId:'${clientId}'})">+ Competición</button>
+        </div>
+        ${(data||[]).length ? (data||[]).map(c=>`
+          <div class="card" style="margin-bottom:8px">
+            <div class="card-body" style="padding:12px 14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="font-weight:700;font-size:.92rem">${esc(c.event_name||'Competición')}</div>
+                ${c.result?badge(c.result,c.result==='victoria'?'pagado':c.result==='derrota'?'alerta':'pendiente'):badge('Pendiente','pendiente')}
+              </div>
+              <div style="font-size:.74rem;color:var(--text-2)">${formatDate(c.event_date)}${c.location?' · '+esc(c.location):''}${c.opponent?' · vs '+esc(c.opponent):''}</div>
+              ${c.method?`<div style="font-size:.7rem;color:var(--text-2);margin-top:2px">${esc(c.method)}</div>`:''}
+            </div>
+          </div>`).join('') : emptyState('Sin competiciones','')}`;
+    }
+
+    else if(section === 'fases'){
+      const {data,error} = await db.from('training_phases')
+        .select('*').eq('client_id',clientId)
+        .order('start_date',{ascending:false});
+      if(error) throw error;
+      html = `
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+          <button class="btn btn-p btn-sm" onclick="openModal('trainingPhase',null,{clientId:'${clientId}'})">+ Fase</button>
+        </div>
+        ${(data||[]).length ? (data||[]).map(f=>`
+          <div class="card" style="margin-bottom:8px">
+            <div class="card-body" style="padding:12px 14px">
+              <div style="font-weight:700;font-size:.92rem;margin-bottom:4px">${esc(f.phase_name||'Fase')}</div>
+              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                ${badge(f.phase_type||'base','info')}
+                <span style="font-size:.72rem;color:var(--text-2)">${formatDate(f.start_date)} → ${formatDate(f.end_date)}</span>
+              </div>
+              ${f.priority_capacity?`<div style="font-size:.74rem;color:var(--sport);margin-top:4px">${esc(f.priority_capacity)}</div>`:''}
+              ${f.notes?`<div style="font-size:.72rem;color:var(--text-2);margin-top:4px">${esc(f.notes)}</div>`:''}
+            </div>
+          </div>`).join('') : emptyState('Sin fases','')}`;
+    }
+
+    else if(section === 'metricas'){
+      const {data,error} = await db.from('metricas_combate')
+        .select('*').eq('atleta_id',clientId)
+        .order('created_at',{ascending:false}).limit(15);
+      if(error) throw error;
+      html = `
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+          <button class="btn btn-p btn-sm" onclick="openModal('combatMetric',null,{clientId:'${clientId}'})">+ Métrica</button>
+        </div>
+        ${(data||[]).length ? (data||[]).map(m=>`
+          <div class="card" style="margin-bottom:8px">
+            <div class="card-body" style="padding:12px 14px">
+              <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);margin-bottom:6px">${String(m.created_at||'').slice(0,10)}</div>
+              ${m.peso_corporal?`<div class="dr" style="padding:5px 0"><span class="dk">Peso</span><span class="dv">${m.peso_corporal} kg</span></div>`:''}
+              ${m.creatina_quinasa?`<div class="dr" style="padding:5px 0"><span class="dk">CK</span><span class="dv">${m.creatina_quinasa} U/L</span></div>`:''}
+              ${m.cortisol?`<div class="dr" style="padding:5px 0"><span class="dk">Cortisol</span><span class="dv">${m.cortisol} µg/dL</span></div>`:''}
+              ${m.vo2_max?`<div class="dr" style="padding:5px 0"><span class="dk">VO2 máx</span><span class="dv">${m.vo2_max}</span></div>`:''}
+              ${m.vbt_velocidad?`<div class="dr" style="padding:5px 0"><span class="dk">VBT</span><span class="dv">${m.vbt_velocidad} m/s</span></div>`:''}
+              ${m.fc_recuperacion_1min?`<div class="dr" style="padding:5px 0"><span class="dk">FC rec.</span><span class="dv">${m.fc_recuperacion_1min} ppm</span></div>`:''}
+            </div>
+          </div>`).join('') : emptyState('Sin métricas','')}`;
+    }
+
+    else if(section === 'lesiones'){
+      const {data,error} = await db.from('injury_history')
+        .select('*').eq('client_id',clientId)
+        .order('start_date',{ascending:false});
+      if(error) throw error;
+      html = `
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+          <button class="btn btn-p btn-sm" onclick="openModal('injuryHistory',null,{clientId:'${clientId}'})">+ Lesión</button>
+        </div>
+        ${(data||[]).length ? (data||[]).map(l=>`
+          <div class="card" style="margin-bottom:8px">
+            <div class="card-body" style="padding:12px 14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="font-weight:700;font-size:.92rem">${esc(l.body_part||'—')} · ${esc(l.injury_type||'—')}</div>
+                ${badge(l.severity||'leve',l.severity==='alta'?'alerta':l.severity==='media'?'revisar':'normal')}
+              </div>
+              <div style="font-size:.74rem;color:var(--text-2)">${formatDate(l.start_date)}${l.recovery_date?' → '+formatDate(l.recovery_date):''}</div>
+              ${l.training_impact?`<div style="font-size:.7rem;color:var(--warn);margin-top:2px">${esc(l.training_impact.replace(/_/g,' '))}</div>`:''}
+              ${l.notes?`<div style="font-size:.72rem;color:var(--text-2);margin-top:4px">${esc(l.notes)}</div>`:''}
+            </div>
+          </div>`).join('') : emptyState('Sin lesiones','')}`;
+    }
+
+    state.activeAthleteSectionData = html;
+    const el = document.getElementById('ath-section-content');
+    if(el) el.innerHTML = html;
+
+  }catch(err){
+    console.error('openAthleteSection error:',err);
+    const el = document.getElementById('ath-section-content');
+    if(el) el.innerHTML = `<div class="empty s"><strong>Error</strong>${esc(err.message)}</div>`;
+  }
+}
+
+function buildAthleteDashboardHTML(a){
+  const record=[Number(a.wins||0),Number(a.losses||0),Number(a.draws||0)].join('-');
+  const activeSection=state.activeAthleteSection;
+
+  /* Stats 4 columnas */
+  const statsHTML=`
+    <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr)">
+        ${[
+          {n:a.totalCompetitions||0,   l:'Comp.'},
+          {n:a.upcomingCompetitions||0, l:'Próx.'},
+          {n:a.completedCompetitions||0,l:'Hechas'},
+          {n:a.rpeSesion||'—',          l:'RPE'}
+        ].map((s,i)=>`
+          <div style="padding:12px 8px;text-align:center${i<3?';border-right:1px solid var(--divider)':''}">
+            <div style="font-family:var(--font-d);font-size:1.5rem;line-height:1">${s.n}</div>
+            <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-top:3px">${s.l}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  /* Tarjeta atleta colapsada */
+  const athleteCard=`
+    <details class="card" style="margin-bottom:12px">
+      <summary style="padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;list-style:none">
+        ${getClientPhotoHTML({name:a.clientName},'sm')}
         <div style="flex:1;min-width:0">
-          <div class="psum-name">${esc(a.clientName||'Atleta')}</div>
-          <div class="psum-meta">${esc(a.sport||'Deporte sin definir')} · ${esc(a.competitiveLevel||'Nivel sin definir')}</div>
-          <div class="psum-code">${esc(a.weightClass||'Categoría pendiente')}</div>
+          <div style="font-weight:800;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.clientName||'Atleta')}</div>
+          <div style="font-family:var(--font-m);font-size:.6rem;color:var(--sport);margin-top:1px">${esc(a.sport||'Sin deporte')} · ${esc(a.weightClass||'—')}</div>
         </div>
         ${badge(a.clientType||'athlete',a.clientType==='combat'?'alerta':'info')}
-      </div>
-
-      <div class="dr"><span class="dk">Récord</span><span class="dv mono">${record}</span></div>
-      <div class="dr"><span class="dk">Equipo</span><span class="dv">${esc(a.team||'—')}</span></div>
-      <div class="dr"><span class="dk">Nacionalidad</span><span class="dv">${esc(a.nationality||'—')}</span></div>
-      <div class="dr"><span class="dk">Altura</span><span class="dv">${a.heightCm?esc(a.heightCm)+' cm':'—'}</span></div>
-      <div class="dr"><span class="dk">Peso habitual</span><span class="dv">${a.walkAroundWeightKg?esc(a.walkAroundWeightKg)+' kg':'—'}</span></div>
-    </div>
-
-    <div class="mr">
-      <div class="mc b"><span class="mc-n">${a.totalCompetitions||0}</span><span class="mc-l">Comp.</span></div>
-      <div class="mc y"><span class="mc-n">${a.upcomingCompetitions||0}</span><span class="mc-l">Próx.</span></div>
-      <div class="mc g"><span class="mc-n">${a.completedCompetitions||0}</span><span class="mc-l">Hechas</span></div>
-      <div class="mc r"><span class="mc-n">${a.rpeSesion||'—'}</span><span class="mc-l">RPE</span></div>
-    </div>
-
-    <div class="card">
-      <div class="card-body">
-        <div class="card-title">Competición</div>
-
-        <div class="dr">
-          <span class="dk">Próxima</span>
-          <span class="dv val-wrap">${a.nextEventDate?`${formatDate(a.nextEventDate)} · ${esc(a.nextEventName||'Competición')}`:'—'}</span>
-        </div>
-
-        <div class="dr">
-          <span class="dk">Rival</span>
-          <span class="dv">${esc(a.nextOpponent||'—')}</span>
-        </div>
-
-        <div class="dr">
-          <span class="dk">Lugar</span>
-          <span class="dv">${esc(a.nextLocation||'—')}</span>
-        </div>
-
-        <div class="dr">
-          <span class="dk">Última</span>
-          <span class="dv val-wrap">${a.lastEventDate?`${formatDate(a.lastEventDate)} · ${esc(a.lastResult||'Resultado pendiente')}`:'—'}</span>
+        <span style="color:var(--text-2);font-size:1.1rem;flex-shrink:0">›</span>
+      </summary>
+      <div style="padding:0 14px 12px;border-top:1px solid var(--divider)">
+        <div class="dr" style="padding:7px 0"><span class="dk">Récord</span><span class="dv mono">${record}</span></div>
+        <div class="dr" style="padding:7px 0"><span class="dk">Equipo</span><span class="dv">${esc(a.team||'—')}</span></div>
+        <div class="dr" style="padding:7px 0"><span class="dk">Nacionalidad</span><span class="dv">${esc(a.nationality||'—')}</span></div>
+        <div class="dr" style="padding:7px 0"><span class="dk">Altura</span><span class="dv">${a.heightCm?a.heightCm+' cm':'—'}</span></div>
+        <div class="dr" style="padding:7px 0"><span class="dk">Peso habitual</span><span class="dv">${a.walkAroundWeightKg?a.walkAroundWeightKg+' kg':'—'}</span></div>
+        <div style="margin-top:10px;display:flex;gap:6px">
+          <button class="btn btn-b btn-sm" onclick="openProfile('${a.clientId}')">Perfil cliente</button>
+          ${a.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(a.phone)}','Hola ${esc(firstName(a.clientName))}.')">WA</button>`:''}
         </div>
       </div>
-    </div>
+    </details>`;
 
-    <div class="card">
-      <div class="card-body">
-        <div class="card-title">Fase actual</div>
+  /* Pills secciones */
+  const sections=[
+    {key:'perfil',         label:'Perfil'},
+    {key:'competiciones',  label:'Competiciones'},
+    {key:'fases',          label:'Fases'},
+    {key:'metricas',       label:'Métricas'},
+    {key:'lesiones',       label:'Lesiones'},
+  ];
 
-        <div class="dr">
-          <span class="dk">Fase</span>
-          <span class="dv val-wrap" style="color:var(--sport)">${esc(a.activePhaseName||'—')}</span>
-        </div>
+  const pillsHTML=`
+    <div class="fr" style="margin-bottom:12px">
+      ${sections.map(s=>`
+        <button class="fp ${activeSection===s.key?'on':''}"
+          onclick="openAthleteSection('${s.key}','${a.clientId}')">
+          ${s.label}
+        </button>`).join('')}
+      <button class="fp ${activeSection==='eval'?'on':''}"
+        onclick="openEvalModal('${a.clientId}','${esc(a.clientName)}',null,null)">
+        Evaluación
+      </button>
+    </div>`;
 
-        <div class="dr">
-          <span class="dk">Tipo</span>
-          <span class="dv">${esc(a.activePhaseType||'—')}</span>
-        </div>
+  /* Contenido de sección */
+  let sectionHTML='';
+  if(state.activeAthleteSectionData){
+    sectionHTML=state.activeAthleteSectionData;
+  }else if(!activeSection){
+    sectionHTML=`
+      ${a.activePhaseName?`
+        <div class="card" style="border-left:3px solid var(--sport);margin-bottom:10px">
+          <div class="card-body" style="padding:12px 14px">
+            <div style="font-family:var(--font-m);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sport);margin-bottom:3px">Fase actual</div>
+            <div style="font-weight:700;font-size:.92rem">${esc(a.activePhaseName)}</div>
+            <div style="font-size:.74rem;color:var(--text-2);margin-top:2px">${esc(a.activePhaseType||'—')}${a.activePhaseStart?' · '+formatDate(a.activePhaseStart)+' – '+formatDate(a.activePhaseEnd):''}${a.weeksToCompetition!=null?' · '+a.weeksToCompetition+' sem. para comp.':''}</div>
+          </div>
+        </div>` : ''}
+      ${a.nextEventDate?`
+        <div class="card" style="border-left:3px solid var(--warn)">
+          <div class="card-body" style="padding:12px 14px">
+            <div style="font-family:var(--font-m);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--warn);margin-bottom:3px">Próxima competición</div>
+            <div style="font-weight:700;font-size:.92rem">${esc(a.nextEventName||'Competición')}</div>
+            <div style="font-size:.74rem;color:var(--text-2);margin-top:2px">${formatDate(a.nextEventDate)}${a.nextOpponent?' · vs '+esc(a.nextOpponent):''}${a.nextLocation?' · '+esc(a.nextLocation):''}</div>
+          </div>
+        </div>` : ''}
+      ${!a.activePhaseName&&!a.nextEventDate?`
+        <div style="text-align:center;padding:24px 16px;color:var(--text-2);font-size:.82rem">
+          Toca una sección para ver o añadir datos del atleta.
+        </div>` : ''}`;
+  }
 
-        <div class="dr">
-          <span class="dk">Fechas</span>
-          <span class="dv">${a.activePhaseStart?`${formatDate(a.activePhaseStart)} - ${formatDate(a.activePhaseEnd)}`:'—'}</span>
-        </div>
-
-        <div class="dr">
-          <span class="dk">Prioridad</span>
-          <span class="dv val-wrap">${esc(a.activePhasePriorityCapacity||'—')}</span>
-        </div>
-
-        <div class="dr">
-          <span class="dk">Semanas comp.</span>
-          <span class="dv">${a.weeksToCompetition??'—'}</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-body">
-        <div class="card-title">Métricas combate</div>
-
-        <div class="dr"><span class="dk">Peso</span><span class="dv">${a.pesoCorporal?esc(a.pesoCorporal)+' kg':'—'}</span></div>
-        <div class="dr"><span class="dk">CK</span><span class="dv">${esc(a.creatinaQuinasa||'—')}</span></div>
-        <div class="dr"><span class="dk">Cortisol</span><span class="dv">${esc(a.cortisol||'—')}</span></div>
-        <div class="dr"><span class="dk">VO2 máx</span><span class="dv">${esc(a.vo2Max||'—')}</span></div>
-        <div class="dr"><span class="dk">Umbral lactato</span><span class="dv">${esc(a.lactatoUmbral||'—')}</span></div>
-        <div class="dr"><span class="dk">VBT</span><span class="dv">${esc(a.vbtVelocidad||'—')}</span></div>
-        <div class="dr"><span class="dk">Pull isométrico</span><span class="dv">${esc(a.fuerzaIsometricaPull||'—')}</span></div>
-        <div class="dr"><span class="dk">FC rec. 1 min</span><span class="dv">${esc(a.fcRecuperacion1min||'—')}</span></div>
-      </div>
-
-      <div class="card-acts">
-        <button class="btn btn-b btn-sm" onclick="openProfile('${a.clientId}')">Perfil cliente</button>
-        ${a.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(a.phone)}','Hola ${esc(firstName(a.clientName))}.')">WA</button>`:''}
-      </div>
-    </div>
+  return`
+    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="renderAtletas()">← Lista de atletas</button>
+    ${statsHTML}
+    ${athleteCard}
+    ${pillsHTML}
+    <div id="ath-section-content">${sectionHTML}</div>
   `;
 }
 
