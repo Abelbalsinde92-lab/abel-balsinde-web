@@ -4404,13 +4404,13 @@ function buildAthleteDashboardHTML(a){
 
       return`
         <details class="card" style="margin-bottom:8px">
-          <summary style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none">
+                  <summary style="padding:12px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none">
             ${getClientPhotoHTML(c,'sm')}
             <div style="flex:1;min-width:0">
-              <div style="font-weight:800;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c?.name||'—')}</div>
-              <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);margin-top:1px">${fecha}</div>
+              <div style="font-weight:800;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c?.name||'—')}</div>
+              <div style="font-family:var(--font-m);font-size:.54rem;color:var(--text-2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${formatDate(fecha)} · ${esc(testName.split('—')[0].trim())}</div>
             </div>
-            ${badge(status,statusKind)}
+            <span style="font-family:var(--font-m);font-size:.5rem;padding:3px 7px;border-radius:5px;font-weight:700;flex-shrink:0;background:${statusKind==='pendiente'?'rgba(255,179,64,.12)':'rgba(0,230,118,.1)'};color:${statusKind==='pendiente'?'var(--warn)':'var(--streak)'}">${status}</span>
             <span style="color:var(--text-2);font-size:1rem;flex-shrink:0">›</span>
           </summary>
 
