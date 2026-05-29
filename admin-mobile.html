@@ -1110,6 +1110,239 @@ a{text-decoration:none;color:inherit}
 #video-ov .ms{
   max-height: 92dvh;
 }
+
+/* ═══════════════════════════════════════
+   AB SYSTEM v2 — WORKOUT SCREENS
+═══════════════════════════════════════ */
+
+/* ── PANTALLA 1: Bloque list items ── */
+.wt2-block {
+  display:flex;align-items:center;gap:12px;
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:14px;padding:14px;margin-bottom:10px;
+  cursor:pointer;transition:background .15s;width:100%;text-align:left;
+}
+.wt2-block:active{background:rgba(255,255,255,.03)}
+.wt2-block.done{border-color:rgba(0,230,118,.25)}
+.wt2-block-num{
+  width:32px;height:32px;border-radius:10px;
+  background:rgba(255,255,255,.06);display:flex;
+  align-items:center;justify-content:center;
+  font-family:var(--font-m);font-size:.7rem;
+  color:var(--text-2);flex-shrink:0;font-weight:700;
+}
+.wt2-block-icon{
+  width:36px;height:36px;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;
+}
+.wt2-block-body{flex:1;min-width:0}
+.wt2-block-name{
+  font-weight:700;font-size:.95rem;margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.wt2-block-sub{
+  font-family:var(--font-m);font-size:.58rem;
+  color:var(--text-2);letter-spacing:.04em;margin-bottom:6px;
+}
+.wt2-block-bar{
+  height:4px;background:rgba(255,255,255,.08);
+  border-radius:2px;overflow:hidden;
+}
+.wt2-block-bar-fill{
+  height:100%;border-radius:2px;transition:width .3s;
+}
+
+/* ── PANTALLA 2: Block header + exercise card ── */
+.wt2-block-header{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--r);padding:14px;margin-bottom:10px;
+}
+.wt2-block-header-top{display:flex;align-items:flex-start;gap:12px}
+.wt2-block-header-icon{
+  width:44px;height:44px;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;
+}
+.wt2-block-header-info{flex:1}
+.wt2-block-header-name{
+  font-family:var(--font-d);font-size:1.4rem;
+  letter-spacing:.04em;line-height:1;margin-bottom:6px;
+}
+.wt2-block-header-progress{display:flex;align-items:center;gap:8px}
+.wt2-block-header-progress-text{
+  font-family:var(--font-m);font-size:.6rem;
+  letter-spacing:.06em;color:var(--sport);white-space:nowrap;
+}
+.wt2-block-header-bar{
+  flex:1;height:4px;background:rgba(255,255,255,.08);
+  border-radius:2px;overflow:hidden;
+}
+.wt2-block-header-bar-fill{height:100%;background:var(--sport);border-radius:2px}
+.wt2-block-header-timer{text-align:right;flex-shrink:0;min-width:80px}
+.wt2-block-header-timer-label{
+  font-family:var(--font-m);font-size:.48rem;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-2);margin-bottom:2px;
+}
+.wt2-block-header-timer-val{
+  font-family:var(--font-m);font-size:1.1rem;
+  font-weight:700;color:var(--text);
+}
+.wt2-ex-card{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--r);padding:16px 14px 12px;margin-bottom:10px;
+}
+.wt2-ex-title{
+  font-family:var(--font-d);font-size:1.5rem;
+  letter-spacing:.03em;margin-bottom:10px;
+}
+.wt2-metrics-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:7px;margin-bottom:12px;
+}
+.wt2-metric{
+  background:rgba(255,255,255,.04);border:1px solid var(--divider);
+  border-radius:10px;padding:9px 6px;display:flex;
+  flex-direction:column;align-items:center;gap:2px;text-align:center;
+}
+.wt2-metric-icon{color:var(--sport);line-height:1;margin-bottom:2px;font-size:.85rem}
+.wt2-metric-val{
+  font-family:var(--font-d);font-size:1rem;
+  letter-spacing:.02em;color:var(--text);line-height:1;
+}
+.wt2-metric-label{
+  font-family:var(--font-m);font-size:.48rem;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);
+}
+.wt2-objetivo{font-size:.82rem;margin-bottom:10px;line-height:1.45}
+.wt2-objetivo strong{
+  color:var(--sport);font-family:var(--font-m);font-size:.6rem;
+  letter-spacing:.08em;text-transform:uppercase;margin-right:4px;
+}
+.wt2-tabs-wrap{
+  border:1px solid var(--divider);border-radius:10px;
+  overflow:hidden;margin-top:10px;
+}
+.wt2-tabs-nav{display:flex}
+.wt2-tab-btn{
+  flex:1;padding:9px 4px;font-family:var(--font-m);
+  font-size:.5rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-2);text-align:center;cursor:pointer;
+  font-weight:700;border-right:1px solid var(--divider);
+  border-bottom:1px solid var(--divider);background:transparent;
+  transition:all .12s;
+}
+.wt2-tab-btn:last-child{border-right:none}
+.wt2-tab-btn.on{background:rgba(0,200,232,.1);color:var(--sport);border-bottom-color:transparent}
+.wt2-tab-panel{display:none;padding:12px 14px}
+.wt2-tab-panel.on{display:block}
+.wt2-tab-row{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--divider)}
+.wt2-tab-row:last-child{border-bottom:none}
+.wt2-tab-row-icon{color:var(--sport);font-size:.9rem;flex-shrink:0;width:20px;text-align:center;margin-top:1px}
+.wt2-tab-row-title{
+  font-family:var(--font-m);font-size:.6rem;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:var(--sport);margin-bottom:2px;font-weight:700;
+}
+.wt2-tab-row-text{font-size:.78rem;color:var(--text-2);line-height:1.5}
+.wt2-next{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--r);padding:14px;margin-bottom:10px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.wt2-next-label{
+  font-family:var(--font-m);font-size:.58rem;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--sport);margin-bottom:3px;
+}
+.wt2-next-name{font-weight:700;font-size:.95rem}
+.wt2-next-sub{font-size:.72rem;color:var(--text-2);margin-top:2px}
+.wt2-ex-list{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--r);overflow:hidden;margin-bottom:12px;
+}
+.wt2-ex-list-title{
+  padding:11px 14px;font-family:var(--font-m);font-size:.6rem;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text-2);border-bottom:1px solid var(--divider);
+}
+.wt2-ex-row{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;border-bottom:1px solid var(--divider);
+}
+.wt2-ex-row:last-child{border-bottom:none}
+.wt2-ex-num{
+  width:26px;height:26px;border-radius:50%;
+  background:rgba(255,255,255,.06);display:flex;
+  align-items:center;justify-content:center;
+  font-family:var(--font-m);font-size:.6rem;
+  color:var(--text-2);flex-shrink:0;font-weight:700;
+}
+.wt2-ex-num.act{background:transparent;border:1.5px solid var(--sport);color:var(--sport)}
+.wt2-ex-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--sport);font-size:.85rem}
+.wt2-ex-name{flex:1;font-size:.88rem;font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wt2-ex-status{
+  font-family:var(--font-m);font-size:.55rem;
+  letter-spacing:.06em;padding:5px 10px;border-radius:20px;
+  font-weight:700;flex-shrink:0;white-space:nowrap;
+}
+.wt2-ex-status.s-done{border:1px solid var(--sport);color:var(--sport)}
+.wt2-ex-status.s-active{background:rgba(0,200,232,.15);color:var(--sport)}
+.wt2-ex-status.s-pending{border:1px solid rgba(255,255,255,.12);color:var(--text-2)}
+
+/* ── PANTALLA 3: Checkout ── */
+.wt2-co-section{margin-bottom:16px}
+.wt2-co-label{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--font-m);font-size:.6rem;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text-2);margin-bottom:10px;
+}
+.wt2-rpe-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.wt2-rpe-pill{
+  aspect-ratio:1;border-radius:8px;border:1px solid var(--divider);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-m);font-size:.7rem;
+  color:var(--text-2);cursor:pointer;font-weight:700;transition:all .12s;
+}
+.wt2-rpe-pill.on{background:var(--sport);color:#000;border-color:var(--sport)}
+.wt2-co-pills{display:flex;gap:8px}
+.wt2-co-pill{
+  flex:1;padding:11px 6px;border-radius:10px;
+  border:1px solid var(--divider);font-family:var(--font-m);
+  font-size:.58rem;letter-spacing:.04em;color:var(--text-2);
+  text-align:center;cursor:pointer;font-weight:700;transition:all .12s;
+}
+.wt2-co-pill.on{background:var(--sport);color:#000;border-color:var(--sport)}
+.wt2-resume{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--divider);margin-top:10px;
+}
+.wt2-resume-col{
+  padding:12px 6px;text-align:center;
+  border-right:1px solid var(--divider);
+}
+.wt2-resume-col:last-child{border-right:none}
+.wt2-resume-icon{color:var(--sport);font-size:.9rem;margin-bottom:3px;line-height:1}
+.wt2-resume-label{
+  font-family:var(--font-m);font-size:.48rem;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-2);margin-bottom:3px;
+}
+.wt2-resume-val{font-family:var(--font-d);font-size:1.2rem;letter-spacing:.03em;line-height:1}
+.wt2-resume-val.cyan{color:var(--sport)}
+.wt2-reco{
+  background:rgba(0,200,232,.05);border:1px solid rgba(0,200,232,.2);
+  border-radius:var(--r);padding:14px;margin-bottom:12px;
+}
+.wt2-reco-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.wt2-reco-icon{color:var(--sport);font-size:1.1rem;flex-shrink:0}
+.wt2-reco-title{font-family:var(--font-d);font-size:1rem;letter-spacing:.04em}
+.wt2-reco-text{font-size:.8rem;color:var(--text-2);line-height:1.55}
+.wt2-footer{
+  display:grid;grid-template-columns:1fr 1.8fr;gap:10px;
+  padding-top:12px;margin-top:6px;
+  border-top:1px solid var(--divider);
+}
 </style>
 </head>
 <body>
@@ -5020,20 +5253,18 @@ ${plan.blocks.map((b,bi)=>{
       const info=getBlockDoneInfo(c.id,b);
       const title=getBlockName(b)||`Bloque ${bi+1}`;
       const pct=info.total>0?Math.round((info.done/info.total)*100):0;
-      return`<button class="card block-closed ${info.finished?'finished':''}" onclick="openWorkoutBlock('${b.id}')">
-        <div class="card-body">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-            <div style="min-width:0;text-align:left;flex:1">
-              <div class="block-closed-title">${esc(title)}</div>
-              <div class="block-closed-sub">${info.done}/${info.total} ${info.guided?'bloque guiado':'ejercicios'}</div>
-              ${info.total>0?`<div class="block-progress-bar"><div class="block-progress-fill" style="width:${pct}%;background:${info.finished?'var(--streak)':'var(--sport)'}"></div></div>`:''}
-            </div>
-            <div class="block-closed-action" style="${info.finished?'background:rgba(0,230,118,.12);color:var(--streak);border-color:rgba(0,230,118,.3)':''}">
-              ${info.finished?'✓ Hecho':'Abrir'}
-            </div>
-          </div>
-        </div>
-      </button>`;
+     return`<button class="wt2-block ${info.finished?'done':''}" onclick="openWorkoutBlock('${b.id}')">
+    <div class="wt2-block-num">${bi+1}</div>
+    <div class="wt2-block-icon">${getBlockTypeIconSVG(b)}</div>
+    <div class="wt2-block-body">
+      <div class="wt2-block-name">${esc(title)}</div>
+      <div class="wt2-block-sub">${info.done}/${info.total} ${info.guided?'guiado':'ejercicios'}</div>
+      <div class="wt2-block-bar"><div class="wt2-block-bar-fill" style="width:${pct}%;background:${info.finished?'var(--streak)':'var(--sport)'}"></div></div>
+    </div>
+    <div class="block-closed-action" style="${info.finished?'background:rgba(0,230,118,.12);color:var(--streak);border-color:rgba(0,230,118,.3)':''}">
+      ${info.finished?'✓':'Abrir'}
+    </div>
+  </button>`;
     }).join('')}
     <div class="card">
       <div class="card-body">
@@ -5230,108 +5461,123 @@ function buildNextExercisePreview(exercises, currentIndex){
 }
 
 function buildActiveSingleExerciseScreen(c,plan,block){
-  const exercises = block.exercises || [];
+  const exercises=block.exercises||[];
+  if(!exercises.length) return buildGuidedBlockScreen(c,plan,block);
 
-  if(!exercises.length){
-    return buildGuidedBlockScreen(c,plan,block);
-  }
+  const idx=Math.min(Number(state.activeWorkoutExerciseIndex||0),Math.max(0,exercises.length-1));
+  state.activeWorkoutExerciseIndex=idx;
 
-  const idx = Math.min(
-    Number(state.activeWorkoutExerciseIndex || 0),
-    Math.max(0, exercises.length - 1)
-  );
+  const ex=exercises[idx];
+  const exId=getExerciseId(ex,idx);
+  const info=getExerciseInfo(ex);
+  const videoUrl=getExerciseVideoUrl(ex);
+  const blockTitle=getBlockName(block)||'Bloque';
+  const donePct=Math.round(((idx+1)/exercises.length)*100);
+  const d=getDoseData(ex);
 
-  state.activeWorkoutExerciseIndex = idx;
+  // Métricas grid: siempre 4 cajas
+  const metricItems=[];
+  if(d.sets) metricItems.push({i:'⊞',v:d.sets,l:'Series'});
+  if(d.reps) metricItems.push({i:'↻',v:d.reps,l:'Reps'});
+  else if(d.duration) metricItems.push({i:'⏱',v:d.duration,l:'Trabajo'});
+  if(d.rest) metricItems.push({i:'⏸',v:d.rest,l:'Descanso'});
+  if(d.tempo) metricItems.push({i:'〜',v:d.tempo,l:'Tempo'});
+  while(metricItems.length<4) metricItems.push({i:'—',v:'—',l:'—'});
 
-  const ex = exercises[idx];
-  const exId = getExerciseId(ex,idx);
-  const info = getExerciseInfo(ex);
-  const videoUrl = getExerciseVideoUrl(ex);
-  const blockTitle = getBlockName(block) || 'Bloque de entrenamiento';
-  const progressPct = exercises.length ? Math.round(((idx + 1) / exercises.length) * 100) : 0;
+  const metricsHTML=metricItems.slice(0,4).map(m=>`
+    <div class="wt2-metric">
+      <div class="wt2-metric-icon">${m.i}</div>
+      <div class="wt2-metric-val">${esc(m.v)}</div>
+      <div class="wt2-metric-label">${esc(m.l)}</div>
+    </div>`).join('');
+
+  const objetivo=d.variant||ex.description||ex.descriptionEs||ex.description_es||'';
+
+  // Lista ejercicios del bloque
+  const exListHTML=exercises.map((e,i)=>{
+    const eid=getExerciseId(e,i);
+    const done=isExerciseDone(c.id,eid);
+    const isAct=i===idx;
+    const sc=done?'s-done':isAct?'s-active':'s-pending';
+    const st=done?'Hecho':isAct?'Activo':'Pendiente';
+    return`<div class="wt2-ex-row">
+      <div class="wt2-ex-num ${isAct?'act':''}">${i+1}</div>
+      <div class="wt2-ex-icon">${done?'✓':'○'}</div>
+      <div class="wt2-ex-name">${esc(getExerciseTitle(e))}</div>
+      <div class="wt2-ex-status ${sc}">${st}</div>
+    </div>`;
+  }).join('');
 
   return `
-    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">
-      Volver a bloques
-    </button>
+    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">← Bloques</button>
 
-    <div style="margin-bottom:10px">
-      <div class="scr-eye">${esc(blockTitle)}</div>
-      <div class="scr-t" style="font-size:1.35rem">
-        ${idx + 1}/${exercises.length} · ${esc(getExerciseTitle(ex))}
-      </div>
-
-      <div class="block-progress-bar" style="margin-top:9px">
-        <div class="block-progress-fill" style="width:${progressPct}%;background:var(--sport)"></div>
-      </div>
-    </div>
-
-    ${buildTimerHTML()}
-
-    <div class="ex-card">
-      <div class="ex-main">
-        <div class="ex-top">
-          <div class="ex-num">${String(idx + 1).padStart(2,'0')}</div>
-
-          <div style="flex:1;min-width:0">
-            <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
-
-            ${buildDoseHTML(ex)}
-
-            ${ex.description || ex.descriptionEs || ex.description_es ? `
-              <div class="ex-desc">
-                ${esc(ex.description || ex.descriptionEs || ex.description_es)}
-              </div>
-            ` : ''}
+    <div class="wt2-block-header">
+      <div class="wt2-block-header-top">
+        <div class="wt2-block-header-icon">${getBlockTypeIconSVG(block)}</div>
+        <div class="wt2-block-header-info">
+          <div class="wt2-block-header-name">${esc(blockTitle)}</div>
+          <div class="wt2-block-header-progress">
+            <span class="wt2-block-header-progress-text">Ejercicio <span style="color:var(--sport)">${idx+1}</span> de ${exercises.length}</span>
+            <div class="wt2-block-header-bar"><div class="wt2-block-header-bar-fill" style="width:${donePct}%"></div></div>
           </div>
         </div>
-      </div>
-
-      <div class="ex-mini">
-        <details open>
-          <summary>Por qué</summary>
-          <p>${esc(info.why)}</p>
-        </details>
-
-        <details>
-          <summary>Técnica</summary>
-          <p>${esc(info.tech)}</p>
-        </details>
-
-        <details>
-          <summary>Respira</summary>
-          <p>${esc(info.breath)}</p>
-        </details>
-
-        <details>
-          <summary>Errores</summary>
-          <p>${esc(info.errors)}</p>
-        </details>
-
-        <details>
-          <summary>Coach</summary>
-          <p>${esc(info.coach)}</p>
-        </details>
-      </div>
-
-      <div class="ex-actions">
-        ${videoUrl ? `
-          <button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">
-            Vídeo
-          </button>
-        ` : `
-          <button class="btn btn-s btn-sm" disabled>
-            Sin vídeo
-          </button>
-        `}
-
-        <button class="btn btn-p btn-sm" onclick="completeActiveExercise('${c.id}','${block.id}','${exId}')">
-          Terminado
-        </button>
+        <div class="wt2-block-header-timer">
+          <div class="wt2-block-header-timer-label">TIEMPO ACTIVO</div>
+          <div class="wt2-block-header-timer-val" id="wt-clock">${formatClock(state.workoutTimer.seconds)}</div>
+        </div>
       </div>
     </div>
 
-    ${buildNextExercisePreview(exercises, idx)}
+    <div class="wt2-ex-card">
+      <div class="wt2-ex-title">${esc(getExerciseTitle(ex))}</div>
+      <div class="wt2-metrics-grid">${metricsHTML}</div>
+      ${objetivo?`<div class="wt2-objetivo"><strong>Objetivo:</strong> ${esc(objetivo)}</div>`:''}
+      <div class="wt2-tabs-wrap">
+        <div class="wt2-tabs-nav">
+          <div class="wt2-tab-btn on" onclick="switchExTab('wt-t-tecnica',this)">Técnica</div>
+          <div class="wt2-tab-btn" onclick="switchExTab('wt-t-porque',this)">Por qué</div>
+          <div class="wt2-tab-btn" onclick="switchExTab('wt-t-respira',this)">Respira</div>
+          <div class="wt2-tab-btn" onclick="switchExTab('wt-t-errores',this)">Errores</div>
+          <div class="wt2-tab-btn" onclick="switchExTab('wt-t-coach',this)">Coach</div>
+        </div>
+        <div id="wt-t-tecnica" class="wt2-tab-panel on">
+          <div class="wt2-tab-row"><div class="wt2-tab-row-icon">▣</div><div><div class="wt2-tab-row-title">Técnica</div><div class="wt2-tab-row-text">${esc(info.tech)}</div></div></div>
+        </div>
+        <div id="wt-t-porque" class="wt2-tab-panel">
+          <div class="wt2-tab-row"><div class="wt2-tab-row-icon">◉</div><div><div class="wt2-tab-row-title">Por qué</div><div class="wt2-tab-row-text">${esc(info.why)}</div></div></div>
+        </div>
+        <div id="wt-t-respira" class="wt2-tab-panel">
+          <div class="wt2-tab-row"><div class="wt2-tab-row-icon">◎</div><div><div class="wt2-tab-row-title">Respiración</div><div class="wt2-tab-row-text">${esc(info.breath)}</div></div></div>
+        </div>
+        <div id="wt-t-errores" class="wt2-tab-panel">
+          <div class="wt2-tab-row"><div class="wt2-tab-row-icon">⚠</div><div><div class="wt2-tab-row-title">Errores comunes</div><div class="wt2-tab-row-text">${esc(info.errors)}</div></div></div>
+        </div>
+        <div id="wt-t-coach" class="wt2-tab-panel">
+          <div class="wt2-tab-row"><div class="wt2-tab-row-icon">◈</div><div><div class="wt2-tab-row-title">Cue del coach</div><div class="wt2-tab-row-text">${esc(info.coach)}</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    ${exercises[idx+1]?`
+    <div class="wt2-next">
+      <div>
+        <div class="wt2-next-label">Siguiente ejercicio</div>
+        <div class="wt2-next-name">${esc(getExerciseTitle(exercises[idx+1]))}</div>
+        <div class="wt2-next-sub">Se abrirá al terminar el actual.</div>
+      </div>
+      <span style="color:var(--text-2);font-size:1.4rem">›</span>
+    </div>`:''}
+
+    <div class="wt2-ex-list">
+      <div class="wt2-ex-list-title">Ejercicios del bloque</div>
+      ${exListHTML}
+    </div>
+
+    <div class="wt2-footer">
+      <button class="btn btn-s" onclick="pauseWorkoutTimer()">⏸ Pausar</button>
+      <button class="btn btn-p" onclick="completeActiveExercise('${c.id}','${block.id}','${exId}')">✓ Marcar ejercicio</button>
+    </div>
+    ${videoUrl?`<div style="text-align:center;padding-top:10px"><button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">🎬 Ver circuito completo</button></div>`:''}
   `;
 }
 
@@ -5468,101 +5714,81 @@ async function completeGuidedBlock(clientId,blockId){
 }
 
 function buildActiveCircuitScreen(c,plan,block){
-  const exercises = block.exercises || [];
-  const blockTitle = getBlockName(block) || 'Circuito';
-
-  const doneCount = exercises.filter((ex,idx) =>
-    isExerciseDone(c.id,getExerciseId(ex,idx))
-  ).length;
-
-  const pct = exercises.length ? Math.round((doneCount / exercises.length) * 100) : 0;
+  const exercises=block.exercises||[];
+  const blockTitle=getBlockName(block)||'Circuito';
+  const doneCount=exercises.filter((ex,idx)=>isExerciseDone(c.id,getExerciseId(ex,idx))).length;
+  const pct=exercises.length?Math.round((doneCount/exercises.length)*100):0;
 
   return `
-    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">
-      Volver a bloques
-    </button>
+    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">← Bloques</button>
 
-    <div style="margin-bottom:10px">
-      <div class="scr-eye">${esc(blockTitle)}</div>
-      <div class="scr-t" style="font-size:1.35rem">
-        Circuito · ${doneCount}/${exercises.length}
-      </div>
-
-      <div class="block-progress-bar" style="margin-top:9px">
-        <div class="block-progress-fill" style="width:${pct}%;background:${doneCount === exercises.length ? 'var(--streak)' : 'var(--sport)'}"></div>
+    <div class="wt2-block-header">
+      <div class="wt2-block-header-top">
+        <div class="wt2-block-header-icon">${getBlockTypeIconSVG(block)}</div>
+        <div class="wt2-block-header-info">
+          <div class="wt2-block-header-name">${esc(blockTitle)}</div>
+          <div class="wt2-block-header-progress">
+            <span class="wt2-block-header-progress-text">${doneCount}/${exercises.length} ejercicios</span>
+            <div class="wt2-block-header-bar">
+              <div class="wt2-block-header-bar-fill" style="width:${pct}%;background:${doneCount===exercises.length?'var(--streak)':'var(--sport)'}"></div>
+            </div>
+          </div>
+        </div>
+        <div class="wt2-block-header-timer">
+          <div class="wt2-block-header-timer-label">TIEMPO ACTIVO</div>
+          <div class="wt2-block-header-timer-val" id="wt-clock">${formatClock(state.workoutTimer.seconds)}</div>
+        </div>
       </div>
     </div>
 
     ${buildTimerHTML()}
 
-    <div class="card" style="border-left:3px solid var(--sport)">
-      <div class="card-body" style="padding:12px 14px">
-        <div class="card-title" style="margin-bottom:6px">
-          Trabajo en circuito
-        </div>
+    ${exercises.length?exercises.map((ex,idx)=>buildCircuitExerciseCard(ex,idx,c.id)).join(''):`
+      <div class="wt-empty">Este circuito no tiene ejercicios cargados.</div>`}
 
-        <div style="font-size:.78rem;color:var(--text-2);line-height:1.55">
-          Aquí se muestran todos los ejercicios del bloque porque se ejecutan por rondas, tiempo o secuencia continua.
-        </div>
-      </div>
-    </div>
-
-    ${exercises.length ? exercises.map((ex,idx)=>buildCircuitExerciseCard(ex,idx,c.id)).join('') : `
-      <div class="wt-empty">Este circuito no tiene ejercicios cargados.</div>
-    `}
-
-    <div class="card">
-      <div class="card-acts">
-        <button class="btn btn-p btn-sm btn-wide" onclick="completeCircuitBlock('${c.id}','${block.id}')">
-          Circuito terminado
-        </button>
-      </div>
+    <div class="wt2-footer">
+      <button class="btn btn-s" onclick="pauseWorkoutTimer()">⏸ Pausar</button>
+      <button class="btn btn-p" onclick="completeCircuitBlock('${c.id}','${block.id}')">✓ Circuito terminado</button>
     </div>
   `;
 }
 
 function buildCircuitExerciseCard(ex,index,clientId){
-  const exId = getExerciseId(ex,index);
-  const done = isExerciseDone(clientId,exId);
-  const videoUrl = getExerciseVideoUrl(ex);
+  const exId=getExerciseId(ex,index);
+  const done=isExerciseDone(clientId,exId);
+  const videoUrl=getExerciseVideoUrl(ex);
+  const d=getDoseData(ex);
+
+  const metricItems=[];
+  if(d.sets) metricItems.push({i:'⊞',v:d.sets,l:'Series'});
+  if(d.reps) metricItems.push({i:'↻',v:d.reps,l:'Reps'});
+  else if(d.duration) metricItems.push({i:'⏱',v:d.duration,l:'Trabajo'});
+  if(d.rest) metricItems.push({i:'⏸',v:d.rest,l:'Descanso'});
+  if(d.tempo) metricItems.push({i:'〜',v:d.tempo,l:'Tempo'});
+  while(metricItems.length<4) metricItems.push({i:'—',v:'—',l:'—'});
+
+  const metricsHTML=metricItems.slice(0,4).map(m=>`
+    <div class="wt2-metric">
+      <div class="wt2-metric-icon">${m.i}</div>
+      <div class="wt2-metric-val">${esc(m.v)}</div>
+      <div class="wt2-metric-label">${esc(m.l)}</div>
+    </div>`).join('');
 
   return `
-    <div class="ex-card ${done ? 'done' : ''}">
-      <div class="ex-main">
-        <div class="ex-top">
-          <div class="ex-num">${String(index + 1).padStart(2,'0')}</div>
-
-          <div style="flex:1;min-width:0">
-            <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
-
-            ${buildDoseHTML(ex)}
-
-            ${ex.description || ex.descriptionEs || ex.description_es ? `
-              <div class="ex-desc">
-                ${esc(ex.description || ex.descriptionEs || ex.description_es)}
-              </div>
-            ` : ''}
-          </div>
-        </div>
+    <div class="wt2-ex-card ${done?'done':''}" style="${done?'opacity:.7;border-color:rgba(0,230,118,.35)':''}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div class="ex-num">${String(index+1).padStart(2,'0')}</div>
+        <div class="wt2-ex-title" style="margin-bottom:0;font-size:1.1rem">${esc(getExerciseTitle(ex))}</div>
+        ${done?`<span style="color:var(--streak);font-size:.9rem;margin-left:auto">✓</span>`:''}
       </div>
-
-      <div class="ex-actions">
-        ${videoUrl ? `
-          <button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">
-            Vídeo
-          </button>
-        ` : `
-          <button class="btn btn-s btn-sm" disabled>
-            Sin vídeo
-          </button>
-        `}
-
-        <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
-          ${done ? 'Hecho' : 'Marcar'}
+      <div class="wt2-metrics-grid">${metricsHTML}</div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        ${videoUrl?`<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`:''}
+        <button class="btn ${done?'btn-g':'btn-s'} btn-sm" style="flex:1" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
+          ${done?'✓ Hecho':'Marcar hecho'}
         </button>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
 async function completeCircuitBlock(clientId,blockId){
@@ -6864,6 +7090,31 @@ function findAdaptedRowByReviewKey(reviewKey){
   return null;
 }
 
+/* ── AB v2: block type icon ── */
+function getBlockTypeIconSVG(block){
+  const t=cleanTxt(getBlockType(block)+' '+(getBlockName(block)||''));
+  const s=d=>`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--sport)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  if(t.includes('fuerza')||t.includes('potencia')||t.includes('hipertrofia'))
+    return s('<path d="M6 4v16M18 4v16"/><path d="M4 6h4M16 6h4M4 18h4M16 18h4"/>');
+  if(t.includes('calentamiento')||t.includes('warmup')||t.includes('activacion'))
+    return s('<path d="M12 22c4-3 6-7 6-10.5C18 7 15.5 4 12 4S6 7 6 11.5C6 15 8 19 12 22z"/><path d="M12 8c-1 2-1 4 0 6"/>');
+  if(t.includes('core')||t.includes('funcional'))
+    return s('<circle cx="12" cy="4" r="1.5"/><path d="M9 9h6M10 9l-2 5 2 4M14 9l2 5-2 4M10 14h4"/>');
+  if(t.includes('vuelta')||t.includes('cooldown')||t.includes('calma')||t.includes('estiramiento'))
+    return s('<path d="M12 22V12M8 6C8 3 12 2 12 2s4 1 4 4c0 4-4 6-4 10"/><path d="M5 14c0-4 7-6 7 0s7 4 7 0"/>');
+  if(t.includes('movilidad'))
+    return s('<circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>');
+  return s('<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>');
+}
+
+/* ── AB v2: tab switching ── */
+function switchExTab(tabId,el){
+  document.querySelectorAll('.wt2-tab-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.wt2-tab-panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById(tabId)?.classList.add('on');
+}
+
 async function renderWorkout(){
   const box=document.getElementById('workout-content');
   const c=clientById(state.activeTrainingClientId||state.selectedClientId);
@@ -7268,81 +7519,134 @@ function openCheckout(clientId){
 }
 
 function buildCheckoutHTML(c){
-  const note = state.workoutNotes[c.id] || '';
-  const plan = getWorkoutPlanForClient(c);
-  const completedWeek = getAssignmentWeek(plan.assignment);
-  const completedSession = getAssignmentSessionNumber(plan.assignment);
+  const note=state.workoutNotes[c.id]||'';
+  const plan=getWorkoutPlanForClient(c);
+  const completedWeek=getAssignmentWeek(plan.assignment);
+  const completedSession=getAssignmentSessionNumber(plan.assignment);
+  const allBlocks=plan.blocks||[];
+  const doneBlocks=allBlocks.filter(b=>getBlockDoneInfo(c.id,b).finished).length;
+  const totalEx=plan.exercises?.length||0;
+  const doneEx=(plan.exercises||[]).filter((ex,idx)=>isExerciseDone(c.id,getExerciseId(ex,idx))).length;
+  const duration=formatClock(state.workoutTimer.seconds);
+  const allDone=allBlocks.length>0&&doneBlocks===allBlocks.length;
+
+  // Recomendación automática
+  const recoTxt=allDone
+    ?'Sesión completada. Mantener carga en próxima sesión. Revisar técnica en los ejercicios más exigentes y asegurarse de recuperación activa.'
+    :`${doneBlocks}/${allBlocks.length} bloques completados. Revisar ejercicios pendientes en la próxima sesión y ajustar intensidad según sensación de hoy.`;
 
   return `
     <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:12px" onclick="renderWorkout()">← Volver</button>
 
-    <div class="scr-h">
-      <div class="scr-eye">Cierre de sesión · ${esc(workoutStepLabel(completedWeek,completedSession))}</div>
-      <div class="scr-t">${esc(c.name)}</div>
+    <div class="wt-head" style="margin-bottom:12px">
+      <div class="wt-head-top">
+        ${getClientPhotoHTML(c,'sm')}
+        <div style="flex:1;min-width:0">
+          <div class="wt-name">${esc(c.name)}</div>
+          <div class="wt-program">${esc(workoutStepLabel(completedWeek,completedSession))} completado</div>
+        </div>
+      </div>
+      <div class="wt2-resume">
+        <div class="wt2-resume-col">
+          <div class="wt2-resume-icon">⏱</div>
+          <div class="wt2-resume-label">Duración</div>
+          <div class="wt2-resume-val">${esc(duration)}</div>
+        </div>
+        <div class="wt2-resume-col">
+          <div class="wt2-resume-icon">⊞</div>
+          <div class="wt2-resume-label">Bloques</div>
+          <div class="wt2-resume-val">${doneBlocks}/${allBlocks.length}</div>
+        </div>
+        <div class="wt2-resume-col">
+          <div class="wt2-resume-icon">↻</div>
+          <div class="wt2-resume-label">Ejercicios</div>
+          <div class="wt2-resume-val">${doneEx}/${totalEx}</div>
+        </div>
+        <div class="wt2-resume-col">
+          <div class="wt2-resume-icon">✓</div>
+          <div class="wt2-resume-label">Estado</div>
+          <div class="wt2-resume-val ${allDone?'cyan':''}">${allDone?'ok':'parcial'}</div>
+        </div>
+      </div>
     </div>
 
     <div class="card">
       <div class="card-body">
-        <div class="card-title">Valoración</div>
+        <div class="card-title">Check-out</div>
 
-        <div style="margin-bottom:16px">
-          <div class="dk" style="margin-bottom:8px">Esfuerzo percibido · RPE 1–10</div>
-          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px" id="rpe-grid">
+        <div class="wt2-co-section">
+          <div class="wt2-co-label">RPE / dureza ⓘ</div>
+          <div class="wt2-rpe-grid">
             ${[1,2,3,4,5,6,7,8,9,10].map(n=>`
-              <button type="button" class="fp" id="rpe-${n}" onclick="selectCoField('rpe',${n},'rpe-grid')"
-                style="min-height:44px;justify-content:center;font-family:var(--font-d);font-size:1.15rem">
-                ${n}
-              </button>`).join('')}
+              <div class="wt2-rpe-pill" id="rpe2-${n}" onclick="
+                document.querySelectorAll('.wt2-rpe-pill').forEach(x=>x.classList.remove('on'));
+                this.classList.add('on');
+                document.getElementById('co-rpe').value=${n}">${n}</div>`).join('')}
           </div>
           <input type="hidden" id="co-rpe" value="">
         </div>
 
-        <div style="margin-bottom:14px">
-          <div class="dk" style="margin-bottom:8px">Molestias durante la sesión</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap" id="sore-grid">
-            ${['Ninguna','Leve','Media','Fuerte'].map(v=>`
-              <button type="button" class="fp" id="sore-${v}"
-                onclick="selectCoField('soreness','${v}','sore-grid');toggleZone('${v}')">${v}</button>`).join('')}
+        <div class="wt2-co-section">
+          <div class="wt2-co-label">Molestias ⓘ</div>
+          <div class="wt2-co-pills" id="co-sore-grid">
+            ${['ninguna','leve','moderada'].map(v=>`
+              <div class="wt2-co-pill" onclick="
+                document.querySelectorAll('#co-sore-grid .wt2-co-pill').forEach(x=>x.classList.remove('on'));
+                this.classList.add('on');
+                document.getElementById('co-soreness').value='${v}';
+                document.getElementById('co-zone-wrap').style.display='${v==='ninguna'?'none':''}'">
+                ${v}</div>`).join('')}
           </div>
           <input type="hidden" id="co-soreness" value="">
         </div>
 
-        <div id="co-zone-wrap" style="margin-bottom:14px;display:none">
-          <div class="dk" style="margin-bottom:6px">Zona de molestia</div>
-          <input id="co-zone" class="fld-i" placeholder="Ej: rodilla derecha, zona lumbar…" style="min-height:44px">
+        <div id="co-zone-wrap" style="display:none;margin-bottom:16px">
+          <input id="co-zone" class="fld-i" placeholder="Zona: rodilla, hombro, lumbar…" style="min-height:44px">
         </div>
 
-        <div style="margin-bottom:14px">
-          <div class="dk" style="margin-bottom:8px">Control respiratorio</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap" id="breath-grid">
-            ${['Buena','Agitada','Bloqueó aire','Recuperó lento'].map(v=>`
-              <button type="button" class="fp" id="breath-${v}"
-                onclick="selectCoField('breath','${v}','breath-grid')">${v}</button>`).join('')}
+        <div class="wt2-co-section">
+          <div class="wt2-co-label">Respiración ⓘ</div>
+          <div class="wt2-co-pills" id="co-breath-grid">
+            ${['buena','agitada','bloquea aire'].map(v=>`
+              <div class="wt2-co-pill" onclick="
+                document.querySelectorAll('#co-breath-grid .wt2-co-pill').forEach(x=>x.classList.remove('on'));
+                this.classList.add('on');
+                document.getElementById('co-breath').value='${v}'">${v}</div>`).join('')}
           </div>
           <input type="hidden" id="co-breath" value="">
         </div>
 
-        <div style="margin-bottom:16px">
-          <div class="dk" style="margin-bottom:8px">Fatiga al final</div>
-          <div style="display:flex;gap:6px" id="fatigue-grid">
-            ${['Baja','Media','Alta'].map(v=>`
-              <button type="button" class="fp" id="fatigue-${v}"
-                onclick="selectCoField('fatigue','${v}','fatigue-grid')">${v}</button>`).join('')}
+        <div class="wt2-co-section">
+          <div class="wt2-co-label">Comodidad técnica ⓘ</div>
+          <div class="wt2-co-pills" id="co-tech-grid">
+            ${['alta','media','baja'].map(v=>`
+              <div class="wt2-co-pill" onclick="
+                document.querySelectorAll('#co-tech-grid .wt2-co-pill').forEach(x=>x.classList.remove('on'));
+                this.classList.add('on');
+                document.getElementById('co-fatigue').value='${v}'">${v}</div>`).join('')}
           </div>
           <input type="hidden" id="co-fatigue" value="">
         </div>
 
         <div class="fld" style="margin-bottom:0">
-          <label class="fld-l">Observación del coach</label>
-          <textarea id="co-note" class="wt-note" style="min-height:88px"
-            placeholder="Técnica, carga, comportamiento, lo que destacar…">${esc(note)}</textarea>
+          <label class="fld-l">Observaciones</label>
+          <textarea id="co-note" class="wt-note" style="min-height:80px"
+            placeholder="Técnica, carga, molestias, lo que destacar…">${esc(note)}</textarea>
         </div>
       </div>
-      <div class="card-acts">
-        <button class="btn btn-p btn-sm btn-wide" onclick="submitCheckout('${c.id}')">
-          Guardar y avanzar
-        </button>
+    </div>
+
+    <div class="wt2-reco">
+      <div class="wt2-reco-header">
+        <span class="wt2-reco-icon">💡</span>
+        <span class="wt2-reco-title">Recomendación próxima sesión</span>
       </div>
+      <div class="wt2-reco-text">${esc(recoTxt)}</div>
+    </div>
+
+    <div class="wt2-footer">
+      <button class="btn btn-s" onclick="renderWorkout()">Guardar</button>
+      <button class="btn btn-p" onclick="submitCheckout('${c.id}')">Finalizar sesión</button>
     </div>
   `;
 }
