@@ -2042,6 +2042,7 @@ const state = {
   assessments:[],metrics:[],
   athletes:[],
    activeAthleteDashboard:null,
+   checkinFilter:'semana',
    activeAthleteSection:null,
    activeAthleteSectionData:null,
    settings:{coachName:'Abel Balsinde',coachPhone:COACH_PHONE_DEFAULT,coachCity:'Belgrado',adminUsername:ADMIN_USER_DEFAULT},
@@ -3692,37 +3693,72 @@ async function markPaid(id){
 }
 
 function renderCheckins(){
-  const list=state.recentCheckins.slice().sort((a,b)=>String(b.checkinDate||b.created_at||'').localeCompare(String(a.checkinDate||a.created_at||'')));
+  const today=todayISO();
+  const activeFilter=state.checkinFilter||'semana';
+
+  const list=state.recentCheckins.slice().sort((a,b)=>
+    String(b.checkinDate||b.created_at||'').localeCompare(String(a.checkinDate||a.created_at||''))
+  );
+
+  const d7=new Date();d7.setDate(d7.getDate()-7);const d7str=d7.toISOString().slice(0,10);
+  const d30=new Date();d30.setDate(d30.getDate()-30);const d30str=d30.toISOString().slice(0,10);
+
+  const filtered=list.filter(ci=>{
+    const fecha=String(ci.checkinDate||ci.created_at||'').slice(0,10);
+    if(activeFilter==='hoy') return fecha===today;
+    if(activeFilter==='semana') return fecha>=d7str;
+    if(activeFilter==='mes') return fecha>=d30str;
+    return true;
+  });
+
   const alertas=list.filter(ci=>getCheckinStatus(ci)==='alerta');
   const revisar=list.filter(ci=>getCheckinStatus(ci)==='revisar');
+
   document.getElementById('ci-metrics').innerHTML=`
     <div class="mc b"><span class="mc-n">${state.todayCheckins.length}</span><span class="mc-l">Hoy</span></div>
     <div class="mc r"><span class="mc-n">${alertas.length}</span><span class="mc-l">Alertas</span></div>
     <div class="mc y"><span class="mc-n">${revisar.length}</span><span class="mc-l">Revisar</span></div>
     <div class="mc g"><span class="mc-n">${list.length}</span><span class="mc-l">Total</span></div>
   `;
-  document.getElementById('ci-content').innerHTML=list.length?list.slice(0,40).map(ci=>{
-    const c=clientById(ci.clientId||ci.client_id);
-    const st=getCheckinStatus(ci);
-    const fecha=String(ci.checkinDate||ci.created_at||'').slice(0,10);
-    return`<div class="card" ${st==='alerta'?'style="border-left:3px solid var(--medical)"':st==='revisar'?'style="border-left:3px solid var(--warn)"':''}>
-      <div class="card-body">
-        <div class="dr">
-          <span style="display:flex;align-items:center;gap:8px"><div class="av" style="width:32px;height:32px;font-size:.8rem">${initials(c?.name)}</div><span class="dv">${esc(c?.name||'—')}</span></span>
-          <span>${badge(st,st)}</span>
-        </div>
-        <div class="dr"><span class="dk">Fecha</span><span class="dv">${formatDate(fecha)}</span></div>
-        <div class="dr"><span class="dk">ZZZ Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div>
-        <div class="dr"><span class="dk">NRG Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div>
-        <div class="dr"><span class="dk">DOL Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>
-        ${ci.comment?`<div class="dr"><span class="dk">Nota</span><span class="dv val-wrap" style="color:var(--warn);font-weight:500;font-size:.8rem">${esc(ci.comment)}</span></div>`:''}
-      </div>
-      ${c?`<div class="card-acts">
-        <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
-        ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, vi tu check-in. ¿Cómo te encuentras?')">WA</button>`:''}
-      </div>`:''}
-    </div>`;
-  }).join(''):emptyState('Sin check-ins','Los clientes aún no han enviado check-ins.');
+
+  document.getElementById('ci-content').innerHTML=`
+    <div class="fr" style="margin-bottom:12px">
+      ${[['hoy','Hoy'],['semana','7 días'],['mes','30 días'],['todo','Todo']].map(([k,l])=>`
+        <button class="fp ${activeFilter===k?'on':''}" onclick="state.checkinFilter='${k}';renderCheckins()">${l}</button>
+      `).join('')}
+    </div>
+
+    ${filtered.length ? filtered.map(ci=>{
+      const c=clientById(ci.clientId||ci.client_id);
+      const st=getCheckinStatus(ci);
+      const fecha=String(ci.checkinDate||ci.created_at||'').slice(0,10);
+      const borderColor=st==='alerta'?'var(--medical)':st==='revisar'?'var(--warn)':'var(--divider)';
+
+      return`
+        <details class="card" style="margin-bottom:8px;border-left:3px solid ${borderColor}">
+          <summary style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none">
+            ${getClientPhotoHTML(c,'sm')}
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:800;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c?.name||'—')}</div>
+              <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);margin-top:1px">${formatDate(fecha)}</div>
+            </div>
+            ${badge(st,st)}
+            <span style="color:var(--text-2);font-size:1rem;flex-shrink:0">›</span>
+          </summary>
+
+          <div style="padding:0 14px 12px;border-top:1px solid var(--divider)">
+            <div class="dr" style="padding:5px 0"><span class="dk">ZZZ Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div>
+            <div class="dr" style="padding:5px 0"><span class="dk">NRG Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div>
+            <div class="dr" style="padding:5px 0"><span class="dk">DOL Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>
+            ${ci.comment?`<div style="margin-top:8px;padding:8px 10px;background:rgba(255,179,64,.06);border-left:2px solid var(--warn);border-radius:0 6px 6px 0;font-size:.78rem;color:var(--warn);line-height:1.5">${esc(ci.comment)}</div>`:''}
+            ${c?`<div style="display:flex;gap:6px;margin-top:10px">
+              <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
+              ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, vi tu check-in. ¿Cómo estás?')">WA</button>`:''}
+            </div>`:''}
+          </div>
+        </details>`;
+    }).join('') : emptyState('Sin check-ins en este período','')}
+  `;
 }
 
 function renderWhatsapp(){
