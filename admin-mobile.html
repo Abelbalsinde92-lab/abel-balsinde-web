@@ -3713,22 +3713,36 @@ function renderPagos(){
   document.getElementById('pag-filters').innerHTML=filters.map(([k,l])=>`<button class="fp ${filterPag===k?'on':''}" onclick="filterPag='${k}';renderPagos()">${l}</button>`).join('');
   let rows=[...state.payments].sort((a,b)=>String(b.dueDate||b.due_date||'').localeCompare(String(a.dueDate||a.due_date||'')));
   if(filterPag!=='todos')rows=rows.filter(p=>p.status===filterPag);
-  const html=rows.length?rows.map(p=>{
+    const html=rows.length?rows.map(p=>{
     const c=clientById(p.clientId||p.client_id);
-    return`<div class="card"><div class="card-body">
-      <div class="dr"><span class="dk">Cliente</span><span class="dv">${esc(c?.name||'Cliente eliminado')}</span></div>
-      <div class="dr"><span class="dk">Concepto</span><span class="dv">${esc(p.concept||'—')}</span></div>
-      <div class="dr"><span class="dk">Importe</span><span class="dv mono" style="font-size:1.1rem">${money(p.amount)}</span></div>
-      <div class="dr"><span class="dk">Vence</span><span class="dv">${formatDate(p.dueDate||p.due_date)}</span></div>
-      <div class="dr"><span class="dk">Estado</span><span>${badge(p.status||'pendiente',p.status||'pendiente')}</span></div>
-      ${p.method?`<div class="dr"><span class="dk">Método</span><span class="dv">${esc(p.method)}</span></div>`:''}
-    </div>
-    <div class="card-acts">
-      ${p.status!=='pagado'?`<button class="btn btn-g btn-sm" onclick="markPaid('${p.id}')">✓ Pagado</button>`:''}
-      <button class="btn btn-s btn-sm" onclick="openModal('payment','${p.id}')">Editar</button>
-      ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te recuerdo el pago de ${esc(p.concept||'tu plan')}.')">WA cobro</button>`:''}
-      ${c?.id?`<button class="btn btn-s btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
-    </div></div>`;
+    const isPaid=p.status==='pagado';
+    const isOverdue=p.status==='vencido';
+
+    return`
+    <details class="card" style="margin-bottom:8px">
+      <summary style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none">
+        ${getClientPhotoHTML(c,'sm')}
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c?.name||'—')}</div>
+          <div style="font-family:var(--font-m);font-size:.56rem;color:var(--text-2);margin-top:2px">${esc(p.concept||'—')} · Vence ${formatDate(p.dueDate||p.due_date)}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-family:var(--font-d);font-size:1.2rem;color:${isPaid?'var(--streak)':isOverdue?'var(--medical)':'var(--warn)'}">${money(p.amount)}</div>
+          ${badge(p.status||'pendiente',p.status||'pendiente')}
+        </div>
+        <span style="color:var(--text-2);font-size:1rem;flex-shrink:0">›</span>
+      </summary>
+
+      <div style="padding:0 14px 12px;border-top:1px solid var(--divider)">
+        ${p.method?`<div class="dr" style="padding:5px 0"><span class="dk">Método</span><span class="dv">${esc(p.method)}</span></div>`:''}
+        <div style="display:flex;gap:6px;margin-top:10px">
+          ${!isPaid?`<button class="btn btn-g btn-sm" style="flex:1" onclick="markPaid('${p.id}')">✓ Pagado</button>`:''}
+          <button class="btn btn-s btn-sm" onclick="openModal('payment','${p.id}')">Editar</button>
+          ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te recuerdo el pago de ${esc(p.concept||'tu plan')}.')">WA cobro</button>`:''}
+          ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
+        </div>
+      </div>
+    </details>`;
   }).join(''):emptyState('Sin pagos','Registra el primer pago');
   document.getElementById('pag-content').innerHTML=html+`<div style="margin-top:12px"><button class="btn btn-p btn-wide" onclick="openModal('payment')">+ Registrar pago</button></div>`;
 }
