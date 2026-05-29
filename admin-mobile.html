@@ -3623,8 +3623,6 @@ function renderMas(){
     ath:    ico('<circle cx="12" cy="5" r="2"/><path d="M12 7v5l-3 5M12 12l3 5M9 11l-3-1M15 11l3-1"/>'),
     eval:   ico('<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>'),
     new:    ico('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>'),
-    camera: ico('<path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/>'),
-    gear:   ico('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>'),
   };
 
   const items=[
@@ -3637,51 +3635,38 @@ function renderMas(){
     {icon:ICONS.new,  label:'Nuevo cliente',badge:0,            action:`openModal('client')`},
   ];
 
-  /* Override .mas CSS que interfería */
+  const coachCard=`
+    <button class="card" style="padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:90px;margin-bottom:0;position:relative" onclick="showScr('ajustes')">
+      <div style="position:relative">
+        ${getCoachAvatarHTML()}
+        <span onclick="event.stopPropagation();document.getElementById('coach-photo-input').click()"
+          style="position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;background:var(--sport);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </span>
+        <input type="file" id="coach-photo-input" accept="image/*" style="display:none" onchange="uploadCoachPhoto(this)">
+      </div>
+      <span style="font-size:.7rem;font-weight:700;color:var(--text);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${esc(firstName(state.settings.coachName||'Coach'))}</span>
+      <span style="font-family:var(--font-m);font-size:.46rem;color:var(--sport);letter-spacing:.08em">AJUSTES</span>
+    </button>`;
+
   const masEl=document.getElementById('mas-grid');
   masEl.style.display='block';
   masEl.style.gridTemplateColumns='unset';
   masEl.style.gap='0';
 
   masEl.innerHTML=`
-    <!-- GRID NAVEGACIÓN -->
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
       ${items.map(item=>`
         <button class="card" style="padding:18px 12px;display:flex;align-items:center;gap:12px;margin-bottom:0;position:relative;text-align:left" onclick="${item.action}">
           ${item.badge?`<span style="position:absolute;top:8px;right:8px;min-width:18px;height:18px;background:var(--medical);color:#000;border-radius:9px;font-family:var(--font-m);font-size:.52rem;display:flex;align-items:center;justify-content:center;padding:0 5px;font-weight:700">${item.badge}</span>`:''}
           <div style="flex-shrink:0">${item.icon}</div>
           <span style="font-size:.82rem;font-weight:700;color:var(--text);line-height:1.3">${item.label}</span>
         </button>`).join('')}
+      ${coachCard}
     </div>
-
-    <!-- SECCIÓN COACH -->
-    <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);margin-bottom:10px">Coach</div>
-
-    <div class="card" style="margin-bottom:12px">
-      <div style="padding:16px 14px;display:flex;align-items:center;gap:14px">
-
-        <!-- Avatar con botón cambiar foto -->
-        <div style="position:relative;flex-shrink:0">
-          ${getCoachAvatarHTML()}
-          <button onclick="document.getElementById('coach-photo-input').click()"
-            style="position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;background:var(--sport);border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          </button>
-          <input type="file" id="coach-photo-input" accept="image/*" style="display:none" onchange="uploadCoachPhoto(this)">
-        </div>
-
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:800;font-size:1rem" id="mas-coach">${esc(state.settings.coachName||'—')}</div>
-          <div style="font-family:var(--font-m);font-size:.6rem;color:var(--sport);margin-top:2px" id="mas-city">${esc(state.settings.coachCity||'—')}</div>
-          <div style="font-family:var(--font-m);font-size:.54rem;color:var(--text-2);margin-top:1px">FIELD v1.1 · ${totalClients} clientes activos</div>
-        </div>
-      </div>
-
-      <div style="border-top:1px solid var(--divider);padding:10px 14px;display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-s btn-sm" onclick="showScr('ajustes')">Ajustes</button>
-        <button class="btn btn-wa btn-sm" onclick="openCoachWA()">Mi WhatsApp</button>
-        <button class="btn btn-r btn-sm" onclick="doLogout()">⏻ Salir</button>
-      </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-wa btn-sm" style="flex:1" onclick="openCoachWA()">Mi WhatsApp</button>
+      <button class="btn btn-r btn-sm" onclick="doLogout()">⏻ Salir</button>
     </div>
   `;
 }
