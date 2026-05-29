@@ -4695,6 +4695,19 @@ function resetWorkoutTimerOnly(){
   updateTimerControlsUI();
 }
 
+function stopExerciseTimerForNavigation(){
+  pauseWorkoutTimer();
+
+  state.workoutTimer.seconds = 0;
+  resetIntervalState();
+
+  updateClockUI();
+
+  try{
+    releaseScreenWake('workout');
+  }catch(e){}
+}
+
 function buildTimerActionButtons(){
   const iv = state.workoutIntervals;
 
@@ -5002,8 +5015,25 @@ function getBlockDoneInfo(clientId,block){
   };
 }
 
-function openWorkoutBlock(blockId){state.activeWorkoutBlockId=blockId;state.activeWorkoutExerciseIndex=0;renderWorkout()}
-function backToWorkoutBlocks(){state.activeWorkoutBlockId=null;state.activeWorkoutExerciseIndex=0;renderWorkout()}
+function openWorkoutBlock(blockId){
+  stopExerciseTimerForNavigation();
+
+  state.activeWorkoutBlockId = blockId;
+  state.activeAdaptedBlockKey = null;
+  state.activeWorkoutExerciseIndex = 0;
+
+  renderWorkout();
+}
+
+function backToWorkoutBlocks(){
+  stopExerciseTimerForNavigation();
+
+  state.activeWorkoutBlockId = null;
+  state.activeAdaptedBlockKey = null;
+  state.activeWorkoutExerciseIndex = 0;
+
+  renderWorkout();
+}
 
 /* v1.1 C4: háptica en completeActiveExercise */
 async function completeActiveExercise(clientId,blockId,exId){
@@ -5045,14 +5075,17 @@ async function completeActiveExercise(clientId,blockId,exId){
   const plan = getWorkoutPlanForClient(c);
   const block = plan.blocks.find(b => String(b.id) === String(blockId));
 
+  stopExerciseTimerForNavigation();
+
   if(!block){
     backToWorkoutBlocks();
     return;
   }
 
+  const exercises = block.exercises || [];
   const nextIndex = Number(state.activeWorkoutExerciseIndex || 0) + 1;
 
-  if(nextIndex < block.exercises.length){
+  if(nextIndex < exercises.length){
     state.activeWorkoutExerciseIndex = nextIndex;
     renderWorkout();
     return;
@@ -5087,40 +5120,154 @@ function buildWorkoutExerciseCard(ex,index,clientId){
   </div>`;
 }
 
+function buildNextExercisePreview(exercises, currentIndex){
+  const next = exercises[currentIndex + 1];
+
+  if(!next){
+    return `
+      <div class="card" style="border-left:3px solid var(--streak)">
+        <div class="card-body" style="padding:12px 14px">
+          <div class="dk" style="margin-bottom:5px">Siguiente paso</div>
+          <div style="font-family:var(--font-d);font-size:1.15rem;letter-spacing:.04em;color:var(--streak)">
+            Fin del bloque
+          </div>
+          <div style="font-size:.76rem;color:var(--text-2);line-height:1.5;margin-top:4px">
+            Al marcar terminado volverás a la lista de bloques.
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="card" style="border-left:3px solid var(--sport)">
+      <div class="card-body" style="padding:12px 14px">
+        <div class="dk" style="margin-bottom:5px">Preparar después</div>
+
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="ex-num" style="width:30px;height:30px">
+            ${String(currentIndex + 2).padStart(2,'0')}
+          </div>
+
+          <div style="flex:1;min-width:0">
+            <div style="font-family:var(--font-d);font-size:1.2rem;letter-spacing:.04em;line-height:1.05">
+              ${esc(getExerciseTitle(next))}
+            </div>
+
+            <div style="font-size:.74rem;color:var(--text-2);line-height:1.45;margin-top:4px">
+              Solo preparación del coach. Se abrirá al terminar el ejercicio actual.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function buildActiveSingleExerciseScreen(c,plan,block){
-  const exercises=block.exercises||[];
-  const idx=Math.min(Number(state.activeWorkoutExerciseIndex||0),Math.max(0,exercises.length-1));
-  state.activeWorkoutExerciseIndex=idx;
-  const ex=exercises[idx];const exId=getExerciseId(ex,idx);const info=getExerciseInfo(ex);
-  const videoUrl=getExerciseVideoUrl(ex);const blockTitle=getBlockName(block)||'Bloque de entrenamiento';
-  return`
-    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">Volver a bloques</button>
+  const exercises = block.exercises || [];
+
+  if(!exercises.length){
+    return buildGuidedBlockScreen(c,plan,block);
+  }
+
+  const idx = Math.min(
+    Number(state.activeWorkoutExerciseIndex || 0),
+    Math.max(0, exercises.length - 1)
+  );
+
+  state.activeWorkoutExerciseIndex = idx;
+
+  const ex = exercises[idx];
+  const exId = getExerciseId(ex,idx);
+  const info = getExerciseInfo(ex);
+  const videoUrl = getExerciseVideoUrl(ex);
+  const blockTitle = getBlockName(block) || 'Bloque de entrenamiento';
+  const progressPct = exercises.length ? Math.round(((idx + 1) / exercises.length) * 100) : 0;
+
+  return `
+    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">
+      Volver a bloques
+    </button>
+
     <div style="margin-bottom:10px">
       <div class="scr-eye">${esc(blockTitle)}</div>
-      <div class="scr-t" style="font-size:1.35rem">${idx+1}/${exercises.length} · ${esc(getExerciseTitle(ex))}</div>
+      <div class="scr-t" style="font-size:1.35rem">
+        ${idx + 1}/${exercises.length} · ${esc(getExerciseTitle(ex))}
+      </div>
+
+      <div class="block-progress-bar" style="margin-top:9px">
+        <div class="block-progress-fill" style="width:${progressPct}%;background:var(--sport)"></div>
+      </div>
     </div>
+
     ${buildTimerHTML()}
+
     <div class="ex-card">
-      <div class="ex-main"><div class="ex-top">
-        <div class="ex-num">${String(idx+1).padStart(2,'0')}</div>
-        <div style="flex:1;min-width:0">
-          <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
-          ${buildDoseHTML(ex)}
-          ${ex.description||ex.descriptionEs||ex.description_es?`<div class="ex-desc">${esc(ex.description||ex.descriptionEs||ex.description_es)}</div>`:''}
+      <div class="ex-main">
+        <div class="ex-top">
+          <div class="ex-num">${String(idx + 1).padStart(2,'0')}</div>
+
+          <div style="flex:1;min-width:0">
+            <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
+
+            ${buildDoseHTML(ex)}
+
+            ${ex.description || ex.descriptionEs || ex.description_es ? `
+              <div class="ex-desc">
+                ${esc(ex.description || ex.descriptionEs || ex.description_es)}
+              </div>
+            ` : ''}
+          </div>
         </div>
-      </div></div>
+      </div>
+
       <div class="ex-mini">
-        <details open><summary>Por qué</summary><p>${esc(info.why)}</p></details>
-        <details><summary>Técnica</summary><p>${esc(info.tech)}</p></details>
-        <details><summary>Respira</summary><p>${esc(info.breath)}</p></details>
-        <details><summary>Errores</summary><p>${esc(info.errors)}</p></details>
-        <details><summary>Coach</summary><p>${esc(info.coach)}</p></details>
+        <details open>
+          <summary>Por qué</summary>
+          <p>${esc(info.why)}</p>
+        </details>
+
+        <details>
+          <summary>Técnica</summary>
+          <p>${esc(info.tech)}</p>
+        </details>
+
+        <details>
+          <summary>Respira</summary>
+          <p>${esc(info.breath)}</p>
+        </details>
+
+        <details>
+          <summary>Errores</summary>
+          <p>${esc(info.errors)}</p>
+        </details>
+
+        <details>
+          <summary>Coach</summary>
+          <p>${esc(info.coach)}</p>
+        </details>
       </div>
+
       <div class="ex-actions">
-        ${videoUrl?`<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`:''}
-      <button class="btn btn-p btn-sm" onclick="completeActiveExercise('${c.id}','${block.id}','${exId}')">Terminado</button>
+        ${videoUrl ? `
+          <button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">
+            Vídeo
+          </button>
+        ` : `
+          <button class="btn btn-s btn-sm" disabled>
+            Sin vídeo
+          </button>
+        `}
+
+        <button class="btn btn-p btn-sm" onclick="completeActiveExercise('${c.id}','${block.id}','${exId}')">
+          Terminado
+        </button>
       </div>
-    </div>`;
+    </div>
+
+    ${buildNextExercisePreview(exercises, idx)}
+  `;
 }
 
 function isCircuitBlock(block){
@@ -5256,41 +5403,101 @@ async function completeGuidedBlock(clientId,blockId){
 }
 
 function buildActiveCircuitScreen(c,plan,block){
-  const exercises=block.exercises||[];const blockTitle=getBlockName(block)||'Circuito';
-  const doneCount=exercises.filter((ex,idx)=>isExerciseDone(c.id,getExerciseId(ex,idx))).length;
-  return`
-    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">Volver a bloques</button>
+  const exercises = block.exercises || [];
+  const blockTitle = getBlockName(block) || 'Circuito';
+
+  const doneCount = exercises.filter((ex,idx) =>
+    isExerciseDone(c.id,getExerciseId(ex,idx))
+  ).length;
+
+  const pct = exercises.length ? Math.round((doneCount / exercises.length) * 100) : 0;
+
+  return `
+    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">
+      Volver a bloques
+    </button>
+
     <div style="margin-bottom:10px">
       <div class="scr-eye">${esc(blockTitle)}</div>
-      <div class="scr-t" style="font-size:1.35rem">Circuito · ${doneCount}/${exercises.length}</div>
+      <div class="scr-t" style="font-size:1.35rem">
+        Circuito · ${doneCount}/${exercises.length}
+      </div>
+
+      <div class="block-progress-bar" style="margin-top:9px">
+        <div class="block-progress-fill" style="width:${pct}%;background:${doneCount === exercises.length ? 'var(--streak)' : 'var(--sport)'}"></div>
+      </div>
     </div>
+
     ${buildTimerHTML()}
-    ${exercises.length?exercises.map((ex,idx)=>buildCircuitExerciseCard(ex,idx,c.id)).join(''):`<div class="wt-empty">Este circuito no tiene ejercicios cargados.</div>`}
-    <div class="card"><div class="card-acts"><button class="btn btn-p btn-sm btn-wide" onclick="completeCircuitBlock('${c.id}','${block.id}')">Circuito terminado</button></div></div>`;
+
+    <div class="card" style="border-left:3px solid var(--sport)">
+      <div class="card-body" style="padding:12px 14px">
+        <div class="card-title" style="margin-bottom:6px">
+          Trabajo en circuito
+        </div>
+
+        <div style="font-size:.78rem;color:var(--text-2);line-height:1.55">
+          Aquí se muestran todos los ejercicios del bloque porque se ejecutan por rondas, tiempo o secuencia continua.
+        </div>
+      </div>
+    </div>
+
+    ${exercises.length ? exercises.map((ex,idx)=>buildCircuitExerciseCard(ex,idx,c.id)).join('') : `
+      <div class="wt-empty">Este circuito no tiene ejercicios cargados.</div>
+    `}
+
+    <div class="card">
+      <div class="card-acts">
+        <button class="btn btn-p btn-sm btn-wide" onclick="completeCircuitBlock('${c.id}','${block.id}')">
+          Circuito terminado
+        </button>
+      </div>
+    </div>
+  `;
 }
 
 function buildCircuitExerciseCard(ex,index,clientId){
-  const exId=getExerciseId(ex,index);const done=isExerciseDone(clientId,exId);const info=getExerciseInfo(ex);const videoUrl=getExerciseVideoUrl(ex);
-  return`<div class="ex-card ${done?'done':''}">
-    <div class="ex-main"><div class="ex-top">
-      <div class="ex-num">${String(index+1).padStart(2,'0')}</div>
-      <div style="flex:1;min-width:0">
-        <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
-        ${buildDoseHTML(ex)}
-        ${ex.description||ex.descriptionEs||ex.description_es?`<div class="ex-desc">${esc(ex.description||ex.descriptionEs||ex.description_es)}</div>`:''}
+  const exId = getExerciseId(ex,index);
+  const done = isExerciseDone(clientId,exId);
+  const videoUrl = getExerciseVideoUrl(ex);
+
+  return `
+    <div class="ex-card ${done ? 'done' : ''}">
+      <div class="ex-main">
+        <div class="ex-top">
+          <div class="ex-num">${String(index + 1).padStart(2,'0')}</div>
+
+          <div style="flex:1;min-width:0">
+            <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
+
+            ${buildDoseHTML(ex)}
+
+            ${ex.description || ex.descriptionEs || ex.description_es ? `
+              <div class="ex-desc">
+                ${esc(ex.description || ex.descriptionEs || ex.description_es)}
+              </div>
+            ` : ''}
+          </div>
+        </div>
       </div>
-    </div></div>
-    <div class="ex-mini">
-      <details><summary>Por qué</summary><p>${esc(info.why)}</p></details>
-      <details><summary>Técnica</summary><p>${esc(info.tech)}</p></details>
-      <details><summary>Respira</summary><p>${esc(info.breath)}</p></details>
-      <details><summary>Coach</summary><p>${esc(info.coach)}</p></details>
+
+      <div class="ex-actions">
+        ${videoUrl ? `
+          <button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">
+            Vídeo
+          </button>
+        ` : `
+          <button class="btn btn-s btn-sm" disabled>
+            Sin vídeo
+          </button>
+        `}
+
+        <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
+          ${done ? 'Hecho' : 'Marcar'}
+        </button>
+      </div>
     </div>
-    <div class="ex-actions">
-      ${videoUrl?`<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`:`<button class="btn btn-s btn-sm" disabled>Sin vídeo</button>`}
-      <button class="btn ${done?'btn-g':'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">${done?'Hecho':'Marcar'}</button>
-    </div>
-  </div>`;
+  `;
 }
 
 async function completeCircuitBlock(clientId,blockId){
