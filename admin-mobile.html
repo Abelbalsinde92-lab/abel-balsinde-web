@@ -1110,6 +1110,300 @@ a{text-decoration:none;color:inherit}
 #video-ov .ms{
   max-height: 92dvh;
 }
+
+/* ================================================================
+   AB SYSTEM · PASO 1
+   REESTRUCTURACIÓN VISUAL ENTRENAMIENTO / FIELD MOBILE
+   Limpieza visual sin tocar lógica
+   ================================================================ */
+
+/* ── Pantalla workout más limpia ── */
+#s-workout {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+#workout-content {
+  padding-bottom: 18px;
+}
+
+/* ── Back más discreto ── */
+#s-workout .scr-back {
+  margin-bottom: 10px;
+  font-size: .58rem;
+  color: var(--text-2);
+}
+
+/* ── Header cliente entrenamiento más compacto ── */
+.wt-head {
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.015)),
+    var(--card);
+}
+
+.wt-head-top {
+  margin-bottom: 8px;
+}
+
+.wt-name {
+  font-size: 1rem;
+  line-height: 1.15;
+}
+
+.wt-meta {
+  font-size: .68rem;
+  line-height: 1.35;
+}
+
+.wt-program {
+  font-size: .58rem;
+  margin-top: 5px;
+  line-height: 1.35;
+}
+
+/* ── Tarjeta próximo paso más premium y menos pesada ── */
+#workout-content .card[style*="border-left:3px solid var(--sport)"] {
+  border-left-width: 2px !important;
+  border-radius: 14px;
+}
+
+#workout-content .card-title {
+  font-size: .95rem;
+  margin-bottom: 6px;
+}
+
+/* ── Filtros de día / patología más compactos ── */
+#workout-content .fr {
+  margin-bottom: 9px !important;
+  gap: 6px;
+}
+
+#workout-content .fp {
+  min-height: 34px;
+  padding: 0 11px;
+  font-size: .53rem;
+  border-radius: 999px;
+}
+
+/* Patología activa más clara */
+#workout-content .fp.on {
+  background: rgba(0,200,232,.16);
+  border-color: rgba(0,200,232,.7);
+  box-shadow: none;
+}
+
+/* ── Check-in menos grande ── */
+.wt-ci {
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+}
+
+.wt-ci-row {
+  padding: 5px 0;
+}
+
+.wt-ci .dk {
+  font-size: .54rem;
+}
+
+/* ── Bloques principales más limpios ── */
+.block-closed {
+  margin-bottom: 8px;
+  border-radius: 15px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.032), rgba(255,255,255,.01)),
+    var(--card);
+}
+
+.block-closed .card-body {
+  padding: 12px 13px;
+}
+
+.block-closed-title {
+  font-size: 1.06rem;
+  letter-spacing: .035em;
+}
+
+.block-closed-sub {
+  font-size: .54rem;
+  margin-top: 4px;
+}
+
+.block-closed-action {
+  font-size: .52rem;
+  padding: 7px 9px;
+  border-radius: 7px;
+}
+
+/* Barra de progreso más fina */
+.block-progress-bar {
+  margin-top: 7px;
+  height: 2px;
+  background: rgba(255,255,255,.08);
+}
+
+/* ── Tarjetas de ejercicios más compactas ── */
+.ex-card {
+  margin-bottom: 8px;
+  border-radius: 15px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012)),
+    var(--card);
+}
+
+.ex-main {
+  padding: 12px 12px 8px;
+}
+
+.ex-top {
+  gap: 9px;
+}
+
+.ex-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  font-size: .58rem;
+}
+
+.ex-title {
+  font-size: .9rem;
+  line-height: 1.22;
+}
+
+.ex-dose {
+  font-size: .56rem;
+  margin-top: 4px;
+}
+
+.ex-desc {
+  font-size: .74rem;
+  line-height: 1.45;
+  margin-top: 7px;
+}
+
+/* ── Chips de volumen más pequeños ── */
+.dose-grid {
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.dose-chip {
+  padding: 4px 7px;
+  font-size: .49rem;
+  border-radius: 7px;
+}
+
+.dose-variant {
+  font-size: .55rem;
+  margin-top: 6px;
+}
+
+/* ── Acordeones Coach / Cliente menos pesados ── */
+.ex-mini {
+  padding: 0 12px 10px;
+  gap: 5px;
+}
+
+.ex-mini details {
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: rgba(0,0,0,.28);
+}
+
+.ex-mini summary {
+  font-size: .52rem;
+}
+
+.ex-mini p {
+  font-size: .74rem;
+  line-height: 1.45;
+}
+
+/* ── Acciones de ejercicios más claras ── */
+.ex-actions {
+  padding: 9px 12px;
+  gap: 7px;
+}
+
+.ex-actions .btn {
+  min-height: 38px;
+  font-size: .56rem;
+}
+
+/* ── Cronómetro dentro del bloque, sin dominar la pantalla ── */
+.wt-timer {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 15px;
+}
+
+.wt-clock {
+  font-size: 1.95rem;
+  margin-bottom: 6px;
+}
+
+.wt-mode-row {
+  margin-bottom: 8px;
+}
+
+.wt-mode-pill {
+  padding: 7px 9px;
+  font-size: .52rem;
+}
+
+/* ── Adaptación activa: tarjeta más profesional ── */
+#workout-content .wt-head .b {
+  font-size: .5rem;
+}
+
+#workout-content .card[style*="border-left:3px solid var(--warn)"],
+#workout-content .card[style*="border-left:3px solid var(--medical)"] {
+  border-left-width: 2px !important;
+}
+
+/* ── Botones inferiores menos altos ── */
+#workout-content .btn-sm {
+  min-height: 38px;
+  padding: 0 11px;
+  font-size: .56rem;
+}
+
+/* ── Observaciones más limpia ── */
+.wt-note {
+  min-height: 82px;
+  font-size: .86rem;
+  border-radius: 12px;
+}
+
+/* ── Móvil pequeño ── */
+@media(max-width:380px){
+  #s-workout {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .wt-clock {
+    font-size: 1.75rem;
+  }
+
+  .block-closed-title {
+    font-size: 1rem;
+  }
+
+  .ex-title {
+    font-size: .86rem;
+  }
+
+  .dose-chip {
+    font-size: .46rem;
+    padding: 4px 6px;
+  }
+}
 </style>
 </head>
 <body>
