@@ -1343,6 +1343,55 @@ a{text-decoration:none;color:inherit}
   padding-top:12px;margin-top:6px;
   border-top:1px solid var(--divider);
 }
+
+/* ═══ CLIENTES · LOBBY COMPACTO ═══ */
+.client-lobby-card{
+  width:100%;
+  text-align:left;
+  display:block;
+  padding:0;
+  cursor:pointer;
+}
+
+.client-lobby-card:active{
+  opacity:.82;
+  transform:scale(.99);
+}
+
+.client-lobby-top{
+  padding:14px;
+  align-items:center;
+}
+
+.client-lobby-main{
+  flex:1;
+  min-width:0;
+}
+
+.client-lobby-name{
+  font-size:1rem;
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.client-lobby-next{
+  font-size:.72rem;
+  color:var(--text-2);
+  margin-top:3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.client-lobby-side{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:5px;
+  flex-shrink:0;
+}
 </style>
 </head>
 <body>
@@ -2646,44 +2695,54 @@ function renderClientes(){
 }
 
 function buildClientCard(c){
-  const next=state.allRes.filter(r=>String(r.clientId||r.client_id)===String(c.id)&&String(r.date||'')>=todayISO()).sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare(String((b.date||'')+(b.time||''))))[0];
-  const pend=getClientPendingPayments(c.id);
-  const alerts=getClientPendingAlerts(c.id);
-  const critical=alerts.some(a=>a.nivel==='critica'||a.nivel==='alerta');
-  const ci=getClientTodayCheckin(c.id);
-  const ciStatus=ci?getCheckinStatus(ci):null;
-  const assign=getClientActiveAssignment(c.id);
-  const program=getAssignmentProgram(assign);
-  const sideBadges=[];
-  if(alerts.length)sideBadges.push(badge(`${alerts.length} ${critical?'⚠':'!'}`,critical?'alerta':'revisar'));
-  if(ci&&ciStatus==='alerta')sideBadges.push(badge('CI ⚠','alerta'));
-  else if(ci&&ciStatus==='revisar')sideBadges.push(badge('CI revisar','revisar'));
-  return`
-    <div class="cc">
-      <div class="cc-top">
+  const next = state.allRes
+    .filter(r =>
+      String(r.clientId || r.client_id) === String(c.id) &&
+      String(r.date || '') >= todayISO() &&
+      String(r.status || '') !== 'cancelada'
+    )
+    .sort((a,b) =>
+      String((a.date || '') + (a.time || ''))
+        .localeCompare(String((b.date || '') + (b.time || '')))
+    )[0];
+
+  const alerts = getClientPendingAlerts(c.id);
+  const critical = alerts.some(a =>
+    a.nivel === 'critica' || a.nivel === 'alerta'
+  );
+
+  const status = String(c.status || 'prospecto').toLowerCase();
+
+  const nextText = next
+    ? `Próx. sesión · ${formatDate(next.date)} ${formatTime(next.time)}`
+    : 'Sin próxima sesión';
+
+  const alertMini = alerts.length
+    ? `<span class="b ${critical ? 'b-alerta' : 'b-revisar'}">${alerts.length}${critical ? ' ⚠' : '!'}</span>`
+    : '';
+
+  return `
+    <button class="cc client-lobby-card" onclick="openProfile('${c.id}')">
+      <div class="cc-top client-lobby-top">
         ${getClientPhotoHTML(c,'sm')}
-        <div style="flex:1;min-width:0">
-          <div class="cc-name">${esc(c.name)}</div>
-          <div class="cc-meta">${esc(c.plan||'Sin plan')} · ${esc(c.phone||'Sin tel.')}</div>
+
+        <div class="client-lobby-main">
+          <div class="cc-name client-lobby-name">
+            ${esc(c.name)}
+          </div>
+
+          <div class="cc-meta client-lobby-next">
+            ${esc(nextText)}
+          </div>
         </div>
-        <div class="cc-badges">${badge(c.status||'prospecto',c.status||'prospecto')}${sideBadges.join('')}</div>
+
+        <div class="client-lobby-side">
+          ${badge(status,status)}
+          ${alertMini}
+        </div>
       </div>
-      <div class="cc-rows">
-        <div class="cc-row"><span class="dk">Próx. sesión</span><span class="sc-v">${next?`${formatDate(next.date)} ${formatTime(next.time)}`:'—'}</span></div>
-        <div class="cc-row"><span class="dk">Pago</span><span>${pend.length?badge(money(pend.reduce((s,p)=>s+Number(p.amount||0),0))+' pend.','pendiente'):badge('Al día','pagado')}</span></div>
-        ${program?`<div class="cc-row"><span class="dk">Programa</span><span class="sc-v" style="color:var(--sport);white-space:normal;max-width:55%;font-size:.78rem">${esc(program.name||program.nameEs||'—')}</span></div>`:''}
-        ${c.accessCode?`<div class="cc-row"><span class="dk">Código</span><span class="sc-v mono" style="color:var(--sport);font-size:.78rem">${esc(c.accessCode)}</span></div>`:''}
-      </div>
-      <div class="cc-acts">
-        <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
-        ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}.')">WA</button>`:''}
-        <button class="btn btn-s btn-sm" onclick="copyClientLink('${c.id}')">Copiar acceso</button>
-        ${c.phone?`<button class="btn btn-wa btn-sm" onclick="sendClientAccessWA('${c.id}')">Enviar acceso</button>`:''}
-        <button class="btn btn-s btn-sm" onclick="openModal('reservation',null,{clientId:'${c.id}'})">+ Sesión</button>
-        <button class="btn btn-s btn-sm" onclick="openModal('payment',null,{clientId:'${c.id}'})">+ Pago</button>
-        <button class="btn btn-s btn-sm" onclick="openModal('client','${c.id}')">Editar</button>
-      </div>
-    </div>`;
+    </button>
+  `;
 }
 
 function openProfile(id){state.selectedClientId=id;showScr('perfil')}
@@ -3316,7 +3375,6 @@ async function openAthleteDashboard(clientId){
 
     state.activeAthleteDashboard=snakeToCamel(row);
 
-    const box=document.getElementById('ath-content');
     showScr('atletas');
 
 const box=document.getElementById('ath-content');
