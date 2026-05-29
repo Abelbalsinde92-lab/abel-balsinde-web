@@ -6564,19 +6564,25 @@ function buildActiveSingleExerciseScreen(c,plan,block){
   const d=getDoseData(ex);
 
   // Métricas grid: siempre 4 cajas
-  const metricItems=[];
+    const metricItems=[];
   if(d.sets) metricItems.push({i:'⊞',v:d.sets,l:'Series'});
   if(d.reps) metricItems.push({i:'↻',v:d.reps,l:'Reps'});
-  else if(d.duration) metricItems.push({i:'⏱',v:d.duration,l:'Trabajo'});
+  if(d.duration) metricItems.push({i:'⏱',v:d.duration,l:'Trabajo'});
   if(d.rest) metricItems.push({i:'⏸',v:d.rest,l:'Descanso'});
   if(d.tempo) metricItems.push({i:'〜',v:d.tempo,l:'Tempo'});
-  while(metricItems.length<4) metricItems.push({i:'—',v:'—',l:'—'});
+  if(d.load) metricItems.push({i:'⚖',v:d.load,l:'Carga'});
+  if(d.variant&&!metricItems.length) metricItems.push({i:'◎',v:d.variant.slice(0,12),l:'Variante'});
+  while(metricItems.length<4) metricItems.push(null);
 
-  const metricsHTML=metricItems.slice(0,4).map(m=>`
+    const metricsHTML=metricItems.slice(0,4).map(m=>m?`
     <div class="wt2-metric">
       <div class="wt2-metric-icon">${m.i}</div>
       <div class="wt2-metric-val">${esc(m.v)}</div>
       <div class="wt2-metric-label">${esc(m.l)}</div>
+    </div>`:`<div class="wt2-metric" style="opacity:.2">
+      <div class="wt2-metric-icon">·</div>
+      <div class="wt2-metric-val">—</div>
+      <div class="wt2-metric-label">—</div>
     </div>`).join('');
 
   const objetivo=d.variant||ex.description||ex.descriptionEs||ex.description_es||'';
@@ -6588,7 +6594,7 @@ function buildActiveSingleExerciseScreen(c,plan,block){
     const isAct=i===idx;
     const sc=done?'s-done':isAct?'s-active':'s-pending';
     const st=done?'Hecho':isAct?'Activo':'Pendiente';
-    return`<div class="wt2-ex-row">
+        return`<div class="wt2-ex-row" style="cursor:pointer" onclick="state.activeWorkoutExerciseIndex=${i};renderWorkout()">
       <div class="wt2-ex-num ${isAct?'act':''}">${i+1}</div>
       <div class="wt2-ex-icon">${done?'✓':'○'}</div>
       <div class="wt2-ex-name">${esc(getExerciseTitle(e))}</div>
