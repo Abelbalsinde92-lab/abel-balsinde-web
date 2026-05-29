@@ -5942,9 +5942,12 @@ function buildClientConditionCard(c){
           </div>` : ''}
       </div>
 
-            <div class="card-acts">
+                  <div class="card-acts">
         <button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}')">
           Abrir entrenamiento adaptado
+        </button>
+        <button class="btn btn-r btn-sm" onclick="resolveClientCondition('${cond.id||''}','${c.id}')">
+          Cerrar adaptación
         </button>
         <button class="btn btn-r btn-sm" onclick="resolveClientCondition('${cond.id||''}','${c.id}')">
           Cerrar adaptación
