@@ -5203,13 +5203,13 @@ function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,not
 
   /* === Flujo normal con bloques ─ barra de progreso v1.1 === */
     return`
-    <div class="wt-head">
-      <div class="wt-head-top">
-        ${getClientPhotoHTML(c)}
+        <div class="wt-head" style="padding:12px">
+      <div class="wt-head-top" style="margin-bottom:0;align-items:center">
+        ${getClientPhotoHTML(c,'sm')}
         <div style="flex:1;min-width:0">
-          <div class="wt-name">${esc(c.name)}</div>
-          <div class="wt-program">${esc(plan.program.name||plan.program.nameEs||'Programa activo')}</div>
-          <div class="wt-meta">${esc(workoutStepLabel(getAssignmentWeek(plan.assignment),getAssignmentSessionNumber(plan.assignment)))} · ${doneCount}/${totalCount||0} ejercicios</div>
+          <div class="wt-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.98rem">${esc(c.name)}</div>
+          <div class="wt-program" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.6rem">${esc(plan.program.name||plan.program.nameEs||'Programa activo')}</div>
+          <div class="wt-meta" style="font-size:.7rem;margin-top:1px">${esc(workoutStepLabel(getAssignmentWeek(plan.assignment),getAssignmentSessionNumber(plan.assignment)))} · ${doneCount}/${totalCount||0} ej.</div>
         </div>
         ${badge(c.status||'activo',c.status||'activo')}
       </div>
