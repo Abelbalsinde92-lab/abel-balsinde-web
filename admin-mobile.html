@@ -3836,22 +3836,51 @@ function renderCheckins(){
 function renderWhatsapp(){
   const box=document.getElementById('wa-content');
   if(!state.clients.length){
-    box.innerHTML=emptyState('Sin clientes','Crea un cliente para enviar WhatsApp')+`<div style="margin-top:12px"><button class="btn btn-wa btn-wide" onclick="openCoachWA()">☏ Abrir mi WhatsApp</button></div>`;return;
+    box.innerHTML=emptyState('Sin clientes','Crea un cliente para enviar WhatsApp')+
+      `<button class="btn btn-wa btn-wide" onclick="openCoachWA()">☏ Abrir mi WhatsApp</button>`;
+    return;
   }
-  const opts=state.clients.map(c=>`<option value="${c.id}">${esc(c.name)} — ${esc(c.phone||'sin tel.')}</option>`).join('');
-  const tpls=state.templates.length?state.templates.map(t=>`
-    <div class="card"><div class="card-body">
-      <div style="font-weight:700;margin-bottom:8px">${esc(t.name||t.nameEs||'Plantilla')}</div>
-      <div style="font-size:.84rem;color:var(--text-2);line-height:1.6;background:var(--bg);border-left:2px solid rgba(0,200,232,.3);padding:10px 12px;border-radius:0 6px 6px 0" id="tpl-${t.id}">${esc(t.msg||t.msgEs||'')}</div>
-    </div>
-    <div class="card-acts">
-      <button class="btn btn-wa btn-sm" onclick="sendTemplate('${t.id}')">Enviar</button>
-      <button class="btn btn-s btn-sm" onclick="copyTemplate('${t.id}')">Copiar</button>
-    </div></div>`).join(''):emptyState('Sin plantillas','Créalas en el admin de escritorio');
+
+  const selId=document.getElementById('wa-cli')?.value||state.clients[0]?.id||'';
+  const selClient=clientById(selId)||state.clients[0];
+  const opts=state.clients.map(c=>`<option value="${c.id}" ${String(c.id)===String(selId)?'selected':''}>${esc(c.name)}</option>`).join('');
+
+  const tpls=state.templates.length?state.templates.map(t=>{
+    const msg=(t.msg||t.msgEs||'').replaceAll('[nombre]',firstName(selClient?.name||'')).replaceAll('[concepto]','').replaceAll('[hora]','');
+    return`
+      <details class="card" style="margin-bottom:8px">
+        <summary style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:.88rem">${esc(t.name||t.nameEs||'Plantilla')}</div>
+            <div style="font-size:.72rem;color:var(--text-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(msg.slice(0,60))}…</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn btn-wa btn-sm" onclick="event.stopPropagation();sendTemplate('${t.id}')">Enviar</button>
+            <button class="btn btn-s btn-sm" onclick="event.stopPropagation();copyTemplate('${t.id}')">Copiar</button>
+          </div>
+        </summary>
+        <div style="padding:0 14px 12px;border-top:1px solid var(--divider)">
+          <div id="tpl-${t.id}" style="font-size:.82rem;color:var(--text-2);line-height:1.6;background:var(--bg);border-left:2px solid rgba(0,200,232,.3);padding:10px 12px;border-radius:0 6px 6px 0;margin-top:8px">${esc(msg)}</div>
+        </div>
+      </details>`;
+  }).join(''):emptyState('Sin plantillas','Créalas en el admin de escritorio');
+
   box.innerHTML=`
-    <div class="fld"><label class="fld-l">Cliente activo</label><select class="fld-s" id="wa-cli">${opts}</select></div>
+    <div class="card" style="padding:12px 14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        ${getClientPhotoHTML(selClient,'sm')}
+        <div style="flex:1;min-width:0">
+          <select id="wa-cli" class="fld-s" style="background:transparent;border:none;padding:0;font-size:.88rem;font-weight:700;color:var(--text);min-height:unset" onchange="renderWhatsapp()">
+            ${opts}
+          </select>
+          <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);margin-top:1px">${esc(selClient?.phone||'Sin teléfono')}</div>
+        </div>
+        ${selClient?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(selClient.phone)}','Hola ${esc(firstName(selClient.name))}.')">WA directo</button>`:''}
+      </div>
+    </div>
+
     ${tpls}
-    <div style="margin-top:14px"><button class="btn btn-wa btn-wide" onclick="openCoachWA()">☏ Mi WhatsApp</button></div>`;
+  `;
 }
 
 function sendTemplate(id){
