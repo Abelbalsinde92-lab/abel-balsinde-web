@@ -4614,19 +4614,45 @@ function updateClockUI(){
 }
 
 function startWorkoutTimer(){
-  if(state.workoutTimer.running)return;
+  if(state.workoutTimer.running) return;
 
-  requestScreenWake('workout');
-  try{if(!beep._ctx){const Ctx=window.AudioContext||window.webkitAudioContext;if(Ctx)beep._ctx=new Ctx()}if(beep._ctx&&beep._ctx.state==='suspended')beep._ctx.resume()}catch(e){}
-  const iv=state.workoutIntervals;
-  if(iv.enabled&&(iv.phase==='idle'||iv.phase==='done')){iv.phase='work';iv.currentRound=1;iv.phaseSecsLeft=Number(iv.workSec)||40;beepWork()}
-  state.workoutTimer.running=true;
-  state.workoutTimer.interval=setInterval(()=>{
-    state.workoutTimer.seconds+=1;
-    if(iv.enabled&&iv.phase!=='idle'&&iv.phase!=='done'){iv.phaseSecsLeft-=1;if(iv.phaseSecsLeft<=0)advanceIntervalPhase()}
+  try{
+    if(!beep._ctx){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(Ctx) beep._ctx = new Ctx();
+    }
+
+    if(beep._ctx && beep._ctx.state === 'suspended'){
+      beep._ctx.resume();
+    }
+  }catch(e){}
+
+  const iv = state.workoutIntervals;
+
+  if(iv.enabled && (iv.phase === 'idle' || iv.phase === 'done')){
+    iv.phase = 'work';
+    iv.currentRound = 1;
+    iv.phaseSecsLeft = Number(iv.workSec) || 40;
+    beepWork();
+  }
+
+  state.workoutTimer.running = true;
+
+  state.workoutTimer.interval = setInterval(()=>{
+    state.workoutTimer.seconds += 1;
+
+    if(iv.enabled && iv.phase !== 'idle' && iv.phase !== 'done'){
+      iv.phaseSecsLeft -= 1;
+
+      if(iv.phaseSecsLeft <= 0){
+        advanceIntervalPhase();
+      }
+    }
+
     updateClockUI();
   },1000);
-  renderWorkout();
+
+  updateTimerControlsUI();
 }
 
 function advanceIntervalPhase(){
@@ -4645,32 +4671,60 @@ function advanceIntervalPhase(){
 }
 
 function pauseWorkoutTimer(){
-  state.workoutTimer.running=false;
+  state.workoutTimer.running = false;
 
   if(state.workoutTimer.interval){
     clearInterval(state.workoutTimer.interval);
-    state.workoutTimer.interval=null;
+    state.workoutTimer.interval = null;
   }
 
-  releaseScreenWake('workout');
-
-  if(document.getElementById('wt-clock'))renderWorkout();
+  updateTimerControlsUI();
 }
 
 function resetWorkoutTimerOnly(){
-  state.workoutTimer.running=false;
+  state.workoutTimer.running = false;
 
   if(state.workoutTimer.interval){
     clearInterval(state.workoutTimer.interval);
-    state.workoutTimer.interval=null;
+    state.workoutTimer.interval = null;
   }
 
-  releaseScreenWake('workout');
-
-  state.workoutTimer.seconds=0;
+  state.workoutTimer.seconds = 0;
   resetIntervalState();
+
+  updateTimerControlsUI();
+}
+
+function buildTimerActionButtons(){
+  const iv = state.workoutIntervals;
+
+  if(state.workoutTimer.running){
+    return `
+      <button class="btn btn-s btn-sm" onclick="pauseWorkoutTimer()">Pausar</button>
+      <button class="btn btn-s btn-sm" onclick="resetWorkoutTimerOnly()">Reiniciar</button>
+    `;
+  }
+
+  const label = iv.enabled && iv.phase === 'done'
+    ? 'Nueva ronda'
+    : iv.enabled && iv.phase !== 'idle'
+      ? 'Continuar'
+      : 'Iniciar';
+
+  return `
+    <button class="btn btn-p btn-sm" onclick="startWorkoutTimer()">${label}</button>
+    <button class="btn btn-s btn-sm" onclick="resetWorkoutTimerOnly()">Reiniciar</button>
+  `;
+}
+
+function updateTimerControlsUI(){
+  const actions = document.getElementById('wt-timer-actions');
+
+  if(actions){
+    actions.innerHTML = buildTimerActionButtons();
+  }
+
   updateClockUI();
-  renderWorkout();
 }
 
 function buildTimerHTML(){
@@ -4686,10 +4740,9 @@ function buildTimerHTML(){
     ${on?`<div id="wt-phase" class="wt-phase ${pcls}">${label}</div>`:''}
     <div class="wt-clock" id="wt-clock">${clock}</div>
     ${on?`<div id="wt-round" class="wt-round">${iv.phase==='idle'?`${iv.workSec}s · ${iv.restSec}s · ${iv.totalRounds} rondas`:iv.phase==='done'?`Completado · ${iv.totalRounds} rondas`:`Ronda ${iv.currentRound} / ${iv.totalRounds}`}</div>`:''}
-    <div class="wt-timer-actions" style="margin-top:10px">
-      ${state.workoutTimer.running?`<button class="btn btn-s btn-sm" onclick="pauseWorkoutTimer()">Pausar</button>`:`<button class="btn btn-p btn-sm" onclick="startWorkoutTimer()">${on&&iv.phase==='done'?'Nueva ronda':'Iniciar'}</button>`}
-      <button class="btn btn-s btn-sm" onclick="resetWorkoutTimerOnly()">Reiniciar</button>
-    </div>
+    <div class="wt-timer-actions" id="wt-timer-actions" style="margin-top:10px">
+  ${buildTimerActionButtons()}
+</div>
     ${on?`<div class="wt-iv-config">
       <div class="wt-iv-row">
         <div class="wt-iv-field"><label>Trabajo (s)</label><input type="number" inputmode="numeric" class="wt-iv-input" value="${iv.workSec}" min="1" oninput="updateIntervalField('workSec',this.value)"></div>
