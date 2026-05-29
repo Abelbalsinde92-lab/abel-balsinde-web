@@ -1943,9 +1943,12 @@ a{text-decoration:none;color:inherit}
       </div>
     </div>
 
-    <div class="scr" id="s-entreno">
+        <div class="scr" id="s-entreno">
       <a class="scr-back" onclick="showScr('mas')">← Más</a>
-      <div class="scr-h"><div class="scr-eye">Programas asignados</div><div class="scr-t">Entrenamientos</div></div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:16px">
+        <div><div class="scr-eye">Programas asignados</div><div class="scr-t">Entrenamientos</div></div>
+        <button class="btn btn-p btn-sm" style="flex-shrink:0;margin-bottom:4px" onclick="openModal('assignment')">+ Asignar plan</button>
+      </div>
       <div id="ent-content"></div>
     </div>
 
@@ -3778,12 +3781,25 @@ async function saveSettings(){
 }
 
 function renderEntreno(){
-  const active=state.assignments.filter(a=>String(a.status||'activo')==='activo');
+    const q=(document.getElementById('ent-search')?.value||'').toLowerCase().trim();
+  const active=state.assignments.filter(a=>{
+    if(String(a.status||'activo')!=='activo') return false;
+    if(!q) return true;
+    const c=clientById(a.clientId||a.client_id);
+    return String(c?.name||'').toLowerCase().includes(q);
+  });
+
   const box=document.getElementById('ent-content');
 
+    const q=(document.getElementById('ent-search')?.value||'').toLowerCase().trim();
+
   box.innerHTML=`
-    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-      <button class="btn btn-p btn-sm" onclick="openModal('assignment')">+ Asignar plan</button>
+    <div class="search" style="margin-bottom:12px">
+      <span class="search-i">⌕</span>
+      <input id="ent-search" type="search" placeholder="Buscar cliente…"
+        autocapitalize="off" autocorrect="off" spellcheck="false"
+        value="${esc(q)}"
+        oninput="renderEntreno()">
     </div>
 
     ${active.length ? active.map(a=>{
