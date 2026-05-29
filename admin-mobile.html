@@ -2076,7 +2076,22 @@ location.replace(location.pathname);
     err.textContent='Error de conexión.';err.classList.remove('hidden');
   }
 }
-function doLogout(){if(confirm('¿Cerrar sesión?'))Auth.logout()}
+
+function doLogout(){
+  if(!confirm('¿Cerrar sesión?')) return;
+
+  sessionStorage.removeItem('ab_role');
+  sessionStorage.removeItem('ab_admin_ok');
+
+  localStorage.removeItem('ab_role');
+  localStorage.removeItem('ab_admin_ok');
+
+  if(window.Auth && typeof Auth.logout === 'function'){
+    Auth.logout();
+  }else{
+    location.replace(location.pathname);
+  }
+}
 
 async function loadAllData(){
   try{
