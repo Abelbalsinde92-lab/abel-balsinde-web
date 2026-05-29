@@ -2779,6 +2779,16 @@ function renderPerfil(){
   const assign=getClientActiveAssignment(c.id);
   const program=getAssignmentProgram(assign);
   const pendPay=getClientPendingPayments(c.id);
+  const nextSession = state.allRes
+  .filter(r =>
+    String(r.clientId || r.client_id) === String(c.id) &&
+    String(r.date || '') >= todayISO() &&
+    !['cancelada'].includes(String(r.status || '').toLowerCase())
+  )
+  .sort((a,b)=>
+    String((a.date || '') + (a.time || ''))
+      .localeCompare(String((b.date || '') + (b.time || '')))
+  )[0] || null;
 
   /* ── Stats ── */
   const clientLogs=state.sessionLogs.filter(l=>{
@@ -2830,36 +2840,33 @@ function renderPerfil(){
 
   el.innerHTML=`
 
-    <!-- ① TARJETA CLIENTE compacta -->
-    <div class="card" style="padding:16px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-        ${c.photoUrl||c.photo_url
-          ?`<div style="width:52px;height:52px;border-radius:50%;border:1.5px solid var(--sport);overflow:hidden;flex-shrink:0"><img src="${esc(c.photoUrl||c.photo_url)}" style="width:100%;height:100%;object-fit:cover"></div>`
-          :`<div style="width:52px;height:52px;border-radius:50%;border:1.5px solid var(--sport);background:rgba(0,200,232,.1);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:1.3rem;color:var(--sport);flex-shrink:0">${initials(c.name)}</div>`
-        }
-        <div style="flex:1;min-width:0;overflow:hidden">
-          <div style="display:flex;align-items:center;gap:6px">
-            <div style="font-weight:800;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</div>
-            ${c.phone?`<button class="btn btn-wa btn-sm" style="min-height:24px;padding:0 7px;font-size:.48rem;flex-shrink:0" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}.')">WA</button>`:''}
-          </div>
-          ${c.accessCode?`<div style="font-family:var(--font-m);font-size:.6rem;color:var(--sport);letter-spacing:.06em;margin-top:2px">Código: ${esc(c.accessCode)}</div>`:''}
-          ${pendPay.length?`<div style="font-family:var(--font-m);font-size:.56rem;color:var(--warn);margin-top:1px">Deuda: ${money(pendPay.reduce((s,p)=>s+Number(p.amount||0),0))}</div>`:''}
-        </div>
+    <!-- ① CABECERA CLIENTE CERRADA -->
+<div class="card" style="padding:14px;margin-bottom:10px">
+  <div style="display:flex;align-items:center;gap:12px">
+    ${getClientPhotoHTML(c,'')}
+
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:800;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+        ${esc(c.name)}
       </div>
 
-      <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
-        ${badge(c.status||'prospecto',c.status||'prospecto')}
-        ${condBadges.join('')}
-        ${todayCI?badge(ciStatus||'normal',ciStatus||'normal'):badge('Sin CI','inactivo')}
+      <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);letter-spacing:.06em;margin-top:2px">
+        Próx. sesión
       </div>
 
-      <div style="border-top:1px solid var(--divider);padding-top:10px">
-        ${c.objective?`<div class="dr" style="padding:5px 0"><span class="dk">Objetivo</span><span class="dv val-wrap" style="font-size:.8rem">${esc(c.objective)}</span></div>`:''}
-        ${program?`<div class="dr" style="padding:5px 0"><span class="dk">Plan</span><span class="dv val-wrap" style="color:var(--sport);font-size:.78rem">${esc(program.name||program.nameEs||'')}</span></div>`:''}
+      <div style="font-weight:700;font-size:.82rem;color:var(--text);margin-top:1px">
+        ${nextSession ? `${formatDate(nextSession.date)} ${formatTime(nextSession.time)}` : 'Sin sesión programada'}
       </div>
     </div>
 
-    <!-- ② CTA + ACCIONES SECUNDARIAS fuera de la tarjeta -->
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+      ${badge(c.status || 'prospecto', c.status || 'prospecto')}
+      ${todayCI ? badge(ciStatus || 'normal', ciStatus || 'normal') : badge('Sin CI','inactivo')}
+    </div>
+  </div>
+</div>
+
+<!-- ② CTA + ACCIONES SECUNDARIAS fuera de la tarjeta -->
     <button class="btn btn-p btn-wide" style="margin-bottom:8px;height:50px;border-radius:12px;font-size:.7rem;letter-spacing:.12em;gap:8px" onclick="openWorkout('${c.id}')">
       INICIAR SESIÓN DE HOY <span style="font-size:1rem">→</span>
     </button>
@@ -4412,10 +4419,112 @@ function closeWorkoutAndAssign(clientId){
   openModal('assignment',null,{clientId});
 }
 
+function getClientAvatarCandidates(c){
+  if(!c) return [];
+
+  const keys = [
+    'photoUrl','photo_url',
+    'avatarUrl','avatar_url',
+    'profilePhoto','profile_photo',
+    'profilePhotoUrl','profile_photo_url',
+    'imageUrl','image_url',
+    'pictureUrl','picture_url',
+    'foto','fotoUrl','foto_url',
+    'photo','avatar','image'
+  ];
+
+  const rawValues = [];
+
+  keys.forEach(k=>{
+    const v = c[k];
+    if(v !== null && v !== undefined && String(v).trim() !== ''){
+      rawValues.push(String(v).trim());
+    }
+  });
+
+  const out = [];
+
+  rawValues.forEach(raw=>{
+    const v = String(raw).trim();
+    if(!v) return;
+
+    if(
+      v.startsWith('http://') ||
+      v.startsWith('https://') ||
+      v.startsWith('data:') ||
+      v.startsWith('blob:') ||
+      v.startsWith('/')
+    ){
+      out.push(v);
+      return;
+    }
+
+    const clean = v.replace(/^\/+/, '');
+
+    const knownBuckets = [
+      'client-photos',
+      'client_photos',
+      'avatars',
+      'client-avatars',
+      'profile-photos'
+    ];
+
+    const firstPart = clean.split('/')[0];
+
+    if(knownBuckets.includes(firstPart)){
+      out.push(`${SUPA_URL}/storage/v1/object/public/${clean}`);
+    }else{
+      knownBuckets.forEach(bucket=>{
+        out.push(`${SUPA_URL}/storage/v1/object/public/${bucket}/${clean}`);
+      });
+    }
+  });
+
+  return [...new Set(out)];
+}
+
+function abAvatarFallback(img){
+  try{
+    const list = JSON.parse(img.dataset.altSrcs || '[]');
+
+    if(list.length){
+      const next = list.shift();
+      img.dataset.altSrcs = JSON.stringify(list);
+      img.src = next;
+      return;
+    }
+  }catch(e){}
+
+  const initialsText = img.dataset.initials || '?';
+  const parent = img.parentElement;
+
+  if(parent){
+    parent.innerHTML = initialsText;
+  }
+}
+
 function getClientPhotoHTML(c,size=''){
-  const url=c?.photoUrl||c?.photo_url||c?.avatarUrl||c?.avatar_url||c?.profilePhoto||c?.profile_photo||c?.imageUrl||c?.image_url||'';
-  if(url)return`<div class="client-photo ${size}"><img src="${esc(url)}" alt="${esc(c?.name||'Cliente')}"></div>`;
-  return`<div class="client-photo ${size}">${initials(c?.name)}</div>`;
+  const initialsText = initials(c?.name);
+  const urls = getClientAvatarCandidates(c);
+
+  if(urls.length){
+    const first = urls[0];
+    const rest = urls.slice(1);
+
+    return `
+      <div class="client-photo ${size}">
+        <img
+          src="${esc(first)}"
+          alt="${esc(c?.name || 'Cliente')}"
+          data-initials="${esc(initialsText)}"
+          data-alt-srcs="${esc(JSON.stringify(rest))}"
+          onerror="abAvatarFallback(this)"
+        >
+      </div>
+    `;
+  }
+
+  return `<div class="client-photo ${size}">${esc(initialsText)}</div>`;
 }
 
 function sortByOrder(arr){
