@@ -4280,7 +4280,7 @@ const activePathology = manual || detectPathologyForClient(c) || 'normal';
       ${sessionButtons}
     </div>
 
-        <div class="fr" style="margin-bottom:12px;flex-wrap:wrap">
+        <div class="fr" style="margin-bottom:12px">
       ${['normal','dolor_lumbar','rodilla','hombro','cervical','tobillo','fatiga_alta'].map(p=>`
         <button class="fp ${activePathology===p?'on':''}" onclick="setManualPathology('${c.id}','${p}')">
           ${getPathologyLabel(p)}
@@ -5202,22 +5202,20 @@ function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,not
   }
 
   /* === Flujo normal con bloques ─ barra de progreso v1.1 === */
-  return`
+    return`
     <div class="wt-head">
       <div class="wt-head-top">
         ${getClientPhotoHTML(c)}
         <div style="flex:1;min-width:0">
           <div class="wt-name">${esc(c.name)}</div>
-          <div class="wt-meta">${esc(c.plan||'Sin plan')} · ${esc(c.objective||'Objetivo pendiente')}</div>
           <div class="wt-program">${esc(plan.program.name||plan.program.nameEs||'Programa activo')}</div>
+          <div class="wt-meta">${esc(workoutStepLabel(getAssignmentWeek(plan.assignment),getAssignmentSessionNumber(plan.assignment)))} · ${doneCount}/${totalCount||0} ejercicios</div>
         </div>
         ${badge(c.status||'activo',c.status||'activo')}
       </div>
-      <div class="dr"><span class="dk">Progreso sesión</span><span class="dv">${doneCount}/${totalCount||0}</span></div>
     </div>
 
     ${buildWorkoutSessionControls(plan, c)}
-${buildWorkoutStepCard(plan)}
 
 <div class="wt-ci">
   <div class="wt-ci-row">
@@ -6811,7 +6809,6 @@ ${isMod && r.modification_text ? `
     </div>
 
 ${buildWorkoutSessionControls(plan, c)}
-${buildWorkoutStepCard(plan)}
 
 <div class="card" style="border-left:3px solid ${getPathologyColor(pathology)}">
       <div class="card-body" style="padding:12px 14px">
