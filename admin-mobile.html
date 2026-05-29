@@ -7895,11 +7895,9 @@ async function loadZoneExercises(zoneKey) {
 
   let rows = [];
 
-  try {
-    const { data, error } = await db.rpc('get_coach_utilities_for_client', {
-      p_client_id: clientId,
-      p_zone: zone,
-      p_utility_type: 'mobility_assisted'
+    try {
+    const { data, error } = await db.rpc('get_individual_stretches_by_zone', {
+      p_zone: zone
     });
 
     console.log('STRETCH RPC OK:', {
