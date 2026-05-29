@@ -6620,7 +6620,9 @@ function buildActiveSingleExerciseScreen(c,plan,block){
           <div class="wt2-block-header-timer-val" id="wt-clock">${formatClock(state.workoutTimer.seconds)}</div>
         </div>
       </div>
-    </div>
+        </div>
+
+    ${buildTimerHTML()}
 
     <div class="wt2-ex-card">
       <div class="wt2-ex-title">${esc(getExerciseTitle(ex))}</div>
