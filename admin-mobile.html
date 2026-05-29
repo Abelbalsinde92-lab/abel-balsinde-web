@@ -7792,9 +7792,12 @@ function startStretchTimerBase() {
   if (stretchTimerActive) {
     stretchTimerActive = false;
     clearInterval(stretchTimerInt);
+    releaseScreenWake('stretch');
     if (btn) btn.textContent = 'Continuar';
     return;
   }
+
+  requestScreenWake('stretch');
 
   if (!stretchTimerSecs) {
     const exercise = stretchExercises[stretchIndex];
@@ -7825,14 +7828,22 @@ function startStretchTimerBase() {
 // ── DETENER TIMER ────────────────────────────────────────────────
 function stopStretchTimerBase() {
   stretchTimerActive = false;
-  clearInterval(stretchTimerInt);
+
+  if(stretchTimerInt){
+    clearInterval(stretchTimerInt);
+  }
+
+  stretchTimerInt = null;
   stretchTimerSecs = 0;
+
+  releaseScreenWake('stretch');
 }
 
 // ── REINICIAR TIMER ──────────────────────────────────────────────
 function resetStretchTimerBase() {
   clearInterval(stretchTimerInt);
   stretchTimerActive = false;
+  releaseScreenWake('stretch');
 
   const exercise = stretchExercises[stretchIndex];
   stretchTimerSecs = parseStretchDurationBase(exercise);
@@ -8449,6 +8460,8 @@ function toggleEvalTimer() {
 }
 
 function startEvalTimer() {
+  requestScreenWake('eval');
+
   evalState.timerRunning = true;
   const btn = document.getElementById('eval-timer-btn');
   if (btn) btn.textContent = '⏸ Pausar';
@@ -8461,6 +8474,7 @@ function startEvalTimer() {
 function pauseEvalTimer() {
   evalState.timerRunning = false;
   clearInterval(evalState.timerInt);
+  releaseScreenWake('eval');
   const btn = document.getElementById('eval-timer-btn');
   if (btn) btn.textContent = '▶ Continuar';
   const valEl = document.getElementById('eval-val');
@@ -8470,6 +8484,7 @@ function pauseEvalTimer() {
 function stopEvalTimer() {
   evalState.timerRunning = false;
   clearInterval(evalState.timerInt);
+  releaseScreenWake('eval');
 }
 
 function resetEvalTimer() {
