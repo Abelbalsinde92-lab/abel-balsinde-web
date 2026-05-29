@@ -1375,6 +1375,71 @@ let filterAl='pendientes';
 let filterPag='todos';
 let activeModal=null;
 
+/* ── WAKE LOCK · Mantener pantalla activa con cronómetros ── */
+let abWakeLock = null;
+const abWakeReasons = new Set();
+
+async function requestScreenWake(reason='timer'){
+  abWakeReasons.add(reason);
+
+  if(!('wakeLock' in navigator)) {
+    console.warn('Wake Lock no disponible en este navegador.');
+    return;
+  }
+
+  if(abWakeLock) return;
+
+  try{
+    abWakeLock = await navigator.wakeLock.request('screen');
+
+    abWakeLock.addEventListener('release', () => {
+      abWakeLock = null;
+    });
+
+    console.log('AB Wake Lock activo:', reason);
+  }catch(err){
+    console.warn('No se pudo activar Wake Lock:', err);
+  }
+}
+
+async function releaseScreenWake(reason='timer'){
+  abWakeReasons.delete(reason);
+
+  if(abWakeReasons.size > 0) return;
+
+  try{
+    if(abWakeLock){
+      await abWakeLock.release();
+    }
+  }catch(err){
+    console.warn('No se pudo liberar Wake Lock:', err);
+  }
+
+  abWakeLock = null;
+}
+
+async function forceReleaseScreenWake(){
+  abWakeReasons.clear();
+
+  try{
+    if(abWakeLock){
+      await abWakeLock.release();
+    }
+  }catch(err){}
+
+  abWakeLock = null;
+}
+
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && abWakeReasons.size > 0){
+    requestScreenWake([...abWakeReasons][0] || 'timer');
+  }
+});
+
+window.addEventListener('pagehide', () => {
+  forceReleaseScreenWake();
+});
+
 /* ── HELPERS ── */
 function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
@@ -4436,6 +4501,8 @@ function updateClockUI(){
 
 function startWorkoutTimer(){
   if(state.workoutTimer.running)return;
+
+  requestScreenWake('workout');
   try{if(!beep._ctx){const Ctx=window.AudioContext||window.webkitAudioContext;if(Ctx)beep._ctx=new Ctx()}if(beep._ctx&&beep._ctx.state==='suspended')beep._ctx.resume()}catch(e){}
   const iv=state.workoutIntervals;
   if(iv.enabled&&(iv.phase==='idle'||iv.phase==='done')){iv.phase='work';iv.currentRound=1;iv.phaseSecsLeft=Number(iv.workSec)||40;beepWork()}
@@ -4465,14 +4532,31 @@ function advanceIntervalPhase(){
 
 function pauseWorkoutTimer(){
   state.workoutTimer.running=false;
-  if(state.workoutTimer.interval){clearInterval(state.workoutTimer.interval);state.workoutTimer.interval=null}
+
+  if(state.workoutTimer.interval){
+    clearInterval(state.workoutTimer.interval);
+    state.workoutTimer.interval=null;
+  }
+
+  releaseScreenWake('workout');
+
   if(document.getElementById('wt-clock'))renderWorkout();
 }
 
 function resetWorkoutTimerOnly(){
   state.workoutTimer.running=false;
-  if(state.workoutTimer.interval){clearInterval(state.workoutTimer.interval);state.workoutTimer.interval=null}
-  state.workoutTimer.seconds=0;resetIntervalState();updateClockUI();renderWorkout();
+
+  if(state.workoutTimer.interval){
+    clearInterval(state.workoutTimer.interval);
+    state.workoutTimer.interval=null;
+  }
+
+  releaseScreenWake('workout');
+
+  state.workoutTimer.seconds=0;
+  resetIntervalState();
+  updateClockUI();
+  renderWorkout();
 }
 
 function buildTimerHTML(){
