@@ -1287,27 +1287,30 @@ a{text-decoration:none;color:inherit}
   </div>
   <div id="ath-content"></div>
 </div>
-    </div>
 
+</div><!-- /.wrap -->
+
+<nav class="nav">
+  <div class="tab on" id="tab-hoy" onclick="showScr('hoy')">
+    <span class="tab-i mono">01</span><span class="tab-l">Hoy</span>
   </div>
 
-  <nav class="nav">
-    <div class="tab on" id="tab-hoy" onclick="showScr('hoy')">
-      <span class="tab-i mono">01</span><span class="tab-l">Hoy</span>
-    </div>
-    <div class="tab" id="tab-clientes" onclick="showScr('clientes')">
-      <span class="tab-i mono">CL</span><span class="tab-l">Clientes</span>
-    </div>
-    <div class="tab" id="tab-alertas" onclick="showScr('alertas')">
-      <span class="tab-i mono">!</span><span class="tab-l">Alertas</span>
-      <span class="tab-b" id="badge-al"></span>
-    </div>
-    <div class="tab" id="tab-mas" onclick="showScr('mas')">
-      <span class="tab-i mono">+</span><span class="tab-l">Más</span>
-      <span class="tab-b" id="badge-mas"></span>
-    </div>
-  </nav>
-</div>
+  <div class="tab" id="tab-clientes" onclick="showScr('clientes')">
+    <span class="tab-i mono">CL</span><span class="tab-l">Clientes</span>
+  </div>
+
+  <div class="tab" id="tab-alertas" onclick="showScr('alertas')">
+    <span class="tab-i mono">!</span><span class="tab-l">Alertas</span>
+    <span class="tab-b" id="badge-al"></span>
+  </div>
+
+  <div class="tab" id="tab-mas" onclick="showScr('mas')">
+    <span class="tab-i mono">+</span><span class="tab-l">Más</span>
+    <span class="tab-b" id="badge-mas"></span>
+  </div>
+</nav>
+
+</div><!-- /#app -->
 
 <div class="ov" id="modal-ov">
   <div class="ms">
@@ -1984,19 +1987,56 @@ function renderBadges(){
 ══════════════════════════════════════════════════════════ */
 document.getElementById('top-date').textContent=new Date().toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'short'}).toUpperCase();
 
-(async function pageInit(){
-  const params=new URLSearchParams(location.search);
-  if(params.has('auth')||params.has('logged_out')||params.has('v'))history.replaceState({},'',location.pathname);
-  if(typeof Auth==='undefined'||!Auth.isAdmin()){
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('login').classList.remove('hidden');
-    setupLogin();return;
+((async function pageInit(){
+  try{
+    const params = new URLSearchParams(location.search);
+
+    if(params.has('auth') || params.has('logged_out') || params.has('v')){
+      history.replaceState({}, '', location.pathname);
+    }
+
+    const isLogged =
+      window.Auth &&
+      typeof Auth.isAdmin === 'function' &&
+      Auth.isAdmin();
+
+    if(!isLogged){
+      document.getElementById('loading')?.classList.add('hidden');
+      document.getElementById('app')?.classList.add('hidden');
+      document.getElementById('login')?.classList.remove('hidden');
+      setupLogin();
+      return;
+    }
+
+    document.getElementById('loading')?.classList.add('hidden');
+    document.getElementById('login')?.classList.add('hidden');
+    document.getElementById('app')?.classList.remove('hidden');
+
+    document.getElementById('modal-ov')?.addEventListener('click', e => {
+      if(e.target.id === 'modal-ov') closeModal();
+    });
+
+    document.getElementById('video-ov')?.addEventListener('click', e => {
+      if(e.target.id === 'video-ov') closeVideoModal();
+    });
+
+    await loadAllData();
+
+  }catch(err){
+    console.error('AB FIELD INIT ERROR:', err);
+
+    document.getElementById('loading')?.classList.add('hidden');
+    document.getElementById('app')?.classList.add('hidden');
+    document.getElementById('login')?.classList.remove('hidden');
+
+    const er = document.getElementById('login-err');
+    if(er){
+      er.textContent = 'Error cargando AB Field. Revisa Console: AB FIELD INIT ERROR.';
+      er.classList.remove('hidden');
+    }
+
+    setupLogin();
   }
-  document.getElementById('loading').classList.add('hidden');
-  document.getElementById('app').classList.remove('hidden');
-  document.getElementById('modal-ov').addEventListener('click',e=>{if(e.target.id==='modal-ov')closeModal()});
-  document.getElementById('video-ov')?.addEventListener('click',e=>{if(e.target.id==='video-ov')closeVideoModal()});
-  await loadAllData();
 })();
 
 function setupLogin(){
