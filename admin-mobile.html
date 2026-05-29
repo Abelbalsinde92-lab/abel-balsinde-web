@@ -1996,11 +1996,15 @@ document.getElementById('top-date').textContent=new Date().toLocaleDateString('e
     }
 
     const isLogged =
-      window.Auth &&
-      typeof Auth.isAdmin === 'function' &&
-      Auth.isAdmin();
+  sessionStorage.getItem('ab_admin_ok') === 'true' ||
+  localStorage.getItem('ab_admin_ok') === 'true' ||
+  (
+    window.Auth &&
+    typeof Auth.isAdmin === 'function' &&
+    Auth.isAdmin()
+  );
 
-    if(!isLogged){
+if(!isLogged){
       document.getElementById('loading')?.classList.add('hidden');
       document.getElementById('app')?.classList.add('hidden');
       document.getElementById('login')?.classList.remove('hidden');
@@ -2056,8 +2060,13 @@ async function attemptLogin(){
     const vu=sett?.admin_username||ADMIN_USER_DEFAULT;
     const vp=sett?.admin_password||ADMIN_PASS_DEFAULT;
     if(user===vu&&pass===vp){
-      sessionStorage.setItem('ab_role','admin');sessionStorage.setItem('ab_admin_ok','true');
-      location.replace(location.pathname+'?v='+Date.now());
+      sessionStorage.setItem('ab_role','admin');
+sessionStorage.setItem('ab_admin_ok','true');
+
+localStorage.setItem('ab_role','admin');
+localStorage.setItem('ab_admin_ok','true');
+
+location.replace(location.pathname);
     }else{
       document.getElementById('loading').classList.add('hidden');document.getElementById('login').classList.remove('hidden');
       err.textContent='Credenciales incorrectas.';err.classList.remove('hidden');
