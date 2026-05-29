@@ -4086,6 +4086,118 @@ function getBlockSessionId(b){return getVal(b,['sessionId','session_id','trainin
 function getBlockName(b){return getVal(b,['name','nameEs','name_es','blockName','block_name','title','titleEs','title_es'])}
 function getExerciseBlockId(e){return getVal(e,['blockId','block_id','trainingBlockId','training_block_id'])}
 
+/* ── ORDEN LÓGICO DE BLOQUES · AB SYSTEM ── */
+function getBlockSemanticRank(blockOrName){
+  let text = '';
+
+  if(typeof blockOrName === 'string'){
+    text = blockOrName;
+  }else{
+    text = [
+      getBlockName(blockOrName),
+      getBlockType(blockOrName),
+      getBlockDescription(blockOrName),
+      blockOrName?.sessionTitle,
+      blockOrName?.session_title
+    ].filter(Boolean).join(' ');
+  }
+
+  const txt = cleanTxt(text);
+
+  // 1. Inicio de sesión
+  if(
+    txt.includes('calentamiento') ||
+    txt.includes('warm up') ||
+    txt.includes('warmup') ||
+    txt.includes('activacion') ||
+    txt.includes('activación')
+  ){
+    return 10;
+  }
+
+  // 2. Movilidad inicial / preparación
+  if(
+    txt.includes('movilidad') &&
+    !txt.includes('final') &&
+    !txt.includes('vuelta')
+  ){
+    return 20;
+  }
+
+  // 3. Técnica / fuerza / trabajo principal
+  if(
+    txt.includes('tecnica') ||
+    txt.includes('técnica') ||
+    txt.includes('fuerza') ||
+    txt.includes('principal') ||
+    txt.includes('full body') ||
+    txt.includes('circuito') ||
+    txt.includes('trabajo')
+  ){
+    return 40;
+  }
+
+  // 4. Core
+  if(
+    txt.includes('core') ||
+    txt.includes('abdomen') ||
+    txt.includes('abdominal') ||
+    txt.includes('plancha')
+  ){
+    return 60;
+  }
+
+  // 5. Finisher / metabólico antes del estiramiento
+  if(
+    txt.includes('finisher') ||
+    txt.includes('emom') ||
+    txt.includes('amrap') ||
+    txt.includes('metabolico') ||
+    txt.includes('metabólico') ||
+    txt.includes('conditioning') ||
+    txt.includes('acondicionamiento')
+  ){
+    return 90;
+  }
+
+  // 6. Siempre al final
+  if(
+    txt.includes('estiramiento') ||
+    txt.includes('stretch') ||
+    txt.includes('stretching') ||
+    txt.includes('vuelta a la calma') ||
+    txt.includes('vuelta calma') ||
+    txt.includes('cooldown') ||
+    txt.includes('cool down')
+  ){
+    return 100;
+  }
+
+  return 50;
+}
+
+function getBlockOriginalOrder(block){
+  return Number(
+    block?.orden_bloque ||
+    block?.blockOrder ||
+    block?.block_order ||
+    block?.orderIndex ||
+    block?.order_index ||
+    0
+  );
+}
+
+function orderWorkoutBlocksForFlow(blocks){
+  return [...(blocks || [])].sort((a,b)=>{
+    const ra = getBlockSemanticRank(a);
+    const rb = getBlockSemanticRank(b);
+
+    if(ra !== rb) return ra - rb;
+
+    return getBlockOriginalOrder(a) - getBlockOriginalOrder(b);
+  });
+}
+
 function getWorkoutPlanForClient(c){
   const assignment = getClientActiveAssignment(c.id);
   const program = getAssignmentProgram(assignment);
@@ -4237,18 +4349,20 @@ function getWorkoutPlanForClient(c){
   }).filter(b => hasVisibleBlockContent(b,b.exercises));
 
   debug.blocksWithExercises = blockData.filter(b => b.exercises.length).length;
-  debug.visibleBlocks = blockData.length;
+debug.visibleBlocks = blockData.length;
 
-  return {
-    assignment,
-    program,
-    week:selectedWeeks[0] || null,
-    sessions:selectedSessions,
-    weekSessions,
-    blocks:blockData,
-    exercises:blockData.flatMap(b => b.exercises || []),
-    debug
-  };
+const orderedBlockData = orderWorkoutBlocksForFlow(blockData);
+
+return {
+  assignment,
+  program,
+  week:selectedWeeks[0] || null,
+  sessions:selectedSessions,
+  weekSessions,
+  blocks:orderedBlockData,
+  exercises:orderedBlockData.flatMap(b => b.exercises || []),
+  debug
+};
 }
 
 function getExerciseDose(ex){
@@ -5819,7 +5933,20 @@ function getAdaptedBlockGroups(rows){
     grouped[key].push(r);
   });
 
-  return Object.entries(grouped).sort((a,b) => a[0].localeCompare(b[0]));
+  return Object.entries(grouped).sort((a,b) => {
+    const nameA = getAdaptedBlockName(a[0]);
+    const nameB = getAdaptedBlockName(b[0]);
+
+    const rankA = getBlockSemanticRank(nameA);
+    const rankB = getBlockSemanticRank(nameB);
+
+    if(rankA !== rankB) return rankA - rankB;
+
+    const orderA = Number(String(a[0]).split('__')[0] || 0);
+    const orderB = Number(String(b[0]).split('__')[0] || 0);
+
+    return orderA - orderB;
+  });
 }
 
 function getAdaptedBlockName(key){
