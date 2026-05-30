@@ -6597,8 +6597,14 @@ async function openWorkoutBlock(blockId){
             .limit(1)
             .maybeSingle();
 
-                    if(assignment?.chain_id){
+                              if(assignment?.chain_id){
             showToast(`Cadena encontrada: ${assignment.chain_id.slice(0,8)}`, 'ok');
+
+            const {data: chainExs} = await db
+              .from('mobility_chain_exercises')
+              .select('*')
+              .eq('chain_id', assignment.chain_id)
+              .order('exercise_order');
 
             if(chainExs?.length){
               const existingIds = new Set(state.trainingExercises.map(e => e.id));
