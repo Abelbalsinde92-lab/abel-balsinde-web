@@ -3622,8 +3622,7 @@ async function openMobilityModal(clientId){
 
   try{
         const [{data:current},{data:chains,error:chainErr}] = await Promise.all([
-          showToast(`Cadenas: ${chains?.length||0} ${chainErr?'ERR:'+chainErr.message:''}`, chains?.length?'ok':'err');
-
+             showToast(`Cadenas: ${chains?.length||0} ${chainErr?'ERR:'+chainErr.message:''}`, chains?.length?'ok':'err');
       db.from('client_mobility_assignments')
         .select('*, mobility_chains(name,level,description)')
         .eq('client_id', clientId)
