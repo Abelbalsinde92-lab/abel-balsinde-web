@@ -263,10 +263,6 @@ input, textarea { outline: none; font-family: var(--font-body); }
   background: rgba(0,230,118,.06);
 }
 
-.btn-exit-icon {
-  color: var(--text-secondary);
-}
-
 .btn-exit-icon:hover {
   color: var(--medical);
   border-color: rgba(255,90,90,.45);
@@ -2227,6 +2223,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   text-transform: uppercase; font-weight: 700;
 }
 .wt-iv-preset:active { background: rgba(0,163,255,.08); color: var(--sport); }
+#section-home .section-header { display: none !important; }
 </style>
 </head>
 <body>
@@ -2268,7 +2265,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
   <header class="dash-header">
   <div class="dash-header-left">
-    <button class="btn-icon btn-exit-icon" id="btnLogout" type="button" aria-label="Salir">
+    <div id="headerAvatarSlot"></div>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
         <polyline points="16 17 21 12 16 7"/>
@@ -4993,9 +4990,9 @@ const reservationSub = nextReservation
     '</div>' +
     '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
       '<div style="font-family:var(--font-display);font-size:2rem;letter-spacing:1.5px;color:var(--text-primary);line-height:1;">' +
-        dateStr.toUpperCase() +
+        (()=>{const d=new Date();const dow=d.toLocaleDateString(getLang()==='sr'?'sr-RS':'es-ES',{weekday:'long'}).toUpperCase();const mon=d.toLocaleDateString(getLang()==='sr'?'sr-RS':'es-ES',{month:'short'}).toUpperCase();return dow+' '+d.getDate()+' '+mon;})()+
       '</div>' +
-      '<span style="font-family:var(--font-display);font-size:1.8rem;color:var(--sport);letter-spacing:.06em;flex-shrink:0">[AB]</span>' +
+      '<img src="/ab-logo.png.WEBP?v=20260521-01" alt="AB" style="height:44px;width:auto;object-fit:contain;flex-shrink:0">'+
     '</div>' +
   '</div>';
 
