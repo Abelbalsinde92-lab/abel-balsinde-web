@@ -6319,7 +6319,7 @@ function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,not
       <div>Bloques: ${plan.blocks.length} · Ejercicios total BD: ${state.trainingExercises.length}</div>
       <div>Semana: ${getAssignmentWeek(plan.assignment)} · Sesión: ${getAssignmentSessionNumber(plan.assignment)}</div>
       ${plan.blocks.slice(0,3).map(b=>`<div>${esc(getBlockName(b))} → ${b.exercises?.length||0} ej. (blockId: ${String(b.id).slice(0,8)}…)</div>`).join('')}
-            ${state.trainingExercises.length>0?`<div>Campos ejercicio: ${Object.keys(state.trainingExercises[0]).join(', ')}</div>`:'<div>SIN EJERCICIOS EN BD</div>'}
+            ${state.trainingExercises.length>0?`<div>blockId ejercicio[0]: "${state.trainingExercises[0].blockId}"</div><div>blockId ejercicio[1]: "${state.trainingExercises[1]?.blockId}"</div><div>Bloque[0] id: "${plan.blocks[0]?.id}"</div>`:'<div>SIN EJERCICIOS EN BD</div>'}
       </div>`;
 
   /* === Flujo normal con bloques ─ barra de progreso v1.1 === */
