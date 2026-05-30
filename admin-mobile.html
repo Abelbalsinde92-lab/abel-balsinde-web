@@ -1826,17 +1826,9 @@ a{text-decoration:none;color:inherit}
 
 <div id="app" class="hidden">
   <header class="top">
-  <div class="top-logo-wrap">
-    <img
-      class="top-logo-img"
-      src="/ab-logo.png.WEBP"
-      alt="AB SYSTEM"
-      onerror="this.style.display='none';document.querySelector('.top-logo-fallback').style.display='flex';"
-    >
-    <div class="top-logo-fallback">
-      <span class="top-brand">[AB]</span>
-      <span class="top-sub">SYSTEM</span>
-    </div>
+    <div id="top-coach-avatar" onclick="showScr('ajustes')"
+    style="width:44px;height:44px;border-radius:50%;cursor:pointer;overflow:hidden;flex-shrink:0;border:1.5px solid rgba(0,200,232,.4);background:rgba(0,200,232,.08);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:1.1rem;color:var(--sport)">
+    AB
   </div>
 
   <div class="top-spacer"></div>
@@ -1850,10 +1842,11 @@ a{text-decoration:none;color:inherit}
     <div class="scr on" id="s-hoy">
       <div class="hoy-hero">
   <div class="hoy-hero-text">
-    <div class="scr-eye" id="hoy-eye">Operación de sala</div>
-    <div class="scr-t" id="hoy-title">Hoy</div>
-  </div>
-  <div id="hoy-coach-avatar"></div>
+          <div class="scr-eye" id="hoy-eye">Operación de sala</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-family:var(--font-d);font-size:1.7rem;color:var(--sport);letter-spacing:.04em;line-height:1">[AB]</span>
+        <div class="scr-t" id="hoy-title">Hoy</div>
+      </div>
 </div>
       <div class="mr" id="hoy-metrics"></div>
       <div id="hoy-content"></div>
@@ -1861,8 +1854,11 @@ a{text-decoration:none;color:inherit}
 
     <div class="scr" id="s-clientes">
       <div class="scr-h">
-        <div class="scr-eye">Base de datos</div>
-        <div class="scr-t">Clientes</div>
+                <div class="scr-eye">Base de datos</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:var(--font-d);font-size:1.7rem;color:var(--sport);letter-spacing:.04em;line-height:1">[AB]</span>
+          <div class="scr-t">Clientes</div>
+        </div>
       </div>
       <div class="search">
         <span class="search-i">⌕</span>
@@ -1874,8 +1870,11 @@ a{text-decoration:none;color:inherit}
 
     <div class="scr" id="s-alertas">
       <div class="scr-h">
-        <div class="scr-eye">Notificaciones</div>
-        <div class="scr-t">Alertas</div>
+                <div class="scr-eye">Notificaciones</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:var(--font-d);font-size:1.7rem;color:var(--sport);letter-spacing:.04em;line-height:1">[AB]</span>
+          <div class="scr-t">Alertas</div>
+        </div>
       </div>
       <div class="mr" id="al-metrics"></div>
       <div class="fr" id="al-filters"></div>
@@ -1884,7 +1883,13 @@ a{text-decoration:none;color:inherit}
 
         <div class="scr" id="s-mas">
       <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:16px">
-                <div><div class="scr-eye">Navegación</div><div class="scr-t">Más</div></div>
+               <div>
+          <div class="scr-eye">Navegación</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-family:var(--font-d);font-size:1.7rem;color:var(--sport);letter-spacing:.04em;line-height:1">[AB]</span>
+            <div class="scr-t">Más</div>
+          </div>
+        </div>
         <button class="btn btn-r btn-sm" style="flex-shrink:0;margin-bottom:6px" onclick="doLogout()">⏻ Salir</button>
       </div>
       <div class="mas" id="mas-grid"></div>
@@ -2655,7 +2660,7 @@ function renderScr(id){
   }
 }
 
-function renderAll(){renderBadges();renderScr(currentScr)}
+function renderAll(){renderBadges();renderTopAvatar();renderScr(currentScr)}
 
 /* ── v1.1 C5: Badges mejorados (alertas + pagos vencidos) ── */
 function renderBadges(){
@@ -5528,6 +5533,27 @@ function getClientPhotoHTML(c,size=''){
   }
 
   return `<div class="client-photo ${size}">${esc(initialsText)}</div>`;
+}
+
+function renderTopAvatar(){
+  const el = document.getElementById('top-coach-avatar');
+  if(!el) return;
+
+  const coachPhone = String(state.settings.coachPhone || COACH_PHONE_DEFAULT || '').replace(/[\s+\-()]/g,'');
+  const coachName = cleanTxt(state.settings.coachName || 'Abel');
+
+  const coachClient = state.clients.find(c => {
+    const phone = String(c.phone || '').replace(/[\s+\-()]/g,'');
+    return (phone && coachPhone && phone === coachPhone) || (cleanTxt(c.name || '') === coachName);
+  });
+
+  const url = coachClient?.photoUrl || coachClient?.photo_url || coachClient?.avatarUrl || coachClient?.avatar_url || '';
+
+  if(url){
+    el.innerHTML = `<img src="${esc(url)}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.textContent='AB'">`;
+  } else {
+    el.textContent = initials(state.settings.coachName || 'AB');
+  }
 }
 
 function getCoachAvatarHTML(){
