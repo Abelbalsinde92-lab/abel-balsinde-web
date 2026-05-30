@@ -7636,104 +7636,105 @@ function getWeekNameFromLog(log){
 
 function buildProgressTrainingSummary(){
   const finishedLogs = getFinishedTrainingLogsAllProgram();
-const progressStats = getTrainingProgressStats();
-
-const totalSessions = progressStats.totalSessions;
-const finishedCount = progressStats.finishedSessions;
-const percent = progressStats.percent;
-
-const historicalFinishedCount = finishedLogs.length;
-const latestLog = finishedLogs[0] || null;
+  const progressStats = getTrainingProgressStats();
+  const totalSessions = progressStats.totalSessions;
+  const finishedCount = progressStats.finishedSessions;
+  const percent = progressStats.percent;
+  const historicalFinishedCount = finishedLogs.length;
+  const latestLog = finishedLogs[0] || null;
+  const lang = getLang();
 
   let html = '';
 
+  // ── Stats 3 columnas (inline style evita el media-query que las colapsa) ──
   html +=
-    '<div class="data-card next-session">' +
-      '<div class="next-label">' + uiText('progressSummary') + '</div>' +
-      '<div class="dc-row">' +
-        '<span class="dc-title">' + (getLang() === 'sr' ? 'Trenutna nedelja' : 'Semana actual') + '</span>' +
-        '<span class="badge badge-blue">' + percent + '%</span>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">' +
+
+      '<div class="summary-card" style="padding:12px 8px;">' +
+        '<div class="summary-label">' + (lang === 'sr' ? 'Ova nedelja' : 'Esta semana') + '</div>' +
+        '<div style="font-family:var(--font-display);font-size:22px;letter-spacing:.5px;color:var(--text-primary);line-height:1;margin-top:4px;">' +
+          finishedCount + '<span style="opacity:.4;font-size:14px;">/' + totalSessions + '</span>' +
+        '</div>' +
       '</div>' +
+
+      '<div class="summary-card" style="padding:12px 8px;">' +
+        '<div class="summary-label">' + uiText('planProgress') + '</div>' +
+        '<div style="font-family:var(--font-display);font-size:22px;letter-spacing:.5px;line-height:1;margin-top:4px;color:' +
+          (percent >= 100 ? 'var(--streak)' : percent > 50 ? 'var(--sport)' : 'var(--text-primary)') + ';">' +
+          percent + '<span style="opacity:.4;font-size:14px;">%</span>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="summary-card" style="padding:12px 8px;">' +
+        '<div class="summary-label">' + (lang === 'sr' ? 'Istorija' : 'Historial') + '</div>' +
+        '<div style="font-family:var(--font-display);font-size:22px;letter-spacing:.5px;color:var(--text-primary);line-height:1;margin-top:4px;">' +
+          historicalFinishedCount +
+        '</div>' +
+        '<div style="font-size:9px;color:var(--text-secondary);font-family:var(--font-mono);letter-spacing:.5px;margin-top:4px;">' +
+          (lang === 'sr' ? 'sesija' : 'sesiones') +
+        '</div>' +
+      '</div>' +
+
+    '</div>';
+
+  // ── Último entrenamiento ──
+  html +=
+    '<div class="data-card" style="margin-bottom:12px;">' +
+      '<div class="next-label">' + uiText('lastTraining') + '</div>' +
       '<div class="dc-row">' +
-        '<span class="dc-sub">' +
-          finishedCount + ' ' + uiText('of') + ' ' + totalSessions + ' sesiones de esta semana'
+        '<span class="dc-title" style="font-size:15px;">' +
+          (latestLog
+            ? getSessionNameFromLog(latestLog) + ' · ' + getWeekNameFromLog(latestLog)
+            : uiText('noCompletedTraining')) +
         '</span>' +
+        (latestLog ? '<span class="badge badge-green">' + uiText('completed') + '</span>' : '') +
       '</div>' +
-      '<div class="dc-note">' +
-        (
-          percent >= 100
-  ? 'Semana completada. Abel podrá revisar el siguiente bloque.'
-  : historicalFinishedCount > 0
-    ? 'Proceso activo. Esta semana todavía tiene trabajo pendiente, pero el historial anterior se conserva.'
-    : uiText('noCompletedTrainingYet')
-        ) +
-      '</div>' +
+      (latestLog?.training_date
+        ? '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">' +
+            uiText('registered') + ': ' + formatDate(latestLog.training_date) +
+          '</div>'
+        : '<div class="dc-note">' + uiText('whenCloseSession') + '</div>') +
     '</div>';
+
+  // ── Nota de estado ──
+  const statusNote = percent >= 100
+    ? (lang === 'sr'
+        ? 'Nedelja završena. Abel može da pregleda sledeći blok.'
+        : 'Semana completada. Abel podrá revisar el siguiente bloque.')
+    : historicalFinishedCount > 0
+      ? (lang === 'sr'
+          ? 'Trabajo en proceso. Sigue completando sesiones.'
+          : 'Trabajo en proceso. Sigue completando sesiones.')
+      : uiText('noCompletedTrainingYet');
 
   html +=
-  '<div class="summary-grid">' +
-
-    '<div class="summary-card">' +
-      '<div class="summary-label">Esta semana</div>' +
-      '<div class="summary-value big">' + finishedCount + '/' + totalSessions + '</div>' +
-    '</div>' +
-
-    '<div class="summary-card">' +
-      '<div class="summary-label">' + uiText('planProgress') + '</div>' +
-      '<div class="summary-value big">' + percent + '%</div>' +
-    '</div>' +
-
-    '<div class="summary-card">' +
-      '<div class="summary-label">Historial</div>' +
-      '<div class="summary-value big">' + historicalFinishedCount + '</div>' +
-      '<div class="progress-circle-note">sesiones registradas</div>' +
-    '</div>' +
-
-      '<div class="summary-card full">' +
-        '<div class="summary-label">' + uiText('lastTraining') + '</div>' +
-        '<div class="summary-value">' +
-          (
-            latestLog
-              ? getSessionNameFromLog(latestLog) + ' · ' + getWeekNameFromLog(latestLog)
-              : uiText('noCompletedTraining')
-          ) +
-        '</div>' +
-        '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">' +
-          (
-            latestLog?.training_date
-              ? uiText('registered') + ': ' + formatDate(latestLog.training_date)
-              : uiText('whenCloseSession')
-          ) +
-        '</div>' +
-      '</div>' +
-
+    '<div class="data-card" style="border-color:rgba(0,163,255,.15);margin-bottom:12px;">' +
+      '<div class="dc-note" style="margin-top:0;">' + statusNote + '</div>' +
     '</div>';
 
-  if(finishedLogs.length){
+  // ── Actividad reciente ──
+  if (finishedLogs.length) {
     html +=
-      '<div style="margin:22px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
+      '<div style="margin:16px 0 10px;font-family:var(--font-mono);font-size:10px;' +
+      'letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
         uiText('recentActivity') +
       '</div>';
 
-    html += finishedLogs.slice(0,5).map(log => {
-      return (
-        '<div class="data-card">' +
-          '<div class="dc-row">' +
-            '<span class="dc-title">' + getSessionNameFromLog(log) + '</span>' +
-            '<span class="badge badge-green">' + uiText('completed') + '</span>' +
-          '</div>' +
-          '<div class="dc-row">' +
-            '<span class="dc-sub">' + getWeekNameFromLog(log) + '</span>' +
-            '<span class="dc-sub">' + formatDate(log.training_date) + '</span>' +
-          '</div>' +
-          (
-            log.client_feedback_summary
-              ? '<div class="dc-note">' + log.client_feedback_summary + '</div>'
-              : ''
-          ) +
-        '</div>'
-      );
-    }).join('');
+    html += finishedLogs.slice(0, 5).map(log => (
+      '<div class="data-card">' +
+        '<div class="dc-row">' +
+          '<span class="dc-title" style="font-size:14px;">' + getSessionNameFromLog(log) + '</span>' +
+          '<span class="badge badge-green">' + uiText('completed') + '</span>' +
+        '</div>' +
+        '<div class="dc-row">' +
+          '<span class="dc-sub">' + getWeekNameFromLog(log) + '</span>' +
+          '<span class="dc-sub">' + formatDate(log.training_date) + '</span>' +
+        '</div>' +
+        (log.client_feedback_summary
+          ? '<div class="dc-note">' + log.client_feedback_summary + '</div>'
+          : '') +
+      '</div>'
+    )).join('');
   }
 
   return html;
