@@ -6562,10 +6562,13 @@ async function openWorkoutBlock(blockId){
   const plan = getWorkoutPlanForClient(c);
   const block = plan.blocks.find(b => String(b.id) === String(blockId));
   const blockName = block ? cleanTxt(getBlockName(block)) : '';
-  const isMobilityBlock = ['movilidad','estiramiento','vuelta','calma','cooldown','stretching'].some(t => blockName.includes(t));
+    // Solo bloques de cierre usan la cadena de movilidad
+  const isMobilityBlock = ['estiramiento','vuelta','calma','cooldown','stretching'].some(t => blockName.includes(t));
+  // Bloques de inicio (activación, calentamiento) usan training_exercises normal
+  const isWarmupBlock = ['activacion','calentamiento','warmup','warm up'].some(t => blockName.includes(t));
 
   // Para bloques de movilidad: cargar cadena asignada primero
-  if(isMobilityBlock && c){
+    if(isMobilityBlock && !isWarmupBlock && c){
     try{
       const {data: assignment} = await db
         .from('client_mobility_assignments')
@@ -6604,7 +6607,7 @@ async function openWorkoutBlock(blockId){
   }
 
   // Para bloques normales: cargar desde training_exercises
-  if(!isMobilityBlock){
+    if(!isMobilityBlock || isWarmupBlock){
     try{
       const {data} = await db
         .from('training_exercises')
