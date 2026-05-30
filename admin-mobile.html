@@ -5983,7 +5983,29 @@ function beep(freq=880,durMs=160,vol=0.35){
     o.type='sine';o.frequency.value=freq;g.gain.value=vol;o.start();o.stop(beep._ctx.currentTime+durMs/1000);
   }catch(e){}
 }
-function beepWork(){beep(880,180)}function beepRest(){beep(440,220)}function beepDone(){beep(660,250);setTimeout(()=>beep(880,350),280)}
+function beepWork(){
+  beep(880,200);setTimeout(()=>beep(880,150),260);
+  try{if(navigator.vibrate)navigator.vibrate([120,60,120])}catch(e){}
+  flashPhase('work');
+}
+function beepRest(){
+  beep(440,350);
+  try{if(navigator.vibrate)navigator.vibrate([250])}catch(e){}
+  flashPhase('rest');
+}
+function beepDone(){
+  beep(660,200);setTimeout(()=>beep(880,200),260);setTimeout(()=>beep(1100,450),520);
+  try{if(navigator.vibrate)navigator.vibrate([100,50,100,50,300])}catch(e){}
+  flashPhase('done');
+}
+function flashPhase(type){
+  const el=document.getElementById('wt-phase');
+  if(!el)return;
+  el.style.transition='none';
+  el.style.transform='scale(1.15)';
+  el.style.opacity='1';
+  setTimeout(()=>{el.style.transition='transform .3s,opacity .3s';el.style.transform='scale(1)'},200);
+}
 
 function setIntervalMode(enabled){state.workoutIntervals.enabled=!!enabled;pauseWorkoutTimer();resetIntervalState();renderWorkout()}
 function resetIntervalState(){const iv=state.workoutIntervals;iv.phase='idle';iv.currentRound=1;iv.phaseSecsLeft=0}
@@ -6023,6 +6045,12 @@ function startWorkoutTimer(){
     iv.phaseSecsLeft = Number(iv.workSec) || 40;
     beepWork();
   }
+
+  requestScreenWake('workout-timer');
+
+  state.workoutTimer.running = true;
+
+  state.workoutTimer.interval = setInterval(()=>{
 
   state.workoutTimer.running = true;
 
@@ -6065,6 +6093,11 @@ function pauseWorkoutTimer(){
     clearInterval(state.workoutTimer.interval);
     state.workoutTimer.interval = null;
   }
+
+  releaseScreenWake('workout-timer');
+
+  updateTimerControlsUI();
+}
 
   updateTimerControlsUI();
 }
@@ -6615,10 +6648,7 @@ function buildActiveSingleExerciseScreen(c,plan,block){
             <div class="wt2-block-header-bar"><div class="wt2-block-header-bar-fill" style="width:${donePct}%"></div></div>
           </div>
         </div>
-        <div class="wt2-block-header-timer">
-          <div class="wt2-block-header-timer-label">TIEMPO ACTIVO</div>
-          <div class="wt2-block-header-timer-val" id="wt-clock">${formatClock(state.workoutTimer.seconds)}</div>
-        </div>
+
       </div>
         </div>
 
@@ -6830,10 +6860,7 @@ function buildActiveCircuitScreen(c,plan,block){
             </div>
           </div>
         </div>
-        <div class="wt2-block-header-timer">
-          <div class="wt2-block-header-timer-label">TIEMPO ACTIVO</div>
-          <div class="wt2-block-header-timer-val" id="wt-clock">${formatClock(state.workoutTimer.seconds)}</div>
-        </div>
+        
       </div>
     </div>
 
