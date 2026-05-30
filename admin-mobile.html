@@ -3616,42 +3616,68 @@ async function openMobilityModal(clientId){
 
   document.getElementById('modal-title').textContent = 'Cadena de movilidad';
   const form = document.getElementById('modal-form');
-
   form.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-2)">Cargando...</div>';
   document.getElementById('modal-ov').classList.add('on');
 
   try{
-            const [{data:current},{data:chains,error:chainErr}] = await Promise.all([
+    const [{data:current, error:e1},{data:chains, error:e2}] = await Promise.all([
       db.from('client_mobility_assignments')
-  .select('*, mobility_chains(name,level,objective,duration,coach_notes)')
+        .select('*, mobility_chains(name,level,objective,duration,coach_notes)')
         .eq('client_id', clientId)
         .eq('status','activo')
         .order('created_at',{ascending:false})
         .limit(1)
         .maybeSingle(),
-      db.from('mobility_chains').select('*').order('level')
+      db.from('mobility_chains')
+        .select('*')
+        .eq('is_active', true)
+        .order('level')
     ]);
 
-        const chainOpts = (chains||[]).filter(ch=>ch.isActive!==false&&ch.is_active!==false).map(ch =>
-      `<option value="${ch.id}">${esc(ch.name||'')} — Nivel ${esc(ch.level||'')} · ${esc(ch.duration||'')}</option>`
+    if(e1) console.warn('assignments error:', e1);
+    if(e2) console.warn('chains error:', e2);
+
+    // Cargar ejercicios de la cadena activa
+    let chainExercises = [];
+    if(current?.chain_id){
+      const {data:exs} = await db
+        .from('mobility_chain_exercises')
+        .select('*')
+        .eq('chain_id', current.chain_id)
+        .order('exercise_order');
+      chainExercises = exs || [];
+    }
+
+    const chainOpts = (chains||[]).map(ch =>
+      `<option value="${ch.id}">${esc(ch.name||'')} — ${esc(ch.level||'')} · ${esc(ch.duration||'')}</option>`
     ).join('');
+
+    const exHTML = chainExercises.length ? `
+      <div style="margin-bottom:14px">
+        <div style="font-family:var(--font-m);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-2);margin-bottom:8px">Ejercicios de la cadena</div>
+        ${chainExercises.map((ex,i) => `
+          <div style="padding:10px 0;border-bottom:1px solid var(--divider)">
+            <div style="font-weight:700;font-size:.84rem">${i+1}. ${esc(ex.name||'')}</div>
+            ${ex.duration||ex.reps ? `<div style="font-family:var(--font-m);font-size:.6rem;color:var(--sport);margin-top:2px">${esc(ex.duration||ex.reps||'')}</div>` : ''}
+            ${ex.description ? `<div style="font-size:.74rem;color:var(--text-2);margin-top:3px">${esc(ex.description)}</div>` : ''}
+          </div>`).join('')}
+      </div>` : '';
 
     form.innerHTML = `
       ${current?.mobility_chains ? `
         <div class="card" style="border-left:3px solid var(--sport);margin-bottom:14px">
           <div class="card-body" style="padding:12px 14px">
             <div style="font-family:var(--font-m);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sport);margin-bottom:3px">Cadena activa</div>
-            <div style="font-weight:700;font-size:.92rem">${esc(current.mobility_chains.name)}</div>
-            <div style="font-size:.74rem;color:var(--text-2);margin-top:2px">Nivel ${esc(current.mobility_chains.level||'—')} · ${esc(current.mobility_chains.duration||'')}</div>
+            <div style="font-weight:700;font-size:.92rem">${esc(current.mobility_chains.name||'')}</div>
+            <div style="font-size:.74rem;color:var(--text-2);margin-top:2px">${esc(current.mobility_chains.level||'—')} · ${esc(current.mobility_chains.duration||'')}</div>
             ${current.mobility_chains.objective?`<div style="font-size:.74rem;color:var(--text-2);margin-top:4px">${esc(current.mobility_chains.objective)}</div>`:''}
           </div>
           <div class="card-acts">
             <button class="btn btn-r btn-sm" onclick="closeMobilityChain('${current.id}','${clientId}')">Cerrar cadena</button>
           </div>
         </div>
-      ` : `
-        <div style="font-size:.82rem;color:var(--text-2);margin-bottom:14px">Sin cadena de movilidad activa.</div>
-      `}
+        ${exHTML}
+      ` : `<div style="font-size:.82rem;color:var(--text-2);margin-bottom:14px">Sin cadena de movilidad activa.</div>`}
 
       <div class="fld">
         <label class="fld-l">Asignar nueva cadena</label>
@@ -3670,7 +3696,7 @@ async function openMobilityModal(clientId){
       </div>
     `;
   }catch(err){
-    form.innerHTML = `<div class="empty"><strong>Error</strong>${esc(err.message)}</div>`;
+    form.innerHTML = `<div class="empty"><strong>Error</strong> ${esc(err.message)}</div>`;
   }
 }
 
