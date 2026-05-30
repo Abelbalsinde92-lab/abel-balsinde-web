@@ -2303,6 +2303,65 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
 /* Sección home: ocultar section-header */
 #section-home .section-header { display: none !important; }
+
+/* ═══ SALUD — SUB-TABS ══════════════════════════════════ */
+.health-tabs {
+  display: flex;
+  margin: 0 0 16px;
+  border-bottom: 1px solid var(--divider);
+}
+.health-tab {
+  flex: 1;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 8px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  transition: color .15s, border-color .15s;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+.health-tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--sport);
+}
+.health-tab .health-tab-dot {
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--warn);
+  margin-left: 5px;
+  vertical-align: middle;
+  position: relative; top: -1px;
+}
+.health-panel { display: none; }
+.health-panel.active { display: block; }
+
+/* ═══ EMOJI SCALE — COMPACTO MOBILE ═══════════════════════
+   Reduce altura de ~75px a ~48px por escala.
+   El texto descriptivo solo se muestra cuando está activo.
+═══════════════════════════════════════════════════════════ */
+.emoji-scale-btn {
+  padding: 7px 3px 5px;
+}
+.emoji-scale-emoji {
+  font-size: 17px;
+  margin-bottom: 3px;
+}
+.emoji-scale-text {
+  display: none;
+  font-size: 8px;
+}
+.emoji-scale-btn.active .emoji-scale-text {
+  display: block;
+}
+.emoji-scale-value {
+  font-size: 10px;
+}
 </style>
 </head>
 <body>
@@ -10057,48 +10116,51 @@ function renderHealthAlerts() {
   const showCombatMetrics = hasCombatMetricsEnabled();
   if (badge) badge.textContent = clientAlerts.length;
 
-  let html = '';
-  html += buildDailyCheckinHTML();
+  const lang = getLang();
+  const label1 = lang === 'sr' ? 'STANJE' : 'CHECK-IN';
+  const label2 = lang === 'sr' ? 'METRIKE' : 'MÉTRICAS';
 
-  if (showCombatMetrics) {
-    html += buildCombatMetricsHTML();
-  } else {
-    html += buildGeneralHealthHTML();
-  }
+  // ── Sub-tabs ──
+  let html =
+    '<div class="health-tabs">' +
+      '<button class="health-tab active" id="healthTab1" onclick="showHealthTab(\'checkin\')">' +
+        label1 +
+        (clientAlerts.length > 0
+          ? '<span class="health-tab-dot"></span>'
+          : '') +
+      '</button>' +
+      '<button class="health-tab" id="healthTab2" onclick="showHealthTab(\'metricas\')">' +
+        label2 +
+      '</button>' +
+    '</div>';
+
+  // ── Panel 1: Check-in + Indicaciones ──
+  html += '<div class="health-panel active" id="health-panel-checkin">';
+  html += buildDailyCheckinHTML();
 
   if (clientAlerts.length) {
     html +=
-      '<div style="margin:18px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
+      '<div style="margin:18px 0 10px;font-family:var(--font-mono);font-size:10px;' +
+      'letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
         uiText('healthIndications') + ' · ' + clientAlerts.length +
       '</div>';
 
     html += clientAlerts.map(a => {
-      const statusText = String(a.status || '').toLowerCase();
-      let badgeClass = 'badge-gray';
-      let statusLabelText = a.status || uiText('followUp');
-
-      if (['pendiente', 'pending'].includes(statusText)) {
-        badgeClass = 'badge-yellow';
-        statusLabelText = getLang() === 'sr' ? 'Na čekanju' : 'Pendiente';
-      }
-      if (['alerta', 'critica', 'crítica', 'vencido'].includes(statusText)) {
-        badgeClass = 'badge-red';
-        statusLabelText = getLang() === 'sr' ? 'Upozorenje' : 'Alerta';
-      }
-      if (['revisado', 'ok', 'apto', 'resuelto'].includes(statusText)) {
-        badgeClass = 'badge-green';
-        statusLabelText = getLang() === 'sr' ? 'Rešeno' : 'Resuelto';
-      }
-
+      const s = String(a.status || '').toLowerCase();
+      let cls = 'badge-gray';
+      let lbl = a.status || uiText('followUp');
+      if (['pendiente','pending'].includes(s)) { cls = 'badge-yellow'; lbl = lang === 'sr' ? 'Na čekanju' : 'Pendiente'; }
+      if (['alerta','critica','crítica','vencido'].includes(s)) { cls = 'badge-red'; lbl = lang === 'sr' ? 'Upozorenje' : 'Alerta'; }
+      if (['revisado','ok','apto','resuelto'].includes(s)) { cls = 'badge-green'; lbl = lang === 'sr' ? 'Rešeno' : 'Resuelto'; }
       return (
         '<div class="data-card">' +
           '<div class="dc-row">' +
-            '<span class="badge ' + badgeClass + '">' + statusLabelText + '</span>' +
-            '<span class="dc-sub" style="font-family:var(--font-mono);">' + formatDate(a.date) + '</span>' +
+            '<span class="badge ' + cls + '">' + lbl + '</span>' +
+            '<span class="dc-sub">' + formatDate(a.date) + '</span>' +
           '</div>' +
           (a.detail
             ? '<div style="margin-top:10px;font-size:14px;color:var(--text-primary);line-height:1.7;">' + a.detail + '</div>'
-            : '<div class="dc-note">' + (getLang() === 'sr' ? 'Nema registrovanog detalja.' : 'Sin detalle registrado.') + '</div>'
+            : '<div class="dc-note">' + (lang === 'sr' ? 'Nema registrovanog detalja.' : 'Sin detalle registrado.') + '</div>'
           ) +
         '</div>'
       );
@@ -10114,9 +10176,33 @@ function renderHealthAlerts() {
       '</div>';
   }
 
+  html += '</div>'; // /health-panel-checkin
+
+  // ── Panel 2: Métricas ──
+  html += '<div class="health-panel" id="health-panel-metricas">';
+
+  if (showCombatMetrics) {
+    html += buildCombatMetricsHTML();
+  } else {
+    html += buildGeneralHealthHTML();
+  }
+
+  html += '</div>'; // /health-panel-metricas
+
   el.innerHTML = html;
 
   if (showCombatMetrics) cargarMetricasCombate();
+}
+
+function showHealthTab(tab) {
+  document.querySelectorAll('.health-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.health-panel').forEach(p => p.classList.remove('active'));
+
+  const panelId = 'health-panel-' + tab;
+  const tabIndex = tab === 'checkin' ? 0 : 1;
+
+  document.querySelectorAll('.health-tab')[tabIndex]?.classList.add('active');
+  document.getElementById(panelId)?.classList.add('active');
 }
 
 /* ══ NAVIGATION ══ */
