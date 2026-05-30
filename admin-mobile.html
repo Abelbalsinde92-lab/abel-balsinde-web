@@ -2075,6 +2075,47 @@ let activeModal=null;
 let abWakeLock = null;
 const abWakeReasons = new Set();
 
+/* ── FIELD MODE ── */
+const FIELD_MODE = 'coach'; // En field.html siempre es coach/admin
+
+function canRenderFieldItem(item, mode = FIELD_MODE){
+  if(!item) return false;
+  const visibility = item.fieldVisibility || item.field_visibility || 'coach_and_client';
+  const displayMode = item.fieldDisplayMode || item.field_display_mode || 'exercise_card';
+  if(mode === 'client'){
+    if(visibility === 'coach_only') return false;
+    if(displayMode === 'locked_coach_card') return false;
+  }
+  return true;
+}
+
+const MOVEMENT_PATTERN_LABELS = {
+  squat_controlled:'Sentadilla controlada', hinge_explosive:'Bisagra explosiva',
+  rotational_power:'Potencia rotacional', mobility_control:'Movilidad',
+  anti_rotation_core:'Core anti-rotación', aerobic_base:'Aeróbico base',
+  overhead_push:'Empuje overhead', horizontal_pull:'Jalón horizontal',
+  lunge_unilateral:'Zancada unilateral', jump_impact:'Impacto/salto',
+  isometric_hold:'Isométrico', carry:'Transporte de carga'
+};
+
+const CAPACITY_LABELS = {
+  fuerza_general:'Fuerza', potencia_general:'Potencia',
+  resistencia_aerobica:'Resistencia', resistencia_anaerobica:'Anaeróbico',
+  movilidad_control:'Movilidad', core_estabilidad:'Core',
+  readaptacion:'Readaptación', velocidad_reaccion:'Velocidad'
+};
+
+function buildFieldItemChips(ex){
+  const chips = [];
+  const mp = ex.movementPatternKey || ex.movement_pattern_key || '';
+  const ac = ex.athleteCapacityKey || ex.athlete_capacity_key || '';
+  if(mp && MOVEMENT_PATTERN_LABELS[mp])
+    chips.push(`<span style="font-family:var(--font-m);font-size:.48rem;padding:3px 7px;border-radius:4px;background:rgba(0,200,232,.08);border:1px solid rgba(0,200,232,.2);color:var(--sport);letter-spacing:.06em;text-transform:uppercase">${MOVEMENT_PATTERN_LABELS[mp]}</span>`);
+  if(ac && CAPACITY_LABELS[ac])
+    chips.push(`<span style="font-family:var(--font-m);font-size:.48rem;padding:3px 7px;border-radius:4px;background:rgba(255,255,255,.05);border:1px solid var(--divider);color:var(--text-2);letter-spacing:.06em;text-transform:uppercase">${CAPACITY_LABELS[ac]}</span>`);
+  return chips.length ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${chips.join('')}</div>` : '';
+}
+
 async function requestScreenWake(reason='timer'){
   abWakeReasons.add(reason);
 
@@ -6393,6 +6434,46 @@ function openExerciseVideo(exId){
 }
 function closeVideoModal(){document.getElementById('video-ov')?.classList.remove('on');const body=document.getElementById('video-body');if(body)body.innerHTML=''}
 
+function renderInstructionCard(ex, index){
+  const title = ex.name || ex.nameEs || ex.name_es || 'Indicaciones del bloque';
+  const desc = ex.description || ex.descriptionEs || ex.description_es || '';
+  const id = `instr-${ex.id || index}`;
+
+  return `
+    <details class="card" style="margin-bottom:10px;border-left:3px solid rgba(0,200,232,.3)" id="${id}">
+      <summary style="padding:12px 14px;list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px">
+        <span style="font-family:var(--font-m);font-size:.52rem;padding:3px 8px;border-radius:4px;background:rgba(0,200,232,.1);color:var(--sport);letter-spacing:.1em;text-transform:uppercase;flex-shrink:0">Nota</span>
+        <span style="font-weight:600;font-size:.86rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(title)}</span>
+        <span style="color:var(--text-2);font-size:.9rem;flex-shrink:0">›</span>
+      </summary>
+      <div style="padding:0 14px 12px;border-top:1px solid var(--divider)">
+        ${desc ? `<div style="font-size:.82rem;color:var(--text-2);line-height:1.65;margin-top:10px">${esc(desc)}</div>` : ''}
+        ${buildFieldItemChips(ex)}
+      </div>
+    </details>`;
+}
+
+function renderCoachProtocolCard(ex, index){
+  if(FIELD_MODE === 'client') return '';
+
+  const title = ex.name || ex.nameEs || ex.name_es || 'Protocolo interno';
+  const desc = ex.description || ex.descriptionEs || ex.description_es || '';
+  const id = `proto-${ex.id || index}`;
+
+  return `
+    <details style="margin-bottom:10px;background:rgba(0,200,232,.04);border:1px solid rgba(0,200,232,.15);border-radius:var(--r);overflow:hidden" id="${id}">
+      <summary style="padding:11px 14px;list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px">
+        <span style="font-family:var(--font-m);font-size:.48rem;padding:3px 7px;border-radius:4px;background:rgba(0,200,232,.12);border:1px solid rgba(0,200,232,.3);color:var(--sport);letter-spacing:.14em;text-transform:uppercase;flex-shrink:0">Coach</span>
+        <span style="font-size:.84rem;font-weight:600;flex:1;min-width:0;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(title)}</span>
+        <span style="color:var(--text-2);font-size:.9rem;flex-shrink:0">›</span>
+      </summary>
+      <div style="padding:0 14px 12px;border-top:1px solid rgba(0,200,232,.12)">
+        ${desc ? `<div style="font-size:.78rem;color:var(--text-2);line-height:1.6;margin-top:10px">${esc(desc)}</div>` : ''}
+        ${buildFieldItemChips(ex)}
+      </div>
+    </details>`;
+}
+
 /* ── v1.1: buildWorkoutBlockListScreen CON estado vacío accionable ── */
 function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,note){
 
@@ -6708,13 +6789,20 @@ async function completeActiveExercise(clientId,blockId,exId){
 }
 
 function buildWorkoutExerciseCard(ex,index,clientId){
-  const exId=getExerciseId(ex,index);const done=isExerciseDone(clientId,exId);const info=getExerciseInfo(ex);const videoUrl=getExerciseVideoUrl(ex);
+  if(!canRenderFieldItem(ex)) return '';
+  const itemType = ex.fieldItemType || ex.field_item_type || 'exercise';
+  const displayMode = ex.fieldDisplayMode || ex.field_display_mode || 'exercise_card';
+  if(displayMode === 'locked_coach_card' || itemType === 'coach_protocol') return renderCoachProtocolCard(ex, index);
+  if(itemType === 'instruction') return renderInstructionCard(ex, index);
+
+  const exId=getExerciseId(ex,index);const done=isExerciseDone(clientId,exId);
   return`<div class="ex-card ${done?'done':''}">
     <div class="ex-main"><div class="ex-top">
       <div class="ex-num">${String(index+1).padStart(2,'0')}</div>
       <div style="flex:1;min-width:0">
         <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
-        ${buildDoseHTML(ex)}
+                ${buildDoseHTML(ex)}
+        ${buildFieldItemChips(ex)}
         ${ex.description||ex.descriptionEs||ex.description_es?`<div class="ex-desc">${esc(ex.description||ex.descriptionEs||ex.description_es)}</div>`:''}
       </div>
     </div></div>
@@ -7072,6 +7160,12 @@ function buildActiveCircuitScreen(c,plan,block){
 }
 
 function buildCircuitExerciseCard(ex,index,clientId){
+  if(!canRenderFieldItem(ex)) return '';
+  const itemType = ex.fieldItemType || ex.field_item_type || 'exercise';
+  const displayMode = ex.fieldDisplayMode || ex.field_display_mode || 'exercise_card';
+  if(displayMode === 'locked_coach_card' || itemType === 'coach_protocol') return renderCoachProtocolCard(ex, index);
+  if(itemType === 'instruction') return renderInstructionCard(ex, index);
+
   const exId=getExerciseId(ex,index);
   const done=isExerciseDone(clientId,exId);
   const videoUrl=getExerciseVideoUrl(ex);
