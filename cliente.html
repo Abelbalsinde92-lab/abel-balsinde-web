@@ -3729,6 +3729,36 @@ async function renderDashboard() {
   
   injectAvatarInHeader();
 
+injectAvatarInHeader();
+
+// Logo en cada cabecera de sección
+document.querySelectorAll('.section-header').forEach(el => {
+  if(el.querySelector('.section-logo')) return;
+
+  const h2 = el.querySelector('h2');
+  const badge = el.querySelector('.sec-badge');
+
+  if(!h2) return;
+
+  const badgeRow = document.createElement('div');
+  badgeRow.style.cssText = 'font-family:var(--font-mono);font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-secondary);margin-bottom:4px';
+  if(badge){ badgeRow.appendChild(badge.cloneNode(true)); badge.remove(); }
+  el.insertBefore(badgeRow, h2);
+
+  const titleRow = document.createElement('div');
+  titleRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%';
+
+  const img = document.createElement('img');
+  img.src = '/ab-logo.png.WEBP?v=20260521-01';
+  img.alt = 'AB';
+  img.className = 'section-logo';
+  img.style.cssText = 'height:46px;width:auto;object-fit:contain;flex-shrink:0;opacity:.85';
+
+  el.insertBefore(titleRow, h2);
+  titleRow.appendChild(h2);
+  titleRow.appendChild(img);
+});
+
   renderHome();
 
   if (typeof renderProgram==='function') renderProgram();
