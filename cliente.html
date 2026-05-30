@@ -3640,7 +3640,10 @@ displayRows.forEach(r => {
   knowledge_progressions: d.knowledge_progressions || r.knowledge_progressions || '',
   knowledge_coach_notes: d.knowledge_coach_notes || r.knowledge_coach_notes || '',
   knowledge_client_summary: d.knowledge_client_summary || r.knowledge_client_summary || '',
-  knowledge_priority: d.knowledge_priority || r.knowledge_priority || ''
+    knowledge_priority: d.knowledge_priority || r.knowledge_priority || '',
+  field_item_type:    r.field_item_type    || 'exercise',
+  field_display_mode: r.field_display_mode || 'exercise_card',
+  field_visibility:   r.field_visibility   || 'coach_and_client'
 });
     });
 
@@ -6910,9 +6913,39 @@ function buildKnowledgeRow(label, value) {
   );
 }
 
+function canRenderClientItem(ex){
+  const vis  = ex.field_visibility   || 'coach_and_client';
+  const mode = ex.field_display_mode || 'exercise_card';
+  if(vis  === 'coach_only')         return false;
+  if(mode === 'locked_coach_card')  return false;
+  return true;
+}
+
+function buildClientInstructionCard(ex){
+  const title = ex.name || 'Indicaciones';
+  const desc  = ex.description || '';
+  const id    = 'cinstr-' + String(ex.id || Math.random()).replace(/[^a-zA-Z0-9]/g,'');
+  return (
+    '<details class="training-exercise-card" style="border-left:3px solid rgba(0,163,255,.3)" id="' + id + '">' +
+      '<summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:2px 0">' +
+        '<span style="font-family:var(--font-mono);font-size:9px;padding:3px 8px;border-radius:4px;' +
+          'background:rgba(0,163,255,.1);color:var(--sport);letter-spacing:.1em;text-transform:uppercase;flex-shrink:0">Nota</span>' +
+        '<span style="font-weight:600;font-size:.88rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+          escHTML(title) +
+        '</span>' +
+        '<span style="color:var(--text-secondary);font-size:.9rem;flex-shrink:0">›</span>' +
+      '</summary>' +
+      (desc ? '<div style="font-size:13px;color:var(--text-secondary);line-height:1.65;margin-top:10px">' + escHTML(desc) + '</div>' : '') +
+    '</details>'
+  );
+}
+
 function buildExerciseHTML(ex){
   ex = enrichExerciseWithKnowledge(ex);
   ex = getExerciseWithActiveAdaptation(ex);
+
+  if(!canRenderClientItem(ex)) return '';
+  if((ex.field_item_type || 'exercise') === 'instruction') return buildClientInstructionCard(ex);
 
   const lvl = getAssignedTrainingLevel();
   const _lg = getLang();
