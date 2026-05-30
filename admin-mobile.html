@@ -6431,12 +6431,30 @@ function getBlockDoneInfo(clientId,block){
   };
 }
 
-function openWorkoutBlock(blockId){
+async function openWorkoutBlock(blockId){
   stopExerciseTimerForNavigation();
-
   state.activeWorkoutBlockId = blockId;
   state.activeAdaptedBlockKey = null;
   state.activeWorkoutExerciseIndex = 0;
+
+  // Cargar ejercicios del bloque directamente desde Supabase
+  try{
+    const {data, error} = await db
+      .from('training_exercises')
+      .select('*')
+      .eq('block_id', blockId)
+      .order('exercise_order');
+
+    if(!error && data?.length){
+      const mapped = mapArr(data);
+      const existingIds = new Set(state.trainingExercises.map(e => e.id));
+      mapped.forEach(e => {
+        if(!existingIds.has(e.id)) state.trainingExercises.push(e);
+      });
+    }
+  }catch(err){
+    console.warn('Error cargando ejercicios del bloque:', err);
+  }
 
   renderWorkout();
 }
