@@ -9025,11 +9025,11 @@ function buildClientBodyMetricsCard() {
     : '—';
 
   return (
-    '<div class="accordion-block open" style="margin-top:12px;">' +
+        '<div class="accordion-block" style="margin-top:12px;">' +
 
       '<button class="accordion-title" onclick="toggleAccordion(this)">' +
         '<span>' + (getLang() === 'sr' ? 'Telesne metrike' : 'Métricas físicas') + '</span>' +
-        '<span class="accordion-symbol">−</span>' +
+        '<span class="accordion-symbol">+</span>' +
       '</button>' +
 
       '<div class="accordion-content">' +
@@ -9498,10 +9498,10 @@ function renderClientData(){
   html += '</div>';
 
     html +=
-  '<div class="accordion-block open" style="margin-top:12px;">' +
+    '<div class="accordion-block" style="margin-top:12px;">' +
     '<button class="accordion-title" onclick="toggleAccordion(this)">' +
       '<span>' + uiText('personalData') + '</span>' +
-      '<span class="accordion-symbol">−</span>' +
+      '<span class="accordion-symbol">+</span>' +
     '</button>' +
     '<div class="accordion-content">' +
 
