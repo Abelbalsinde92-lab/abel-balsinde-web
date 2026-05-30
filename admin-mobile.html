@@ -5658,6 +5658,73 @@ function getBlockSessionId(b){return getVal(b,['sessionId','session_id','trainin
 function getBlockName(b){return getVal(b,['name','nameEs','name_es','blockName','block_name','title','titleEs','title_es'])}
 function getExerciseBlockId(e){return getVal(e,['blockId','block_id','trainingBlockId','training_block_id'])}
 
+function getRealBlockId(blockOrId){
+  if(!blockOrId) return '';
+
+  if(typeof blockOrId === 'string'){
+    return blockOrId;
+  }
+
+  return String(
+    blockOrId.id ||
+    blockOrId.blockId ||
+    blockOrId.block_id ||
+    blockOrId.trainingBlockId ||
+    blockOrId.training_block_id ||
+    ''
+  ).trim();
+}
+
+async function ensureBlockExercisesLoaded(blockOrId){
+  const blockId = getRealBlockId(blockOrId);
+
+  if(!blockId){
+    console.warn('ensureBlockExercisesLoaded: sin blockId', blockOrId);
+    return [];
+  }
+
+  const alreadyLoaded = sortByOrder(
+    state.trainingExercises.filter(e =>
+      sameId(getExerciseBlockId(e), blockId)
+    )
+  );
+
+  if(alreadyLoaded.length){
+    return alreadyLoaded;
+  }
+
+  const { data, error } = await db
+    .from('training_exercises')
+    .select('*')
+    .eq('block_id', blockId)
+    .order('exercise_order', { ascending:true });
+
+  if(error){
+    console.error('Error cargando ejercicios del bloque:', {
+      blockId,
+      error
+    });
+    showToast('Error cargando ejercicios del bloque', 'err');
+    return [];
+  }
+
+  const mapped = mapArr(data || []);
+
+  state.trainingExercises = state.trainingExercises.filter(e =>
+    !sameId(getExerciseBlockId(e), blockId)
+  );
+
+  state.trainingExercises.push(...mapped);
+
+  console.log('AB FIELD · ejercicios cargados por bloque', {
+    blockId,
+    total:mapped.length,
+    names:mapped.map(x => x.name || x.nameEs || x.name_es)
+  });
+
+  return mapped;
+}
+
 /* ── ORDEN LÓGICO DE BLOQUES · AB SYSTEM ── */
 function getBlockSemanticRank(blockOrName){
   let text = '';
@@ -6645,46 +6712,88 @@ function getBlockDoneInfo(clientId,block){
   };
 }
 
-async function openWorkoutBlock(blockId){
+async function openWorkoutBlock(blockIdRaw){
   stopExerciseTimerForNavigation();
+
+  const c = clientById(state.activeTrainingClientId || state.selectedClientId);
+
+  if(!c){
+    showToast('Cliente no encontrado', 'err');
+    return;
+  }
+
+  const planBefore = getWorkoutPlanForClient(c);
+
+  const blockBefore = planBefore.blocks.find(b =>
+    String(getRealBlockId(b)) === String(blockIdRaw)
+  );
+
+  const blockId = getRealBlockId(blockBefore || blockIdRaw);
+
+  if(!blockId){
+    console.warn('openWorkoutBlock: blockId inválido', {
+      blockIdRaw,
+      blockBefore
+    });
+    showToast('Bloque no válido', 'err');
+    return;
+  }
+
   state.activeWorkoutBlockId = blockId;
   state.activeAdaptedBlockKey = null;
   state.activeWorkoutExerciseIndex = 0;
 
-  const c = clientById(state.activeTrainingClientId || state.selectedClientId);
-  const plan = getWorkoutPlanForClient(c);
-  const block = plan.blocks.find(b => String(b.id) === String(blockId));
-  const blockName = block ? cleanTxt(getBlockName(block)) : '';
-    // Solo bloques de cierre usan la cadena de movilidad
-  const isMobilityBlock = ['estiramiento','vuelta','calma','cooldown','stretching'].some(t => blockName.includes(t));
-  // Bloques de inicio (activación, calentamiento) usan training_exercises normal
-  const isWarmupBlock = ['activacion','calentamiento','warmup','warm up'].some(t => blockName.includes(t));
+  const blockName = cleanTxt(getBlockName(blockBefore) || '');
 
-  // Para bloques de movilidad: cargar cadena asignada primero
-    if(isMobilityBlock && !isWarmupBlock && c){
+  const isClosingMobilityBlock = [
+    'estiramiento',
+    'vuelta',
+    'calma',
+    'cooldown',
+    'stretching'
+  ].some(t => blockName.includes(t));
+
+  const isWarmupBlock = [
+    'activacion',
+    'calentamiento',
+    'warmup',
+    'warm up'
+  ].some(t => blockName.includes(t));
+
+  let loadedFromMobilityChain = false;
+
+  /*
+    Solo los bloques finales de estiramiento/vuelta a la calma
+    intentan cargar cadena de movilidad.
+    Los bloques normales del plan SIEMPRE deben cargar training_exercises.
+  */
+  if(isClosingMobilityBlock && !isWarmupBlock){
     try{
       const {data: assignment} = await db
         .from('client_mobility_assignments')
         .select('chain_id')
         .eq('client_id', c.id)
         .eq('status', 'activo')
-        .order('created_at', {ascending:false})
+        .order('created_at', { ascending:false })
         .limit(1)
         .maybeSingle();
 
       if(assignment?.chain_id){
-        const {data: chainExs} = await db
+        const {data: chainExs, error: chainErr} = await db
           .from('mobility_chain_exercises')
           .select('*')
           .eq('chain_id', assignment.chain_id)
-          .order('exercise_order');
+          .order('exercise_order', { ascending:true });
+
+        if(chainErr){
+          console.warn('Error cargando cadena de movilidad:', chainErr);
+        }
 
         if(chainExs?.length){
-          // Eliminar ejercicios previos de este bloque (placeholder)
           state.trainingExercises = state.trainingExercises.filter(e =>
-            String(e.blockId || e.block_id || '') !== String(blockId)
+            !sameId(getExerciseBlockId(e), blockId)
           );
-          // Añadir ejercicios de la cadena
+
           chainExs.forEach(ex => {
             state.trainingExercises.push({
               ...snakeToCamel(ex),
@@ -6693,26 +6802,35 @@ async function openWorkoutBlock(blockId){
               block_id: blockId,
             });
           });
+
+          loadedFromMobilityChain = true;
           showToast(`Cadena cargada · ${chainExs.length} ejercicios`, 'ok');
         }
       }
-    }catch(err){ console.warn('Error cargando cadena:', err); }
+    }catch(err){
+      console.warn('Error cargando cadena:', err);
+    }
   }
 
-  // Para bloques normales: cargar desde training_exercises
-    if(!isMobilityBlock || isWarmupBlock){
-    try{
-      const {data} = await db
-        .from('training_exercises')
-        .select('*')
-        .eq('block_id', blockId)
-        .order('exercise_order');
-      if(data?.length){
-        const mapped = mapArr(data);
-        const existingIds = new Set(state.trainingExercises.map(e => e.id));
-        mapped.forEach(e => { if(!existingIds.has(e.id)) state.trainingExercises.push(e); });
-      }
-    }catch(err){ console.warn('Error cargando ejercicios:', err); }
+  /*
+    Fallback obligatorio:
+    Si no se cargó cadena o el bloque no es de cierre,
+    cargar ejercicios reales de training_exercises por block_id.
+  */
+  if(!loadedFromMobilityChain){
+    await ensureBlockExercisesLoaded(blockId);
+  }
+
+  const loadedNow = state.trainingExercises.filter(e =>
+    sameId(getExerciseBlockId(e), blockId)
+  );
+
+  if(!loadedNow.length){
+    console.warn('Bloque abierto sin ejercicios después de consulta:', {
+      blockId,
+      blockName,
+      blockBefore
+    });
   }
 
   renderWorkout();
@@ -6796,7 +6914,9 @@ function buildWorkoutExerciseCard(ex,index,clientId){
   if(itemType === 'instruction') return renderInstructionCard(ex, index);
 
   const exId=getExerciseId(ex,index);const done=isExerciseDone(clientId,exId);
-  return`<div class="ex-card ${done?'done':''}">
+  const info = getExerciseInfo(ex);
+   const videoUrl = getExerciseVideoUrl(ex);
+   return`<div class="ex-card ${done?'done':''}">
     <div class="ex-main"><div class="ex-top">
       <div class="ex-num">${String(index+1).padStart(2,'0')}</div>
       <div style="flex:1;min-width:0">
@@ -6996,9 +7116,27 @@ function isCircuitBlock(block){
 }
 
 function buildActiveBlockScreen(c,plan,block){
-  const exercises = block?.exercises || [];
+  const blockId = getRealBlockId(block);
+
+  let exercises = block?.exercises || [];
+
+  if(!exercises.length && blockId){
+    exercises = sortByOrder(
+      state.trainingExercises.filter(e =>
+        sameId(getExerciseBlockId(e), blockId)
+      )
+    );
+
+    block.exercises = exercises;
+  }
 
   if(!exercises.length){
+    console.warn('buildActiveBlockScreen: bloque sin ejercicios en memoria', {
+      blockId,
+      blockName:getBlockName(block),
+      block
+    });
+
     return buildGuidedBlockScreen(c,plan,block);
   }
 
