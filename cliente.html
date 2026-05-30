@@ -6457,14 +6457,13 @@ html += buildClientMobilityBlock(initialActiveSessionId);
 function buildCompletedSessionCard(session,index){
   const title = getSessionDisplayTitle(session,index);
   const week = clientTrainingWeeks.find(w => String(w.id) === String(session.week_id));
-  const weekLabel = week?.week_number
-    ? tClient('week') + ' ' + week.week_number
-    : tClient('week');
+  const weekLabel = week?.week_number ? tClient('week')+' '+week.week_number : tClient('week');
+  const steps = buildTrainingSteps(String(session.id));
 
-  return (
+  let html =
     '<div class="training-session-completed-card">' +
       '<div class="training-session-completed-row">' +
-        '<div style="flex:1;min-width:0;">' +
+        '<div style="flex:1;min-width:0">' +
           '<div class="training-session-completed-title">' + tClient('trainingCompleted') + '</div>' +
           '<div class="training-session-completed-sub">' + title + ' · ' + weekLabel + '</div>' +
           '<div style="font-size:12px;color:var(--text-secondary);margin-top:8px;line-height:1.6;font-family:var(--font-mono);">' +
@@ -6472,11 +6471,16 @@ function buildCompletedSessionCard(session,index){
           '</div>' +
         '</div>' +
       '</div>' +
-      '<button class="client-action-btn" style="margin-top:14px;" onclick="toggleCompletedTrainingDetails()">' +
-        tClient('details') +
-      '</button>' +
-    '</div>'
-  );
+    '</div>';
+
+  // Mostrar bloques en modo revisión
+  if(steps.length){
+    html += '<div class="training-step-list" style="margin-top:10px;">';
+    steps.forEach((step,j) => { html += buildTrainingStepHTML(step,j); });
+    html += '</div>';
+  }
+
+  return html;
 }
 
 function buildTrainingStepHTML(step,index){
