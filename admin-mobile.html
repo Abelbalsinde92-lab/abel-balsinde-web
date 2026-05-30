@@ -3744,6 +3744,8 @@ function renderMas(){
       <span style="font-family:var(--font-m);font-size:.46rem;color:var(--sport);letter-spacing:.08em">AJUSTES</span>
     </button>`;
 
+<button class="btn btn-s btn-sm btn-wide" style="margin-top:8px" onclick="checkMobilityTables()">🔍 Verificar tablas movilidad</button>
+
   const masEl=document.getElementById('mas-grid');
   masEl.style.display='block';
   masEl.style.gridTemplateColumns='unset';
@@ -3761,6 +3763,17 @@ function renderMas(){
     </div>
   `;
 }
+
+async function checkMobilityTables(){
+  const tables = ['mobility_chains','mobility_chain_exercises','client_mobility_assignments'];
+  let msg = '';
+  for(const t of tables){
+    const {data, error} = await db.from(t).select('*').limit(1);
+    msg += `\n${t}: ${error ? 'NO EXISTE — '+error.message : (data?.length ? 'OK ('+data.length+' fila)' : 'EXISTE pero vacía')}`;
+  }
+  alert(msg);
+}
+
 
 async function uploadCoachPhoto(input){
   const file=input.files?.[0];
