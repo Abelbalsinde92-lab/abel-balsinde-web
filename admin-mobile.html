@@ -3704,6 +3704,7 @@ async function openMobilityModal(clientId){
 async function assignMobilityChain(clientId){
   const chainId = document.getElementById('mob-chain-sel')?.value;
   const reason  = document.getElementById('mob-reason')?.value || '';
+  showToast(`chainId: ${chainId||'VACÍO'} · client: ${clientId||'VACÍO'}`, chainId?'ok':'err');
   if(!chainId){ showToast('Selecciona una cadena','err'); return; }
   try{
     await db.from('client_mobility_assignments').update({status:'inactivo'})
