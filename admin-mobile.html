@@ -3623,7 +3623,7 @@ async function openMobilityModal(clientId){
   try{
             const [{data:current},{data:chains,error:chainErr}] = await Promise.all([
       db.from('client_mobility_assignments')
-        .select('*, mobility_chains(name,level,description)')
+  .select('*, mobility_chains(name,level,objective,duration,coach_notes)')
         .eq('client_id', clientId)
         .eq('status','activo')
         .order('created_at',{ascending:false})
