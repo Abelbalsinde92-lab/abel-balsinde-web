@@ -3636,7 +3636,6 @@ async function openMobilityModal(clientId){
 
         if(e1) console.warn('assignments error:', e1);
     if(e2) console.warn('chains error:', e2);
-    showToast(`Cadenas: ${chains?.length||0} | Error: ${e2?.message||'ninguno'}`, chains?.length?'ok':'err');
 
     // Cargar ejercicios de la cadena activa
     let chainExercises = [];
@@ -3704,7 +3703,6 @@ async function openMobilityModal(clientId){
 async function assignMobilityChain(clientId){
   const chainId = document.getElementById('mob-chain-sel')?.value;
   const reason  = document.getElementById('mob-reason')?.value || '';
-  showToast(`chainId: ${chainId||'VACÍO'} · client: ${clientId||'VACÍO'}`, chainId?'ok':'err');
   if(!chainId){ showToast('Selecciona una cadena','err'); return; }
   try{
     await db.from('client_mobility_assignments').update({status:'inactivo'})
@@ -3787,20 +3785,8 @@ function renderMas(){
         </button>`).join('')}
             ${coachCard}
     </div>
-    <button class="btn btn-s btn-sm btn-wide" style="margin-top:8px" onclick="checkMobilityTables()">🔍 Verificar tablas movilidad</button>
   `;
 }
-
-async function checkMobilityTables(){
-  const tables = ['mobility_chains','mobility_chain_exercises','client_mobility_assignments'];
-  let msg = '';
-  for(const t of tables){
-    const {data, error} = await db.from(t).select('*').limit(1);
-    msg += `\n${t}: ${error ? 'NO EXISTE — '+error.message : (data?.length ? 'OK ('+data.length+' fila)' : 'EXISTE pero vacía')}`;
-  }
-  alert(msg);
-}
-
 
 async function uploadCoachPhoto(input){
   const file=input.files?.[0];
