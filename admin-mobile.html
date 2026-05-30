@@ -6313,6 +6313,15 @@ function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,not
       </div>`;
   }
 
+  /* DEBUG TEMPORAL */
+  const debugInfo=`
+    <div style="background:rgba(255,179,64,.1);border:1px solid var(--warn);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-family:var(--font-m);font-size:.58rem;color:var(--warn)">
+      <div>Bloques: ${plan.blocks.length} · Ejercicios total BD: ${state.trainingExercises.length}</div>
+      <div>Semana: ${getAssignmentWeek(plan.assignment)} · Sesión: ${getAssignmentSessionNumber(plan.assignment)}</div>
+      ${plan.blocks.slice(0,3).map(b=>`<div>${esc(getBlockName(b))} → ${b.exercises?.length||0} ej. (blockId: ${String(b.id).slice(0,8)}…)</div>`).join('')}
+      ${state.trainingExercises.length>0?`<div>1er ejercicio blockId: ${JSON.stringify(state.trainingExercises[0].blockId||state.trainingExercises[0].block_id||state.trainingExercises[0].trainingBlockId||'NO ENCONTRADO').slice(0,30)}</div>`:'<div>SIN EJERCICIOS EN BD</div>'}
+    </div>`;
+
   /* === Flujo normal con bloques ─ barra de progreso v1.1 === */
     return`
         <div class="wt-head" style="padding:12px">
