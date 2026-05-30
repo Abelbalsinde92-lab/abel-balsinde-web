@@ -2224,6 +2224,85 @@ input, textarea { outline: none; font-family: var(--font-body); }
 }
 .wt-iv-preset:active { background: rgba(0,163,255,.08); color: var(--sport); }
 #section-home .section-header { display: none !important; }
+
+/* ═══ CLIENTE · OVERRIDES POST-FIELD-SYNC ═══ */
+
+/* Header cliente: sin top-session ni top-refresh */
+.dash-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  height: calc(var(--top-h) + var(--safe-t));
+  padding-top: var(--safe-t);
+  background: rgba(0,0,0,.92);
+  border-bottom: 1px solid var(--divider);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+  padding-right: 12px;
+  gap: 10px;
+}
+
+/* Nav cliente: 4 tabs igual que field */
+.dash-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 50;
+  height: calc(var(--bot-h) + var(--safe-b));
+  background: var(--card);
+  border-top: 1px solid var(--divider);
+  display: flex;
+  align-items: flex-start;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Scroll wrapper cliente */
+.dash-wrap {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: calc(var(--top-h) + var(--safe-t));
+  padding-bottom: calc(var(--bot-h) + var(--safe-b) + 12px);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Secciones cliente */
+.dash-section { display: none; padding: 16px 16px 0; }
+.dash-section.active { display: block; animation: fadein .15s ease; }
+
+/* Acordeones perfil */
+.accordion-block { margin-bottom: 10px; }
+.accordion-block.open .accordion-body { display: block; }
+.accordion-title {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--r);
+  font-family: var(--font-m);
+  font-size: .6rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--sport);
+  font-weight: 700;
+}
+.accordion-body {
+  display: none;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-top: none;
+  border-radius: 0 0 var(--r) var(--r);
+}
+
+/* Sección home: ocultar section-header */
+#section-home .section-header { display: none !important; }
 </style>
 </head>
 <body>
