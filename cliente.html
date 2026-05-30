@@ -2388,6 +2388,55 @@ input, textarea { outline: none; font-family: var(--font-body); }
   width: 30px;
   height: 30px;
 }
+
+/* ═══ ENTRENAR — TIMER COLAPSABLE ══════════════════════ */
+.timer-toggle-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.timer-toggle-btn:hover {
+  border-color: rgba(0,163,255,.3);
+  color: var(--sport);
+}
+.timer-toggle-btn.open {
+  border-color: rgba(0,163,255,.3);
+  color: var(--sport);
+  background: rgba(0,163,255,.05);
+}
+.timer-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.timer-toggle-sym {
+  font-size: 18px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.timer-toggle-btn.open .timer-toggle-sym {
+  color: var(--sport);
+}
+.timer-wrap-inner {
+  display: none;
+}
+.timer-wrap-inner.open {
+  display: block;
+}
 </style>
 </head>
 <body>
@@ -6725,7 +6774,15 @@ const metaP = [
         '<div class="training-step-status" id="status-' + blockId + '">' + tClient('pending') + '</div>' +
       '</button>' +
       '<div class="training-step-body">' +
-  '<div data-timer-wrap>' + buildTimerHTML() + '</div>' +
+  '<div class="timer-collapsible">' +
+  '<button class="timer-toggle-btn" onclick="toggleBlockTimer(this)">' +
+    '<span class="timer-toggle-left">⏱ ' + (getLang() === 'sr' ? 'Štoperica' : 'Cronómetro') + '</span>' +
+    '<span class="timer-toggle-sym">+</span>' +
+  '</button>' +
+  '<div class="timer-wrap-inner" data-timer-wrap>' +
+    buildTimerHTML() +
+  '</div>' +
+'</div>' +
   (
     blockObj
       ? '<div class="training-step-objective">' + blockObj + '</div>'
@@ -6748,6 +6805,14 @@ const metaP = [
     '</div>';
 
   return html;
+}
+
+function toggleBlockTimer(btn) {
+  const wrap = btn.nextElementSibling;
+  const isOpen = wrap.classList.contains('open');
+  wrap.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+  btn.querySelector('.timer-toggle-sym').textContent = isOpen ? '+' : '−';
 }
 
 function getVideoEmbedUrl(url) {
@@ -7186,7 +7251,7 @@ const variant = ex.client_variant || baseVariant;
       '</div>';
 
   if(stats.length){
-    html += '<div class="training-exercise-grid">';
+    html += '<div class="training-exercise-grid" style="grid-template-columns:repeat(' + Math.min(stats.length, 4) + ',1fr);">';
 
     stats.forEach(s => {
       html +=
