@@ -3628,14 +3628,15 @@ async function openMobilityModal(clientId){
         .order('created_at',{ascending:false})
         .limit(1)
         .maybeSingle(),
-      db.from('mobility_chains')
+            db.from('mobility_chains')
         .select('*')
-        .eq('is_active', true)
+        .not('is_active', 'eq', false)
         .order('level')
     ]);
 
-    if(e1) console.warn('assignments error:', e1);
+        if(e1) console.warn('assignments error:', e1);
     if(e2) console.warn('chains error:', e2);
+    showToast(`Cadenas: ${chains?.length||0} | Error: ${e2?.message||'ninguno'}`, chains?.length?'ok':'err');
 
     // Cargar ejercicios de la cadena activa
     let chainExercises = [];
