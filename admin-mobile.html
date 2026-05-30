@@ -6585,9 +6585,10 @@ async function openWorkoutBlock(blockId){
       const blockName = block ? cleanTxt(getBlockName(block)) : '';
       const isMobilityBlock = ['movilidad','estiramiento','vuelta','calma','cooldown','stretching','movilidad'].some(t => blockName.includes(t));
 
-      if(isMobilityBlock){
-        try{
-          const {data: assignment} = await db
+        if(isMobilityBlock){
+    try{
+      showToast(`Bloque movilidad detectado · buscando cadena para ${c.id.slice(0,8)}…`, 'ok');
+      const {data: assignment} = await db
             .from('client_mobility_assignments')
             .select('chain_id')
             .eq('client_id', c.id)
@@ -6595,6 +6596,9 @@ async function openWorkoutBlock(blockId){
             .order('created_at', {ascending:false})
             .limit(1)
             .maybeSingle();
+            
+                      if(assignment?.chain_id){
+            showToast(`Cadena encontrada: ${assignment.chain_id.slice(0,8)}`, 'ok');
 
           if(assignment?.chain_id){
             const {data: chainExs} = await db
