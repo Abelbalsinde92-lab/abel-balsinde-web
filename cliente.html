@@ -2456,6 +2456,9 @@ input, textarea { outline: none; font-family: var(--font-body); }
     padding-top: 88px; /* header 72px en mobile + 16px */
   }
 }
+
+/* Ocultar section-header de ENTRENAR (igual que HOME) */
+#section-training > .section-header { display: none !important; }
 </style>
 </head>
 <body>
@@ -10395,6 +10398,34 @@ document.getElementById('btnLogout')?.addEventListener('click',()=>Auth.logout()
   showLoading(false);
   document.getElementById('loginScreen')?.classList.remove('hidden');
 })();
+
+/* ═══ WAKE LOCK — evita que la pantalla se apague durante el timer ═══ */
+let _wakeLock = null;
+
+async function _requestWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    _wakeLock = await navigator.wakeLock.request('screen');
+    _wakeLock.addEventListener('release', () => { _wakeLock = null; });
+  } catch (err) {
+    // Wake lock no disponible en este momento (batería baja, pestaña oculta, etc.)
+    console.warn('Wake lock:', err.message);
+  }
+}
+
+function _releaseWakeLock() {
+  if (_wakeLock) {
+    _wakeLock.release().catch(() => {});
+    _wakeLock = null;
+  }
+}
+
+// Re-pedir wake lock si el usuario vuelve a la app tras haberla dejado en segundo plano
+document.addEventListener('visibilitychange', async () => {
+  if (_wakeLock === null && document.visibilityState === 'visible' && workoutTimer.running) {
+    await _requestWakeLock();
+  }
+});
 </script>
 
 <script>
@@ -10471,23 +10502,36 @@ function updateIntervalField(field, value) {
 
 function updateClockUI() {
   const iv = workoutIntervals;
-  const clockEl = document.getElementById('wt-clock');
-  if (iv.enabled && iv.phase !== 'idle') {
-    if (clockEl) clockEl.textContent = formatClock(iv.phaseSecsLeft);
-    const phaseEl = document.getElementById('wt-phase');
-    if (phaseEl) {
-      phaseEl.textContent = {work:'TRABAJO',rest:'DESCANSO',done:'COMPLETADO'}[iv.phase]||'';
-      phaseEl.className = 'wt-phase '+(iv.phase==='work'?'work':iv.phase==='rest'?'rest':'done');
-    }
-    const roundEl = document.getElementById('wt-round');
-    if (roundEl) roundEl.textContent = iv.phase==='done'?`Completado · ${iv.totalRounds} rondas`:`Ronda ${iv.currentRound} / ${iv.totalRounds}`;
-  } else {
-    if (clockEl) clockEl.textContent = formatClock(workoutTimer.seconds);
+
+  const clockText = iv.enabled && iv.phase !== 'idle'
+    ? formatClock(iv.phaseSecsLeft)
+    : formatClock(workoutTimer.seconds);
+
+  // Actualizar TODOS los relojes del DOM (uno por bloque)
+  document.querySelectorAll('.js-wt-clock').forEach(el => {
+    el.textContent = clockText;
+  });
+
+  if (iv.enabled) {
+    const phaseText = {work:'TRABAJO', rest:'DESCANSO', done:'COMPLETADO'}[iv.phase] || '';
+    const phaseClass = 'wt-phase js-wt-phase ' + (iv.phase === 'work' ? 'work' : iv.phase === 'rest' ? 'rest' : 'done');
+    const roundText = iv.phase === 'done'
+      ? `Completado · ${iv.totalRounds} rondas`
+      : `Ronda ${iv.currentRound} / ${iv.totalRounds}`;
+
+    document.querySelectorAll('.js-wt-phase').forEach(el => {
+      el.textContent = phaseText;
+      el.className = phaseClass;
+    });
+    document.querySelectorAll('.js-wt-round').forEach(el => {
+      el.textContent = roundText;
+    });
   }
 }
 
 function startWorkoutTimer() {
   if (workoutTimer.running) return;
+  _requestWakeLock();
   try { if(!beep._ctx){const Ctx=window.AudioContext||window.webkitAudioContext;if(Ctx)beep._ctx=new Ctx();} if(beep._ctx&&beep._ctx.state==='suspended')beep._ctx.resume(); } catch(e){}
   const iv = workoutIntervals;
   if (iv.enabled && (iv.phase==='idle'||iv.phase==='done')) { iv.phase='work'; iv.currentRound=1; iv.phaseSecsLeft=Number(iv.workSec)||40; beepWork(); }
@@ -10520,12 +10564,14 @@ function advanceIntervalPhase() {
 }
 
 function pauseWorkoutTimer() {
+  _requestWakeLock();
   workoutTimer.running = false;
   if (workoutTimer.interval) { clearInterval(workoutTimer.interval); workoutTimer.interval=null; }
-  if (document.getElementById('wt-clock')) renderTimerOnly();
+  if (document.querySelector('.js-wt-clock')) renderTimerOnly();
 }
 
 function resetWorkoutTimerOnly() {
+  _requestWakeLock();
   workoutTimer.running = false;
   if (workoutTimer.interval) { clearInterval(workoutTimer.interval); workoutTimer.interval=null; }
   workoutTimer.seconds = 0;
@@ -10546,9 +10592,9 @@ function buildTimerHTML() {
       <button type="button" class="wt-mode-pill ${!on?'on':''}" onclick="setIntervalMode(false)">Libre</button>
       <button type="button" class="wt-mode-pill ${on?'on':''}" onclick="setIntervalMode(true)">Intervalos</button>
     </div>
-    ${on?`<div id="wt-phase" class="wt-phase ${pcls}">${label}</div>`:''}
-    <div class="wt-clock" id="wt-clock">${clock}</div>
-    ${on?`<div id="wt-round" class="wt-round">${iv.phase==='idle'?`${iv.workSec}s · ${iv.restSec}s · ${iv.totalRounds} rondas`:iv.phase==='done'?`Completado · ${iv.totalRounds} rondas`:`Ronda ${iv.currentRound} / ${iv.totalRounds}`}</div>`:''}
+    ${on?`<div class="wt-phase js-wt-phase ${pcls}">${label}</div>`:''}
+    <div class="wt-clock js-wt-clock">${clock}</div>
+    ${on?`<div class="wt-round js-wt-round">${iv.phase==='idle'?`${iv.workSec}s · ${iv.restSec}s · ${iv.totalRounds} rondas`:iv.phase==='done'?`Completado · ${iv.totalRounds} rondas`:`Ronda ${iv.currentRound} / ${iv.totalRounds}`}</div>`:''}
     <div class="wt-timer-actions" style="margin-top:10px">
       ${workoutTimer.running
         ?`<button class="client-action-btn" style="background:transparent;border:1px solid var(--card-border);color:var(--text-secondary);" onclick="pauseWorkoutTimer()">Pausar</button>`
