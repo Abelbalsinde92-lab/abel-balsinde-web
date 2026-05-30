@@ -6596,9 +6596,6 @@ async function openWorkoutBlock(blockId){
             .order('created_at', {ascending:false})
             .limit(1)
             .maybeSingle();
-            
-                      if(assignment?.chain_id){
-            showToast(`Cadena encontrada: ${assignment.chain_id.slice(0,8)}`, 'ok');
 
           if(assignment?.chain_id){
             const {data: chainExs} = await db
