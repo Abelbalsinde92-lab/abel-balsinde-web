@@ -3632,8 +3632,8 @@ async function openMobilityModal(clientId){
       db.from('mobility_chains').select('*').order('level')
     ]);
 
-    const chainOpts = (chains||[]).map(ch =>
-      `<option value="${ch.id}">${esc(ch.name||'')} — Nivel ${esc(ch.level||'')}</option>`
+        const chainOpts = (chains||[]).filter(ch=>ch.isActive!==false&&ch.is_active!==false).map(ch =>
+      `<option value="${ch.id}">${esc(ch.name||'')} — Nivel ${esc(ch.level||'')} · ${esc(ch.duration||'')}</option>`
     ).join('');
 
     form.innerHTML = `
@@ -3642,8 +3642,8 @@ async function openMobilityModal(clientId){
           <div class="card-body" style="padding:12px 14px">
             <div style="font-family:var(--font-m);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sport);margin-bottom:3px">Cadena activa</div>
             <div style="font-weight:700;font-size:.92rem">${esc(current.mobility_chains.name)}</div>
-            <div style="font-size:.74rem;color:var(--text-2);margin-top:2px">Nivel ${esc(current.mobility_chains.level||'—')}</div>
-            ${current.mobility_chains.description?`<div style="font-size:.74rem;color:var(--text-2);margin-top:4px">${esc(current.mobility_chains.description)}</div>`:''}
+            <div style="font-size:.74rem;color:var(--text-2);margin-top:2px">Nivel ${esc(current.mobility_chains.level||'—')} · ${esc(current.mobility_chains.duration||'')}</div>
+            ${current.mobility_chains.objective?`<div style="font-size:.74rem;color:var(--text-2);margin-top:4px">${esc(current.mobility_chains.objective)}</div>`:''}
           </div>
           <div class="card-acts">
             <button class="btn btn-r btn-sm" onclick="closeMobilityChain('${current.id}','${clientId}')">Cerrar cadena</button>
