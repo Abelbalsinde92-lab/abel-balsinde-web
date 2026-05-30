@@ -38,6 +38,11 @@
   --font-body:    'Syne', sans-serif;
   --font-mono:    'DM Mono', monospace;
   --tab-indicator: var(--sport);
+ --top-h: 68px;
+--safe-t: env(safe-area-inset-top, 0px);
+--bot-h: 62px;
+--safe-b: env(safe-area-inset-bottom, 0px);
+--r: 12px;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -2436,6 +2441,20 @@ input, textarea { outline: none; font-family: var(--font-body); }
 }
 .timer-wrap-inner.open {
   display: block;
+}
+
+/* ═══ FIX padding-top — compensa header fixed + nav sticky ══════
+   header fixed (~68px) + nav sticky (56px) = 124px visual total
+   nav está en el flow (empuja dash-main 56px) → solo compensar header
+   68px header + 16px respiro = 84px
+══════════════════════════════════════════════════════════════════ */
+.dash-main {
+  padding-top: 84px;
+}
+@media (max-width: 480px) {
+  .dash-main {
+    padding-top: 88px; /* header 72px en mobile + 16px */
+  }
 }
 </style>
 </head>
