@@ -2362,6 +2362,32 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .emoji-scale-value {
   font-size: 10px;
 }
+
+/* ═══ CALENDARIO — COMPACTO MOBILE ═══════════════════════
+   Problema: aspect-ratio:1 hace cada día ~46×46px.
+   Con 5 filas el calendario ocupa ~360px (75% de pantalla).
+   Fix: altura fija 38px + reducir gap vertical.
+══════════════════════════════════════════════════════════ */
+.cal-day {
+  aspect-ratio: unset;
+  height: 38px;
+  min-height: 38px;
+}
+.cal-grid {
+  gap: 3px 4px;
+}
+.cal-day-label {
+  padding: 2px 0 5px;
+  font-size: 8px;
+}
+.cal-month {
+  font-size: 19px;
+  letter-spacing: 1.5px;
+}
+.cal-nav-btn {
+  width: 30px;
+  height: 30px;
+}
 </style>
 </head>
 <body>
