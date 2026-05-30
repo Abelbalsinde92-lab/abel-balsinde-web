@@ -6027,47 +6027,39 @@ function startWorkoutTimer(){
   if(state.workoutTimer.running) return;
 
   try{
-    if(!beep._ctx){
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if(Ctx) beep._ctx = new Ctx();
-    }
-
-    if(beep._ctx && beep._ctx.state === 'suspended'){
-      beep._ctx.resume();
-    }
+    if(!beep._ctx){const Ctx=window.AudioContext||window.webkitAudioContext;if(Ctx)beep._ctx=new Ctx()}
+    if(beep._ctx&&beep._ctx.state==='suspended')beep._ctx.resume();
   }catch(e){}
 
-  const iv = state.workoutIntervals;
-
-  if(iv.enabled && (iv.phase === 'idle' || iv.phase === 'done')){
-    iv.phase = 'work';
-    iv.currentRound = 1;
-    iv.phaseSecsLeft = Number(iv.workSec) || 40;
+  const iv=state.workoutIntervals;
+  if(iv.enabled&&(iv.phase==='idle'||iv.phase==='done')){
+    iv.phase='work';iv.currentRound=1;
+    iv.phaseSecsLeft=Number(iv.workSec)||40;
     beepWork();
   }
 
   requestScreenWake('workout-timer');
+  state.workoutTimer.running=true;
 
-  state.workoutTimer.running = true;
-
-  state.workoutTimer.interval = setInterval(()=>{
-
-  state.workoutTimer.running = true;
-
-  state.workoutTimer.interval = setInterval(()=>{
-    state.workoutTimer.seconds += 1;
-
-    if(iv.enabled && iv.phase !== 'idle' && iv.phase !== 'done'){
-      iv.phaseSecsLeft -= 1;
-
-      if(iv.phaseSecsLeft <= 0){
-        advanceIntervalPhase();
-      }
+  state.workoutTimer.interval=setInterval(()=>{
+    state.workoutTimer.seconds+=1;
+    if(iv.enabled&&iv.phase!=='idle'&&iv.phase!=='done'){
+      iv.phaseSecsLeft-=1;
+      if(iv.phaseSecsLeft<=0) advanceIntervalPhase();
     }
-
     updateClockUI();
   },1000);
 
+  updateTimerControlsUI();
+}
+
+function pauseWorkoutTimer(){
+  state.workoutTimer.running=false;
+  if(state.workoutTimer.interval){
+    clearInterval(state.workoutTimer.interval);
+    state.workoutTimer.interval=null;
+  }
+  releaseScreenWake('workout-timer');
   updateTimerControlsUI();
 }
 
