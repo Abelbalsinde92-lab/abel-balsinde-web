@@ -2802,7 +2802,7 @@ async function loadAllData(){
       db.from('training_weeks').select('*').order('week_number'),
       db.from('training_sessions').select('*').order('session_number'),
       db.from('training_blocks').select('*').order('block_order'),
-      db.from('training_exercises').select('*').order('exercise_order').limit(5000),
+      db.from('training_exercises').select('*').not('block_id','is',null).order('exercise_order').limit(3000),
       db.from('exercise_video_library').select('*').order('priority'),
       db.from('client_program_assignments').select('*'),
       db.from('client_session_logs').select('*').order('updated_at',{ascending:false}).limit(200),
