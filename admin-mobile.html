@@ -6557,23 +6557,68 @@ async function openWorkoutBlock(blockId){
   state.activeAdaptedBlockKey = null;
   state.activeWorkoutExerciseIndex = 0;
 
-  // Cargar ejercicios del bloque directamente desde Supabase
+  // 1. Cargar ejercicios del bloque desde training_exercises
   try{
     const {data, error} = await db
       .from('training_exercises')
       .select('*')
       .eq('block_id', blockId)
       .order('exercise_order');
-
     if(!error && data?.length){
       const mapped = mapArr(data);
       const existingIds = new Set(state.trainingExercises.map(e => e.id));
-      mapped.forEach(e => {
-        if(!existingIds.has(e.id)) state.trainingExercises.push(e);
-      });
+      mapped.forEach(e => { if(!existingIds.has(e.id)) state.trainingExercises.push(e); });
     }
-  }catch(err){
-    console.warn('Error cargando ejercicios del bloque:', err);
+  }catch(err){ console.warn('Error cargando ejercicios del bloque:', err); }
+
+  // 2. Si el bloque no tiene ejercicios, intentar cadena de movilidad asignada
+  const blockExercises = state.trainingExercises.filter(e =>
+    String(e.blockId || e.block_id || '') === String(blockId)
+  );
+
+  if(!blockExercises.length){
+    const c = clientById(state.activeTrainingClientId || state.selectedClientId);
+    if(c){
+      const plan = getWorkoutPlanForClient(c);
+      const block = plan.blocks.find(b => String(b.id) === String(blockId));
+      const blockName = block ? cleanTxt(getBlockName(block)) : '';
+      const isMobilityBlock = ['movilidad','estiramiento','vuelta','calma','cooldown','stretching','movilidad'].some(t => blockName.includes(t));
+
+      if(isMobilityBlock){
+        try{
+          const {data: assignment} = await db
+            .from('client_mobility_assignments')
+            .select('chain_id')
+            .eq('client_id', c.id)
+            .eq('status', 'activo')
+            .order('created_at', {ascending:false})
+            .limit(1)
+            .maybeSingle();
+
+          if(assignment?.chain_id){
+            const {data: chainExs} = await db
+              .from('mobility_chain_exercises')
+              .select('*')
+              .eq('chain_id', assignment.chain_id)
+              .order('exercise_order');
+
+            if(chainExs?.length){
+              const existingIds = new Set(state.trainingExercises.map(e => e.id));
+              chainExs.forEach(ex => {
+                const mapped = {
+                  ...snakeToCamel(ex),
+                  id: ex.id + '__chain',
+                  blockId: blockId,
+                  block_id: blockId,
+                };
+                if(!existingIds.has(mapped.id)) state.trainingExercises.push(mapped);
+              });
+              showToast(`Cadena cargada · ${chainExs.length} ejercicios`, 'ok');
+            }
+          }
+        }catch(err){ console.warn('Error cargando cadena de movilidad:', err); }
+      }
+    }
   }
 
   renderWorkout();
