@@ -8287,8 +8287,9 @@ async function getAdaptedRowsForClient(c){
     return { rows:null, pathology:null, plan:null };
   }
 
-    const manual = state.manualPathologyByClient?.[c.id] || '';
-  if(manual === 'normal'){
+      const manualRaw = state.manualPathologyByClient?.[c.id];
+  const manualArr = Array.isArray(manualRaw) ? manualRaw : (manualRaw ? [manualRaw] : []);
+  if(manualArr.includes('normal')){
     return { rows:null, pathology:null, plan };
   }
 
@@ -8304,12 +8305,7 @@ async function getAdaptedRowsForClient(c){
 
   const cacheKey = `${c.id}__${assignment.id}__v2__${detectedAll.all.slice().sort().join('+')}__${semana}__${sesion}`;
 
-  if(!state.adaptedTrainingCache) state.adaptedTrainingCache = {};
-
-    // Si hay patología física + fatiga → aplicar reducción de carga encima
-  if(detectedAll.hasFatiga && detectedAll.physical) {
-    rows = applyFatigaModifierOnRows(rows);
-  }
+    if(!state.adaptedTrainingCache) state.adaptedTrainingCache = {};
 
   if(state.adaptedTrainingCache[cacheKey]){
     return {
@@ -8362,6 +8358,10 @@ async function getAdaptedRowsForClient(c){
 
   if(!rows.length){
     rows = buildFrontendAdaptedRows(getWorkoutPlanForClient(c), pathology);
+  }
+
+  if(detectedAll.hasFatiga && detectedAll.physical){
+    rows = applyFatigaModifierOnRows(rows);
   }
 
   state.adaptedTrainingCache[cacheKey] = rows;
