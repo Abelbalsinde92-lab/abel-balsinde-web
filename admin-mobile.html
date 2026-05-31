@@ -7848,6 +7848,91 @@ function detectPathologyForClient(c){
   return null;
 }
 
+function detectAllPathologiesForClient(c) {
+  const result = { physical: null, hasFatiga: false, all: [] };
+
+  const manual = state.manualPathologyByClient?.[c.id] || '';
+  if (manual === 'normal') return result;
+
+  if (manual && manual !== 'normal') {
+    if (manual === 'fatiga_alta') result.hasFatiga = true;
+    else result.physical = manual;
+    result.all.push(manual);
+  }
+
+  (state.clientConditions || []).filter(cc => {
+    const id = cc.clientId || cc.client_id;
+    return String(id) === String(c.id) &&
+      ['active','activo','activa'].includes(String(cc.status || 'active').toLowerCase());
+  }).forEach(cc => {
+    const key = cc.conditionKey || cc.condition_key || '';
+    if (!key || result.all.includes(key)) return;
+    if (key === 'fatiga_alta') result.hasFatiga = true;
+    else if (!result.physical) result.physical = key;
+    result.all.push(key);
+  });
+
+  const ci = getClientTodayCheckin(c.id);
+  if (ci) {
+    const energy = Number(ci.energyLevel ?? ci.energy_level ?? 10);
+    const sleep  = Number(ci.sleepQuality ?? ci.sleep_quality ?? 10);
+    if (!result.hasFatiga && (energy <= 2 || (energy <= 3 && sleep <= 3))) {
+      result.hasFatiga = true;
+      result.all.push('fatiga_alta');
+    }
+    if (!result.physical) {
+      const txt = String(ci.comment || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      const neg = ['sin dolor','sin molestia','todo bien','estoy bien','sin problemas'];
+      if (!neg.some(x => txt.includes(x))) {
+        const patrones = [
+          ['rodilla',      ['rodilla','menisco','rotula']],
+          ['hombro',       ['hombro','manguito','deltoides']],
+          ['cervical',     ['cervical','cuello','nuca']],
+          ['tobillo',      ['tobillo','esguince']],
+          ['dolor_lumbar', ['lumbar','espalda baja','espalda']],
+        ];
+        for (const [key, kws] of patrones) {
+          if (kws.some(k => txt.includes(k)) && !result.all.includes(key)) {
+            result.physical = key;
+            result.all.push(key);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+function applyFatigaModifierOnRows(rows) {
+  return (rows || []).map(r => {
+    if (r.estado_ejercicio === 'instruction_only') return r;
+
+    // Reducir series −1 si es número
+    let newSets = r.sets;
+    if (r.sets) {
+      const m = String(r.sets).match(/^(\d+)/);
+      if (m && parseInt(m[1]) > 1) {
+        newSets = String(parseInt(m[1]) - 1) + String(r.sets).slice(m[1].length);
+      }
+    }
+
+    const coachNote = 'Fatiga alta: −1 serie, carga al ~70%. Técnica sobre rendimiento.';
+    const clientNote = 'Ajustamos el volumen para respetar tu recuperación.';
+
+    return {
+      ...r,
+      sets: newSets,
+      estado_ejercicio: r.estado_ejercicio === 'mantener' ? 'modificado' : r.estado_ejercicio,
+      explicacion_breve_coach: r.explicacion_breve_coach
+        ? `${r.explicacion_breve_coach} | ${coachNote}` : coachNote,
+      explicacion_cliente: r.explicacion_cliente
+        ? `${r.explicacion_cliente} ${clientNote}` : clientNote,
+    };
+  });
+}
+
 function getAssignmentWeek(a){
   return Number(
     a?.currentWeek ||
@@ -8196,20 +8281,13 @@ async function getAdaptedRowsForClient(c){
     return { rows:null, pathology:null, plan:null };
   }
 
-  const manual = state.manualPathologyByClient?.[c.id] || '';
+    const manual = state.manualPathologyByClient?.[c.id] || '';
   if(manual === 'normal'){
     return { rows:null, pathology:null, plan };
   }
 
-  const activeCondition = getActiveConditionForClient(c);
-  const detected = detectPathologyForClient(c);
-
-  const pathology =
-    manual ||
-    activeCondition?.conditionKey ||
-    activeCondition?.condition_key ||
-    detected ||
-    null;
+  const detectedAll = detectAllPathologiesForClient(c);
+  const pathology = detectedAll.physical || (detectedAll.hasFatiga ? 'fatiga_alta' : null);
 
   if(!pathology){
     return { rows:null, pathology:null, plan };
@@ -8218,9 +8296,14 @@ async function getAdaptedRowsForClient(c){
   const semana = getAssignmentWeek(assignment);
   const sesion = getAssignmentSessionNumber(assignment);
 
-  const cacheKey = `${c.id}__${assignment.id}__v2__${pathology}__${semana}__${sesion}`;
+  const cacheKey = `${c.id}__${assignment.id}__v2__${detectedAll.all.slice().sort().join('+')}__${semana}__${sesion}`;
 
   if(!state.adaptedTrainingCache) state.adaptedTrainingCache = {};
+
+    // Si hay patología física + fatiga → aplicar reducción de carga encima
+  if(detectedAll.hasFatiga && detectedAll.physical) {
+    rows = applyFatigaModifierOnRows(rows);
+  }
 
   if(state.adaptedTrainingCache[cacheKey]){
     return {
