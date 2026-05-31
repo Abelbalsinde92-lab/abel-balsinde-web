@@ -3562,20 +3562,8 @@ function renderPerfil(){
     {icon:ICONS.mobil,  label:'Movilidad',     action:`openMobilityModal('${c.id}')`},
   ];
 
-    el.innerHTML=`  // Semáforo atleta
-  const intelPanel = document.getElementById('intel-panel');
-  if (intelPanel) {
-    const isAthlete = c.athleteProfile && c.athleteProfile !== 'general';
-    if (isAthlete) {
-      intelPanel.style.display = '';
-      intelPanel.innerHTML = '<div class="intel-skeleton"></div>';
-      loadAthleteSemaforo(c.id);
-    } else {
-      intelPanel.style.display = 'none';
-      intelPanel.innerHTML = '';
-    }
-  }
-}
+      el.innerHTML=`
+
     <!-- ① CABECERA CLIENTE CERRADA -->
 <div class="card" style="padding:14px;margin-bottom:10px">
   <div style="display:flex;align-items:center;gap:12px">
