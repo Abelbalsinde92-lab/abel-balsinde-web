@@ -11631,30 +11631,33 @@ async function initPushNotifications() {
       const deviceLabel = /iPhone|iPad|iPod/i.test(ua) ? 'ios'
         : /Android/i.test(ua) ? 'android' : 'desktop';
 
-const { data: existing } = await db
-  .from('push_subscriptions')
-  .select('id')
-  .eq('endpoint', endpoint)
-  .maybeSingle();
+      const { data: existing } = await db
+        .from('push_subscriptions')
+        .select('id')
+        .eq('endpoint', endpoint)
+        .maybeSingle();
 
-if (existing) {
-  await db.from('push_subscriptions')
-    .update({
-      subscription: subscriptionJson,
-      device_label: deviceLabel,
-      updated_at: new Date().toISOString()
-    })
-    .eq('endpoint', endpoint);
-} else {
-  await db.from('push_subscriptions')
-    .insert({
-      user_id: 'ab_coach',
-      subscription: subscriptionJson,
-      endpoint,
-      device_label: deviceLabel,
-      updated_at: new Date().toISOString()
-    });
-}
+      if (existing) {
+        await db.from('push_subscriptions')
+          .update({
+            subscription: subscriptionJson,
+            device_label: deviceLabel,
+            updated_at: new Date().toISOString()
+          })
+          .eq('endpoint', endpoint);
+      } else {
+        await db.from('push_subscriptions')
+          .insert({
+            user_id: 'ab_coach',
+            subscription: subscriptionJson,
+            endpoint,
+            device_label: deviceLabel,
+            updated_at: new Date().toISOString()
+          });
+      }
+
+      console.log('Push guardado ✓', { deviceLabel, endpoint });
+    }
 
     showToast('Notificaciones activadas ✓', 'ok');
 
