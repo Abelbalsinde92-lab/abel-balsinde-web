@@ -1800,6 +1800,177 @@ a{text-decoration:none;color:inherit}
   overflow:visible !important;
   height:auto !important;
 }
+
+/* ═══ PANEL INTELIGENCIA ATLETA — SEMÁFORO ══════════════════════ */
+
+.intel-panel {
+  margin: 0 0 16px 0;
+}
+
+/* Card principal */
+.intel-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.intel-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--semaforo-color, var(--card-border));
+  transition: background .3s;
+}
+.intel-card.intel-rojo   { --semaforo-color: #FF3B30; border-color: rgba(255,59,48,.25); }
+.intel-card.intel-amarillo { --semaforo-color: #FFB800; border-color: rgba(255,184,0,.2); }
+.intel-card.intel-verde  { --semaforo-color: #00C47A; border-color: rgba(0,196,122,.2); }
+
+/* Header */
+.intel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.intel-dot-global {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+.intel-dot-global.rojo    { background: #FF3B30; color: #FF3B30; }
+.intel-dot-global.amarillo { background: #FFB800; color: #FFB800; }
+.intel-dot-global.verde   { background: #00C47A; color: #00C47A; }
+
+.intel-title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  flex: 1;
+}
+.intel-phase {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .5px;
+  color: var(--sport);
+  text-transform: uppercase;
+}
+
+/* Grid de 4 dimensiones */
+.intel-dims {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.intel-dim {
+  background: var(--bg);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 7px 6px 6px;
+  text-align: center;
+}
+.intel-dim-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin: 0 auto 5px;
+}
+.intel-dim-dot.rojo    { background: #FF3B30; box-shadow: 0 0 5px rgba(255,59,48,.6); }
+.intel-dim-dot.amarillo { background: #FFB800; box-shadow: 0 0 5px rgba(255,184,0,.5); }
+.intel-dim-dot.verde   { background: #00C47A; box-shadow: 0 0 5px rgba(0,196,122,.5); }
+.intel-dim-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+/* Alerta texto */
+.intel-alert {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding: 8px 10px;
+  background: var(--bg);
+  border-radius: 6px;
+  border-left: 2px solid var(--semaforo-color, var(--card-border));
+  margin-bottom: 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.intel-alert.intel-sin-alertas {
+  color: #00C47A;
+  border-color: #00C47A;
+}
+
+/* Badges de ajuste de carga */
+.intel-load-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.intel-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .4px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: rgba(0,229,255,.08);
+  border: 1px solid rgba(0,229,255,.2);
+  color: var(--sport);
+}
+.intel-badge.warn {
+  background: rgba(255,59,48,.08);
+  border-color: rgba(255,59,48,.25);
+  color: #FF3B30;
+}
+
+/* Días a competición */
+.intel-comp-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.intel-comp-days {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--sport);
+  line-height: 1;
+}
+.intel-comp-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+/* Skeleton loader */
+.intel-skeleton {
+  height: 130px;
+  background: linear-gradient(90deg, var(--card) 25%, var(--card-border) 50%, var(--card) 75%);
+  background-size: 200% 100%;
+  animation: intel-shimmer 1.4s infinite;
+  border-radius: var(--r);
+}
+@keyframes intel-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 </style>
 </head>
 <body>
@@ -1896,9 +2067,10 @@ a{text-decoration:none;color:inherit}
     </div>
 
     <div class="scr" id="s-perfil">
-      <a class="scr-back" onclick="showScr('clientes')">← Clientes</a>
-      <div id="perfil-content"></div>
-    </div>
+  <a class="scr-back" onclick="showScr('clientes')">← Clientes</a>
+  <div id="intel-panel" style="display:none"></div>
+  <div id="perfil-content"></div>
+</div>
 
     <div class="scr" id="s-workout">
       <a class="scr-back" onclick="showScr('perfil')">← Perfil</a>
@@ -2713,6 +2885,99 @@ function renderBadges(){
   const elMas=document.getElementById('badge-mas');
   if(elMas){elMas.textContent=vencidos||'';elMas.classList.toggle('on',vencidos>0)}
 }
+
+// ═══ INTELIGENCIA ATLETA — SEMÁFORO ══════════════════════════════
+
+async function loadAthleteSemaforo(clientId) {
+  const panel = document.getElementById('intel-panel');
+  if (!panel) return;
+
+  try {
+    const { data, error } = await supabase
+      .from('v_athlete_semaforo')
+      .select('*')
+      .eq('client_id', clientId)
+      .single();
+
+    if (error || !data) {
+      panel.innerHTML = '';
+      return;
+    }
+
+    panel.innerHTML = renderSemaforoCard(data);
+
+  } catch (e) {
+    console.warn('Intel semaforo error:', e);
+    panel.innerHTML = '';
+  }
+}
+
+function renderSemaforoCard(d) {
+  const global = d.semaforo_global || 'verde';
+
+  // Dimensiones
+  const dims = [
+    { key: 'semaforo_recuperacion', label: 'Recup.' },
+    { key: 'semaforo_carga',        label: 'Carga'  },
+    { key: 'semaforo_peso',         label: 'Peso'   },
+    { key: 'semaforo_biomarker',    label: 'Bio'    },
+  ];
+
+  const dimsHtml = dims.map(dim => {
+    const color = d[dim.key] || 'verde';
+    return `
+      <div class="intel-dim">
+        <div class="intel-dim-dot ${color}"></div>
+        <div class="intel-dim-label">${dim.label}</div>
+      </div>`;
+  }).join('');
+
+  // Alerta
+  const tieneAlerta = d.alertas_coach && d.alertas_coach.trim().length > 0;
+  const alertaHtml = tieneAlerta
+    ? `<div class="intel-alert">${d.alertas_coach}</div>`
+    : `<div class="intel-alert intel-sin-alertas">Sin alertas activas — Estado óptimo</div>`;
+
+  // Badges de carga
+  const badges = [];
+  if (d.load_multiplier_rec   != null) badges.push(`Carga ×${d.load_multiplier_rec}`);
+  if (d.volume_multiplier_rec != null) badges.push(`Vol ×${d.volume_multiplier_rec}`);
+  if (d.rpe_cap_rec           != null) badges.push(`RPE máx ${d.rpe_cap_rec}`);
+  const badgesHtml = badges.length
+    ? `<div class="intel-load-row">${badges.map(b =>
+        `<span class="intel-badge ${global === 'rojo' ? 'warn' : ''}">${b}</span>`
+      ).join('')}</div>`
+    : '';
+
+  // Días a competición
+  const compHtml = d.days_to_competition != null
+    ? `<div class="intel-comp-row">
+         <span class="intel-comp-days">${d.days_to_competition}</span>
+         <span class="intel-comp-label">días a<br>competición</span>
+       </div>`
+    : '';
+
+  // Fase
+  const faseCorta = (d.phase_name || 'Base general')
+    .replace('/ ', '').replace('/ afinación', '').trim();
+
+  return `
+    <div class="intel-panel">
+      <div class="intel-card intel-${global}">
+        <div class="intel-header">
+          <div class="intel-dot-global ${global}"></div>
+          <span class="intel-title">Estado de rendimiento</span>
+          <span class="intel-phase">${faseCorta}</span>
+        </div>
+
+        <div class="intel-dims">${dimsHtml}</div>
+
+        ${compHtml}
+        ${alertaHtml}
+        ${badgesHtml}
+      </div>
+    </div>`;
+}
 </script>
 
 <script>
@@ -3298,6 +3563,20 @@ function renderPerfil(){
   ];
 
   el.innerHTML=`
+
+  // Semáforo atleta — solo visible si tiene athlete_profile
+  const intelPanel = document.getElementById('intel-panel');
+  if (intelPanel) {
+    const isAthlete = c.athleteProfile && c.athleteProfile !== 'general';
+    if (isAthlete) {
+      intelPanel.style.display = '';
+      intelPanel.innerHTML = '<div class="intel-skeleton"></div>';
+      loadAthleteSemaforo(c.id);
+    } else {
+      intelPanel.style.display = 'none';
+      intelPanel.innerHTML = '';
+    }
+  }
 
     <!-- ① CABECERA CLIENTE CERRADA -->
 <div class="card" style="padding:14px;margin-bottom:10px">
