@@ -11603,13 +11603,12 @@ async function initPushNotifications() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
   try {
-    const sw = await navigator.serviceWorker.register('/sw.js');
-    await navigator.serviceWorker.ready;
+    await navigator.serviceWorker.register('/sw.js');
+    const swReg = await navigator.serviceWorker.ready;
 
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') return;
 
-    // Escuchar mensajes del SW (respuestas a notificaciones)
     navigator.serviceWorker.addEventListener('message', e => {
       const { action, data } = e.data || {};
       if (action === 'resolve' && data?.alertId) resolverAlerta(data.alertId);
@@ -11617,62 +11616,40 @@ async function initPushNotifications() {
       else if (data?.screen) showScr(data.screen);
     });
 
-    // Solo guardar suscripción si hay VAPID key real
     if (VAPID_PUBLIC_KEY !== 'TU_CLAVE_VAPID_PUBLICA_AQUI') {
-      const sub = await sw.pushManager.subscribe({
+      const existingSub = await swReg.pushManager.getSubscription();
+      const sub = existingSub || await swReg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: vapidToUint8(VAPID_PUBLIC_KEY)
       });
 
-      const existingSub = await sw.pushManager.getSubscription();
+      const subscriptionJson = sub.toJSON ? sub.toJSON() : JSON.parse(JSON.stringify(sub));
+      const endpoint = sub.endpoint || subscriptionJson.endpoint;
+      if (!endpoint) throw new Error('Sin endpoint de suscripción push');
 
-const sub = existingSub || await sw.pushManager.subscribe({
-  userVisibleOnly: true,
-  applicationServerKey: vapidToUint8(VAPID_PUBLIC_KEY)
-});
+      const ua = navigator.userAgent || '';
+      const deviceLabel = /iPhone|iPad|iPod/i.test(ua) ? 'ios'
+        : /Android/i.test(ua) ? 'android' : 'desktop';
 
-const subscriptionJson = sub.toJSON ? sub.toJSON() : JSON.parse(JSON.stringify(sub));
-const endpoint = sub.endpoint || subscriptionJson.endpoint;
+      const { error: pushSaveError } = await db
+        .from('push_subscriptions')
+        .upsert({
+          user_id: 'ab_coach',
+          subscription: subscriptionJson,
+          endpoint,
+          device_label: deviceLabel,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'endpoint' });
 
-if (!endpoint) {
-  throw new Error('No se pudo obtener endpoint de la suscripción push');
-}
-
-const ua = navigator.userAgent || '';
-
-const deviceLabel = /iPhone|iPad|iPod/i.test(ua)
-  ? 'ios'
-  : /Android/i.test(ua)
-    ? 'android'
-    : 'desktop';
-
-const { error: pushSaveError } = await db
-  .from('push_subscriptions')
-  .upsert({
-    user_id: 'ab_coach',
-    subscription: subscriptionJson,
-    endpoint: endpoint,
-    device_label: deviceLabel,
-    updated_at: new Date().toISOString()
-  }, {
-    onConflict: 'endpoint'
-  });
-
-if (pushSaveError) {
-  console.error('Error guardando push subscription:', pushSaveError);
-  throw pushSaveError;
-}
-
-console.log('Push guardado ✓', {
-  deviceLabel,
-  endpoint
-});
+      if (pushSaveError) throw pushSaveError;
+      console.log('Push guardado ✓', { deviceLabel, endpoint });
     }
 
     showToast('Notificaciones activadas ✓', 'ok');
 
   } catch(err) {
     console.warn('Push init error:', err);
+    showToast('Error activando push: ' + (err?.message || ''), 'err');
   }
 }
 
