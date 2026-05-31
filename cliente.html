@@ -2459,6 +2459,69 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
 /* Ocultar section-header de ENTRENAR (igual que HOME) */
 #section-training > .section-header { display: none !important; }
+
+/* ═══ NOTIFICACIONES — BELL + TOGGLE ═══════════════════════════ */
+.notif-bell-btn {
+  position: relative;
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer;
+  transition: border-color .2s, color .2s;
+  flex-shrink: 0;
+}
+.notif-bell-btn.active {
+  color: var(--streak);
+  border-color: rgba(0,230,118,.3);
+}
+.notif-bell-badge {
+  position: absolute;
+  top: -4px; right: -4px;
+  width: 10px; height: 10px;
+  background: var(--medical);
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  display: none;
+}
+.notif-bell-badge.visible { display: block; }
+
+/* ═══ COMPETICIÓN — BOTÓN ANULAR ════════════════════════════════ */
+.comp-skip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid rgba(255,90,90,.3);
+  border-radius: 6px;
+  color: var(--medical);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.comp-skip-btn:hover {
+  background: rgba(255,90,90,.06);
+  border-color: var(--medical);
+}
+.comp-skip-badge {
+  display: inline-block;
+  background: rgba(255,90,90,.12);
+  color: var(--medical);
+  border: 1px solid rgba(255,90,90,.3);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
 </style>
 </head>
 <body>
@@ -2503,6 +2566,13 @@ input, textarea { outline: none; font-family: var(--font-body); }
       <div id="headerAvatarSlot"></div>
     </div>
     <div class="dash-header-actions">
+      
+      <!-- Añadir ANTES de btn-wa-icon en .dash-header-actions -->
+<button class="notif-bell-btn" id="notifBellBtn" type="button"
+  onclick="toggleNotifications()" aria-label="Notificaciones">
+  🔔
+  <span class="notif-bell-badge" id="notifBellBadge"></span>
+</button>
 
       <button class="btn-icon btn-wa-icon" id="btnHeaderWA" type="button" aria-label="WhatsApp">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -4012,6 +4082,8 @@ document.querySelectorAll('.section-header').forEach(el => {
   );
 }
   goClientSection('section-home');
+  
+  checkNotifSubscriptionState();
 }
 
 function valRow(r, ...keys) {
@@ -10426,6 +10498,190 @@ document.addEventListener('visibilitychange', async () => {
     await _requestWakeLock();
   }
 });
+
+/* ═══════════════════════════════════════════════════════════════
+   PUSH NOTIFICATIONS — Suscripción / Desuscripción
+═══════════════════════════════════════════════════════════════ */
+
+const VAPID_PUBLIC_KEY = 'AQUI_TU_VAPID_PUBLIC_KEY'; // ← reemplazar tras generar
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+async function getNotificationPermission() {
+  if (!('Notification' in window)) return 'unsupported';
+  return Notification.permission;
+}
+
+async function subscribeToNotifications() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    showClientNotice('Tu navegador no soporta notificaciones push.', 'error');
+    return false;
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      showClientNotice('Permiso de notificaciones denegado.', 'error');
+      return false;
+    }
+
+    const reg = await navigator.serviceWorker.ready;
+    
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+
+    const subJSON = sub.toJSON();
+
+    // Guardar en Supabase
+    const { error } = await db
+      .from('notification_subscriptions')
+      .upsert({
+        client_id: clientData.id,
+        endpoint:  subJSON.endpoint,
+        p256dh:    subJSON.keys.p256dh,
+        auth:      subJSON.keys.auth,
+        user_agent: navigator.userAgent.slice(0, 200),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'client_id,endpoint', ignoreDuplicates: false });
+
+    if (error) throw error;
+
+    showClientNotice('✓ Notificaciones activadas', 'success');
+    updateNotifBellState(true);
+    return true;
+
+  } catch (err) {
+    console.error('Push subscribe error:', err);
+    showClientNotice('Error al activar notificaciones.', 'error');
+    return false;
+  }
+}
+
+async function unsubscribeFromNotifications() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+
+    if (sub) {
+      await db
+        .from('notification_subscriptions')
+        .delete()
+        .eq('client_id', clientData.id)
+        .eq('endpoint', sub.endpoint);
+
+      await sub.unsubscribe();
+    }
+
+    showClientNotice('Notificaciones desactivadas.', 'success');
+    updateNotifBellState(false);
+  } catch (err) {
+    console.error('Unsubscribe error:', err);
+  }
+}
+
+async function checkNotifSubscriptionState() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    updateNotifBellState(!!sub && Notification.permission === 'granted');
+  } catch {}
+}
+
+function updateNotifBellState(active) {
+  const btn = document.getElementById('notifBellBtn');
+  if (!btn) return;
+  btn.classList.toggle('active', active);
+  btn.title = active ? 'Notificaciones activas — toca para desactivar' : 'Activar notificaciones';
+}
+
+async function toggleNotifications() {
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription();
+  if (sub && Notification.permission === 'granted') {
+    await unsubscribeFromNotifications();
+  } else {
+    await subscribeToNotifications();
+  }
+}
+
+// Escuchar mensajes del service worker (al tocar una notificación)
+navigator.serviceWorker?.addEventListener('message', (event) => {
+  if (event.data?.type === 'NOTIFICATION_CLICK') {
+    const section = {
+      checkin:     'section-health',
+      training:    'section-training',
+      competition: 'section-atleta',
+      plan_change: 'section-training',
+      payment:     'section-client-data',
+      sleep:       'section-health',
+    }[event.data.notifType] || 'section-home';
+    goClientSection(section);
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPETICIÓN — Anular asistencia / Restaurar
+═══════════════════════════════════════════════════════════════ */
+
+async function skipCompetition(competitionId, eventName) {
+  const reason = prompt(
+    `Vas a marcar que no asistirás a "${eventName}".\n\n` +
+    `Motivo (opcional, para que Abel lo sepa):`
+  );
+  if (reason === null) return;  // cancelado
+
+  const { error } = await db
+    .from('competition_events')
+    .update({
+      attending:  false,
+      skip_reason: reason || null,
+      skipped_at: new Date().toISOString(),
+    })
+    .eq('id', competitionId)
+    .eq('client_id', clientData.id);
+
+  if (error) {
+    showClientNotice('No se pudo actualizar la competición.', 'error');
+    return;
+  }
+
+  // Actualizar estado local
+  const idx = clientCompetitionEvents.findIndex(c => c.id === competitionId);
+  if (idx >= 0) {
+    clientCompetitionEvents[idx].attending = false;
+    clientCompetitionEvents[idx].skip_reason = reason || null;
+  }
+
+  showClientNotice('Competición marcada como no asistida. Abel lo verá en el panel.', 'success');
+  renderAtleta();
+}
+
+async function restoreCompetition(competitionId) {
+  const { error } = await db
+    .from('competition_events')
+    .update({ attending: true, skip_reason: null, skipped_at: null })
+    .eq('id', competitionId)
+    .eq('client_id', clientData.id);
+
+  if (error) { showClientNotice('Error al restaurar.', 'error'); return; }
+
+  const idx = clientCompetitionEvents.findIndex(c => c.id === competitionId);
+  if (idx >= 0) clientCompetitionEvents[idx].attending = true;
+
+  showClientNotice('Competición restaurada al calendario.', 'success');
+  renderAtleta();
+}
 </script>
 
 <script>
@@ -10685,6 +10941,9 @@ function renderAtleta(){
         '</div>'+
         '<div class="dc-row"><span class="dc-sub">'+formatDate(nextComp.event_date)+(nextComp.opponent?' · vs '+escHTML(nextComp.opponent):'')+'</span></div>'+
         (nextComp.location?'<div class="dc-note">'+escHTML(nextComp.location)+'</div>':'')+
+'<button class="comp-skip-btn" onclick="skipCompetition(\''+nextComp.id+'\',\''+escHTML(nextComp.event_name||'Competición')+'\')">' +
+  '✕ No asistiré a esta competición' +
+'</button>'+
       '</div>';
   }
 
@@ -10747,14 +11006,27 @@ function renderAtleta(){
         '</button>'+
         '<div class="accordion-content">'+
           pastComps.map(c=>{
-            const bc=c.result==='victoria'?'green':c.result==='derrota'?'red':'gray';
-            return '<div class="data-card" style="margin-bottom:8px;">'+
-              '<div class="dc-row"><span class="dc-title" style="font-size:14px;">'+escHTML(c.event_name||'Competición')+'</span>'+
-              '<span class="badge badge-'+bc+'">'+escHTML(c.result||'—')+'</span></div>'+
-              '<div class="dc-row"><span class="dc-sub">'+formatDate(c.event_date)+(c.opponent?' · vs '+escHTML(c.opponent):'')+'</span>'+
-              (c.method?'<span class="dc-sub">'+escHTML(c.method)+'</span>':'')+
-              '</div></div>';
-          }).join('')+
+  const bc = c.result==='victoria'?'green':c.result==='derrota'?'red':'gray';
+  const isSkipped = c.attending === false;
+  return '<div class="data-card" style="margin-bottom:8px;">'+
+    '<div class="dc-row">'+
+      '<span class="dc-title" style="font-size:14px;">'+escHTML(c.event_name||'Competición')+'</span>'+
+      (isSkipped
+        ? '<span class="comp-skip-badge">No asistió</span>'
+        : '<span class="badge badge-'+bc+'">'+escHTML(c.result||'—')+'</span>'
+      )+
+    '</div>'+
+    (isSkipped && c.skip_reason
+      ? '<div class="dc-note">Motivo: '+escHTML(c.skip_reason)+'</div>'
+      : ''
+    )+
+    '<div class="dc-row">'+
+      '<span class="dc-sub">'+formatDate(c.event_date)+(c.opponent?' · vs '+escHTML(c.opponent):'')+'</span>'+
+      (c.method?'<span class="dc-sub">'+escHTML(c.method)+'</span>':'')+
+    '</div>'+
+    '<button class="comp-skip-btn" style="border-color:rgba(0,163,255,.2);color:var(--sport);" onclick="restoreCompetition(\''+c.id+'\')">↩ Restaurar al calendario</button>'+
+  '</div>';
+}).join('')+
         '</div>'+
       '</div>';
   }
