@@ -2119,28 +2119,58 @@ a{text-decoration:none;color:inherit}
     </div>
 
     <div class="scr" id="s-ajustes">
-      <a class="scr-back" onclick="showScr('mas')">← Más</a>
-      <div class="scr-h"><div class="scr-eye">Sistema</div><div class="scr-t">Ajustes</div></div>
-      <div class="card">
-        <div class="card-body">
-          <div class="set-sec">Coach</div>
-          <div class="fld"><label class="fld-l">Nombre</label><input class="fld-i" id="st-name" autocapitalize="words"></div>
-          <div class="fld"><label class="fld-l">WhatsApp</label><input class="fld-i" id="st-phone" inputmode="tel"></div>
-          <div class="set-sec">Seguridad</div>
-          <div class="fld"><label class="fld-l">Usuario admin</label><input class="fld-i" id="st-user" autocapitalize="off"></div>
-          <div class="fld"><label class="fld-l">Nueva contraseña</label><input class="fld-i" id="st-pass" type="password" placeholder="Solo si quieres cambiarla"></div>
-        </div>
-        <div class="card-acts">
-          <button class="btn btn-p btn-sm btn-wide" onclick="saveSettings()">Guardar cambios</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-body">
-          <div class="set-sec">Notas</div>
-          <p style="font-size:.82rem;color:var(--text-2);line-height:1.6">Gestión técnica de programas y evaluaciones desde el admin de escritorio (<span class="mono">/admin</span>).</p>
-        </div>
+  <a class="scr-back" onclick="showScr('mas')">← Más</a>
+  <div class="scr-h">
+    <div class="scr-eye">Sistema</div>
+    <div class="scr-t">Ajustes</div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="set-sec">Coach</div>
+      <div class="fld"><label class="fld-l">Nombre</label><input class="fld-i" id="st-name" autocapitalize="words"></div>
+      <div class="fld"><label class="fld-l">WhatsApp</label><input class="fld-i" id="st-phone" inputmode="tel"></div>
+
+      <div class="set-sec">Seguridad</div>
+      <div class="fld"><label class="fld-l">Usuario admin</label><input class="fld-i" id="st-user" autocapitalize="off"></div>
+      <div class="fld"><label class="fld-l">Nueva contraseña</label><input class="fld-i" id="st-pass" type="password" placeholder="Solo si quieres cambiarla"></div>
+    </div>
+
+    <div class="card-acts">
+      <button class="btn btn-p btn-sm btn-wide" onclick="saveSettings()">Guardar cambios</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="set-sec">Notificaciones</div>
+
+      <p style="font-size:.82rem;color:var(--text-2);line-height:1.6;margin-bottom:12px">
+        Activa las notificaciones push en este dispositivo y envía una prueba.
+      </p>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-p btn-sm" onclick="initPushNotifications()">
+          Activar notificaciones
+        </button>
+
+        <button class="btn btn-b btn-sm" onclick="testPush()">
+          Enviar test
+        </button>
       </div>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="set-sec">Notas</div>
+      <p style="font-size:.82rem;color:var(--text-2);line-height:1.6">
+        Gestión técnica de programas y evaluaciones desde el admin de escritorio
+        (<span class="mono">/admin</span>).
+      </p>
+    </div>
+  </div>
+</div>
 
         <div class="scr" id="s-entreno">
       <a class="scr-back" onclick="showScr('mas')">← Más</a>
@@ -4382,10 +4412,19 @@ function copyTemplate(id){
 }
 
 function renderAjustes(){
-  const s=state.settings;
-  const setV=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||''};
-  setV('st-name',s.coachName);setV('st-phone',s.coachPhone);setV('st-user',s.adminUsername||'abel_admin');
-  const passEl=document.getElementById('st-pass');if(passEl)passEl.value='';
+  const s = state.settings;
+
+  const setV = (id, v) => {
+    const e = document.getElementById(id);
+    if(e) e.value = v || '';
+  };
+
+  setV('st-name', s.coachName);
+  setV('st-phone', s.coachPhone);
+  setV('st-user', s.adminUsername || 'abel_admin');
+
+  const passEl = document.getElementById('st-pass');
+  if(passEl) passEl.value = '';
 }
 
 async function saveSettings(){
@@ -11585,11 +11624,49 @@ async function initPushNotifications() {
         applicationServerKey: vapidToUint8(VAPID_PUBLIC_KEY)
       });
 
-      await db.from('push_subscriptions').upsert({
-        user_id: 'ab_coach',
-        subscription: JSON.stringify(sub),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' });
+      const existingSub = await sw.pushManager.getSubscription();
+
+const sub = existingSub || await sw.pushManager.subscribe({
+  userVisibleOnly: true,
+  applicationServerKey: vapidToUint8(VAPID_PUBLIC_KEY)
+});
+
+const subscriptionJson = sub.toJSON ? sub.toJSON() : JSON.parse(JSON.stringify(sub));
+const endpoint = sub.endpoint || subscriptionJson.endpoint;
+
+if (!endpoint) {
+  throw new Error('No se pudo obtener endpoint de la suscripción push');
+}
+
+const ua = navigator.userAgent || '';
+
+const deviceLabel = /iPhone|iPad|iPod/i.test(ua)
+  ? 'ios'
+  : /Android/i.test(ua)
+    ? 'android'
+    : 'desktop';
+
+const { error: pushSaveError } = await db
+  .from('push_subscriptions')
+  .upsert({
+    user_id: 'ab_coach',
+    subscription: subscriptionJson,
+    endpoint: endpoint,
+    device_label: deviceLabel,
+    updated_at: new Date().toISOString()
+  }, {
+    onConflict: 'endpoint'
+  });
+
+if (pushSaveError) {
+  console.error('Error guardando push subscription:', pushSaveError);
+  throw pushSaveError;
+}
+
+console.log('Push guardado ✓', {
+  deviceLabel,
+  endpoint
+});
     }
 
     showToast('Notificaciones activadas ✓', 'ok');
