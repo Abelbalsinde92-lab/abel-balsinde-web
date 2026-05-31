@@ -3988,7 +3988,11 @@ displayRows.forEach(r => {
     if(isAthlete){
       const [apR,ceR,tpR,slR,ihR,cvR] = await Promise.all([
         db.from('athlete_profiles').select('*').eq('client_id',clientId).maybeSingle(),
-        db.from('competition_events').select('*').eq('client_id',clientId).order('event_date',{ascending:false}).limit(20),
+        db.from('competition_events')
+  .select('*')
+  .eq('client_id', clientId)
+  .order('event_date', { ascending: true })
+  .limit(20),
         db.from('training_phases').select('*').eq('client_id',clientId).order('start_date',{ascending:false}).limit(10),
         db.from('session_load').select('*').eq('client_id',clientId).order('session_date',{ascending:false}).limit(30),
         db.from('injury_history').select('*').eq('client_id',clientId).order('start_date',{ascending:false}).limit(20),
@@ -8811,7 +8815,6 @@ const statusText = reservationClientStatusLabel(r);
             '<span class="badge ' + statusClass + '">' +
   statusText +
 '</span>' +
-            '</span>' +
           '</div>' +
           '<div class="dc-row">' +
             '<span class="dc-sub">' +
@@ -10503,7 +10506,7 @@ document.addEventListener('visibilitychange', async () => {
    PUSH NOTIFICATIONS — Suscripción / Desuscripción
 ═══════════════════════════════════════════════════════════════ */
 
-const VAPID_PUBLIC_KEY = 'AQUI_TU_VAPID_PUBLIC_KEY'; // ← reemplazar tras generar
+const VAPID_PUBLIC_KEY = 'BPcRt3OtJSJ9A3tSOwk-E-gVV0H0IfguGC5O4l1_Muq2pI4A3QBVAaAF9v1KDEmNYKfEUS8mD6sDAW37NQgD4Ys';
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -10518,6 +10521,16 @@ async function getNotificationPermission() {
 }
 
 async function subscribeToNotifications() {
+  if (!clientData?.id || !clientData?.access_code) {
+    showClientNotice('No se pudo validar el cliente.', 'error');
+    return false;
+  }
+
+  if (!VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY === 'AQUI_TU_VAPID_PUBLIC_KEY') {
+    showClientNotice('Falta configurar la clave pública VAPID.', 'error');
+    return false;
+  }
+
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
     showClientNotice('Tu navegador no soporta notificaciones push.', 'error');
     return false;
@@ -10525,67 +10538,100 @@ async function subscribeToNotifications() {
 
   try {
     const permission = await Notification.requestPermission();
+
     if (permission !== 'granted') {
       showClientNotice('Permiso de notificaciones denegado.', 'error');
       return false;
     }
 
     const reg = await navigator.serviceWorker.ready;
-    
+
     let sub = await reg.pushManager.getSubscription();
+
     if (!sub) {
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       });
     }
 
     const subJSON = sub.toJSON();
 
-    // Guardar en Supabase
-    const { error } = await db
-      .from('notification_subscriptions')
-      .upsert({
-        client_id: clientData.id,
-        endpoint:  subJSON.endpoint,
-        p256dh:    subJSON.keys.p256dh,
-        auth:      subJSON.keys.auth,
-        user_agent: navigator.userAgent.slice(0, 200),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'client_id,endpoint', ignoreDuplicates: false });
+    if (!subJSON?.endpoint || !subJSON?.keys?.p256dh || !subJSON?.keys?.auth) {
+      throw new Error('Suscripción push incompleta.');
+    }
+
+    const { data, error } = await db.rpc('ab_upsert_notification_subscription', {
+      p_client_id: clientData.id,
+      p_access_code: clientData.access_code,
+      p_endpoint: subJSON.endpoint,
+      p_p256dh: subJSON.keys.p256dh,
+      p_auth: subJSON.keys.auth,
+      p_user_agent: navigator.userAgent.slice(0, 200)
+    });
 
     if (error) throw error;
 
-    showClientNotice('✓ Notificaciones activadas', 'success');
+    const result = Array.isArray(data) ? data[0] : data;
+
+    if (result && result.ok === false) {
+      throw new Error(result.error || 'No se pudo guardar la suscripción.');
+    }
+
+    showClientNotice('Notificaciones activadas.', 'success');
     updateNotifBellState(true);
+
     return true;
 
   } catch (err) {
     console.error('Push subscribe error:', err);
-    showClientNotice('Error al activar notificaciones.', 'error');
+    showClientNotice(err?.message || 'Error al activar notificaciones.', 'error');
     return false;
   }
 }
 
 async function unsubscribeFromNotifications() {
+  if (!clientData?.id || !clientData?.access_code) {
+    showClientNotice('No se pudo validar el cliente.', 'error');
+    return false;
+  }
+
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    showClientNotice('Tu navegador no soporta notificaciones push.', 'error');
+    return false;
+  }
+
   try {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
 
     if (sub) {
-      await db
-        .from('notification_subscriptions')
-        .delete()
-        .eq('client_id', clientData.id)
-        .eq('endpoint', sub.endpoint);
+      const { data, error } = await db.rpc('ab_delete_notification_subscription', {
+        p_client_id: clientData.id,
+        p_access_code: clientData.access_code,
+        p_endpoint: sub.endpoint
+      });
+
+      if (error) throw error;
+
+      const result = Array.isArray(data) ? data[0] : data;
+
+      if (result && result.ok === false) {
+        throw new Error(result.error || 'No se pudo eliminar la suscripción.');
+      }
 
       await sub.unsubscribe();
     }
 
     showClientNotice('Notificaciones desactivadas.', 'success');
     updateNotifBellState(false);
+
+    return true;
+
   } catch (err) {
     console.error('Unsubscribe error:', err);
+    showClientNotice(err?.message || 'Error al desactivar notificaciones.', 'error');
+    return false;
   }
 }
 
@@ -10606,12 +10652,30 @@ function updateNotifBellState(active) {
 }
 
 async function toggleNotifications() {
-  const reg = await navigator.serviceWorker.ready;
-  const sub = await reg.pushManager.getSubscription();
-  if (sub && Notification.permission === 'granted') {
-    await unsubscribeFromNotifications();
-  } else {
+  if (!('Notification' in window)) {
+    showClientNotice('Tu navegador no soporta notificaciones.', 'error');
+    return;
+  }
+
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    showClientNotice('Tu navegador no soporta notificaciones push.', 'error');
+    return;
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+
+    if (sub && Notification.permission === 'granted') {
+      await unsubscribeFromNotifications();
+      return;
+    }
+
     await subscribeToNotifications();
+
+  } catch (err) {
+    console.error('Toggle notifications error:', err);
+    showClientNotice(err?.message || 'Error con las notificaciones.', 'error');
   }
 }
 
@@ -10634,59 +10698,100 @@ navigator.serviceWorker?.addEventListener('message', (event) => {
    COMPETICIÓN — Anular asistencia / Restaurar
 ═══════════════════════════════════════════════════════════════ */
 
-async function skipCompetition(competitionId, eventName) {
-  const reason = prompt(
-    `Vas a marcar que no asistirás a "${eventName}".\n\n` +
-    `Motivo (opcional, para que Abel lo sepa):`
-  );
-  if (reason === null) return;  // cancelado
-
-  const { error } = await db
-    .from('competition_events')
-    .update({
-      attending:  false,
-      skip_reason: reason || null,
-      skipped_at: new Date().toISOString(),
-    })
-    .eq('id', competitionId)
-    .eq('client_id', clientData.id);
-
-  if (error) {
-    showClientNotice('No se pudo actualizar la competición.', 'error');
+async function skipCompetition(competitionId) {
+  if (!clientData?.id || !clientData?.access_code) {
+    showClientNotice('No se pudo validar el cliente.', 'error');
     return;
   }
 
-  // Actualizar estado local
-  const idx = clientCompetitionEvents.findIndex(c => c.id === competitionId);
-  if (idx >= 0) {
-    clientCompetitionEvents[idx].attending = false;
-    clientCompetitionEvents[idx].skip_reason = reason || null;
-  }
+  const comp = clientCompetitionEvents.find(c => String(c.id) === String(competitionId));
+  const eventName = comp?.event_name || 'Competición';
 
-  showClientNotice('Competición marcada como no asistida. Abel lo verá en el panel.', 'success');
-  renderAtleta();
+  const reason = prompt(
+    'Vas a marcar que no asistirás a "' + eventName + '".\n\n' +
+    'Motivo opcional para que Abel lo sepa:'
+  );
+
+  if (reason === null) return;
+
+  try {
+    const { data, error } = await db.rpc('ab_update_competition_attendance', {
+      p_client_id: clientData.id,
+      p_access_code: clientData.access_code,
+      p_event_id: competitionId,
+      p_attending: false,
+      p_skip_reason: reason || null
+    });
+
+    if (error) throw error;
+
+    const result = Array.isArray(data) ? data[0] : data;
+
+    if (result && result.ok === false) {
+      throw new Error(result.error || 'No se pudo actualizar la competición.');
+    }
+
+    const idx = clientCompetitionEvents.findIndex(c => String(c.id) === String(competitionId));
+
+    if (idx >= 0) {
+      clientCompetitionEvents[idx].attending = false;
+      clientCompetitionEvents[idx].skip_reason = reason || null;
+      clientCompetitionEvents[idx].skipped_at = new Date().toISOString();
+    }
+
+    showClientNotice('Competición marcada como no asistida. Abel lo verá en el panel.', 'success');
+    renderAtleta();
+
+  } catch (err) {
+    console.error('Skip competition error:', err);
+    showClientNotice(err?.message || 'No se pudo actualizar la competición.', 'error');
+  }
 }
 
 async function restoreCompetition(competitionId) {
-  const { error } = await db
-    .from('competition_events')
-    .update({ attending: true, skip_reason: null, skipped_at: null })
-    .eq('id', competitionId)
-    .eq('client_id', clientData.id);
+  if (!clientData?.id || !clientData?.access_code) {
+    showClientNotice('No se pudo validar el cliente.', 'error');
+    return;
+  }
 
-  if (error) { showClientNotice('Error al restaurar.', 'error'); return; }
+  try {
+    const { data, error } = await db.rpc('ab_update_competition_attendance', {
+      p_client_id: clientData.id,
+      p_access_code: clientData.access_code,
+      p_event_id: competitionId,
+      p_attending: true,
+      p_skip_reason: null
+    });
 
-  const idx = clientCompetitionEvents.findIndex(c => c.id === competitionId);
-  if (idx >= 0) clientCompetitionEvents[idx].attending = true;
+    if (error) throw error;
 
-  showClientNotice('Competición restaurada al calendario.', 'success');
-  renderAtleta();
+    const result = Array.isArray(data) ? data[0] : data;
+
+    if (result && result.ok === false) {
+      throw new Error(result.error || 'No se pudo restaurar la competición.');
+    }
+
+    const idx = clientCompetitionEvents.findIndex(c => String(c.id) === String(competitionId));
+
+    if (idx >= 0) {
+      clientCompetitionEvents[idx].attending = true;
+      clientCompetitionEvents[idx].skip_reason = null;
+      clientCompetitionEvents[idx].skipped_at = null;
+    }
+
+    showClientNotice('Competición restaurada al calendario.', 'success');
+    renderAtleta();
+
+  } catch (err) {
+    console.error('Restore competition error:', err);
+    showClientNotice(err?.message || 'Error al restaurar.', 'error');
+  }
 }
 </script>
 
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js?v=20260521-02', {
+  navigator.serviceWorker.register('/sw.js?v=20260601-01', {
     scope: '/',
     updateViaCache: 'none'
   }).then(reg => {
@@ -10941,9 +11046,13 @@ function renderAtleta(){
         '</div>'+
         '<div class="dc-row"><span class="dc-sub">'+formatDate(nextComp.event_date)+(nextComp.opponent?' · vs '+escHTML(nextComp.opponent):'')+'</span></div>'+
         (nextComp.location?'<div class="dc-note">'+escHTML(nextComp.location)+'</div>':'')+
-'<button class="comp-skip-btn" onclick="skipCompetition(\''+nextComp.id+'\',\''+escHTML(nextComp.event_name||'Competición')+'\')">' +
-  '✕ No asistiré a esta competición' +
-'</button>'+
+(
+  nextComp.attending === false
+    ? '<div class="comp-skip-badge">No asistiré</div>' +
+      (nextComp.skip_reason ? '<div class="dc-note">Motivo: '+escHTML(nextComp.skip_reason)+'</div>' : '') +
+      '<button class="comp-skip-btn" style="border-color:rgba(0,163,255,.2);color:var(--sport);" onclick="restoreCompetition(\''+nextComp.id+'\')">Restaurar competición</button>'
+    : '<button class="comp-skip-btn" onclick="skipCompetition(\''+nextComp.id+'\')">No asistiré a esta competición</button>'
+)
       '</div>';
   }
 
