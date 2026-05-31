@@ -5656,8 +5656,6 @@ function buildWorkoutSessionControls(plan, c){
 
   const weekSessions = plan.weekSessions || plan.sessions || [];
   const activeN = Number(state.activeWorkoutSessionNumber || 1);
-    const manualRaw = state.manualPathologyByClient?.[c.id];
-  const manualArr = Array.isArray(manualRaw) ? manualRaw : (manualRaw ? [manualRaw] : []);
 
   const sessionButtons = weekSessions.length
     ? weekSessions.map((s, index) => {
@@ -5675,12 +5673,8 @@ function buildWorkoutSessionControls(plan, c){
       ${sessionButtons}
     </div>
 
-        <div class="fr" style="margin-bottom:12px">
-            ${['normal','dolor_lumbar','rodilla','hombro','cervical','tobillo','fatiga_alta'].map(p=>`
-        <button class="fp ${p==='normal' ? manualArr.length===0?'on':'' : manualArr.includes(p)?'on':''}"
-          onclick="setManualPathology('${c.id}','${p}')">
-          ${getPathologyLabel(p)}
-        </button>`).join('')}
+            <div class="fr" style="margin-bottom:12px">
+      ${renderPathologyPills(c)}
     </div>
   `;
 }
@@ -8377,6 +8371,24 @@ async function getAdaptedRowsForClient(c){
     pathology,
     plan
   };
+}
+
+function renderPathologyPills(c) {
+  const raw = state.manualPathologyByClient?.[c.id];
+  const active = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+  const opts = [
+    ['normal','NORMAL'],
+    ['dolor_lumbar','LUMBAR'],
+    ['rodilla','RODILLA'],
+    ['hombro','HOMBRO'],
+    ['cervical','CERVICAL'],
+    ['tobillo','TOBILLO'],
+    ['fatiga_alta','FATIGA']
+  ];
+  return opts.map(([val, label]) => {
+    const on = val === 'normal' ? active.length === 0 : active.includes(val);
+    return `<button class="fp${on?' on':''}" onclick="setManualPathology('${c.id}','${val}')">${label}</button>`;
+  }).join('');
 }
 
 function openVideoUrl(title, url){
