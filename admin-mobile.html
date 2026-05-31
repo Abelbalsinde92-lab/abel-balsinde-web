@@ -5645,9 +5645,12 @@ function setManualPathology(clientId, pathology){
       : [...current, pathology];               // no está → añadir
   }
 
-  state.activeWorkoutBlockId = null;
-  state.activeAdaptedBlockKey = null;
-  state.currentAdaptedRows = [];
+    // Limpiar caché para forzar recálculo con nuevas patologías
+  if(state.adaptedTrainingCache){
+    Object.keys(state.adaptedTrainingCache).forEach(k => {
+      if(k.startsWith(clientId + '__')) delete state.adaptedTrainingCache[k];
+    });
+  }
   renderWorkout();
 }
 
@@ -8354,12 +8357,13 @@ async function getAdaptedRowsForClient(c){
     return { rows:null, pathology:null, plan };
   }
 
-    let rows = data || [];
+      let rows = data || [];
 
   if(!rows.length){
     rows = buildFrontendAdaptedRows(getWorkoutPlanForClient(c), pathology);
   }
 
+  // Stacking: si hay lesión física + fatiga, reducir carga encima
   if(detectedAll.hasFatiga && detectedAll.physical){
     rows = applyFatigaModifierOnRows(rows);
   }
