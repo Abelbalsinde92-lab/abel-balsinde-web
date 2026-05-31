@@ -30,7 +30,7 @@
   --divider:     #16161A;
   --text-primary:   #FFFFFF;
   --text-secondary: #8E8E93;
-  --sport:   #00A3FF;
+  --sport:   #00E5FF;
   --medical: #FF5A5A;
   --streak:  #00E676;
   --warn:    #FFB340;
@@ -150,7 +150,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   font-size: 12px; font-family: var(--font-mono); margin-bottom: 14px;
 }
 .login-info {
-  background: rgba(0,163,255,.08); border: 1px solid rgba(0,163,255,.25);
+  background: rgba(0,229,255,.08); border: 1px solid rgba(0,229,255,.25);
   color: var(--sport); border-radius: 8px; padding: 10px 14px;
   font-size: 12px; font-family: var(--font-mono); margin-bottom: 14px;
 }
@@ -385,9 +385,15 @@ input, textarea { outline: none; font-family: var(--font-body); }
 }
 .data-card { padding: 18px; margin-bottom: 10px; }
 .data-card:last-child { margin-bottom: 0; }
-.data-card.next-session { border-color: rgba(0,163,255,.25); }
+.data-card.next-session { border-color: rgba(0,229,255,.25); }
 .data-card .dc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 4px; }
-.data-card .dc-title { font-weight: 700; font-size: 17px; line-height: 1.3; color: var(--text-primary); }
+.data-card .dc-title {
+  font-weight: 800;
+  font-size: 17px;
+  line-height: 1.3;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
 .data-card .dc-sub { font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono); }
 .data-card .dc-note { margin-top: 8px; font-size: 13px; color: var(--text-secondary); font-style: italic; }
 .next-label {
@@ -602,7 +608,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .constancia-segment.done {
   background: var(--sport);
   opacity: 1;
-  box-shadow: 0 0 8px rgba(0,163,255,.45);
+  box-shadow: 0 0 8px rgba(0,229,255,.45);
 }
 
 .home-ring-card-constancia .home-ring-value {
@@ -662,7 +668,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   border-radius: 12px; padding: 14px; text-align: left;
   transition: border-color .15s;
 }
-.quick-card:hover { border-color: rgba(0,163,255,.3); }
+.quick-card:hover { border-color: rgba(0,229,255,.3); }
 .quick-card-label {
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px;
   text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;
@@ -734,14 +740,14 @@ input, textarea { outline: none; font-family: var(--font-body); }
   background: var(--card); border: 1px solid var(--card-border);
   border-radius: 12px; overflow: hidden; transition: border-color .2s;
 }
-.training-step-card.open     { border-color: rgba(0,163,255,.3); }
+.training-step-card.open     { border-color: rgba(0,229,255,.3); }
 .training-step-card.completed{ border-color: rgba(0,230,118,.25); }
 .training-step-header {
   width: 100%; background: transparent; padding: 16px;
   display: flex; align-items: center; gap: 14px;
   text-align: left; transition: background .15s;
 }
-.training-step-card.open .training-step-header      { background: rgba(0,163,255,.04); }
+.training-step-card.open .training-step-header      { background: rgba(0,229,255,.04); }
 .training-step-card.completed .training-step-header { background: rgba(0,230,118,.04); }
 .training-step-number {
   flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px;
@@ -750,7 +756,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-mono); font-weight: 500; font-size: 18px;
 }
-.training-step-card.open .training-step-number      { border-color: var(--sport); color: var(--sport); background: rgba(0,163,255,.08); }
+.training-step-card.open .training-step-number      { border-color: var(--sport); color: var(--sport); background: rgba(0,229,255,.08); }
 .training-step-card.completed .training-step-number { border-color: var(--streak); color: var(--streak); background: rgba(0,230,118,.08); font-size: 16px; }
 .training-step-info { flex: 1; min-width: 0; }
 .training-step-title {
@@ -797,7 +803,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .training-coach-note { color: var(--text-secondary); font-size: 13px; font-style: italic; line-height: 1.6; margin-top: 8px; }
 .training-video-btn {
   display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 7px 12px;
-  background: transparent; border: 1px solid rgba(0,163,255,.3); border-radius: 6px;
+  background: transparent; border: 1px solid rgba(0,229,255,.3); border-radius: 6px;
   color: var(--sport); font-family: var(--font-mono); font-size: 10px;
   letter-spacing: 0.8px; text-transform: uppercase; transition: border-color .2s;
 }
@@ -863,8 +869,8 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
 /* ═══ ENTRENAMIENTO ADAPTADO CLIENTE ═════════════════════ */
 .training-adapted-card {
-  background: rgba(0,163,255,.06);
-  border: 1px solid rgba(0,163,255,.28);
+  background: rgba(0,229,255,.06);
+  border: 1px solid rgba(0,229,255,.28);
   border-radius: 12px;
   padding: 18px;
   margin: 0 0 14px;
@@ -1018,7 +1024,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .accordion-symbol { color: var(--text-secondary); font-size: 18px; flex-shrink: 0; }
 .accordion-content { display: none; padding: 0 16px 16px; border-top: 1px solid var(--divider); }
 .accordion-block.open .accordion-content { display: block; }
-.accordion-block.open .accordion-title { background: rgba(0,163,255,.04); }
+.accordion-block.open .accordion-title { background: rgba(0,229,255,.04); }
 
 /* ═══ PROGRESO ════════════════════════════════════════════ */
 .progress-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 10px; }
@@ -1114,7 +1120,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .cal-day.past { color: var(--text-secondary); opacity: .35; cursor: default; }
 .cal-day.today { border-color: var(--sport); color: var(--sport); }
 .cal-day.free { color: var(--text-primary); }
-.cal-day.free:hover { border-color: var(--sport); background: rgba(0,163,255,.06); }
+.cal-day.free:hover { border-color: var(--sport); background: rgba(0,229,255,.06); }
 .cal-day.grupal-open {
   border-color: rgba(0,230,118,.3);
   background: rgba(0,230,118,.04);
@@ -1123,8 +1129,8 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .cal-day.grupal-open:hover { background: rgba(0,230,118,.1); }
 .cal-day.grupal-full { color: var(--text-secondary); opacity: .5; cursor: default; }
 .cal-day.personal-own {
-  background: rgba(0,163,255,.1);
-  border-color: rgba(0,163,255,.4);
+  background: rgba(0,229,255,.1);
+  border-color: rgba(0,229,255,.4);
   color: var(--sport);
 }
 .cal-day.occupied { color: var(--text-secondary); opacity: .4; cursor: default; }
@@ -1160,7 +1166,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .cal-slot-card:hover { border-color: var(--sport); }
 .cal-slot-card.grupal { border-color: rgba(0,230,118,.25); }
 .cal-slot-card.grupal:hover { border-color: var(--streak); }
-.cal-slot-card.selected { border-color: var(--sport); background: rgba(0,163,255,.06); }
+.cal-slot-card.selected { border-color: var(--sport); background: rgba(0,229,255,.06); }
 .cal-slot-time {
   font-family: var(--font-display); font-size: 22px;
   letter-spacing: 1px; line-height: 1;
@@ -1203,8 +1209,8 @@ input, textarea { outline: none; font-family: var(--font-body); }
 }
 
 .training-collapsible-card.adjusted {
-  border-color: rgba(0,163,255,.28);
-  background: rgba(0,163,255,.05);
+  border-color: rgba(0,229,255,.28);
+  background: rgba(0,229,255,.05);
 }
 
 .training-collapsible-card.mobility {
@@ -1278,7 +1284,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
 .training-collapsible-card.open .training-collapsible-icon {
   color: var(--sport);
-  border-color: rgba(0,163,255,.35);
+  border-color: rgba(0,229,255,.35);
 }
 
 .training-collapsible-card.mobility.open .training-collapsible-icon {
@@ -1337,13 +1343,13 @@ input, textarea { outline: none; font-family: var(--font-body); }
 }
 
 .emoji-scale-btn:hover {
-  border-color: rgba(0,163,255,.35);
+  border-color: rgba(0,229,255,.35);
   color: var(--text-primary);
 }
 
 .emoji-scale-btn.active {
   border-color: var(--sport);
-  background: rgba(0,163,255,.10);
+  background: rgba(0,229,255,.10);
   color: var(--text-primary);
 }
 
@@ -1385,9 +1391,9 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
 .onboarding-card {
   background:
-    radial-gradient(circle at top right, rgba(0,163,255,.16), transparent 34%),
+    radial-gradient(circle at top right, rgba(0,229,255,.16), transparent 34%),
     var(--card);
-  border: 1px solid rgba(0,163,255,.28);
+  border: 1px solid rgba(0,229,255,.28);
   border-radius: 16px;
   padding: 22px 18px;
   margin-bottom: 14px;
@@ -1439,8 +1445,8 @@ input, textarea { outline: none; font-family: var(--font-body); }
   width: 24px;
   height: 24px;
   border-radius: 7px;
-  background: rgba(0,163,255,.10);
-  border: 1px solid rgba(0,163,255,.25);
+  background: rgba(0,229,255,.10);
+  border: 1px solid rgba(0,229,255,,.25);
   color: var(--sport);
   display: flex;
   align-items: center;
@@ -1601,7 +1607,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
 .training-difficulty-pill.medium {
   color: var(--sport);
-  background: rgba(0,163,255,.06);
+  background: rgba(0,229,255,.06);
 }
 
 .training-difficulty-pill.intense {
@@ -1653,10 +1659,10 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
 .exercise-video-guide {
   margin-top: 12px;
-  border: 1px solid rgba(0,163,255,.24);
+  border: 1px solid rgba(0,229,255,.24);
   border-radius: 10px;
   overflow: hidden;
-  background: rgba(0,163,255,.035);
+  background: rgba(0,229,255,.035);
 }
 
 .exercise-video-toggle {
@@ -1702,7 +1708,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .exercise-video-body {
   display: none;
   padding: 0 12px 12px;
-  border-top: 1px solid rgba(0,163,255,.16);
+  border-top: 1px solid rgba(0,229,255,.16);
 }
 
 .exercise-video-guide.open .exercise-video-body {
@@ -1740,7 +1746,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   justify-content: center;
   margin-top: 12px;
   padding: 9px 12px;
-  border: 1px solid rgba(0,163,255,.32);
+  border: 1px solid rgba(0,229,255,.32);
   border-radius: 8px;
   color: var(--sport);
   font-family: var(--font-mono);
@@ -1765,8 +1771,8 @@ input, textarea { outline: none; font-family: var(--font-body); }
 }
 
 .metric-edit-card:hover {
-  border-color: rgba(0,163,255,.35);
-  background: rgba(0,163,255,.04);
+  border-color: rgba(0,229,255,.35);
+  background: rgba(0,229,255,.04);
 }
 
 .metric-edit-card:active {
@@ -1902,7 +1908,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 1px solid rgba(0,163,255,.38);
+  border: 1px solid rgba(0,229,255,.38);
   color: var(--sport);
   display: flex;
   align-items: center;
@@ -1983,10 +1989,10 @@ input, textarea { outline: none; font-family: var(--font-body); }
 
 .exercise-knowledge-guide {
   margin-top: 12px;
-  border: 1px solid rgba(0,163,255,.22);
+  border: 1px solid rgba(0,229,255,.22);
   border-radius: 10px;
   overflow: hidden;
-  background: rgba(0,163,255,.025);
+  background: rgba(0,229,255,.025);
 }
 
 .exercise-knowledge-toggle {
@@ -2039,7 +2045,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .exercise-knowledge-body {
   display: none;
   padding: 12px;
-  border-top: 1px solid rgba(0,163,255,.14);
+  border-top: 1px solid rgba(0,229,255,.14);
 }
 
 .exercise-knowledge-guide.open .exercise-knowledge-body {
@@ -2191,8 +2197,8 @@ input, textarea { outline: none; font-family: var(--font-body); }
   text-align: center; font-weight: 700;
 }
 .wt-mode-pill.on {
-  background: rgba(0,163,255,.12); color: var(--sport);
-  border-color: rgba(0,163,255,.35);
+  background: rgba(0,229,255,.12); color: var(--sport);
+  border-color: rgba(0,229,255,.35);
 }
 .wt-phase {
   text-align: center; font-family: var(--font-mono);
@@ -2201,7 +2207,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
 }
 .wt-phase.work  { background: rgba(0,230,118,.15); color: var(--streak); }
 .wt-phase.rest  { background: rgba(255,179,64,.15); color: var(--warn); }
-.wt-phase.done  { background: rgba(0,163,255,.15); color: var(--sport); }
+.wt-phase.done  { background: rgba(0,229,255,.15); color: var(--sport); }
 .wt-round {
   text-align: center; font-family: var(--font-mono); font-size: .62rem;
   color: var(--text-secondary); margin-top: 6px; letter-spacing: .08em; text-transform: uppercase;
@@ -2227,7 +2233,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   font-family: var(--font-mono); font-size: .55rem; letter-spacing: .06em;
   text-transform: uppercase; font-weight: 700;
 }
-.wt-iv-preset:active { background: rgba(0,163,255,.08); color: var(--sport); }
+.wt-iv-preset:active { background: rgba(0,229,255,.08); color: var(--sport); }
 #section-home .section-header { display: none !important; }
 
 /* ═══ CLIENTE · OVERRIDES POST-FIELD-SYNC ═══ */
@@ -2415,13 +2421,13 @@ input, textarea { outline: none; font-family: var(--font-body); }
   transition: background .15s, border-color .15s, color .15s;
 }
 .timer-toggle-btn:hover {
-  border-color: rgba(0,163,255,.3);
+  border-color: rgba(0,229,255,.3);
   color: var(--sport);
 }
 .timer-toggle-btn.open {
-  border-color: rgba(0,163,255,.3);
+  border-color: rgba(0,229,255,.3);
   color: var(--sport);
-  background: rgba(0,163,255,.05);
+  background: rgba(0,229,255,.05);
 }
 .timer-toggle-left {
   display: flex;
@@ -2561,6 +2567,25 @@ input, textarea { outline: none; font-family: var(--font-body); }
   border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 14px;
+}
+
+/* ═══ BRAND COLOR REFINEMENTS ════════════════════════════ */
+
+/* Label mono más compacto */
+.next-label {
+  letter-spacing: 1.4px;
+  font-size: 9px;
+}
+
+/* Títulos de sección en display font más tight */
+.section-header h2 {
+  letter-spacing: 2.5px;
+}
+
+/* dc-sub más legible */
+.data-card .dc-sub {
+  letter-spacing: 0.2px;
+  opacity: .85;
 }
 </style>
 </head>
@@ -7329,10 +7354,10 @@ function buildClientInstructionCard(ex){
   const desc  = ex.description || '';
   const id    = 'cinstr-' + String(ex.id || Math.random()).replace(/[^a-zA-Z0-9]/g,'');
   return (
-    '<details class="training-exercise-card" style="border-left:3px solid rgba(0,163,255,.3)" id="' + id + '">' +
+    '<details class="training-exercise-card" style="border-left:3px solid rgba(0,229,255,.3)" id="' + id + '">' +
       '<summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:2px 0">' +
         '<span style="font-family:var(--font-mono);font-size:9px;padding:3px 8px;border-radius:4px;' +
-          'background:rgba(0,163,255,.1);color:var(--sport);letter-spacing:.1em;text-transform:uppercase;flex-shrink:0">Nota</span>' +
+          'background:rgba(0,229,255,.1);color:var(--sport);letter-spacing:.1em;text-transform:uppercase;flex-shrink:0">Nota</span>' +
         '<span style="font-weight:600;font-size:.88rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
           escHTML(title) +
         '</span>' +
@@ -7941,7 +7966,7 @@ function buildProgressTrainingSummary(){
       : uiText('noCompletedTrainingYet');
 
   html +=
-    '<div class="data-card" style="border-color:rgba(0,163,255,.15);margin-bottom:12px;">' +
+    '<div class="data-card" style="border-color:rgba(0,229,255,.15);margin-bottom:12px;">' +
       '<div class="dc-note" style="margin-top:0;">' + statusNote + '</div>' +
     '</div>';
 
@@ -7974,7 +7999,7 @@ function buildProgressTrainingSummary(){
 }
 
 /* ══ EVALUACIONES ══ */
-function buildMiniChart(pts){if(!pts||pts.length<2)return null;const vals=pts.map(d=>d.value),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;const W=260,H=50,P=6;const mapped=pts.map((d,i)=>({x:P+(i/(pts.length-1))*(W-P*2),y:P+(H-P*2)-((d.value-min)/range)*(H-P*2),date:d.date,value:d.value}));const line=mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');const area=[mapped[0].x.toFixed(1)+','+(H-P).toFixed(1)].concat(mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1))).concat([mapped[mapped.length-1].x.toFixed(1)+','+(H-P).toFixed(1)]).join(' ');const dots=mapped.map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="var(--sport)" stroke="var(--card)" stroke-width="1.5"/>').join('');const labs=mapped.map(p=>'<span class="mini-chart-label">'+String(p.date||'').slice(5)+'<br>'+p.value+'</span>').join('');return'<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="display:block"><polygon points="'+area+'" fill="rgba(0,163,255,0.06)"/><polyline points="'+line+'" fill="none" stroke="var(--sport)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div class="mini-chart-labels">'+labs+'</div>';}
+function buildMiniChart(pts){if(!pts||pts.length<2)return null;const vals=pts.map(d=>d.value),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;const W=260,H=50,P=6;const mapped=pts.map((d,i)=>({x:P+(i/(pts.length-1))*(W-P*2),y:P+(H-P*2)-((d.value-min)/range)*(H-P*2),date:d.date,value:d.value}));const line=mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');const area=[mapped[0].x.toFixed(1)+','+(H-P).toFixed(1)].concat(mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1))).concat([mapped[mapped.length-1].x.toFixed(1)+','+(H-P).toFixed(1)]).join(' ');const dots=mapped.map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="var(--sport)" stroke="var(--card)" stroke-width="1.5"/>').join('');const labs=mapped.map(p=>'<span class="mini-chart-label">'+String(p.date||'').slice(5)+'<br>'+p.value+'</span>').join('');return'<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="display:block"><polygon points="'+area+'" fill="rgba(0,229,255,0.06)"/><polyline points="'+line+'" fill="none" stroke="var(--sport)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div class="mini-chart-labels">'+labs+'</div>';}
 function buildExerciseHistory(exerciseName){return clientAssessmentResults.filter(r=>(r.exercise_name||'').trim().toLowerCase()===(exerciseName||'').trim().toLowerCase()).map(r=>{const a=clientAssessments.find(x=>x.id===r.assessment_id);return{date:a?.assessment_date||'',value:r.result_value,numValue:parseFloat(String(r.result_value||'').replace(',','.'))}}).filter(d=>d.date).sort((a,b)=>String(a.date).localeCompare(String(b.date)));}
 function dLabel(d){
   if(d === 'higher_better') return uiText('higherBetter');
@@ -8374,7 +8399,7 @@ function buildSlotsForDay(dateStr) {
 
       const borderColor = pending
         ? 'rgba(255,179,64,.35)'
-        : 'rgba(0,163,255,.40)';
+        : 'rgba(0,229,255,.40)';
 
       html +=
         '<div class="cal-slot-card personal-own" style="border-color:' + borderColor + ';">' +
@@ -11074,7 +11099,7 @@ function renderAtleta(){
   if(activePhase){
     const dLeft=activePhase.end_date?daysBetweenISO(today,activePhase.end_date):null;
     resumenHTML+=
-      '<div class="data-card" style="border-color:rgba(0,163,255,.25)">'+
+      '<div class="data-card" style="border-color:rgba(0,229,255,.25)">'+
         '<div class="next-label">Fase activa</div>'+
         '<div class="dc-row">'+
           '<span class="dc-title">'+escHTML(activePhase.phase_name||activePhase.phase_type||'Fase')+'</span>'+
@@ -11106,10 +11131,10 @@ function renderAtleta(){
         (nextComp.attending===false
           ? '<div style="margin-top:10px;"><span class="comp-skip-badge">No asistiré</span></div>'+
             (nextComp.skip_reason?'<div class="dc-note">Motivo: '+escHTML(nextComp.skip_reason)+'</div>':'')+
-            '<button class="comp-skip-btn" style="border-color:rgba(0,163,255,.2);color:var(--sport);margin-top:6px;" onclick="restoreCompetition(\''+nextComp.id+'\')">↩ Restaurar</button>'
+            '<button class="comp-skip-btn" style="border-color:rgba(0,229,255,.2);color:var(--sport);margin-top:6px;" onclick="restoreCompetition(\''+nextComp.id+'\')">↩ Restaurar</button>'
           : '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">'+
               '<button class="comp-skip-btn" onclick="skipCompetition(\''+nextComp.id+'\')">✕ No asistiré</button>'+
-              '<button class="comp-skip-btn" style="border-color:rgba(0,163,255,.2);color:var(--sport);" onclick="showAtletaTab(\'comps\')">Ver todas →</button>'+
+              '<button class="comp-skip-btn" style="border-color:rgba(0,229,255,.2);color:var(--sport);" onclick="showAtletaTab(\'comps\')">Ver todas →</button>'+
             '</div>'
         )+
       '</div>';
@@ -11173,7 +11198,7 @@ function renderAtleta(){
               (comp.location?'<div class="dc-note" style="margin-bottom:8px;">'+escHTML(comp.location)+'</div>':'')+
               (isSkipped&&comp.skip_reason?'<div class="dc-note" style="margin-bottom:8px;">Motivo: '+escHTML(comp.skip_reason)+'</div>':'')+
               (isSkipped
-                ? '<button class="comp-skip-btn" style="border-color:rgba(0,163,255,.2);color:var(--sport);" onclick="restoreCompetition(\''+comp.id+'\')">↩ Restaurar al calendario</button>'
+                ? '<button class="comp-skip-btn" style="border-color:rgba(0,229,255,.2);color:var(--sport);" onclick="restoreCompetition(\''+comp.id+'\')">↩ Restaurar al calendario</button>'
                 : '<button class="comp-skip-btn" onclick="skipCompetition(\''+comp.id+'\')">✕ No asistiré a esta competición</button>'
               )+
             '</div>'+
@@ -11202,7 +11227,7 @@ function renderAtleta(){
             (c.method?'<span class="dc-sub">'+escHTML(c.method)+'</span>':'')+
           '</div>'+
           (isSkipped
-            ? '<button class="comp-skip-btn" style="border-color:rgba(0,163,255,.2);color:var(--sport);margin-top:8px;" onclick="restoreCompetition(\''+c.id+'\')">↩ Restaurar al calendario</button>'
+            ? '<button class="comp-skip-btn" style="border-color:rgba(0,229,255,.2);color:var(--sport);margin-top:8px;" onclick="restoreCompetition(\''+c.id+'\')">↩ Restaurar al calendario</button>'
             : ''
           )+
         '</div>';
