@@ -2352,26 +2352,66 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .health-panel { display: none; }
 .health-panel.active { display: block; }
 
-/* ═══ EMOJI SCALE — COMPACTO MOBILE ═══════════════════════
-   Reduce altura de ~75px a ~48px por escala.
-   El texto descriptivo solo se muestra cuando está activo.
-═══════════════════════════════════════════════════════════ */
+/* ═══ CHECK-IN SCALE — NÚMERO BEBAS SANS EMOJI ══════════
+   Diseño on-brand: número como focal, etiqueta mono debajo.
+   Sin emojis de color que rompan el dark system.
+══════════════════════════════════════════════════════════ */
+
+/* Ocultar emoji y value duplicados del HTML legacy */
+.emoji-scale-emoji { display: none !important; }
+.emoji-scale-value { display: none !important; }
+
+/* Botón base */
 .emoji-scale-btn {
-  padding: 7px 3px 5px;
+  background: var(--bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 10px 4px 8px;
+  text-align: center;
+  transition: border-color .15s, background .15s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
-.emoji-scale-emoji {
-  font-size: 17px;
-  margin-bottom: 3px;
+.emoji-scale-btn:hover {
+  border-color: rgba(0,229,255,.3);
 }
+.emoji-scale-btn.active {
+  border-color: var(--sport);
+  background: rgba(0,229,255,.07);
+}
+
+/* Número Bebas Neue como focal */
+.emoji-scale-num {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 1px;
+  line-height: 1;
+  color: var(--text-secondary);
+  transition: color .15s;
+}
+.emoji-scale-btn.active .emoji-scale-num {
+  color: var(--sport);
+}
+
+/* Etiqueta DM Mono pequeña */
 .emoji-scale-text {
-  display: none;
+  display: block;
+  font-family: var(--font-mono);
   font-size: 8px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  line-height: 1.2;
+  opacity: .7;
+  transition: color .15s, opacity .15s;
 }
 .emoji-scale-btn.active .emoji-scale-text {
-  display: block;
-}
-.emoji-scale-value {
-  font-size: 10px;
+  color: var(--sport);
+  opacity: 1;
 }
 
 /* ═══ CALENDARIO — COMPACTO MOBILE ═══════════════════════
@@ -9998,19 +10038,15 @@ function buildEmojiScale(id, label, value, options) {
 
   options.forEach(opt => {
     const active = Number(opt.value) === current ? ' active' : '';
-
     html +=
-      '<button type="button" class="emoji-scale-btn' + active + '" onclick="selectEmojiScale(\'' + id + '\',' + opt.value + ', this)">' +
-        '<span class="emoji-scale-emoji">' + opt.emoji + '</span>' +
-        '<span class="emoji-scale-value">' + opt.value + '</span>' +
+      '<button type="button" class="emoji-scale-btn' + active + '" ' +
+        'onclick="selectEmojiScale(\'' + id + '\',' + opt.value + ', this)">' +
+        '<span class="emoji-scale-num">' + opt.value + '</span>' +
         '<span class="emoji-scale-text">' + opt.text + '</span>' +
       '</button>';
   });
 
-  html +=
-      '</div>' +
-    '</div>';
-
+  html += '</div></div>';
   return html;
 }
 
