@@ -3,11 +3,21 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/cliente", "destination": "/cliente.html" },
+    { "source": "/field", "destination": "/admin-mobile.html" },
+    { "source": "/admin-mobile", "destination": "/admin-mobile.html" },
     { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/medical", "destination": "/medical-panel.html" },
+    { "source": "/nutrition", "destination": "/nutrition-panel.html" },
     { "source": "/sr", "destination": "/sr.html" },
     { "source": "/en", "destination": "/en.html" }
   ],
   "headers": [
+    {
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0" }
+      ]
+    },
     {
       "source": "/cliente.html",
       "headers": [
@@ -15,7 +25,25 @@
       ]
     },
     {
+      "source": "/admin-mobile.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0" }
+      ]
+    },
+    {
       "source": "/admin.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0" }
+      ]
+    },
+    {
+      "source": "/medical-panel.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0" }
+      ]
+    },
+    {
+      "source": "/nutrition-panel.html",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, max-age=0" }
       ]
@@ -28,6 +56,12 @@
     },
     {
       "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0" }
+      ]
+    },
+    {
+      "source": "/manifest.json",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, max-age=0" }
       ]
