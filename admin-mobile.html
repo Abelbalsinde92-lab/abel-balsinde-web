@@ -11631,21 +11631,29 @@ async function initPushNotifications() {
       const deviceLabel = /iPhone|iPad|iPod/i.test(ua) ? 'ios'
         : /Android/i.test(ua) ? 'android' : 'desktop';
 
-      const { error: pushSaveError } = await db
+const { data: existing } = await db
   .from('push_subscriptions')
-  .upsert({
-    user_id: 'ab_coach',
-    subscription: subscriptionJson,
-    endpoint: endpoint,
-    device_label: deviceLabel,
-    updated_at: new Date().toISOString()
-  }, {
-    onConflict: 'endpoint'
-  });
+  .select('id')
+  .eq('endpoint', endpoint)
+  .maybeSingle();
 
-if (pushSaveError) {
-  console.error('Error guardando push subscription:', pushSaveError);
-  throw pushSaveError;
+if (existing) {
+  await db.from('push_subscriptions')
+    .update({
+      subscription: subscriptionJson,
+      device_label: deviceLabel,
+      updated_at: new Date().toISOString()
+    })
+    .eq('endpoint', endpoint);
+} else {
+  await db.from('push_subscriptions')
+    .insert({
+      user_id: 'ab_coach',
+      subscription: subscriptionJson,
+      endpoint,
+      device_label: deviceLabel,
+      updated_at: new Date().toISOString()
+    });
 }
 
     showToast('Notificaciones activadas ✓', 'ok');
