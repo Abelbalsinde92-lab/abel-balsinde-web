@@ -11725,16 +11725,24 @@ function setupRealtimeNotifications() {
 }
 
 async function testPush() {
-  const { data, error } = await db.functions.invoke('send-push-field-', {
-    body: {
-      title: '🔔 Test AB Field',
-      body: 'Push funcionando correctamente',
-      urgent: false,
-      data: { screen: 'hoy' }
+  const res = await fetch(
+    'https://icjuuptbcnkpwgsoyiuj.supabase.co/functions/v1/send-push-field-',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPA_KEY
+      },
+      body: JSON.stringify({
+        title: '🔔 Test AB Field',
+        body: 'Push funcionando correctamente',
+        data: { screen: 'hoy' }
+      })
     }
-  });
-  console.log('Push test:', data, error);
-  showToast(error ? 'Error: ' + error.message : 'Push enviado ✓', error ? 'err' : 'ok');
+  );
+  const data = await res.json();
+  console.log('Push test:', data);
+  showToast(res.ok ? 'Push enviado ✓' : 'Error: ' + JSON.stringify(data), res.ok ? 'ok' : 'err');
 }
 </script>
 </body>
