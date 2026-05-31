@@ -3651,6 +3651,19 @@ function renderPerfil(){
     ${buildClientConditionCard(c)}
 
   `;
+
+  const intelPanel = document.getElementById('intel-panel');
+  if (intelPanel) {
+    const isAthlete = c.athleteProfile && c.athleteProfile !== 'general';
+    if (isAthlete) {
+      intelPanel.style.display = '';
+      intelPanel.innerHTML = '<div class="intel-skeleton"></div>';
+      loadAthleteSemaforo(c.id);
+    } else {
+      intelPanel.style.display = 'none';
+      intelPanel.innerHTML = '';
+    }
+  }
 }
 
 function switchPt(btn,id){
