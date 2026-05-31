@@ -11723,6 +11723,19 @@ function setupRealtimeNotifications() {
 
   console.log('AB Realtime notifications activas ✓');
 }
+
+async function testPush() {
+  const { data, error } = await db.functions.invoke('send-push-field-', {
+    body: {
+      title: '🔔 Test AB Field',
+      body: 'Push funcionando correctamente',
+      urgent: false,
+      data: { screen: 'hoy' }
+    }
+  });
+  console.log('Push test:', data, error);
+  showToast(error ? 'Error: ' + error.message : 'Push enviado ✓', error ? 'err' : 'ok');
+}
 </script>
 </body>
 </html>
