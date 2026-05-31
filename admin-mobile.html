@@ -1915,6 +1915,26 @@ a{text-decoration:none;color:inherit}
   border-color: #00C47A;
 }
 
+.ab-notif {
+  position: fixed;
+  top: calc(var(--top-h) + var(--safe-t) + 8px);
+  left: 12px; right: 12px;
+  z-index: 600;
+  background: var(--card);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  border-left: 3px solid var(--sport);
+  transform: translateY(-100px);
+  opacity: 0;
+  transition: .25s cubic-bezier(.4,0,.2,1);
+  pointer-events: all;
+}
+.ab-notif.show { transform: translateY(0); opacity: 1; }
+.ab-notif.urg  { border-color: var(--medical); }
+.ab-notif.wrn  { border-color: var(--warn); }
+.ab-notif.ok   { border-color: var(--streak); }
+
 /* Badges de ajuste de carga */
 .intel-load-row {
   display: flex;
@@ -3147,7 +3167,18 @@ try{
   state.athletes=[];
 }
 
-renderAll();showToast('Datos cargados ✓','ok');
+renderAll();
+showToast('Datos cargados ✓', 'ok');
+
+// Activar notificaciones realtime
+setupRealtimeNotifications();
+
+// Activar push (pide permiso si no lo tiene)
+if (Notification.permission === 'default') {
+  setTimeout(() => initPushNotifications(), 3000);
+} else if (Notification.permission === 'granted') {
+  initPushNotifications();
+}
   }catch(err){console.error('loadAllData error:',err);showToast('Error cargando datos','err')}
 }
 
@@ -11499,6 +11530,199 @@ async function confirmEvalAssignment() {
     print("PROMISE ERROR", [e.reason]);
   });
 })();
+
+/* ════ AB PUSH + REALTIME NOTIFICATIONS ════ */
+
+const VAPID_PUBLIC_KEY = 'TU_CLAVE_VAPID_PUBLICA_AQUI';
+
+// ── Convertir VAPID key ──
+function vapidToUint8(base64) {
+  const pad = '='.repeat((4 - base64.length % 4) % 4);
+  const b64 = (base64 + pad).replace(/-/g,'+').replace(/_/g,'/');
+  const raw = atob(b64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+// ── Registrar Service Worker + suscripción push ──
+async function initPushNotifications() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+  try {
+    const sw = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') return;
+
+    // Escuchar mensajes del SW (respuestas a notificaciones)
+    navigator.serviceWorker.addEventListener('message', e => {
+      const { action, data } = e.data || {};
+      if (action === 'resolve' && data?.alertId) resolverAlerta(data.alertId);
+      else if (action === 'view' && data?.clientId) openProfile(data.clientId);
+      else if (data?.screen) showScr(data.screen);
+    });
+
+    // Solo guardar suscripción si hay VAPID key real
+    if (VAPID_PUBLIC_KEY !== 'TU_CLAVE_VAPID_PUBLICA_AQUI') {
+      const sub = await sw.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: vapidToUint8(VAPID_PUBLIC_KEY)
+      });
+
+      await db.from('push_subscriptions').upsert({
+        user_id: 'ab_coach',
+        subscription: JSON.stringify(sub),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+    }
+
+    showToast('Notificaciones activadas ✓', 'ok');
+
+  } catch(err) {
+    console.warn('Push init error:', err);
+  }
+}
+
+// ── Banner in-app ──
+function showAbNotif({ title, body, type = 'info', data = {}, actions = [], duration = 6000 }) {
+  const id = 'notif-' + Date.now();
+  const cls = { alerta:'urg', revisar:'wrn', ok:'ok' }[type] || '';
+  const actionsHTML = actions.map(a =>
+    `<button class="btn btn-s btn-sm" style="min-height:30px;padding:0 10px;font-size:.55rem"
+      onclick="handleAbNotifAction('${a.action}',event,'${id}')"
+      data-ndata='${JSON.stringify(data)}'>${esc(a.label)}</button>`
+  ).join('');
+
+  const el = document.createElement('div');
+  el.id = id;
+  el.className = `ab-notif ${cls}`;
+  el.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:10px">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:.88rem;margin-bottom:2px">${esc(title)}</div>
+        <div style="font-size:.76rem;color:var(--text-2);line-height:1.45">${esc(body)}</div>
+        ${actionsHTML ? `<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${actionsHTML}</div>` : ''}
+      </div>
+      <button style="color:var(--text-2);font-size:.9rem;padding:4px 6px;flex-shrink:0;min-width:28px"
+        onclick="dismissAbNotif('${id}')">✕</button>
+    </div>`;
+
+  el.addEventListener('click', e => {
+    if (e.target.closest('button')) return;
+    handleAbNotifTap(data);
+    dismissAbNotif(id);
+  });
+
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+
+  try { if (navigator.vibrate) navigator.vibrate(80); } catch(e) {}
+
+  if (duration > 0) setTimeout(() => dismissAbNotif(id), duration);
+}
+
+function dismissAbNotif(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('show');
+  setTimeout(() => el.remove(), 300);
+}
+
+function handleAbNotifTap(data) {
+  if (data.clientId) openProfile(data.clientId);
+  else if (data.screen) showScr(data.screen);
+}
+
+function handleAbNotifAction(action, event, notifId) {
+  event.stopPropagation();
+  const data = JSON.parse(event.target.dataset.ndata || '{}');
+  dismissAbNotif(notifId);
+  if (action === 'resolve' && data.id) resolverAlerta(data.id);
+  else if (action === 'view_profile' && data.clientId) openProfile(data.clientId);
+  else if (action === 'view_alerts') showScr('alertas');
+  else if (action === 'view_checkins') showScr('checkins');
+}
+
+// ── También notificar con API nativa si app en segundo plano ──
+function nativeNotif(title, body, data = {}) {
+  if (Notification.permission !== 'granted' || !document.hidden) return;
+  const n = new Notification(title, {
+    body,
+    icon: '/icon-192.png',
+    tag: data.tag || 'ab-' + Date.now(),
+    data
+  });
+  n.onclick = () => { handleAbNotifTap(data); n.close(); };
+}
+
+// ── Supabase Realtime ──
+function setupRealtimeNotifications() {
+  // Nuevas alertas
+  db.channel('ab-alertas-rt')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'admin_alertas_detalle'
+    }, ({ new: row }) => {
+      const a = snakeToCamel(row);
+      const c = getAlertClientSmart(a);
+      const title = `⚠ Alerta · ${c?.name || getAlertClientNameSmart(a) || 'Cliente'}`;
+      const body = getAlertTitle(a);
+
+      state.alertas.unshift(a);
+      renderBadges();
+
+      showAbNotif({
+        title, body, type: 'alerta',
+        data: { id: a.id, clientId: c?.id, screen: 'alertas', tag: 'alerta-' + a.id },
+        actions: [
+          { label: '✓ Resolver', action: 'resolve' },
+          { label: 'Ver perfil', action: 'view_profile' }
+        ]
+      });
+
+      nativeNotif(title, body, { clientId: c?.id, screen: 'alertas' });
+    })
+    .subscribe();
+
+  // Nuevos check-ins
+  db.channel('ab-checkins-rt')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'client_daily_checkins'
+    }, ({ new: row }) => {
+      const ci = snakeToCamel(row);
+      const c = clientById(ci.clientId || ci.client_id);
+      if (!c) return;
+
+      state.todayCheckins.push(ci);
+      state.recentCheckins.unshift(ci);
+
+      const status = getCheckinStatus(ci);
+      if (status === 'normal') return; // Solo notificar si hay algo a revisar
+
+      const title = `${status === 'alerta' ? '🔴' : '🟡'} CI · ${c.name}`;
+      const body = ci.comment
+        ? ci.comment.slice(0, 80)
+        : `Energía ${ci.energyLevel ?? '—'} · Molestias ${ci.sorenessLevel ?? '—'}`;
+
+      showAbNotif({
+        title, body,
+        type: status === 'alerta' ? 'alerta' : 'revisar',
+        data: { clientId: c.id, screen: 'checkins' },
+        actions: [
+          { label: 'Ver perfil', action: 'view_profile' },
+          { label: 'Ver CIs', action: 'view_checkins' }
+        ]
+      });
+
+      nativeNotif(title, body, { clientId: c.id });
+    })
+    .subscribe();
+
+  console.log('AB Realtime notifications activas ✓');
+}
 </script>
 </body>
 </html>
