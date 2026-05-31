@@ -3043,6 +3043,22 @@ if(!isLogged){
     });
 
     await loadAllData();
+   
+   // Registrar Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js')
+    .then(reg => {
+      console.log('SW registrado ✓', reg.scope);
+      // Escuchar mensajes del SW
+      navigator.serviceWorker.addEventListener('message', e => {
+        const { action, data } = e.data || {};
+        if (action === 'resolve' && data?.alertId) resolverAlerta(data.alertId);
+        else if (data?.clientId) openProfile(data.clientId);
+        else if (data?.screen) showScr(data.screen);
+      });
+    })
+    .catch(err => console.warn('SW error:', err));
+}
 
   }catch(err){
     console.error('AB FIELD INIT ERROR:', err);
