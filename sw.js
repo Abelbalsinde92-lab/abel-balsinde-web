@@ -23,8 +23,6 @@ self.addEventListener('fetch', event => {
   return;
 });
 
-// ══ AB PUSH NOTIFICATIONS ══════════════════════
-
 self.addEventListener('push', event => {
   if (!event.data) return;
   const d = event.data.json();
@@ -48,6 +46,8 @@ self.addEventListener('notificationclick', event => {
   const data = event.notification.data || {};
   const action = event.action;
 
+  const APP_URL = 'https://abeltrainer.vercel.app/field.html';
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(cls => {
@@ -56,7 +56,7 @@ self.addEventListener('notificationclick', event => {
           existing.postMessage({ action, data });
           return existing.focus();
         }
-        return clients.openWindow('/field.html');
+        return clients.openWindow(APP_URL);
       })
   );
 });
