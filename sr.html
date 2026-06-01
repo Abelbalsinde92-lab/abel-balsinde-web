@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ABEL TRAINER | Health & Performance · Beograd</title>
-<meta name="description" content="Personalizovani programi treninga zasnovani na nauci, snazi i integralnom zdravlju. Biološka optimizacija i vrhunski učinak u Beogradu.">
-<link rel="canonical" href="https://abeltrainer.vercel.app/sr.html">
+<title>AB SYSTEM | Trening sa strukturom, praćenjem i stvarnom adaptacijom</title>
+<meta name="description" content="AB SYSTEM nije app sa rutinama. To je sistem treninga sa evaluacijom, planiranjem, praćenjem i stvarnom adaptacijom. Vodi ga coach u Beogradu.">
+<link rel="canonical" href="https://absystem.dbarrio.app/sr.html">
 <link rel="alternate" hreflang="es" href="https://abeltrainer.vercel.app/">
 <link rel="alternate" hreflang="sr" href="https://abeltrainer.vercel.app/sr.html">
 <link rel="alternate" hreflang="en" href="https://abeltrainer.vercel.app/en.html">
@@ -14,1571 +14,231 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
 <style>
-/* ═══════════════════════════════════════════════════════════
-   TOKENS
-═══════════════════════════════════════════════════════════ */
 :root {
-  --black: #000000;
-  --void: #080808;
-  --surface: #0d0d0d;
-  --surface2: #141414;
-  --surface3: #1a1a1a;
-  --border: rgba(255,255,255,.07);
-  --border-cyan: rgba(0,210,220,.25);
-
-  --white: #FFFFFF;
-  --off-white: #E5E5E5;
-  --gray: #707070;
-  --gray2: #454545;
-
-  --cyan: #00D2DC;
-  --cyan-dim: rgba(0,210,220,.12);
-  --cyan-glow: rgba(0,210,220,.18);
-
-  --red: #E20613;
-
-  --font-display: 'Barlow Condensed', sans-serif;
-  --font-body: 'Barlow', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --black: #000000; --void: #080808; --surface: #0d0d0d; --surface2: #141414; --surface3: #1a1a1a;
+  --border: rgba(255,255,255,.07); --border-cyan: rgba(0,210,220,.25);
+  --white: #FFFFFF; --off-white: #E5E5E5; --gray: #707070; --gray2: #454545;
+  --cyan: #00D2DC; --cyan-dim: rgba(0,210,220,.12); --cyan-glow: rgba(0,210,220,.18); --red: #E20613;
+  --font-display: 'Barlow Condensed', sans-serif; --font-body: 'Barlow', sans-serif; --font-mono: 'JetBrains Mono', monospace;
 }
-
-/* ═══════════════════════════════════════════════════════════
-   RESET & BASE
-═══════════════════════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; font-size: 16px; }
-body {
-  font-family: var(--font-body);
-  background: var(--black);
-  color: var(--off-white);
-  overflow-x: hidden;
-  cursor: default;
-}
+body { font-family: var(--font-body); background: var(--black); color: var(--off-white); overflow-x: hidden; cursor: default; }
 a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; }
 button { cursor: pointer; border: 0; background: none; font-family: inherit; }
-
-/* ═══════════════════════════════════════════════════════════
-   NOISE OVERLAY
-═══════════════════════════════════════════════════════════ */
 body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  pointer-events: none;
+  content: ''; position: fixed; inset: 0; z-index: 1000; pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   opacity: .4;
 }
-
-/* ═══════════════════════════════════════════════════════════
-   SCROLLBAR
-═══════════════════════════════════════════════════════════ */
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: var(--black); }
-::-webkit-scrollbar-thumb { background: var(--cyan); }
-
-/* ═══════════════════════════════════════════════════════════
-   TYPOGRAPHY UTILITIES
-═══════════════════════════════════════════════════════════ */
-.label {
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--gray);
-}
-
-.label-cyan {
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--cyan);
-}
-
-.bracket {
-  color: var(--cyan);
-  font-family: var(--font-display);
-  font-weight: 700;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   HEADER
-═══════════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-track { background: var(--black); } ::-webkit-scrollbar-thumb { background: var(--cyan); }
+.label { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .2em; text-transform: uppercase; color: var(--gray); }
+.label-cyan { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); }
+.bracket { color: var(--cyan); font-family: var(--font-display); font-weight: 700; }
 #header {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 900;
-  height: 68px;
-  padding: 0 clamp(1.25rem, 5vw, 3.5rem);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  background: rgba(0,0,0,.82);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  transition: border-color .3s;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 900; height: 68px;
+  padding: 0 clamp(1.25rem, 5vw, 3.5rem); display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem; background: rgba(0,0,0,.82);
+  backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); transition: border-color .3s;
 }
-
 #header.scrolled { border-color: rgba(0,210,220,.1); }
-
-.logo-mark {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.logo-brackets {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 1.75rem;
-  line-height: 1;
-  letter-spacing: -.02em;
-}
-.logo-brackets .b { color: var(--cyan); }
-.logo-brackets .letters { color: var(--white); }
-.logo-sub-text {
-  font-family: var(--font-mono);
-  font-size: .52rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--gray);
-  line-height: 1.35;
-  border-left: 1px solid var(--border);
-  padding-left: 10px;
-}
+.logo-mark { display: flex; align-items: center; gap: 10px; }
+.logo-brackets { font-family: var(--font-display); font-weight: 900; font-size: 1.75rem; line-height: 1; letter-spacing: -.02em; }
+.logo-brackets .b { color: var(--cyan); } .logo-brackets .letters { color: var(--white); }
+.logo-sub-text { font-family: var(--font-mono); font-size: .52rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gray); line-height: 1.35; border-left: 1px solid var(--border); padding-left: 10px; }
 .logo-sub-text span { display: block; color: var(--cyan); }
-
-nav.desk {
-  display: flex;
-  align-items: center;
-  gap: 2.5rem;
-}
-nav.desk a {
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  color: var(--gray);
-  transition: color .15s;
-  position: relative;
-}
-nav.desk a::after {
-  content: '';
-  position: absolute;
-  bottom: -4px; left: 0; right: 0;
-  height: 1px;
-  background: var(--cyan);
-  transform: scaleX(0);
-  transition: transform .2s;
-}
-nav.desk a:hover { color: var(--white); }
-nav.desk a:hover::after { transform: scaleX(1); }
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.lang-switch {
-  display: flex;
-  gap: .5rem;
-  align-items: center;
-}
-.lang-switch a, .lang-switch span {
-  font-family: var(--font-mono);
-  font-size: .58rem;
-  letter-spacing: .12em;
-  color: var(--gray);
-  transition: color .15s;
-}
-.lang-switch a:hover, .lang-switch a.active { color: var(--cyan); }
-.lang-switch span { color: var(--border); }
-
-.ham {
-  display: none;
-  flex-direction: column;
-  gap: 5px;
-  padding: 6px;
-}
-.ham span {
-  display: block;
-  width: 20px;
-  height: 1.5px;
-  background: var(--white);
-  transition: all .3s;
-}
-
-.mobile-menu {
-  display: none;
-  position: fixed;
-  top: 68px; left: 0; right: 0;
-  background: rgba(0,0,0,.97);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-cyan);
-  z-index: 899;
-  padding: 1.5rem clamp(1.25rem, 5vw, 3.5rem) 2rem;
-  flex-direction: column;
-  gap: .75rem;
-}
+nav.desk { display: flex; align-items: center; gap: 2.5rem; }
+nav.desk a { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .15em; text-transform: uppercase; color: var(--gray); transition: color .15s; position: relative; }
+nav.desk a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 1px; background: var(--cyan); transform: scaleX(0); transition: transform .2s; }
+nav.desk a:hover { color: var(--white); } nav.desk a:hover::after { transform: scaleX(1); }
+.header-right { display: flex; align-items: center; gap: 1rem; }
+.lang-switch { display: flex; gap: .5rem; align-items: center; }
+.lang-switch a, .lang-switch span { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .12em; color: var(--gray); transition: color .15s; }
+.lang-switch a:hover, .lang-switch a.active { color: var(--cyan); } .lang-switch span { color: var(--border); }
+.ham { display: none; flex-direction: column; gap: 5px; padding: 6px; }
+.ham span { display: block; width: 20px; height: 1.5px; background: var(--white); transition: all .3s; }
+.mobile-menu { display: none; position: fixed; top: 68px; left: 0; right: 0; background: rgba(0,0,0,.97); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-cyan); z-index: 899; padding: 1.5rem clamp(1.25rem, 5vw, 3.5rem) 2rem; flex-direction: column; gap: .75rem; }
 .mobile-menu.open { display: flex; }
-.mobile-menu a {
-  font-family: var(--font-mono);
-  font-size: .72rem;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  color: var(--gray);
-  padding: .75rem 0;
-  border-bottom: 1px solid var(--border);
-  transition: color .15s;
-}
+.mobile-menu a { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .15em; text-transform: uppercase; color: var(--gray); padding: .75rem 0; border-bottom: 1px solid var(--border); transition: color .15s; }
 .mobile-menu a:hover { color: var(--white); }
-.mobile-menu a.cta-mobile {
-  color: var(--black);
-  background: var(--cyan);
-  border: 1px solid var(--cyan);
-  padding: .85rem 1.25rem;
-  text-align: center;
-  margin-top: .5rem;
-}
-.mobile-lang {
-  display: flex;
-  gap: 1rem;
-  margin-top: .5rem;
-}
-.mobile-lang a {
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .12em;
-  color: var(--gray);
-  border: 0;
-  padding: .25rem 0;
-}
+.mobile-menu a.cta-mobile { color: var(--black); background: var(--cyan); border: 1px solid var(--cyan); padding: .85rem 1.25rem; text-align: center; margin-top: .5rem; }
+.mobile-lang { display: flex; gap: 1rem; margin-top: .5rem; }
+.mobile-lang a { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .12em; color: var(--gray); border: 0; padding: .25rem 0; }
 .mobile-lang a.active { color: var(--cyan); }
-
-/* ═══════════════════════════════════════════════════════════
-   BUTTONS
-═══════════════════════════════════════════════════════════ */
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: var(--cyan);
-  color: var(--black);
-  font-family: var(--font-mono);
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  padding: 15px 32px;
-  border: 1px solid var(--cyan);
-  transition: background .2s, color .2s;
-  position: relative;
-  overflow: hidden;
-}
-.btn-primary::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: transparent;
-  border: 1px solid var(--cyan);
-  transform: scale(1.04);
-  opacity: 0;
-  transition: opacity .2s, transform .2s;
-}
-.btn-primary:hover {
-  background: transparent;
-  color: var(--cyan);
-}
-.btn-primary:hover::before {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.btn-outline {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: transparent;
-  color: var(--white);
-  font-family: var(--font-mono);
-  font-size: .68rem;
-  font-weight: 500;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  padding: 14px 28px;
-  border: 1px solid var(--border);
-  transition: border-color .2s, color .2s;
-}
-.btn-outline:hover {
-  border-color: var(--cyan);
-  color: var(--cyan);
-}
-
-.btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: transparent;
-  color: var(--cyan);
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  padding: 10px 18px;
-  border: 1px solid var(--border-cyan);
-  transition: background .2s, color .2s;
-}
-.btn-ghost:hover {
-  background: var(--cyan-dim);
-  color: var(--white);
-}
-
+.btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: var(--cyan); color: var(--black); font-family: var(--font-mono); font-size: .72rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; padding: 15px 32px; border: 1px solid var(--cyan); transition: background .2s, color .2s; position: relative; overflow: hidden; }
+.btn-primary::before { content: ''; position: absolute; inset: 0; background: transparent; border: 1px solid var(--cyan); transform: scale(1.04); opacity: 0; transition: opacity .2s, transform .2s; }
+.btn-primary:hover { background: transparent; color: var(--cyan); } .btn-primary:hover::before { opacity: 1; transform: scale(1); }
+.btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: transparent; color: var(--white); font-family: var(--font-mono); font-size: .68rem; font-weight: 500; letter-spacing: .15em; text-transform: uppercase; padding: 14px 28px; border: 1px solid var(--border); transition: border-color .2s, color .2s; }
+.btn-outline:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn-ghost { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--cyan); font-family: var(--font-mono); font-size: .62rem; letter-spacing: .15em; text-transform: uppercase; padding: 10px 18px; border: 1px solid var(--border-cyan); transition: background .2s, color .2s; }
+.btn-ghost:hover { background: var(--cyan-dim); color: var(--white); }
 .wa-icon { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
-
-/* ═══════════════════════════════════════════════════════════
-   LAYOUT
-═══════════════════════════════════════════════════════════ */
 .inner { max-width: 1200px; margin: 0 auto; }
 section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes scanline { from { transform: translateY(-100%); } to { transform: translateY(100vh); } }
+.reveal { opacity: 0; } .reveal.visible { animation: fadeUp .7s ease forwards; }
+.d1 { animation-delay: .1s; } .d2 { animation-delay: .2s; } .d3 { animation-delay: .3s; } .d4 { animation-delay: .4s; } .d5 { animation-delay: .5s; }
 
-/* ═══════════════════════════════════════════════════════════
-   ANIMATIONS
-═══════════════════════════════════════════════════════════ */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes scanline {
-  from { transform: translateY(-100%); }
-  to   { transform: translateY(100vh); }
-}
-@keyframes pulse-border {
-  0%, 100% { border-color: rgba(0,210,220,.25); }
-  50% { border-color: rgba(0,210,220,.6); }
-}
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-
-.reveal { opacity: 0; }
-.reveal.visible { animation: fadeUp .7s ease forwards; }
-.d1 { animation-delay: .1s; }
-.d2 { animation-delay: .2s; }
-.d3 { animation-delay: .3s; }
-.d4 { animation-delay: .4s; }
-.d5 { animation-delay: .5s; }
-
-/* ═══════════════════════════════════════════════════════════
-   HERO
-═══════════════════════════════════════════════════════════ */
-#hero {
-  min-height: 100svh;
-  padding-top: 68px;
-  display: flex;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  background: var(--black);
-}
-
-.hero-image-layout {
-  isolation: isolate;
-}
-
+/* HERO */
+#hero { min-height: 100svh; padding-top: 68px; display: flex; align-items: center; position: relative; overflow: hidden; background: var(--black); }
+.hero-image-layout { isolation: isolate; }
 .hero-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background:
-    linear-gradient(90deg,
-      rgba(0,0,0,1) 0%,
-      rgba(0,0,0,.96) 20%,
-      rgba(0,0,0,.76) 42%,
-      rgba(0,0,0,.28) 68%,
-      rgba(0,0,0,.18) 100%
-    ),
-    linear-gradient(180deg,
-      rgba(0,0,0,.22) 0%,
-      rgba(0,0,0,.05) 45%,
-      rgba(0,0,0,.78) 100%
-    ),
-    url('/hero-abel-trainer.png.PNG?v=20260521-06');
-  background-size: cover;
-  background-position: center right;
-  background-repeat: no-repeat;
+  position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,.96) 20%, rgba(0,0,0,.76) 42%, rgba(0,0,0,.28) 68%, rgba(0,0,0,.18) 100%), linear-gradient(180deg, rgba(0,0,0,.22) 0%, rgba(0,0,0,.05) 45%, rgba(0,0,0,.78) 100%), url('/hero-abel-trainer.png.PNG?v=20260521-06');
+  background-size: cover; background-position: center right; background-repeat: no-repeat;
 }
+#hero::before { content: ''; position: absolute; inset: 0; z-index: 1; background-image: linear-gradient(rgba(0,210,220,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(0,210,220,.035) 1px, transparent 1px); background-size: 64px 64px; mask-image: linear-gradient(90deg, rgba(0,0,0,.55) 0%, transparent 65%); pointer-events: none; }
+#hero::after { content: ''; position: absolute; top: 18%; left: 8%; width: 520px; height: 520px; z-index: 1; background: radial-gradient(ellipse, rgba(0,210,220,.10) 0%, transparent 70%); pointer-events: none; }
+.hero-scanline { position: absolute; left: 0; right: 0; height: 2px; z-index: 2; background: linear-gradient(90deg, transparent, rgba(0,210,220,.15), transparent); animation: scanline 7s linear infinite; pointer-events: none; }
+.hero-content { position: relative; z-index: 3; width: 100%; max-width: 1200px; margin: 0 auto; padding: clamp(4rem, 7vw, 6rem) 0; display: grid; grid-template-columns: minmax(0, 560px) 1fr; gap: 4rem; align-items: center; }
+.hero-left { max-width: 580px; }
+.hero-pretitle { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; animation: fadeUp .6s ease .1s both; }
+.hero-pretitle .line { width: 32px; height: 1px; background: var(--cyan); }
+.hero-pretitle span { font-family: var(--font-mono); font-size: .6rem; letter-spacing: .22em; text-transform: uppercase; color: var(--cyan); }
+.hero-h1 { font-family: var(--font-display); font-weight: 900; font-size: clamp(3rem, 6.2vw, 5.8rem); line-height: .95; letter-spacing: 0; color: var(--white); margin-bottom: 2rem; text-transform: uppercase; animation: fadeUp .7s ease .2s both; }
+.hero-h1 .block { display: block; } .hero-h1 .accent { color: var(--cyan); }
+.hero-desc { font-size: clamp(.98rem, 1.5vw, 1.15rem); color: rgba(229,229,229,.74); line-height: 1.75; font-weight: 300; max-width: 520px; margin-bottom: 2.4rem; animation: fadeUp .7s ease .3s both; }
+.hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; animation: fadeUp .7s ease .4s both; }
+.hero-right, .hero-stat-block, .hero-stats-row, .status-bar { display: none !important; }
 
-#hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background-image:
-    linear-gradient(rgba(0,210,220,.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,210,220,.035) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: linear-gradient(90deg, rgba(0,0,0,.55) 0%, transparent 65%);
-  pointer-events: none;
-}
-
-#hero::after {
-  content: '';
-  position: absolute;
-  top: 18%;
-  left: 8%;
-  width: 520px;
-  height: 520px;
-  z-index: 1;
-  background: radial-gradient(ellipse, rgba(0,210,220,.10) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.hero-scanline {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  z-index: 2;
-  background: linear-gradient(90deg, transparent, rgba(0,210,220,.15), transparent);
-  animation: scanline 7s linear infinite;
-  pointer-events: none;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 3;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: clamp(4rem, 7vw, 6rem) 0;
-  display: grid;
-  grid-template-columns: minmax(0, 560px) 1fr;
-  gap: 4rem;
-  align-items: center;
-}
-
-.hero-left {
-  max-width: 580px;
-}
-
-.hero-pretitle {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 1.5rem;
-  animation: fadeUp .6s ease .1s both;
-}
-
-.hero-pretitle .line {
-  width: 32px;
-  height: 1px;
-  background: var(--cyan);
-}
-
-.hero-pretitle span {
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  color: var(--cyan);
-}
-
-.hero-h1 {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: clamp(3rem, 6.2vw, 5.8rem);
-  line-height: .95;
-  letter-spacing: 0;
-  color: var(--white);
-  margin-bottom: 2rem;
-  text-transform: uppercase;
-  animation: fadeUp .7s ease .2s both;
-}
-
-.hero-h1 .block {
-  display: block;
-}
-
-.hero-h1 .accent {
-  color: var(--cyan);
-}
-
-.hero-desc {
-  font-size: clamp(.98rem, 1.5vw, 1.15rem);
-  color: rgba(229,229,229,.74);
-  line-height: 1.75;
-  font-weight: 300;
-  max-width: 520px;
-  margin-bottom: 2.4rem;
-  animation: fadeUp .7s ease .3s both;
-}
-
-.hero-ctas {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  animation: fadeUp .7s ease .4s both;
-}
-
-.hero-mini-points {
-  margin-top: 2rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: .6rem;
-  animation: fadeUp .7s ease .5s both;
-}
-
-.hero-mini-points span {
-  font-family: var(--font-mono);
-  font-size: .58rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--gray);
-  border: 1px solid var(--border);
-  background: rgba(0,0,0,.34);
-  padding: .55rem .75rem;
-}
-
-.hero-mini-points span::before {
-  content: '[ ';
-  color: var(--cyan);
-}
-
-.hero-mini-points span::after {
-  content: ' ]';
-  color: var(--cyan);
-}
-
-.hero-right,
-.hero-stat-block,
-.hero-stats-row,
-.status-bar {
-  display: none !important;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   TICKER
-═══════════════════════════════════════════════════════════ */
-.ticker {
-  background: var(--cyan);
-  padding: .65rem 0;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.ticker-inner {
-  display: inline-flex;
-  gap: 3rem;
-  animation: marquee 25s linear infinite;
-}
-.ticker span {
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--black);
-  font-weight: 700;
-}
-.ticker .sep {
-  color: rgba(0,0,0,.3);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   PILLARS
-═══════════════════════════════════════════════════════════ */
-#pillars {
-  background: var(--void);
-}
-
-.section-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 2rem;
-  margin-bottom: 3.5rem;
-}
-
-.section-title {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: clamp(2.4rem, 5vw, 4.2rem);
-  line-height: .92;
-  letter-spacing: -.01em;
-  color: var(--white);
-}
+/* SECTION COMMON */
+.section-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 2rem; margin-bottom: 3.5rem; }
+.section-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.4rem, 5vw, 4.2rem); line-height: .92; letter-spacing: -.01em; color: var(--white); }
 .section-title .accent { color: var(--cyan); }
+.section-number { font-family: var(--font-mono); font-size: .6rem; color: var(--gray2); letter-spacing: .2em; white-space: nowrap; padding-top: .5rem; }
 
-.section-number {
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  color: var(--gray2);
-  letter-spacing: .2em;
-  white-space: nowrap;
-  padding-top: .5rem;
-}
-
-.pillars-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  border: 1px solid var(--border);
-}
-
-.pillar {
-  padding: 2.5rem;
-  border-right: 1px solid var(--border);
-  position: relative;
-  transition: background .2s;
-}
-.pillar:last-child { border-right: 0; }
-.pillar:hover { background: var(--surface); }
-
-.pillar::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--cyan);
-  transform: scaleX(0);
-  transition: transform .3s;
-}
+/* PILLARS */
+#que-ganas { background: var(--void); }
+.pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--border); }
+.pillar { padding: 2.5rem; border-right: 1px solid var(--border); position: relative; transition: background .2s; }
+.pillar:last-child { border-right: 0; } .pillar:hover { background: var(--surface); }
+.pillar::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--cyan); transform: scaleX(0); transition: transform .3s; }
 .pillar:hover::before { transform: scaleX(1); }
-
-.pillar-num {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 4rem;
-  color: var(--surface3);
-  line-height: 1;
-  margin-bottom: .5rem;
-  transition: color .3s;
-}
+.pillar-num { font-family: var(--font-display); font-weight: 900; font-size: 4rem; color: var(--surface3); line-height: 1; margin-bottom: .5rem; transition: color .3s; }
 .pillar:hover .pillar-num { color: var(--surface2); }
+.pillar-tag { font-family: var(--font-mono); font-size: .65rem; letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+.pillar-tag::before { content: ''; width: 16px; height: 1px; background: var(--cyan); flex-shrink: 0; }
+.pillar h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; letter-spacing: .04em; color: var(--white); text-transform: uppercase; margin-bottom: .75rem; }
+.pillar p { font-size: .88rem; color: var(--gray); line-height: 1.75; font-weight: 300; }
+.pillar-list { list-style: none; margin-top: 1.25rem; display: flex; flex-direction: column; gap: 8px; }
+.pillar-list li { display: flex; align-items: flex-start; gap: 10px; font-size: .8rem; color: var(--gray); font-weight: 300; }
+.pillar-list li::before { content: '→'; color: var(--cyan); font-size: .7rem; margin-top: 1px; flex-shrink: 0; }
 
-.pillar-tag {
-  font-family: var(--font-mono);
-  font-size: .65rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--cyan);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.pillar-tag::before {
-  content: '';
-  width: 16px;
-  height: 1px;
-  background: var(--cyan);
-  flex-shrink: 0;
-}
+/* FOR WHO */
+#para-quien { background: var(--black); border-top: 1px solid var(--border); }
+.forwho-grid { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--border); background: var(--surface); }
+.forwho-card { padding: 2rem; border-right: 1px solid var(--border); min-height: 250px; transition: background .2s, border-color .2s; }
+.forwho-card:last-child { border-right: 0; } .forwho-card:hover { background: var(--surface2); }
+.forwho-card span { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .2em; color: var(--cyan); display: block; margin-bottom: 1.2rem; }
+.forwho-card h3 { font-family: var(--font-display); font-size: 1.55rem; line-height: 1; letter-spacing: .04em; color: var(--white); text-transform: uppercase; margin-bottom: 1rem; }
+.forwho-card p { color: var(--gray); font-size: .88rem; line-height: 1.7; font-weight: 300; }
 
-.pillar h3 {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.5rem;
-  letter-spacing: .04em;
-  color: var(--white);
-  text-transform: uppercase;
-  margin-bottom: .75rem;
-}
+/* AUTHORITY */
+#coach { background: var(--black); }
+.auth-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: start; }
+.auth-visual { background: var(--surface); border: 1px solid var(--border); aspect-ratio: 3/4; max-height: 580px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.auth-visual img { width: 100%; height: 100%; object-fit: cover; object-position: top center; filter: grayscale(20%) contrast(1.1) brightness(.85); }
+.auth-visual-placeholder { display: none !important; }
+.auth-visual::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 0%, rgba(0,210,220,.04) 50%, transparent 100%); pointer-events: none; }
+.auth-corner { position: absolute; bottom: 0; right: 0; z-index: 2; background: rgba(0,0,0,.9); border-top: 1px solid var(--border-cyan); border-left: 1px solid var(--border-cyan); padding: 1rem 1.25rem; }
+.auth-corner b { font-family: var(--font-display); font-size: 1.4rem; color: var(--cyan); display: block; font-weight: 800; }
+.auth-corner span { font-family: var(--font-mono); font-size: .52rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gray); }
+.cred-list { display: flex; flex-direction: column; gap: 12px; margin-top: 2rem; }
+.cred { display: flex; gap: 1rem; align-items: flex-start; padding: 1.25rem; border: 1px solid var(--border); transition: border-color .2s, background .2s; }
+.cred:hover { border-color: var(--border-cyan); background: var(--surface); }
+.cred-icon { width: 34px; height: 34px; background: var(--cyan-dim); border: 1px solid var(--border-cyan); display: grid; place-items: center; flex-shrink: 0; }
+.cred-icon::after { content: ''; width: 8px; height: 8px; background: var(--cyan); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+.cred strong { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .1em; color: var(--white); text-transform: uppercase; display: block; margin-bottom: 2px; }
+.cred small { font-size: .8rem; color: var(--gray); font-weight: 300; }
 
-.pillar p {
-  font-size: .88rem;
-  color: var(--gray);
-  line-height: 1.75;
-  font-weight: 300;
-}
-
-.pillar-list {
-  list-style: none;
-  margin-top: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.pillar-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: .8rem;
-  color: var(--gray);
-  font-weight: 300;
-}
-.pillar-list li::before {
-  content: '→';
-  color: var(--cyan);
-  font-size: .7rem;
-  margin-top: 1px;
-  flex-shrink: 0;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   AUTHORITY
-═══════════════════════════════════════════════════════════ */
-#authority {
-  background: var(--black);
-}
-
-.auth-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6rem;
-  align-items: start;
-}
-
-.auth-visual {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  aspect-ratio: 3/4;
-  max-height: 580px;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.auth-visual img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  filter: grayscale(20%) contrast(1.1) brightness(.85);
-}
-.auth-visual-placeholder {
-  display: none !important;
-}
-
-.auth-visual::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg,
-    transparent 0%,
-    rgba(0,210,220,.04) 50%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-
-.auth-corner {
-  position: absolute;
-  bottom: 0; right: 0;
-  z-index: 2;
-  background: rgba(0,0,0,.9);
-  border-top: 1px solid var(--border-cyan);
-  border-left: 1px solid var(--border-cyan);
-  padding: 1rem 1.25rem;
-}
-.auth-corner b {
-  font-family: var(--font-display);
-  font-size: 1.4rem;
-  color: var(--cyan);
-  display: block;
-  font-weight: 800;
-}
-.auth-corner span {
-  font-family: var(--font-mono);
-  font-size: .52rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--gray);
-}
-
-.cred-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 2rem;
-}
-
-.cred {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  padding: 1.25rem;
-  border: 1px solid var(--border);
-  transition: border-color .2s, background .2s;
-}
-.cred:hover {
-  border-color: var(--border-cyan);
-  background: var(--surface);
-}
-
-.cred-icon {
-  width: 34px; height: 34px;
-  background: var(--cyan-dim);
-  border: 1px solid var(--border-cyan);
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-}
-.cred-icon::after {
-  content: '';
-  width: 8px; height: 8px;
-  background: var(--cyan);
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-}
-
-.cred strong {
-  font-family: var(--font-mono);
-  font-size: .68rem;
-  letter-spacing: .1em;
-  color: var(--white);
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 2px;
-}
-.cred small {
-  font-size: .8rem;
-  color: var(--gray);
-  font-weight: 300;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   METHOD
-═══════════════════════════════════════════════════════════ */
-#method {
-  background: var(--black);
-}
-
-.method-grid {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 5rem;
-  align-items: start;
-}
-
-.method-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  border: 1px solid var(--border);
-}
-
-.step {
-  display: flex;
-  gap: 1.5rem;
-  padding: 1.75rem;
-  border-bottom: 1px solid var(--border);
-  position: relative;
-  transition: background .2s;
-  cursor: default;
-}
-.step:last-child { border-bottom: 0; }
-.step:hover { background: var(--surface); }
-
-.step::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 2px;
-  background: var(--cyan);
-  transform: scaleY(0);
-  transition: transform .3s;
-}
+/* METHOD */
+#como-funciona { background: var(--black); }
+.method-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 5rem; align-items: start; }
+.method-steps { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); }
+.step { display: flex; gap: 1.5rem; padding: 1.75rem; border-bottom: 1px solid var(--border); position: relative; transition: background .2s; cursor: default; }
+.step:last-child { border-bottom: 0; } .step:hover { background: var(--surface); }
+.step::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--cyan); transform: scaleY(0); transition: transform .3s; }
 .step:hover::before { transform: scaleY(1); }
-
-.step-num {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 2.4rem;
-  color: var(--surface3);
-  line-height: 1;
-  width: 40px;
-  flex-shrink: 0;
-  transition: color .3s;
-}
+.step-num { font-family: var(--font-display); font-weight: 900; font-size: 2.4rem; color: var(--surface3); line-height: 1; width: 40px; flex-shrink: 0; transition: color .3s; }
 .step:hover .step-num { color: var(--cyan); }
+.step-body strong { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--white); display: block; margin-bottom: 4px; }
+.step-body p { font-size: .82rem; color: var(--gray); line-height: 1.6; font-weight: 300; }
+.panel-wrap { position: sticky; top: 100px; }
 
-.step-body strong {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--white);
-  display: block;
-  margin-bottom: 4px;
-}
-.step-body p {
-  font-size: .82rem;
-  color: var(--gray);
-  line-height: 1.6;
-  font-weight: 300;
-}
-
-.panel-wrap {
-  position: sticky;
-  top: 100px;
-}
-
-.panel {
-  background: var(--surface);
-  border: 1px solid var(--border-cyan);
-  overflow: hidden;
-}
-
-.panel-header {
-  background: var(--surface2);
-  padding: 1rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border);
-}
-
-.panel-logo-text {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: .08em;
-  color: var(--white);
-}
-
-.panel-user-tag {
-  font-family: var(--font-mono);
-  font-size: .58rem;
-  letter-spacing: .1em;
-  color: var(--cyan);
-}
-
-.panel-body { padding: 1.25rem; }
-
-.panel-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 1rem;
-}
-
-.p-metric {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  padding: 1rem;
-}
-.p-metric b {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.8rem;
-  display: block;
-  line-height: 1;
-  color: var(--white);
-}
-.p-metric b .c { color: var(--cyan); }
-.p-metric .pm-label {
-  font-family: var(--font-mono);
-  font-size: .52rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--gray);
-  display: block;
-  margin-top: 4px;
-}
-
-.p-progress {
-  height: 3px;
-  background: var(--surface2);
-  margin-bottom: 1rem;
-  overflow: hidden;
-}
-.p-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--cyan), rgba(0,210,220,.4));
-  width: 62%;
-}
-
-.p-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: .85rem 1rem;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  font-size: .8rem;
-  color: var(--gray);
-  margin-top: 6px;
-}
-.tag-ok {
-  font-family: var(--font-mono);
-  font-size: .55rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--cyan);
-}
-.tag-pend {
-  font-family: var(--font-mono);
-  font-size: .55rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--red);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   PLANS
-═══════════════════════════════════════════════════════════ */
-#plans {
-  background: var(--void);
-}
-
-.plans-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  margin-top: 3rem;
-}
-
-.plan {
-  background: var(--surface);
-  padding: 2.5rem 2rem;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  transition: background .2s;
-}
-.plan:hover { background: var(--surface2); }
-
-.plan.featured {
-  background: var(--surface2);
-}
-.plan.featured::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--cyan);
-}
-.plan.featured:hover { background: var(--surface3); }
-
-.plan-tag {
-  font-family: var(--font-mono);
-  font-size: .55rem;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--cyan);
-  margin-bottom: 1.2rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.plan-tag .rec-badge {
-  background: var(--cyan);
-  color: var(--black);
-  padding: 2px 8px;
-  font-weight: 700;
-  letter-spacing: .1em;
-}
-
-.plan h3 {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 2.2rem;
-  letter-spacing: .02em;
-  text-transform: uppercase;
-  color: var(--white);
-  margin-bottom: .25rem;
-}
-
-.plan-sub {
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--gray);
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.plan ul {
-  list-style: none;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 2rem;
-}
-.plan li {
-  display: flex;
-  gap: 10px;
-  font-size: .85rem;
-  color: var(--gray);
-  font-weight: 300;
-}
-.plan li::before { content: '—'; color: var(--gray2); flex-shrink: 0; }
-.plan.featured li::before { content: '✓'; color: var(--cyan); }
-
-/* ═══════════════════════════════════════════════════════════
-   APPLICATION FORM
-═══════════════════════════════════════════════════════════ */
-#apply {
-  background: var(--black);
-}
-
-.apply-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5rem;
-  align-items: start;
-}
-
-.apply-left p {
-  font-size: .92rem;
-  color: var(--gray);
-  line-height: 1.8;
-  font-weight: 300;
-  max-width: 420px;
-  margin-top: 1.5rem;
-}
-
-.apply-callouts {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 2.5rem;
-}
-.callout {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--border);
-}
+/* APPLY */
+#apply { background: var(--black); }
+.apply-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; }
+.apply-left p { font-size: .92rem; color: var(--gray); line-height: 1.8; font-weight: 300; max-width: 420px; margin-top: 1.5rem; }
+.apply-callouts { display: flex; flex-direction: column; gap: 10px; margin-top: 2.5rem; }
+.callout { display: flex; gap: 1rem; align-items: flex-start; padding: 1rem 1.25rem; border: 1px solid var(--border); }
 .callout:hover { border-color: var(--border-cyan); }
-.callout-icon {
-  font-family: var(--font-mono);
-  font-size: .7rem;
-  color: var(--cyan);
-  flex-shrink: 0;
-  margin-top: 1px;
-}
+.callout-icon { font-family: var(--font-mono); font-size: .7rem; color: var(--cyan); flex-shrink: 0; margin-top: 1px; }
 .callout p { font-size: .82rem; color: var(--gray); font-weight: 300; margin: 0; }
 .callout strong { font-family: var(--font-mono); font-size: .65rem; letter-spacing: .1em; color: var(--white); display: block; margin-bottom: 3px; }
-
-.form-wrap {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 2.5rem;
-}
-
-.form-title {
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--cyan);
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+.form-wrap { background: var(--surface); border: 1px solid var(--border); padding: 2.5rem; }
+.form-title { font-family: var(--font-mono); font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 .form-title span { color: var(--gray2); }
-
-.field {
-  margin-bottom: 1.25rem;
-}
-.field label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: .58rem;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--gray);
-  margin-bottom: 8px;
-}
-.field input,
-.field select {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--white);
-  font-family: var(--font-body);
-  font-size: .9rem;
-  font-weight: 300;
-  padding: 13px 16px;
-  outline: none;
-  transition: border-color .2s;
-  appearance: none;
-  -webkit-appearance: none;
-}
-.field input::placeholder { color: var(--gray2); }
-.field input:focus,
-.field select:focus { border-color: var(--cyan); }
-
-.select-wrap { position: relative; }
-.select-wrap::after {
-  content: '▾';
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--cyan);
-  pointer-events: none;
-  font-size: .8rem;
-}
+.field { margin-bottom: 1.25rem; }
+.field label { display: block; font-family: var(--font-mono); font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
+.field input, .field select { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--white); font-family: var(--font-body); font-size: .9rem; font-weight: 300; padding: 13px 16px; outline: none; transition: border-color .2s; appearance: none; -webkit-appearance: none; }
+.field input::placeholder { color: var(--gray2); } .field input:focus, .field select:focus { border-color: var(--cyan); }
+.select-wrap { position: relative; } .select-wrap::after { content: '▾'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--cyan); pointer-events: none; font-size: .8rem; }
 .field select option { background: var(--surface2); }
-
-.radio-group {
-  display: flex;
-  gap: 1rem;
-}
-.radio-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
+.radio-group { display: flex; gap: 1rem; }
+.radio-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .radio-item input[type="radio"] { display: none; }
-.radio-box {
-  width: 16px; height: 16px;
-  border: 1px solid var(--gray2);
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  transition: border-color .2s;
-}
-.radio-item:has(input:checked) .radio-box {
-  border-color: var(--cyan);
-}
-.radio-item:has(input:checked) .radio-box::after {
-  content: '';
-  width: 8px; height: 8px;
-  background: var(--cyan);
-}
-.radio-item span {
-  font-family: var(--font-mono);
-  font-size: .65rem;
-  letter-spacing: .1em;
-  color: var(--gray);
-}
-
-.form-note {
-  font-size: .72rem;
-  color: var(--gray2);
-  line-height: 1.6;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
-}
-
-.form-success {
-  display: none;
-  text-align: center;
-  padding: 3rem 2rem;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
+.radio-box { width: 16px; height: 16px; border: 1px solid var(--gray2); display: grid; place-items: center; flex-shrink: 0; transition: border-color .2s; }
+.radio-item:has(input:checked) .radio-box { border-color: var(--cyan); }
+.radio-item:has(input:checked) .radio-box::after { content: ''; width: 8px; height: 8px; background: var(--cyan); }
+.radio-item span { font-family: var(--font-mono); font-size: .65rem; letter-spacing: .1em; color: var(--gray); }
+.form-note { font-size: .72rem; color: var(--gray2); line-height: 1.6; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.form-success { display: none; text-align: center; padding: 3rem 2rem; flex-direction: column; align-items: center; gap: 1rem; }
 .form-success.show { display: flex; }
-.success-icon {
-  font-family: var(--font-display);
-  font-size: 3rem;
-  color: var(--cyan);
-}
-.success-title {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.5rem;
-  color: var(--white);
-  letter-spacing: .04em;
-}
-.success-sub {
-  font-size: .85rem;
-  color: var(--gray);
-}
+.success-icon { font-family: var(--font-display); font-size: 3rem; color: var(--cyan); }
+.success-title { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; color: var(--white); letter-spacing: .04em; }
+.success-sub { font-size: .85rem; color: var(--gray); }
 
-/* ═══════════════════════════════════════════════════════════
-   FAQ
-═══════════════════════════════════════════════════════════ */
-#faq {
-  background: var(--void);
-}
-
-.faq-layout {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 5rem;
-  align-items: start;
-}
-
+/* FAQ */
+#faq { background: var(--void); }
+.faq-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 5rem; align-items: start; }
 .faq-list { max-width: 680px; }
-
 .faq-item { border-bottom: 1px solid var(--border); }
-
-.faq-q {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem 0;
-  background: none;
-  border: 0;
-  cursor: pointer;
-  text-align: left;
-  color: var(--white);
-}
-.faq-q-text {
-  font-family: var(--font-body);
-  font-size: .95rem;
-  font-weight: 400;
-  color: var(--off-white);
-  transition: color .15s;
-}
+.faq-q { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.5rem 0; background: none; border: 0; cursor: pointer; text-align: left; color: var(--white); }
+.faq-q-text { font-family: var(--font-body); font-size: .95rem; font-weight: 400; color: var(--off-white); transition: color .15s; }
 .faq-q:hover .faq-q-text { color: var(--cyan); }
-.faq-q-icon {
-  width: 24px; height: 24px;
-  border: 1px solid var(--border);
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  color: var(--gray);
-  font-size: 1.1rem;
-  transition: border-color .2s, color .2s, transform .3s;
-}
-.faq-item.open .faq-q-icon {
-  border-color: var(--cyan);
-  color: var(--cyan);
-  transform: rotate(45deg);
-}
-.faq-a {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height .35s ease;
-}
-.faq-a p {
-  padding-bottom: 1.5rem;
-  font-size: .88rem;
-  color: var(--gray);
-  line-height: 1.8;
-  font-weight: 300;
-}
+.faq-q-icon { width: 24px; height: 24px; border: 1px solid var(--border); display: grid; place-items: center; flex-shrink: 0; color: var(--gray); font-size: 1.1rem; transition: border-color .2s, color .2s, transform .3s; }
+.faq-item.open .faq-q-icon { border-color: var(--cyan); color: var(--cyan); transform: rotate(45deg); }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height .35s ease; }
+.faq-a p { padding-bottom: 1.5rem; font-size: .88rem; color: var(--gray); line-height: 1.8; font-weight: 300; }
 
-/* ═══════════════════════════════════════════════════════════
-   CTA FINAL
-═══════════════════════════════════════════════════════════ */
-#cta-final {
-  background: var(--black);
-  padding: clamp(5rem, 10vw, 9rem) clamp(1.25rem, 5vw, 3.5rem);
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-#cta-final::before {
-  content: '';
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 900px; height: 900px;
-  background: radial-gradient(ellipse, rgba(0,210,220,.06) 0%, transparent 65%);
-  pointer-events: none;
-}
-
-.cta-eyebrow {
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .25em;
-  text-transform: uppercase;
-  color: var(--gray);
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-.cta-eyebrow::before, .cta-eyebrow::after {
-  content: '';
-  width: 40px;
-  height: 1px;
-  background: var(--border);
-}
-
-.cta-title {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: clamp(3rem, 7vw, 6.5rem);
-  line-height: .88;
-  letter-spacing: -.02em;
-  color: var(--white);
-  text-transform: uppercase;
-  max-width: 800px;
-  margin: 0 auto 2rem;
-}
+/* CTA FINAL */
+#cta-final { background: var(--black); padding: clamp(5rem, 10vw, 9rem) clamp(1.25rem, 5vw, 3.5rem); text-align: center; position: relative; overflow: hidden; }
+#cta-final::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 900px; height: 900px; background: radial-gradient(ellipse, rgba(0,210,220,.06) 0%, transparent 65%); pointer-events: none; }
+.cta-eyebrow { font-family: var(--font-mono); font-size: .6rem; letter-spacing: .25em; text-transform: uppercase; color: var(--gray); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 12px; }
+.cta-eyebrow::before, .cta-eyebrow::after { content: ''; width: 40px; height: 1px; background: var(--border); }
+.cta-title { font-family: var(--font-display); font-weight: 900; font-size: clamp(3rem, 7vw, 6.5rem); line-height: .88; letter-spacing: -.02em; color: var(--white); text-transform: uppercase; max-width: 800px; margin: 0 auto 2rem; }
 .cta-title .accent { color: var(--cyan); }
+.cta-sub { font-size: clamp(.9rem, 1.5vw, 1.05rem); color: var(--gray); line-height: 1.7; font-weight: 300; max-width: 520px; margin: 0 auto 3rem; }
+.cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 
-.cta-sub {
-  font-size: clamp(.9rem, 1.5vw, 1.05rem);
-  color: var(--gray);
-  line-height: 1.7;
-  font-weight: 300;
-  max-width: 520px;
-  margin: 0 auto 3rem;
-}
+/* FOOTER */
+footer { background: var(--black); border-top: 1px solid var(--border); padding: 3rem clamp(1.25rem, 5vw, 3.5rem); }
+.footer-top { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 2rem; padding-bottom: 2.5rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.footer-links { display: flex; gap: 2rem; flex-wrap: wrap; }
+.footer-link { font-family: var(--font-mono); font-size: .6rem; letter-spacing: .15em; text-transform: uppercase; color: var(--gray); transition: color .15s; }
+.footer-link:hover { color: var(--white); } .footer-link.c { color: rgba(0,210,220,.6); } .footer-link.c:hover { color: var(--cyan); } .footer-link.a { opacity: .3; } .footer-link.a:hover { opacity: 1; color: var(--red); }
+.footer-social { display: flex; gap: 1rem; }
+.social-link { width: 34px; height: 34px; border: 1px solid var(--border); display: grid; place-items: center; font-family: var(--font-mono); font-size: .55rem; color: var(--gray); letter-spacing: .05em; transition: border-color .2s, color .2s; }
+.social-link:hover { border-color: var(--cyan); color: var(--cyan); }
+.footer-bottom { max-width: 1200px; margin: 1.5rem auto 0; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.footer-legal { font-family: var(--font-mono); font-size: .55rem; letter-spacing: .12em; color: var(--gray2); }
 
-.cta-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   FOOTER
-═══════════════════════════════════════════════════════════ */
-footer {
-  background: var(--black);
-  border-top: 1px solid var(--border);
-  padding: 3rem clamp(1.25rem, 5vw, 3.5rem);
-}
-
-.footer-top {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 2rem;
-  padding-bottom: 2.5rem;
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
-}
-
-.footer-links {
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-.footer-link {
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  color: var(--gray);
-  transition: color .15s;
-}
-.footer-link:hover { color: var(--white); }
-.footer-link.c { color: rgba(0,210,220,.6); }
-.footer-link.c:hover { color: var(--cyan); }
-.footer-link.a { opacity: .3; }
-.footer-link.a:hover { opacity: 1; color: var(--red); }
-
-.footer-social {
-  display: flex;
-  gap: 1rem;
-}
-.social-link {
-  width: 34px; height: 34px;
-  border: 1px solid var(--border);
-  display: grid;
-  place-items: center;
-  font-family: var(--font-mono);
-  font-size: .55rem;
-  color: var(--gray);
-  letter-spacing: .05em;
-  transition: border-color .2s, color .2s;
-}
-.social-link:hover {
-  border-color: var(--cyan);
-  color: var(--cyan);
-}
-
-.footer-bottom {
-  max-width: 1200px;
-  margin: 1.5rem auto 0;
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-.footer-legal {
-  font-family: var(--font-mono);
-  font-size: .55rem;
-  letter-spacing: .12em;
-  color: var(--gray2);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   FOR WHO
-═══════════════════════════════════════════════════════════ */
-#for-who {
-  background: var(--black);
-  border-top: 1px solid var(--border);
-}
-
-.forwho-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border: 1px solid var(--border);
-  background: var(--surface);
-}
-
-.forwho-card {
-  padding: 2rem;
-  border-right: 1px solid var(--border);
-  min-height: 250px;
-  transition: background .2s, border-color .2s;
-}
-
-.forwho-card:last-child {
-  border-right: 0;
-}
-
-.forwho-card:hover {
-  background: var(--surface2);
-}
-
-.forwho-card span {
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .2em;
-  color: var(--cyan);
-  display: block;
-  margin-bottom: 1.2rem;
-}
-
-.forwho-card h3 {
-  font-family: var(--font-display);
-  font-size: 1.55rem;
-  line-height: 1;
-  letter-spacing: .04em;
-  color: var(--white);
-  text-transform: uppercase;
-  margin-bottom: 1rem;
-}
-
-.forwho-card p {
-  color: var(--gray);
-  font-size: .88rem;
-  line-height: 1.7;
-  font-weight: 300;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   RESPONSIVE
-═══════════════════════════════════════════════════════════ */
+/* RESPONSIVE */
 @media (max-width: 1024px) {
   .hero-content { grid-template-columns: 1fr; gap: 3rem; }
-  .hero-right { display: none; }
   .auth-grid { grid-template-columns: 1fr; gap: 3rem; }
   .auth-visual { aspect-ratio: 16/9; max-height: 360px; }
   .method-grid { grid-template-columns: 1fr; gap: 3rem; }
@@ -1588,269 +248,126 @@ footer {
   .faq-list { max-width: 100%; }
   .forwho-grid { grid-template-columns: repeat(2, 1fr); }
   .forwho-card:nth-child(2) { border-right: 0; }
-  .forwho-card:nth-child(1),
-  .forwho-card:nth-child(2) { border-bottom: 1px solid var(--border); }
+  .forwho-card:nth-child(1), .forwho-card:nth-child(2) { border-bottom: 1px solid var(--border); }
 }
-
 @media (max-width: 900px) {
   nav.desk, .header-right .btn-primary, .lang-switch { display: none; }
   .ham { display: flex; }
   .pillars-grid { grid-template-columns: 1fr; }
   .pillar { border-right: 0; border-bottom: 1px solid var(--border); }
   .pillar:last-child { border-bottom: 0; }
-  .plans-grid { grid-template-columns: 1fr; gap: 1px; }
-
-  #hero {
-    min-height: 100svh;
-    align-items: flex-end;
-  }
-
+  #hero { min-height: 100svh; align-items: flex-end; }
   .hero-bg {
-    background:
-      linear-gradient(180deg,
-        rgba(0,0,0,.10) 0%,
-        rgba(0,0,0,.24) 34%,
-        rgba(0,0,0,.86) 72%,
-        rgba(0,0,0,1) 100%
-      ),
-      linear-gradient(90deg,
-        rgba(0,0,0,.72) 0%,
-        rgba(0,0,0,.24) 50%,
-        rgba(0,0,0,.12) 100%
-      ),
-      url('/hero-abel-trainer.png.PNG?v=20260521-06');
-    background-repeat: no-repeat;
-    background-size: auto 78svh;
-    background-position: 58% 78px;
+    background: linear-gradient(180deg, rgba(0,0,0,.10) 0%, rgba(0,0,0,.24) 34%, rgba(0,0,0,.86) 72%, rgba(0,0,0,1) 100%), linear-gradient(90deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.24) 50%, rgba(0,0,0,.12) 100%), url('/hero-abel-trainer.png.PNG?v=20260521-06');
+    background-repeat: no-repeat; background-size: auto 78svh; background-position: 58% 78px;
   }
-
-    .hero-content {
-    grid-template-columns: 1fr;
-    padding: 42svh 0 3rem;
-  }
-
-  .hero-mini-points {
-    display: none;
-  }
-
-  #for-who {
-    padding-top: 2rem;
-  }
-
+  .hero-content { grid-template-columns: 1fr; padding: 42svh 0 3rem; }
   .hero-left { max-width: 100%; }
-
-  .hero-h1 {
-    font-size: clamp(2.35rem, 11.5vw, 3.85rem);
-    line-height: 1;
-    letter-spacing: 0;
-    margin-bottom: 1.55rem;
-  }
-
-  .hero-desc {
-    max-width: 92%;
-    font-size: .98rem;
-    line-height: 1.7;
-    margin-bottom: 2.2rem;
-  }
-
-  .hero-ctas {
-    flex-direction: column;
-    gap: .85rem;
-  }
-
-  .hero-ctas .btn-primary,
-  .hero-ctas .btn-outline,
-  .hero-ctas .btn-ghost {
-    width: 100%;
-    min-height: 56px;
-  }
+  .hero-h1 { font-size: clamp(2.35rem, 11.5vw, 3.85rem); line-height: 1; letter-spacing: 0; margin-bottom: 1.55rem; }
+  .hero-desc { max-width: 92%; font-size: .98rem; line-height: 1.7; margin-bottom: 2.2rem; }
+  .hero-ctas { flex-direction: column; gap: .85rem; }
+  .hero-ctas .btn-primary, .hero-ctas .btn-outline, .hero-ctas .btn-ghost { width: 100%; min-height: 56px; }
+  #para-quien { padding-top: 2rem; }
 }
-
 @media (max-width: 600px) {
   .forwho-grid { grid-template-columns: 1fr; }
   .forwho-card { border-right: 0; border-bottom: 1px solid var(--border); min-height: auto; }
   .forwho-card:last-child { border-bottom: 0; }
-  .panel-metrics { grid-template-columns: repeat(2, 1fr); }
   .form-wrap { padding: 1.5rem; }
   .cta-actions { flex-direction: column; align-items: center; }
   .footer-top { flex-direction: column; align-items: flex-start; }
   .footer-bottom { flex-direction: column; }
-
-  .logo-mark { gap: 8px; }
-  .logo-brackets { font-size: 1.55rem; }
+  .logo-mark { gap: 8px; } .logo-brackets { font-size: 1.55rem; }
   .logo-sub-text { font-size: .44rem; letter-spacing: .12em; padding-left: 8px; line-height: 1.25; }
-
   #faq { padding-bottom: 3.8rem; }
-
-  #cta-final {
-    padding: 5.8rem 1.35rem calc(7rem + env(safe-area-inset-bottom));
-  }
-
+  #cta-final { padding: 5.8rem 1.35rem calc(7rem + env(safe-area-inset-bottom)); }
   .cta-eyebrow { font-size: .5rem; letter-spacing: .14em; gap: 8px; margin-bottom: 1.5rem; }
   .cta-eyebrow::before, .cta-eyebrow::after { width: 24px; }
-
-  .cta-title {
-    font-size: clamp(2.55rem, 12.5vw, 3.8rem);
-    line-height: .98;
-    letter-spacing: 0;
-    margin-bottom: 1.75rem;
-  }
-
+  .cta-title { font-size: clamp(2.55rem, 12.5vw, 3.8rem); line-height: .98; letter-spacing: 0; margin-bottom: 1.75rem; }
   .cta-sub { max-width: 92%; font-size: .95rem; line-height: 1.72; margin-bottom: 2.6rem; }
-
   .cta-actions { width: 100%; gap: 1rem; }
-  .cta-actions .btn-primary,
-  .cta-actions .btn-outline {
-    width: 100%;
-    min-height: 60px;
-    padding: 16px 18px;
-    font-size: .64rem;
-    letter-spacing: .12em;
-  }
-
-  .auth-visual { aspect-ratio: 16 / 10; max-height: 300px; }
+  .cta-actions .btn-primary, .cta-actions .btn-outline { width: 100%; min-height: 60px; padding: 16px 18px; font-size: .64rem; letter-spacing: .12em; }
+  .auth-visual { aspect-ratio: 16/10; max-height: 300px; }
   .auth-visual img { object-fit: cover; object-position: center top; }
   .auth-corner { padding: .85rem 1rem; }
 }
-
 @media (max-width: 480px) {
-  .hero-bg {
-    background-size: auto 76svh;
-    background-position: 58% 78px;
-  }
-    .hero-content { padding-top: 42svh; }
-  .hero-pretitle { margin-bottom: 1.25rem; }
+  .hero-bg { background-size: auto 76svh; background-position: 58% 78px; }
+  .hero-content { padding-top: 42svh; }
   .hero-pretitle span { font-size: .52rem; letter-spacing: .16em; }
 }
 </style>
 </head>
 <body>
 
-<!-- ═══ HEADER ═══════════════════════════════════════════ -->
 <header id="header">
-  <a href="#hero" class="logo-mark" aria-label="Abel Trainer Health & Performance">
-    <div class="logo-brackets">
-      <span class="b">[</span><span class="letters">AB</span><span class="b">]</span>
-    </div>
-    <div class="logo-sub-text">
-      <span>Health &amp; Performance</span>
-      Beograd · Online
-    </div>
+  <a href="#hero" class="logo-mark" aria-label="AB SYSTEM">
+    <div class="logo-brackets"><span class="b">[</span><span class="letters">AB</span><span class="b">]</span></div>
+    <div class="logo-sub-text"><span>SYSTEM</span>Operativna matrica</div>
   </a>
-
   <nav class="desk">
-    <a href="#pillars">Metodologija</a>
-    <a href="#for-who">Za koga je</a>
-    <a href="#authority">Kredencijali</a>
-    <a href="#plans">Planovi</a>
-    <a href="#apply">Prijava</a>
-    <a href="#faq">FAQ</a>
+    <a href="#que-ganas">Šta dobijaš</a>
+    <a href="#diferenciador">Razlika</a>
+    <a href="#como-funciona">Kako funkcioniše</a>
+    <a href="#para-quien">Za koga</a>
+    <a href="#coach">Coach</a>
+    <a href="#apply">Evaluacija</a>
     <a href="/cliente.html">Klijent zona</a>
   </nav>
-
   <div class="header-right">
     <div class="lang-switch">
-      <a href="/">ES</a>
-      <span>|</span>
-      <a class="active" href="/sr.html">SR</a>
-      <span>|</span>
+      <a href="/">ES</a><span>|</span>
+      <a class="active" href="/sr.html">SR</a><span>|</span>
       <a href="/en.html">EN</a>
     </div>
-    <a href="#" class="btn-primary" onclick="openWA('rezervacija','Zdravo Abel, želeo bih da rezervišem probni trening.');return false;">
-      Rezerviši probni
-    </a>
+    <a href="#apply" class="btn-primary">Rezerviši evaluaciju</a>
   </div>
-
-  <button class="ham" onclick="toggleMenu()" aria-label="Meni">
-    <span></span><span></span><span></span>
-  </button>
+  <button class="ham" onclick="toggleMenu()" aria-label="Meni"><span></span><span></span><span></span></button>
 </header>
 
 <div class="mobile-menu" id="mobileNav">
-  <a href="#pillars" onclick="closeMenu()">Metodologija</a>
-  <a href="#for-who" onclick="closeMenu()">Za koga je</a>
-  <a href="#authority" onclick="closeMenu()">Kredencijali</a>
-  <a href="#plans" onclick="closeMenu()">Planovi</a>
-  <a href="#apply" onclick="closeMenu()">Prijava</a>
-  <a href="#faq" onclick="closeMenu()">FAQ</a>
+  <a href="#que-ganas" onclick="closeMenu()">Šta dobijaš</a>
+  <a href="#diferenciador" onclick="closeMenu()">Razlika</a>
+  <a href="#como-funciona" onclick="closeMenu()">Kako funkcioniše</a>
+  <a href="#para-quien" onclick="closeMenu()">Za koga</a>
+  <a href="#coach" onclick="closeMenu()">Coach</a>
+  <a href="#apply" onclick="closeMenu()">Evaluacija</a>
   <a href="/cliente.html" onclick="closeMenu()">Klijent zona</a>
-  <a href="#" class="cta-mobile" onclick="openWA('rezervacija','Zdravo Abel, želeo bih da rezervišem probni trening.');closeMenu();return false;">
-    [ Rezerviši probni ]
-  </a>
+  <a href="#apply" class="cta-mobile" onclick="closeMenu();">[ REZERVIŠI EVALUACIJU ]</a>
   <div class="mobile-lang">
-    <a href="/">ES</a>
-    <a class="active" href="/sr.html">SR</a>
-    <a href="/en.html">EN</a>
+    <a href="/">ES</a><a class="active" href="/sr.html">SR</a><a href="/en.html">EN</a>
   </div>
 </div>
 
-<!-- ═══ HERO ═══════════════════════════════════════════════ -->
 <section id="hero" class="hero-image-layout">
   <div class="hero-bg" aria-hidden="true"></div>
   <div class="hero-scanline" aria-hidden="true"></div>
-
   <div class="hero-content inner">
     <div class="hero-left">
-
       <div class="hero-pretitle">
         <div class="line"></div>
-        <span>Personalni trening · Beograd · Online</span>
+        <span>Sistem treninga · Beograd · Online</span>
       </div>
-
       <h1 class="hero-h1">
-        <span class="block">TRENIRAJ SA</span>
-        <span class="block accent">METODOM.</span>
-        <span class="block">KREĆI SE BOLJE.</span>
-        <span class="block">ŽIVI SA VIŠE</span>
-        <span class="block">ENERGIJE.</span>
+        <span class="block">AB SYSTEM</span>
+        <span class="block accent">STRUKTURA,</span>
+        <span class="block">PRAĆENJE</span>
+        <span class="block">I STVARNA</span>
+        <span class="block">ADAPTACIJA.</span>
       </h1>
-
       <p class="hero-desc">
-        Funkcionalni trening zasnovan na borenju, snazi, pokretljivosti i fizičkoj kondiciji.
-        Progresivni sistem za ljude koji žele da poboljšaju svoje telo, zdravlje i učinak — bez improvizacije.
+        Nije generična rutina niti trening bez cilja. Svaka osoba ima svoju polaznu tačku, cilj i stvarnost. Zato se tvoj plan gradi evaluacijom, izvodi sa pravim coachem i prilagođava podacima.
       </p>
-
       <div class="hero-ctas">
-        <a href="#apply" class="btn-primary">
-          [ ZAPOČNI SVOJ PROCES ]
-        </a>
-        <a href="#for-who" class="btn-outline">Da li je za mene?</a>
+        <a href="#apply" class="btn-primary">[ REZERVIŠI INICIJALNU EVALUACIJU ]</a>
+        <a href="#como-funciona" class="btn-outline">Kako funkcioniše</a>
         <a href="/cliente.html" class="btn-ghost">Klijent zona →</a>
       </div>
-
-      <div class="hero-mini-points">
-        <span>Snaga</span>
-        <span>Pokretljivost</span>
-        <span>Fizička kondicija</span>
-        <span>Pravo praćenje</span>
-      </div>
-
     </div>
   </div>
 </section>
 
-<!-- TICKER -->
-<div class="ticker" aria-hidden="true">
-  <div class="ticker-inner">
-    <span>HEALTH &amp; PERFORMANCE</span><span class="sep">///</span>
-    <span>FUNKCIONALNI TRENING</span><span class="sep">///</span>
-    <span>BEOGRAD · SRBIJA</span><span class="sep">///</span>
-    <span>UWW LEVEL 2 CERTIFIED</span><span class="sep">///</span>
-    <span>STVARNO PRAĆENJE</span><span class="sep">///</span>
-    <span>BIOLOŠKA OPTIMIZACIJA</span><span class="sep">///</span>
-    <span>SNAGA · POKRETLJIVOST · IZDRŽLJIVOST</span><span class="sep">///</span>
-    <span>HEALTH &amp; PERFORMANCE</span><span class="sep">///</span>
-    <span>FUNKCIONALNI TRENING</span><span class="sep">///</span>
-    <span>BEOGRAD · SRBIJA</span><span class="sep">///</span>
-    <span>UWW LEVEL 2 CERTIFIED</span><span class="sep">///</span>
-    <span>STVARNO PRAĆENJE</span><span class="sep">///</span>
-    <span>BIOLOŠKA OPTIMIZACIJA</span><span class="sep">///</span>
-    <span>SNAGA · POKRETLJIVOST · IZDRŽLJIVOST</span><span class="sep">///</span>
-  </div>
-</div>
-
-<!-- ═══ FOR WHO ═══════════════════════════════════════════ -->
-<section id="for-who">
+<section id="para-quien">
   <div class="inner">
     <div class="section-header reveal">
       <div>
@@ -1858,396 +375,167 @@ footer {
           <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
           Za koga je
         </div>
-        <h2 class="section-title">NE MORAŠ BITI SPORTISTA.<br><span class="accent">POTREBAN TI JE SISTEM.</span></h2>
+        <h2 class="section-title">ZA ONOGA KO ŽELI<br><span class="accent">TRENIRATI SA KONTROLOM</span></h2>
       </div>
       <div class="section-number">SECTION_01</div>
     </div>
-
     <div class="forwho-grid">
-      <div class="forwho-card reveal d1">
-        <span>01</span>
-        <h3>Ljudi koji žele da se dovedu u formu</h3>
-        <p>Ako želiš da treniraš sa strukturom, popraviš telo i imaš više energije — bez slučajnih rutina.</p>
-      </div>
-
-      <div class="forwho-card reveal d2">
-        <span>02</span>
-        <h3>Početnike</h3>
-        <p>Ako tek počinješ, rad se prilagođava tvom nivou: tehnika, pokretljivost, osnovna snaga i siguran napredak.</p>
-      </div>
-
-      <div class="forwho-card reveal d3">
-        <span>03</span>
-        <h3>Zauzete ljude</h3>
-        <p>Ako trebaš efikasan trening, sa jasnim sesijama, merljivim ciljevima i stvarnim praćenjem.</p>
-      </div>
-
-      <div class="forwho-card reveal d4">
-        <span>04</span>
-        <h3>Sportiste i bivše sportiste</h3>
-        <p>Ako već imaš sportsku osnovu i želiš da povratiš kondiciju, učinak ili specifičnu pripremu.</p>
-      </div>
+      <div class="forwho-card reveal d1"><span>01</span><h3>Ljudi koji žele da se dovedu u formu</h3><p>Ako želiš da treniraš sa strukturom, popraviš telo i imaš više energije — bez slučajnih rutina.</p></div>
+      <div class="forwho-card reveal d2"><span>02</span><h3>Početnici</h3><p>Ako tek počinješ, rad se prilagođava tvom nivou: tehnika, pokretljivost, osnovna snaga i siguran napredak.</p></div>
+      <div class="forwho-card reveal d3"><span>03</span><h3>Zauzeti ljudi</h3><p>Ako trebaš efikasan trening, sa jasnim sesijama, merljivim ciljevima i stvarnim praćenjem.</p></div>
+      <div class="forwho-card reveal d4"><span>04</span><h3>Sportisti i bivši sportisti</h3><p>Ako već imaš sportsku osnovu i želiš da povratiš kondiciju, učinak ili specifičnu pripremu.</p></div>
     </div>
   </div>
 </section>
 
-<!-- ═══ PILLARS ═══════════════════════════════════════════ -->
-<section id="pillars">
+<section id="que-ganas">
   <div class="inner">
     <div class="section-header reveal">
       <div>
         <div class="label-cyan" style="margin-bottom:.75rem; display:flex; align-items:center; gap:10px;">
           <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
-          Stubovi metodologije
+          Šta dobijaš sa AB SYSTEM
         </div>
-        <h2 class="section-title">AB<br><span class="accent">SISTEM</span></h2>
+        <h2 class="section-title">TRENIRAŠ SA<br><span class="accent">STRUKTUROM</span></h2>
       </div>
       <div class="section-number">SECTION_01</div>
     </div>
-
     <div class="pillars-grid">
       <div class="pillar reveal d1">
-        <div class="pillar-num">01</div>
-        <div class="pillar-tag">Health</div>
+        <div class="pillar-num">01</div><div class="pillar-tag">Health</div>
         <h3>Integralno zdravlje</h3>
         <p>Energetska optimizacija i dugovečnost kao osnova učinka. Bez zdravlja nema održivog performansa.</p>
-        <ul class="pillar-list">
-          <li>Energetska i hormonalna optimizacija</li>
-          <li>Kvalitet sna i oporavak</li>
-          <li>Osnovne navike i ćelijska dugovečnost</li>
-          <li>Sportska nutritivna orijentacija</li>
-        </ul>
+        <ul class="pillar-list"><li>Energetska i hormonalna optimizacija</li><li>Kvalitet sna i oporavak</li><li>Osnovne navike i ćelijska dugovečnost</li><li>Sportska nutritivna orijentacija</li></ul>
       </div>
-
       <div class="pillar reveal d2">
-        <div class="pillar-num">02</div>
-        <div class="pillar-tag">Performance</div>
+        <div class="pillar-num">02</div><div class="pillar-tag">Performance</div>
         <h3>Učinak</h3>
         <p>Razvoj funkcionalne snage, napredne biomehanike i atletskog kondicioniranja sa stvarnom metodološkom osnovom.</p>
-        <ul class="pillar-list">
-          <li>Funkcionalna i primenljiva snaga</li>
-          <li>Biomehanika i kontrola tela</li>
-          <li>Izdržljivost i radni kapacitet</li>
-          <li>Merljiv i realan napredak</li>
-        </ul>
+        <ul class="pillar-list"><li>Funkcionalna i primenljiva snaga</li><li>Biomehanika i kontrola tela</li><li>Izdržljivost i radni kapacitet</li><li>Merljiv i realan napredak</li></ul>
       </div>
-
       <div class="pillar reveal d3">
-        <div class="pillar-num">03</div>
-        <div class="pillar-tag">Coaching</div>
+        <div class="pillar-num">03</div><div class="pillar-tag">Coaching</div>
         <h3>Praćenje</h3>
         <p>Direktna komunikacija, metrike u realnom vremenu i personalizovano planiranje. Trener prilagođava proces prema rezultatima.</p>
-        <ul class="pillar-list">
-          <li>Svakodnevno praćenje i check-in-ovi</li>
-          <li>Metrike i registrovanje napretka</li>
-          <li>Prilagođavanja prema stvarnoj evoluciji</li>
-          <li>Privatni klijentski panel</li>
-        </ul>
+        <ul class="pillar-list"><li>Svakodnevno praćenje i check-in-ovi</li><li>Metrike i registrovanje napretka</li><li>Prilagođavanja prema stvarnoj evoluciji</li><li>Privatni klijentski panel</li></ul>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ AUTHORITY ══════════════════════════════════════════ -->
-<section id="authority">
-  <div class="inner">
-    <div class="auth-grid">
-      <div class="auth-visual reveal">
-        <img
-          src="/hero-abel-trainer.png.PNG?v=20260521-03"
-          alt="Abel Trainer — Health & Performance u Beogradu"
-          loading="lazy"
-        >
-        <div class="auth-corner">
-          <b>UWW</b>
-          <span>Level 2 Certified</span>
-        </div>
-      </div>
-
-      <div class="auth-right">
-        <div class="label-cyan reveal" style="display:flex; align-items:center; gap:10px; margin-bottom:.75rem;">
-          <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
-          Pravi kredencijali
-        </div>
-        <h2 class="section-title reveal d1">ISKUSTVO<br>KOJE <span class="accent">STOJI</span><br>IZA SISTEMA</h2>
-        <p class="reveal d2" style="font-size:.92rem; color:var(--gray); line-height:1.8; font-weight:300; margin:1.5rem 0 2rem;">
-          Više od 20 godina u sportu visokog učinka. Kubansko obrazovanje, međunarodna sertifikacija i iskustvo u Španiji i Srbiji.
-        </p>
-
-        <div class="cred-list">
-          <div class="cred reveal d1">
-            <div class="cred-icon"></div>
-            <div>
-              <strong>Kubansko sportsko obrazovanje</strong>
-              <small>Škola sporta, olimpijsko rvanje i fizička priprema visokog nivoa</small>
-            </div>
-          </div>
-          <div class="cred reveal d2">
-            <div class="cred-icon"></div>
-            <div>
-              <strong>UWW Level 2 Coaching</strong>
-              <small>Međunarodna trenerska sertifikacija — United World Wrestling</small>
-            </div>
-          </div>
-          <div class="cred reveal d2">
-            <div class="cred-icon"></div>
-            <div>
-              <strong>Federalna trenerska diploma</strong>
-              <small>Španska rvačka federacija — elitna tehnička obuka</small>
-            </div>
-          </div>
-          <div class="cred reveal d3">
-            <div class="cred-icon"></div>
-            <div>
-              <strong>Rvački klub Partizan</strong>
-              <small>Trener u elitnom beogradskom klubu, Srbija</small>
-            </div>
-          </div>
-          <div class="cred reveal d3">
-            <div class="cred-icon"></div>
-            <div>
-              <strong>Club de Lluita Camp de Morvedre</strong>
-              <small>Trener u Španiji — iskustvo sa sportistima i nesportistima</small>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ METHOD ══════════════════════════════════════════════ -->
-<section id="method">
+<section id="diferenciador" style="background: var(--black); border-top: 1px solid var(--border);">
   <div class="inner">
     <div class="section-header reveal">
       <div>
         <div class="label-cyan" style="margin-bottom:.75rem; display:flex; align-items:center; gap:10px;">
           <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
-          Proces
+          Šta nas razlikuje
         </div>
-        <h2 class="section-title">PROCENI.<br>PLANIRAJ.<br><span class="accent">IZVEDI.</span><br>PRILAGODI.</h2>
+        <h2 class="section-title">TEHNOLOGIJA<br>ORGANIZUJE.<br><span class="accent">COACH VODI.</span></h2>
       </div>
       <div class="section-number">SECTION_02</div>
     </div>
-
-    <div class="method-grid">
-      <div class="method-steps">
-        <div class="step reveal d1">
-          <div class="step-num">01</div>
-          <div class="step-body">
-            <strong>Procena</strong>
-            <p>Polazna tačka, istorijat, cilj i stvarni nivo fizičke kondicije. Bez dijagnoze nema plana.</p>
-          </div>
-        </div>
-        <div class="step reveal d2">
-          <div class="step-num">02</div>
-          <div class="step-body">
-            <strong>Planiranje</strong>
-            <p>Plan prilagođen tebi, ne generički. Svaki program odgovara tvojoj proceni i specifičnom cilju.</p>
-          </div>
-        </div>
-        <div class="step reveal d2">
-          <div class="step-num">03</div>
-          <div class="step-body">
-            <strong>Trening</strong>
-            <p>Sesije sa jasnom strukturom, sistematičnom progresijom i kontrolom kvaliteta svakog pokreta.</p>
-          </div>
-        </div>
-        <div class="step reveal d3">
-          <div class="step-num">04</div>
-          <div class="step-body">
-            <strong>Merenje</strong>
-            <p>Evidentiranje stvarnih metrika. Ono što se ne meri ne može se poboljšati. Privatni panel sa ažuriranim podacima.</p>
-          </div>
-        </div>
-        <div class="step reveal d3">
-          <div class="step-num">05</div>
-          <div class="step-body">
-            <strong>Prilagođavanje</strong>
-            <p>Plan se razvija prema tvojim rezultatima. Dinamičan proces, ne statičan.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel-wrap reveal d2">
-  <div style="border: 1px solid var(--border-cyan); overflow: hidden; border-radius: 2px;">
-    <img
-      src="/app-screenshot.png.png"
-      alt="AB SYSTEM — Panel del coach"
-      style="width:100%; display:block; filter: brightness(.92) contrast(1.05);"
-    >
+    <div style="max-width: 680px;">
+      <p class="reveal" style="font-size: 1.05rem; color: var(--off-white); line-height: 1.8; font-weight: 300; margin-bottom: 1.5rem;">
+        AB SYSTEM nije generična app sa rutinama. Nije ni samo raspored časova ili lista vežbi.
+      </p>
+      <p class="reveal d1" style="font-size: .95rem; color: var(--gray); line-height: 1.8; font-weight: 300;">
+        To je platforma za trening koja spaja planiranje, evaluaciju, praćenje i adaptaciju u jedan sistem. Tehnologija pomaže da se proces organizuje, ali smer i dalje drži pravi coach. Svaka sesija ima logiku, svaka korekcija ima razlog i svaki klijent dobija personalizovanije iskustvo.
+      </p>
+    </div>
   </div>
-</div>
-          </div>
+</section>
+
+<section id="coach">
+  <div class="inner">
+    <div class="auth-grid">
+      <div class="auth-visual reveal">
+        <img src="/hero-abel-trainer.png.PNG?v=20260521-03" alt="Abel Trainer — Health & Performance u Beogradu" loading="lazy">
+        <div class="auth-corner"><b>UWW</b><span>Level 2 Certified</span></div>
+      </div>
+      <div class="auth-right">
+        <div class="label-cyan reveal" style="display:flex; align-items:center; gap:10px; margin-bottom:.75rem;">
+          <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
+          Prava osoba iza sistema
+        </div>
+        <h2 class="section-title reveal d1">AB SYSTEM<br>VODI<br><span class="accent">ABEL BALSINDE</span></h2>
+        <p class="reveal d2" style="font-size:.92rem; color:var(--gray); line-height:1.8; font-weight:300; margin:1.5rem 0 2rem;">
+          Trener olimpijskog rvanja i fizičke pripreme sa iskustvom kao sportista i coach. Platforma organizuje proces, ali praćenje, odluke i korekcije dolaze od profesionalnog pogleda.
+        </p>
+        <div class="cred-list">
+          <div class="cred reveal d1"><div class="cred-icon"></div><div><strong>Kubansko sportsko obrazovanje</strong><small>Škola sporta, olimpijsko rvanje i fizička priprema visokog nivoa</small></div></div>
+          <div class="cred reveal d2"><div class="cred-icon"></div><div><strong>UWW Level 2 Coaching</strong><small>Međunarodna trenerska sertifikacija — United World Wrestling</small></div></div>
+          <div class="cred reveal d2"><div class="cred-icon"></div><div><strong>Federalna trenerska diploma</strong><small>Španska rvačka federacija — elitna tehnička obuka</small></div></div>
+          <div class="cred reveal d3"><div class="cred-icon"></div><div><strong>Rvački klub Partizan</strong><small>Trener u elitnom beogradskom klubu, Srbija</small></div></div>
+          <div class="cred reveal d3"><div class="cred-icon"></div><div><strong>Club de Lluita Camp de Morvedre</strong><small>Trener u Španiji — iskustvo sa sportistima i nesportistima</small></div></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ PLANS ═══════════════════════════════════════════════ -->
-<section id="plans">
+<section id="como-funciona">
   <div class="inner">
     <div class="section-header reveal">
       <div>
         <div class="label-cyan" style="margin-bottom:.75rem; display:flex; align-items:center; gap:10px;">
           <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
-          Dostupni planovi
+          Kako funkcioniše
         </div>
-        <h2 class="section-title">IZABERI SVOJ<br><span class="accent">SISTEM</span></h2>
+        <h2 class="section-title">OD EVALUACIJE<br>DO NAPRETKA,<br><span class="accent">BEZ IMPROVIZACIJE</span></h2>
       </div>
-      <div class="section-number">SECTION_03</div>
+      <div class="section-number">SECTION_02</div>
     </div>
-    <p class="reveal" style="font-size:.92rem; color:var(--gray); font-weight:300; max-width:520px; line-height:1.75; margin-bottom:.5rem;">
-      Tri plana za različite polazne tačke. Svi uključuju direktnu komunikaciju sa Abelom.
-    </p>
-
-    <div class="plans-grid">
-      <div class="plan reveal d1">
-        <div class="plan-tag">Plan 01</div>
-        <h3>Početak</h3>
-        <div class="plan-sub">Za start sa strukturom</div>
-        <ul>
-          <li>Kompletna inicijalna procena</li>
-          <li>Osnovni plan treninga</li>
-          <li>Osnovno praćenje metrika</li>
-          <li>Komunikacija putem WhatsApp-a</li>
-        </ul>
-        <a class="btn-outline" href="#" onclick="openWA('plan','Zdravo Abel, zanima me plan Početak.');return false;">
-          Pošalji upit →
-        </a>
+    <div class="method-grid">
+      <div class="method-steps">
+        <div class="step reveal d1"><div class="step-num">01</div><div class="step-body"><strong>Inicijalna evaluacija</strong><p>Upoznajemo tvoj nivo, pokretljivost, fizičku kondiciju, ciljeve i moguća ograničenja.</p></div></div>
+        <div class="step reveal d2"><div class="step-num">02</div><div class="step-body"><strong>Prilagođen plan</strong><p>Dodeljujemo trening prema tvom profilu. Nije generički.</p></div></div>
+        <div class="step reveal d3"><div class="step-num">03</div><div class="step-body"><strong>Registrovanje i praćenje</strong><p>Sesije, osećaji, energija, tegobe i evolucija — sve se beleži.</p></div></div>
+        <div class="step reveal d4"><div class="step-num">04</div><div class="step-body"><strong>Stalna korekcija</strong><p>Ako treba, prilagođavamo da nastaviš da napreduješ bezbedno i bez forsiranja.</p></div></div>
       </div>
-
-      <div class="plan featured reveal d2">
-        <div class="plan-tag"><span class="rec-badge">Preporučeno</span></div>
-        <h3>Performance</h3>
-        <div class="plan-sub">Kompletan sistem</div>
-        <ul>
-          <li>Personalizovan i progresivan plan</li>
-          <li>Privatni klijentski panel</li>
-          <li>Kompletne metrike i prilagođavanja</li>
-          <li>Sportska nutritivna orijentacija</li>
-          <li>Direktna komunikacija sa trenerom</li>
-        </ul>
-        <a class="btn-primary" href="#" onclick="openWA('plan','Zdravo Abel, zanima me Performance plan.');return false;">
-          [ Pošalji upit za ovaj plan ]
-        </a>
-      </div>
-
-      <div class="plan reveal d3">
-        <div class="plan-tag">Plan 03</div>
-        <h3>Online</h3>
-        <div class="plan-sub">Praćenje na daljinu</div>
-        <ul>
-          <li>Online plan treninga</li>
-          <li>Periodični pregled napretka</li>
-          <li>Prilagođavanja prema rezultatima</li>
-          <li>Direktna online komunikacija</li>
-        </ul>
-        <a class="btn-outline" href="#" onclick="openWA('plan','Zdravo Abel, zanima me Online Coaching.');return false;">
-          Pošalji upit →
-        </a>
+      <div class="panel-wrap reveal d2">
+        <div style="border: 1px solid var(--border-cyan); overflow: hidden; border-radius: 2px;">
+          <img src="/app-screenshot.png.png" alt="AB SYSTEM — Panel cocha" style="width:100%; display:block; filter: brightness(.92) contrast(1.05);">
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ APPLICATION FORM ════════════════════════════════════ -->
 <section id="apply">
   <div class="inner">
     <div class="apply-grid">
       <div class="apply-left">
-        <div class="label-cyan reveal" style="display:flex; align-items:center; gap:10px; margin-bottom:.75rem;">
+        <div class="label-cyan" style="display:flex; align-items:center; gap:10px; margin-bottom:.75rem;">
           <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
-          Proces selekcije
+          Prvi korak
         </div>
-        <h2 class="section-title reveal d1">PRIJAVI SE ZA<br><span class="accent">PROGRAM</span></h2>
-        <p class="reveal d2">
-          Ovo nije generički kontakt formular. To je prvi korak u procesu selekcije. Sarađujem samo sa posvećenim ljudima.
+        <h2 class="section-title">POČNI SA<br><span class="accent">EVALUACIJOM</span></h2>
+        <p class="reveal d2" style="font-size:.92rem; color:var(--gray); line-height:1.8; font-weight:300; max-width:420px; margin-top:1.5rem;">
+          Prvi korak je upoznati tvoju polaznu tačku. Rezerviši inicijalnu sesiju i otkrij šta treba da poboljšaš i koji put ima najviše smisla za tebe.
         </p>
-
         <div class="apply-callouts">
-          <div class="callout reveal d2">
-            <div class="callout-icon">01</div>
-            <div>
-              <strong>Procena profila</strong>
-              <p>Tvoj cilj i trenutni nivo se razmatraju pre dodeljivanja plana</p>
-            </div>
-          </div>
-          <div class="callout reveal d3">
-            <div class="callout-icon">02</div>
-            <div>
-              <strong>Direktan odgovor</strong>
-              <p>Abel odgovara putem WhatsApp-a sa odgovarajućim predlogom</p>
-            </div>
-          </div>
-          <div class="callout reveal d3">
-            <div class="callout-icon">03</div>
-            <div>
-              <strong>Početak procesa</strong>
-              <p>Inicijalna procena i dodeljivanje personalizovanog plana</p>
-            </div>
-          </div>
+          <div class="callout reveal d2"><div class="callout-icon">01</div><div><strong>Procena profila</strong><p>Tvoj cilj i trenutni nivo se razmatraju pre dodeljivanja plana</p></div></div>
+          <div class="callout reveal d3"><div class="callout-icon">02</div><div><strong>Direktan odgovor</strong><p>Abel odgovara putem WhatsApp-a sa odgovarajućim predlogom</p></div></div>
+          <div class="callout reveal d3"><div class="callout-icon">03</div><div><strong>Početak procesa</strong><p>Inicijalna evaluacija i dodeljivanje personalizovanog plana</p></div></div>
         </div>
       </div>
-
       <div class="form-wrap reveal d2">
-        <div class="form-title">
-          <span>Formular za prijavu</span>
-          <span>SECTION_04</span>
-        </div>
-
+        <div class="form-title"><span>Formular za prijavu</span><span>SECTION_04</span></div>
         <div id="appForm">
-          <div class="field">
-            <label for="fname">Ime i prezime</label>
-            <input type="text" id="fname" placeholder="Tvoje ime i prezime">
-          </div>
-
-          <div class="field">
-            <label for="femail">E-mail adresa</label>
-            <input type="email" id="femail" placeholder="ti@email.com">
-          </div>
-
-          <div class="field">
-            <label for="fgoal">Primarni cilj</label>
-            <div class="select-wrap">
-              <select id="fgoal">
-                <option value="" disabled selected>Izaberi cilj</option>
-                <option value="snaga">Snaga</option>
-                <option value="zdravlje">Zdravlje</option>
-                <option value="rekomposicija">Rekomposicija tela</option>
-                <option value="elite">Vrhunski učinak</option>
-              </select>
-            </div>
-          </div>
-
+          <div class="field"><label for="fname">Ime i prezime</label><input type="text" id="fname" placeholder="Tvoje ime i prezime"></div>
+          <div class="field"><label for="femail">E-mail adresa</label><input type="email" id="femail" placeholder="ti@email.com"></div>
+          <div class="field"><label for="fgoal">Primarni cilj</label><div class="select-wrap"><select id="fgoal"><option value="" disabled selected>Izaberi cilj</option><option value="snaga">Snaga</option><option value="zdravlje">Zdravlje</option><option value="rekomposicija">Rekomposicija tela</option><option value="elite">Vrhunski učinak</option></select></div></div>
           <div class="field">
             <label>Da li si spreman da se 100% posvetiš procesu?</label>
             <div class="radio-group">
-              <label class="radio-item">
-                <input type="radio" name="commitment" value="da">
-                <div class="radio-box"></div>
-                <span>Da, 100%</span>
-              </label>
-              <label class="radio-item">
-                <input type="radio" name="commitment" value="ne">
-                <div class="radio-box"></div>
-                <span>Još nisam siguran</span>
-              </label>
+              <label class="radio-item"><input type="radio" name="commitment" value="da"><div class="radio-box"></div><span>Da, 100%</span></label>
+              <label class="radio-item"><input type="radio" name="commitment" value="ne"><div class="radio-box"></div><span>Još nisam siguran</span></label>
             </div>
           </div>
-
-          <div style="margin-top:1.75rem;">
-            <button class="btn-primary" style="width:100%;" onclick="submitForm()">
-              [ POŠALJI PRIJAVU ]
-            </button>
-          </div>
-
-          <div class="form-note">
-            Tvoja prijava se ručno pregleda. Abel odgovara za manje od 24h putem WhatsApp-a ili e-maila.
-          </div>
+          <div style="margin-top:1.75rem;"><button class="btn-primary" style="width:100%;" onclick="submitForm()">[ POŠALJI PRIJAVU ]</button></div>
+          <div class="form-note">Tvoja prijava se ručno pregleda. Abel odgovara za manje od 24h putem WhatsApp-a ili e-maila.</div>
         </div>
-
         <div class="form-success" id="formSuccess">
           <div class="success-icon">[✓]</div>
           <div class="success-title">PRIJAVA POSLATA</div>
@@ -2258,7 +546,6 @@ footer {
   </div>
 </section>
 
-<!-- ═══ FAQ ══════════════════════════════════════════════════ -->
 <section id="faq">
   <div class="inner">
     <div class="faq-layout">
@@ -2268,101 +555,44 @@ footer {
           Česta pitanja
         </div>
         <h2 class="section-title reveal d1">KLJUČNA<br><span class="accent">PITANJA</span></h2>
-        <p class="reveal d2" style="font-size:.88rem; color:var(--gray); font-weight:300; line-height:1.8; margin-top:1.5rem; max-width:300px;">
-          Sve što trebaš da znaš pre nego što se prijaviš.
-        </p>
+        <p class="reveal d2" style="font-size:.88rem; color:var(--gray); font-weight:300; line-height:1.8; margin-top:1.5rem; max-width:300px;">Sve što trebaš da znaš pre nego što se prijaviš.</p>
       </div>
-
       <div class="faq-list">
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Da li moram znati rvanje da bih počeo?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>Ne. Sistem je dizajniran za nesportiste. Rvanje je metodološka osnova — disciplina, kontrola tela, stvarna progresija — ali trening se potpuno prilagođava tvom trenutnom nivou.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Da li je trening samo za mršavljenje?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>Ne. Sistem radi snagu, pokretljivost, izdržljivost i integralnu fizičku kondiciju. Rekomposicija tela može biti jedan od rezultata, ali cilj se definiše u inicijalnoj proceni prema tvom slučaju.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Da li postoji stvarno praćenje između sesija?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>Da. Praćenje je centralni deo sistema. Evidentiraju se metrike, vrše se periodični check-in-ovi, a plan se prilagođava prema tvojim stvarnim rezultatima — ne prema generičkim šablonima.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Mogu li trenirati online bez boravka u Beogradu?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>Da. Online plan je dizajniran za praćenje na daljinu: personalizovan plan, periodični pregled, prilagođavanja prema rezultatima i direktna komunikacija. Isti standard, drugačiji modalitet.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Da li je ishrana uključena u sve planove?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>Opšta sportska orijentacija (procena kalorija, proteini, osnovne navike) je integrisana u Performance plan. Ne zamenjuje profesionalni nutritivni savet. Nije uključena u plan Početak.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Koji je prvi korak za početak?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>Popuni formular za prijavu na ovoj stranici ili napiši putem WhatsApp-a. Abel će pregledati tvoj profil i kontaktirati te za inicijalnu procenu, definisanje cilja i dodeljivanje odgovarajućeg plana.</p></div>
-        </div>
+        <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)"><span class="faq-q-text">Da li moram znati rvanje da bih počeo?</span><span class="faq-q-icon">+</span></button><div class="faq-a"><p>Ne. Sistem je dizajniran za nesportiste. Rvanje je metodološka osnova — disciplina, kontrola tela, stvarna progresija — ali trening se potpuno prilagođava tvom trenutnom nivou.</p></div></div>
+        <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)"><span class="faq-q-text">Da li je trening samo za mršavljenje?</span><span class="faq-q-icon">+</span></button><div class="faq-a"><p>Ne. Sistem radi snagu, pokretljivost, izdržljivost i integralnu fizičku kondiciju. Rekomposicija tela može biti jedan od rezultata, ali cilj se definiše u inicijalnoj proceni prema tvom slučaju.</p></div></div>
+        <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)"><span class="faq-q-text">Da li postoji stvarno praćenje između sesija?</span><span class="faq-q-icon">+</span></button><div class="faq-a"><p>Da. Praćenje je centralni deo sistema. Evidentiraju se metrike, vrše se periodični check-in-ovi, a plan se prilagođava prema tvojim stvarnim rezultatima — ne prema generičkim šablonima.</p></div></div>
+        <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)"><span class="faq-q-text">Mogu li trenirati online bez boravka u Beogradu?</span><span class="faq-q-icon">+</span></button><div class="faq-a"><p>Da. Online plan je dizajniran za praćenje na daljinu: personalizovan plan, periodični pregled, prilagođavanja prema rezultatima i direktna komunikacija. Isti standard, drugačiji modalitet.</p></div></div>
+        <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)"><span class="faq-q-text">Da li je ishrana uključena u sve planove?</span><span class="faq-q-icon">+</span></button><div class="faq-a"><p>Opšta sportska orijentacija (procena kalorija, proteini, osnovne navike) je integrisana u Performance plan. Ne zamenjuje profesionalni nutritivni savet. Nije uključena u plan Početak.</p></div></div>
+        <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)"><span class="faq-q-text">Koji je prvi korak za početak?</span><span class="faq-q-icon">+</span></button><div class="faq-a"><p>Popuni formular za prijavu na ovoj stranici ili napiši putem WhatsApp-a. Abel će pregledati tvoj profil i kontaktirati te za inicijalnu evaluaciju, definisanje cilja i dodeljivanje odgovarajućeg plana.</p></div></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ CTA FINAL ════════════════════════════════════════════ -->
 <section id="cta-final">
   <div class="cta-eyebrow reveal">Počni sa strukturom</div>
-  <h2 class="cta-title reveal d1">
-    TRENIRAJ SA<br>
-    <span class="accent">METODOM.</span>
-  </h2>
-  <p class="cta-sub reveal d2">
-    Snaga, pokretljivost i fizička kondicija uz progresivni sistem zasnovan na stvarnom sportskom iskustvu. Rezerviši probni trening i vidimo tvoju polaznu tačku.
-  </p>
+  <h2 class="cta-title reveal d1">TRENIRAJ SA<br><span class="accent">METODOM.</span></h2>
+  <p class="cta-sub reveal d2">Snaga, pokretljivost i fizička kondicija uz progresivni sistem zasnovan na stvarnom sportskom iskustvu. Rezerviši evaluaciju i vidimo tvoju polaznu tačku.</p>
   <div class="cta-actions reveal d3">
-    <a href="#" class="btn-primary" onclick="openWA('rezervacija','Zdravo Abel, želeo bih da rezervišem probni trening.');return false;">
-      <svg class="wa-icon" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.122 1.523 5.852L.057 23.04c-.07.252.006.52.197.699.15.14.347.212.547.212.051 0 .103-.006.154-.018l5.35-1.398A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-4.98-1.357l-.357-.213-3.122.815.836-3.046-.233-.373A9.818 9.818 0 012.182 12c0-5.42 4.398-9.818 9.818-9.818 5.42 0 9.818 4.398 9.818 9.818 0 5.42-4.398 9.818-9.818 9.818z" fill-rule="evenodd"/></svg>
-      [ REZERVIŠI PUTEM WHATSAPP-A ]
-    </a>
+    <a href="#apply" class="btn-primary">Rezerviši evaluaciju</a>
     <a href="#apply" class="btn-outline">Popuni prijavu</a>
   </div>
 </section>
 
-<!-- ═══ FOOTER ═══════════════════════════════════════════════ -->
 <footer>
   <div class="footer-top">
-    <a href="#hero" class="logo-mark" aria-label="Abel Trainer">
-      <div class="logo-brackets" style="font-size:1.5rem;">
-        <span class="b">[</span><span class="letters">AB</span><span class="b">]</span>
-      </div>
-      <div class="logo-sub-text">
-        <span>Health &amp; Performance</span>
-        Abel Trainer · Beograd
-      </div>
+    <a href="#hero" class="logo-mark" aria-label="AB SYSTEM">
+      <div class="logo-brackets" style="font-size:1.5rem;"><span class="b">[</span><span class="letters">AB</span><span class="b">]</span></div>
+      <div class="logo-sub-text"><span>SYSTEM</span>AB SYSTEM · Beograd</div>
     </a>
-
     <div class="footer-links">
-      <a href="#pillars" class="footer-link">Metodologija</a>
-      <a href="#authority" class="footer-link">Kredencijali</a>
-      <a href="#plans" class="footer-link">Planovi</a>
+      <a href="#que-ganas" class="footer-link">Metodologija</a>
+      <a href="#coach" class="footer-link">Kredencijali</a>
       <a href="#apply" class="footer-link">Prijava</a>
       <a href="#faq" class="footer-link">FAQ</a>
       <a href="/cliente.html" class="footer-link c">Klijent zona</a>
       <a href="/admin.html" class="footer-link a">Admin</a>
     </div>
-
     <div style="display:flex; flex-direction:column; gap:.75rem; align-items:flex-end;">
       <div class="footer-social">
         <a href="#" class="social-link" aria-label="Instagram">IG</a>
@@ -2378,81 +608,34 @@ footer {
       </div>
     </div>
   </div>
-
   <div class="footer-bottom">
-    <span class="footer-legal">© 2026 ABEL TRAINER — HEALTH &amp; PERFORMANCE. Sva prava zadržana.</span>
+    <span class="footer-legal">© 2026 AB SYSTEM. Sva prava zadržana.</span>
     <span class="footer-legal">Opšta sportska orijentacija. Ne zamenjuje profesionalni medicinski niti nutritivni savet.</span>
   </div>
 </footer>
 
-<!-- ═══ SCRIPTS ══════════════════════════════════════════════ -->
 <script>
-function buildWAUrl(phone, msg) {
-  const clean = (phone||'381638112348').replace(/[\s+\-()]/g, '');
-  return 'https://wa.me/' + clean + '?text=' + encodeURIComponent(msg);
-}
-function openWA(ctx, msg) {
-  window.open(buildWAUrl('381638112348', msg), '_blank');
-}
-
-function toggleMenu() {
-  document.getElementById('mobileNav').classList.toggle('open');
-}
-function closeMenu() {
-  document.getElementById('mobileNav').classList.remove('open');
-}
-
-window.addEventListener('scroll', () => {
-  document.getElementById('header').classList.toggle('scrolled', window.scrollY > 20);
-});
-
+function buildWAUrl(phone, msg) { const clean = (phone||'381638112348').replace(/[\s+\-()]/g, ''); return 'https://wa.me/' + clean + '?text=' + encodeURIComponent(msg); }
+function openWA(ctx, msg) { window.open(buildWAUrl('381638112348', msg), '_blank'); }
+function toggleMenu() { document.getElementById('mobileNav').classList.toggle('open'); }
+function closeMenu() { document.getElementById('mobileNav').classList.remove('open'); }
+window.addEventListener('scroll', () => { document.getElementById('header').classList.toggle('scrolled', window.scrollY > 20); });
 function toggleFaq(btn) {
-  const item = btn.closest('.faq-item');
-  const answer = item.querySelector('.faq-a');
-  const isOpen = item.classList.contains('open');
-
-  document.querySelectorAll('.faq-item').forEach(i => {
-    i.classList.remove('open');
-    i.querySelector('.faq-a').style.maxHeight = '0';
-  });
-
-  if (!isOpen) {
-    item.classList.add('open');
-    answer.style.maxHeight = answer.scrollHeight + 'px';
-  }
+  const item = btn.closest('.faq-item'); const answer = item.querySelector('.faq-a'); const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => { i.classList.remove('open'); i.querySelector('.faq-a').style.maxHeight = '0'; });
+  if (!isOpen) { item.classList.add('open'); answer.style.maxHeight = answer.scrollHeight + 'px'; }
 }
-
 function submitForm() {
-  const name = document.getElementById('fname').value.trim();
-  const email = document.getElementById('femail').value.trim();
-  const goal = document.getElementById('fgoal').value;
-  const commitment = document.querySelector('input[name="commitment"]:checked');
-
-  if (!name || !email || !goal || !commitment) {
-    alert('Molim te popuni sva polja pre slanja.');
-    return;
-  }
-
+  const name = document.getElementById('fname').value.trim(); const email = document.getElementById('femail').value.trim();
+  const goal = document.getElementById('fgoal').value; const commitment = document.querySelector('input[name="commitment"]:checked');
+  if (!name || !email || !goal || !commitment) { alert('Molim te popuni sva polja pre slanja.'); return; }
   const msg = `Zdravo Abel, popunio sam prijavu:\n\nIme: ${name}\nEmail: ${email}\nCilj: ${goal}\nPosvećenost: ${commitment.value === 'da' ? '✓ Da, 100%' : 'Još razmatram'}`;
   openWA('apply', msg);
-
-  document.getElementById('appForm').style.display = 'none';
-  document.getElementById('formSuccess').classList.add('show');
+  document.getElementById('appForm').style.display = 'none'; document.getElementById('formSuccess').classList.add('show');
 }
-
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) e.target.classList.add('visible');
-  });
-}, { threshold: .1 });
-
+const observer = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }); }, { threshold: .1 });
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  });
-}
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); }); }
 </script>
 </body>
 </html>
