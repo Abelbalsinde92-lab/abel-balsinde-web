@@ -48,8 +48,8 @@ self.addEventListener('notificationclick', event => {
 
  const isClient = data.target === 'client';
  const APP_URL = isClient
-   ? 'https://abeltrainer.vercel.app/cliente.html'
-   : 'https://abeltrainer.vercel.app/field.html';
+   ? 'https://absystem.dbarrio.app/cliente.html'
+   : 'https://absystem.dbarrio.app/field.html';
 
  const PAGE = isClient ? 'cliente.html' : 'field.html';
 
