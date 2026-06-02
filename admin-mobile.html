@@ -3633,10 +3633,9 @@ function renderPerfil(){
     {icon:ICONS.eval,   label:'Evaluación',   action:`openEvalModal('${c.id}','${esc(c.name)}',null,null)`},
     {icon:ICONS.metric, label:'Métrica',       action:`openModal('metric',null,{clientId:'${c.id}'})`},
     {icon:ICONS.notes,  label:'Notas',         action:`openModal('note',null,{clientId:'${c.id}'})`},
-    {icon:ICONS.stretch,label:'Estiramientos', action:`openStretching('${c.id}','${esc(c.name)}')`},
+    {icon:ICONS.stretch,label:'Asistidos',     action:`openStretchingAssisted('${c.id}','${esc(c.name)}')`},
     {icon:ICONS.pay,    label:'Pago',          action:`openModal('payment',null,{clientId:'${c.id}'})`},
-        {icon:ICONS.plan,   label:'Plan',          action:`openModal('assignment',null,{clientId:'${c.id}'})`},
-    {icon:ICONS.mobil,  label:'Movilidad',     action:`openMobilityModal('${c.id}')`},
+    {icon:ICONS.plan,   label:'Plan',          action:`openModal('assignment',null,{clientId:'${c.id}'})`},
   ];
 
       el.innerHTML=`
@@ -4022,7 +4021,7 @@ async function openMobilityModal(clientId){
 
   try{
     const [{data:current, error:e1},{data:chains, error:e2}] = await Promise.all([
-      db.from('client_mobility_assignments')
+      db.from('client_mobility_chain_assignments')
         .select('*, mobility_chains(name,level,objective,duration,coach_notes)')
         .eq('client_id', clientId)
         .eq('status','activo')
@@ -4106,9 +4105,9 @@ async function assignMobilityChain(clientId){
   const reason  = document.getElementById('mob-reason')?.value || '';
   if(!chainId){ showToast('Selecciona una cadena','err'); return; }
   try{
-    await db.from('client_mobility_assignments').update({status:'inactivo'})
+    await db.from('client_mobility_chain_assignments').update({status:'inactivo'})
       .eq('client_id', clientId).eq('status','activo');
-    await db.from('client_mobility_assignments').insert({
+    await db.from('client_mobility_chain_assignments').insert({
       id: uid(), client_id: clientId, chain_id: chainId,
       status: 'activo', assigned_reason: reason, start_date: todayISO()
     });
@@ -4120,7 +4119,7 @@ async function assignMobilityChain(clientId){
 async function closeMobilityChain(assignmentId, clientId){
   if(!confirm('¿Cerrar la cadena de movilidad activa?')) return;
   try{
-    await db.from('client_mobility_assignments').update({status:'inactivo'}).eq('id', assignmentId);
+    await db.from('client_mobility_chain_assignments').update({status:'inactivo'}).eq('id', assignmentId);
     showToast('Cadena cerrada ✓','ok');
     openMobilityModal(clientId);
   }catch(err){ showToast('Error: '+err.message,'err'); }
@@ -10153,6 +10152,23 @@ async function openStretching(clientId, clientName) {
   }
 
   renderStretch();
+}
+
+async function openStretchingAssisted(clientId, clientName){
+  stretchClientId   = clientId || null;
+  stretchClientName = clientName || '';
+  stretchMode       = 'assisted';
+  stretchZone       = null;
+  stretchExercises  = [];
+  stretchIndex      = 0;
+  stopStretchTimerBase();
+  const modal = document.getElementById('modal-stretching');
+  if(!modal){ showToast('Modal no encontrado','err'); return; }
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  const content = document.getElementById('stretch-content');
+  if(content) content.innerHTML = '<div class="stretch-loading">Cargando técnicas asistidas...</div>';
+  await renderStretchAssistedList();
 }
 
 // ── CERRAR MODAL ────────────────────────────────────────────────
