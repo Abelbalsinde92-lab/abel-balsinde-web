@@ -2943,7 +2943,7 @@ async function loadAthleteSemaforo(clientId) {
   if (!panel) return;
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('v_athlete_semaforo')
       .select('*')
       .eq('client_id', clientId)
