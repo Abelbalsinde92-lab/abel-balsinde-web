@@ -7477,10 +7477,17 @@ function buildActiveSingleExerciseScreen(c,plan,block){
       ${exListHTML}
     </div>
 
-    <div class="wt2-footer">
-      <button class="btn btn-s" onclick="pauseWorkoutTimer()">⏸ Pausar</button>
-      <button class="btn btn-p" onclick="completeActiveExercise('${c.id}','${block.id}','${exId}')">✓ Marcar ejercicio</button>
-    </div>
+    <div class="wt2-footer" style="grid-template-columns:1fr 1fr 1.6fr">
+  <button class="btn btn-s" onclick="pauseWorkoutTimer()">Pausar</button>
+
+  <button class="btn btn-b" onclick="openLoadCalculator('${jsArg(c.id)}','${jsArg(getExerciseTitle(ex))}')">
+    Carga
+  </button>
+
+  <button class="btn btn-p" onclick="completeActiveExercise('${c.id}','${block.id}','${exId}')">
+    ✓ Marcar ejercicio
+  </button>
+</div>
     ${videoUrl?`<div style="text-align:center;padding-top:10px"><button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">🎬 Ver circuito completo</button></div>`:''}
   `;
 }
@@ -7709,9 +7716,14 @@ function buildCircuitExerciseCard(ex,index,clientId){
       <div class="wt2-metrics-grid">${metricsHTML}</div>
       <div style="display:flex;gap:8px;margin-top:4px">
         ${videoUrl?`<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`:''}
-        <button class="btn ${done?'btn-g':'btn-s'} btn-sm" style="flex:1" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
-          ${done?'✓ Hecho':'Marcar hecho'}
-        </button>
+
+<button class="btn btn-b btn-sm" onclick="openLoadCalculator('${jsArg(clientId)}','${jsArg(getExerciseTitle(ex))}')">
+  Carga
+</button>
+
+<button class="btn ${done?'btn-g':'btn-s'} btn-sm" style="flex:1" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
+  ${done?'✓ Hecho':'Marcar hecho'}
+</button>
       </div>
     </div>`;
 }
@@ -11831,44 +11843,81 @@ function setupRealtimeNotifications() {
 
 async function openLoadCalculator(clientId, exerciseName){
   const c = clientById(clientId);
-  if(!c) return;
 
-  // Cargar historial del ejercicio
-  const { data: history } = await db
-    .from('client_exercise_loads')
-    .select('*')
-    .eq('client_id', clientId)
-    .eq('exercise_name', exerciseName)
-    .order('training_date', { ascending: false })
-    .limit(5);
+  if(!c){
+    showToast('Cliente no encontrado', 'err');
+    return;
+  }
 
-  const last = history?.[0];
-  const last1RM = last?.estimated_1rm || '';
+  activeModal = { type:'loadCalculator', id:null };
 
-  document.getElementById('modal-title').textContent = '⚖ Calculador de carga';
-  document.getElementById('modal-form').innerHTML = `
+  const form = document.getElementById('modal-form');
+  const title = document.getElementById('modal-title');
+
+  if(!form || !title){
+    showToast('Modal no encontrado', 'err');
+    return;
+  }
+
+  form.onsubmit = e => e.preventDefault();
+  title.textContent = 'Calculador de carga';
+
+  let history = [];
+
+  try{
+    const { data, error } = await db
+      .from('client_exercise_loads')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('exercise_name', exerciseName)
+      .order('training_date', { ascending:false })
+      .limit(5);
+
+    if(error){
+      console.warn('Historial de cargas no disponible:', error);
+    }else{
+      history = data || [];
+    }
+  }catch(err){
+    console.warn('No se pudo cargar historial de cargas:', err);
+  }
+
+  const last = history?.[0] || null;
+
+  const safeClientId = jsArg(clientId);
+  const safeExerciseName = jsArg(exerciseName);
+
+  form.innerHTML = `
     <div style="font-family:var(--font-m);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sport);margin-bottom:12px">
       ${esc(exerciseName)}
     </div>
 
     ${last ? `
       <div style="background:rgba(0,200,232,.06);border:1px solid rgba(0,200,232,.2);border-radius:8px;padding:10px 12px;margin-bottom:14px">
-        <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">Última sesión · ${formatDate(last.training_date)}</div>
-        <div style="display:flex;gap:12px">
+        <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">
+          Última sesión · ${formatDate(last.training_date)}
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
           <span style="font-size:.82rem">${last.weight_kg}kg × ${last.reps} reps</span>
-          <span style="font-size:.82rem;color:var(--sport)">1RM est: ${last.estimated_1rm}kg</span>
+          <span style="font-size:.82rem;color:var(--sport)">1RM est: ${last.estimated_1rm || '—'}kg</span>
           ${last.rpe ? `<span style="font-size:.82rem;color:var(--warn)">RPE ${last.rpe}</span>` : ''}
         </div>
       </div>
-    ` : ''}
+    ` : `
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--divider);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:.78rem;color:var(--text-2);line-height:1.5">
+        Sin historial previo para este ejercicio.
+      </div>
+    `}
 
     <div class="fld-2">
       <div class="fld">
-        <label class="fld-l">Peso (kg)</label>
+        <label class="fld-l">Peso usado kg</label>
         <input id="calc-weight" class="fld-i fld-num" type="number" step="0.5" placeholder="80" oninput="calcLoad()">
       </div>
+
       <div class="fld">
-        <label class="fld-l">Reps</label>
+        <label class="fld-l">Reps logradas</label>
         <input id="calc-reps" class="fld-i fld-num" type="number" placeholder="5" oninput="calcLoad()">
       </div>
     </div>
@@ -11878,21 +11927,29 @@ async function openLoadCalculator(clientId, exerciseName){
         <label class="fld-l">Series</label>
         <input id="calc-sets" class="fld-i fld-num" type="number" placeholder="3">
       </div>
+
       <div class="fld">
-        <label class="fld-l">RPE (1-10)</label>
+        <label class="fld-l">RPE 1-10</label>
         <input id="calc-rpe" class="fld-i fld-num" type="number" step="0.5" min="1" max="10" placeholder="8" oninput="calcLoad()">
       </div>
     </div>
 
     <div id="calc-result" style="display:none;background:var(--bg);border:1px solid var(--card-border);border-radius:10px;padding:14px;margin:12px 0">
-      <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:10px">1RM estimado</div>
+      <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:10px">
+        1RM estimado
+      </div>
+
       <div id="calc-1rm" style="font-family:var(--font-d);font-size:2rem;color:var(--sport);line-height:1;margin-bottom:12px"></div>
+
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px" id="calc-percentages"></div>
     </div>
 
     <div class="fld-acts">
       <button type="button" class="btn btn-s" onclick="closeModal()">Cancelar</button>
-      <button type="button" class="btn btn-p" onclick="saveLoad('${clientId}','${esc(exerciseName)}')">Guardar</button>
+
+      <button type="button" class="btn btn-p" onclick="saveLoad('${safeClientId}','${safeExerciseName}')">
+        Guardar carga
+      </button>
     </div>
   `;
 
@@ -11947,22 +12004,26 @@ async function saveLoad(clientId, exerciseName){
 
   try{
     const { error } = await db.from('client_exercise_loads').insert({
+      id: uid(),
       client_id: clientId,
       exercise_name: exerciseName,
       weight_kg: weight,
-      reps,
+      reps: reps,
       sets: sets || null,
       rpe: rpe || null,
       estimated_1rm: orm || null,
-      training_date: todayISO()
+      training_date: todayISO(),
+      created_at: new Date().toISOString()
     });
 
     if(error) throw error;
 
     showToast('Carga guardada ✓', 'ok');
     closeModal();
+
   }catch(err){
-    showToast('Error: ' + err.message, 'err');
+    console.error('saveLoad error:', err);
+    showToast('Error guardando carga: ' + (err.message || ''), 'err');
   }
 }
 
