@@ -11775,7 +11775,7 @@ db.from('client_assessments').insert({
   const eid = uid();
   evalState.evaluacionId = eid;
 
-  db.from('evaluaciones').insert({
+  const { error: evalInsertError } = await db.from('evaluaciones').insert({
     id: eid,
     cliente_id: evalState.clientId,
     fecha: todayISO(),
@@ -11785,7 +11785,16 @@ db.from('client_assessments').insert({
     evaluation_mode: 'coach',
     evaluation_status: 'draft',
     assessment_id: aid,
-  }).then(({ error }) => {
+});
+if(evalInsertError) console.error('evaluaciones insert error:', evalInsertError);
+    coach_id: evalState.clientId,
+    fecha: todayISO(),
+    sexo: evalState.clientSexo,
+    edad: evalState.clientEdad,
+    evaluation_type: type,
+    evaluation_mode: 'coach',
+    evaluation_status: 'draft',
+    assessment_id: aid,
     if (error) console.warn('evaluaciones insert error (no bloquea):', error);
   });
 
