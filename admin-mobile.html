@@ -11521,9 +11521,9 @@ let evalState = {
   counterVal: 0,
 };
 
-const EVAL_TEMPLATES = {
-  general: '00000000-0000-0000-0000-000000000101',
-  atleta:  '00000000-0000-0000-0000-000000000102',
+const EVAL_TEMPLATE_CODES = {
+  general: 'general_n1_initial',
+  atleta: 'combat_n1_initial'
 };
 
 async function openEvalModal(clientId, clientName, sexo, edad) {
