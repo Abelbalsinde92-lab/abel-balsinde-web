@@ -474,6 +474,21 @@ a{text-decoration:none;color:inherit}
 .dose-chip.load strong{
   color:var(--streak);
 }
+.dose-chip.suggested-load{
+  border-color:rgba(0,200,232,.28);
+  background:rgba(0,200,232,.08);
+}
+.dose-chip.suggested-load strong{
+  color:var(--sport);
+}
+.load-note{
+  margin-top:8px;
+  font-family:var(--font-m);
+  font-size:.58rem;
+  letter-spacing:.04em;
+  color:var(--text-2);
+  line-height:1.45;
+}
 .dose-variant{
   margin-top:7px;
   font-family:var(--font-m);
@@ -2312,7 +2327,9 @@ const state = {
     adaptedWorkoutChecks:{},
   activeAdaptedBlockKey:null,
   workoutProgressLoaded:{},
-  workoutStateLoaded:{}
+  workoutStateLoaded:{},
+  sessionLoadCache:{},
+  activeWorkoutLoadPercentage:70
 };
 
 let currentScr='hoy';
@@ -2661,8 +2678,36 @@ function getAssignmentScope(a){
   ).toLowerCase();
 }
 
-/* Limpieza segura: removida función getFinishedAssignmentSessionIds (unreferenced, línea original 2663). */
+function getFinishedAssignmentSessionIds(assignmentId){
+  const finished = new Set();
 
+  (state.sessionLogs || [])
+    .filter(log => {
+      const logAssignmentId = log.assignmentId || log.assignment_id || '';
+      const logSessionId = log.sessionId || log.session_id || '';
+      const status = String(log.status || '').toLowerCase();
+
+      const isFinished =
+        log.isFinished === true ||
+        log.is_finished === true ||
+        status === 'realizada' ||
+        status === 'completed' ||
+        status === 'done' ||
+        Boolean(log.finishedAt || log.finished_at) ||
+        Boolean(log.completedAt || log.completed_at);
+
+      return (
+        String(logAssignmentId) === String(assignmentId) &&
+        String(logSessionId || '').trim() !== '' &&
+        isFinished
+      );
+    })
+    .forEach(log => {
+      finished.add(String(log.sessionId || log.session_id));
+    });
+
+  return finished;
+}
 
 function getAssignmentVisibleSessions(assignment){
   if(!assignment) return [];
@@ -2754,8 +2799,23 @@ function getAssignmentVisibleSessions(assignment){
   return sortByOrder(sessions);
 }
 
-/* Limpieza segura: removida función getNextVisibleSessionNumber (unreferenced, línea original 2784). */
+function getNextVisibleSessionNumber(assignment,currentSessionNumber){
+  const visible = getAssignmentVisibleSessions(assignment);
 
+  if(!visible.length) return Number(currentSessionNumber || 1);
+
+  const current = Number(currentSessionNumber || 1);
+
+  const idx = visible.findIndex(s =>
+    Number(getSessionNumberFromRow(s)) === current
+  );
+
+  if(idx >= 0 && idx < visible.length - 1){
+    return Number(getSessionNumberFromRow(visible[idx + 1])) || current;
+  }
+
+  return current;
+}
 
 function getBlockType(b){
   return cleanTxt(
@@ -3723,8 +3783,12 @@ function renderPerfil(){
   }
 }
 
-/* Limpieza segura: removida función switchPt (unreferenced, línea original 3768). */
-
+function switchPt(btn,id){
+  document.querySelectorAll('#perfil-content .pt').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('#perfil-content .ptc').forEach(x=>x.classList.remove('on'));
+  document.getElementById(id)?.classList.add('on');
+}
 </script>
 
 <script>
@@ -3848,8 +3912,10 @@ function groupAlerts(rows){
   });
 }
 
-/* Limpieza segura: removida función toggleAlertGroup (unreferenced, línea original 3897). */
-
+function toggleAlertGroup(key){
+  const el = document.getElementById('ag-' + CSS.escape(key));
+  if(el) el.classList.toggle('open');
+}
 
 function renderAlertas(){
   const effectiveRows = state.alertas.filter(a => !isFalsePositiveAlert(a) || filterAl === 'leidas' || filterAl === 'todas');
@@ -4504,11 +4570,24 @@ async function refreshAthletes(){
   return state.athletes;
 }
 
-/* Limpieza segura: removida función refreshAthleteDashboard (unreferenced, línea original 4555). */
+async function refreshAthleteDashboard(clientId){
+  const {data,error}=await db.rpc('get_athlete_dashboard',{
+    p_client_id:clientId
+  });
 
+  if(error) throw error;
 
-/* Limpieza segura: removida función backToAthleteDashboard (unreferenced, línea original 4570). */
+  const row=Array.isArray(data) ? data[0] : null;
 
+  if(!row) return null;
+
+  state.activeAthleteDashboard=snakeToCamel(row);
+  return state.activeAthleteDashboard;
+}
+
+function backToAthleteDashboard(clientId){
+  openAthleteDashboard(clientId);
+}
 
 function renderAtletas(){
      state.activeAthleteSection=null;
@@ -5738,6 +5817,8 @@ function buildWorkoutSessionControls(plan, c){
             <div class="fr" style="margin-bottom:12px">
       ${renderPathologyPills(c)}
     </div>
+
+    ${buildWorkoutLoadPercentagePills(plan)}
   `;
 }
 
@@ -6348,8 +6429,180 @@ return {
 };
 }
 
-/* Limpieza segura: removida función getExerciseDose (unreferenced, línea original 6412). */
 
+/* ─────────────────────────────────────────────
+   AB SYSTEM · CARGAS POR PORCENTAJE EN ADMIN FIELD
+   Usa RPC: ab_get_session_with_load_prescription
+────────────────────────────────────────────── */
+function getWorkoutLoadPercentage(){
+  const p = Number(state.activeWorkoutLoadPercentage || 70);
+  return [60,65,70,75,80,85].includes(p) ? p : 70;
+}
+
+function getActiveWorkoutSessionIdFromPlan(plan){
+  return String(plan?.sessions?.[0]?.id || '').trim();
+}
+
+function getSessionLoadCacheKey(clientId, sessionId, percentage){
+  return `${clientId || ''}__${sessionId || ''}__${percentage || 70}`;
+}
+
+function normalizeLoadRow(row){
+  const r = snakeToCamel(row || {});
+  return {
+    ...r,
+    exerciseId: r.exerciseId || r.exercise_id || '',
+    loadAvailable: !!(r.loadAvailable ?? r.load_available),
+    practicalLoadText: r.practicalLoadText || r.practical_load_text || '',
+    practicalTotalKg: r.practicalTotalKg ?? r.practical_total_kg ?? null,
+    practicalSideKg: r.practicalSideKg ?? r.practical_side_kg ?? null,
+    intensityZone: r.intensityZone || r.intensity_zone || '',
+    roundingNote: r.roundingNote || r.rounding_note || '',
+    trainingMaxKg: r.trainingMaxKg ?? r.training_max_kg ?? null,
+    sourceItemName: r.sourceItemName || r.source_item_name || '',
+    profileNote: r.profileNote || r.profile_note || '',
+    adminFieldNote: r.adminFieldNote || r.admin_field_note || ''
+  };
+}
+
+function mergeSessionLoadPrescriptionRows(rows){
+  const normalized = (rows || []).map(normalizeLoadRow);
+  const byExerciseId = new Map(
+    normalized
+      .filter(r => r.exerciseId)
+      .map(r => [String(r.exerciseId), r])
+  );
+
+  if(!byExerciseId.size) return [];
+
+  state.trainingExercises = state.trainingExercises.map(ex => {
+    const exId = String(ex.id || ex.exerciseId || ex.exercise_id || '');
+    const load = byExerciseId.get(exId);
+    if(!load) return ex;
+
+    return {
+      ...ex,
+      loadAvailable: load.loadAvailable,
+      load_available: load.loadAvailable,
+      loadPercentage: load.percentage,
+      load_percentage: load.percentage,
+      practicalLoadText: load.practicalLoadText,
+      practical_load_text: load.practicalLoadText,
+      practicalTotalKg: load.practicalTotalKg,
+      practical_total_kg: load.practicalTotalKg,
+      practicalSideKg: load.practicalSideKg,
+      practical_side_kg: load.practicalSideKg,
+      intensityZone: load.intensityZone,
+      intensity_zone: load.intensityZone,
+      roundingNote: load.roundingNote,
+      rounding_note: load.roundingNote,
+      trainingMaxKg: load.trainingMaxKg,
+      training_max_kg: load.trainingMaxKg,
+      sourceItemName: load.sourceItemName,
+      source_item_name: load.sourceItemName,
+      profileNote: load.profileNote,
+      profile_note: load.profileNote,
+      adminFieldNote: load.adminFieldNote,
+      admin_field_note: load.adminFieldNote
+    };
+  });
+
+  return normalized;
+}
+
+async function ensureSessionLoadPrescriptionLoaded(c, plan){
+  if(!c || !db) return [];
+
+  const sessionId = getActiveWorkoutSessionIdFromPlan(plan);
+  if(!sessionId) return [];
+
+  const percentage = getWorkoutLoadPercentage();
+  const cacheKey = getSessionLoadCacheKey(c.id, sessionId, percentage);
+
+  if(Array.isArray(state.sessionLoadCache[cacheKey])){
+    return mergeSessionLoadPrescriptionRows(state.sessionLoadCache[cacheKey]);
+  }
+
+  try{
+    const { data, error } = await db.rpc('ab_get_session_with_load_prescription', {
+      p_client_id: c.id,
+      p_session_id: sessionId,
+      p_percentage: percentage
+    });
+
+    if(error){
+      console.warn('ab_get_session_with_load_prescription error:', error);
+      return [];
+    }
+
+    const rows = data || [];
+    state.sessionLoadCache[cacheKey] = rows;
+    return mergeSessionLoadPrescriptionRows(rows);
+
+  }catch(err){
+    console.warn('No se pudo cargar prescripción de cargas:', err);
+    return [];
+  }
+}
+
+async function setWorkoutLoadPercentage(percentage){
+  const p = Number(percentage || 70);
+  state.activeWorkoutLoadPercentage = [60,65,70,75,80,85].includes(p) ? p : 70;
+  await renderWorkout();
+}
+
+function buildWorkoutLoadPercentagePills(plan){
+  const sessionId = getActiveWorkoutSessionIdFromPlan(plan);
+  if(!sessionId) return '';
+
+  const active = getWorkoutLoadPercentage();
+  const options = [60,65,70,75,80,85];
+
+  return `
+    <div class="fr" style="margin-bottom:12px">
+      <span class="fp" style="pointer-events:none;opacity:.78">Carga</span>
+      ${options.map(p => `
+        <button class="fp ${active === p ? 'on' : ''}" onclick="setWorkoutLoadPercentage(${p})">${p}%</button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function hasSuggestedLoad(ex){
+  return !!(ex?.loadAvailable || ex?.load_available) && !!(ex?.practicalLoadText || ex?.practical_load_text);
+}
+
+function getSuggestedLoadText(ex){
+  if(!hasSuggestedLoad(ex)) return '';
+  return ex.practicalLoadText || ex.practical_load_text || '';
+}
+
+function getSuggestedLoadNote(ex){
+  if(!hasSuggestedLoad(ex)) return '';
+  return ex.adminFieldNote || ex.admin_field_note || getSuggestedLoadText(ex) || '';
+}
+
+function getSuggestedLoadDetail(ex){
+  if(!hasSuggestedLoad(ex)) return '';
+
+  const parts = [];
+  const source = ex.sourceItemName || ex.source_item_name;
+  const round = ex.roundingNote || ex.rounding_note;
+
+  if(source) parts.push(`Base: ${source}`);
+  if(round) parts.push(round);
+
+  return parts.join(' · ');
+}
+
+function getExerciseDose(ex){
+  const parts=[];
+  if(ex.sets)parts.push(`${ex.sets} series`);if(ex.reps)parts.push(`${ex.reps} reps`);
+  if(ex.duration)parts.push(ex.duration);if(ex.rest)parts.push(`descanso ${ex.rest}`);if(ex.tempo)parts.push(`tempo ${ex.tempo}`);
+  const variant=ex.variantN1||ex.variant_n1||ex.variantN1Es||ex.variant_n1_es||'';
+  if(!parts.length&&variant)parts.push(variant);
+  return parts.length?parts.join(' · '):'Carga según ficha';
+}
 
 function doseVal(obj, keys){
   for(const k of keys){
@@ -6451,7 +6704,9 @@ function getDoseData(row){
     'cadencia'
   ]) || fallback.tempo || '';
 
-  const load = doseVal(row, [
+  const suggestedLoad = getSuggestedLoadText(row);
+
+  const load = suggestedLoad || doseVal(row, [
     'load',
     'carga',
     'weight',
@@ -6461,9 +6716,12 @@ function getDoseData(row){
     'rpe'
   ]);
 
+  const loadNote = getSuggestedLoadDetail(row);
+  const isSuggestedLoad = !!suggestedLoad;
+
   const variant = getDoseVariant(row);
 
-  return {sets,reps,duration,rest,tempo,load,variant};
+  return {sets,reps,duration,rest,tempo,load,variant,loadNote,isSuggestedLoad};
 }
 
 function buildDoseHTML(row){
@@ -6476,7 +6734,7 @@ function buildDoseHTML(row){
   if(d.duration) chips.push(`<span class="dose-chip work"><span>Trabajo</span><strong>${esc(d.duration)}</strong></span>`);
   if(d.rest) chips.push(`<span class="dose-chip rest"><span>Descanso</span><strong>${esc(d.rest)}</strong></span>`);
   if(d.tempo) chips.push(`<span class="dose-chip"><span>Tempo</span><strong>${esc(d.tempo)}</strong></span>`);
-  if(d.load) chips.push(`<span class="dose-chip load"><span>Carga</span><strong>${esc(d.load)}</strong></span>`);
+  if(d.load) chips.push(`<span class="dose-chip load ${d.isSuggestedLoad?'suggested-load':''}"><span>${d.isSuggestedLoad?'Carga sugerida':'Carga'}</span><strong>${esc(d.load)}</strong></span>`);
 
   if(!chips.length && !d.variant){
     return `<div class="ex-dose">Carga según ficha</div>`;
@@ -6484,6 +6742,7 @@ function buildDoseHTML(row){
 
   return `
     <div class="dose-grid">${chips.join('')}</div>
+    ${d.loadNote ? `<div class="load-note">${esc(d.loadNote)}</div>` : ''}
     ${d.variant ? `<div class="dose-variant">${esc(d.variant)}</div>` : ''}
   `;
 }
@@ -6552,8 +6811,11 @@ async function toggleWorkoutExercise(clientId,exId){
   }
 }
 
-/* Limpieza segura: removida función setWorkoutBlockDone (unreferenced, línea original 6622). */
-
+function setWorkoutBlockDone(clientId,blockId){
+  const exercises=state.trainingExercises.filter(e=>sameId(getExerciseBlockId(e),blockId));
+  exercises.forEach((ex,idx)=>{const exId=getExerciseId(ex,idx);state.workoutChecks[getWorkoutKey(clientId,exId)]=true});
+  renderWorkout();
+}
 
 function formatClock(seconds){
   const s=Math.max(0,Number(seconds||0));const h=Math.floor(s/3600);const m=Math.floor((s%3600)/60);const sec=s%60;
@@ -6639,8 +6901,15 @@ function startWorkoutTimer(){
   updateTimerControlsUI();
 }
 
-/* Limpieza segura: removida función pauseWorkoutTimer (duplicate_old, línea original 6712). */
-
+function pauseWorkoutTimer(){
+  state.workoutTimer.running=false;
+  if(state.workoutTimer.interval){
+    clearInterval(state.workoutTimer.interval);
+    state.workoutTimer.interval=null;
+  }
+  releaseScreenWake('workout-timer');
+  updateTimerControlsUI();
+}
 
 function advanceIntervalPhase(){
   const iv=state.workoutIntervals;
@@ -6761,13 +7030,15 @@ function buildTimerHTML(){
   </div>`;
 }
 
-/* Limpieza segura: removida función resetWorkoutTimer (unreferenced, línea original 6841). */
-
+function resetWorkoutTimer(clientId=null){
+  const cid=clientId||state.activeTrainingClientId||state.selectedClientId;
+  pauseWorkoutTimer();
+  if(cid){Object.keys(state.workoutChecks).forEach(k=>{if(k.startsWith(cid+'__'))delete state.workoutChecks[k]});state.workoutNotes[cid]=''}
+  state.workoutTimer.seconds=0;updateClockUI();renderWorkout();
+}
 function saveWorkoutNote(clientId,value){state.workoutNotes[clientId]=value}
 function getExerciseId(ex,fallbackIndex=0){return String(ex.id||ex.exerciseId||ex.exercise_id||`${ex.blockId||ex.block_id||'block'}-${ex.orderIndex||ex.order_index||fallbackIndex}-${ex.name||ex.nameEs||'exercise'}`)}
-
-/* Limpieza segura: removida función normTxt (unreferenced, línea original 6850). */
-
+function normTxt(v){return String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim()}
 
 function pickFirst(obj,keys){for(const k of keys){const v=obj?.[k];if(v!==null&&v!==undefined&&String(v).trim()!=='')return String(v).trim()}return''}
 function getVideoUrlFromRow(row){return pickFirst(row,['videoUrl','video_url','videoURL','url','video','link','youtubeUrl','youtube_url','youtube','driveUrl','drive_url','fileUrl','file_url'])}
@@ -7145,6 +7416,12 @@ async function openWorkoutBlock(blockIdRaw){
   */
   if(!loadedFromMobilityChain){
     await ensureBlockExercisesLoaded(blockId);
+    try{
+      const planForLoad = getWorkoutPlanForClient(c);
+      await ensureSessionLoadPrescriptionLoaded(c, planForLoad);
+    }catch(err){
+      console.warn('No se pudo aplicar cargas al bloque abierto:', err);
+    }
   }
 
   const loadedNow = state.trainingExercises.filter(e =>
@@ -7232,11 +7509,84 @@ async function completeActiveExercise(clientId,blockId,exId){
   backToWorkoutBlocks();
 }
 
-/* Limpieza segura: removida función buildWorkoutExerciseCard (unreferenced, línea original 7314). */
+function buildWorkoutExerciseCard(ex,index,clientId){
+  if(!canRenderFieldItem(ex)) return '';
+  const itemType = ex.fieldItemType || ex.field_item_type || 'exercise';
+  const displayMode = ex.fieldDisplayMode || ex.field_display_mode || 'exercise_card';
+  if(displayMode === 'locked_coach_card' || itemType === 'coach_protocol') return renderCoachProtocolCard(ex, index);
+  if(itemType === 'instruction') return renderInstructionCard(ex, index);
 
+  const exId=getExerciseId(ex,index);const done=isExerciseDone(clientId,exId);
+  const info = getExerciseInfo(ex);
+   const videoUrl = getExerciseVideoUrl(ex);
+   return`<div class="ex-card ${done?'done':''}">
+    <div class="ex-main"><div class="ex-top">
+      <div class="ex-num">${String(index+1).padStart(2,'0')}</div>
+      <div style="flex:1;min-width:0">
+        <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
+                ${buildDoseHTML(ex)}
+        ${buildFieldItemChips(ex)}
+        ${ex.description||ex.descriptionEs||ex.description_es?`<div class="ex-desc">${esc(ex.description||ex.descriptionEs||ex.description_es)}</div>`:''}
+      </div>
+    </div></div>
+    <div class="ex-mini">
+      <details><summary>Por qué</summary><p>${esc(info.why)}</p></details>
+      <details><summary>Técnica</summary><p>${esc(info.tech)}</p></details>
+      <details><summary>Respira</summary><p>${esc(info.breath)}</p></details>
+      <details><summary>Errores</summary><p>${esc(info.errors)}</p></details>
+      <details><summary>Coach</summary><p>${esc(info.coach)}</p></details>
+    </div>
+    <div class="ex-actions">
+      ${videoUrl?`<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`:`<button class="btn btn-s btn-sm" disabled>Sin vídeo</button>`}
+      <button class="btn btn-g btn-sm" onclick="openLoadCalculator('${clientId}','${jsArg(getExerciseTitle(ex))}','${jsArg(exId)}')">Carga</button>
+      <button class="btn ${done?'btn-g':'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">${done?'Terminado':'Marcar'}</button>
+    </div>
+  </div>`;
+}
 
-/* Limpieza segura: removida función buildNextExercisePreview (unreferenced, línea original 7349). */
+function buildNextExercisePreview(exercises, currentIndex){
+  const next = exercises[currentIndex + 1];
 
+  if(!next){
+    return `
+      <div class="card" style="border-left:3px solid var(--streak)">
+        <div class="card-body" style="padding:12px 14px">
+          <div class="dk" style="margin-bottom:5px">Siguiente paso</div>
+          <div style="font-family:var(--font-d);font-size:1.15rem;letter-spacing:.04em;color:var(--streak)">
+            Fin del bloque
+          </div>
+          <div style="font-size:.76rem;color:var(--text-2);line-height:1.5;margin-top:4px">
+            Al marcar terminado volverás a la lista de bloques.
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="card" style="border-left:3px solid var(--sport)">
+      <div class="card-body" style="padding:12px 14px">
+        <div class="dk" style="margin-bottom:5px">Preparar después</div>
+
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="ex-num" style="width:30px;height:30px">
+            ${String(currentIndex + 2).padStart(2,'0')}
+          </div>
+
+          <div style="flex:1;min-width:0">
+            <div style="font-family:var(--font-d);font-size:1.2rem;letter-spacing:.04em;line-height:1.05">
+              ${esc(getExerciseTitle(next))}
+            </div>
+
+            <div style="font-size:.74rem;color:var(--text-2);line-height:1.45;margin-top:4px">
+              Solo preparación del coach. Se abrirá al terminar el ejercicio actual.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
 function buildActiveSingleExerciseScreen(c,plan,block){
   const exercises=block.exercises||[];
@@ -7260,7 +7610,7 @@ function buildActiveSingleExerciseScreen(c,plan,block){
   if(d.duration) metricItems.push({i:'⏱',v:d.duration,l:'Trabajo'});
   if(d.rest) metricItems.push({i:'⏸',v:d.rest,l:'Descanso'});
   if(d.tempo) metricItems.push({i:'〜',v:d.tempo,l:'Tempo'});
-  if(d.load) metricItems.push({i:'⚖',v:d.load,l:'Carga'});
+  if(d.load) metricItems.push({i:'⚖',v:d.load,l:d.isSuggestedLoad?'Carga sugerida':'Carga'});
   if(d.variant&&!metricItems.length) metricItems.push({i:'◎',v:d.variant.slice(0,12),l:'Variante'});
   while(metricItems.length<4) metricItems.push(null);
 
@@ -7276,6 +7626,8 @@ function buildActiveSingleExerciseScreen(c,plan,block){
     </div>`).join('');
 
   const objetivo=d.variant||ex.description||ex.descriptionEs||ex.description_es||'';
+  const suggestedLoadNote = getSuggestedLoadNote(ex);
+  const suggestedLoadDetail = getSuggestedLoadDetail(ex);
 
   // Lista ejercicios del bloque
   const exListHTML=exercises.map((e,i)=>{
@@ -7314,6 +7666,7 @@ function buildActiveSingleExerciseScreen(c,plan,block){
     <div class="wt2-ex-card">
       <div class="wt2-ex-title">${esc(getExerciseTitle(ex))}</div>
       <div class="wt2-metrics-grid">${metricsHTML}</div>
+      ${suggestedLoadNote?`<div class="wt2-objetivo" style="border-left-color:var(--sport)"><strong>Carga:</strong> ${esc(suggestedLoadNote)}${suggestedLoadDetail?`<br><span style="color:var(--text-2)">${esc(suggestedLoadDetail)}</span>`:''}</div>`:''}
       ${objetivo?`<div class="wt2-objetivo"><strong>Objetivo:</strong> ${esc(objetivo)}</div>`:''}
       <div class="wt2-tabs-wrap">
         <div class="wt2-tabs-nav">
@@ -7608,8 +7961,53 @@ function buildCircuitExerciseCard(ex,index,clientId){
     </div>`;
 }
 
-/* Limpieza segura: removida función completeCircuitBlock (unreferenced, línea original 7763). */
+async function completeCircuitBlock(clientId,blockId){
+  const c = clientById(clientId);
 
+  if(!c){
+    showToast('Cliente no encontrado','err');
+    return;
+  }
+
+  const plan = getWorkoutPlanForClient(c);
+  const block = plan.blocks.find(b => String(b.id) === String(blockId));
+
+  if(!block){
+    showToast('Bloque no encontrado','err');
+    return;
+  }
+
+  const blockName = getBlockName(block);
+  const promises = [];
+
+  (block.exercises || []).forEach((ex,idx) => {
+    const exId = getExerciseId(ex,idx);
+    state.workoutChecks[getWorkoutKey(clientId,exId)] = true;
+
+    promises.push(
+      saveWorkoutProgressRow({
+        c,
+        exerciseKey: exId,
+        exerciseName: getExerciseTitle(ex),
+        blockKey: blockId,
+        blockName,
+        isAdapted: false,
+        isDone: true
+      })
+    );
+  });
+
+  try{
+    await Promise.all(promises);
+    await persistCurrentSessionState(c);
+    showToast('Circuito terminado ✓','ok');
+  }catch(err){
+    console.error('Error guardando circuito:', err);
+        showToast('Local ✓ · ' + (err?.message?.slice(0,35) || 'sin conexión'), 'err');
+  }
+
+  backToWorkoutBlocks();
+}
 
 function jsArg(v){
   return String(v ?? '')
@@ -7742,8 +8140,55 @@ function buildClientConditionCard(c){
   `;
 }
 
-/* Limpieza segura: removida función detectPathologyForClient (unreferenced, línea original 7942). */
+function detectPathologyForClient(c){
+  const manual = state.manualPathologyByClient?.[c.id];
+  if(manual === 'normal') return null;
+  if(manual) return manual;
 
+  const activeCondition = getActiveConditionForClient(c);
+  if(activeCondition){
+    return activeCondition.conditionKey || activeCondition.condition_key || null;
+  }
+
+  const ci = getClientTodayCheckin(c.id);
+  if(!ci) return null;
+
+  // ── Detección numérica: fatiga alta ──
+  const energy = Number(ci.energyLevel ?? ci.energy_level ?? 10);
+  const sleep  = Number(ci.sleepQuality ?? ci.sleep_quality ?? 10);
+  if(energy <= 2 || (energy <= 3 && sleep <= 3)){
+    return 'fatiga_alta';
+  }
+
+  const txt = String(ci.comment || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'');
+
+  // Patrones negativos — si aparecen, no activar adaptación
+  const neg = [
+    'sin dolor','sin molestia','no tengo dolor',
+    'todo bien','estoy bien','sin problemas','todo ok'
+  ];
+  if(neg.some(x => txt.includes(x))) return null;
+
+  // ── Detección por texto, de más específico a más general ──
+
+  const patrones = [
+    ['rodilla',    ['rodilla','menisco','rotula','ligamento rodilla']],
+    ['hombro',     ['hombro','manguito','deltoides','supraespinoso','impingement','escapula','omoplato']],
+    ['cervical',   ['cervical','cervicales','cuello','nuca','cervicalgia','torticolis','contractura cuello']],
+    ['tobillo',    ['tobillo','esguince','torcedura','ligamento tobillo']],
+    ['dolor_lumbar',['lumbar','lumbalgia','espalda baja','zona lumbar','dolor lumbar','dolor de espalda','espalda']],
+    ['fatiga_alta', ['muy cansado','agotado','exhausto','sin energia','no dormi','apenas dormi','fatiga','extenuado','sobreentrenamiento']]
+  ];
+
+  for(const [key, keywords] of patrones){
+    if(keywords.some(k => txt.includes(k))) return key;
+  }
+
+  return null;
+}
 
 function detectAllPathologiesForClient(c) {
   const result = { physical: null, hasFatiga: false, all: [] };
@@ -7879,8 +8324,14 @@ function getVisibleSessionPositions(assignment){
     );
 }
 
-/* Limpieza segura: removida función getAssignmentSessionNumber (duplicate_old, línea original 8126). */
-
+function getAssignmentSessionNumber(a){
+  return Number(
+    state.activeWorkoutSessionNumber ||
+    a?.assignedSessionNumber ||
+    a?.assigned_session_number ||
+    1
+  );
+}
 
 function getStoredAssignmentSessionNumber(a){
   return Number(
@@ -8072,8 +8523,99 @@ function buildFrontendAdaptedRows(plan, pathology){
   return rows;
 }
 
-/* Limpieza segura: removida función applyLumbarFrontendFallback (unreferenced, línea original 8325). */
+function applyLumbarFrontendFallback(rows, pathology){
+  if(pathology !== 'dolor_lumbar') return rows || [];
 
+  const usedFinalNames = new Set();
+
+  return (rows || []).map(r => {
+
+    const estado = String(r.estado_ejercicio || '').toLowerCase();
+
+    // Si Supabase ya hizo sustitución real → respetar
+    if(estado === 'sustituido') return r;
+
+    const fb = getLumbarFrontendFallback(r);
+
+    if(!fb) return r;
+
+    // Evitar repetir exactamente el mismo ejercicio adaptado
+    let finalName = fb.final;
+
+    if(usedFinalNames.has(finalName)){
+      finalName = finalName + ' · Variante';
+    }
+
+    usedFinalNames.add(finalName);
+
+    return {
+      ...r,
+
+      // SOLO campos mínimos
+      estado_ejercicio:'sustituido',
+
+      ejercicio_original:
+        r.ejercicio_original ||
+        r.ejercicio_final ||
+        r.name ||
+        '',
+
+      ejercicio_final: finalName,
+
+      // Mantener estructura original
+      why_text:
+        r.why_text ||
+        r.description ||
+        '',
+
+      technique_text:
+        r.technique_text ||
+        '',
+
+      breathing_text:
+        r.breathing_text ||
+        '',
+
+      coaching_notes:
+        r.coaching_notes ||
+        fb.coach,
+
+      explicacion_breve_coach:
+        r.explicacion_breve_coach ||
+        fb.coach,
+
+      explicacion_cliente:
+        r.explicacion_cliente ||
+        fb.cliente,
+
+      nivel_riesgo:
+        r.nivel_riesgo ||
+        fb.riesgo,
+
+      // IMPORTANTÍSIMO:
+      // NO borrar variantes ni datos originales
+      variant_n1: r.variant_n1,
+      variant_n2: r.variant_n2,
+      variant_n3: r.variant_n3,
+      variant_n4: r.variant_n4,
+
+      sets: r.sets,
+      reps: r.reps,
+      duration: r.duration,
+      rest: r.rest,
+      tempo: r.tempo,
+
+      video_url:
+        r.video_sustituto ||
+        r.video_url ||
+        '',
+
+      mensaje_cliente_whatsapp:
+        r.mensaje_cliente_whatsapp ||
+        'Durante los próximos días vamos a trabajar con una adaptación temporal enfocada en control técnico, estabilidad y reducción de carga lumbar.'
+    };
+  });
+}
 
 async function getAdaptedRowsForClient(c){
   const plan = getWorkoutPlanForClient(c);
@@ -8394,8 +8936,14 @@ function adaptedStatusText(r){
   return 'Normal';
 }
 
-/* Limpieza segura: removida función adaptedStatusKind (unreferenced, línea original 8738). */
-
+function adaptedStatusKind(r){
+  const st = String(r.estado_ejercicio || 'normal');
+  if(st === 'sustituido') return 'alerta';
+  if(st === 'modificado') return 'revisar';
+  if(st === 'mantener') return 'normal';
+  if(st === 'derivar') return 'critica';
+  return 'info';
+}
 
 function adaptedBorderStyle(r){
   const st = String(r.estado_ejercicio || 'normal');
@@ -8873,6 +9421,7 @@ async function renderWorkout(){
 
   const basePlan = getWorkoutPlanForClient(c);
   await loadPersistedWorkoutProgress(c, basePlan);
+  await ensureSessionLoadPrescriptionLoaded(c, basePlan);
 
   const adapted = await getAdaptedRowsForClient(c);
 
@@ -9037,8 +9586,44 @@ function workoutStepLabel(week, session){
   return `Semana ${Number(week || 1)} · Día ${sessionLetter(session)}`;
 }
 
-/* Limpieza segura: removida función buildWorkoutStepCard (unreferenced, línea original 9387). */
+function buildWorkoutStepCard(plan){
+  const assignment = plan?.assignment;
 
+  if(!assignment) return '';
+
+  const currentWeek = getAssignmentWeek(assignment);
+  const currentSession = getAssignmentSessionNumber(assignment);
+  const scope = getAssignmentScope(assignment);
+
+  const next = scope === 'day'
+    ? null
+    : getNextTrainingPosition(plan, currentWeek, currentSession);
+
+  return `
+    <div class="card" style="border-left:3px solid var(--sport)">
+      <div class="card-body" style="padding:12px 14px">
+        <div class="card-title" style="margin-bottom:8px">
+          Próximo paso
+          ${badge(getAssignmentScopeLabel(scope),'info')}
+        </div>
+
+        <div class="dr">
+          <span class="dk">Activo ahora</span>
+          <span class="dv" style="color:var(--sport)">
+            ${esc(workoutStepLabel(currentWeek,currentSession))}
+          </span>
+        </div>
+
+        <div class="dr">
+          <span class="dk">Al cerrar</span>
+          <span class="dv val-wrap">
+            ${next ? esc(workoutStepLabel(next.week,next.session)) : 'No avanza automáticamente'}
+          </span>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
 function clearWorkoutLocalProgressForClient(clientId){
   Object.keys(state.workoutChecks || {}).forEach(k => {
@@ -9365,11 +9950,18 @@ function buildCheckoutHTML(c){
   `;
 }
 
-/* Limpieza segura: removida función selectCoField (unreferenced, línea original 9751). */
+function selectCoField(field, value, gridId){
+  document.querySelectorAll('#' + gridId + ' .fp').forEach(b => b.classList.remove('on'));
+  const prefix = {rpe:'rpe', soreness:'sore', breath:'breath', fatigue:'fatigue'}[field] || field;
+  document.getElementById(prefix + '-' + value)?.classList.add('on');
+  const input = document.getElementById('co-' + field);
+  if(input) input.value = value;
+}
 
-
-/* Limpieza segura: removida función toggleZone (unreferenced, línea original 9759). */
-
+function toggleZone(v){
+  const wrap = document.getElementById('co-zone-wrap');
+  if(wrap) wrap.style.display = v !== 'Ninguna' ? '' : 'none';
+}
 
 async function submitCheckout(clientId){
   const rpe      = document.getElementById('co-rpe')?.value || '';
@@ -9775,9 +10367,43 @@ async function renderStretchAssistedList() {
 }
 
 // ── ABRIR MODAL ─────────────────────────────────────────────────
+async function openStretching(clientId, clientName) {
+    stretchClientId   = clientId || null;
+  stretchClientName = clientName || '';
+  stretchMode       = null;
+  stretchZone       = null;
+  stretchExercises  = [];
+  stretchIndex      = 0;
 
-/* Limpieza segura: removida función openStretching (unreferenced, línea original 10169). */
+  stopStretchTimerBase();
 
+  const modal   = document.getElementById('modal-stretching');
+  const content = document.getElementById('stretch-content');
+
+  if (!modal) {
+    showToast('Modal de estiramientos no encontrado', 'err');
+    return;
+  }
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  if (content) {
+    content.innerHTML = '<div class="stretch-loading">Preparando guía de estiramientos...</div>';
+  }
+
+  if (stretchClientId) {
+    await loadStretchSafetyBase(stretchClientId);
+  } else {
+    stretchSafety = {
+      conditions: [],
+      injuries: [],
+      rules: []
+    };
+  }
+
+  renderStretch();
+}
 
 async function openStretchingAssisted(clientId, clientName){
   stretchClientId   = clientId || null;
@@ -9810,9 +10436,16 @@ function closeStretching() {
 }
 
 // ── TIMER BASE, SOLO PARA LIMPIAR ESTADO ─────────────────────────
+function stopStretchTimerBase() {
+  stretchTimerActive = false;
 
-/* Limpieza segura: removida función stopStretchTimerBase (duplicate_old, línea original 10238). */
+  if (stretchTimerInt) {
+    clearInterval(stretchTimerInt);
+  }
 
+  stretchTimerInt = null;
+  stretchTimerSecs = 0;
+}
 
 // ── VOLVER A ZONAS ──────────────────────────────────────────────
 function backToStretchZones() {
@@ -9824,9 +10457,14 @@ function backToStretchZones() {
 }
 
 // ── SELECCIÓN DE ZONA, POR AHORA SIN SUPABASE ───────────────────
+function selectStretchZone(zoneKey) {
+  stretchZone = zoneKey;
+  stretchExercises = [];
+  stretchIndex = 0;
+  stopStretchTimerBase();
 
-/* Limpieza segura: removida función selectStretchZone (duplicate_old, línea original 10259). */
-
+  renderStretchZonePlaceholder();
+}
 
 // ── RENDER: SELECTOR DE ZONA ────────────────────────────────────
 function renderStretchZoneSelector() {
@@ -9882,9 +10520,12 @@ function renderStretchZonePlaceholder() {
 // ================================================================
 
 // ── NORMALIZAR TEXTO PARA BÚSQUEDA ──────────────────────────────
-
-/* Limpieza segura: removida función stretchNormalizeText (unreferenced, línea original 10322). */
-
+function stretchNormalizeText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
 
 // ── CARGAR EJERCICIOS DESDE mobility_chain_exercises ────────────
 async function loadZoneExercises(zoneKey) {
@@ -10135,9 +10776,67 @@ function renderStretchList() {
 
 // ── ABRIR EJERCICIO BÁSICO ──────────────────────────────────────
 // Temporal: en el paso siguiente añadimos timer, respiración y navegación.
+function openStretchExerciseBasic(index) {
+  stretchIndex = index;
 
-/* Limpieza segura: removida función openStretchExerciseBasic (duplicate_old, línea original 10578). */
+  const el = document.getElementById('stretch-content');
+  if (!el) return;
 
+  const exercise = stretchExercises[stretchIndex];
+
+  el.innerHTML = `
+    <div class="stretch-back">
+      <button class="btn btn-sm" onclick="renderStretchList()">← Lista</button>
+      <span class="stretch-progress">${stretchIndex + 1} / ${stretchExercises.length}</span>
+    </div>
+
+    <div class="stretch-exec-card">
+      <div class="stretch-exec-name">
+        ${stretchEscHTML(exercise.name || 'Ejercicio sin nombre')}
+      </div>
+
+      ${
+        exercise.duration
+          ? `<div class="stretch-exec-reps">${stretchEscHTML(exercise.duration)}</div>`
+          : ''
+      }
+
+      ${
+        exercise.reps
+          ? `<div class="stretch-exec-reps">${stretchEscHTML(exercise.reps)}</div>`
+          : ''
+      }
+
+      ${
+        exercise.description
+          ? `<div class="stretch-exec-desc">${stretchEscHTML(exercise.description)}</div>`
+          : ''
+      }
+
+      ${
+        exercise.breathing_cue
+          ? `
+            <div class="stretch-cue">
+              <span class="stretch-cue-label">Respiración</span>
+              <span>${stretchEscHTML(exercise.breathing_cue)}</span>
+            </div>
+          `
+          : ''
+      }
+
+      ${
+        exercise.coaching_notes
+          ? `
+            <div class="stretch-cue">
+              <span class="stretch-cue-label">Coach</span>
+              <span>${stretchEscHTML(exercise.coaching_notes)}</span>
+            </div>
+          `
+          : ''
+      }
+    </div>
+  `;
+}
 
 // ================================================================
 // AB SYSTEM — GUÍA DE ESTIRAMIENTOS
@@ -10688,15 +11387,17 @@ function startEvalFromForm(type) {
 }
 
 /* Compatibilidad: ya no usamos pantalla separada */
+function renderEvalSetup() {
+  renderEvalStartScreen();
+}
 
-/* Limpieza segura: removida función renderEvalSetup (unreferenced, línea original 11189). */
+function renderEvalTypeSelect() {
+  renderEvalStartScreen();
+}
 
-
-/* Limpieza segura: removida función renderEvalTypeSelect (unreferenced, línea original 11192). */
-
-
-/* Limpieza segura: removida función confirmEvalSetup (unreferenced, línea original 11196). */
-
+function confirmEvalSetup() {
+  startEvalFromForm('general');
+}
 
 async function startEval(type) {
   evalState.type = type;
