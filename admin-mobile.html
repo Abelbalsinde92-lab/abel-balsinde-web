@@ -7309,7 +7309,7 @@ function buildWorkoutExerciseCard(ex,index,clientId){
     </div>
     <div class="ex-actions">
       ${videoUrl?`<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`:`<button class="btn btn-s btn-sm" disabled>Sin vídeo</button>`}
-      <button class="btn btn-g btn-sm" onclick="openLoadCalculator('${clientId}','${esc(getExerciseTitle(ex))}')">⚖ Carga</button>
+      <button class="btn btn-g btn-sm" onclick="openLoadCalculator('${clientId}','${jsArg(getExerciseTitle(ex))}','${jsArg(exId)}')">Carga</button>
       <button class="btn ${done?'btn-g':'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">${done?'Terminado':'Marcar'}</button>
     </div>
   </div>`;
@@ -7672,10 +7672,11 @@ function buildActiveCircuitScreen(c,plan,block){
     ${exercises.length?exercises.map((ex,idx)=>buildCircuitExerciseCard(ex,idx,c.id)).join(''):`
       <div class="wt-empty">Este circuito no tiene ejercicios cargados.</div>`}
 
-    <div class="wt2-footer">
-      <button class="btn btn-s" onclick="pauseWorkoutTimer()">⏸ Pausar</button>
-      <button class="btn btn-p" onclick="completeCircuitBlock('${c.id}','${block.id}')">✓ Circuito terminado</button>
-    </div>
+    <div class="wt2-footer" style="grid-template-columns:1fr 1fr 1.5fr">
+  <button class="btn btn-s" onclick="pauseWorkoutTimer()">Pausar</button>
+  <button class="btn btn-b" onclick="openLoadCalculator('${c.id}','${jsArg(getExerciseTitle(ex))}','${jsArg(exId)}')">Carga</button>
+  <button class="btn btn-p" onclick="completeActiveExercise('${c.id}','${block.id}','${exId}')">Marcar</button>
+</div>
   `;
 }
 
@@ -11841,51 +11842,448 @@ function setupRealtimeNotifications() {
   console.log('AB Realtime notifications activas ✓');
 }
 
-async function openLoadCalculator(clientId, exerciseName){
-  const c = clientById(clientId);
+/* ═══ AB SYSTEM · SELECTOR INTELIGENTE DE CARGAS ═══ */
 
-  if(!c){
-    showToast('Cliente no encontrado', 'err');
-    return;
+function abClamp(n,min,max){
+  n = Number(n);
+  if(!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, n));
+}
+
+function abRoundKg(v, step = 2.5){
+  v = Number(v || 0);
+  if(!v) return 0;
+  return Math.round(v / step) * step;
+}
+
+const LOAD_GOAL_ZONES = {
+  tecnica:              {min:50, max:65, rpeMin:5, rpeMax:6, label:'Técnica / aprendizaje'},
+  activacion:           {min:20, max:50, rpeMin:3, rpeMax:5, label:'Activación'},
+  fuerza_base:          {min:65, max:80, rpeMin:6, rpeMax:8, label:'Fuerza base'},
+  hipertrofia:          {min:60, max:75, rpeMin:7, rpeMax:8, label:'Hipertrofia / fuerza general'},
+  fuerza_maxima:        {min:85, max:95, rpeMin:8, rpeMax:9.5, label:'Fuerza máxima'},
+  potencia:             {min:30, max:60, rpeMin:4, rpeMax:6, label:'Potencia / velocidad'},
+  resistencia_muscular: {min:40, max:65, rpeMin:6, rpeMax:8, label:'Resistencia muscular'},
+  deload:               {min:40, max:60, rpeMin:4, rpeMax:6, label:'Deload / descarga'},
+  readaptacion:         {min:30, max:55, rpeMin:3, rpeMax:6, label:'Readaptación'},
+  core_control:         {min:30, max:55, rpeMin:4, rpeMax:6, label:'Core / control'}
+};
+
+const LOAD_PHASE_CAPS = {
+  base:           {min:50, max:80, label:'Base general'},
+  acumulacion:    {min:60, max:82, label:'Acumulación'},
+  intensificacion:{min:70, max:90, label:'Intensificación'},
+  fuerza_maxima:  {min:82, max:95, label:'Fuerza máxima'},
+  potencia:       {min:30, max:65, label:'Potencia'},
+  precompetitiva: {min:55, max:85, label:'Precompetitiva'},
+  taper:          {min:40, max:70, label:'Taper / semana competición'},
+  postcompetitiva:{min:30, max:60, label:'Postcompetitiva / recuperación'},
+  deload:         {min:40, max:60, label:'Deload'},
+  readaptacion:   {min:30, max:55, label:'Readaptación'}
+};
+
+function findExerciseInPlanForLoad(plan, exId, exerciseName){
+  const nameNorm = cleanTxt(exerciseName || '');
+
+  for(const block of plan?.blocks || []){
+    for(let i=0; i<(block.exercises || []).length; i++){
+      const ex = block.exercises[i];
+      const eid = getExerciseId(ex,i);
+
+      if(exId && String(eid) === String(exId)){
+        return {ex, block, index:i};
+      }
+
+      if(!exId && cleanTxt(getExerciseTitle(ex)) === nameNorm){
+        return {ex, block, index:i};
+      }
+    }
   }
 
-  activeModal = { type:'loadCalculator', id:null };
+  return {ex:null, block:null, index:-1};
+}
+
+function getLoadContext(clientId, exerciseName, exId = null){
+  const c = clientById(clientId);
+  const plan = c ? getWorkoutPlanForClient(c) : null;
+  const found = plan ? findExerciseInPlanForLoad(plan, exId, exerciseName) : {};
+
+  return {
+    c,
+    plan,
+    assignment: plan?.assignment || null,
+    program: plan?.program || null,
+    week: plan?.week || null,
+    ex: found.ex || null,
+    block: found.block || null,
+    exerciseName
+  };
+}
+
+function exerciseUsesPercentLoad(ex, exerciseName){
+  const explicit = ex?.usesLoadPercent ?? ex?.uses_load_percent;
+
+  if(explicit === true || explicit === 'true') return true;
+  if(explicit === false || explicit === 'false') return false;
+
+  const txt = cleanTxt([
+    exerciseName,
+    ex?.name,
+    ex?.nameEs,
+    ex?.videoFamily,
+    ex?.video_family,
+    ex?.movementPatternKey,
+    ex?.movement_pattern_key,
+    ex?.athleteCapacityKey,
+    ex?.athlete_capacity_key
+  ].join(' '));
+
+  const deny = [
+    'estiramiento','stretch','movilidad','mobility',
+    'respiracion','respiración','dead bug','bird dog',
+    'plancha','plank','correctivo','activacion suave'
+  ];
+
+  if(deny.some(x => txt.includes(x))) return false;
+
+  const allow = [
+    'sentadilla','squat','goblet','peso muerto','deadlift',
+    'press','banca','bench','remo','row','hip thrust',
+    'dominada','pull up','jalon','jalón','prensa','leg press',
+    'curl','extension','extensión','zancada','lunge',
+    'kettlebell','mancuerna','barra','maquina','máquina'
+  ];
+
+  return allow.some(x => txt.includes(x));
+}
+
+function classifyLoadGoal(ctx){
+  const txt = cleanTxt([
+    ctx.block ? getBlockName(ctx.block) : '',
+    ctx.block ? getBlockType(ctx.block) : '',
+    ctx.block ? getBlockObjective(ctx.block) : '',
+    ctx.block ? getBlockDescription(ctx.block) : '',
+    ctx.ex?.athleteCapacityKey,
+    ctx.ex?.athlete_capacity_key,
+    ctx.ex?.movementPatternKey,
+    ctx.ex?.movement_pattern_key,
+    ctx.ex?.name,
+    ctx.exerciseName
+  ].join(' '));
+
+  if(txt.includes('fuerza maxima') || txt.includes('maxima') || txt.includes('máxima')) return 'fuerza_maxima';
+  if(txt.includes('potencia') || txt.includes('explosiv') || txt.includes('velocidad')) return 'potencia';
+  if(txt.includes('hipertrofia') || txt.includes('volumen')) return 'hipertrofia';
+  if(txt.includes('resistencia') || txt.includes('hiit') || txt.includes('circuito')) return 'resistencia_muscular';
+  if(txt.includes('deload') || txt.includes('descarga')) return 'deload';
+  if(txt.includes('readapt') || txt.includes('correctivo') || txt.includes('dolor')) return 'readaptacion';
+  if(txt.includes('tecnica') || txt.includes('técnica') || txt.includes('aprendizaje')) return 'tecnica';
+  if(txt.includes('activacion') || txt.includes('activación') || txt.includes('calentamiento')) return 'activacion';
+  if(txt.includes('core') || txt.includes('anti rotacion') || txt.includes('antirotacion')) return 'core_control';
+  if(txt.includes('fuerza')) return 'fuerza_base';
+
+  return 'fuerza_base';
+}
+
+function classifyLoadPhase(ctx){
+  const txt = cleanTxt([
+    ctx.assignment?.phaseType,
+    ctx.assignment?.phase_type,
+    ctx.week?.phaseType,
+    ctx.week?.phase_type,
+    ctx.program?.phaseType,
+    ctx.program?.phase_type,
+    ctx.program?.name,
+    ctx.program?.nameEs,
+    ctx.block ? getBlockName(ctx.block) : ''
+  ].join(' '));
+
+  if(txt.includes('deload') || txt.includes('descarga')) return 'deload';
+  if(txt.includes('readapt')) return 'readaptacion';
+  if(txt.includes('postcompet')) return 'postcompetitiva';
+  if(txt.includes('taper') || txt.includes('competicion') || txt.includes('competición')) return 'taper';
+  if(txt.includes('precompet')) return 'precompetitiva';
+  if(txt.includes('fuerza maxima') || txt.includes('fuerza máxima')) return 'fuerza_maxima';
+  if(txt.includes('intensificacion') || txt.includes('intensificación')) return 'intensificacion';
+  if(txt.includes('acumulacion') || txt.includes('acumulación')) return 'acumulacion';
+  if(txt.includes('potencia')) return 'potencia';
+
+  return 'base';
+}
+
+function applyPhaseCap(zone, phaseKey){
+  const cap = LOAD_PHASE_CAPS[phaseKey] || LOAD_PHASE_CAPS.base;
+
+  let min = abClamp(zone.min, cap.min, cap.max);
+  let max = abClamp(zone.max, cap.min, cap.max);
+
+  if(min > max){
+    min = cap.min;
+    max = cap.max;
+  }
+
+  return {
+    ...zone,
+    min,
+    max,
+    phaseLabel: cap.label
+  };
+}
+
+function applyReadinessModifier(zone, c){
+  const ci = c ? getClientTodayCheckin(c.id) : null;
+  if(!ci) return zone;
+
+  const energy = Number(ci.energyLevel ?? ci.energy_level ?? 10);
+  const sleep  = Number(ci.sleepQuality ?? ci.sleep_quality ?? 10);
+  const sore   = Number(ci.sorenessLevel ?? ci.soreness_level ?? ci.painLevel ?? ci.pain_level ?? 0);
+  const st     = getCheckinStatus(ci);
+
+  let reduce = 0;
+  const adjustments = [...(zone.adjustments || [])];
+
+  if(st === 'alerta' || energy <= 2 || sleep <= 2 || sore >= 4){
+    reduce = 15;
+    adjustments.push('Fatiga/alerta alta: carga reducida 15%.');
+  }else if(st === 'revisar' || energy <= 3 || sleep <= 3 || sore >= 3){
+    reduce = 10;
+    adjustments.push('Check-in a revisar: carga reducida 10%.');
+  }
+
+  if(!reduce) return zone;
+
+  return {
+    ...zone,
+    min: Math.max(20, zone.min - reduce),
+    max: Math.max(25, zone.max - reduce),
+    rpeMin: Math.max(1, zone.rpeMin - 1),
+    rpeMax: Math.max(2, zone.rpeMax - 1),
+    adjustments
+  };
+}
+
+function loadRiskForPathology(ex, exerciseName, pathology){
+  const txt = cleanTxt([
+    exerciseName,
+    ex?.name,
+    ex?.nameEs,
+    ex?.movementPatternKey,
+    ex?.movement_pattern_key,
+    ex?.videoFamily,
+    ex?.video_family
+  ].join(' '));
+
+  if(!pathology) return 'none';
+
+  if(pathology === 'dolor_lumbar'){
+    if(['swing','peso muerto','deadlift','good morning','burpee','salto','jump','bisagra explosiva'].some(x => txt.includes(x))) return 'high';
+    if(['sentadilla','squat','goblet','remo','row','zancada','lunge'].some(x => txt.includes(x))) return 'medium';
+  }
+
+  if(pathology === 'rodilla'){
+    if(['salto','jump','burpee','zancada','lunge','sentadilla profunda'].some(x => txt.includes(x))) return 'high';
+    if(['sentadilla','squat','prensa','leg press','step'].some(x => txt.includes(x))) return 'medium';
+  }
+
+  if(pathology === 'hombro'){
+    if(['press militar','overhead','snatch','dominada','pull up','fondos'].some(x => txt.includes(x))) return 'high';
+    if(['press','remo','row','jalon','jalón'].some(x => txt.includes(x))) return 'medium';
+  }
+
+  if(pathology === 'cervical'){
+    if(['overhead','press militar','jalon tras nuca','jalón tras nuca','encogimiento','shrug'].some(x => txt.includes(x))) return 'high';
+    if(['peso muerto','deadlift','remo','row'].some(x => txt.includes(x))) return 'medium';
+  }
+
+  if(pathology === 'tobillo'){
+    if(['salto','jump','burpee','zancada','lunge','step'].some(x => txt.includes(x))) return 'high';
+    if(['sentadilla','squat','prensa','leg press'].some(x => txt.includes(x))) return 'medium';
+  }
+
+  return 'low';
+}
+
+function applyPathologyCap(zone, ctx){
+  const detected = ctx.c ? detectAllPathologiesForClient(ctx.c) : {physical:null, hasFatiga:false};
+  const pathology = detected.physical;
+
+  if(!pathology) return zone;
+
+  const risk = loadRiskForPathology(ctx.ex, ctx.exerciseName, pathology);
+  const adjustments = [...(zone.adjustments || [])];
+
+  if(risk === 'high'){
+    return {
+      ...zone,
+      action:'sustituir',
+      pathology,
+      pathologyLabel:getPathologyLabel(pathology),
+      risk,
+      min:null,
+      max:null,
+      kgMin:null,
+      kgMax:null,
+      adjustments:[
+        ...adjustments,
+        `Condición activa: ${getPathologyLabel(pathology)}. Ejercicio de riesgo alto: mejor sustituir o trabajar variante segura.`
+      ]
+    };
+  }
+
+  if(risk === 'medium'){
+    adjustments.push(`Condición activa: ${getPathologyLabel(pathology)}. Carga limitada por seguridad.`);
+
+    return {
+      ...zone,
+      pathology,
+      pathologyLabel:getPathologyLabel(pathology),
+      risk,
+      min: Math.min(zone.min, 45),
+      max: Math.min(zone.max, 60),
+      rpeMin: Math.min(zone.rpeMin, 5),
+      rpeMax: Math.min(zone.rpeMax, 6),
+      adjustments
+    };
+  }
+
+  adjustments.push(`Condición activa: ${getPathologyLabel(pathology)}. Mantener control y rango sin dolor.`);
+
+  return {
+    ...zone,
+    pathology,
+    pathologyLabel:getPathologyLabel(pathology),
+    risk,
+    max: Math.min(zone.max, 70),
+    adjustments
+  };
+}
+
+function getSmartLoadRecommendation(clientId, exerciseName, exId = null, estimated1RM = null){
+  const ctx = getLoadContext(clientId, exerciseName, exId);
+  const usesPercent = exerciseUsesPercentLoad(ctx.ex, exerciseName);
+
+  if(!usesPercent){
+    return {
+      usesPercent:false,
+      action:'no_percent',
+      label:'No usar %',
+      reason:'Este ejercicio se controla mejor por técnica, tiempo, repeticiones, respiración o RPE.'
+    };
+  }
+
+  const goalKey = classifyLoadGoal(ctx);
+  const phaseKey = classifyLoadPhase(ctx);
+
+  let zone = {
+    ...LOAD_GOAL_ZONES[goalKey],
+    goalKey,
+    phaseKey,
+    action:'calcular',
+    usesPercent:true,
+    adjustments:[]
+  };
+
+  zone = applyPhaseCap(zone, phaseKey);
+  zone = applyReadinessModifier(zone, ctx.c);
+  zone = applyPathologyCap(zone, ctx);
+
+  if(zone.action !== 'sustituir' && estimated1RM){
+    zone.kgMin = abRoundKg(Number(estimated1RM) * zone.min / 100);
+    zone.kgMax = abRoundKg(Number(estimated1RM) * zone.max / 100);
+  }
+
+  return zone;
+}
+
+function buildLoadRecommendationHTML(rec, estimated1RM = null){
+  if(!rec) return '';
+
+  if(rec.action === 'no_percent'){
+    return `
+      <div style="background:rgba(255,179,64,.07);border:1px solid rgba(255,179,64,.25);border-radius:10px;padding:12px;margin-bottom:12px">
+        <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--warn);margin-bottom:5px">Sin porcentaje recomendado</div>
+        <div style="font-size:.8rem;color:var(--text-2);line-height:1.55">${esc(rec.reason)}</div>
+      </div>`;
+  }
+
+  if(rec.action === 'sustituir'){
+    return `
+      <div style="background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.3);border-radius:10px;padding:12px;margin-bottom:12px">
+        <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--medical);margin-bottom:5px">No buscar carga hoy</div>
+        <div style="font-size:.82rem;color:var(--text);line-height:1.55;font-weight:700">Recomendación: sustituir o usar variante segura.</div>
+        <div style="font-size:.76rem;color:var(--text-2);line-height:1.55;margin-top:5px">${esc((rec.adjustments || []).join(' '))}</div>
+      </div>`;
+  }
+
+  const loadText = estimated1RM && rec.kgMin && rec.kgMax
+    ? `${rec.kgMin}–${rec.kgMax} kg`
+    : 'Calcula 1RM para ver kg';
+
+  return `
+    <div style="background:rgba(0,200,232,.06);border:1px solid rgba(0,200,232,.25);border-radius:10px;padding:12px;margin-bottom:12px">
+      <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sport);margin-bottom:8px">
+        Recomendación AB SYSTEM
+      </div>
+
+      <div class="dr" style="padding:5px 0">
+        <span class="dk">Objetivo</span>
+        <span class="dv val-wrap">${esc(rec.label)}</span>
+      </div>
+
+      <div class="dr" style="padding:5px 0">
+        <span class="dk">Fase</span>
+        <span class="dv">${esc(rec.phaseLabel || rec.phaseKey)}</span>
+      </div>
+
+      <div class="dr" style="padding:5px 0">
+        <span class="dk">Zona</span>
+        <span class="dv" style="color:var(--sport)">${rec.min}–${rec.max}%</span>
+      </div>
+
+      <div class="dr" style="padding:5px 0">
+        <span class="dk">Carga</span>
+        <span class="dv" style="color:var(--text)">${esc(loadText)}</span>
+      </div>
+
+      <div class="dr" style="padding:5px 0">
+        <span class="dk">RPE objetivo</span>
+        <span class="dv">${rec.rpeMin}–${rec.rpeMax}</span>
+      </div>
+
+      ${(rec.adjustments || []).length ? `
+        <div style="margin-top:8px;font-size:.75rem;color:var(--warn);line-height:1.5;border-left:2px solid var(--warn);padding-left:8px">
+          ${esc(rec.adjustments.join(' '))}
+        </div>
+      ` : `
+        <div style="margin-top:8px;font-size:.75rem;color:var(--streak);line-height:1.5;border-left:2px solid var(--streak);padding-left:8px">
+          Sin reducción aplicada.
+        </div>
+      `}
+    </div>`;
+}
+
+async function openLoadCalculator(clientId, exerciseName, exId = null){
+  const c = clientById(clientId);
+  if(!c) return;
+
+  const { data: history } = await db
+    .from('client_exercise_loads')
+    .select('*')
+    .eq('client_id', clientId)
+    .eq('exercise_name', exerciseName)
+    .order('training_date', { ascending: false })
+    .limit(5);
+
+  const last = history?.[0];
+  const last1RM = last?.estimated_1rm || null;
+  const rec = getSmartLoadRecommendation(clientId, exerciseName, exId, last1RM);
+
+  document.getElementById('modal-title').textContent = 'Calculador de carga';
 
   const form = document.getElementById('modal-form');
-  const title = document.getElementById('modal-title');
-
-  if(!form || !title){
-    showToast('Modal no encontrado', 'err');
-    return;
-  }
-
-  form.onsubmit = e => e.preventDefault();
-  title.textContent = 'Calculador de carga';
-
-  let history = [];
-
-  try{
-    const { data, error } = await db
-      .from('client_exercise_loads')
-      .select('*')
-      .eq('client_id', clientId)
-      .eq('exercise_name', exerciseName)
-      .order('training_date', { ascending:false })
-      .limit(5);
-
-    if(error){
-      console.warn('Historial de cargas no disponible:', error);
-    }else{
-      history = data || [];
-    }
-  }catch(err){
-    console.warn('No se pudo cargar historial de cargas:', err);
-  }
-
-  const last = history?.[0] || null;
-
-  const safeClientId = jsArg(clientId);
-  const safeExerciseName = jsArg(exerciseName);
+  form.dataset.loadClientId = clientId;
+  form.dataset.loadExerciseName = exerciseName;
+  form.dataset.loadExerciseId = exId || '';
 
   form.innerHTML = `
     <div style="font-family:var(--font-m);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sport);margin-bottom:12px">
@@ -11897,27 +12295,25 @@ async function openLoadCalculator(clientId, exerciseName){
         <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">
           Última sesión · ${formatDate(last.training_date)}
         </div>
-
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <span style="font-size:.82rem">${last.weight_kg}kg × ${last.reps} reps</span>
           <span style="font-size:.82rem;color:var(--sport)">1RM est: ${last.estimated_1rm || '—'}kg</span>
           ${last.rpe ? `<span style="font-size:.82rem;color:var(--warn)">RPE ${last.rpe}</span>` : ''}
         </div>
       </div>
-    ` : `
-      <div style="background:rgba(255,255,255,.04);border:1px solid var(--divider);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:.78rem;color:var(--text-2);line-height:1.5">
-        Sin historial previo para este ejercicio.
-      </div>
-    `}
+    ` : ''}
+
+    <div id="load-rec-live">
+      ${buildLoadRecommendationHTML(rec, last1RM)}
+    </div>
 
     <div class="fld-2">
       <div class="fld">
-        <label class="fld-l">Peso usado kg</label>
+        <label class="fld-l">Peso usado hoy (kg)</label>
         <input id="calc-weight" class="fld-i fld-num" type="number" step="0.5" placeholder="80" oninput="calcLoad()">
       </div>
-
       <div class="fld">
-        <label class="fld-l">Reps logradas</label>
+        <label class="fld-l">Reps</label>
         <input id="calc-reps" class="fld-i fld-num" type="number" placeholder="5" oninput="calcLoad()">
       </div>
     </div>
@@ -11927,29 +12323,21 @@ async function openLoadCalculator(clientId, exerciseName){
         <label class="fld-l">Series</label>
         <input id="calc-sets" class="fld-i fld-num" type="number" placeholder="3">
       </div>
-
       <div class="fld">
-        <label class="fld-l">RPE 1-10</label>
+        <label class="fld-l">RPE percibido</label>
         <input id="calc-rpe" class="fld-i fld-num" type="number" step="0.5" min="1" max="10" placeholder="8" oninput="calcLoad()">
       </div>
     </div>
 
     <div id="calc-result" style="display:none;background:var(--bg);border:1px solid var(--card-border);border-radius:10px;padding:14px;margin:12px 0">
-      <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:10px">
-        1RM estimado
-      </div>
-
+      <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:10px">1RM estimado</div>
       <div id="calc-1rm" style="font-family:var(--font-d);font-size:2rem;color:var(--sport);line-height:1;margin-bottom:12px"></div>
-
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px" id="calc-percentages"></div>
     </div>
 
     <div class="fld-acts">
       <button type="button" class="btn btn-s" onclick="closeModal()">Cancelar</button>
-
-      <button type="button" class="btn btn-p" onclick="saveLoad('${safeClientId}','${safeExerciseName}')">
-        Guardar carga
-      </button>
+      <button type="button" class="btn btn-p" onclick="saveLoad('${clientId}','${jsArg(exerciseName)}')">Guardar</button>
     </div>
   `;
 
@@ -11957,16 +12345,25 @@ async function openLoadCalculator(clientId, exerciseName){
 }
 
 function calcLoad(){
+  const form = document.getElementById('modal-form');
+  const clientId = form?.dataset.loadClientId || '';
+  const exerciseName = form?.dataset.loadExerciseName || '';
+  const exId = form?.dataset.loadExerciseId || '';
+
   const weight = parseFloat(document.getElementById('calc-weight')?.value || 0);
   const reps   = parseInt(document.getElementById('calc-reps')?.value || 0);
   const rpe    = parseFloat(document.getElementById('calc-rpe')?.value || 0);
 
   if(!weight || !reps) {
     document.getElementById('calc-result').style.display = 'none';
+
+    const rec = getSmartLoadRecommendation(clientId, exerciseName, exId, null);
+    const recBox = document.getElementById('load-rec-live');
+    if(recBox) recBox.innerHTML = buildLoadRecommendationHTML(rec, null);
+
     return;
   }
 
-  // Fórmula Epley + ajuste RPE
   let orm = weight * (1 + reps / 30);
 
   if(rpe && rpe < 10){
@@ -11974,14 +12371,25 @@ function calcLoad(){
     orm = orm * rpeAdjust;
   }
 
-  orm = Math.round(orm * 2) / 2; // Redondear a 0.5kg
+  orm = Math.round(orm * 2) / 2;
 
-  const percentages = [50,60,70,75,80,85,90,95,100];
+  const rec = getSmartLoadRecommendation(clientId, exerciseName, exId, orm);
+  const recBox = document.getElementById('load-rec-live');
+  if(recBox) recBox.innerHTML = buildLoadRecommendationHTML(rec, orm);
+
+  const percentages = rec?.usesPercent && rec.action !== 'sustituir'
+    ? [rec.min, Math.round((rec.min + rec.max) / 2), rec.max, 60, 70, 80, 85, 90, 95]
+        .filter((v,i,a) => v && a.indexOf(v) === i)
+        .sort((a,b) => a-b)
+    : [50,60,70,75,80,85,90,95,100];
 
   document.getElementById('calc-1rm').textContent = orm + ' kg';
+
   document.getElementById('calc-percentages').innerHTML = percentages.map(p => `
     <div style="background:rgba(255,255,255,.04);border:1px solid var(--divider);border-radius:8px;padding:8px 6px;text-align:center">
-      <div style="font-family:var(--font-d);font-size:1.1rem;color:${p>=90?'var(--sport)':p>=75?'var(--warn)':'var(--text)'}">${Math.round(orm * p/100 * 2)/2}kg</div>
+      <div style="font-family:var(--font-d);font-size:1.1rem;color:${rec?.min && p>=rec.min && p<=rec.max?'var(--sport)':p>=85?'var(--warn)':'var(--text)'}">
+        ${abRoundKg(orm * p/100)}kg
+      </div>
       <div style="font-family:var(--font-m);font-size:.48rem;color:var(--text-2);margin-top:2px">${p}%</div>
     </div>
   `).join('');
@@ -12004,26 +12412,22 @@ async function saveLoad(clientId, exerciseName){
 
   try{
     const { error } = await db.from('client_exercise_loads').insert({
-      id: uid(),
       client_id: clientId,
       exercise_name: exerciseName,
       weight_kg: weight,
-      reps: reps,
+      reps,
       sets: sets || null,
       rpe: rpe || null,
       estimated_1rm: orm || null,
-      training_date: todayISO(),
-      created_at: new Date().toISOString()
+      training_date: todayISO()
     });
 
     if(error) throw error;
 
     showToast('Carga guardada ✓', 'ok');
     closeModal();
-
   }catch(err){
-    console.error('saveLoad error:', err);
-    showToast('Error guardando carga: ' + (err.message || ''), 'err');
+    showToast('Error: ' + err.message, 'err');
   }
 }
 
