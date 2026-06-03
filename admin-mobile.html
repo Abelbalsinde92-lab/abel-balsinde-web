@@ -2050,7 +2050,7 @@ a{text-decoration:none;color:inherit}
                 <div class="scr-eye">Base de datos</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%">
   <div class="scr-t">Clientes</div>
-  <img src="/icon-192.png.png" alt="AB" style="height:48px;width:auto">
+  <img src="/icon-192.png" alt="AB" style="height:48px;width:auto">
 </div>
       </div>
       <div class="search">
@@ -2066,7 +2066,7 @@ a{text-decoration:none;color:inherit}
                 <div class="scr-eye">Notificaciones</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%">
   <div class="scr-t" id="hoy-title">Alertas</div>
-  <img src="/icon-192.png.png" alt="AB" style="height:48px;width:auto;object-fit:contain;flex-shrink:0">
+  <img src="/icon-192.png" alt="AB" style="height:48px;width:auto;object-fit:contain;flex-shrink:0">
 </div>
       </div>
       <div class="mr" id="al-metrics"></div>
@@ -2661,36 +2661,8 @@ function getAssignmentScope(a){
   ).toLowerCase();
 }
 
-function getFinishedAssignmentSessionIds(assignmentId){
-  const finished = new Set();
+/* Limpieza segura: removida función getFinishedAssignmentSessionIds (unreferenced, línea original 2663). */
 
-  (state.sessionLogs || [])
-    .filter(log => {
-      const logAssignmentId = log.assignmentId || log.assignment_id || '';
-      const logSessionId = log.sessionId || log.session_id || '';
-      const status = String(log.status || '').toLowerCase();
-
-      const isFinished =
-        log.isFinished === true ||
-        log.is_finished === true ||
-        status === 'realizada' ||
-        status === 'completed' ||
-        status === 'done' ||
-        Boolean(log.finishedAt || log.finished_at) ||
-        Boolean(log.completedAt || log.completed_at);
-
-      return (
-        String(logAssignmentId) === String(assignmentId) &&
-        String(logSessionId || '').trim() !== '' &&
-        isFinished
-      );
-    })
-    .forEach(log => {
-      finished.add(String(log.sessionId || log.session_id));
-    });
-
-  return finished;
-}
 
 function getAssignmentVisibleSessions(assignment){
   if(!assignment) return [];
@@ -2782,23 +2754,8 @@ function getAssignmentVisibleSessions(assignment){
   return sortByOrder(sessions);
 }
 
-function getNextVisibleSessionNumber(assignment,currentSessionNumber){
-  const visible = getAssignmentVisibleSessions(assignment);
+/* Limpieza segura: removida función getNextVisibleSessionNumber (unreferenced, línea original 2784). */
 
-  if(!visible.length) return Number(currentSessionNumber || 1);
-
-  const current = Number(currentSessionNumber || 1);
-
-  const idx = visible.findIndex(s =>
-    Number(getSessionNumberFromRow(s)) === current
-  );
-
-  if(idx >= 0 && idx < visible.length - 1){
-    return Number(getSessionNumberFromRow(visible[idx + 1])) || current;
-  }
-
-  return current;
-}
 
 function getBlockType(b){
   return cleanTxt(
@@ -3766,12 +3723,8 @@ function renderPerfil(){
   }
 }
 
-function switchPt(btn,id){
-  document.querySelectorAll('#perfil-content .pt').forEach(t=>t.classList.remove('on'));
-  btn.classList.add('on');
-  document.querySelectorAll('#perfil-content .ptc').forEach(x=>x.classList.remove('on'));
-  document.getElementById(id)?.classList.add('on');
-}
+/* Limpieza segura: removida función switchPt (unreferenced, línea original 3768). */
+
 </script>
 
 <script>
@@ -3895,10 +3848,8 @@ function groupAlerts(rows){
   });
 }
 
-function toggleAlertGroup(key){
-  const el = document.getElementById('ag-' + CSS.escape(key));
-  if(el) el.classList.toggle('open');
-}
+/* Limpieza segura: removida función toggleAlertGroup (unreferenced, línea original 3897). */
+
 
 function renderAlertas(){
   const effectiveRows = state.alertas.filter(a => !isFalsePositiveAlert(a) || filterAl === 'leidas' || filterAl === 'todas');
@@ -4553,24 +4504,11 @@ async function refreshAthletes(){
   return state.athletes;
 }
 
-async function refreshAthleteDashboard(clientId){
-  const {data,error}=await db.rpc('get_athlete_dashboard',{
-    p_client_id:clientId
-  });
+/* Limpieza segura: removida función refreshAthleteDashboard (unreferenced, línea original 4555). */
 
-  if(error) throw error;
 
-  const row=Array.isArray(data) ? data[0] : null;
+/* Limpieza segura: removida función backToAthleteDashboard (unreferenced, línea original 4570). */
 
-  if(!row) return null;
-
-  state.activeAthleteDashboard=snakeToCamel(row);
-  return state.activeAthleteDashboard;
-}
-
-function backToAthleteDashboard(clientId){
-  openAthleteDashboard(clientId);
-}
 
 function renderAtletas(){
      state.activeAthleteSection=null;
@@ -6410,14 +6348,8 @@ return {
 };
 }
 
-function getExerciseDose(ex){
-  const parts=[];
-  if(ex.sets)parts.push(`${ex.sets} series`);if(ex.reps)parts.push(`${ex.reps} reps`);
-  if(ex.duration)parts.push(ex.duration);if(ex.rest)parts.push(`descanso ${ex.rest}`);if(ex.tempo)parts.push(`tempo ${ex.tempo}`);
-  const variant=ex.variantN1||ex.variant_n1||ex.variantN1Es||ex.variant_n1_es||'';
-  if(!parts.length&&variant)parts.push(variant);
-  return parts.length?parts.join(' · '):'Carga según ficha';
-}
+/* Limpieza segura: removida función getExerciseDose (unreferenced, línea original 6412). */
+
 
 function doseVal(obj, keys){
   for(const k of keys){
@@ -6620,11 +6552,8 @@ async function toggleWorkoutExercise(clientId,exId){
   }
 }
 
-function setWorkoutBlockDone(clientId,blockId){
-  const exercises=state.trainingExercises.filter(e=>sameId(getExerciseBlockId(e),blockId));
-  exercises.forEach((ex,idx)=>{const exId=getExerciseId(ex,idx);state.workoutChecks[getWorkoutKey(clientId,exId)]=true});
-  renderWorkout();
-}
+/* Limpieza segura: removida función setWorkoutBlockDone (unreferenced, línea original 6622). */
+
 
 function formatClock(seconds){
   const s=Math.max(0,Number(seconds||0));const h=Math.floor(s/3600);const m=Math.floor((s%3600)/60);const sec=s%60;
@@ -6710,15 +6639,8 @@ function startWorkoutTimer(){
   updateTimerControlsUI();
 }
 
-function pauseWorkoutTimer(){
-  state.workoutTimer.running=false;
-  if(state.workoutTimer.interval){
-    clearInterval(state.workoutTimer.interval);
-    state.workoutTimer.interval=null;
-  }
-  releaseScreenWake('workout-timer');
-  updateTimerControlsUI();
-}
+/* Limpieza segura: removida función pauseWorkoutTimer (duplicate_old, línea original 6712). */
+
 
 function advanceIntervalPhase(){
   const iv=state.workoutIntervals;
@@ -6839,15 +6761,13 @@ function buildTimerHTML(){
   </div>`;
 }
 
-function resetWorkoutTimer(clientId=null){
-  const cid=clientId||state.activeTrainingClientId||state.selectedClientId;
-  pauseWorkoutTimer();
-  if(cid){Object.keys(state.workoutChecks).forEach(k=>{if(k.startsWith(cid+'__'))delete state.workoutChecks[k]});state.workoutNotes[cid]=''}
-  state.workoutTimer.seconds=0;updateClockUI();renderWorkout();
-}
+/* Limpieza segura: removida función resetWorkoutTimer (unreferenced, línea original 6841). */
+
 function saveWorkoutNote(clientId,value){state.workoutNotes[clientId]=value}
 function getExerciseId(ex,fallbackIndex=0){return String(ex.id||ex.exerciseId||ex.exercise_id||`${ex.blockId||ex.block_id||'block'}-${ex.orderIndex||ex.order_index||fallbackIndex}-${ex.name||ex.nameEs||'exercise'}`)}
-function normTxt(v){return String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim()}
+
+/* Limpieza segura: removida función normTxt (unreferenced, línea original 6850). */
+
 
 function pickFirst(obj,keys){for(const k of keys){const v=obj?.[k];if(v!==null&&v!==undefined&&String(v).trim()!=='')return String(v).trim()}return''}
 function getVideoUrlFromRow(row){return pickFirst(row,['videoUrl','video_url','videoURL','url','video','link','youtubeUrl','youtube_url','youtube','driveUrl','drive_url','fileUrl','file_url'])}
@@ -7312,84 +7232,11 @@ async function completeActiveExercise(clientId,blockId,exId){
   backToWorkoutBlocks();
 }
 
-function buildWorkoutExerciseCard(ex,index,clientId){
-  if(!canRenderFieldItem(ex)) return '';
-  const itemType = ex.fieldItemType || ex.field_item_type || 'exercise';
-  const displayMode = ex.fieldDisplayMode || ex.field_display_mode || 'exercise_card';
-  if(displayMode === 'locked_coach_card' || itemType === 'coach_protocol') return renderCoachProtocolCard(ex, index);
-  if(itemType === 'instruction') return renderInstructionCard(ex, index);
+/* Limpieza segura: removida función buildWorkoutExerciseCard (unreferenced, línea original 7314). */
 
-  const exId=getExerciseId(ex,index);const done=isExerciseDone(clientId,exId);
-  const info = getExerciseInfo(ex);
-   const videoUrl = getExerciseVideoUrl(ex);
-   return`<div class="ex-card ${done?'done':''}">
-    <div class="ex-main"><div class="ex-top">
-      <div class="ex-num">${String(index+1).padStart(2,'0')}</div>
-      <div style="flex:1;min-width:0">
-        <div class="ex-title">${esc(getExerciseTitle(ex))}</div>
-                ${buildDoseHTML(ex)}
-        ${buildFieldItemChips(ex)}
-        ${ex.description||ex.descriptionEs||ex.description_es?`<div class="ex-desc">${esc(ex.description||ex.descriptionEs||ex.description_es)}</div>`:''}
-      </div>
-    </div></div>
-    <div class="ex-mini">
-      <details><summary>Por qué</summary><p>${esc(info.why)}</p></details>
-      <details><summary>Técnica</summary><p>${esc(info.tech)}</p></details>
-      <details><summary>Respira</summary><p>${esc(info.breath)}</p></details>
-      <details><summary>Errores</summary><p>${esc(info.errors)}</p></details>
-      <details><summary>Coach</summary><p>${esc(info.coach)}</p></details>
-    </div>
-    <div class="ex-actions">
-      ${videoUrl?`<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`:`<button class="btn btn-s btn-sm" disabled>Sin vídeo</button>`}
-      <button class="btn btn-g btn-sm" onclick="openLoadCalculator('${clientId}','${jsArg(getExerciseTitle(ex))}','${jsArg(exId)}')">Carga</button>
-      <button class="btn ${done?'btn-g':'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">${done?'Terminado':'Marcar'}</button>
-    </div>
-  </div>`;
-}
 
-function buildNextExercisePreview(exercises, currentIndex){
-  const next = exercises[currentIndex + 1];
+/* Limpieza segura: removida función buildNextExercisePreview (unreferenced, línea original 7349). */
 
-  if(!next){
-    return `
-      <div class="card" style="border-left:3px solid var(--streak)">
-        <div class="card-body" style="padding:12px 14px">
-          <div class="dk" style="margin-bottom:5px">Siguiente paso</div>
-          <div style="font-family:var(--font-d);font-size:1.15rem;letter-spacing:.04em;color:var(--streak)">
-            Fin del bloque
-          </div>
-          <div style="font-size:.76rem;color:var(--text-2);line-height:1.5;margin-top:4px">
-            Al marcar terminado volverás a la lista de bloques.
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  return `
-    <div class="card" style="border-left:3px solid var(--sport)">
-      <div class="card-body" style="padding:12px 14px">
-        <div class="dk" style="margin-bottom:5px">Preparar después</div>
-
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="ex-num" style="width:30px;height:30px">
-            ${String(currentIndex + 2).padStart(2,'0')}
-          </div>
-
-          <div style="flex:1;min-width:0">
-            <div style="font-family:var(--font-d);font-size:1.2rem;letter-spacing:.04em;line-height:1.05">
-              ${esc(getExerciseTitle(next))}
-            </div>
-
-            <div style="font-size:.74rem;color:var(--text-2);line-height:1.45;margin-top:4px">
-              Solo preparación del coach. Se abrirá al terminar el ejercicio actual.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-}
 
 function buildActiveSingleExerciseScreen(c,plan,block){
   const exercises=block.exercises||[];
@@ -7761,53 +7608,8 @@ function buildCircuitExerciseCard(ex,index,clientId){
     </div>`;
 }
 
-async function completeCircuitBlock(clientId,blockId){
-  const c = clientById(clientId);
+/* Limpieza segura: removida función completeCircuitBlock (unreferenced, línea original 7763). */
 
-  if(!c){
-    showToast('Cliente no encontrado','err');
-    return;
-  }
-
-  const plan = getWorkoutPlanForClient(c);
-  const block = plan.blocks.find(b => String(b.id) === String(blockId));
-
-  if(!block){
-    showToast('Bloque no encontrado','err');
-    return;
-  }
-
-  const blockName = getBlockName(block);
-  const promises = [];
-
-  (block.exercises || []).forEach((ex,idx) => {
-    const exId = getExerciseId(ex,idx);
-    state.workoutChecks[getWorkoutKey(clientId,exId)] = true;
-
-    promises.push(
-      saveWorkoutProgressRow({
-        c,
-        exerciseKey: exId,
-        exerciseName: getExerciseTitle(ex),
-        blockKey: blockId,
-        blockName,
-        isAdapted: false,
-        isDone: true
-      })
-    );
-  });
-
-  try{
-    await Promise.all(promises);
-    await persistCurrentSessionState(c);
-    showToast('Circuito terminado ✓','ok');
-  }catch(err){
-    console.error('Error guardando circuito:', err);
-        showToast('Local ✓ · ' + (err?.message?.slice(0,35) || 'sin conexión'), 'err');
-  }
-
-  backToWorkoutBlocks();
-}
 
 function jsArg(v){
   return String(v ?? '')
@@ -7940,55 +7742,8 @@ function buildClientConditionCard(c){
   `;
 }
 
-function detectPathologyForClient(c){
-  const manual = state.manualPathologyByClient?.[c.id];
-  if(manual === 'normal') return null;
-  if(manual) return manual;
+/* Limpieza segura: removida función detectPathologyForClient (unreferenced, línea original 7942). */
 
-  const activeCondition = getActiveConditionForClient(c);
-  if(activeCondition){
-    return activeCondition.conditionKey || activeCondition.condition_key || null;
-  }
-
-  const ci = getClientTodayCheckin(c.id);
-  if(!ci) return null;
-
-  // ── Detección numérica: fatiga alta ──
-  const energy = Number(ci.energyLevel ?? ci.energy_level ?? 10);
-  const sleep  = Number(ci.sleepQuality ?? ci.sleep_quality ?? 10);
-  if(energy <= 2 || (energy <= 3 && sleep <= 3)){
-    return 'fatiga_alta';
-  }
-
-  const txt = String(ci.comment || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g,'');
-
-  // Patrones negativos — si aparecen, no activar adaptación
-  const neg = [
-    'sin dolor','sin molestia','no tengo dolor',
-    'todo bien','estoy bien','sin problemas','todo ok'
-  ];
-  if(neg.some(x => txt.includes(x))) return null;
-
-  // ── Detección por texto, de más específico a más general ──
-
-  const patrones = [
-    ['rodilla',    ['rodilla','menisco','rotula','ligamento rodilla']],
-    ['hombro',     ['hombro','manguito','deltoides','supraespinoso','impingement','escapula','omoplato']],
-    ['cervical',   ['cervical','cervicales','cuello','nuca','cervicalgia','torticolis','contractura cuello']],
-    ['tobillo',    ['tobillo','esguince','torcedura','ligamento tobillo']],
-    ['dolor_lumbar',['lumbar','lumbalgia','espalda baja','zona lumbar','dolor lumbar','dolor de espalda','espalda']],
-    ['fatiga_alta', ['muy cansado','agotado','exhausto','sin energia','no dormi','apenas dormi','fatiga','extenuado','sobreentrenamiento']]
-  ];
-
-  for(const [key, keywords] of patrones){
-    if(keywords.some(k => txt.includes(k))) return key;
-  }
-
-  return null;
-}
 
 function detectAllPathologiesForClient(c) {
   const result = { physical: null, hasFatiga: false, all: [] };
@@ -8124,14 +7879,8 @@ function getVisibleSessionPositions(assignment){
     );
 }
 
-function getAssignmentSessionNumber(a){
-  return Number(
-    state.activeWorkoutSessionNumber ||
-    a?.assignedSessionNumber ||
-    a?.assigned_session_number ||
-    1
-  );
-}
+/* Limpieza segura: removida función getAssignmentSessionNumber (duplicate_old, línea original 8126). */
+
 
 function getStoredAssignmentSessionNumber(a){
   return Number(
@@ -8323,99 +8072,8 @@ function buildFrontendAdaptedRows(plan, pathology){
   return rows;
 }
 
-function applyLumbarFrontendFallback(rows, pathology){
-  if(pathology !== 'dolor_lumbar') return rows || [];
+/* Limpieza segura: removida función applyLumbarFrontendFallback (unreferenced, línea original 8325). */
 
-  const usedFinalNames = new Set();
-
-  return (rows || []).map(r => {
-
-    const estado = String(r.estado_ejercicio || '').toLowerCase();
-
-    // Si Supabase ya hizo sustitución real → respetar
-    if(estado === 'sustituido') return r;
-
-    const fb = getLumbarFrontendFallback(r);
-
-    if(!fb) return r;
-
-    // Evitar repetir exactamente el mismo ejercicio adaptado
-    let finalName = fb.final;
-
-    if(usedFinalNames.has(finalName)){
-      finalName = finalName + ' · Variante';
-    }
-
-    usedFinalNames.add(finalName);
-
-    return {
-      ...r,
-
-      // SOLO campos mínimos
-      estado_ejercicio:'sustituido',
-
-      ejercicio_original:
-        r.ejercicio_original ||
-        r.ejercicio_final ||
-        r.name ||
-        '',
-
-      ejercicio_final: finalName,
-
-      // Mantener estructura original
-      why_text:
-        r.why_text ||
-        r.description ||
-        '',
-
-      technique_text:
-        r.technique_text ||
-        '',
-
-      breathing_text:
-        r.breathing_text ||
-        '',
-
-      coaching_notes:
-        r.coaching_notes ||
-        fb.coach,
-
-      explicacion_breve_coach:
-        r.explicacion_breve_coach ||
-        fb.coach,
-
-      explicacion_cliente:
-        r.explicacion_cliente ||
-        fb.cliente,
-
-      nivel_riesgo:
-        r.nivel_riesgo ||
-        fb.riesgo,
-
-      // IMPORTANTÍSIMO:
-      // NO borrar variantes ni datos originales
-      variant_n1: r.variant_n1,
-      variant_n2: r.variant_n2,
-      variant_n3: r.variant_n3,
-      variant_n4: r.variant_n4,
-
-      sets: r.sets,
-      reps: r.reps,
-      duration: r.duration,
-      rest: r.rest,
-      tempo: r.tempo,
-
-      video_url:
-        r.video_sustituto ||
-        r.video_url ||
-        '',
-
-      mensaje_cliente_whatsapp:
-        r.mensaje_cliente_whatsapp ||
-        'Durante los próximos días vamos a trabajar con una adaptación temporal enfocada en control técnico, estabilidad y reducción de carga lumbar.'
-    };
-  });
-}
 
 async function getAdaptedRowsForClient(c){
   const plan = getWorkoutPlanForClient(c);
@@ -8736,14 +8394,8 @@ function adaptedStatusText(r){
   return 'Normal';
 }
 
-function adaptedStatusKind(r){
-  const st = String(r.estado_ejercicio || 'normal');
-  if(st === 'sustituido') return 'alerta';
-  if(st === 'modificado') return 'revisar';
-  if(st === 'mantener') return 'normal';
-  if(st === 'derivar') return 'critica';
-  return 'info';
-}
+/* Limpieza segura: removida función adaptedStatusKind (unreferenced, línea original 8738). */
+
 
 function adaptedBorderStyle(r){
   const st = String(r.estado_ejercicio || 'normal');
@@ -9385,44 +9037,8 @@ function workoutStepLabel(week, session){
   return `Semana ${Number(week || 1)} · Día ${sessionLetter(session)}`;
 }
 
-function buildWorkoutStepCard(plan){
-  const assignment = plan?.assignment;
+/* Limpieza segura: removida función buildWorkoutStepCard (unreferenced, línea original 9387). */
 
-  if(!assignment) return '';
-
-  const currentWeek = getAssignmentWeek(assignment);
-  const currentSession = getAssignmentSessionNumber(assignment);
-  const scope = getAssignmentScope(assignment);
-
-  const next = scope === 'day'
-    ? null
-    : getNextTrainingPosition(plan, currentWeek, currentSession);
-
-  return `
-    <div class="card" style="border-left:3px solid var(--sport)">
-      <div class="card-body" style="padding:12px 14px">
-        <div class="card-title" style="margin-bottom:8px">
-          Próximo paso
-          ${badge(getAssignmentScopeLabel(scope),'info')}
-        </div>
-
-        <div class="dr">
-          <span class="dk">Activo ahora</span>
-          <span class="dv" style="color:var(--sport)">
-            ${esc(workoutStepLabel(currentWeek,currentSession))}
-          </span>
-        </div>
-
-        <div class="dr">
-          <span class="dk">Al cerrar</span>
-          <span class="dv val-wrap">
-            ${next ? esc(workoutStepLabel(next.week,next.session)) : 'No avanza automáticamente'}
-          </span>
-        </div>
-      </div>
-    </div>
-  `;
-}
 
 function clearWorkoutLocalProgressForClient(clientId){
   Object.keys(state.workoutChecks || {}).forEach(k => {
@@ -9749,18 +9365,11 @@ function buildCheckoutHTML(c){
   `;
 }
 
-function selectCoField(field, value, gridId){
-  document.querySelectorAll('#' + gridId + ' .fp').forEach(b => b.classList.remove('on'));
-  const prefix = {rpe:'rpe', soreness:'sore', breath:'breath', fatigue:'fatigue'}[field] || field;
-  document.getElementById(prefix + '-' + value)?.classList.add('on');
-  const input = document.getElementById('co-' + field);
-  if(input) input.value = value;
-}
+/* Limpieza segura: removida función selectCoField (unreferenced, línea original 9751). */
 
-function toggleZone(v){
-  const wrap = document.getElementById('co-zone-wrap');
-  if(wrap) wrap.style.display = v !== 'Ninguna' ? '' : 'none';
-}
+
+/* Limpieza segura: removida función toggleZone (unreferenced, línea original 9759). */
+
 
 async function submitCheckout(clientId){
   const rpe      = document.getElementById('co-rpe')?.value || '';
@@ -10166,43 +9775,9 @@ async function renderStretchAssistedList() {
 }
 
 // ── ABRIR MODAL ─────────────────────────────────────────────────
-async function openStretching(clientId, clientName) {
-    stretchClientId   = clientId || null;
-  stretchClientName = clientName || '';
-  stretchMode       = null;
-  stretchZone       = null;
-  stretchExercises  = [];
-  stretchIndex      = 0;
 
-  stopStretchTimerBase();
+/* Limpieza segura: removida función openStretching (unreferenced, línea original 10169). */
 
-  const modal   = document.getElementById('modal-stretching');
-  const content = document.getElementById('stretch-content');
-
-  if (!modal) {
-    showToast('Modal de estiramientos no encontrado', 'err');
-    return;
-  }
-
-  modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-
-  if (content) {
-    content.innerHTML = '<div class="stretch-loading">Preparando guía de estiramientos...</div>';
-  }
-
-  if (stretchClientId) {
-    await loadStretchSafetyBase(stretchClientId);
-  } else {
-    stretchSafety = {
-      conditions: [],
-      injuries: [],
-      rules: []
-    };
-  }
-
-  renderStretch();
-}
 
 async function openStretchingAssisted(clientId, clientName){
   stretchClientId   = clientId || null;
@@ -10235,16 +9810,9 @@ function closeStretching() {
 }
 
 // ── TIMER BASE, SOLO PARA LIMPIAR ESTADO ─────────────────────────
-function stopStretchTimerBase() {
-  stretchTimerActive = false;
 
-  if (stretchTimerInt) {
-    clearInterval(stretchTimerInt);
-  }
+/* Limpieza segura: removida función stopStretchTimerBase (duplicate_old, línea original 10238). */
 
-  stretchTimerInt = null;
-  stretchTimerSecs = 0;
-}
 
 // ── VOLVER A ZONAS ──────────────────────────────────────────────
 function backToStretchZones() {
@@ -10256,14 +9824,9 @@ function backToStretchZones() {
 }
 
 // ── SELECCIÓN DE ZONA, POR AHORA SIN SUPABASE ───────────────────
-function selectStretchZone(zoneKey) {
-  stretchZone = zoneKey;
-  stretchExercises = [];
-  stretchIndex = 0;
-  stopStretchTimerBase();
 
-  renderStretchZonePlaceholder();
-}
+/* Limpieza segura: removida función selectStretchZone (duplicate_old, línea original 10259). */
+
 
 // ── RENDER: SELECTOR DE ZONA ────────────────────────────────────
 function renderStretchZoneSelector() {
@@ -10319,12 +9882,9 @@ function renderStretchZonePlaceholder() {
 // ================================================================
 
 // ── NORMALIZAR TEXTO PARA BÚSQUEDA ──────────────────────────────
-function stretchNormalizeText(value) {
-  return String(value || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-}
+
+/* Limpieza segura: removida función stretchNormalizeText (unreferenced, línea original 10322). */
+
 
 // ── CARGAR EJERCICIOS DESDE mobility_chain_exercises ────────────
 async function loadZoneExercises(zoneKey) {
@@ -10575,67 +10135,9 @@ function renderStretchList() {
 
 // ── ABRIR EJERCICIO BÁSICO ──────────────────────────────────────
 // Temporal: en el paso siguiente añadimos timer, respiración y navegación.
-function openStretchExerciseBasic(index) {
-  stretchIndex = index;
 
-  const el = document.getElementById('stretch-content');
-  if (!el) return;
+/* Limpieza segura: removida función openStretchExerciseBasic (duplicate_old, línea original 10578). */
 
-  const exercise = stretchExercises[stretchIndex];
-
-  el.innerHTML = `
-    <div class="stretch-back">
-      <button class="btn btn-sm" onclick="renderStretchList()">← Lista</button>
-      <span class="stretch-progress">${stretchIndex + 1} / ${stretchExercises.length}</span>
-    </div>
-
-    <div class="stretch-exec-card">
-      <div class="stretch-exec-name">
-        ${stretchEscHTML(exercise.name || 'Ejercicio sin nombre')}
-      </div>
-
-      ${
-        exercise.duration
-          ? `<div class="stretch-exec-reps">${stretchEscHTML(exercise.duration)}</div>`
-          : ''
-      }
-
-      ${
-        exercise.reps
-          ? `<div class="stretch-exec-reps">${stretchEscHTML(exercise.reps)}</div>`
-          : ''
-      }
-
-      ${
-        exercise.description
-          ? `<div class="stretch-exec-desc">${stretchEscHTML(exercise.description)}</div>`
-          : ''
-      }
-
-      ${
-        exercise.breathing_cue
-          ? `
-            <div class="stretch-cue">
-              <span class="stretch-cue-label">Respiración</span>
-              <span>${stretchEscHTML(exercise.breathing_cue)}</span>
-            </div>
-          `
-          : ''
-      }
-
-      ${
-        exercise.coaching_notes
-          ? `
-            <div class="stretch-cue">
-              <span class="stretch-cue-label">Coach</span>
-              <span>${stretchEscHTML(exercise.coaching_notes)}</span>
-            </div>
-          `
-          : ''
-      }
-    </div>
-  `;
-}
 
 // ================================================================
 // AB SYSTEM — GUÍA DE ESTIRAMIENTOS
@@ -11186,17 +10688,15 @@ function startEvalFromForm(type) {
 }
 
 /* Compatibilidad: ya no usamos pantalla separada */
-function renderEvalSetup() {
-  renderEvalStartScreen();
-}
 
-function renderEvalTypeSelect() {
-  renderEvalStartScreen();
-}
+/* Limpieza segura: removida función renderEvalSetup (unreferenced, línea original 11189). */
 
-function confirmEvalSetup() {
-  startEvalFromForm('general');
-}
+
+/* Limpieza segura: removida función renderEvalTypeSelect (unreferenced, línea original 11192). */
+
+
+/* Limpieza segura: removida función confirmEvalSetup (unreferenced, línea original 11196). */
+
 
 async function startEval(type) {
   evalState.type = type;
