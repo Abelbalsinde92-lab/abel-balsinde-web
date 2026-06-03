@@ -6551,7 +6551,8 @@ function normalizeLoadRow(row){
     trainingMaxKg: r.trainingMaxKg ?? r.training_max_kg ?? null,
     sourceItemName: r.sourceItemName || r.source_item_name || '',
     profileNote: r.profileNote || r.profile_note || '',
-    adminFieldNote: r.adminFieldNote || r.admin_field_note || ''
+    adminFieldNote: r.adminFieldNote || r.admin_field_note || '',
+    loadPrescriptionMode: r.loadPrescriptionMode || r.load_prescription_mode || null
   };
 }
 
@@ -6593,7 +6594,9 @@ function mergeSessionLoadPrescriptionRows(rows){
       profileNote: load.profileNote,
       profile_note: load.profileNote,
       adminFieldNote: load.adminFieldNote,
-      admin_field_note: load.adminFieldNote
+      admin_field_note: load.adminFieldNote,
+      loadPrescriptionMode: load.loadPrescriptionMode,
+      load_prescription_mode: load.loadPrescriptionMode
     };
   });
 
@@ -6702,6 +6705,137 @@ function getSuggestedLoadDetail(ex){
   if(round) parts.push(round);
 
   return parts.join(' · ');
+}
+
+/* ── REPS DE REFERENCIA POR ZONA % ── */
+const REPS_REF_BY_PCT = {
+  60: '15-20', 65: '12-15', 70: '10-12',
+  75: '8-10',  80: '6-8',   85: '4-6'
+};
+
+function getRepsRef(percentage){
+  return REPS_REF_BY_PCT[Number(percentage)] || '';
+}
+
+/* ── VALOR EDITABLE SEGÚN MODO ── */
+function getEditableLoadValue(ex){
+  const mode = ex?.loadPrescriptionMode || ex?.load_prescription_mode || 'total';
+  if(mode === 'per_hand' || mode === 'single_side'){
+    return ex?.practicalSideKg ?? ex?.practical_side_kg ?? null;
+  }
+  return ex?.practicalTotalKg ?? ex?.practical_total_kg ?? null;
+}
+
+function getEditableLoadLabel(ex){
+  const mode = ex?.loadPrescriptionMode || ex?.load_prescription_mode || 'total';
+  if(mode === 'per_hand')     return 'kg por mano';
+  if(mode === 'single_side')  return 'kg por lado';
+  if(mode === 'machine_stack') return 'kg máquina';
+  return 'kg total';
+}
+
+/* ── WIDGET INLINE DE CARGA ── */
+function buildInlineLoadWidget(ex, exId, clientId){
+  if(!hasSuggestedLoad(ex)) return '';
+
+  const mode     = ex?.loadPrescriptionMode || ex?.load_prescription_mode || 'total';
+  const value    = getEditableLoadValue(ex);
+  const label    = getEditableLoadLabel(ex);
+  const pct      = ex?.loadPercentage || ex?.load_percentage || getWorkoutLoadPercentage();
+  const repsRef  = getRepsRef(pct);
+  const zone     = ex?.intensityZone || ex?.intensity_zone || '';
+  const total    = ex?.practicalTotalKg ?? ex?.practical_total_kg ?? null;
+  const side     = ex?.practicalSideKg ?? ex?.practical_side_kg ?? null;
+
+  const secondaryText = (mode === 'per_hand' && total != null)
+    ? `/ ${total} kg total`
+    : (mode === 'single_side' && total != null)
+      ? `/ ${total * 2} kg total`
+      : '';
+
+  return `
+    <div style="background:rgba(0,200,232,.06);border:1px solid rgba(0,200,232,.25);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sport)">Carga sugerida · ${pct}%</span>
+        ${zone ? `<span style="font-family:var(--font-m);font-size:.5rem;color:var(--text-2)">${esc(zone)}</span>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input
+          id="inline-load-${exId}"
+          type="number"
+          step="0.5"
+          inputmode="decimal"
+          value="${value != null ? value : ''}"
+          placeholder="—"
+          style="width:90px;background:var(--bg);border:1px solid rgba(0,200,232,.4);border-radius:8px;color:var(--text);font-family:var(--font-d);font-size:1.6rem;text-align:center;padding:8px 6px;outline:none"
+        >
+        <div>
+          <div style="font-size:.82rem;font-weight:700;color:var(--text)">${esc(label)} ${secondaryText ? `<span style="color:var(--text-2);font-weight:400">${esc(secondaryText)}</span>` : ''}</div>
+          ${repsRef ? `<div style="font-family:var(--font-m);font-size:.56rem;color:var(--text-2);margin-top:2px">Reps ref: ${repsRef}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ── GUARDAR CARGA INLINE AL MARCAR ── */
+async function saveInlineLoadIfPresent(c, ex, exId, plan){
+  try{
+    const input = document.getElementById(`inline-load-${exId}`);
+    if(!input) return;
+
+    const rawVal = parseFloat(input.value);
+    if(!rawVal || isNaN(rawVal)) return;
+
+    const mode       = ex?.loadPrescriptionMode || ex?.load_prescription_mode || 'total';
+    const pct        = ex?.loadPercentage || ex?.load_percentage || getWorkoutLoadPercentage();
+    const sugTotal   = ex?.practicalTotalKg ?? ex?.practical_total_kg ?? null;
+    const sugSide    = ex?.practicalSideKg ?? ex?.practical_side_kg ?? null;
+    const sugText    = ex?.practicalLoadText || ex?.practical_load_text || '';
+
+    let finalTotal = null;
+    let finalSide  = null;
+
+    if(mode === 'per_hand'){
+      finalSide  = rawVal;
+      finalTotal = rawVal * 2;
+    } else if(mode === 'single_side'){
+      finalSide  = rawVal;
+      finalTotal = rawVal * 2;
+    } else {
+      finalTotal = rawVal;
+      finalSide  = null;
+    }
+
+    const wasAdjusted = (mode === 'per_hand' || mode === 'single_side')
+      ? rawVal !== sugSide
+      : rawVal !== sugTotal;
+
+    const sessionId = String(plan?.sessions?.[0]?.id || '');
+    const repsRaw   = ex?.reps || '';
+
+    await db.from('client_exercise_loads').insert({
+      client_id:             c.id,
+      exercise_id:           ex?.id || ex?.exerciseId || ex?.exercise_id || null,
+      exercise_name:         getExerciseTitle(ex),
+      session_id:            sessionId || null,
+      training_date:         todayISO(),
+      percentage:            pct,
+      load_prescription_mode: mode,
+      suggested_total_kg:    sugTotal,
+      suggested_side_kg:     sugSide,
+      suggested_load_text:   sugText,
+      final_total_kg:        finalTotal,
+      final_side_kg:         finalSide,
+      final_load_text:       getEditableLoadLabel(ex).replace('kg ', '') + ': ' + rawVal + ' kg',
+      was_adjusted:          wasAdjusted,
+      weight_kg:             finalTotal,
+      reps:                  parseInt(repsRaw) || null
+    });
+
+  }catch(err){
+    console.warn('No se pudo guardar carga inline:', err);
+  }
 }
 
 function getExerciseDose(ex){
@@ -7578,6 +7712,9 @@ async function completeActiveExercise(clientId,blockId,exId){
     const planNow = getWorkoutPlanForClient(c);
     const blockNow = planNow.blocks.find(b => String(b.id) === String(blockId));
 
+    // Guardar carga inline si el coach introdujo un valor
+    if(ex) await saveInlineLoadIfPresent(c, ex, exId, planNow);
+
     await saveWorkoutProgressRow({
       c,
       exerciseKey: exId,
@@ -7740,6 +7877,7 @@ function buildActiveSingleExerciseScreen(c,plan,block){
   const objetivo=d.variant||ex.description||ex.descriptionEs||ex.description_es||'';
   const suggestedLoadNote = getSuggestedLoadNote(ex);
   const suggestedLoadDetail = getSuggestedLoadDetail(ex);
+  const inlineLoadWidget = buildInlineLoadWidget(ex, exId, c.id);
 
   // Lista ejercicios del bloque
   const exListHTML=exercises.map((e,i)=>{
@@ -7781,7 +7919,7 @@ function buildActiveSingleExerciseScreen(c,plan,block){
     <div class="wt2-ex-card">
       <div class="wt2-ex-title">${esc(getExerciseTitle(ex))}</div>
       <div class="wt2-metrics-grid">${metricsHTML}</div>
-      ${suggestedLoadNote?`<div class="wt2-objetivo" style="border-left-color:var(--sport)"><strong>Carga:</strong> ${esc(suggestedLoadNote)}${suggestedLoadDetail?`<br><span style="color:var(--text-2)">${esc(suggestedLoadDetail)}</span>`:''}</div>`:''}
+      ${inlineLoadWidget}
       ${objetivo?`<div class="wt2-objetivo"><strong>Objetivo:</strong> ${esc(objetivo)}</div>`:''}
       <div class="wt2-tabs-wrap">
         <div class="wt2-tabs-nav">
