@@ -7309,7 +7309,7 @@ function buildWorkoutExerciseCard(ex,index,clientId){
     </div>
     <div class="ex-actions">
       ${videoUrl?`<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`:`<button class="btn btn-s btn-sm" disabled>Sin vídeo</button>`}
-      <button class="btn btn-g btn-sm" onclick="openLoadCalculator('${c.id}','${esc(getExerciseTitle(ex))}')">⚖ Carga</button>
+      <button class="btn btn-g btn-sm" onclick="openLoadCalculator('${clientId}','${esc(getExerciseTitle(ex))}')">⚖ Carga</button>
       <button class="btn ${done?'btn-g':'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">${done?'Terminado':'Marcar'}</button>
     </div>
   </div>`;
