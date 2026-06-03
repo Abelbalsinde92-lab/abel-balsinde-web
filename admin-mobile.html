@@ -11673,39 +11673,103 @@ async function startEval(type) {
   const el = document.getElementById('modal-eval-content');
   if (el) el.innerHTML = '<div style="padding:20px"><div class="eval-loading">Cargando protocolo...</div></div>';
 
-  const templateId = EVAL_TEMPLATES[type];
+  const EVAL_TEMPLATE_CODES = {
+  general: 'general_n1_initial',
+  atleta: 'combat_n1_initial',
+  combat: 'combat_n1_initial'
+};
 
-  // ── Cargar items del template ──
-  const { data: items, error: ie } = await db
-    .from('assessment_template_items')
-    .select('*')
-    .eq('template_id', templateId)
-    .order('item_order');
+const templateCode = EVAL_TEMPLATE_CODES[type] || 'general_n1_initial';
 
-  console.log('EVAL items:', { templateId, count: items?.length, error: ie });
+// ── Cargar template nuevo desde assessment_templates ──
+const { data: template, error: templateError } = await db
+  .from('assessment_templates')
+  .select('id, code, name, client_profile, level_code')
+  .eq('code', templateCode)
+  .eq('is_active', true)
+  .maybeSingle();
 
-  if (ie || !items?.length) {
-    showToast('Sin protocolo en BD. Revisa assessment_template_items.', 'err');
-    // Mostrar tests de fallback para poder usar la evaluación de todos modos
-    evalState.items = getFallbackItems(type);
-  } else {
-    evalState.items = items;
-  }
+if (templateError || !template) {
+  console.error('Error cargando plantilla:', templateError);
+  showToast('No se encontró plantilla activa: ' + templateCode, 'err');
+  evalState.items = getFallbackItems(type);
+  evalState.currentIdx = 0;
+  renderEvalTest();
+  return;
+}
 
-  // ── Crear client_assessment ──
-  const aid = uid();
-  evalState.assessmentId = aid;
+// ── Cargar items nuevos desde assessment_items ──
+const { data: rawItems, error: itemsError } = await db
+  .from('assessment_items')
+  .select('*')
+  .eq('template_id', template.id)
+  .order('order_index', { ascending: true });
 
-  db.from('client_assessments').insert({
-    id: aid,
-    client_id: evalState.clientId,
-    template_id: templateId,
-    assessment_name: `Evaluación ${type} — ${new Date().toLocaleDateString('es-ES')}`,
-    assessment_date: todayISO(),
-    status: 'en_progreso',
-  }).then(({ error }) => {
-    if (error) console.warn('client_assessments insert error:', error);
-  });
+console.log('EVAL template/items:', {
+  type,
+  templateCode,
+  templateId: template.id,
+  count: rawItems?.length,
+  error: itemsError
+});
+
+if (itemsError || !rawItems?.length) {
+  console.error('Error cargando items:', itemsError);
+  showToast('Sin protocolo en assessment_items: ' + templateCode, 'err');
+  evalState.items = getFallbackItems(type);
+} else {
+  evalState.items = rawItems.map(i => ({
+    id: i.id,
+    item_id: i.id,
+    template_item_id: i.id,
+
+    code: i.code,
+    item_code: i.code,
+
+    name: i.name,
+    item_name: i.name,
+    exercise_name: i.name,
+
+    order_index: i.order_index,
+    item_order: i.order_index,
+
+    category: i.category,
+    test_kind: i.test_kind,
+    metric_type: i.test_kind || 'test',
+
+    movement_pattern: i.movement_pattern,
+    percentage_enabled: i.percentage_enabled,
+
+    requires_load: i.requires_load,
+    requires_reps: i.requires_reps,
+    requires_time: i.requires_time,
+    requires_distance: i.requires_distance,
+    is_optional: i.is_optional,
+
+    protocol: i.protocol,
+    coach_notes: i.coach_notes,
+    client_explanation: i.client_explanation,
+
+    target_note: i.client_explanation || i.protocol || ''
+  }));
+}
+
+// ── Crear client_assessment con template nuevo ──
+const aid = uid();
+evalState.assessmentId = aid;
+evalState.templateId = template.id;
+evalState.templateCode = template.code;
+
+db.from('client_assessments').insert({
+  id: aid,
+  client_id: evalState.clientId,
+  template_id: template.id,
+  assessment_name: `${template.name} — ${new Date().toLocaleDateString('es-ES')}`,
+  assessment_date: todayISO(),
+  status: 'en_progreso',
+}).then(({ error }) => {
+  if (error) console.warn('client_assessments insert error:', error);
+});
 
   // ── Crear evaluacion ──
   const eid = uid();
