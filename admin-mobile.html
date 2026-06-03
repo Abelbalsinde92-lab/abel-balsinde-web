@@ -2292,6 +2292,7 @@ let filterCli='todos';
 let filterAl='pendientes';
 let filterPag='todos';
 let activeModal=null;
+let realtimeInitialized = false;
 
 /* ── WAKE LOCK · Mantener pantalla activa con cronómetros ── */
 let abWakeLock = null;
@@ -3217,7 +3218,10 @@ renderAll();
 showToast('Datos cargados ✓', 'ok');
 
 // Activar notificaciones realtime
-setupRealtimeNotifications();
+if(!realtimeInitialized){
+  setupRealtimeNotifications();
+  realtimeInitialized = true;
+}
 
 // Activar push (pide permiso si no lo tiene)
 if (Notification.permission === 'default') {
