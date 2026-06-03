@@ -7705,7 +7705,9 @@ function buildActiveSingleExerciseScreen(c,plan,block){
   const idx=Math.min(Number(state.activeWorkoutExerciseIndex||0),Math.max(0,exercises.length-1));
   state.activeWorkoutExerciseIndex=idx;
 
-  const ex=exercises[idx];
+  const exRaw=exercises[idx];
+   const exFresh = state.trainingExercises.find(e => String(e.id||'') === String(exRaw.id||'')) || exRaw;
+   const ex = exFresh;
   const exId=getExerciseId(ex,idx);
   const info=getExerciseInfo(ex);
   const videoUrl=getExerciseVideoUrl(ex);
