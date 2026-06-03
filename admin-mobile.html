@@ -12723,6 +12723,137 @@ function applyPathologyCap(zone, ctx){
   };
 }
 
+/* ════════════════════════════════════════════════════════
+   PROGRESIÓN AUTOMÁTICA — basada en historial client_exercise_loads
+   Lee: final_total_kg, final_side_kg, percentage, rpe, was_adjusted,
+        load_prescription_mode, training_date
+   Devuelve: acción + % sugerido + mensaje coach
+══════════════════════════════════════════════════════════ */
+
+async function getProgressionRecommendation(clientId, exId, exerciseName){
+  // Leer últimas 5 sesiones de este ejercicio
+  const { data, error } = await db
+    .from('client_exercise_loads')
+    .select('final_total_kg,final_side_kg,suggested_total_kg,suggested_side_kg,percentage,rpe,was_adjusted,load_prescription_mode,training_date')
+    .eq('client_id', clientId)
+    .or(`exercise_id.eq.${exId},exercise_name.eq.${exerciseName}`)
+    .order('training_date', { ascending: false })
+    .limit(5);
+
+  if(error || !data?.length){
+    return { action: 'sin_historial', message: 'Sin historial de carga para este ejercicio.' };
+  }
+
+  const last = data[0];
+  const rpe = Number(last.rpe || 0);
+  const pct = Number(last.percentage || 70);
+  const wasAdjusted = !!last.was_adjusted;
+  const mode = last.load_prescription_mode || 'total';
+
+  // Carga final usada (normalizada a total)
+  const finalKg = Number(
+    (mode === 'per_hand' || mode === 'single_side')
+      ? (last.final_side_kg * 2 || last.final_total_kg)
+      : last.final_total_kg
+  ) || 0;
+
+  const suggestedKg = Number(last.suggested_total_kg || 0);
+
+  // ── Reglas de progresión ──
+  // Sin RPE registrado → mantener
+  if(!rpe){
+    return {
+      action: 'mantener',
+      pct,
+      message: 'Sin RPE registrado en la última sesión. Mantener carga y registrar RPE hoy.'
+    };
+  }
+
+  // RPE ≤ 7 → subir % (fácil)
+  if(rpe <= 7){
+    const newPct = Math.min(pct + 5, 85);
+    return {
+      action: 'subir',
+      pct: newPct,
+      message: `RPE ${rpe} — carga ligera. Subir a ${newPct}% esta sesión.`
+    };
+  }
+
+  // RPE 8 → mantener o subir 2.5% si hubo 2+ sesiones consecutivas igual
+  if(rpe === 8){
+    const prevRpes = data.slice(1).map(r => Number(r.rpe || 0)).filter(Boolean);
+    const allEight = prevRpes.length >= 1 && prevRpes.every(r => r <= 8);
+    if(allEight){
+      const newPct = Math.min(pct + 5, 85);
+      return {
+        action: 'subir',
+        pct: newPct,
+        message: `RPE 8 en las últimas ${prevRpes.length + 1} sesiones. Listo para subir a ${newPct}%.`
+      };
+    }
+    return {
+      action: 'mantener',
+      pct,
+      message: `RPE 8 — zona ideal. Mantener ${pct}% y confirmar en próxima sesión.`
+    };
+  }
+
+  // RPE 9 → mantener y vigilar
+  if(rpe === 9){
+    return {
+      action: 'mantener',
+      pct,
+      message: `RPE 9 — esfuerzo alto. Mantener ${pct}%. Si se repite, bajar 5%.`
+    };
+  }
+
+  // RPE 10 o carga ajustada hacia arriba → bajar
+  if(rpe >= 10 || (wasAdjusted && finalKg > suggestedKg * 1.1)){
+    const newPct = Math.max(pct - 5, 60);
+    return {
+      action: 'bajar',
+      pct: newPct,
+      message: `RPE ${rpe} — demasiado exigente. Bajar a ${newPct}% para recuperar calidad técnica.`
+    };
+  }
+
+  return {
+    action: 'mantener',
+    pct,
+    message: `Mantener ${pct}%. Revisar técnica y sensaciones antes de progresar.`
+  };
+}
+
+/* ── Widget de progresión para el calculador de carga ── */
+async function buildProgressionHTML(clientId, exId, exerciseName){
+  const rec = await getProgressionRecommendation(clientId, exId, exerciseName);
+
+  if(rec.action === 'sin_historial'){
+    return `<div style="font-size:.76rem;color:var(--text-2);padding:8px 0">${esc(rec.message)}</div>`;
+  }
+
+  const color = rec.action === 'subir'
+    ? 'var(--streak)'
+    : rec.action === 'bajar'
+      ? 'var(--medical)'
+      : 'var(--warn)';
+
+  const icon = rec.action === 'subir' ? '↑' : rec.action === 'bajar' ? '↓' : '→';
+
+  return `
+    <div style="background:rgba(0,0,0,.3);border:1px solid ${color};border-radius:10px;padding:12px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:1.1rem;color:${color}">${icon}</span>
+        <span style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:${color}">
+          Progresión sugerida
+        </span>
+        ${rec.pct ? `<span style="font-family:var(--font-m);font-size:.62rem;font-weight:700;color:${color};margin-left:auto">${rec.pct}%</span>` : ''}
+      </div>
+      <div style="font-size:.8rem;color:var(--text);line-height:1.55">${esc(rec.message)}</div>
+    </div>
+  `;
+}
+
 function getSmartLoadRecommendation(clientId, exerciseName, exId = null, estimated1RM = null){
   const ctx = getLoadContext(clientId, exerciseName, exId);
   const usesPercent = exerciseUsesPercentLoad(ctx.ex, exerciseName);
@@ -12984,13 +13115,16 @@ async function openLoadCalculator(clientId, exerciseName, exId = null){
     .from('client_exercise_loads')
     .select('*')
     .eq('client_id', clientId)
-    .eq('exercise_name', exerciseName)
+    .or(`exercise_id.eq.${exId || '00000000-0000-0000-0000-000000000000'},exercise_name.eq.${exerciseName}`)
     .order('training_date', { ascending: false })
     .limit(5);
 
   const last = history?.[0];
   const last1RM = last?.estimated_1rm || null;
   const rec = getSmartLoadRecommendation(clientId, exerciseName, exId, last1RM);
+
+  // Calcular progresión async
+  const progressionHTML = await buildProgressionHTML(clientId, exId || '', exerciseName);
 
   document.getElementById('modal-title').textContent = 'Calculador de carga';
 
@@ -13004,15 +13138,20 @@ async function openLoadCalculator(clientId, exerciseName, exId = null){
       ${esc(exerciseName)}
     </div>
 
+    ${progressionHTML}
+
     ${last ? `
       <div style="background:rgba(0,200,232,.06);border:1px solid rgba(0,200,232,.2);border-radius:8px;padding:10px 12px;margin-bottom:14px">
         <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">
           Última sesión · ${formatDate(last.training_date)}
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <span style="font-size:.82rem">${last.weight_kg}kg × ${last.reps} reps</span>
-          <span style="font-size:.82rem;color:var(--sport)">1RM est: ${last.estimated_1rm || '—'}kg</span>
+          ${last.final_total_kg ? `<span style="font-size:.82rem;color:var(--sport)">${last.final_total_kg}kg total</span>` : ''}
+          ${last.final_side_kg  ? `<span style="font-size:.82rem;color:var(--sport)">${last.final_side_kg}kg/lado</span>` : ''}
+          ${last.weight_kg && !last.final_total_kg ? `<span style="font-size:.82rem">${last.weight_kg}kg × ${last.reps} reps</span>` : ''}
+          ${last.percentage ? `<span style="font-family:var(--font-m);font-size:.76rem;color:var(--text-2)">${last.percentage}%</span>` : ''}
           ${last.rpe ? `<span style="font-size:.82rem;color:var(--warn)">RPE ${last.rpe}</span>` : ''}
+          ${last.was_adjusted ? `<span style="font-family:var(--font-m);font-size:.5rem;color:var(--text-2)">ajustado</span>` : ''}
         </div>
       </div>
     ` : ''}
@@ -13033,17 +13172,17 @@ async function openLoadCalculator(clientId, exerciseName, exId = null){
     </div>
 
     <div class="fld-2">
-  <div class="fld">
-    <label class="fld-l">Series</label>
-    <input id="calc-sets" class="fld-i fld-num" type="number" placeholder="3">
-  </div>
-  <div class="fld">
-    <label class="fld-l">RPE percibido</label>
-    <input id="calc-rpe" class="fld-i fld-num" type="number" step="0.5" min="1" max="10" placeholder="8" oninput="calcLoad()">
-  </div>
-</div>
+      <div class="fld">
+        <label class="fld-l">Series</label>
+        <input id="calc-sets" class="fld-i fld-num" type="number" placeholder="3">
+      </div>
+      <div class="fld">
+        <label class="fld-l">RPE percibido</label>
+        <input id="calc-rpe" class="fld-i fld-num" type="number" step="0.5" min="1" max="10" placeholder="8" oninput="calcLoad()">
+      </div>
+    </div>
 
-<div id="rpe-feedback-live"></div>
+    <div id="rpe-feedback-live"></div>
 
     <div id="calc-result" style="display:none;background:var(--bg);border:1px solid var(--card-border);border-radius:10px;padding:14px;margin:12px 0">
       <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:10px">1RM estimado</div>
@@ -13053,7 +13192,7 @@ async function openLoadCalculator(clientId, exerciseName, exId = null){
 
     <div class="fld-acts">
       <button type="button" class="btn btn-s" onclick="closeModal()">Cancelar</button>
-      <button type="button" class="btn btn-p" onclick="saveLoad('${clientId}','${jsArg(exerciseName)}')">Guardar</button>
+      <button type="button" class="btn btn-p" onclick="saveLoad('${clientId}','${jsArg(exerciseName)}','${jsArg(exId||'')}')">Guardar</button>
     </div>
   `;
 
@@ -13124,17 +13263,17 @@ if(fbBox) fbBox.innerHTML = buildRPEFeedbackHTML(fb);
   document.getElementById('calc-result').dataset.orm = orm;
 }
 
-async function saveLoad(clientId, exerciseName){
+async function saveLoad(clientId, exerciseName, exId = ''){
   const weight = parseFloat(document.getElementById('calc-weight')?.value || 0);
   const reps   = parseInt(document.getElementById('calc-reps')?.value || 0);
   const sets   = parseInt(document.getElementById('calc-sets')?.value || 0);
   const rpe    = parseFloat(document.getElementById('calc-rpe')?.value || 0);
   const orm    = parseFloat(document.getElementById('calc-result')?.dataset.orm || 0);
-  const form = document.getElementById('modal-form');
-   const exId = form?.dataset.loadExerciseId || '';
-   
-   const rec = getSmartLoadRecommendation(clientId, exerciseName, exId, orm || null);
-   const fb = analyzeRPEAgainstTarget(rec, rpe, weight, reps, orm || null);
+  const form   = document.getElementById('modal-form');
+  const resolvedExId = exId || form?.dataset.loadExerciseId || '';
+
+  const rec = getSmartLoadRecommendation(clientId, exerciseName, resolvedExId, orm || null);
+  const fb  = analyzeRPEAgainstTarget(rec, rpe, weight, reps, orm || null);
 
   if(!weight || !reps){
     showToast('Introduce peso y reps', 'err');
@@ -13142,17 +13281,22 @@ async function saveLoad(clientId, exerciseName){
   }
 
   try{
-    const { error } = await db.from('client_exercise_loads').insert({
-      client_id: clientId,
+    const payload = {
+      client_id:     clientId,
       exercise_name: exerciseName,
-      weight_kg: weight,
+      weight_kg:     weight,
       reps,
-      sets: sets || null,
-      rpe: rpe || null,
+      sets:          sets || null,
+      rpe:           rpe || null,
       estimated_1rm: orm || null,
-      training_date: todayISO()
-    });
+      training_date: todayISO(),
+      final_total_kg: weight,
+      final_load_text: `${weight}kg × ${reps} reps`
+    };
 
+    if(resolvedExId) payload.exercise_id = resolvedExId;
+
+    const { error } = await db.from('client_exercise_loads').insert(payload);
     if(error) throw error;
 
     showToast(`Carga guardada · ${fb.label}`, fb.status === 'too_high' || fb.status === 'stop' ? 'err' : 'ok');
