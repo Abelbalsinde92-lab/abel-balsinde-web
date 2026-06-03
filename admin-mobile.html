@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>AB · Field</title>
+<!-- AB Field patched v20260603-guard -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2243,7 +2244,7 @@ a{text-decoration:none;color:inherit}
 
 <div class="toast" id="toast">OK</div>
 
-<script src="/auth.js"></script>
+<!-- auth.js retirado: AB Field usa login propio para evitar bloqueo por guard global -->
 
 <script>
 /* ════════════════════════════════════════════════════════
@@ -2255,7 +2256,34 @@ const COACH_PHONE_DEFAULT = '381638112348';
 const ADMIN_USER_DEFAULT = 'abel_admin';
 const ADMIN_PASS_DEFAULT = 'ABcoach2024!';
 
-const db = supabase.createClient(SUPA_URL, SUPA_KEY);
+let AB_BOOT_ERROR = null;
+let db = null;
+
+function showBootError(message){
+  try{
+    document.getElementById('loading')?.classList.add('hidden');
+    document.getElementById('app')?.classList.add('hidden');
+    document.getElementById('login')?.classList.remove('hidden');
+    const er = document.getElementById('login-err');
+    if(er){
+      er.textContent = message || 'Error cargando AB Field.';
+      er.classList.remove('hidden');
+    }
+  }catch(e){
+    console.error('AB FIELD BOOT ERROR UI:', e);
+  }
+}
+
+try{
+  if(!window.supabase || typeof window.supabase.createClient !== 'function'){
+    throw new Error('No cargó Supabase JS. Revisa internet/CDN o carga local de @supabase/supabase-js.');
+  }
+  db = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+}catch(e){
+  AB_BOOT_ERROR = e;
+  console.error('AB FIELD BOOT ERROR:', e);
+  showBootError('No se pudo iniciar AB Field: no cargó Supabase JS. Actualiza la página o revisa conexión/caché.');
+}
 
 const state = {
   clients:[],todayRes:[],futureRes:[],pastRes:[],allRes:[],
@@ -3038,6 +3066,8 @@ function renderSemaforoCard(d) {
 
 (async function pageInit(){
   try{
+    if(AB_BOOT_ERROR) throw AB_BOOT_ERROR;
+
     const params = new URLSearchParams(location.search);
 
     if(params.has('auth') || params.has('logged_out') || params.has('v')){
@@ -3223,11 +3253,13 @@ if(!realtimeInitialized){
   realtimeInitialized = true;
 }
 
-// Activar push (pide permiso si no lo tiene)
-if (Notification.permission === 'default') {
-  setTimeout(() => initPushNotifications(), 3000);
-} else if (Notification.permission === 'granted') {
-  initPushNotifications();
+// Activar push (pide permiso si no lo tiene). Guardado para navegadores donde Notification no existe.
+if ('Notification' in window) {
+  if (Notification.permission === 'default') {
+    setTimeout(() => initPushNotifications(), 3000);
+  } else if (Notification.permission === 'granted') {
+    initPushNotifications();
+  }
 }
   }catch(err){console.error('loadAllData error:',err);showToast('Error cargando datos','err')}
 }
