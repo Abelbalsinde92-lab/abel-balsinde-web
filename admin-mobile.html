@@ -12262,6 +12262,155 @@ function buildLoadRecommendationHTML(rec, estimated1RM = null){
     </div>`;
 }
 
+function analyzeRPEAgainstTarget(rec, actualRPE, weight, reps, estimated1RM){
+  actualRPE = Number(actualRPE || 0);
+  weight = Number(weight || 0);
+  reps = Number(reps || 0);
+
+  if(!actualRPE){
+    return {
+      status:'pending',
+      label:'RPE pendiente',
+      color:'var(--text-2)',
+      message:'Introduce el RPE percibido al terminar el ejercicio.',
+      nextAdjust:0
+    };
+  }
+
+  if(!rec || rec.action === 'no_percent'){
+    return {
+      status:'technique',
+      label:'Control por sensación',
+      color:'var(--warn)',
+      message:'Este ejercicio se debe controlar más por técnica, respiración, estabilidad y sensación que por porcentaje.',
+      nextAdjust:0
+    };
+  }
+
+  if(rec.action === 'sustituir'){
+    return {
+      status:'stop',
+      label:'No progresar carga',
+      color:'var(--medical)',
+      message:'Hay una condición activa o riesgo alto. Hoy no se recomienda progresar carga en este ejercicio.',
+      nextAdjust:0
+    };
+  }
+
+  const min = Number(rec.rpeMin || 6);
+  const max = Number(rec.rpeMax || 8);
+
+  let status = 'ok';
+  let label = 'Carga correcta';
+  let color = 'var(--streak)';
+  let nextAdjust = 0;
+  let message = 'La carga estuvo dentro del rango esperado. Mantener o progresar de forma suave según técnica.';
+
+  if(actualRPE < min - 1){
+    status = 'too_easy';
+    label = 'Demasiado fácil';
+    color = 'var(--sport)';
+    nextAdjust = 5;
+    message = 'La carga quedó bastante por debajo del estímulo buscado. Si la técnica fue buena, se puede subir aproximadamente 5% la próxima vez.';
+  }else if(actualRPE < min){
+    status = 'easy';
+    label = 'Ligero';
+    color = 'var(--sport)';
+    nextAdjust = 2.5;
+    message = 'La carga fue algo ligera. Puede subir 2.5% la próxima vez si la técnica y la respiración fueron correctas.';
+  }else if(actualRPE <= max){
+    status = 'ok';
+    label = 'Zona correcta';
+    color = 'var(--streak)';
+    nextAdjust = 0;
+    message = 'La carga coincide con el objetivo del bloque. Mantener o progresar de forma mínima según evolución.';
+  }else if(actualRPE <= max + 1){
+    status = 'high';
+    label = 'Alta';
+    color = 'var(--warn)';
+    nextAdjust = -5;
+    message = 'La carga fue más dura de lo previsto. Conviene bajar 5% o mantener con menos volumen la próxima vez.';
+  }else{
+    status = 'too_high';
+    label = 'Excesiva';
+    color = 'var(--medical)';
+    nextAdjust = -10;
+    message = 'El esfuerzo fue demasiado alto para el objetivo. Bajar 10%, revisar técnica, descanso y posibles molestias.';
+  }
+
+  if(rec.pathology && nextAdjust > 0){
+    nextAdjust = 0;
+    message += ' Como hay una condición activa, no se recomienda subir carga todavía.';
+  }
+
+  if(reps <= 3 && actualRPE >= 9){
+    status = 'near_max';
+    label = 'Muy cerca del máximo';
+    color = 'var(--medical)';
+    nextAdjust = Math.min(nextAdjust, -5);
+    message = 'Pocas repeticiones con RPE muy alto: posible esfuerzo cercano al máximo. No repetir sin objetivo claro.';
+  }
+
+  let nextWeight = null;
+  if(weight && nextAdjust){
+    nextWeight = abRoundKg(weight * (1 + nextAdjust / 100));
+  }
+
+  return {
+    status,
+    label,
+    color,
+    message,
+    nextAdjust,
+    nextWeight,
+    targetMin:min,
+    targetMax:max,
+    actualRPE
+  };
+}
+
+function buildRPEFeedbackHTML(fb){
+  if(!fb) return '';
+
+  const nextText = fb.nextAdjust
+    ? `${fb.nextAdjust > 0 ? '+' : ''}${fb.nextAdjust}%${fb.nextWeight ? ` · aprox. ${fb.nextWeight} kg` : ''}`
+    : 'Sin cambio automático';
+
+  return `
+    <div style="background:rgba(255,255,255,.035);border:1px solid var(--card-border);border-radius:10px;padding:12px;margin:12px 0">
+      <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:${fb.color};margin-bottom:8px">
+        Lectura RPE
+      </div>
+
+      <div class="dr" style="padding:5px 0">
+        <span class="dk">Resultado</span>
+        <span class="dv" style="color:${fb.color};font-weight:800">${esc(fb.label)}</span>
+      </div>
+
+      ${fb.targetMin ? `
+        <div class="dr" style="padding:5px 0">
+          <span class="dk">Objetivo</span>
+          <span class="dv">RPE ${fb.targetMin}–${fb.targetMax}</span>
+        </div>
+
+        <div class="dr" style="padding:5px 0">
+          <span class="dk">Percibido</span>
+          <span class="dv">RPE ${fb.actualRPE}</span>
+        </div>
+      ` : ''}
+
+      <div class="dr" style="padding:5px 0">
+        <span class="dk">Próxima referencia</span>
+        <span class="dv">${esc(nextText)}</span>
+      </div>
+
+      <div style="margin-top:8px;font-size:.76rem;color:var(--text-2);line-height:1.55;border-left:2px solid ${fb.color};padding-left:8px">
+        ${esc(fb.message)}
+      </div>
+    </div>
+  `;
+}
+
 async function openLoadCalculator(clientId, exerciseName, exId = null){
   const c = clientById(clientId);
   if(!c) return;
@@ -12319,15 +12468,17 @@ async function openLoadCalculator(clientId, exerciseName, exId = null){
     </div>
 
     <div class="fld-2">
-      <div class="fld">
-        <label class="fld-l">Series</label>
-        <input id="calc-sets" class="fld-i fld-num" type="number" placeholder="3">
-      </div>
-      <div class="fld">
-        <label class="fld-l">RPE percibido</label>
-        <input id="calc-rpe" class="fld-i fld-num" type="number" step="0.5" min="1" max="10" placeholder="8" oninput="calcLoad()">
-      </div>
-    </div>
+  <div class="fld">
+    <label class="fld-l">Series</label>
+    <input id="calc-sets" class="fld-i fld-num" type="number" placeholder="3">
+  </div>
+  <div class="fld">
+    <label class="fld-l">RPE percibido</label>
+    <input id="calc-rpe" class="fld-i fld-num" type="number" step="0.5" min="1" max="10" placeholder="8" oninput="calcLoad()">
+  </div>
+</div>
+
+<div id="rpe-feedback-live"></div>
 
     <div id="calc-result" style="display:none;background:var(--bg);border:1px solid var(--card-border);border-radius:10px;padding:14px;margin:12px 0">
       <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:10px">1RM estimado</div>
@@ -12355,14 +12506,20 @@ function calcLoad(){
   const rpe    = parseFloat(document.getElementById('calc-rpe')?.value || 0);
 
   if(!weight || !reps) {
-    document.getElementById('calc-result').style.display = 'none';
+  document.getElementById('calc-result').style.display = 'none';
 
-    const rec = getSmartLoadRecommendation(clientId, exerciseName, exId, null);
-    const recBox = document.getElementById('load-rec-live');
-    if(recBox) recBox.innerHTML = buildLoadRecommendationHTML(rec, null);
+  const rec = getSmartLoadRecommendation(clientId, exerciseName, exId, null);
+  const recBox = document.getElementById('load-rec-live');
+  if(recBox) recBox.innerHTML = buildLoadRecommendationHTML(rec, null);
 
-    return;
+  const fbBox = document.getElementById('rpe-feedback-live');
+  if(fbBox){
+    const fb = analyzeRPEAgainstTarget(rec, rpe, weight, reps, null);
+    fbBox.innerHTML = buildRPEFeedbackHTML(fb);
   }
+
+  return;
+}
 
   let orm = weight * (1 + reps / 30);
 
@@ -12376,6 +12533,10 @@ function calcLoad(){
   const rec = getSmartLoadRecommendation(clientId, exerciseName, exId, orm);
   const recBox = document.getElementById('load-rec-live');
   if(recBox) recBox.innerHTML = buildLoadRecommendationHTML(rec, orm);
+
+   const fb = analyzeRPEAgainstTarget(rec, rpe, weight, reps, orm);
+const fbBox = document.getElementById('rpe-feedback-live');
+if(fbBox) fbBox.innerHTML = buildRPEFeedbackHTML(fb);
 
   const percentages = rec?.usesPercent && rec.action !== 'sustituir'
     ? [rec.min, Math.round((rec.min + rec.max) / 2), rec.max, 60, 70, 80, 85, 90, 95]
@@ -12404,6 +12565,11 @@ async function saveLoad(clientId, exerciseName){
   const sets   = parseInt(document.getElementById('calc-sets')?.value || 0);
   const rpe    = parseFloat(document.getElementById('calc-rpe')?.value || 0);
   const orm    = parseFloat(document.getElementById('calc-result')?.dataset.orm || 0);
+  const form = document.getElementById('modal-form');
+   const exId = form?.dataset.loadExerciseId || '';
+   
+   const rec = getSmartLoadRecommendation(clientId, exerciseName, exId, orm || null);
+   const fb = analyzeRPEAgainstTarget(rec, rpe, weight, reps, orm || null);
 
   if(!weight || !reps){
     showToast('Introduce peso y reps', 'err');
@@ -12424,7 +12590,7 @@ async function saveLoad(clientId, exerciseName){
 
     if(error) throw error;
 
-    showToast('Carga guardada ✓', 'ok');
+    showToast(`Carga guardada · ${fb.label}`, fb.status === 'too_high' || fb.status === 'stop' ? 'err' : 'ok');
     closeModal();
   }catch(err){
     showToast('Error: ' + err.message, 'err');
