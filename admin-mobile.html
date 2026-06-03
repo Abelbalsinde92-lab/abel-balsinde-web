@@ -6639,12 +6639,22 @@ async function setWorkoutLoadPercentage(percentage){
   const p = Number(percentage || 70);
   state.activeWorkoutLoadPercentage = [60,65,70,75,80,85].includes(p) ? p : 70;
 
-  // Forzar relectura desde la RPC. En sala prefiero exactitud antes que caché.
+  // Borrar TODO el caché de cargas para forzar relectura desde RPC
+  state.sessionLoadCache = {};
+
+  // Si hay bloque activo, forzar recarga de sus ejercicios también
   const activeClientId = String(state.activeTrainingClientId || state.selectedClientId || '');
-  if(activeClientId && state.sessionLoadCache){
-    Object.keys(state.sessionLoadCache).forEach(k => {
-      if(k.startsWith(activeClientId + '__')) delete state.sessionLoadCache[k];
-    });
+  if(activeClientId && state.activeWorkoutBlockId){
+    // Recargar ejercicios del bloque activo con la nueva prescripción
+    const c = clientById(activeClientId);
+    if(c){
+      const plan = getWorkoutPlanForClient(c);
+      try{
+        await ensureSessionLoadPrescriptionLoaded(c, plan);
+      }catch(err){
+        console.warn('Error recargando prescripción al cambiar %:', err);
+      }
+    }
   }
 
   await renderWorkout();
