@@ -7305,6 +7305,7 @@ function buildWorkoutExerciseCard(ex,index,clientId){
     </div>
     <div class="ex-actions">
       ${videoUrl?`<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>`:`<button class="btn btn-s btn-sm" disabled>Sin vídeo</button>`}
+      <button class="btn btn-g btn-sm" onclick="openLoadCalculator('${c.id}','${esc(getExerciseTitle(ex))}')">⚖ Carga</button>
       <button class="btn ${done?'btn-g':'btn-s'} btn-sm" onclick="toggleWorkoutExercise('${clientId}','${exId}')">${done?'Terminado':'Marcar'}</button>
     </div>
   </div>`;
@@ -11822,6 +11823,143 @@ function setupRealtimeNotifications() {
     .subscribe();
 
   console.log('AB Realtime notifications activas ✓');
+}
+
+async function openLoadCalculator(clientId, exerciseName){
+  const c = clientById(clientId);
+  if(!c) return;
+
+  // Cargar historial del ejercicio
+  const { data: history } = await db
+    .from('client_exercise_loads')
+    .select('*')
+    .eq('client_id', clientId)
+    .eq('exercise_name', exerciseName)
+    .order('training_date', { ascending: false })
+    .limit(5);
+
+  const last = history?.[0];
+  const last1RM = last?.estimated_1rm || '';
+
+  document.getElementById('modal-title').textContent = '⚖ Calculador de carga';
+  document.getElementById('modal-form').innerHTML = `
+    <div style="font-family:var(--font-m);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sport);margin-bottom:12px">
+      ${esc(exerciseName)}
+    </div>
+
+    ${last ? `
+      <div style="background:rgba(0,200,232,.06);border:1px solid rgba(0,200,232,.2);border-radius:8px;padding:10px 12px;margin-bottom:14px">
+        <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">Última sesión · ${formatDate(last.training_date)}</div>
+        <div style="display:flex;gap:12px">
+          <span style="font-size:.82rem">${last.weight_kg}kg × ${last.reps} reps</span>
+          <span style="font-size:.82rem;color:var(--sport)">1RM est: ${last.estimated_1rm}kg</span>
+          ${last.rpe ? `<span style="font-size:.82rem;color:var(--warn)">RPE ${last.rpe}</span>` : ''}
+        </div>
+      </div>
+    ` : ''}
+
+    <div class="fld-2">
+      <div class="fld">
+        <label class="fld-l">Peso (kg)</label>
+        <input id="calc-weight" class="fld-i fld-num" type="number" step="0.5" placeholder="80" oninput="calcLoad()">
+      </div>
+      <div class="fld">
+        <label class="fld-l">Reps</label>
+        <input id="calc-reps" class="fld-i fld-num" type="number" placeholder="5" oninput="calcLoad()">
+      </div>
+    </div>
+
+    <div class="fld-2">
+      <div class="fld">
+        <label class="fld-l">Series</label>
+        <input id="calc-sets" class="fld-i fld-num" type="number" placeholder="3">
+      </div>
+      <div class="fld">
+        <label class="fld-l">RPE (1-10)</label>
+        <input id="calc-rpe" class="fld-i fld-num" type="number" step="0.5" min="1" max="10" placeholder="8" oninput="calcLoad()">
+      </div>
+    </div>
+
+    <div id="calc-result" style="display:none;background:var(--bg);border:1px solid var(--card-border);border-radius:10px;padding:14px;margin:12px 0">
+      <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:10px">1RM estimado</div>
+      <div id="calc-1rm" style="font-family:var(--font-d);font-size:2rem;color:var(--sport);line-height:1;margin-bottom:12px"></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px" id="calc-percentages"></div>
+    </div>
+
+    <div class="fld-acts">
+      <button type="button" class="btn btn-s" onclick="closeModal()">Cancelar</button>
+      <button type="button" class="btn btn-p" onclick="saveLoad('${clientId}','${esc(exerciseName)}')">Guardar</button>
+    </div>
+  `;
+
+  document.getElementById('modal-ov').classList.add('on');
+}
+
+function calcLoad(){
+  const weight = parseFloat(document.getElementById('calc-weight')?.value || 0);
+  const reps   = parseInt(document.getElementById('calc-reps')?.value || 0);
+  const rpe    = parseFloat(document.getElementById('calc-rpe')?.value || 0);
+
+  if(!weight || !reps) {
+    document.getElementById('calc-result').style.display = 'none';
+    return;
+  }
+
+  // Fórmula Epley + ajuste RPE
+  let orm = weight * (1 + reps / 30);
+
+  if(rpe && rpe < 10){
+    const rpeAdjust = 1 + (10 - rpe) * 0.03;
+    orm = orm * rpeAdjust;
+  }
+
+  orm = Math.round(orm * 2) / 2; // Redondear a 0.5kg
+
+  const percentages = [50,60,70,75,80,85,90,95,100];
+
+  document.getElementById('calc-1rm').textContent = orm + ' kg';
+  document.getElementById('calc-percentages').innerHTML = percentages.map(p => `
+    <div style="background:rgba(255,255,255,.04);border:1px solid var(--divider);border-radius:8px;padding:8px 6px;text-align:center">
+      <div style="font-family:var(--font-d);font-size:1.1rem;color:${p>=90?'var(--sport)':p>=75?'var(--warn)':'var(--text)'}">${Math.round(orm * p/100 * 2)/2}kg</div>
+      <div style="font-family:var(--font-m);font-size:.48rem;color:var(--text-2);margin-top:2px">${p}%</div>
+    </div>
+  `).join('');
+
+  document.getElementById('calc-result').style.display = 'block';
+  document.getElementById('calc-result').dataset.orm = orm;
+}
+
+async function saveLoad(clientId, exerciseName){
+  const weight = parseFloat(document.getElementById('calc-weight')?.value || 0);
+  const reps   = parseInt(document.getElementById('calc-reps')?.value || 0);
+  const sets   = parseInt(document.getElementById('calc-sets')?.value || 0);
+  const rpe    = parseFloat(document.getElementById('calc-rpe')?.value || 0);
+  const orm    = parseFloat(document.getElementById('calc-result')?.dataset.orm || 0);
+
+  if(!weight || !reps){
+    showToast('Introduce peso y reps', 'err');
+    return;
+  }
+
+  try{
+    const { error } = await db.from('client_exercise_loads').insert({
+      client_id: clientId,
+      exercise_name: exerciseName,
+      weight_kg: weight,
+      reps,
+      sets: sets || null,
+      rpe: rpe || null,
+      estimated_1rm: orm || null,
+      training_date: todayISO()
+    });
+
+    if(error) throw error;
+
+    showToast('Carga guardada ✓', 'ok');
+    closeModal();
+  }catch(err){
+    showToast('Error: ' + err.message, 'err');
+  }
 }
 
 async function testPush() {
