@@ -11771,7 +11771,7 @@ db.from('client_assessments').insert({
   if (error) console.warn('client_assessments insert error:', error);
 });
 
-  // ── Crear evaluacion ──
+    // ── Crear evaluacion ──
   const eid = uid();
   evalState.evaluacionId = eid;
 
@@ -11785,18 +11785,8 @@ db.from('client_assessments').insert({
     evaluation_mode: 'coach',
     evaluation_status: 'draft',
     assessment_id: aid,
-});
-if(evalInsertError) console.error('evaluaciones insert error:', evalInsertError);
-    coach_id: evalState.clientId,
-    fecha: todayISO(),
-    sexo: evalState.clientSexo,
-    edad: evalState.clientEdad,
-    evaluation_type: type,
-    evaluation_mode: 'coach',
-    evaluation_status: 'draft',
-    assessment_id: aid,
-    if (error) console.warn('evaluaciones insert error (no bloquea):', error);
   });
+  if(evalInsertError) console.error('evaluaciones insert error:', evalInsertError);
 
   evalState.currentIdx = 0;
   renderEvalTest();
