@@ -7737,13 +7737,27 @@ function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,not
   }
 
   /* === Flujo normal con bloques ─ barra de progreso v1.1 === */
+  {
+    // Calcular adaptados en sesión actual para el header
+    const _detectedAll = detectAllPathologiesForClient(c);
+    const _hasAdaptation = !!(_detectedAll.physical || _detectedAll.hasFatiga);
+    const _adaptedCount = _hasAdaptation
+      ? plan.exercises.filter((ex,idx) => {
+          const rows = state.currentAdaptedRows || [];
+          return rows.some(r => cleanTxt(r.ejercicio_original||'') === cleanTxt(getExerciseTitle(ex)));
+        }).length
+      : 0;
+    const _pathLabel = _detectedAll.physical
+      ? getPathologyLabel(_detectedAll.physical)
+      : (_detectedAll.hasFatiga ? 'Fatiga alta' : '');
+  }
       return`
         <div class="wt-head" style="padding:12px">
       <div class="wt-head-top" style="margin-bottom:0;align-items:center">
         ${getClientPhotoHTML(c,'sm')}
         <div style="flex:1;min-width:0">
           <div class="wt-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.98rem">${esc(c.name)}</div>
-          <div class="wt-program" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.6rem">${esc(plan.program.name||plan.program.nameEs||'Programa activo')}</div>
+          ${(()=>{ const da=detectAllPathologiesForClient(c); const pl=da.physical?getPathologyLabel(da.physical):da.hasFatiga?'Fatiga alta':''; return pl ? `<div class="wt-program" style="color:var(--warn);font-size:.58rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(pl)} · adaptación activa</div>` : `<div class="wt-program" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.6rem">${esc(plan.program.name||plan.program.nameEs||'Programa activo')}</div>`; })()}
           <div class="wt-meta" style="font-size:.7rem;margin-top:1px">${esc(workoutStepLabel(getAssignmentWeek(plan.assignment),getAssignmentSessionNumber(plan.assignment)))} · ${doneCount}/${totalCount||0} ej.</div>
         </div>
         ${badge(c.status||'activo',c.status||'activo')}
@@ -7786,12 +7800,22 @@ ${plan.blocks.map((b,bi)=>{
       const info=getBlockDoneInfo(c.id,b);
       const title=getBlockName(b)||`Bloque ${bi+1}`;
       const pct=info.total>0?Math.round((info.done/info.total)*100):0;
+      // Contar ejercicios adaptados en este bloque
+      const _adaptedRows = state.currentAdaptedRows || [];
+      const _blockExNames = new Set((b.exercises||[]).map(ex => cleanTxt(getExerciseTitle(ex))));
+      const _adaptedInBlock = _adaptedRows.filter(r =>
+        cleanTxt(r.bloque||'') === cleanTxt(getBlockName(b)||'') &&
+        (r.estado_ejercicio === 'sustituido' || r.estado_ejercicio === 'modificado')
+      ).length;
+      const _adaptBadge = _adaptedInBlock > 0
+        ? `<span style="font-family:var(--font-m);font-size:.46rem;color:var(--warn);background:rgba(255,179,64,.1);border:1px solid rgba(255,179,64,.2);border-radius:3px;padding:1px 5px;letter-spacing:.06em;margin-left:4px">${_adaptedInBlock} adapt.</span>`
+        : '';
      return`<button class="wt2-block ${info.finished?'done':''}" onclick="openWorkoutBlock('${b.id}')">
     <div class="wt2-block-num">${bi+1}</div>
     <div class="wt2-block-icon">${getBlockTypeIconSVG(b)}</div>
     <div class="wt2-block-body">
       <div class="wt2-block-name">${esc(title)}</div>
-      <div class="wt2-block-sub">${info.done}/${info.total} ${info.guided?'guiado':'ejercicios'}</div>
+      <div class="wt2-block-sub" style="display:flex;align-items:center;gap:0">${info.done}/${info.total} ${info.guided?'guiado':'ejercicios'}${_adaptBadge}</div>
       <div class="wt2-block-bar"><div class="wt2-block-bar-fill" style="width:${pct}%;background:${info.finished?'var(--streak)':'var(--sport)'}"></div></div>
     </div>
     <div class="block-closed-action" style="${info.finished?'background:rgba(0,230,118,.12);color:var(--streak);border-color:rgba(0,230,118,.3)':''}">
@@ -9379,8 +9403,6 @@ function buildFrontendAdaptedRows(plan, pathology){
     exercises.forEach((ex,idx)=>{
       const exName=getExerciseTitle(ex);
       const base={
-        block_id: block.id || block.blockId || block.block_id || '',
-        ejercicio_id: getExerciseId(ex, idx),
         bloque:blockName,orden_bloque:ordenBloque,orden_ejercicio:idx+1,
         ejercicio_original:exName,ejercicio_final:exName,
         estado_ejercicio:'mantener',semana,sesion,
@@ -9494,82 +9516,6 @@ function applyLumbarFrontendFallback(rows, pathology){
   });
 }
 
-
-function enrichAdaptedRowsWithWorkoutPlan(rows, plan){
-  const safeRows = rows || [];
-  const blocks = plan?.blocks || [];
-
-  const byExerciseId = new Map();
-  const byCleanName = new Map();
-  const byBlockOrderAndExerciseOrder = new Map();
-
-  blocks.forEach((block, bi) => {
-    const blockId = String(block.id || block.blockId || block.block_id || '').trim();
-    const blockName = getBlockName(block) || `Bloque ${bi + 1}`;
-    const blockOrder = Number(block.orderIndex || block.order_index || block.orden_bloque || bi + 1);
-    const allItems = [ ...(block.instructions || []), ...(block.exercises || []) ];
-
-    allItems.forEach((ex, ei) => {
-      const exId = getExerciseId(ex, ei);
-      const exName = getExerciseTitle(ex);
-      const meta = {
-        block_id: blockId,
-        bloque: blockName,
-        orden_bloque: blockOrder,
-        ejercicio_id: exId,
-        orden_ejercicio: Number(ex.exerciseOrder || ex.exercise_order || ex.orderIndex || ex.order_index || ei + 1),
-        exercise: ex
-      };
-
-      if(exId) byExerciseId.set(String(exId), meta);
-      const cleanName = cleanTxt(exName);
-      if(cleanName && !byCleanName.has(cleanName)) byCleanName.set(cleanName, meta);
-      byBlockOrderAndExerciseOrder.set(`${meta.orden_bloque}__${meta.orden_ejercicio}`, meta);
-    });
-  });
-
-  return safeRows.map((row, idx) => {
-    const r = { ...row };
-    const rawExId = getAdaptedRowExerciseId(r);
-    const originalName = r.ejercicio_original || r.ejercicio_final || r.ejercicio_sustituto || '';
-    const nameKey = cleanTxt(originalName);
-    const orderKey = `${Number(r.orden_bloque || 0)}__${Number(r.orden_ejercicio || idx + 1)}`;
-
-    const meta =
-      (rawExId && byExerciseId.get(String(rawExId))) ||
-      (nameKey && byCleanName.get(nameKey)) ||
-      byBlockOrderAndExerciseOrder.get(orderKey) ||
-      null;
-
-    if(meta){
-      r.block_id = r.block_id || r.blockId || meta.block_id;
-      r.bloque = r.bloque || meta.bloque;
-      r.orden_bloque = Number(r.orden_bloque || meta.orden_bloque || 0);
-      r.ejercicio_id = r.ejercicio_id || r.exercise_id || r.exerciseId || meta.ejercicio_id;
-      r.orden_ejercicio = Number(r.orden_ejercicio || meta.orden_ejercicio || idx + 1);
-
-      const ex = meta.exercise || {};
-      r.sets = r.sets ?? ex.sets;
-      r.reps = r.reps ?? ex.reps;
-      r.duration = r.duration ?? ex.duration;
-      r.rest = r.rest ?? ex.rest;
-      r.tempo = r.tempo ?? ex.tempo;
-      r.video_url = r.video_url || getExerciseVideoUrl(ex);
-      r.variant_n1 = r.variant_n1 || ex.variantN1 || ex.variant_n1;
-      r.variant_n2 = r.variant_n2 || ex.variantN2 || ex.variant_n2;
-      r.variant_n3 = r.variant_n3 || ex.variantN3 || ex.variant_n3;
-      r.variant_n4 = r.variant_n4 || ex.variantN4 || ex.variant_n4;
-    }else{
-      r.orden_bloque = Number(r.orden_bloque || 0);
-      r.orden_ejercicio = Number(r.orden_ejercicio || idx + 1);
-      r.bloque = r.bloque || 'Bloque';
-    }
-
-    r.estado_ejercicio = normalizeAdaptedStatusValue(r.estado_ejercicio || 'mantener');
-    return r;
-  });
-}
-
 async function getAdaptedRowsForClient(c){
   const plan = getWorkoutPlanForClient(c);
   const assignment = plan.assignment;
@@ -9656,8 +9602,6 @@ async function getAdaptedRowsForClient(c){
     rows = applyFatigaModifierOnRows(rows);
   }
 
-  rows = enrichAdaptedRowsWithWorkoutPlan(rows, getWorkoutPlanForClient(c));
-
   state.adaptedTrainingCache[cacheKey] = rows;
 
   return {
@@ -9726,57 +9670,19 @@ function sendAdaptedClientMessage(clientId, rows){
   openWA(c.phone || state.settings.coachPhone, msg);
 }
 
-function normalizeAdaptedStatusValue(value){
-  const st = cleanTxt(value || 'normal');
-  if(st === 'sustituir' || st === 'sustitucion' || st === 'sustitución' || st === 'sustituido') return 'sustituido';
-  if(st === 'modificar' || st === 'modificacion' || st === 'modificación' || st === 'modificado') return 'modificado';
-  if(st === 'mantener' || st === 'mantenido' || st === 'normal') return 'mantener';
-  if(st === 'instruction_only' || st === 'instruccion' || st === 'instrucción') return 'instruction_only';
-  if(st === 'evitar' || st === 'evitado') return 'evitar';
-  if(st === 'derivar' || st === 'red_flag') return 'derivar';
-  return st || 'mantener';
-}
-
-function getAdaptedRowBlockId(r){
-  return String(r?.block_id || r?.blockId || r?.bloque_id || '').trim();
-}
-
-function getAdaptedRowExerciseId(r){
-  return String(r?.ejercicio_id || r?.exercise_id || r?.exerciseId || r?.id || '').trim();
-}
-
-function getAdaptedRowBlockOrder(r){
-  return Number(r?.orden_bloque || r?.block_order || r?.blockOrder || 0);
-}
-
-function getAdaptedRowBlockName(r){
-  return r?.bloque || r?.block_title || r?.blockTitle || r?.block_name || r?.blockName || 'Bloque';
-}
-
-function makeAdaptedBlockKey(r){
-  const order = String(getAdaptedRowBlockOrder(r) || 0).padStart(2,'0');
-  const blockId = getAdaptedRowBlockId(r);
-  const name = getAdaptedRowBlockName(r);
-  const safeId = blockId || cleanTxt(name || 'bloque') || 'bloque';
-  return `${order}__${safeId}__${name || 'Bloque'}`;
-}
-
 function getAdaptedBlockGroups(rows){
   const grouped = {};
 
   (rows || []).forEach(r => {
-    const key = makeAdaptedBlockKey(r);
+    const order = String(r.orden_bloque || 0).padStart(2,'0');
+    const name = r.bloque || 'Bloque';
+    const key = `${order}__${name}`;
 
     if(!grouped[key]) grouped[key] = [];
     grouped[key].push(r);
   });
 
   return Object.entries(grouped).sort((a,b) => {
-    const orderA = Number(String(a[0]).split('__')[0] || 0);
-    const orderB = Number(String(b[0]).split('__')[0] || 0);
-
-    if(orderA !== orderB) return orderA - orderB;
-
     const nameA = getAdaptedBlockName(a[0]);
     const nameB = getAdaptedBlockName(b[0]);
 
@@ -9785,13 +9691,14 @@ function getAdaptedBlockGroups(rows){
 
     if(rankA !== rankB) return rankA - rankB;
 
-    return nameA.localeCompare(nameB);
+    const orderA = Number(String(a[0]).split('__')[0] || 0);
+    const orderB = Number(String(b[0]).split('__')[0] || 0);
+
+    return orderA - orderB;
   });
 }
 
 function getAdaptedBlockName(key){
-  const parts = String(key || '').split('__');
-  if(parts.length >= 3) return parts.slice(2).join('__') || 'Bloque';
   return String(key || '').replace(/^\d+__/, '') || 'Bloque';
 }
 
@@ -9801,10 +9708,10 @@ function getAdaptedRowReviewKey(c, r, index = 0){
     'adapted',
     r.semana || '',
     r.sesion || '',
-    getAdaptedRowBlockId(r) || r.orden_bloque || '',
-    getAdaptedRowExerciseId(r) || r.orden_ejercicio || index,
+    r.orden_bloque || '',
+    r.orden_ejercicio || index,
     r.ejercicio_original || '',
-    r.ejercicio_final || r.ejercicio_sustituto || ''
+    r.ejercicio_final || ''
   ].join('__');
 }
 
@@ -9916,23 +9823,22 @@ async function markAdaptedBlockDone(clientId, blockKey){
 }
 
 function isAdaptedInstruction(r){
-  return normalizeAdaptedStatusValue(r?.estado_ejercicio || '') === 'instruction_only';
+  return String(r.estado_ejercicio || '') === 'instruction_only';
 }
 
 function adaptedStatusText(r){
-  const st = normalizeAdaptedStatusValue(r?.estado_ejercicio || 'normal');
+  const st = String(r.estado_ejercicio || 'normal');
   if(st === 'sustituido') return 'Sustituido';
   if(st === 'modificado') return 'Modificado';
   if(st === 'mantener') return 'Mantener';
   if(st === 'instruction_only') return 'Instrucción';
-  if(st === 'evitar') return 'Evitar';
   if(st === 'derivar') return 'Derivar';
   return 'Normal';
 }
 
 function adaptedStatusKind(r){
-  const st = normalizeAdaptedStatusValue(r?.estado_ejercicio || 'normal');
-  if(st === 'sustituido' || st === 'evitar') return 'alerta';
+  const st = String(r.estado_ejercicio || 'normal');
+  if(st === 'sustituido') return 'alerta';
   if(st === 'modificado') return 'revisar';
   if(st === 'mantener') return 'normal';
   if(st === 'derivar') return 'critica';
@@ -9940,8 +9846,8 @@ function adaptedStatusKind(r){
 }
 
 function adaptedBorderStyle(r){
-  const st = normalizeAdaptedStatusValue(r?.estado_ejercicio || 'normal');
-  if(st === 'sustituido' || st === 'evitar') return 'border-left:3px solid var(--medical)';
+  const st = String(r.estado_ejercicio || 'normal');
+  if(st === 'sustituido') return 'border-left:3px solid var(--medical)';
   if(st === 'modificado') return 'border-left:3px solid var(--warn)';
   if(st === 'mantener') return 'border-left:3px solid var(--streak)';
   return '';
@@ -9954,38 +9860,44 @@ function adaptedBorderStyle(r){
 
 /* Convierte un row adaptado al formato que entiende buildClExerciseRow */
 function adaptedRowToExItem(r, index, c){
-  const status = normalizeAdaptedStatusValue(r.estado_ejercicio || 'normal');
+  const status = String(r.estado_ejercicio || 'normal');
   const isSub  = status === 'sustituido';
   const isMod  = status === 'modificado';
   const isKeep = status === 'mantener';
-  const isAvoid = status === 'evitar';
   const isInst = status === 'instruction_only';
 
-  const originalName = r.ejercicio_original || r.original_exercise_name || '';
-  const finalName = r.ejercicio_sustituto || r.ejercicio_final || r.replacement_exercise_name || '';
-  const displayName = (isSub || isAvoid)
-    ? (finalName || originalName || 'Ejercicio')
-    : (originalName || finalName || 'Ejercicio');
+  // Buscar carga real en state.trainingExercises (puede tener datos de la RPC de cargas)
+  // Para el ejercicio FINAL (el que se ejecuta, no el original)
+  const finalName = cleanTxt(r.ejercicio_final || r.ejercicio_original || '');
+  const srcEx = (state.trainingExercises || []).find(ex =>
+    cleanTxt(getExerciseTitle(ex)) === finalName && hasSuggestedLoad(ex)
+  );
+  // Si no hay carga para el final, intentar con el original (si se mantiene)
+  const origName = cleanTxt(r.ejercicio_original || '');
+  const origEx = !isSub ? (state.trainingExercises || []).find(ex =>
+    cleanTxt(getExerciseTitle(ex)) === origName && hasSuggestedLoad(ex)
+  ) : null;
+  const loadSrc = srcEx || origEx || null;
 
-  // Construir un objeto compatible con getDoseData / getExerciseTitle etc.
   return {
     // Campos de identidad
-    id: getAdaptedRowExerciseId(r) || r.id || `adapted-${getAdaptedRowBlockId(r) || r.orden_bloque}-${r.orden_ejercicio || index}`,
-    exerciseId: getAdaptedRowExerciseId(r),
-    exercise_id: getAdaptedRowExerciseId(r),
-    blockId: getAdaptedRowBlockId(r),
-    block_id: getAdaptedRowBlockId(r),
-    name: displayName,
-    nameEs: displayName,
-    // Dosificación original/adaptada
+    id: r.id || `adapted-${r.orden_bloque}-${r.orden_ejercicio || index}`,
+    name: r.ejercicio_final || r.ejercicio_original || 'Ejercicio',
+    nameEs: r.ejercicio_final || r.ejercicio_original || 'Ejercicio',
+    // Dosificación original
     sets: r.sets, reps: r.reps,
     duration: r.duration, rest: r.rest, tempo: r.tempo,
-    // Carga
-    loadAvailable: !!(r.loadAvailable || r.load_available),
-    practicalLoadText: r.practicalLoadText || r.practical_load_text || '',
-    adminFieldNote: r.adminFieldNote || r.admin_field_note || '',
-    intensityZone: r.intensityZone || r.intensity_zone || '',
-    loadPercentage: r.loadPercentage || r.load_percentage || null,
+    // Carga — priorizar datos reales de la RPC si existen, luego state.trainingExercises
+    loadAvailable: !!(loadSrc?.loadAvailable || loadSrc?.load_available || r.loadAvailable || r.load_available),
+    practicalLoadText: loadSrc?.practicalLoadText || loadSrc?.practical_load_text || r.practicalLoadText || r.practical_load_text || '',
+    practicalTotalKg: loadSrc?.practicalTotalKg ?? loadSrc?.practical_total_kg ?? null,
+    practicalSideKg: loadSrc?.practicalSideKg ?? loadSrc?.practical_side_kg ?? null,
+    loadPrescriptionMode: loadSrc?.loadPrescriptionMode || loadSrc?.load_prescription_mode || null,
+    adminFieldNote: loadSrc?.adminFieldNote || loadSrc?.admin_field_note || r.adminFieldNote || r.admin_field_note || '',
+    intensityZone: loadSrc?.intensityZone || loadSrc?.intensity_zone || r.intensityZone || r.intensity_zone || '',
+    loadPercentage: loadSrc?.loadPercentage || loadSrc?.load_percentage || r.loadPercentage || r.load_percentage || null,
+    // Nota: si es sustituido, no forzar carga del original
+    _loadFromSubstitute: !!(isSub && loadSrc),
     // Vídeo
     videoUrl: r.video_sustituto || r.video_original || r.video_url || '',
     video_url: r.video_sustituto || r.video_original || r.video_url || '',
@@ -10002,9 +9914,8 @@ function adaptedRowToExItem(r, index, c){
     _isSub: isSub,
     _isMod: isMod,
     _isKeep: isKeep,
-    _isAvoid: isAvoid,
-    _originalName: originalName,
-    _coachNote: r.modification_text || r.explicacion_breve_coach || '',
+    _originalName: r.ejercicio_original || '',
+    _coachNote: r.explicacion_breve_coach || '',
     _clientNote: r.explicacion_cliente || '',
     _reviewKey: null, // se rellena en buildAdaptedBlockChecklistScreen
   };
@@ -10014,7 +9925,6 @@ function adaptedRowToExItem(r, index, c){
 function buildAdaptedStatusTag(ex){
   if(!ex._adaptStatus || ex._adaptStatus === 'normal' || ex._adaptStatus === 'mantener') return '';
   if(ex._isSub) return `<span class="cl-sub-label">Sustituye · ${esc(ex._originalName)}</span>`;
-  if(ex._isAvoid) return `<span class="cl-sub-label">Evitar · ${esc(ex._originalName)}</span>`;
   if(ex._isMod) return `<span class="cl-adapt-label">Modificado</span>`;
   return '';
 }
@@ -10045,7 +9955,8 @@ function buildAdaptedClRow(ex, index, clientId, reviewKey){
         ${adaptTag}
         <div class="cl-name">${esc(ex.name || ex.nameEs || 'Ejercicio')}</div>
         ${meta ? `<div class="cl-meta">${esc(meta)}</div>` : ''}
-        ${loadText ? `<div class="cl-load">${esc(loadText)}</div>` : ''}
+        ${loadText ? `<div class="cl-load">${esc(loadText)}${ex._loadFromSubstitute ? ' <span style="opacity:.6;font-size:.44rem">ref.</span>' : ''}</div>` : ''}
+        ${hasSuggestedLoad(ex) ? buildClLoadInput(ex, reviewKey) : ''}
         ${coachNote && !isDetail ? `<div class="cl-meta" style="color:var(--text-2);margin-top:2px">${esc(coachNote.slice(0,80))}${coachNote.length>80?'…':''}</div>` : ''}
         ${isDetail ? buildAdaptedClDetail(ex, reviewKey, clientId, videoUrl) : ''}
       </div>
@@ -10162,12 +10073,6 @@ function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
 
   const activeKey = state.activeAdaptedBlockKey;
   const activeGroup = activeKey ? groups.find(([key]) => key === activeKey) : null;
-
-  // Si venimos de una versión anterior o cambió la estructura de bloques,
-  // no mantener una key vieja que pueda abrir una vista genérica/mal agrupada.
-  if(activeKey && !activeGroup){
-    state.activeAdaptedBlockKey = null;
-  }
 
   // ── Bloque abierto: mismo checklist que modo normal ──
   if(activeGroup){
