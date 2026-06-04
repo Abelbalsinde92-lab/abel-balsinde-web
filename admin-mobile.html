@@ -6194,20 +6194,19 @@ async function ensureBlockExercisesLoaded(blockOrId){
     return [];
   }
 
-  const alreadyLoaded = sortByOrder(
-    state.trainingExercises.filter(e =>
-      sameId(getExerciseBlockId(e), blockId)
-    )
-  );
-
-  if(alreadyLoaded.length){
-    return alreadyLoaded;
-  }
-
+  /*
+    AB FIX 20260604 · No confiar en el cache global.
+    loadAllData() carga training_exercises con limit(3000), por eso algunos bloques
+    pueden quedar parcialmente cargados. Si aquí devolvemos "alreadyLoaded" cuando
+    hay 1-2 ejercicios, la pantalla muestra bloques recortados.
+    Solución: cuando se abre un bloque, se consulta SIEMPRE su lista real por block_id
+    y se reemplaza el cache de ese bloque.
+  */
   const { data, error } = await db
     .from('training_exercises')
     .select('*')
     .eq('block_id', blockId)
+    .or('status.eq.activo,status.is.null')
     .order('exercise_order', { ascending:true });
 
   if(error){
@@ -6230,7 +6229,61 @@ async function ensureBlockExercisesLoaded(blockOrId){
   console.log('AB FIELD · ejercicios cargados por bloque', {
     blockId,
     total:mapped.length,
-    names:mapped.map(x => x.name || x.nameEs || x.name_es)
+    countable:mapped.filter(isCountableWorkoutExercise).length,
+    instructions:mapped.filter(isWorkoutInstructionItem).length,
+    names:mapped.map(x => x.name || x.nameEs || x.name_es || x.title)
+  });
+
+  return mapped;
+}
+
+async function ensureWorkoutSessionExercisesLoaded(plan){
+  if(!plan || !db) return [];
+
+  const blockIds = [...new Set(
+    (plan.blocks || [])
+      .map(b => getRealBlockId(b))
+      .filter(Boolean)
+  )];
+
+  if(!blockIds.length) return [];
+
+  /*
+    AB FIX 20260604 · Hidratar ejercicios de la sesión activa.
+    La lista global puede venir truncada por limit(3000). Antes de calcular contadores,
+    cargas o renderizar bloques, traemos todos los ejercicios reales de los bloques
+    visibles de esta sesión.
+  */
+  const { data, error } = await db
+    .from('training_exercises')
+    .select('*')
+    .in('block_id', blockIds)
+    .or('status.eq.activo,status.is.null')
+    .order('exercise_order', { ascending:true });
+
+  if(error){
+    console.error('Error cargando ejercicios de la sesión activa:', {
+      blockIds,
+      error
+    });
+    showToast('Error cargando ejercicios de la sesión', 'err');
+    return [];
+  }
+
+  const mapped = mapArr(data || []);
+  const blockSet = new Set(blockIds.map(String));
+
+  state.trainingExercises = state.trainingExercises.filter(e =>
+    !blockSet.has(String(getExerciseBlockId(e)))
+  );
+
+  state.trainingExercises.push(...mapped);
+
+  console.log('AB FIELD · sesión hidratada con ejercicios reales', {
+    blocks:blockIds.length,
+    total:mapped.length,
+    countable:mapped.filter(isCountableWorkoutExercise).length,
+    instructions:mapped.filter(isWorkoutInstructionItem).length
   });
 
   return mapped;
@@ -9685,21 +9738,29 @@ async function renderWorkout(){
   const box=document.getElementById('workout-content');
   const c=clientById(state.activeTrainingClientId||state.selectedClientId);
   if(!c){box.innerHTML=emptyState('Sin cliente','Vuelve a clientes y abre un perfil.');return}
-    state.activeTrainingClientId = c.id;
+  state.activeTrainingClientId = c.id;
 
+  /*
+    AB FIX 20260604 · Hidratar la sesión antes de contar/renderizar.
+    Si no hacemos esto, el plan puede quedar con ejercicios parciales por el cache
+    inicial de loadAllData() y la pantalla muestra bloques recortados.
+  */
   const basePlan = getWorkoutPlanForClient(c);
-  await loadPersistedWorkoutProgress(c, basePlan);
-  await ensureSessionLoadPrescriptionLoaded(c, basePlan);
+  await ensureWorkoutSessionExercisesLoaded(basePlan);
+
+  const hydratedPlan = getWorkoutPlanForClient(c);
+  await loadPersistedWorkoutProgress(c, hydratedPlan);
+  await ensureSessionLoadPrescriptionLoaded(c, hydratedPlan);
 
   const adapted = await getAdaptedRowsForClient(c);
 
   if(adapted.rows && adapted.rows.length){
-  state.currentAdaptedRows = adapted.rows;
-  box.innerHTML = buildAdaptedWorkoutHTML(c, adapted.rows, adapted.pathology, adapted.plan);
-  return;
-}
+    state.currentAdaptedRows = adapted.rows;
+    box.innerHTML = buildAdaptedWorkoutHTML(c, adapted.rows, adapted.pathology, adapted.plan);
+    return;
+  }
 
-state.currentAdaptedRows = [];
+  state.currentAdaptedRows = [];
 
   const ci=getClientTodayCheckin(c.id);const ciStatus=ci?getCheckinStatus(ci):null;
   const plan=getWorkoutPlanForClient(c);const exercises=plan.exercises||[];
@@ -13328,3 +13389,4 @@ async function testPush() {
 </script>
 </body>
 </html>
+
