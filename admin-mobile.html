@@ -369,6 +369,238 @@ a{text-decoration:none;color:inherit}
 .block-progress-bar{margin-top:6px;height:3px;background:var(--divider);border-radius:2px;overflow:hidden}
 .block-progress-fill{height:100%;border-radius:2px;transition:width .3s ease}
 
+/* ══════════════════════════════════════════
+   AB CHECKLIST — LISTA OPERATIVA DE BLOQUE
+══════════════════════════════════════════ */
+
+/* Timer compacto */
+.wt-timer-compact{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:rgba(18,18,20,.96);
+  border:1px solid var(--card-border);
+  border-radius:10px;
+  padding:8px 12px;
+  margin-bottom:10px;
+}
+.wt-timer-compact-clock{
+  font-family:var(--font-m);
+  font-size:1.1rem;
+  font-weight:700;
+  color:var(--text);
+  letter-spacing:.05em;
+  min-width:52px;
+}
+.wt-timer-compact-phase{
+  font-family:var(--font-m);
+  font-size:.48rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--sport);
+  flex:1;
+}
+.wt-timer-expand-btn{
+  font-family:var(--font-m);
+  font-size:.52rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text-2);
+  padding:4px 8px;
+  border:1px solid var(--card-border);
+  border-radius:6px;
+  background:transparent;
+}
+.wt-timer-expand-btn:active{color:var(--text);border-color:var(--sport)}
+
+/* Checklist row */
+.cl-row{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:11px 0;
+  border-bottom:1px solid var(--divider);
+  position:relative;
+}
+.cl-row:last-child{border-bottom:none}
+.cl-row.done{opacity:.62}
+.cl-row.done .cl-name{text-decoration:line-through;color:var(--text-2)}
+
+.cl-check{
+  width:28px;
+  height:28px;
+  border-radius:8px;
+  border:1.5px solid var(--card-border);
+  background:transparent;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-top:1px;
+  transition:all .12s;
+  cursor:pointer;
+}
+.cl-check.done{
+  background:rgba(0,230,118,.15);
+  border-color:var(--streak);
+  color:var(--streak);
+}
+.cl-check:active{transform:scale(.9)}
+
+.cl-num{
+  font-family:var(--font-m);
+  font-size:.52rem;
+  color:var(--text-2);
+  min-width:18px;
+  margin-top:5px;
+  flex-shrink:0;
+}
+
+.cl-body{flex:1;min-width:0;cursor:pointer}
+.cl-name{
+  font-weight:700;
+  font-size:.9rem;
+  line-height:1.25;
+  color:var(--text);
+  margin-bottom:3px;
+}
+.cl-meta{
+  font-family:var(--font-m);
+  font-size:.58rem;
+  color:var(--text-2);
+  letter-spacing:.03em;
+  line-height:1.5;
+}
+.cl-load{
+  font-family:var(--font-m);
+  font-size:.6rem;
+  color:var(--sport);
+  margin-top:2px;
+  line-height:1.4;
+}
+.cl-load-edit{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:4px;
+}
+.cl-load-input{
+  width:68px;
+  background:var(--bg);
+  border:1px solid rgba(0,200,232,.4);
+  border-radius:6px;
+  color:var(--text);
+  font-family:var(--font-d);
+  font-size:1rem;
+  text-align:center;
+  padding:4px 4px;
+  outline:none;
+}
+.cl-load-label{
+  font-family:var(--font-m);
+  font-size:.52rem;
+  color:var(--text-2);
+  letter-spacing:.04em;
+}
+.cl-substitute{
+  font-family:var(--font-m);
+  font-size:.52rem;
+  color:var(--text-2);
+  text-decoration:line-through;
+  margin-bottom:2px;
+  display:block;
+}
+.cl-sub-label{
+  display:inline-block;
+  font-family:var(--font-m);
+  font-size:.46rem;
+  padding:2px 6px;
+  border-radius:4px;
+  background:rgba(255,90,90,.1);
+  color:var(--medical);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  margin-bottom:3px;
+}
+.cl-adapt-label{
+  display:inline-block;
+  font-family:var(--font-m);
+  font-size:.46rem;
+  padding:2px 6px;
+  border-radius:4px;
+  background:rgba(255,179,64,.1);
+  color:var(--warn);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  margin-bottom:3px;
+}
+.cl-detail-btn{
+  flex-shrink:0;
+  width:28px;
+  height:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-2);
+  font-size:.9rem;
+  margin-top:1px;
+  cursor:pointer;
+}
+.cl-detail-btn:active{color:var(--sport)}
+
+/* Instrucción franja */
+.cl-instr{
+  background:rgba(0,200,232,.04);
+  border:1px solid rgba(0,200,232,.15);
+  border-radius:8px;
+  padding:8px 12px;
+  margin:4px 0 8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.cl-instr-tag{
+  font-family:var(--font-m);
+  font-size:.46rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--sport);
+  flex-shrink:0;
+  padding:2px 6px;
+  border:1px solid rgba(0,200,232,.25);
+  border-radius:4px;
+}
+.cl-instr-text{
+  font-size:.78rem;
+  color:var(--text-2);
+  line-height:1.45;
+  flex:1;
+  min-width:0;
+}
+
+/* Detail view overlay-like dentro de la misma pantalla */
+.cl-detail-wrap{
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:var(--r);
+  margin-bottom:12px;
+  overflow:hidden;
+}
+.cl-detail-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px;
+  border-bottom:1px solid var(--divider);
+}
+.cl-detail-title{
+  font-family:var(--font-d);
+  font-size:1.3rem;
+  letter-spacing:.03em;
+  flex:1;
+  min-width:0;
+}
+
 /* ═══ MÉTRICAS EN UNA LÍNEA ═══ */
 .mr {
   display: flex;
@@ -2329,7 +2561,9 @@ const state = {
   workoutProgressLoaded:{},
   workoutStateLoaded:{},
   sessionLoadCache:{},
-  activeWorkoutLoadPercentage:70
+  activeWorkoutLoadPercentage:70,
+  activeExerciseDetailId: null,
+  timerExpanded: false
 };
 
 let currentScr='hoy';
@@ -7072,6 +7306,11 @@ async function toggleWorkoutExercise(clientId,exId){
 
   state.workoutChecks[key] = nextDone;
 
+  // Al marcar desde el checklist, cerrar el detalle si estaba abierto
+  if(state.activeExerciseDetailId === exId && nextDone){
+    state.activeExerciseDetailId = null;
+  }
+
   try{
     if(nextDone && navigator.vibrate) navigator.vibrate(80);
   }catch(e){}
@@ -7635,6 +7874,7 @@ async function openWorkoutBlock(blockIdRaw){
   state.activeWorkoutBlockId = blockId;
   state.activeAdaptedBlockKey = null;
   state.activeWorkoutExerciseIndex = 0;
+  state.activeExerciseDetailId = null;
 
   const blockName = cleanTxt(getBlockName(blockBefore) || '');
 
@@ -7736,11 +7976,17 @@ async function openWorkoutBlock(blockIdRaw){
 }
 
 function backToWorkoutBlocks(){
-  stopExerciseTimerForNavigation();
+  // No parar el timer al volver a la lista de bloques
+  // Solo resetear si los intervalos estaban activos
+  if(state.workoutIntervals.enabled && state.workoutIntervals.phase === 'done'){
+    resetWorkoutTimerOnly();
+  }
 
   state.activeWorkoutBlockId = null;
   state.activeAdaptedBlockKey = null;
   state.activeWorkoutExerciseIndex = 0;
+  state.activeExerciseDetailId = null;
+  state.timerExpanded = false;
 
   renderWorkout();
 }
@@ -7788,7 +8034,8 @@ async function completeActiveExercise(clientId,blockId,exId){
   const plan = getWorkoutPlanForClient(c);
   const block = plan.blocks.find(b => String(b.id) === String(blockId));
 
-  stopExerciseTimerForNavigation();
+  // No parar el timer al marcar un ejercicio en el checklist
+  // stopExerciseTimerForNavigation() solo se llama al cambiar de bloque
 
   if(!block){
     backToWorkoutBlocks();
@@ -7796,16 +8043,338 @@ async function completeActiveExercise(clientId,blockId,exId){
   }
 
   const exercises = getWorkoutExercises(block);
-  const nextIndex = Number(state.activeWorkoutExerciseIndex || 0) + 1;
+  // En el checklist no navegamos de ejercicio en ejercicio
+  // Solo re-render la lista para actualizar el estado
+  const doneNow = exercises.filter((ex,idx) => isExerciseDone(c.id, getExerciseId(ex,idx))).length;
+  if(doneNow >= exercises.length){
+    showToast('Bloque terminado ✓','ok');
+  }
+  // Cerrar detalle del ejercicio marcado
+  state.activeExerciseDetailId = null;
+  renderWorkout();
+}
 
-  if(nextIndex < exercises.length){
-    state.activeWorkoutExerciseIndex = nextIndex;
-    renderWorkout();
-    return;
+
+/* ═══════════════════════════════════════════════════════════════
+   AB CHECKLIST SYSTEM — Lista operativa compacta de bloque
+   Reemplaza buildActiveSingleExerciseScreen y buildActiveCircuitScreen
+   como vista principal. El detalle técnico queda en un panel expandible.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Timer compacto/expandible ── */
+function buildTimerCompact(){
+  const iv = state.workoutIntervals;
+  const running = state.workoutTimer.running;
+  const expanded = state.timerExpanded;
+
+  if(expanded){
+    return `<div id="wt-timer-zone">${buildTimerHTML()}<button class="btn btn-s btn-sm btn-wide" style="margin-bottom:8px" onclick="state.timerExpanded=false;renderWorkout()">Plegar timer</button></div>`;
   }
 
-  showToast('Bloque terminado ✓','ok');
-  backToWorkoutBlocks();
+  const clock = iv.enabled && iv.phase !== 'idle'
+    ? formatClock(iv.phaseSecsLeft)
+    : formatClock(state.workoutTimer.seconds);
+
+  const phaseLabel = iv.enabled && iv.phase !== 'idle'
+    ? ({work:'TRABAJO',rest:'DESCANSO',done:'DONE'}[iv.phase] || '')
+    : '';
+
+  const runBtn = running
+    ? `<button class="btn btn-s btn-sm" onclick="pauseWorkoutTimer()" style="min-height:32px;padding:0 10px">⏸</button>`
+    : `<button class="btn btn-p btn-sm" onclick="startWorkoutTimer()" style="min-height:32px;padding:0 10px">▶</button>`;
+
+  return `
+    <div id="wt-timer-zone" class="wt-timer-compact">
+      <span class="wt-timer-compact-clock" id="wt-clock">${clock}</span>
+      ${phaseLabel ? `<span class="wt-timer-compact-phase">${phaseLabel}</span>` : '<span class="wt-timer-compact-phase">Cronómetro</span>'}
+      ${runBtn}
+      <button class="wt-timer-expand-btn" onclick="state.timerExpanded=true;renderWorkout()">⊞</button>
+      <button class="wt-timer-expand-btn" onclick="resetWorkoutTimerOnly()" style="padding:4px 6px">↺</button>
+    </div>
+  `;
+}
+
+/* ── Construir fila de dosificación compacta para el checklist ── */
+function buildClMeta(ex){
+  const d = getDoseData(ex);
+  const parts = [];
+
+  if(d.sets && d.reps) parts.push(`${d.sets}×${d.reps}`);
+  else if(d.sets) parts.push(`${d.sets} series`);
+  else if(d.reps) parts.push(`${d.reps} reps`);
+
+  if(d.duration) parts.push(d.duration);
+  if(d.rest) parts.push(`desc ${d.rest}`);
+  if(d.tempo) parts.push(`tempo ${d.tempo}`);
+
+  return parts.join(' · ');
+}
+
+/* ── Texto de carga para la fila ── */
+function buildClLoadText(ex){
+  if(!hasSuggestedLoad(ex)) return '';
+  const note = ex.adminFieldNote || ex.admin_field_note || '';
+  const txt  = ex.practicalLoadText || ex.practical_load_text || '';
+  const zone = ex.intensityZone || ex.intensity_zone || '';
+  const pct  = ex.loadPercentage || ex.load_percentage || getWorkoutLoadPercentage();
+
+  const main = note || txt;
+  return [
+    `${pct}%`,
+    main,
+    zone
+  ].filter(Boolean).join(' · ');
+}
+
+/* ── Input de carga inline en la fila ── */
+function buildClLoadInput(ex, exId){
+  if(!hasSuggestedLoad(ex)) return '';
+  const value = getEditableLoadValue(ex);
+  const label = getEditableLoadLabel(ex);
+  return `
+    <div class="cl-load-edit">
+      <input
+        id="inline-load-${exId}"
+        class="cl-load-input"
+        type="number"
+        step="0.5"
+        inputmode="decimal"
+        value="${value != null ? value : ''}"
+        placeholder="—"
+        onclick="event.stopPropagation()"
+      >
+      <span class="cl-load-label">${esc(label)}</span>
+    </div>
+  `;
+}
+
+/* ── Fila de instrucción ── */
+function buildClInstructionRow(ex, index){
+  const title = getExerciseTitle(ex);
+  const desc = ex.description || ex.descriptionEs || ex.description_es || '';
+  const d = getDoseData(ex);
+  const meta = buildClMeta(ex);
+  const detail = [desc, meta].filter(Boolean).join(' · ').slice(0, 120);
+  return `
+    <div class="cl-instr">
+      <span class="cl-instr-tag">Instrucción</span>
+      <span class="cl-instr-text"><strong>${esc(title)}</strong>${detail ? ' · '+esc(detail) : ''}</span>
+    </div>
+  `;
+}
+
+/* ── Fila de ejercicio adaptado ── */
+function buildClAdaptedRow(r, index, c){
+  const isSub = String(r.estado_ejercicio||'') === 'sustituido';
+  const isMod = String(r.estado_ejercicio||'') === 'modificado';
+  const title = r.ejercicio_final || r.ejercicio_original || 'Ejercicio';
+  const original = r.ejercicio_original || '';
+  const d = getDoseData(r);
+  const meta = buildClMeta(r);
+  const reviewKey = getAdaptedRowReviewKey(c, r, index);
+  const done = isAdaptedReviewed(reviewKey);
+
+  return `
+    <div class="cl-row${done?' done':''}">
+      <button class="cl-check${done?' done':''}" onclick="toggleAdaptedReviewed('${jsArg(reviewKey)}');event.stopPropagation()">
+        ${done ? '✓' : ''}
+      </button>
+      <span class="cl-num">${String(index+1).padStart(2,'0')}</span>
+      <div class="cl-body">
+        ${isSub ? `<span class="cl-sub-label">Sustituye</span><span class="cl-substitute">${esc(original)}</span>` : ''}
+        ${isMod ? `<span class="cl-adapt-label">Modificado</span>` : ''}
+        <div class="cl-name">${esc(title)}</div>
+        ${meta ? `<div class="cl-meta">${esc(meta)}</div>` : ''}
+        ${(isSub || isMod) && r.explicacion_cliente ? `<div class="cl-meta" style="color:var(--text-2)">${esc(r.explicacion_cliente)}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+/* ── Fila de ejercicio normal (checklist principal) ── */
+function buildClExerciseRow(ex, index, clientId, block){
+  if(!canRenderFieldItem(ex)) return '';
+  const itemType = ex.fieldItemType || ex.field_item_type || 'exercise';
+  if(itemType === 'test') return '';
+  if(itemType === 'instruction' || isWorkoutInstructionItem(ex)) return buildClInstructionRow(ex, index);
+
+  const exId = getExerciseId(ex, index);
+  const done = isExerciseDone(clientId, exId);
+  const isDetail = state.activeExerciseDetailId === exId;
+  const meta = buildClMeta(ex);
+  const loadText = buildClLoadText(ex);
+  const videoUrl = getExerciseVideoUrl(ex);
+  const blockId = block?.id || '';
+
+  return `
+    <div class="cl-row${done?' done':''}">
+      <button class="cl-check${done?' done':''}"
+        onclick="toggleWorkoutExercise('${clientId}','${exId}');event.stopPropagation()">
+        ${done ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--streak)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      </button>
+      <span class="cl-num">${String(index+1).padStart(2,'0')}</span>
+      <div class="cl-body" onclick="toggleExerciseDetail('${exId}')">
+        <div class="cl-name">${esc(getExerciseTitle(ex))}</div>
+        ${meta ? `<div class="cl-meta">${esc(meta)}</div>` : ''}
+        ${loadText ? `<div class="cl-load">${esc(loadText)}</div>` : ''}
+        ${hasSuggestedLoad(ex) ? buildClLoadInput(ex, exId) : ''}
+        ${isDetail ? buildClExerciseDetail(ex, exId, clientId, videoUrl, blockId) : ''}
+      </div>
+      <span class="cl-detail-btn" onclick="toggleExerciseDetail('${exId}')">
+        ${isDetail ? '▲' : '›'}
+      </span>
+    </div>
+  `;
+}
+
+/* ── Detalle técnico expandido dentro de la fila ── */
+function buildClExerciseDetail(ex, exId, clientId, videoUrl, blockId){
+  const info = getExerciseInfo(ex);
+  const d = getDoseData(ex);
+  const variant = d.variant || '';
+  const blockIdStr = blockId || '';
+  return `
+    <div class="cl-detail-wrap" style="margin-top:10px" onclick="event.stopPropagation()">
+      ${variant ? `<div style="font-size:.78rem;color:var(--sport);padding:8px 14px;border-bottom:1px solid var(--divider)">${esc(variant)}</div>` : ''}
+      <div style="padding:10px 14px">
+        <details style="margin-bottom:6px"><summary style="font-family:var(--font-m);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sport);cursor:pointer">Técnica</summary><p style="font-size:.8rem;color:var(--text-2);line-height:1.6;margin-top:6px">${esc(info.tech)}</p></details>
+        <details style="margin-bottom:6px"><summary style="font-family:var(--font-m);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);cursor:pointer">Por qué</summary><p style="font-size:.8rem;color:var(--text-2);line-height:1.6;margin-top:6px">${esc(info.why)}</p></details>
+        <details style="margin-bottom:6px"><summary style="font-family:var(--font-m);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);cursor:pointer">Respiración</summary><p style="font-size:.8rem;color:var(--text-2);line-height:1.6;margin-top:6px">${esc(info.breath)}</p></details>
+        <details style="margin-bottom:6px"><summary style="font-family:var(--font-m);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);cursor:pointer">Errores</summary><p style="font-size:.8rem;color:var(--text-2);line-height:1.6;margin-top:6px">${esc(info.errors)}</p></details>
+        <details><summary style="font-family:var(--font-m);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);cursor:pointer">Coach</summary><p style="font-size:.8rem;color:var(--text-2);line-height:1.6;margin-top:6px">${esc(info.coach)}</p></details>
+      </div>
+      <div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--divider);flex-wrap:wrap">
+        ${videoUrl ? `<button class="btn btn-b btn-sm" onclick="openExerciseVideo('${exId}')">Vídeo</button>` : ''}
+        <button class="btn btn-b btn-sm" onclick="openLoadCalculator('${jsArg(clientId)}','${jsArg(getExerciseTitle(ex))}','${jsArg(exId)}')">Carga</button>
+        <button class="btn btn-p btn-sm" style="flex:1" onclick="toggleWorkoutExercise('${clientId}','${exId}')">
+          ${isExerciseDone(clientId, exId) ? '↩ Desmarcar' : '✓ Marcar hecho'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleExerciseDetail(exId){
+  state.activeExerciseDetailId = state.activeExerciseDetailId === exId ? null : exId;
+  renderWorkout();
+}
+
+/* ════════════════════════════════════════════════════
+   buildBlockChecklistScreen — PANTALLA PRINCIPAL BLOQUE
+   Reemplaza buildActiveSingleExerciseScreen y buildActiveCircuitScreen
+════════════════════════════════════════════════════ */
+function buildBlockChecklistScreen(c, plan, block){
+  // Obtener todos los items raw del bloque
+  const rawAll = sortByOrder(
+    block?.rawExercises ||
+    block?.exercises ||
+    state.trainingExercises.filter(e => sameId(getExerciseBlockId(e), block.id))
+  );
+
+  // Separar exercises (visibles) e instructions
+  const visibleItems = rawAll.filter(ex => canRenderFieldItem(ex));
+  const realExercises = visibleItems.filter(ex => {
+    const t = ex.fieldItemType || ex.field_item_type || 'exercise';
+    return t === 'exercise' && !isWorkoutInstructionItem(ex);
+  });
+
+  const blockTitle = getBlockName(block) || 'Bloque';
+  const doneCount = realExercises.filter((ex, i) => isExerciseDone(c.id, getExerciseId(ex, i))).length;
+  const totalCount = realExercises.length;
+  const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 100;
+  const allDone = totalCount > 0 && doneCount === totalCount;
+
+  // Instrucciones del bloque al inicio
+  const instrRows = visibleItems
+    .filter(ex => {
+      const t = ex.fieldItemType || ex.field_item_type || 'exercise';
+      return t === 'instruction' || isWorkoutInstructionItem(ex);
+    })
+    .map((ex, i) => buildClInstructionRow(ex, i))
+    .join('');
+
+  // Filas de ejercicio
+  let exerciseRows = '';
+  let exCounter = 0;
+  visibleItems.forEach((ex, i) => {
+    const t = ex.fieldItemType || ex.field_item_type || 'exercise';
+    if(t === 'test') return;
+    if(t === 'instruction' || isWorkoutInstructionItem(ex)) return;
+    exerciseRows += buildClExerciseRow(ex, exCounter, c.id, block);
+    exCounter++;
+  });
+
+  if(!exerciseRows && !instrRows){
+    return buildGuidedBlockScreen(c, plan, block);
+  }
+
+  return `
+    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">← Bloques</button>
+
+    ${buildWorkoutLoadPercentagePills(plan)}
+
+    <!-- Header bloque -->
+    <div class="wt2-block-header" style="margin-bottom:10px">
+      <div class="wt2-block-header-top">
+        <div class="wt2-block-header-icon">${getBlockTypeIconSVG(block)}</div>
+        <div class="wt2-block-header-info">
+          <div class="wt2-block-header-name">${esc(blockTitle)}</div>
+          <div class="wt2-block-header-progress">
+            <span class="wt2-block-header-progress-text">${doneCount}/${totalCount}</span>
+            <div class="wt2-block-header-bar">
+              <div class="wt2-block-header-bar-fill" style="width:${pct}%;background:${allDone?'var(--streak)':'var(--sport)'}"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timer compacto -->
+    ${buildTimerCompact()}
+
+    <!-- Instrucciones del bloque -->
+    ${instrRows}
+
+    <!-- Lista de ejercicios -->
+    <div class="card" style="padding:6px 14px;margin-bottom:12px">
+      ${exerciseRows || '<div class="empty s">Sin ejercicios ejecutables</div>'}
+    </div>
+
+    <!-- Acciones de bloque -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      ${!allDone ? `<button class="btn btn-g btn-sm" style="flex:1" onclick="markAllBlockExercises('${c.id}','${block.id}')">✓ Marcar todos</button>` : ''}
+      <button class="btn btn-p btn-sm" style="flex:1" onclick="backToWorkoutBlocks()">Volver a bloques</button>
+    </div>
+  `;
+}
+
+/* ── Marcar todos los ejercicios del bloque ── */
+async function markAllBlockExercises(clientId, blockId){
+  const c = clientById(clientId);
+  if(!c) return;
+  const plan = getWorkoutPlanForClient(c);
+  const block = plan.blocks.find(b => String(b.id) === String(blockId));
+  if(!block) return;
+  const exercises = getWorkoutExercises(block);
+  const promises = [];
+  exercises.forEach((ex, idx) => {
+    const exId = getExerciseId(ex, idx);
+    state.workoutChecks[getWorkoutKey(clientId, exId)] = true;
+    promises.push(saveWorkoutProgressRow({
+      c, exerciseKey:exId, exerciseName:getExerciseTitle(ex),
+      blockKey:blockId, blockName:getBlockName(block),
+      isAdapted:false, isDone:true
+    }));
+  });
+  try{
+    if(navigator.vibrate) navigator.vibrate([50,30,90]);
+    await Promise.all(promises);
+    await persistCurrentSessionState(c);
+    showToast('Bloque terminado ✓','ok');
+  }catch(err){
+    showToast('Local ✓ · '+err?.message?.slice(0,30),'err');
+  }
+  renderWorkout();
 }
 
 function buildWorkoutExerciseCard(ex,index,clientId){
@@ -8053,23 +8622,8 @@ function buildActiveBlockScreen(c,plan,block){
   block.instructions = split.instructions;
   block.exercises = split.exercises;
 
-  const exercises = split.exercises;
-
-  if(!exercises.length){
-    console.warn('buildActiveBlockScreen: bloque sin ejercicios ejecutables en memoria', {
-      blockId,
-      blockName:getBlockName(block),
-      totalRaw: rawExercises.length,
-      instructions: split.instructions.length,
-      block
-    });
-
-    return buildGuidedBlockScreen(c,plan,block);
-  }
-
-  return isCircuitBlock(block)
-    ? buildActiveCircuitScreen(c,plan,block)
-    : buildActiveSingleExerciseScreen(c,plan,block);
+  // Siempre usar el nuevo checklist compacto como vista principal
+  return buildBlockChecklistScreen(c, plan, block);
 }
 
 function buildGuidedBlockScreen(c,plan,block){
@@ -9301,7 +9855,7 @@ const reviewed = executableList.filter((r, index) => {
         <div class="scr-t" style="font-size:1.35rem">${esc(blockName)}</div>
       </div>
 
-      ${buildTimerHTML()}
+      ${buildTimerCompact()}
 
       <div class="card" style="border-left:3px solid var(--warn)">
         <div class="card-body" style="padding:12px 14px">
@@ -13389,4 +13943,3 @@ async function testPush() {
 </script>
 </body>
 </html>
-
