@@ -9745,6 +9745,7 @@ function openAdaptedBlock(key){
 
 function backToAdaptedBlocks(){
   state.activeAdaptedBlockKey = null;
+  state.activeExerciseDetailId = null;
   renderWorkout();
 }
 
@@ -9828,221 +9829,314 @@ function adaptedBorderStyle(r){
   return '';
 }
 
+/* ════════════════════════════════════════════════════════════
+   ADAPTED WORKOUT — misma estructura que normal (checklist)
+   La adaptación es una capa visible encima del plan, no otra vista.
+════════════════════════════════════════════════════════════ */
+
+/* Convierte un row adaptado al formato que entiende buildClExerciseRow */
+function adaptedRowToExItem(r, index, c){
+  const status = String(r.estado_ejercicio || 'normal');
+  const isSub  = status === 'sustituido';
+  const isMod  = status === 'modificado';
+  const isKeep = status === 'mantener';
+  const isInst = status === 'instruction_only';
+
+  // Construir un objeto compatible con getDoseData / getExerciseTitle etc.
+  return {
+    // Campos de identidad
+    id: r.id || `adapted-${r.orden_bloque}-${r.orden_ejercicio || index}`,
+    name: r.ejercicio_final || r.ejercicio_original || 'Ejercicio',
+    nameEs: r.ejercicio_final || r.ejercicio_original || 'Ejercicio',
+    // Dosificación original
+    sets: r.sets, reps: r.reps,
+    duration: r.duration, rest: r.rest, tempo: r.tempo,
+    // Carga
+    loadAvailable: !!(r.loadAvailable || r.load_available),
+    practicalLoadText: r.practicalLoadText || r.practical_load_text || '',
+    adminFieldNote: r.adminFieldNote || r.admin_field_note || '',
+    intensityZone: r.intensityZone || r.intensity_zone || '',
+    loadPercentage: r.loadPercentage || r.load_percentage || null,
+    // Vídeo
+    videoUrl: r.video_sustituto || r.video_original || r.video_url || '',
+    video_url: r.video_sustituto || r.video_original || r.video_url || '',
+    // Info técnica
+    technicalPoints: r.technique_text || r.coaching_notes || r.explicacion_breve_coach || '',
+    purpose: r.why_text || r.explicacion_cliente || '',
+    breathing: r.breathing_text || '',
+    coachCue: r.explicacion_breve_coach || r.coaching_notes || '',
+    // Tipo de item
+    field_item_type: isInst ? 'instruction' : 'exercise',
+    fieldItemType: isInst ? 'instruction' : 'exercise',
+    // Estado de adaptación (para badge)
+    _adaptStatus: status,
+    _isSub: isSub,
+    _isMod: isMod,
+    _isKeep: isKeep,
+    _originalName: r.ejercicio_original || '',
+    _coachNote: r.explicacion_breve_coach || '',
+    _clientNote: r.explicacion_cliente || '',
+    _reviewKey: null, // se rellena en buildAdaptedBlockChecklistScreen
+  };
+}
+
+/* CSS tag de adaptación para insertar en la fila */
+function buildAdaptedStatusTag(ex){
+  if(!ex._adaptStatus || ex._adaptStatus === 'normal' || ex._adaptStatus === 'mantener') return '';
+  if(ex._isSub) return `<span class="cl-sub-label">Sustituye · ${esc(ex._originalName)}</span>`;
+  if(ex._isMod) return `<span class="cl-adapt-label">Modificado</span>`;
+  return '';
+}
+
+/* Fila checklist para ejercicio adaptado — extiende buildClExerciseRow */
+function buildAdaptedClRow(ex, index, clientId, reviewKey){
+  if(ex.field_item_type === 'instruction' || isWorkoutInstructionItem(ex)){
+    return buildClInstructionRow(ex, index);
+  }
+
+  const done    = isAdaptedReviewed(reviewKey);
+  const isDetail = state.activeExerciseDetailId === reviewKey;
+  const meta    = buildClMeta(ex);
+  const loadText = buildClLoadText(ex);
+  const videoUrl = ex.videoUrl || ex.video_url || '';
+
+  const adaptTag  = buildAdaptedStatusTag(ex);
+  const coachNote = ex._coachNote;
+
+  return `
+    <div class="cl-row${done?' done':''}">
+      <button class="cl-check${done?' done':''}"
+        onclick="toggleAdaptedReviewed('${jsArg(reviewKey)}');event.stopPropagation()">
+        ${done ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--streak)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      </button>
+      <span class="cl-num">${String(index+1).padStart(2,'0')}</span>
+      <div class="cl-body" onclick="toggleExerciseDetail('${reviewKey}')">
+        ${adaptTag}
+        <div class="cl-name">${esc(ex.name || ex.nameEs || 'Ejercicio')}</div>
+        ${meta ? `<div class="cl-meta">${esc(meta)}</div>` : ''}
+        ${loadText ? `<div class="cl-load">${esc(loadText)}</div>` : ''}
+        ${coachNote && !isDetail ? `<div class="cl-meta" style="color:var(--text-2);margin-top:2px">${esc(coachNote.slice(0,80))}${coachNote.length>80?'…':''}</div>` : ''}
+        ${isDetail ? buildAdaptedClDetail(ex, reviewKey, clientId, videoUrl) : ''}
+      </div>
+      <span class="cl-detail-btn" onclick="toggleExerciseDetail('${reviewKey}')">
+        ${isDetail ? '▲' : '›'}
+      </span>
+    </div>
+  `;
+}
+
+/* Detalle técnico del ejercicio adaptado */
+function buildAdaptedClDetail(ex, reviewKey, clientId, videoUrl){
+  return `
+    <div class="cl-detail-wrap" style="margin-top:10px" onclick="event.stopPropagation()">
+      ${ex._coachNote ? `<div style="font-size:.78rem;color:var(--sport);padding:8px 14px;border-bottom:1px solid var(--divider)">${esc(ex._coachNote)}</div>` : ''}
+      <div style="padding:10px 14px">
+        ${ex.technicalPoints ? `<details style="margin-bottom:6px"><summary style="font-family:var(--font-m);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sport);cursor:pointer">Técnica</summary><p style="font-size:.8rem;color:var(--text-2);line-height:1.6;margin-top:6px">${esc(ex.technicalPoints)}</p></details>` : ''}
+        ${ex.purpose ? `<details style="margin-bottom:6px"><summary style="font-family:var(--font-m);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);cursor:pointer">Por qué</summary><p style="font-size:.8rem;color:var(--text-2);line-height:1.6;margin-top:6px">${esc(ex.purpose)}</p></details>` : ''}
+        ${ex._clientNote ? `<details style="margin-bottom:6px"><summary style="font-family:var(--font-m);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);cursor:pointer">Para el cliente</summary><p style="font-size:.8rem;color:var(--text-2);line-height:1.6;margin-top:6px">${esc(ex._clientNote)}</p></details>` : ''}
+      </div>
+      <div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--divider);flex-wrap:wrap">
+        ${videoUrl ? `<button class="btn btn-b btn-sm" onclick="openVideoUrl('${jsArg(ex.name||'')}','${jsArg(videoUrl)}')">Vídeo</button>` : ''}
+        <button class="btn btn-p btn-sm" style="flex:1" onclick="toggleAdaptedReviewed('${jsArg(reviewKey)}')">
+          ${isAdaptedReviewed(reviewKey) ? '↩ Desmarcar' : '✓ Marcar hecho'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/* Pantalla de bloque abierto en modo adaptado — usa checklist */
+function buildAdaptedBlockChecklistScreen(c, blockKey, list, pathology, plan){
+  const blockName = getAdaptedBlockName(blockKey);
+  const executableList = list.filter(r => !isAdaptedInstruction(r));
+
+  const reviewed = executableList.filter((r, idx) => {
+    return isAdaptedReviewed(getAdaptedRowReviewKey(c, r, idx));
+  }).length;
+  const total = executableList.length;
+  const pct = total ? Math.round((reviewed/total)*100) : 100;
+  const allDone = total > 0 && reviewed === total;
+
+  // Instrucciones
+  const instrRows = list
+    .filter(r => isAdaptedInstruction(r))
+    .map((r,i) => {
+      const ex = adaptedRowToExItem(r, i, c);
+      return buildClInstructionRow(ex, i);
+    }).join('');
+
+  // Filas de ejercicio
+  let exerciseRows = '';
+  let exCounter = 0;
+  list.forEach((r, rawIndex) => {
+    if(isAdaptedInstruction(r)) return;
+    const reviewKey = getAdaptedRowReviewKey(c, r, rawIndex);
+    const ex = adaptedRowToExItem(r, rawIndex, c);
+    ex._reviewKey = reviewKey;
+    exerciseRows += buildAdaptedClRow(ex, exCounter, c.id, reviewKey);
+    exCounter++;
+  });
+
+  return `
+    <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToAdaptedBlocks()">← Bloques</button>
+
+    ${buildWorkoutLoadPercentagePills(plan)}
+
+    <!-- Header bloque adaptado -->
+    <div class="wt2-block-header" style="margin-bottom:10px">
+      <div class="wt2-block-header-top">
+        <div class="wt2-block-header-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 9v4"/><path d="M12 17h.01"/>
+            <path d="M10.3 3.6L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.6a2 2 0 00-3.4 0z"/>
+          </svg>
+        </div>
+        <div class="wt2-block-header-info">
+          <div class="wt2-block-header-name">${esc(blockName)}</div>
+          <div style="font-family:var(--font-m);font-size:.48rem;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);margin-bottom:4px">${esc(getPathologyLabel(pathology))} · Adaptación activa</div>
+          <div class="wt2-block-header-progress">
+            <span class="wt2-block-header-progress-text">${reviewed}/${total}</span>
+            <div class="wt2-block-header-bar">
+              <div class="wt2-block-header-bar-fill" style="width:${pct}%;background:${allDone?'var(--streak)':'var(--sport)'}"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timer compacto (igual que normal) -->
+    ${buildTimerCompact()}
+
+    <!-- Instrucciones -->
+    ${instrRows}
+
+    <!-- Lista checklist -->
+    <div class="card" style="padding:6px 14px;margin-bottom:12px">
+      ${exerciseRows || '<div class="empty s">Sin ejercicios ejecutables</div>'}
+    </div>
+
+    <!-- Acciones -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      ${!allDone ? `<button class="btn btn-g btn-sm" style="flex:1" onclick="markAdaptedBlockDone('${c.id}','${jsArg(blockKey)}')">✓ Marcar todos</button>` : ''}
+      <button class="btn btn-p btn-sm" style="flex:1" onclick="backToAdaptedBlocks()">Volver a bloques</button>
+    </div>
+  `;
+}
+
 function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
   const executableRows = rows.filter(r => !isAdaptedInstruction(r));
-const substituted = executableRows.filter(r => r.estado_ejercicio === 'sustituido');
+  const substituted = executableRows.filter(r => r.estado_ejercicio === 'sustituido');
   const msg = getAdaptedClientMessage(rows);
   const groups = getAdaptedBlockGroups(rows);
 
   const activeKey = state.activeAdaptedBlockKey;
   const activeGroup = activeKey ? groups.find(([key]) => key === activeKey) : null;
 
+  // ── Bloque abierto: mismo checklist que modo normal ──
   if(activeGroup){
     const [blockKey, list] = activeGroup;
-    const blockName = getAdaptedBlockName(blockKey);
-    const executableList = list.filter(r => !isAdaptedInstruction(r));
-
-const reviewed = executableList.filter((r, index) => {
-  const reviewKey = getAdaptedRowReviewKey(c, r, index);
-  return isAdaptedReviewed(reviewKey);
-}).length;
-
-    return `
-      <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToAdaptedBlocks()">Volver a bloques</button>
-
-      <div style="margin-bottom:10px">
-                <div class="scr-eye">${getPathologyLabel(pathology)} · Adaptación activa</div>
-        <div class="scr-t" style="font-size:1.35rem">${esc(blockName)}</div>
-      </div>
-
-      ${buildTimerCompact()}
-
-      <div class="card" style="border-left:3px solid var(--warn)">
-        <div class="card-body" style="padding:12px 14px">
-          <div style="font-size:.78rem;color:var(--text-2);line-height:1.55">
-            Capa temporal de adaptación. El plan original no se modifica.
-          </div>
-          <div class="dr" style="margin-top:8px">
-            <span class="dk">Revisados</span>
-            <span class="dv">${reviewed}/${executableList.length}</span>
-          </div>
-        </div>
-      </div>
-
-      ${list.map((r, index) => {
-        const status = String(r.estado_ejercicio || 'normal');
-const isSub = status === 'sustituido';
-const isMod = status === 'modificado';
-const isKeep = status === 'mantener';
-const isInstruction = status === 'instruction_only';
-        const title = r.ejercicio_final || r.ejercicio_original || 'Ejercicio';
-        const original = r.ejercicio_original || '';
-        const video = r.video_sustituto || r.video_original || '';
-        const risk = r.nivel_riesgo || '';
-        const reviewKey = getAdaptedRowReviewKey(c, r, index);
-        const done = isAdaptedReviewed(reviewKey);
-      if(isInstruction){
-  return `
-    <div class="card" style="border-left:3px solid var(--sport)">
-      <div class="card-body" style="padding:12px 14px">
-        <div style="font-family:var(--font-d);font-size:1rem;letter-spacing:.04em;margin-bottom:4px">
-          ${esc(title)}
-        </div>
-        <div style="font-size:.78rem;color:var(--text-2);line-height:1.55">
-          Instrucción del bloque. No cuenta como ejercicio revisable.
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-        return `
-          <div class="ex-card ${done ? 'done' : ''}" style="${adaptedBorderStyle(r)}">
-            <div class="ex-main">
-              <div class="ex-top">
-                <div class="ex-num">${String(r.orden_ejercicio || index + 1).padStart(2,'0')}</div>
-
-                <div style="flex:1;min-width:0">
-                  <div class="ex-title">${esc(title)}</div>
-
-                  <div class="ex-dose" style="${isSub ? 'color:var(--medical)' : isMod ? 'color:var(--warn)' : isKeep ? 'color:var(--streak)' : ''}">
-  ${adaptedStatusText(r)}${risk ? ` · Riesgo: ${esc(risk)}` : ''}
-</div>
-
-${buildDoseHTML(r)}
-
-${isSub ? `
-  <div class="ex-desc">Sustituye: ${esc(original)}</div>
-` : ''}
-
-${isMod && r.modification_text ? `
-  <div class="ex-desc">${esc(r.modification_text)}</div>
-` : ''}
-
-                  ${isSub && r.explicacion_breve_coach ? `
-                    <div class="ex-desc">${esc(r.explicacion_breve_coach)}</div>
-                  ` : ''}
-                </div>
-              </div>
-            </div>
-
-            ${(isSub || isMod || isKeep) ? `
-  <div class="ex-mini">
-                <details>
-                  <summary>Coach</summary>
-                  <p>${esc(r.explicacion_breve_coach || 'Revisar técnica, dolor y evolución durante la sesión.')}</p>
-                </details>
-                <details>
-                  <summary>Cliente</summary>
-                  <p>${esc(r.explicacion_cliente || 'Adaptación temporal del entrenamiento.')}</p>
-                </details>
-              </div>
-            ` : ''}
-
-            <div class="ex-actions">
-              ${video ? `
-                <button class="btn btn-b btn-sm" onclick="openVideoUrl('${jsArg(title)}','${jsArg(video)}')">Vídeo</button>
-              ` : `
-                <button class="btn btn-s btn-sm" disabled>Sin vídeo</button>
-              `}
-
-              ${isSub && r.video_original ? `
-                <button class="btn btn-s btn-sm" onclick="openVideoUrl('${jsArg(original)}','${jsArg(r.video_original)}')">Original</button>
-              ` : ''}
-
-              <button class="btn ${done ? 'btn-g' : 'btn-s'} btn-sm" onclick="toggleAdaptedReviewed('${jsArg(reviewKey)}')">
-                ${done ? 'Revisado' : 'Marcar'}
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('')}
-
-      <div class="card">
-        <div class="card-acts">
-          <button class="btn btn-p btn-sm btn-wide" onclick="markAdaptedBlockDone('${c.id}','${jsArg(blockKey)}')">Bloque revisado</button>
-        </div>
-      </div>
-    `;
+    return buildAdaptedBlockChecklistScreen(c, blockKey, list, pathology, plan);
   }
 
+  // ── Lista de bloques adaptados ── misma estructura wt2-block que normal
+  const ci = getClientTodayCheckin(c.id);
+  const ciStatus = ci ? getCheckinStatus(ci) : null;
+
   return `
-    <div class="wt-head">
-      <div class="wt-head-top">
-        ${getClientPhotoHTML(c)}
+    <div class="wt-head" style="padding:12px">
+      <div class="wt-head-top" style="margin-bottom:0;align-items:center">
+        ${getClientPhotoHTML(c,'sm')}
         <div style="flex:1;min-width:0">
-          <div class="wt-name">${esc(c.name)}</div>
-          <div class="wt-meta">${esc(c.plan || 'Sin plan')} · Adaptación activa</div>
-                    <div class="wt-program">${pathology==='dolor_lumbar'?'DOLOR LUMBAR · PROCESO 15 DÍAS':(getPathologyLabel(pathology)+' · ADAPTACIÓN ACTIVA').toUpperCase()}</div>
+          <div class="wt-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.98rem">${esc(c.name)}</div>
+          <div class="wt-program" style="font-size:.58rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${esc((getPathologyLabel(pathology)+' · ADAPTACIÓN ACTIVA').toUpperCase())}
+          </div>
+          <div class="wt-meta" style="font-size:.7rem;margin-top:1px">
+            ${esc(workoutStepLabel(getAssignmentWeek(plan?.assignment), getAssignmentSessionNumber(plan?.assignment)))}
+            · ${substituted.length}/${executableRows.length} adaptados
+          </div>
         </div>
         ${badge('Adaptado','revisar')}
       </div>
-
-      <div class="dr">
-        <span class="dk">Ejercicios adaptados</span>
-        <span class="dv">${substituted.length}/${executableRows.length}</span>
-      </div>
     </div>
 
-${buildWorkoutSessionControls(plan, c)}
+    ${buildWorkoutSessionControls(plan, c)}
 
-<div class="card" style="border-left:3px solid ${getPathologyColor(pathology)}">
-      <div class="card-body" style="padding:12px 14px">
-        <div style="font-family:var(--font-d);font-size:1rem;letter-spacing:.04em;margin-bottom:4px;color:${getPathologyColor(pathology)}">
-          ${getPathologyLabel(pathology)} · Adaptación activa
+    <!-- Tarjeta de condición activa (compacta) -->
+    <div class="card" style="border-left:3px solid ${getPathologyColor(pathology)};margin-bottom:10px">
+      <div class="card-body" style="padding:10px 14px">
+        <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:${getPathologyColor(pathology)};margin-bottom:3px">
+          ${esc(getPathologyLabel(pathology))} · Adaptación activa
         </div>
-        <div style="font-size:.78rem;color:var(--text-2);line-height:1.55">
-          ${getPathologyAdaptationText(pathology)}
+        <div style="font-size:.76rem;color:var(--text-2);line-height:1.5">
+          ${esc(getPathologyAdaptationText(pathology))}
         </div>
       </div>
-
-      <div class="card-acts">
-        ${msg ? `<button class="btn btn-b btn-sm" onclick="copyAdaptedClientMessage(state.currentAdaptedRows)">Copiar mensaje</button>` : ''}
-        ${msg && c.phone ? `<button class="btn btn-wa btn-sm" onclick="sendAdaptedClientMessage('${c.id}', state.currentAdaptedRows)">Enviar WA</button>` : ''}
-      </div>
+      ${msg ? `
+        <div class="card-acts" style="padding:8px 14px">
+          <button class="btn btn-b btn-sm" onclick="copyAdaptedClientMessage(state.currentAdaptedRows)">Copiar mensaje</button>
+          ${c.phone ? `<button class="btn btn-wa btn-sm" onclick="sendAdaptedClientMessage('${c.id}', state.currentAdaptedRows)">Enviar WA</button>` : ''}
+        </div>
+      ` : ''}
     </div>
 
-    ${groups.map(([key, list]) => {
+    ${ci ? `
+    <div class="wt-ci" style="margin-bottom:10px">
+      <div class="wt-ci-row">
+        <span class="dk">Check-in hoy</span>
+        <span>${badge(ciStatus||'normal', ciStatus||'normal')}</span>
+      </div>
+      <div class="wt-ci-row">
+        <span class="dk">Energía</span>
+        <span class="dv">${esc(ci.energyLevel ?? ci.energy_level ?? '—')}/10</span>
+      </div>
+      ${ci.comment ? `<div class="wt-ci-row"><span class="dk">Nota</span><span style="font-size:.78rem;color:var(--warn);font-weight:500">${esc(ci.comment)}</span></div>` : ''}
+    </div>` : ''}
+
+    <!-- Bloques — misma estructura wt2-block que modo normal -->
+    ${groups.map(([key, list], bi) => {
       const blockName = getAdaptedBlockName(key);
-      const subs = list.filter(r => r.estado_ejercicio === 'sustituido').length;
-      const executableList = list.filter(r => !isAdaptedInstruction(r));
+      const execList = list.filter(r => !isAdaptedInstruction(r));
+      const subs = execList.filter(r => r.estado_ejercicio === 'sustituido').length;
+      const mods = execList.filter(r => r.estado_ejercicio === 'modificado').length;
+      const reviewed = execList.filter((r,i) => isAdaptedReviewed(getAdaptedRowReviewKey(c,r,i))).length;
+      const total = execList.length;
+      const pct = total ? Math.round((reviewed/total)*100) : 100;
+      const finished = total > 0 && reviewed === total;
 
-const reviewed = executableList.filter((r, index) => {
-  const reviewKey = getAdaptedRowReviewKey(c, r, index);
-  return isAdaptedReviewed(reviewKey);
-}).length;
-
-const totalReview = executableList.length;
-const pct = totalReview ? Math.round((reviewed / totalReview) * 100) : 100;
-const finished = totalReview > 0 && reviewed === totalReview;
+      const adaptBadge = (subs+mods) > 0
+        ? `<span style="font-family:var(--font-m);font-size:.48rem;color:var(--warn);background:rgba(255,179,64,.1);border:1px solid rgba(255,179,64,.25);border-radius:4px;padding:2px 6px;letter-spacing:.06em;text-transform:uppercase">${subs+mods} adaptado${subs+mods>1?'s':''}</span>`
+        : '';
 
       return `
-        <button class="card block-closed ${finished?'finished':''}" onclick="openAdaptedBlock('${jsArg(key)}')">
-          <div class="card-body">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-              <div style="min-width:0;text-align:left;flex:1">
-                <div class="block-closed-title">${esc(blockName)}</div>
-                <div class="block-closed-sub">
-                  ${reviewed}/${totalReview} revisados · ${subs} adaptados
-                </div>
-                <div class="block-progress-bar">
-                  <div class="block-progress-fill" style="width:${pct}%;background:${finished ? 'var(--streak)' : 'var(--sport)'}"></div>
-                </div>
-              </div>
-
-              <div class="block-closed-action" style="${finished ? 'background:rgba(0,230,118,.12);color:var(--streak);border-color:rgba(0,230,118,.3)' : ''}">
-                ${finished ? '✓ Hecho' : 'Abrir'}
-              </div>
+        <button class="wt2-block ${finished?'done':''}" onclick="openAdaptedBlock('${jsArg(key)}')">
+          <div class="wt2-block-num">${bi+1}</div>
+          <div class="wt2-block-icon">
+            ${(subs+mods)>0
+              ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.6L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.6a2 2 0 00-3.4 0z"/></svg>`
+              : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--streak)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`}
+          </div>
+          <div class="wt2-block-body">
+            <div class="wt2-block-name">${esc(blockName)}</div>
+            <div class="wt2-block-sub" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+              <span>${reviewed}/${total} ejercicios</span>
+              ${adaptBadge}
+            </div>
+            <div class="wt2-block-bar">
+              <div class="wt2-block-bar-fill" style="width:${pct}%;background:${finished?'var(--streak)':'var(--sport)'}"></div>
             </div>
           </div>
-        </button>
-      `;
+          <div class="block-closed-action" style="${finished?'background:rgba(0,230,118,.12);color:var(--streak);border-color:rgba(0,230,118,.3)':''}">
+            ${finished ? '✓' : 'Abrir'}
+          </div>
+        </button>`;
     }).join('')}
 
     <div class="card">
       <div class="card-body">
         <div class="card-title">Observaciones</div>
-        <textarea class="wt-note" placeholder="Ej: dolor bajó, técnica controlada, respiración mejoró..." oninput="saveWorkoutNote('${c.id}',this.value)">${esc(state.workoutNotes[c.id] || '')}</textarea>
+        <textarea class="wt-note" placeholder="Ej: dolor bajó, técnica controlada, respiración mejoró..."
+          oninput="saveWorkoutNote('${c.id}',this.value)">${esc(state.workoutNotes[c.id] || '')}</textarea>
       </div>
       <div class="card-acts">
         <button class="btn btn-p btn-sm btn-wide" onclick="openCheckout('${c.id}')">Cerrar sesión adaptada</button>
@@ -10050,6 +10144,7 @@ const finished = totalReview > 0 && reviewed === totalReview;
     </div>
   `;
 }
+
 
 function getWorkoutPersistenceContext(c){
   const plan = getWorkoutPlanForClient(c);
