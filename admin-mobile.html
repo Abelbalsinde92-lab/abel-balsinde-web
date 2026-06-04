@@ -9379,6 +9379,8 @@ function buildFrontendAdaptedRows(plan, pathology){
     exercises.forEach((ex,idx)=>{
       const exName=getExerciseTitle(ex);
       const base={
+        block_id: block.id || block.blockId || block.block_id || '',
+        ejercicio_id: getExerciseId(ex, idx),
         bloque:blockName,orden_bloque:ordenBloque,orden_ejercicio:idx+1,
         ejercicio_original:exName,ejercicio_final:exName,
         estado_ejercicio:'mantener',semana,sesion,
@@ -9492,6 +9494,82 @@ function applyLumbarFrontendFallback(rows, pathology){
   });
 }
 
+
+function enrichAdaptedRowsWithWorkoutPlan(rows, plan){
+  const safeRows = rows || [];
+  const blocks = plan?.blocks || [];
+
+  const byExerciseId = new Map();
+  const byCleanName = new Map();
+  const byBlockOrderAndExerciseOrder = new Map();
+
+  blocks.forEach((block, bi) => {
+    const blockId = String(block.id || block.blockId || block.block_id || '').trim();
+    const blockName = getBlockName(block) || `Bloque ${bi + 1}`;
+    const blockOrder = Number(block.orderIndex || block.order_index || block.orden_bloque || bi + 1);
+    const allItems = [ ...(block.instructions || []), ...(block.exercises || []) ];
+
+    allItems.forEach((ex, ei) => {
+      const exId = getExerciseId(ex, ei);
+      const exName = getExerciseTitle(ex);
+      const meta = {
+        block_id: blockId,
+        bloque: blockName,
+        orden_bloque: blockOrder,
+        ejercicio_id: exId,
+        orden_ejercicio: Number(ex.exerciseOrder || ex.exercise_order || ex.orderIndex || ex.order_index || ei + 1),
+        exercise: ex
+      };
+
+      if(exId) byExerciseId.set(String(exId), meta);
+      const cleanName = cleanTxt(exName);
+      if(cleanName && !byCleanName.has(cleanName)) byCleanName.set(cleanName, meta);
+      byBlockOrderAndExerciseOrder.set(`${meta.orden_bloque}__${meta.orden_ejercicio}`, meta);
+    });
+  });
+
+  return safeRows.map((row, idx) => {
+    const r = { ...row };
+    const rawExId = getAdaptedRowExerciseId(r);
+    const originalName = r.ejercicio_original || r.ejercicio_final || r.ejercicio_sustituto || '';
+    const nameKey = cleanTxt(originalName);
+    const orderKey = `${Number(r.orden_bloque || 0)}__${Number(r.orden_ejercicio || idx + 1)}`;
+
+    const meta =
+      (rawExId && byExerciseId.get(String(rawExId))) ||
+      (nameKey && byCleanName.get(nameKey)) ||
+      byBlockOrderAndExerciseOrder.get(orderKey) ||
+      null;
+
+    if(meta){
+      r.block_id = r.block_id || r.blockId || meta.block_id;
+      r.bloque = r.bloque || meta.bloque;
+      r.orden_bloque = Number(r.orden_bloque || meta.orden_bloque || 0);
+      r.ejercicio_id = r.ejercicio_id || r.exercise_id || r.exerciseId || meta.ejercicio_id;
+      r.orden_ejercicio = Number(r.orden_ejercicio || meta.orden_ejercicio || idx + 1);
+
+      const ex = meta.exercise || {};
+      r.sets = r.sets ?? ex.sets;
+      r.reps = r.reps ?? ex.reps;
+      r.duration = r.duration ?? ex.duration;
+      r.rest = r.rest ?? ex.rest;
+      r.tempo = r.tempo ?? ex.tempo;
+      r.video_url = r.video_url || getExerciseVideoUrl(ex);
+      r.variant_n1 = r.variant_n1 || ex.variantN1 || ex.variant_n1;
+      r.variant_n2 = r.variant_n2 || ex.variantN2 || ex.variant_n2;
+      r.variant_n3 = r.variant_n3 || ex.variantN3 || ex.variant_n3;
+      r.variant_n4 = r.variant_n4 || ex.variantN4 || ex.variant_n4;
+    }else{
+      r.orden_bloque = Number(r.orden_bloque || 0);
+      r.orden_ejercicio = Number(r.orden_ejercicio || idx + 1);
+      r.bloque = r.bloque || 'Bloque';
+    }
+
+    r.estado_ejercicio = normalizeAdaptedStatusValue(r.estado_ejercicio || 'mantener');
+    return r;
+  });
+}
+
 async function getAdaptedRowsForClient(c){
   const plan = getWorkoutPlanForClient(c);
   const assignment = plan.assignment;
@@ -9578,6 +9656,8 @@ async function getAdaptedRowsForClient(c){
     rows = applyFatigaModifierOnRows(rows);
   }
 
+  rows = enrichAdaptedRowsWithWorkoutPlan(rows, getWorkoutPlanForClient(c));
+
   state.adaptedTrainingCache[cacheKey] = rows;
 
   return {
@@ -9646,19 +9726,57 @@ function sendAdaptedClientMessage(clientId, rows){
   openWA(c.phone || state.settings.coachPhone, msg);
 }
 
+function normalizeAdaptedStatusValue(value){
+  const st = cleanTxt(value || 'normal');
+  if(st === 'sustituir' || st === 'sustitucion' || st === 'sustitución' || st === 'sustituido') return 'sustituido';
+  if(st === 'modificar' || st === 'modificacion' || st === 'modificación' || st === 'modificado') return 'modificado';
+  if(st === 'mantener' || st === 'mantenido' || st === 'normal') return 'mantener';
+  if(st === 'instruction_only' || st === 'instruccion' || st === 'instrucción') return 'instruction_only';
+  if(st === 'evitar' || st === 'evitado') return 'evitar';
+  if(st === 'derivar' || st === 'red_flag') return 'derivar';
+  return st || 'mantener';
+}
+
+function getAdaptedRowBlockId(r){
+  return String(r?.block_id || r?.blockId || r?.bloque_id || '').trim();
+}
+
+function getAdaptedRowExerciseId(r){
+  return String(r?.ejercicio_id || r?.exercise_id || r?.exerciseId || r?.id || '').trim();
+}
+
+function getAdaptedRowBlockOrder(r){
+  return Number(r?.orden_bloque || r?.block_order || r?.blockOrder || 0);
+}
+
+function getAdaptedRowBlockName(r){
+  return r?.bloque || r?.block_title || r?.blockTitle || r?.block_name || r?.blockName || 'Bloque';
+}
+
+function makeAdaptedBlockKey(r){
+  const order = String(getAdaptedRowBlockOrder(r) || 0).padStart(2,'0');
+  const blockId = getAdaptedRowBlockId(r);
+  const name = getAdaptedRowBlockName(r);
+  const safeId = blockId || cleanTxt(name || 'bloque') || 'bloque';
+  return `${order}__${safeId}__${name || 'Bloque'}`;
+}
+
 function getAdaptedBlockGroups(rows){
   const grouped = {};
 
   (rows || []).forEach(r => {
-    const order = String(r.orden_bloque || 0).padStart(2,'0');
-    const name = r.bloque || 'Bloque';
-    const key = `${order}__${name}`;
+    const key = makeAdaptedBlockKey(r);
 
     if(!grouped[key]) grouped[key] = [];
     grouped[key].push(r);
   });
 
   return Object.entries(grouped).sort((a,b) => {
+    const orderA = Number(String(a[0]).split('__')[0] || 0);
+    const orderB = Number(String(b[0]).split('__')[0] || 0);
+
+    if(orderA !== orderB) return orderA - orderB;
+
     const nameA = getAdaptedBlockName(a[0]);
     const nameB = getAdaptedBlockName(b[0]);
 
@@ -9667,14 +9785,13 @@ function getAdaptedBlockGroups(rows){
 
     if(rankA !== rankB) return rankA - rankB;
 
-    const orderA = Number(String(a[0]).split('__')[0] || 0);
-    const orderB = Number(String(b[0]).split('__')[0] || 0);
-
-    return orderA - orderB;
+    return nameA.localeCompare(nameB);
   });
 }
 
 function getAdaptedBlockName(key){
+  const parts = String(key || '').split('__');
+  if(parts.length >= 3) return parts.slice(2).join('__') || 'Bloque';
   return String(key || '').replace(/^\d+__/, '') || 'Bloque';
 }
 
@@ -9684,10 +9801,10 @@ function getAdaptedRowReviewKey(c, r, index = 0){
     'adapted',
     r.semana || '',
     r.sesion || '',
-    r.orden_bloque || '',
-    r.orden_ejercicio || index,
+    getAdaptedRowBlockId(r) || r.orden_bloque || '',
+    getAdaptedRowExerciseId(r) || r.orden_ejercicio || index,
     r.ejercicio_original || '',
-    r.ejercicio_final || ''
+    r.ejercicio_final || r.ejercicio_sustituto || ''
   ].join('__');
 }
 
@@ -9799,22 +9916,23 @@ async function markAdaptedBlockDone(clientId, blockKey){
 }
 
 function isAdaptedInstruction(r){
-  return String(r.estado_ejercicio || '') === 'instruction_only';
+  return normalizeAdaptedStatusValue(r?.estado_ejercicio || '') === 'instruction_only';
 }
 
 function adaptedStatusText(r){
-  const st = String(r.estado_ejercicio || 'normal');
+  const st = normalizeAdaptedStatusValue(r?.estado_ejercicio || 'normal');
   if(st === 'sustituido') return 'Sustituido';
   if(st === 'modificado') return 'Modificado';
   if(st === 'mantener') return 'Mantener';
   if(st === 'instruction_only') return 'Instrucción';
+  if(st === 'evitar') return 'Evitar';
   if(st === 'derivar') return 'Derivar';
   return 'Normal';
 }
 
 function adaptedStatusKind(r){
-  const st = String(r.estado_ejercicio || 'normal');
-  if(st === 'sustituido') return 'alerta';
+  const st = normalizeAdaptedStatusValue(r?.estado_ejercicio || 'normal');
+  if(st === 'sustituido' || st === 'evitar') return 'alerta';
   if(st === 'modificado') return 'revisar';
   if(st === 'mantener') return 'normal';
   if(st === 'derivar') return 'critica';
@@ -9822,8 +9940,8 @@ function adaptedStatusKind(r){
 }
 
 function adaptedBorderStyle(r){
-  const st = String(r.estado_ejercicio || 'normal');
-  if(st === 'sustituido') return 'border-left:3px solid var(--medical)';
+  const st = normalizeAdaptedStatusValue(r?.estado_ejercicio || 'normal');
+  if(st === 'sustituido' || st === 'evitar') return 'border-left:3px solid var(--medical)';
   if(st === 'modificado') return 'border-left:3px solid var(--warn)';
   if(st === 'mantener') return 'border-left:3px solid var(--streak)';
   return '';
@@ -9836,19 +9954,30 @@ function adaptedBorderStyle(r){
 
 /* Convierte un row adaptado al formato que entiende buildClExerciseRow */
 function adaptedRowToExItem(r, index, c){
-  const status = String(r.estado_ejercicio || 'normal');
+  const status = normalizeAdaptedStatusValue(r.estado_ejercicio || 'normal');
   const isSub  = status === 'sustituido';
   const isMod  = status === 'modificado';
   const isKeep = status === 'mantener';
+  const isAvoid = status === 'evitar';
   const isInst = status === 'instruction_only';
+
+  const originalName = r.ejercicio_original || r.original_exercise_name || '';
+  const finalName = r.ejercicio_sustituto || r.ejercicio_final || r.replacement_exercise_name || '';
+  const displayName = (isSub || isAvoid)
+    ? (finalName || originalName || 'Ejercicio')
+    : (originalName || finalName || 'Ejercicio');
 
   // Construir un objeto compatible con getDoseData / getExerciseTitle etc.
   return {
     // Campos de identidad
-    id: r.id || `adapted-${r.orden_bloque}-${r.orden_ejercicio || index}`,
-    name: r.ejercicio_final || r.ejercicio_original || 'Ejercicio',
-    nameEs: r.ejercicio_final || r.ejercicio_original || 'Ejercicio',
-    // Dosificación original
+    id: getAdaptedRowExerciseId(r) || r.id || `adapted-${getAdaptedRowBlockId(r) || r.orden_bloque}-${r.orden_ejercicio || index}`,
+    exerciseId: getAdaptedRowExerciseId(r),
+    exercise_id: getAdaptedRowExerciseId(r),
+    blockId: getAdaptedRowBlockId(r),
+    block_id: getAdaptedRowBlockId(r),
+    name: displayName,
+    nameEs: displayName,
+    // Dosificación original/adaptada
     sets: r.sets, reps: r.reps,
     duration: r.duration, rest: r.rest, tempo: r.tempo,
     // Carga
@@ -9873,8 +10002,9 @@ function adaptedRowToExItem(r, index, c){
     _isSub: isSub,
     _isMod: isMod,
     _isKeep: isKeep,
-    _originalName: r.ejercicio_original || '',
-    _coachNote: r.explicacion_breve_coach || '',
+    _isAvoid: isAvoid,
+    _originalName: originalName,
+    _coachNote: r.modification_text || r.explicacion_breve_coach || '',
     _clientNote: r.explicacion_cliente || '',
     _reviewKey: null, // se rellena en buildAdaptedBlockChecklistScreen
   };
@@ -9884,6 +10014,7 @@ function adaptedRowToExItem(r, index, c){
 function buildAdaptedStatusTag(ex){
   if(!ex._adaptStatus || ex._adaptStatus === 'normal' || ex._adaptStatus === 'mantener') return '';
   if(ex._isSub) return `<span class="cl-sub-label">Sustituye · ${esc(ex._originalName)}</span>`;
+  if(ex._isAvoid) return `<span class="cl-sub-label">Evitar · ${esc(ex._originalName)}</span>`;
   if(ex._isMod) return `<span class="cl-adapt-label">Modificado</span>`;
   return '';
 }
@@ -10031,6 +10162,12 @@ function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
 
   const activeKey = state.activeAdaptedBlockKey;
   const activeGroup = activeKey ? groups.find(([key]) => key === activeKey) : null;
+
+  // Si venimos de una versión anterior o cambió la estructura de bloques,
+  // no mantener una key vieja que pueda abrir una vista genérica/mal agrupada.
+  if(activeKey && !activeGroup){
+    state.activeAdaptedBlockKey = null;
+  }
 
   // ── Bloque abierto: mismo checklist que modo normal ──
   if(activeGroup){
