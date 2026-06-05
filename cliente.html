@@ -1446,7 +1446,7 @@ input, textarea { outline: none; font-family: var(--font-body); }
   height: 24px;
   border-radius: 7px;
   background: rgba(0,229,255,.10);
-  border: 1px solid rgba(0,229,255,,.25);
+  border: 1px solid rgba(0,229,255,.25);
   color: var(--sport);
   display: flex;
   align-items: center;
@@ -2626,6 +2626,790 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .data-card .dc-sub {
   letter-spacing: 0.2px;
   opacity: .85;
+}
+
+/* ═══════════════════════════════════════════════════════
+   AB SYSTEM CLIENT — FIELD VISUAL ALIGN PATCH v1
+   Pegar al FINAL del <style>
+═══════════════════════════════════════════════════════ */
+
+:root {
+  --bg: #000000;
+  --card: #121214;
+  --card-2: #151519;
+  --card-border: #24242A;
+  --divider: #17171B;
+  --text-primary: #FFFFFF;
+  --text-secondary: #8F8F99;
+  --sport: #00E5FF;
+  --streak: #00E676;
+  --warn: #FFB340;
+  --medical: #FF5A5A;
+
+  --field-radius: 20px;
+  --field-radius-sm: 14px;
+  --field-shadow: 0 16px 40px rgba(0,0,0,.34);
+}
+
+/* BASE */
+html,
+body {
+  background: #000;
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--text-primary);
+}
+
+/* HEADER MÁS FIELD */
+.dash-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: calc(82px + env(safe-area-inset-top, 0px));
+  min-height: calc(82px + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) 18px 0;
+
+  background: rgba(0,0,0,.94);
+  border-bottom: 1px solid var(--divider);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 200;
+}
+
+.dash-header-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.client-avatar,
+.client-avatar-initials {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,229,255,.35);
+  box-shadow: 0 0 0 3px rgba(0,229,255,.06);
+}
+
+.client-avatar {
+  object-fit: cover;
+}
+
+.client-avatar-initials {
+  background: rgba(0,229,255,.14);
+  color: var(--sport);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* BOTONES SUPERIORES */
+.dash-header-actions {
+  gap: 12px;
+}
+
+.btn-icon,
+.notif-bell-btn {
+  width: 58px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(18,18,20,.88);
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+}
+
+.btn-icon:hover,
+.notif-bell-btn:hover {
+  border-color: rgba(0,229,255,.34);
+  color: var(--sport);
+  background: rgba(0,229,255,.045);
+}
+
+.btn-wa-icon {
+  border-color: rgba(0,230,118,.38);
+  color: var(--streak);
+  background: rgba(0,230,118,.055);
+}
+
+.btn-wa-icon:hover {
+  border-color: rgba(0,230,118,.7);
+  color: var(--streak);
+}
+
+.btn-exit-icon:hover {
+  border-color: rgba(255,90,90,.45);
+  color: var(--medical);
+  background: rgba(255,90,90,.055);
+}
+
+/* NAV SUPERIOR CLIENTE — MISMA ESTÉTICA FIELD */
+.client-nav {
+  position: sticky;
+  top: calc(82px + env(safe-area-inset-top, 0px));
+  z-index: 160;
+
+  height: 64px;
+  padding: 0 18px;
+
+  background: rgba(0,0,0,.94);
+  border-bottom: 1px solid var(--divider);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  display: flex;
+  gap: 26px;
+  align-items: stretch;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.client-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.client-nav button {
+  flex: 0 0 auto;
+  min-width: auto;
+  padding: 0 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-bottom: 4px solid transparent;
+  color: rgba(255,255,255,.48);
+
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 2.8px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.client-nav button.active {
+  color: #fff;
+  border-bottom-color: var(--sport);
+}
+
+.client-nav button:hover {
+  color: #fff;
+}
+
+/* ESPACIO GENERAL */
+.dash-main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: calc(100px + env(safe-area-inset-top, 0px)) 18px calc(130px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-width: 480px) {
+  .dash-main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+/* HEADERS DE SECCIÓN MÁS LIMPIOS */
+.section-header {
+  padding: 12px 0 22px;
+  align-items: flex-end;
+}
+
+.section-header h2 {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: .9;
+  letter-spacing: 2px;
+  color: #fff;
+}
+
+.section-header .sec-badge {
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  color: var(--text-secondary);
+}
+
+/* LOGO DE SECCIÓN */
+.section-logo {
+  height: 40px !important;
+  opacity: .9 !important;
+}
+
+/* TARJETAS FIELD */
+.data-card,
+.summary-card,
+.assessment-card,
+.accordion-block,
+.training-guide-summary,
+.training-mini-hero,
+.training-step-card,
+.training-exercise-card,
+.training-finish-card,
+.training-session-completed-card,
+.cal-request-form,
+.card-metrica,
+.onboarding-card,
+.inactivity-card {
+  background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.005)), var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--field-radius);
+  box-shadow: none;
+}
+
+.data-card {
+  padding: 20px;
+  margin-bottom: 14px;
+}
+
+.summary-card {
+  padding: 16px;
+}
+
+.data-card.next-session {
+  border-color: rgba(0,229,255,.34);
+  background:
+    radial-gradient(circle at top right, rgba(0,229,255,.10), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.026), rgba(255,255,255,.006)),
+    var(--card);
+}
+
+/* LABELS */
+.next-label,
+.summary-label,
+.plan-item .pi-label,
+.card-metrica span,
+.home-ring-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+/* TÍTULOS */
+.data-card .dc-title,
+.summary-value,
+.plan-item .pi-value {
+  color: #fff;
+}
+
+.data-card .dc-title {
+  font-size: 19px;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+}
+
+.training-guide-title,
+.training-mini-day,
+.training-finish-title,
+.training-notes-title,
+.assessment-card-title,
+.inactivity-title,
+.onboarding-title {
+  font-family: var(--font-display);
+  color: #fff;
+  letter-spacing: 1.4px;
+}
+
+/* TEXTO SECUNDARIO */
+.data-card .dc-sub,
+.data-card .dc-note,
+.training-guide-meta,
+.training-mini-meta,
+.training-mini-title,
+.training-step-meta,
+.training-finish-sub,
+.inactivity-text,
+.onboarding-text,
+.exercise-knowledge-text,
+.exercise-video-note {
+  color: var(--text-secondary);
+}
+
+/* BOTONES — ADIÓS BOTÓN BLANCO PESADO */
+.client-action-btn,
+.copy-summary-btn,
+.training-complete-block-btn,
+.btn-login {
+  min-height: 52px;
+  border-radius: 15px;
+
+  background: rgba(0,229,255,.10);
+  border: 1px solid rgba(0,229,255,.38);
+  color: var(--sport);
+
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.client-action-btn:hover,
+.copy-summary-btn:hover,
+.training-complete-block-btn:hover {
+  background: rgba(0,229,255,.16);
+  border-color: rgba(0,229,255,.65);
+  opacity: 1;
+}
+
+.client-action-btn.wa {
+  background: rgba(0,230,118,.055);
+  border-color: rgba(0,230,118,.36);
+  color: var(--streak);
+}
+
+.client-action-btn.wa:hover {
+  background: rgba(0,230,118,.09);
+  border-color: rgba(0,230,118,.7);
+}
+
+/* LOGIN: mantener limpio pero más AB */
+#loginScreen {
+  background:
+    radial-gradient(circle at top right, rgba(0,229,255,.08), transparent 36%),
+    #000;
+}
+
+.login-box {
+  max-width: 400px;
+  border-radius: 22px;
+  border-color: var(--card-border);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.005)),
+    var(--card);
+}
+
+.login-title {
+  font-size: 34px;
+  letter-spacing: 3px;
+}
+
+.login-sub {
+  color: var(--text-secondary);
+}
+
+.field-group input,
+.training-notes-textarea,
+.metric-editor-input {
+  background: #050505;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  color: #fff;
+}
+
+.field-group input:focus,
+.training-notes-textarea:focus,
+.metric-editor-input:focus {
+  border-color: rgba(0,229,255,.6);
+}
+
+/* HOME */
+.home-rings-grid {
+  gap: 12px;
+}
+
+.home-ring-card {
+  border-radius: 18px;
+  padding: 16px 10px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.004)),
+    var(--card);
+  border-color: var(--card-border);
+}
+
+.home-ring-value {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: .95;
+}
+
+.home-ring-note {
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+/* ENTRENAR */
+.training-guide-summary {
+  padding: 22px;
+  margin-bottom: 16px;
+}
+
+.training-guide-title {
+  font-size: 38px;
+  line-height: .95;
+}
+
+.training-mini-hero {
+  padding: 20px;
+}
+
+.training-mini-day {
+  font-size: 42px;
+}
+
+.training-day-tabs {
+  margin: 18px 0 16px;
+  border-bottom-color: var(--divider);
+  gap: 18px;
+}
+
+.training-day-tab {
+  padding: 12px 2px 10px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  border-bottom-width: 3px;
+}
+
+.training-step-card {
+  overflow: hidden;
+}
+
+.training-step-header {
+  padding: 18px;
+  gap: 16px;
+}
+
+.training-step-number {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.035);
+  border-color: var(--card-border);
+  font-family: var(--font-mono);
+  font-size: 18px;
+}
+
+.training-step-title {
+  font-size: 18px;
+  letter-spacing: -.02em;
+}
+
+.training-step-card.open {
+  border-color: rgba(0,229,255,.36);
+}
+
+.training-step-card.open .training-step-number {
+  color: var(--sport);
+  border-color: rgba(0,229,255,.45);
+  background: rgba(0,229,255,.08);
+}
+
+.training-step-card.completed {
+  border-color: rgba(0,230,118,.28);
+}
+
+.training-step-card.completed .training-step-number {
+  color: var(--streak);
+  border-color: rgba(0,230,118,.45);
+  background: rgba(0,230,118,.08);
+}
+
+.training-step-body {
+  padding: 0 18px 18px;
+}
+
+/* EJERCICIOS MÁS COMPACTOS */
+.training-exercise-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: #070707;
+}
+
+.training-exercise-title {
+  font-size: 16px;
+  line-height: 1.28;
+}
+
+.training-mini-stat {
+  border-radius: 13px;
+  background: var(--card);
+}
+
+.training-mini-label {
+  font-size: 8px;
+  letter-spacing: 1.1px;
+}
+
+.training-mini-value {
+  font-size: 22px;
+}
+
+.training-instruction strong,
+.training-client-note strong,
+.exercise-knowledge-label {
+  color: var(--sport);
+  letter-spacing: 1.4px;
+}
+
+.training-client-note {
+  border-radius: 14px;
+  background: rgba(0,229,255,.035);
+  border-color: rgba(0,229,255,.18);
+}
+
+/* CRONÓMETRO */
+.wt-timer {
+  border-radius: 18px;
+  border-top: 1px solid rgba(0,229,255,.42);
+  background: rgba(18,18,20,.98);
+}
+
+.timer-toggle-btn {
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+/* SALUD / CHECK-IN */
+.health-tabs {
+  gap: 0;
+  margin-bottom: 20px;
+}
+
+.health-tab {
+  padding: 14px 8px 12px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  border-bottom-width: 3px;
+}
+
+.emoji-scale-group {
+  border-radius: 16px;
+  background: #050505;
+}
+
+.emoji-scale-btn {
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.emoji-scale-num {
+  font-size: 32px;
+}
+
+.emoji-scale-btn.active {
+  background: rgba(0,229,255,.08);
+  border-color: rgba(0,229,255,.65);
+}
+
+.emoji-scale-btn.active .emoji-scale-num,
+.emoji-scale-btn.active .emoji-scale-text {
+  color: var(--sport);
+}
+
+/* MÉTRICAS */
+.card-metrica {
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.card-metrica strong {
+  font-size: 44px;
+  line-height: .9;
+}
+
+.estado-tag {
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+
+/* PROGRESO */
+.assessment-card {
+  border-radius: 18px;
+  margin-bottom: 12px;
+}
+
+.assessment-card-header {
+  padding: 16px;
+}
+
+.assessment-card-title {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.assessment-result-row {
+  padding: 14px 0;
+}
+
+/* RESERVAS */
+.cal-wrapper {
+  margin-top: 6px;
+}
+
+.cal-month {
+  font-size: 28px;
+  letter-spacing: 2px;
+}
+
+.cal-nav-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+}
+
+.cal-grid {
+  gap: 8px 6px;
+}
+
+.cal-day {
+  height: 42px;
+  min-height: 42px;
+  border-radius: 13px;
+  font-size: 16px;
+}
+
+.cal-day.today {
+  border-color: rgba(0,229,255,.75);
+  box-shadow: 0 0 0 3px rgba(0,229,255,.08);
+}
+
+.cal-day.selected {
+  background: rgba(0,229,255,.12) !important;
+  color: #fff !important;
+  border-color: var(--sport) !important;
+}
+
+/* PERFIL */
+.accordion-title {
+  font-family: var(--font-mono);
+  border-radius: 18px;
+  padding: 18px;
+  background: var(--card);
+  color: var(--sport);
+}
+
+.accordion-content {
+  border-radius: 0 0 18px 18px;
+}
+
+/* ATLETA */
+.comp-tl-card {
+  border-radius: 20px;
+  padding: 18px;
+}
+
+.comp-skip-btn {
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+/* BADGES */
+.badge {
+  font-size: 10px;
+  letter-spacing: 1.1px;
+  font-weight: 800;
+}
+
+.badge-blue {
+  color: var(--sport);
+}
+
+.badge-green {
+  color: var(--streak);
+}
+
+.badge-yellow {
+  color: var(--warn);
+}
+
+.badge-red {
+  color: var(--medical);
+}
+
+/* FIX DE ERRORES PEQUEÑOS DEL CSS ANTERIOR */
+.onboarding-step-num {
+  border: 1px solid rgba(0,229,255,.25);
+}
+
+/* MOBILE AJUSTADO */
+@media (max-width: 480px) {
+  .dash-header {
+    height: calc(86px + env(safe-area-inset-top, 0px));
+    min-height: calc(86px + env(safe-area-inset-top, 0px));
+    padding-left: 18px;
+    padding-right: 16px;
+  }
+
+  .client-nav {
+    top: calc(86px + env(safe-area-inset-top, 0px));
+    height: 66px;
+    padding-left: 18px;
+    padding-right: 18px;
+    gap: 30px;
+  }
+
+  .client-nav button {
+    font-size: 12px;
+    letter-spacing: 2.6px;
+  }
+
+  .dash-main {
+    padding-top: calc(104px + env(safe-area-inset-top, 0px));
+  }
+
+  .btn-icon,
+  .notif-bell-btn {
+    width: 54px;
+    height: 50px;
+  }
+
+  .client-avatar,
+  .client-avatar-initials {
+    width: 52px;
+    height: 52px;
+  }
+
+  .section-header h2 {
+    font-size: 32px;
+  }
+
+  .training-guide-title {
+    font-size: 34px;
+  }
+
+  .training-mini-day {
+    font-size: 40px;
+  }
+
+  .data-card .dc-title {
+    font-size: 18px;
+  }
+
+  .home-rings-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .home-ring-card {
+    padding: 14px 8px;
+  }
+
+  .home-ring-value {
+    font-size: 30px;
+  }
+
+  .home-ring-note {
+    font-size: 9px;
+  }
+
+  #dashboard-atleta-combate .combate-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-metrica strong {
+    font-size: 42px;
+  }
 }
 </style>
 </head>
