@@ -4778,6 +4778,131 @@ body {
     gap: 7px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   AB SYSTEM CLIENT — TRAINING READABILITY PATCH v8
+   Corrige bloque abierto demasiado cian
+═══════════════════════════════════════════════════════ */
+
+/* El bloque abierto NO debe rellenarse completo de cian */
+.training-step-card.open {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.026), rgba(255,255,255,.008)),
+    #121214;
+  border-color: rgba(0,229,255,.38);
+  box-shadow:
+    inset 0 0 0 1px rgba(0,229,255,.05),
+    0 0 0 1px rgba(0,0,0,.55);
+}
+
+/* Solo una línea/acento cian superior, no fondo completo */
+.training-step-card.open::before {
+  content: '';
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0,229,255,.75),
+    transparent
+  );
+}
+
+/* Header del bloque abierto oscuro y legible */
+.training-step-card.open .training-step-header {
+  background: rgba(0,0,0,.18);
+}
+
+/* Cuerpo del bloque abierto oscuro */
+.training-step-card.open .training-step-body {
+  background: rgba(0,0,0,.16);
+}
+
+/* Título del bloque: evitar que se rompa feo */
+.training-step-title {
+  max-width: 100%;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Reducir impacto visual del bloque abierto */
+.training-step-card.open .training-step-title {
+  color: #ffffff;
+}
+
+.training-step-card.open .training-step-meta {
+  color: rgba(255,255,255,.48);
+}
+
+/* El número sí puede tener cian, pero discreto */
+.training-step-card.open .training-step-number {
+  background: rgba(0,229,255,.08);
+  border-color: rgba(0,229,255,.34);
+  color: var(--sport);
+  box-shadow: none;
+}
+
+/* Cronómetro dentro del bloque: menos protagonista */
+.timer-toggle-btn {
+  background: rgba(0,0,0,.36);
+  border-color: rgba(255,255,255,.09);
+}
+
+.timer-toggle-btn.open {
+  background: rgba(0,229,255,.045);
+  border-color: rgba(0,229,255,.28);
+}
+
+/* Ejercicios: separación más clara dentro del bloque */
+.training-exercise-card {
+  background: rgba(0,0,0,.46);
+  border-color: rgba(255,255,255,.09);
+  margin-bottom: 10px;
+}
+
+.training-exercise-card:last-of-type {
+  margin-bottom: 0;
+}
+
+/* El botón final mantiene cian sin parecer una franja gigante */
+.training-complete-block-btn {
+  background: rgba(0,229,255,.075);
+  border-color: rgba(0,229,255,.34);
+  color: var(--sport);
+}
+
+.training-complete-block-btn:active {
+  transform: scale(.985);
+}
+
+/* Tarjeta superior del inicio del plan: menos altura visual */
+.inactivity-card,
+.onboarding-card {
+  border-radius: 18px;
+}
+
+/* Entrenar: más compacto en móvil */
+@media (max-width: 480px) {
+  #sectionTrainingClient {
+    gap: 10px;
+  }
+
+  .training-step-body {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .training-exercise-card {
+    padding: 12px;
+  }
+
+  .training-instruction,
+  .training-coach-note,
+  .training-client-note {
+    font-size: 12.5px;
+  }
+}
 </style>
 </head>
 <body>
