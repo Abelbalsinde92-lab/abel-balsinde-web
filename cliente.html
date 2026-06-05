@@ -6464,6 +6464,36 @@ displayRows.forEach(r => {
         db.from('injury_history').select('*').eq('client_id',clientId).order('start_date',{ascending:false}).limit(20),
         db.from('capacity_evaluations').select('*').eq('client_id',clientId).order('evaluation_date',{ascending:false}).limit(20)
       ]);
+      
+      console.log('AB ATLETA LOAD DEBUG:', {
+  athlete_profile: {
+    count: apR.data ? 1 : 0,
+    error: apR.error
+  },
+  competitions: {
+    count: ceR.data?.length || 0,
+    error: ceR.error
+  },
+  phases: {
+    count: tpR.data?.length || 0,
+    error: tpR.error
+  },
+  session_load: {
+    count: slR.data?.length || 0,
+    error: slR.error,
+    first: slR.data?.[0] || null
+  },
+  injuries: {
+    count: ihR.data?.length || 0,
+    error: ihR.error
+  },
+  capacity_evaluations: {
+    count: cvR.data?.length || 0,
+    error: cvR.error,
+    first: cvR.data?.[0] || null
+  }
+});
+      
       clientAthleteProfile      = apR.data  || null;
       clientCompetitionEvents   = ceR.data  || [];
       clientTrainingPhases      = tpR.data  || [];
