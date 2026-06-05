@@ -3801,6 +3801,282 @@ body {
     font-size: 7.5px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   AB SYSTEM CLIENT — FIELD VISUAL SYNC PATCH v4
+═══════════════════════════════════════════════════════ */
+
+/* 1) Ocultar cabeceras automáticas que estaban generando 0SALUD / -ATLETA */
+#section-reservations > .section-header,
+#section-assessments > .section-header,
+#section-health > .section-header,
+#section-atleta > .section-header,
+#section-payments > .section-header,
+#section-notes > .section-header,
+#section-summary > .section-header,
+#section-plan > .section-header {
+  display: none !important;
+}
+
+/* 2) Ajuste general: más cercano al Admin Field */
+:root {
+  --top-h: 74px;
+  --bot-h: 66px;
+  --r: 16px;
+}
+
+.dash-main {
+  max-width: 430px;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+@media (max-width: 480px) {
+  .dash-main {
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 92px;
+  }
+}
+
+/* 3) Header más limpio / premium */
+.dash-header {
+  height: calc(var(--top-h) + var(--safe-t));
+  min-height: calc(var(--top-h) + var(--safe-t));
+  padding-left: 18px;
+  padding-right: 16px;
+  background: rgba(0,0,0,.96);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+#headerAvatarSlot .client-avatar,
+#headerAvatarSlot .client-avatar-initials {
+  width: 50px;
+  height: 50px;
+  border: 1px solid rgba(0,229,255,.28);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.65);
+}
+
+.btn-icon,
+.notif-bell-btn {
+  width: 54px;
+  height: 46px;
+  border-radius: 14px;
+  border-color: rgba(255,255,255,.12);
+  background: rgba(18,18,20,.55);
+}
+
+.btn-wa-icon {
+  border-color: rgba(0,230,118,.32);
+  background: rgba(0,230,118,.035);
+}
+
+/* 4) Navegación superior más parecida a Field */
+.client-nav {
+  top: calc(var(--top-h) + var(--safe-t));
+  height: 64px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: rgba(0,0,0,.96);
+}
+
+.client-nav button {
+  padding: 19px 30px 15px;
+  font-size: 11px;
+  letter-spacing: 2.2px;
+  border-bottom-width: 3px;
+}
+
+.client-nav button.active {
+  color: var(--text-primary);
+  text-shadow: 0 0 18px rgba(0,229,255,.16);
+}
+
+/* 5) Cards más consistentes con Admin Field */
+.data-card,
+.summary-card,
+.progress-clean-hero,
+.progress-kpi-card,
+.progress-result-clean,
+.progress-archive,
+.assessment-card,
+.accordion-block,
+.training-guide-summary,
+.training-mini-hero,
+.training-step-card,
+.card-metrica {
+  border-radius: 18px;
+  background: #121214;
+  border-color: rgba(255,255,255,.11);
+}
+
+.data-card.next-session,
+.progress-clean-hero,
+.training-step-card.open,
+.training-collapsible-card.adjusted,
+#section-health .data-card.next-session {
+  border-color: rgba(0,229,255,.28);
+}
+
+/* 6) Fuente correcta en acordeones */
+.accordion-title {
+  font-family: var(--font-mono) !important;
+}
+
+/* 7) Fix pequeño error visual onboarding */
+.onboarding-step-num {
+  border-color: rgba(0,229,255,.25);
+}
+
+/* 8) ATLETA — limpieza visual general */
+#section-atleta .health-tabs,
+#section-health .health-tabs {
+  margin-top: 4px;
+  margin-bottom: 18px;
+}
+
+#section-atleta .health-tab,
+#section-health .health-tab {
+  letter-spacing: 1.9px;
+}
+
+#section-atleta .data-card {
+  padding: 20px;
+}
+
+#section-atleta .next-label {
+  color: var(--sport);
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  margin-bottom: 12px;
+}
+
+#section-atleta .dc-title {
+  line-height: 1.12;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* 9) Competición próxima en Resumen: separar título, días, fecha y peso */
+#section-atleta .data-card .dc-row {
+  align-items: flex-start;
+}
+
+#section-atleta .data-card .dc-row:first-of-type {
+  gap: 12px;
+}
+
+#section-atleta .data-card .dc-row .dc-title {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 10) Timeline competición — evita Greco16d y 20/06/202682kg */
+#section-atleta .comp-timeline {
+  padding-left: 34px;
+}
+
+#section-atleta .comp-timeline::before {
+  left: 6px;
+  background: rgba(255,255,255,.12);
+}
+
+#section-atleta .comp-tl-dot {
+  left: -34px;
+  top: 22px;
+  width: 14px;
+  height: 14px;
+  box-shadow: 0 0 0 4px rgba(0,229,255,.08);
+}
+
+#section-atleta .comp-tl-card {
+  border-radius: 18px;
+  padding: 18px;
+  background: #121214;
+  border-color: rgba(255,179,64,.24);
+}
+
+#section-atleta .comp-tl-card .dc-row:first-child {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+#section-atleta .comp-tl-card .dc-row:first-child .dc-title {
+  font-size: 16px !important;
+  line-height: 1.18;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#section-atleta .comp-tl-card .dc-row:first-child > span:last-child {
+  justify-self: end;
+  min-width: 44px;
+  text-align: right;
+  line-height: 1;
+}
+
+#section-atleta .comp-tl-card .dc-row:nth-child(2) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+#section-atleta .comp-tl-card .dc-row:nth-child(2) .dc-sub {
+  display: inline-flex;
+  width: auto;
+  max-width: 100%;
+  white-space: nowrap;
+  background: #0B0B0C;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 10px;
+  line-height: 1;
+}
+
+#section-atleta .comp-skip-btn {
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 9px;
+  letter-spacing: 1.1px;
+}
+
+/* 11) Salud — métricas más limpias */
+#section-health .card-metrica {
+  padding: 18px;
+}
+
+#section-health .card-metrica strong {
+  font-size: 34px;
+}
+
+#section-health .estado-tag {
+  border-radius: 8px;
+  padding: 5px 9px;
+}
+
+/* 12) Perfil: tarjetas más limpias */
+#section-client-data .summary-grid {
+  gap: 10px;
+}
+
+#section-client-data .summary-card {
+  padding: 18px;
+}
+
+/* 13) Corrección de anchura en textos largos */
+.dc-title,
+.summary-value,
+.progress-clean-title,
+.progress-result-name,
+.progress-history-title,
+.training-guide-title,
+.training-mini-title {
+  overflow-wrap: anywhere;
+}
 </style>
 </head>
 <body>
