@@ -4077,6 +4077,117 @@ body {
 .training-mini-title {
   overflow-wrap: anywhere;
 }
+
+/* ═══════════════════════════════════════════════════════
+   AB SYSTEM CLIENT — ACTION BUTTONS SYNC PATCH v5
+═══════════════════════════════════════════════════════ */
+
+/* Botón principal cliente: dejar de usar blanco sólido */
+.client-action-btn,
+.copy-summary-btn,
+.training-complete-block-btn,
+.btn-login {
+  background: rgba(0,229,255,.08);
+  border: 1px solid rgba(0,229,255,.38);
+  color: var(--sport);
+  border-radius: 14px;
+  min-height: 50px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.7px;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(0,229,255,.03);
+}
+
+.client-action-btn:hover,
+.copy-summary-btn:hover,
+.training-complete-block-btn:hover,
+.btn-login:hover {
+  background: rgba(0,229,255,.12);
+  border-color: rgba(0,229,255,.58);
+  opacity: 1;
+}
+
+.client-action-btn:active,
+.copy-summary-btn:active,
+.training-complete-block-btn:active,
+.btn-login:active {
+  transform: scale(.985);
+}
+
+/* WhatsApp sigue verde */
+.client-action-btn.wa,
+.btn-wa-login {
+  background: rgba(0,230,118,.045);
+  border: 1px solid rgba(0,230,118,.34);
+  color: var(--streak);
+  border-radius: 14px;
+}
+
+.client-action-btn.wa:hover,
+.btn-wa-login:hover {
+  background: rgba(0,230,118,.075);
+  border-color: rgba(0,230,118,.58);
+}
+
+/* Botones secundarios/grises */
+.metric-editor-cancel,
+.training-complete-block-btn:disabled {
+  background: rgba(255,255,255,.025) !important;
+  border-color: rgba(255,255,255,.10) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Botón de login: mantener más fuerte, pero ya no blanco puro */
+#loginScreen .btn-login {
+  background: rgba(0,229,255,.10);
+  border-color: rgba(0,229,255,.46);
+  color: var(--sport);
+}
+
+/* Botones dentro de onboarding e inicio */
+.onboarding-card .client-action-btn,
+.inactivity-card .client-action-btn,
+.data-card.next-session .client-action-btn {
+  min-height: 52px;
+}
+
+/* Reducir sensación de bloque blanco en cards grandes */
+.action-box {
+  gap: 10px;
+}
+
+/* Botones de tabs Día A/B/C más parecidos a Field */
+.training-day-tab.active {
+  color: var(--sport);
+  border-bottom-color: var(--sport);
+}
+
+.training-day-tab {
+  border-radius: 0;
+}
+
+/* Botones de selección check-in */
+.emoji-scale-btn.active {
+  border-color: rgba(0,229,255,.55);
+  background: rgba(0,229,255,.09);
+}
+
+/* Inputs más alineados con Admin Field */
+.field-group input,
+.training-notes-textarea,
+.metric-editor-input {
+  border-radius: 12px;
+  border-color: rgba(255,255,255,.11);
+  background: #050506;
+}
+
+.field-group input:focus,
+.training-notes-textarea:focus,
+.metric-editor-input:focus {
+  border-color: rgba(0,229,255,.5);
+  box-shadow: 0 0 0 1px rgba(0,229,255,.08);
+}
 </style>
 </head>
 <body>
