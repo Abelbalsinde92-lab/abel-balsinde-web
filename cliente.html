@@ -5081,6 +5081,7 @@ let clientMetrics            = [];
 let clientAlerts             = [];
 let clientPrograms           = [];
 let clientAssessments        = [];
+let clientInternalAssessments = [];
 let clientAssessmentResults  = [];
 let clientTrainingAssignment = null;
 let clientProgramAssignmentsHistory = [];
@@ -6043,17 +6044,79 @@ console.log('AB Mobility Chain:', window.clientMobilityChain);
 
     clientAssessmentResults = [];
 
-    if (clientAssessments.length) {
-      const ids = clientAssessments.map(a => a.id);
+if (clientAssessments.length) {
+  const ids = clientAssessments.map(a => a.id);
 
-      const rr = await db
-        .from('client_assessment_results')
-        .select('*')
-        .in('assessment_id', ids)
-        .order('item_order', { ascending: true });
+  const rr = await db
+    .from('client_assessment_results')
+    .select('*')
+    .in('assessment_id', ids)
+    .order('item_order', { ascending: true });
 
-      clientAssessmentResults = rr.data || [];
+  clientAssessmentResults = rr.data || [];
+
+  function normalizeAssessmentNameForClient(value) {
+    return String(value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
+  const resultCountByAssessment = new Map();
+
+  clientAssessmentResults.forEach(r => {
+    const id = String(r.assessment_id);
+
+    resultCountByAssessment.set(
+      id,
+      (resultCountByAssessment.get(id) || 0) + 1
+    );
+  });
+
+  function assessmentGroupKey(a) {
+    return [
+      String(a.template_id || ''),
+      normalizeAssessmentNameForClient(a.assessment_name),
+      String(a.assessment_date || '').slice(0, 10)
+    ].join('|');
+  }
+
+  const groupsWithResults = new Set();
+
+  clientAssessments.forEach(a => {
+    const count = resultCountByAssessment.get(String(a.id)) || 0;
+
+    if (count > 0) {
+      groupsWithResults.add(assessmentGroupKey(a));
     }
+  });
+
+  clientAssessments = clientAssessments.filter(a => {
+    const count = resultCountByAssessment.get(String(a.id)) || 0;
+
+    // Mantener tests con resultados.
+    if (count > 0) return true;
+
+    const groupKey = assessmentGroupKey(a);
+
+    // Si existe otro test igual del mismo día con resultados,
+    // ocultamos este duplicado vacío del cliente.
+    if (groupsWithResults.has(groupKey)) return false;
+
+    // Si no hay otro test igual con resultados,
+    // lo dejamos visible como pendiente.
+    return true;
+  });
+
+  const visibleAssessmentIds = new Set(
+    clientAssessments.map(a => String(a.id))
+  );
+
+  clientAssessmentResults = clientAssessmentResults.filter(r =>
+    visibleAssessmentIds.has(String(r.assessment_id))
+  );
+}
 
     clientTrainingProgram = null;
     clientTrainingWeeks = [];
