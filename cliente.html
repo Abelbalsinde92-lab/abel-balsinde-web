@@ -13676,7 +13676,7 @@ function renderAtleta(){
       '<div class="data-card" style="border-color:rgba(0,229,255,.25)">'+
         '<div class="next-label">Fase activa</div>'+
         '<div class="dc-row">'+
-          '<span class="dc-title">'+const nextComp = futureComps.find(c => c.attending !== false) || futureComps[0] || null;+'</span>'+
+          '<span class="dc-title">'+escHTML(activePhase.name || activePhase.phase_type || 'Fase')+'</span>'+
           '<span class="badge badge-blue">'+escHTML(activePhase.phase_type||'—')+'</span>'+
         '</div>'+
         (activePhase.priority_capacity?'<div class="dc-row"><span class="dc-sub">Prioridad: '+escHTML(activePhase.priority_capacity)+'</span></div>':'')+
