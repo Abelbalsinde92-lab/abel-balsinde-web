@@ -6462,8 +6462,8 @@ displayRows.forEach(r => {
         db.from('training_phases').select('*').eq('client_id',clientId).order('start_date',{ascending:false}).limit(10),
         db.from('session_load')
   .select('*')
-  .eq('client_id', clientId)
-  .order('training_date', { ascending: false })
+  .eq('client_id',clientId)
+  .order('training_date',{ascending:false})
   .limit(30)
         db.from('injury_history').select('*').eq('client_id',clientId).order('start_date',{ascending:false}).limit(20),
         db.from('capacity_evaluations').select('*').eq('client_id',clientId).order('evaluation_date',{ascending:false}).limit(20)
