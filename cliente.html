@@ -11,6 +11,7 @@
 
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="AB SYSTEM">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -5957,10 +5958,9 @@ AB_LANG = (clientData.preferred_lang || 'es').toLowerCase();
         .order('checkin_date', { ascending: false })
         .limit(30),
       
-      db.from('v_client_active_mobility_chain')
-        .select('*')
-        .eq('client_id', clientId)
-        .order('exercise_order', { ascending: true }),
+      // TEMP: vista de movilidad aún no creada en Supabase.
+      // Evita 404 en cliente hasta crear v_client_active_mobility_chain.
+      Promise.resolve({ data: [], error: null }),
       ]);
 
     clientReservations = resR.data || [];
