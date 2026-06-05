@@ -13536,9 +13536,20 @@ function renderAtleta(){
   const record=`${ap.wins||0}-${ap.losses||0}-${ap.draws||0}`;
   const today=todayISO();
 
-  const activePhase=clientTrainingPhases.find(p=>
-    p.start_date<=today&&(!p.end_date||p.end_date>=today)
-  );
+  const activePhase = clientTrainingPhases.find(p => {
+  const status = String(p.status || '').toLowerCase();
+
+  const isActive =
+    status === 'active' ||
+    status === 'activa' ||
+    status === 'activo';
+
+  const dateOk =
+    p.start_date <= today &&
+    (!p.end_date || p.end_date >= today);
+
+  return isActive && dateOk;
+});
 
   const futureComps=clientCompetitionEvents
     .filter(c=>c.event_date>=today)
@@ -13582,7 +13593,7 @@ function renderAtleta(){
       '<div class="data-card" style="border-color:rgba(0,229,255,.25)">'+
         '<div class="next-label">Fase activa</div>'+
         '<div class="dc-row">'+
-          '<span class="dc-title">'+escHTML(activePhase.phase_name||activePhase.phase_type||'Fase')+'</span>'+
+          '<span class="dc-title">'+escHTML(activePhase.phase_name || activePhase.name || activePhase.phase_type || 'Fase')+'</span>'+
           '<span class="badge badge-blue">'+escHTML(activePhase.phase_type||'—')+'</span>'+
         '</div>'+
         (activePhase.priority_capacity?'<div class="dc-row"><span class="dc-sub">Prioridad: '+escHTML(activePhase.priority_capacity)+'</span></div>':'')+
