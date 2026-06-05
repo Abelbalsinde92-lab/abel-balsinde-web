@@ -6452,59 +6452,56 @@ displayRows.forEach(r => {
 }
 
     if(isAthlete){
-      const [apR,ceR,tpR,slR,ihR,cvR] = await Promise.all([
-        db.from('athlete_profiles').select('*').eq('client_id',clientId).maybeSingle(),
-        db.from('competition_events')
-  .select('*')
-  .eq('client_id', clientId)
-  .order('event_date', { ascending: true })
-  .limit(20),
-        db.from('training_phases').select('*').eq('client_id',clientId).order('start_date',{ascending:false}).limit(10),
-        db.from('session_load')
-  .select('*')
-  .eq('client_id',clientId)
-  .order('training_date',{ascending:false})
-  .limit(30)
-        db.from('injury_history').select('*').eq('client_id',clientId).order('start_date',{ascending:false}).limit(20),
-        db.from('capacity_evaluations').select('*').eq('client_id',clientId).order('evaluation_date',{ascending:false}).limit(20)
-      ]);
-      
-      console.log('AB ATLETA LOAD DEBUG:', {
-  athlete_profile: {
-    count: apR.data ? 1 : 0,
-    error: apR.error
-  },
-  competitions: {
-    count: ceR.data?.length || 0,
-    error: ceR.error
-  },
-  phases: {
-    count: tpR.data?.length || 0,
-    error: tpR.error
-  },
-  session_load: {
-    count: slR.data?.length || 0,
-    error: slR.error,
-    first: slR.data?.[0] || null
-  },
-  injuries: {
-    count: ihR.data?.length || 0,
-    error: ihR.error
-  },
-  capacity_evaluations: {
-    count: cvR.data?.length || 0,
-    error: cvR.error,
-    first: cvR.data?.[0] || null
-  }
-});
-      
-      clientAthleteProfile      = apR.data  || null;
-      clientCompetitionEvents   = ceR.data  || [];
-      clientTrainingPhases      = tpR.data  || [];
-      clientSessionLoadHistory  = slR.data  || [];
-      clientInjuryHistory       = ihR.data  || [];
-      clientCapacityEvaluations = cvR.data  || [];
-    }
+  const [apR, ceR, tpR, slR, ihR, cvR] = await Promise.all([
+    db
+      .from('athlete_profiles')
+      .select('*')
+      .eq('client_id', clientId)
+      .maybeSingle(),
+
+    db
+      .from('competition_events')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('event_date', { ascending: true })
+      .limit(20),
+
+    db
+      .from('training_phases')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('start_date', { ascending: false })
+      .limit(10),
+
+    db
+      .from('session_load')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('training_date', { ascending: false })
+      .limit(30),
+
+    db
+      .from('injury_history')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('start_date', { ascending: false })
+      .limit(20),
+
+    db
+      .from('capacity_evaluations')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('evaluation_date', { ascending: false })
+      .limit(20)
+  ]);
+
+  clientAthleteProfile      = apR.data  || null;
+  clientCompetitionEvents   = ceR.data  || [];
+  clientTrainingPhases      = tpR.data  || [];
+  clientSessionLoadHistory  = slR.data  || [];
+  clientInjuryHistory       = ihR.data  || [];
+  clientCapacityEvaluations = cvR.data  || [];
+}
 
     await renderDashboard();
 
