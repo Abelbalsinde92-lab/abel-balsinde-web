@@ -5948,10 +5948,7 @@ AB_LANG = (clientData.preferred_lang || 'es').toLowerCase();
   .order('created_at', { ascending: false }),
       db.from('client_assessments').select('*').eq('client_id', clientId).order('assessment_date', { ascending: false }),
       db.from('client_session_logs').select('*').eq('client_id', clientId).order('training_date', { ascending: false }),
-      db.from('training_session_adaptations')
-  .select('*')
-  .eq('client_id', clientId)
-  .order('created_at', { ascending: false }),
+      Promise.resolve({ data: [], error: null }),
       db.from('client_daily_checkins')
         .select('*')
         .eq('client_id', clientId)
@@ -6127,26 +6124,28 @@ if (clientAssessments.length) {
     const pid = clientTrainingAssignment?.program_id || null;
 
 if (pid) {
-  const [baseR, displayR] = await Promise.all([
-  db
-    .from('client_training_plan_visible')
-    .select('*')
-    .eq('client_id', clientId)
-    .eq('program_id', pid)
-    .order('week_order', { ascending: true })
-    .order('session_order', { ascending: true })
-    .order('block_order', { ascending: true })
-    .order('exercise_order', { ascending: true }),
+  const baseR = await db
+  .from('client_training_plan_visible')
+  .select('*')
+  .eq('client_id', clientId)
+  .eq('program_id', pid)
+  .order('week_order', { ascending: true })
+  .order('session_order', { ascending: true })
+  .order('block_order', { ascending: true })
+  .order('exercise_order', { ascending: true });
 
-  db
-    .from('v_client_training_display_knowledge')
-    .select('*')
-    .eq('client_id', clientId)
-    .order('week_order', { ascending: true })
-    .order('session_order', { ascending: true })
-    .order('block_order', { ascending: true })
-    .order('exercise_order', { ascending: true })
-]);
+/*
+  TEMPORAL:
+  Desactivamos la vista pesada v_client_training_display_knowledge
+  porque está dando timeout en Supabase.
+  El cliente carga el entrenamiento base sin bloquear la app.
+*/
+const displayR = {
+  data: [],
+  error: null
+};
+
+console.warn('AB KNOWLEDGE VIEW temporalmente desactivada para evitar timeout.');
 
 window.__AB_DEBUG_CLIENT__ = {
   baseRows: baseR.data?.length || 0,
