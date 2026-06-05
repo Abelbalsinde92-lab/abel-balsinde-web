@@ -13737,7 +13737,7 @@ function renderAtleta(){
       const acCol=!ac?'var(--text-secondary)':ac<0.8?'var(--sport)':ac<=1.3?'var(--streak)':'var(--medical)';
       cargaHTML+=
         '<div class="summary-card">'+
-          '<div class="summary-label">'+formatDate(sl.session_date||String(sl.created_at||'').slice(0,10))+'</div>'+
+          '<div class="summary-label">'+formatDate(sl.training_date || String(sl.created_at || '').slice(0,10))+'</div>'+
           '<div class="summary-value" style="font-size:13px;">RPE '+(sl.rpe||'—')+' · '+(sl.duration_minutes||'—')+' min</div>'+
           (ac?'<div style="font-family:var(--font-mono);font-size:10px;color:'+acCol+';margin-top:4px;">AC '+ac+'</div>':'')+
         '</div>';
