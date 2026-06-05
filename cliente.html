@@ -5968,10 +5968,28 @@ AB_LANG = (clientData.preferred_lang || 'es').toLowerCase();
     clientAlerts = halR.data || [];
     clientPrograms = proR.data || [];
   clientTrainingAssignment = assignR.data?.[0] || null;
-  clientProgramAssignmentsHistory = assignHistoryR.data || [];
-  clientAssessments = assR.data || [];
-clientSessionLogs = logsR.data || [];
+clientProgramAssignmentsHistory = assignHistoryR.data || [];
 
+function isInternalAssessment(a) {
+  const name = String(a?.assessment_name || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  return (
+    name.includes('ab load profile') ||
+    name.includes('temporal para prescripcion') ||
+    name.includes('perfil de carga') ||
+    name.includes('prescripcion de cargas')
+  );
+}
+
+const allAssessments = assR.data || [];
+
+clientAssessments = allAssessments.filter(a => !isInternalAssessment(a));
+clientInternalAssessments = allAssessments.filter(isInternalAssessment);
+
+clientSessionLogs = logsR.data || [];
 const activeProgramIdForAdaptations = clientTrainingAssignment?.program_id || null;
 
 clientActiveTrainingAdaptations = (adaptR.data || []).filter(a => {
@@ -9272,13 +9290,20 @@ const metaP = [
       : ''
   );
 
-  step.exercises.forEach(ex => {
-    html += buildExerciseHTML(ex);
-  });
+  const renderedExerciseHTML = step.exercises
+  .map(ex => buildExerciseHTML(ex))
+  .filter(Boolean)
+  .join('');
 
-  if(!step.exercises.length){
-    html += '<p class="empty-state" style="margin-top:12px;">' + tClient('noExercises') + '</p>';
-  }
+if (renderedExerciseHTML) {
+  html += renderedExerciseHTML;
+} else {
+  html +=
+    '<div class="training-client-note" style="margin-top:12px;">' +
+      '<strong>Sesión dirigida</strong>' +
+      'Este bloque será guiado por Abel durante la sesión. Sigue sus indicaciones y trabaja con calma.' +
+    '</div>';
+}
 
   html +=
         '<button class="training-complete-block-btn" id="completeBtn-' + blockId + '" onclick="completeTrainingStep(\'' + blockId + '\')">' +
@@ -9657,11 +9682,60 @@ function buildKnowledgeRow(label, value) {
   );
 }
 
+function isCoachDirectedClientOnlyNote(ex) {
+  if (!ex) return false;
+
+  const text = [
+    ex.name,
+    ex.description,
+    ex.client_variant,
+    ex.variant_n1,
+    ex.variant_n2,
+    ex.variant_n3,
+    ex.variant_n4,
+    ex.coaching_notes,
+    ex.client_coaching_note,
+    ex.knowledge_client_summary
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  const name = String(ex.name || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  const isDirected =
+    text.includes('dirigido por coach') ||
+    text.includes('guiado por el coach') ||
+    text.includes('guiado por coach') ||
+    text.includes('dirigido por abel') ||
+    text.includes('guiado por abel') ||
+    text.includes('guided by coach');
+
+  const isGeneralDirectedNote =
+    name.includes('calentamiento dirigido') ||
+    name.includes('dirigido tipo lucha') ||
+    name.includes('tipo lucha') ||
+    name.includes('cuerpo entero');
+
+  return isDirected && isGeneralDirectedNote;
+}
+
 function canRenderClientItem(ex){
   const vis  = ex.field_visibility   || 'coach_and_client';
   const mode = ex.field_display_mode || 'exercise_card';
-  if(vis  === 'coach_only')         return false;
-  if(mode === 'locked_coach_card')  return false;
+
+  if (vis === 'coach_only') return false;
+  if (mode === 'locked_coach_card') return false;
+
+  // Oculta en cliente notas generales de bloques dirigidos por coach.
+  // Ejemplo: "Calentamiento dirigido tipo lucha".
+  if (isCoachDirectedClientOnlyNote(ex)) return false;
+
   return true;
 }
 
