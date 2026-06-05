@@ -13401,15 +13401,37 @@ function formatClock(seconds) {
   return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
 }
 
-function beep(freq=880, durMs=160, vol=0.35) {
+function beep(freq, durMs, vol) {
+  freq = freq || 880;
+  durMs = durMs || 160;
+  vol = vol || 0.35;
+
   try {
-    if (!beep._ctx) { const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx)return; beep._ctx=new Ctx(); }
-    if (beep._ctx.state==='suspended') beep._ctx.resume();
-    const o=beep._ctx.createOscillator(), g=beep._ctx.createGain();
-    o.connect(g); g.connect(beep._ctx.destination);
-    o.type='sine'; o.frequency.value=freq; g.gain.value=vol;
-    o.start(); o.stop(beep._ctx.currentTime+durMs/1000);
-  } catch(e) {}
+    if (!beep._ctx) {
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      beep._ctx = new AudioCtx();
+    }
+
+    if (beep._ctx.state === 'suspended') {
+      beep._ctx.resume();
+    }
+
+    var oscillator = beep._ctx.createOscillator();
+    var gain = beep._ctx.createGain();
+
+    oscillator.connect(gain);
+    gain.connect(beep._ctx.destination);
+
+    oscillator.type = 'sine';
+    oscillator.frequency.value = freq;
+    gain.gain.value = vol;
+
+    oscillator.start();
+    oscillator.stop(beep._ctx.currentTime + durMs / 1000);
+  } catch (e) {
+    console.warn('Beep error:', e);
+  }
 }
 function beepWork() { beep(880,180); }
 function beepRest() { beep(440,220); }
@@ -13472,19 +13494,49 @@ function updateClockUI() {
 
 function startWorkoutTimer() {
   if (workoutTimer.running) return;
+
   _requestWakeLock();
-  try { if(!beep._ctx){const Ctx=window.AudioContext||window.webkitAudioContext;if(Ctx)beep._ctx=new Ctx();} if(beep._ctx&&beep._ctx.state==='suspended')beep._ctx.resume(); } catch(e){}
-  const iv = workoutIntervals;
-  if (iv.enabled && (iv.phase==='idle'||iv.phase==='done')) { iv.phase='work'; iv.currentRound=1; iv.phaseSecsLeft=Number(iv.workSec)||40; beepWork(); }
-  workoutTimer.running = true;
-  workoutTimer.interval = setInterval(() => {
-    workoutTimer.seconds += 1;
-    if (iv.enabled && iv.phase!=='idle' && iv.phase!=='done') {
-      iv.phaseSecsLeft -= 1;
-      if (iv.phaseSecsLeft <= 0) advanceIntervalPhase();
+
+  try {
+    if (!beep._ctx) {
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        beep._ctx = new AudioCtx();
+      }
     }
+
+    if (beep._ctx && beep._ctx.state === 'suspended') {
+      beep._ctx.resume();
+    }
+  } catch (e) {
+    console.warn('Audio unlock error:', e);
+  }
+
+  var iv = workoutIntervals;
+
+  if (iv.enabled && (iv.phase === 'idle' || iv.phase === 'done')) {
+    iv.phase = 'work';
+    iv.currentRound = 1;
+    iv.phaseSecsLeft = Number(iv.workSec) || 40;
+    beepWork();
+  }
+
+  workoutTimer.running = true;
+
+  workoutTimer.interval = setInterval(function () {
+    workoutTimer.seconds += 1;
+
+    if (iv.enabled && iv.phase !== 'idle' && iv.phase !== 'done') {
+      iv.phaseSecsLeft -= 1;
+
+      if (iv.phaseSecsLeft <= 0) {
+        advanceIntervalPhase();
+      }
+    }
+
     updateClockUI();
   }, 1000);
+
   renderTimerOnly();
 }
 
