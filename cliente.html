@@ -4188,6 +4188,225 @@ body {
   border-color: rgba(0,229,255,.5);
   box-shadow: 0 0 0 1px rgba(0,229,255,.08);
 }
+
+/* ═══════════════════════════════════════════════════════
+   AB SYSTEM CLIENT — HOME POLISH PATCH v6
+═══════════════════════════════════════════════════════ */
+
+/* Avatar siempre circular, nunca deformado */
+#headerAvatarSlot,
+.dash-header-left {
+  width: auto;
+  min-width: 44px;
+}
+
+#headerAvatarSlot .client-avatar,
+#headerAvatarSlot .client-avatar-initials {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: 44px;
+  max-height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(0,229,255,.28);
+  overflow: hidden;
+}
+
+/* Header más limpio tipo Field */
+.dash-header {
+  height: calc(70px + var(--safe-t));
+  padding-top: var(--safe-t);
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+.dash-header-actions {
+  gap: 12px;
+}
+
+.btn-icon,
+.notif-bell-btn {
+  width: 54px;
+  height: 42px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.025);
+}
+
+/* Home: fecha y saludo más compactos */
+#sectionHome > div:first-child {
+  padding-top: 0 !important;
+  padding-bottom: 20px !important;
+}
+
+#sectionHome > div:first-child [style*="font-family:var(--font-display)"] {
+  font-size: 1.75rem !important;
+  letter-spacing: 1.3px !important;
+}
+
+/* Cards principales más premium y consistentes */
+.data-card,
+.summary-card,
+.home-ring-card,
+.training-guide-summary,
+.training-mini-hero,
+.training-step-card,
+.assessment-card {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+    var(--card);
+  border-color: rgba(255,255,255,.105);
+  border-radius: 18px;
+}
+
+/* Card destacada cian más sutil */
+.data-card.next-session {
+  border-color: rgba(0,229,255,.30);
+  background:
+    radial-gradient(circle at top right, rgba(0,229,255,.11), transparent 42%),
+    linear-gradient(145deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+    var(--card);
+}
+
+/* Card de inicio del plan: ámbar más controlado */
+.inactivity-card {
+  border-radius: 18px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(255,179,64,.13), transparent 38%),
+    linear-gradient(145deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+    var(--card);
+}
+
+/* Títulos grandes dentro de cards: menos agresivos */
+.inactivity-title,
+.onboarding-title,
+.training-adapted-title {
+  font-size: 26px;
+  line-height: 1.02;
+  letter-spacing: 1.2px;
+}
+
+.data-card .dc-title {
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+/* En home, el título del entrenamiento principal no debe explotar */
+#sectionHome .data-card.next-session .dc-title {
+  font-size: 20px;
+  line-height: 1.05;
+  letter-spacing: .2px;
+}
+
+/* Si el título es largo, mejor bloque respirable */
+#sectionHome .data-card.next-session .dc-row {
+  align-items: flex-start;
+}
+
+/* Textos secundarios más legibles */
+.data-card .dc-note,
+.inactivity-text,
+.onboarding-text {
+  color: rgba(255,255,255,.58);
+  line-height: 1.65;
+}
+
+.data-card .dc-sub {
+  color: rgba(255,255,255,.46);
+}
+
+/* Cards pequeñas avance/salud/constancia */
+.home-rings-grid {
+  gap: 10px;
+}
+
+.home-ring-card {
+  min-height: 128px;
+  padding: 14px 9px 12px;
+}
+
+.home-ring-label {
+  font-size: 8px;
+  letter-spacing: 1.45px;
+  line-height: 1.35;
+}
+
+.home-ring-value {
+  font-size: 23px;
+}
+
+.home-ring-note {
+  font-size: 9px;
+  line-height: 1.45;
+  letter-spacing: .35px;
+}
+
+/* Gráficos pequeños: que no roben demasiado espacio */
+.home-ring-svg-wrap {
+  height: 34px;
+  margin: 6px 0 3px;
+}
+
+.home-ring-svg-wrap svg {
+  height: 34px;
+}
+
+/* Próxima reserva más compacta */
+#sectionHome .summary-card.full {
+  padding: 15px 16px;
+}
+
+/* Bottom nav estilo Field más limpio */
+.client-nav {
+  height: calc(68px + var(--safe-b));
+  padding-bottom: var(--safe-b);
+  background: rgba(18,18,20,.96);
+  border-top: 1px solid rgba(255,255,255,.08);
+  border-bottom: none;
+}
+
+.client-nav button {
+  padding-top: 10px;
+  padding-bottom: 8px;
+  min-width: 72px;
+  font-size: 9px;
+  letter-spacing: 1.1px;
+  border-bottom: none;
+  border-top: 3px solid transparent;
+}
+
+.client-nav button.active {
+  border-top-color: var(--sport);
+  border-bottom-color: transparent;
+  color: var(--sport);
+}
+
+/* Evitar que el contenido quede tapado por la nav inferior */
+.dash-main {
+  padding-bottom: calc(98px + env(safe-area-inset-bottom));
+}
+
+/* Ajustes específicos mobile */
+@media (max-width: 480px) {
+  #sectionHome .data-card.next-session .dc-title {
+    font-size: 19px;
+  }
+
+  .inactivity-title,
+  .onboarding-title {
+    font-size: 25px;
+  }
+
+  .home-ring-card {
+    border-radius: 16px;
+  }
+
+  .client-nav button {
+    min-width: 68px;
+  }
+}
 </style>
 </head>
 <body>
