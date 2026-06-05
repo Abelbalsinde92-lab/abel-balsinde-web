@@ -4407,6 +4407,377 @@ body {
     min-width: 68px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   AB SYSTEM CLIENT — TRAINING FIELD SYNC PATCH v7
+   Alinea Entrenar con Admin Field
+═══════════════════════════════════════════════════════ */
+
+/* Entrenar: menos aire muerto arriba */
+#section-training {
+  padding-top: 0;
+}
+
+#sectionTrainingClient {
+  display: grid;
+  gap: 12px;
+}
+
+/* Tarjeta superior del programa más compacta */
+#section-training .training-guide-summary {
+  padding: 18px;
+  border-radius: 18px;
+  margin-bottom: 4px;
+  background:
+    radial-gradient(circle at top right, rgba(0,229,255,.10), transparent 42%),
+    linear-gradient(145deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+    var(--card);
+  border-color: rgba(0,229,255,.22);
+}
+
+#section-training .training-guide-title {
+  font-size: 30px;
+  line-height: 1.02;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+#section-training .training-guide-meta {
+  font-size: 10px;
+  letter-spacing: 1.1px;
+  color: rgba(255,255,255,.48);
+}
+
+/* Día A / Día B / Día C tipo Field */
+.training-day-tabs {
+  margin: 4px 0 12px;
+  gap: 8px;
+  border-bottom: none;
+  padding: 2px 0;
+}
+
+.training-day-tab {
+  min-width: 88px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 999px;
+  padding: 11px 16px;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,.018);
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  margin-bottom: 0;
+}
+
+.training-day-tab.active {
+  color: var(--sport);
+  border-color: rgba(0,229,255,.55);
+  background: rgba(0,229,255,.10);
+  box-shadow: inset 0 0 0 1px rgba(0,229,255,.08);
+}
+
+/* Mini header de sesión más compacto */
+.training-mini-hero {
+  padding: 16px;
+  border-radius: 18px;
+  margin-bottom: 12px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+    var(--card);
+}
+
+.training-mini-day {
+  font-size: 32px;
+  letter-spacing: 1.6px;
+}
+
+.training-mini-week {
+  font-size: 10px;
+  color: rgba(255,255,255,.46);
+}
+
+.training-mini-title {
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(255,255,255,.62);
+}
+
+/* Lista de bloques más tipo Admin Field */
+.training-step-list {
+  gap: 10px;
+}
+
+.training-step-card {
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+    var(--card);
+  border-color: rgba(255,255,255,.10);
+}
+
+.training-step-card.open {
+  border-color: rgba(0,229,255,.42);
+  background:
+    radial-gradient(circle at top right, rgba(0,229,255,.075), transparent 38%),
+    linear-gradient(145deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+    var(--card);
+}
+
+.training-step-card.completed {
+  border-color: rgba(0,230,118,.34);
+  background:
+    radial-gradient(circle at top right, rgba(0,230,118,.075), transparent 38%),
+    linear-gradient(145deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+    var(--card);
+}
+
+/* Cabecera de bloque como fila operativa */
+.training-step-header {
+  min-height: 82px;
+  padding: 14px;
+  gap: 13px;
+}
+
+.training-step-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.04);
+  border-color: rgba(255,255,255,.08);
+  font-size: 17px;
+}
+
+.training-step-card.open .training-step-number {
+  background: rgba(0,229,255,.10);
+  border-color: rgba(0,229,255,.42);
+}
+
+.training-step-card.completed .training-step-number {
+  background: rgba(0,230,118,.10);
+  border-color: rgba(0,230,118,.42);
+}
+
+/* Título del bloque */
+.training-step-title {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.18;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  letter-spacing: -.02em;
+}
+
+.training-step-meta {
+  margin-top: 5px;
+  font-size: 10px;
+  color: rgba(255,255,255,.42);
+  letter-spacing: .5px;
+}
+
+/* Estado [pendiente] más pequeño */
+.training-step-status {
+  font-size: 8px;
+  letter-spacing: .8px;
+  color: rgba(255,255,255,.42);
+  align-self: flex-start;
+  padding-top: 4px;
+}
+
+.training-step-status.done {
+  color: var(--streak);
+}
+
+/* Cuerpo del bloque */
+.training-step-body {
+  padding: 0 14px 14px;
+  border-top-color: rgba(255,255,255,.07);
+}
+
+/* Objetivo del bloque */
+.training-step-objective {
+  margin: 12px 0;
+  padding: 12px 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: rgba(255,255,255,.58);
+  border-bottom-color: rgba(255,255,255,.07);
+}
+
+/* Cronómetro plegable más pequeño */
+.timer-toggle-btn {
+  margin-top: 12px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(0,0,0,.34);
+  border-color: rgba(255,255,255,.09);
+}
+
+.timer-toggle-left {
+  font-size: 10px;
+  color: rgba(255,255,255,.52);
+}
+
+.timer-toggle-btn.open {
+  color: var(--sport);
+  background: rgba(0,229,255,.065);
+  border-color: rgba(0,229,255,.34);
+}
+
+.wt-timer {
+  border-radius: 16px;
+  border-top-width: 1px;
+  background: rgba(0,0,0,.42);
+  border-color: rgba(0,229,255,.20);
+}
+
+.wt-clock {
+  font-size: 2rem;
+}
+
+/* Ejercicios dentro del bloque más limpios */
+.training-exercise-card {
+  border-radius: 15px;
+  background: rgba(0,0,0,.42);
+  border-color: rgba(255,255,255,.085);
+  padding: 13px;
+}
+
+.training-exercise-title {
+  font-size: 15px;
+  line-height: 1.25;
+  margin-bottom: 10px;
+}
+
+.training-ex-num {
+  color: var(--sport);
+  opacity: .9;
+}
+
+/* Stats del ejercicio */
+.training-mini-stat {
+  border-radius: 11px;
+  background: rgba(255,255,255,.035);
+  border-color: rgba(255,255,255,.075);
+  padding: 9px 5px;
+}
+
+.training-mini-label {
+  font-size: 8px;
+  letter-spacing: .7px;
+}
+
+.training-mini-value {
+  font-size: 18px;
+}
+
+/* Nivel */
+.training-level-tag {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 9px;
+  color: rgba(255,255,255,.50);
+  background: rgba(255,255,255,.025);
+}
+
+/* Indicaciones */
+.training-instruction {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255,255,255,.78);
+}
+
+.training-instruction strong,
+.training-client-note strong {
+  color: var(--sport);
+  font-size: 9px;
+  letter-spacing: 1.2px;
+}
+
+.training-coach-note,
+.training-client-note {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: rgba(255,255,255,.52);
+}
+
+/* Guía técnica y vídeo */
+.exercise-knowledge-guide,
+.exercise-video-guide {
+  border-radius: 13px;
+  background: rgba(0,229,255,.025);
+}
+
+.exercise-knowledge-toggle,
+.exercise-video-toggle {
+  padding: 10px 11px;
+  font-size: 9px;
+}
+
+/* Botón terminar bloque */
+.training-complete-block-btn {
+  min-height: 48px;
+  border-radius: 13px;
+  margin-top: 14px;
+  background: rgba(0,229,255,.10);
+  color: var(--sport);
+  border: 1px solid rgba(0,229,255,.38);
+}
+
+.training-complete-block-btn:hover {
+  background: rgba(0,229,255,.15);
+}
+
+/* Mensaje bloque completado */
+.training-step-done-msg {
+  border-radius: 13px;
+  background: rgba(0,230,118,.075);
+  border: 1px solid rgba(0,230,118,.25);
+  color: var(--streak);
+  margin-top: 14px;
+}
+
+/* Card de cierre de sesión */
+.training-finish-card,
+.training-session-completed-card {
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(0,230,118,.09), transparent 38%),
+    linear-gradient(145deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+    var(--card);
+  border-color: rgba(0,230,118,.28);
+}
+
+.training-finish-title,
+.training-session-completed-title {
+  font-size: 27px;
+  letter-spacing: 1.2px;
+}
+
+/* Mobile fino */
+@media (max-width: 480px) {
+  #section-training .training-guide-title {
+    font-size: 27px;
+  }
+
+  .training-mini-day {
+    font-size: 30px;
+  }
+
+  .training-step-title {
+    font-size: 15.5px;
+  }
+
+  .training-step-header {
+    min-height: 78px;
+  }
+
+  .training-exercise-grid {
+    gap: 7px;
+  }
+}
 </style>
 </head>
 <body>
