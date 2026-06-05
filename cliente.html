@@ -3594,6 +3594,213 @@ body {
 .action-box:last-child {
   margin-bottom: 18px;
 }
+
+/* ═══════════════════════════════════════════════════════
+   AB SYSTEM CLIENT — PROGRESO CLEAN PATCH v3
+═══════════════════════════════════════════════════════ */
+
+.progress-clean-hero {
+  background: var(--card);
+  border: 1px solid rgba(0,229,255,.24);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.progress-clean-kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--sport);
+  margin-bottom: 8px;
+}
+
+.progress-clean-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: 1.4px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.progress-clean-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .5px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.progress-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+
+.progress-kpi-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 12px 8px;
+  min-width: 0;
+}
+
+.progress-kpi-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 7px;
+}
+
+.progress-kpi-value {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: .6px;
+  color: var(--text-primary);
+}
+
+.progress-result-clean {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 13px 14px;
+  margin-bottom: 8px;
+}
+
+.progress-result-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.progress-result-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.progress-result-meta {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .5px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+
+.progress-result-value {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+  color: var(--text-primary);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.progress-archive {
+  margin-top: 18px;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--card);
+}
+
+.progress-archive-toggle {
+  width: 100%;
+  padding: 15px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.progress-archive-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--sport);
+}
+
+.progress-archive-sub {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-secondary);
+  letter-spacing: .4px;
+}
+
+.progress-archive-symbol {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  color: var(--text-secondary);
+}
+
+.progress-archive-body {
+  display: none;
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--divider);
+}
+
+.progress-archive.open .progress-archive-body {
+  display: block;
+}
+
+.progress-history-clean-card {
+  background: #0B0B0C;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.progress-history-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.progress-history-meta {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-secondary);
+  letter-spacing: .4px;
+}
+
+.progress-empty-clean {
+  background: var(--card);
+  border: 1px dashed var(--card-border);
+  border-radius: 12px;
+  padding: 16px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+@media (max-width: 480px) {
+  .progress-clean-title {
+    font-size: 25px;
+  }
+
+  .progress-kpi-value {
+    font-size: 21px;
+  }
+
+  .progress-kpi-label {
+    font-size: 7.5px;
+  }
+}
 </style>
 </head>
 <body>
@@ -9015,253 +9222,284 @@ function dLabel(d){
 }
 function dColor(d){if(d==='higher_better')return'var(--streak)';if(d==='lower_better')return'var(--medical)';return'var(--text-secondary)';}
 function toggleAssessmentCard(id){document.getElementById('ac-'+id)?.classList.toggle('open');}
-function renderAssessments(){
+function normalizeAssessmentStatusClient(s) {
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function getResultsForAssessmentClient(assessmentId) {
+  return (clientAssessmentResults || [])
+    .filter(r => String(r.assessment_id) === String(assessmentId))
+    .sort((a, b) => Number(a.item_order || 0) - Number(b.item_order || 0));
+}
+
+function getUsefulAssessmentsForClient() {
+  const list = [];
+
+  (clientAssessments || []).forEach(a => {
+    const results = getResultsForAssessmentClient(a.id);
+    const status = normalizeAssessmentStatusClient(a.status);
+
+    const hasResults = results.length > 0;
+    const isInProgress =
+      status.includes('progreso') ||
+      status.includes('pendiente') ||
+      status.includes('pending');
+
+    /*
+      Cliente limpio:
+      - mostramos tests con resultados
+      - mostramos tests en progreso
+      - ocultamos del cliente tests vacíos repetidos
+    */
+    if (hasResults || isInProgress) {
+      list.push({
+        assessment: a,
+        results,
+        hasResults,
+        isInProgress
+      });
+    }
+  });
+
+  return list.sort((a, b) => {
+    const da = String(a.assessment.assessment_date || a.assessment.created_at || '');
+    const dbb = String(b.assessment.assessment_date || b.assessment.created_at || '');
+    return dbb.localeCompare(da);
+  });
+}
+
+function toggleProgressArchive() {
+  const box = document.getElementById('progressArchiveBox');
+  if (!box) return;
+
+  box.classList.toggle('open');
+
+  const sym = box.querySelector('.progress-archive-symbol');
+  if (sym) sym.textContent = box.classList.contains('open') ? '−' : '+';
+}
+
+function renderProgressResultClean(r) {
+  const directionText = dLabel(r.direction);
+  const directionColor = dColor(r.direction);
+
+  return (
+    '<div class="progress-result-clean">' +
+      '<div class="progress-result-top">' +
+
+        '<div style="flex:1;min-width:0;">' +
+          '<div class="progress-result-name">' + escHTML(r.exercise_name || uiText('exercise')) + '</div>' +
+          '<div class="progress-result-meta">' +
+            escHTML(r.metric_type || '') +
+            (
+              r.direction
+                ? ' · <span style="color:' + directionColor + '">' + directionText + '</span>'
+                : ''
+            ) +
+          '</div>' +
+          (
+            r.note
+              ? '<div class="progress-result-meta" style="margin-top:5px;font-style:italic;">' + escHTML(r.note) + '</div>'
+              : ''
+          ) +
+        '</div>' +
+
+        '<div style="flex-shrink:0;text-align:right;">' +
+          '<div class="progress-result-value">' + escHTML(r.result_value || '—') + '</div>' +
+          (
+            r.unit
+              ? '<div class="progress-result-meta">' + escHTML(r.unit) + '</div>'
+              : ''
+          ) +
+        '</div>' +
+
+      '</div>' +
+    '</div>'
+  );
+}
+
+function renderAssessments() {
   const el = document.getElementById('sectionAssessments');
   const badge = document.getElementById('assessmentsBadge');
 
-  if(!el) return;
+  if (!el) return;
 
-  if(badge) badge.textContent = clientAssessments.length;
+  if (badge) badge.textContent = clientAssessments.length;
 
-    const trainingProgressHTML = buildProgressTrainingSummary();
+  const trainingProgressHTML = buildProgressTrainingSummary();
 
-  if(!clientAssessments.length){
-    el.innerHTML =
-      trainingProgressHTML +
-      '<div style="margin:22px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
-        uiText('evaluations') +
-      '</div>' +
-      '<div class="data-card">' +
-  '<div class="dc-row">' +
-    '<span class="dc-title">' + uiText('noTestsRegistered') + '</span>' +
-    '<span class="badge badge-gray">' + uiText('pending') + '</span>' +
-  '</div>' +
-  '<div class="dc-note">' + uiText('whenAbelTests') + '</div>' +
-'</div>';
-
-    return;
-  }
-
-  const latestAssessment = clientAssessments[0];
-
-  const latestResults = clientAssessmentResults
-    .filter(r => r.assessment_id === latestAssessment.id)
-    .sort((a,b) => Number(a.item_order || 0) - Number(b.item_order || 0));
-
+  const useful = getUsefulAssessmentsForClient();
   const totalTests = clientAssessments.length;
   const totalResults = clientAssessmentResults.length;
 
-  const latestDate = latestAssessment?.assessment_date
-    ? formatDate(latestAssessment.assessment_date)
-    : '—';
+  const latestUseful = useful[0] || null;
+  const latestAssessment = latestUseful?.assessment || clientAssessments[0] || null;
+  const latestResults = latestUseful?.results || (
+    latestAssessment ? getResultsForAssessmentClient(latestAssessment.id) : []
+  );
 
-    let html = buildProgressTrainingSummary();
+  let html = trainingProgressHTML;
 
   html +=
     '<div style="margin:22px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
       uiText('evaluationsAndTests') +
     '</div>';
 
-  /* ─────────────────────────────
-     HERO / ÚLTIMA EVALUACIÓN
-  ───────────────────────────── */
-  html +=
-    '<div class="data-card next-session">' +
-      '<div class="next-label">' + uiText('lastEvaluation') + '</div>' +
+  if (!latestAssessment) {
+    html +=
+      '<div class="progress-empty-clean">' +
+        uiText('whenAbelTests') +
+      '</div>';
 
-      '<div class="dc-row">' +
-        '<span class="dc-title">' + (latestAssessment.assessment_name || uiText('functionalTest')) + '</span>' +
-        '<span class="badge badge-green">' + (latestAssessment.status || uiText('doneStatus')) + '</span>' +
+    el.innerHTML = html;
+    return;
+  }
+
+  const latestDate = latestAssessment.assessment_date
+    ? formatDate(latestAssessment.assessment_date)
+    : '—';
+
+  const latestStatus = latestAssessment.status || uiText('pending');
+  const latestStatusClean = normalizeAssessmentStatusClient(latestStatus);
+
+  const badgeClass =
+    latestStatusClean.includes('complet') ||
+    latestStatusClean.includes('realiz') ||
+    latestResults.length > 0
+      ? 'badge-green'
+      : latestStatusClean.includes('progreso') || latestStatusClean.includes('pend')
+        ? 'badge-yellow'
+        : 'badge-gray';
+
+  html +=
+    '<div class="progress-clean-hero">' +
+      '<div class="progress-clean-kicker">' + uiText('lastEvaluation') + '</div>' +
+
+      '<div class="progress-clean-title">' +
+        escHTML(latestAssessment.assessment_name || uiText('functionalTest')) +
       '</div>' +
 
-      '<div class="dc-row">' +
-        '<span class="dc-sub">' + latestDate + '</span>' +
-        '<span class="dc-sub">' + latestResults.length + ' ' + (latestResults.length !== 1 ? uiText('results') : uiText('result')) + '</span>' +
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">' +
+        '<span class="badge ' + badgeClass + '">' + escHTML(latestStatus) + '</span>' +
+        '<span class="progress-clean-sub">' + latestDate + '</span>' +
+        '<span class="progress-clean-sub">' + latestResults.length + ' ' + uiText('results') + '</span>' +
       '</div>' +
 
       (
         latestAssessment.coach_notes
-          ? '<div class="dc-note">' + uiText('coach') + ': ' + latestAssessment.coach_notes + '</div>'
-          : '<div class="dc-note">' + uiText('reviewMainResults') + '</div>'
+          ? '<div class="progress-clean-sub" style="font-style:italic;">' +
+              escHTML(latestAssessment.coach_notes) +
+            '</div>'
+          : '<div class="progress-clean-sub">' +
+              uiText('reviewMainResults') +
+            '</div>'
       ) +
     '</div>';
 
-  /* ─────────────────────────────
-     RESUMEN RÁPIDO
-  ───────────────────────────── */
   html +=
-    '<div class="summary-grid">' +
+    '<div class="progress-kpi-row">' +
 
-      '<div class="summary-card">' +
-        '<div class="summary-label">' + uiText('testsDone') + '</div>' +
-        '<div class="summary-value big">' + totalTests + '</div>' +
+      '<div class="progress-kpi-card">' +
+        '<div class="progress-kpi-label">' + uiText('testsDone') + '</div>' +
+        '<div class="progress-kpi-value">' + totalTests + '</div>' +
       '</div>' +
 
-      '<div class="summary-card">' +
-        '<div class="summary-label">' + uiText('savedResults') + '</div>' +
-        '<div class="summary-value big">' + totalResults + '</div>' +
+      '<div class="progress-kpi-card">' +
+        '<div class="progress-kpi-label">' + uiText('savedResults') + '</div>' +
+        '<div class="progress-kpi-value">' + totalResults + '</div>' +
       '</div>' +
 
-      '<div class="summary-card full">' +
-        '<div class="summary-label">' + uiText('lastTest') + '</div>' +
-        '<div class="summary-value">' + (latestAssessment.assessment_name || uiText('functionalTest')) + ' · ' + latestDate + '</div>' +
+      '<div class="progress-kpi-card">' +
+        '<div class="progress-kpi-label">' + uiText('lastTest') + '</div>' +
+        '<div class="progress-kpi-value" style="font-size:17px;">' + latestDate + '</div>' +
       '</div>' +
 
     '</div>';
 
-  /* ─────────────────────────────
-     RESULTADOS DESTACADOS ÚLTIMO TEST
-  ───────────────────────────── */
   html +=
     '<div style="margin:18px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
       uiText('mainProgress') +
     '</div>';
 
-  if(latestResults.length){
-    html += latestResults.slice(0,6).map(r => {
-      const directionText = dLabel(r.direction);
-      const directionColor = dColor(r.direction);
-
-      return (
-        '<div class="data-card">' +
-          '<div class="assessment-result-row" style="border-bottom:none;padding:0;">' +
-
-            '<div style="flex:1;min-width:0;">' +
-              '<div class="assessment-ex-name">' + (r.exercise_name || uiText('exercise')) + '</div>' +
-              '<div class="assessment-ex-meta">' +
-                (r.metric_type || '') +
-                (
-                  r.direction
-                    ? ' · <span style="color:' + directionColor + '">' + directionText + '</span>'
-                    : ''
-                ) +
-              '</div>' +
-              (
-                r.note
-                  ? '<div class="assessment-ex-note">' + r.note + '</div>'
-                  : ''
-              ) +
-            '</div>' +
-
-            '<div style="text-align:right;flex-shrink:0;">' +
-              '<div class="assessment-result-val">' + (r.result_value || '—') + '</div>' +
-              (
-                r.unit
-                  ? '<div class="assessment-result-unit">' + r.unit + '</div>'
-                  : ''
-              ) +
-            '</div>' +
-
-          '</div>' +
-        '</div>'
-      );
-    }).join('');
+  if (latestResults.length) {
+    html += latestResults.slice(0, 6).map(renderProgressResultClean).join('');
   } else {
-    html += '<p class="empty-state">' + uiText('thisTestNoResults') + '</p>';
+    html +=
+      '<div class="progress-empty-clean">' +
+        uiText('thisTestNoResults') +
+      '</div>';
   }
 
-  /* ─────────────────────────────
-     HISTORIAL DE EVALUACIONES
-  ───────────────────────────── */
+  const archiveItems = useful.slice(1, 9);
+
   html +=
-    '<div style="margin:22px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
-      uiText('progressHistory') +
-    '</div>';
+    '<div class="progress-archive" id="progressArchiveBox">' +
 
-  clientAssessments.forEach((a, index) => {
-    const results = clientAssessmentResults
-      .filter(r => r.assessment_id === a.id)
-      .sort((x,y) => Number(x.item_order || 0) - Number(y.item_order || 0));
-
-    html +=
-      '<div class="assessment-card ' + (index === 0 ? 'open' : '') + '" id="ac-' + a.id + '">' +
-
-        '<div class="assessment-card-header" onclick="toggleAssessmentCard(\'' + a.id + '\')">' +
-          '<div>' +
-            '<div class="assessment-card-title">' + (a.assessment_name || uiText('functionalTest')) + '</div>' +
-            '<div class="assessment-card-meta">' +
-              formatDate(a.assessment_date) + ' · ' +
-              results.length + ' ' + (results.length !== 1 ? uiText('results') : uiText('result')) +
-            '</div>' +
+      '<button class="progress-archive-toggle" onclick="toggleProgressArchive()">' +
+        '<div>' +
+          '<div class="progress-archive-title">' + uiText('progressHistory') + '</div>' +
+          '<div class="progress-archive-sub">' +
+            archiveItems.length + ' tests relevantes · historial completo guardado por Abel' +
           '</div>' +
-          '<span class="badge ' + (String(a.status || '').toLowerCase() === 'realizada' || String(a.status || '').toLowerCase() === 'urađeno' ? 'badge-green' : 'badge-gray') + '">' + (a.status || uiText('doneStatus')) + '</span>' +
         '</div>' +
+        '<div class="progress-archive-symbol">+</div>' +
+      '</button>' +
 
-        '<div class="assessment-card-body">';
+      '<div class="progress-archive-body">';
 
-    if(a.coach_notes){
+  if (archiveItems.length) {
+    archiveItems.forEach(item => {
+      const a = item.assessment;
+      const results = item.results || [];
+
+      const status = a.status || uiText('completed');
+      const statusClean = normalizeAssessmentStatusClient(status);
+
+      const cls =
+        statusClean.includes('complet') ||
+        statusClean.includes('realiz') ||
+        results.length > 0
+          ? 'badge-green'
+          : statusClean.includes('progreso') || statusClean.includes('pend')
+            ? 'badge-yellow'
+            : 'badge-gray';
+
       html +=
-        '<div style="font-size:13px;color:var(--text-secondary);font-style:italic;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--divider);">' +
-          uiText('coach') + ': ' + a.coach_notes +
-        '</div>';
-    }
-
-    if(!results.length){
-      html += '<p class="empty-state">' + uiText('noResultsRegistered') + '</p>';
-    } else {
-      results.forEach(r => {
-        const isNum =
-          r.result_value !== '' &&
-          r.result_value != null &&
-          !isNaN(parseFloat(String(r.result_value).replace(',','.')));
-
-        const history = buildExerciseHistory(r.exercise_name);
-        const numHist = history.filter(h => !isNaN(h.numValue));
-
-        html +=
-          '<div class="assessment-result-row">' +
-
-            '<div style="flex:1;min-width:0">' +
-              '<div class="assessment-ex-name">' + (r.exercise_name || '—') + '</div>' +
-              '<div class="assessment-ex-meta">' +
-                (r.metric_type || '') +
-                (
-                  r.direction
-                    ? ' · <span style="color:' + dColor(r.direction) + '">' + dLabel(r.direction) + '</span>'
-                    : ''
-                ) +
+        '<div class="progress-history-clean-card">' +
+          '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div class="progress-history-title">' +
+                escHTML(a.assessment_name || uiText('functionalTest')) +
               '</div>' +
-              (
-                r.note
-                  ? '<div class="assessment-ex-note">' + r.note + '</div>'
-                  : ''
-              ) +
+              '<div class="progress-history-meta">' +
+                formatDate(a.assessment_date) + ' · ' +
+                results.length + ' ' + uiText('results') +
+              '</div>' +
             '</div>' +
+            '<span class="badge ' + cls + '">' + escHTML(status) + '</span>' +
+          '</div>' +
 
-            '<div style="text-align:right;flex-shrink:0">' +
-              '<div class="assessment-result-val">' + (r.result_value || '—') + '</div>' +
-              (
-                r.unit
-                  ? '<div class="assessment-result-unit">' + r.unit + '</div>'
-                  : ''
-              ) +
-            '</div>' +
-
-          '</div>';
-
-        if(isNum && numHist.length >= 2){
-          const chart = buildMiniChart(
-            numHist.map(h => ({
-              date: h.date,
-              value: h.numValue
-            }))
-          );
-
-          if(chart){
-            html +=
-  '<div class="mini-chart-wrap">' +
-  '<div class="mini-chart-title">' + uiText('evolution') + ' · ' + (r.exercise_name || '') + '</div>' +
-  chart +
-'</div>';
-          }
-        }
-      });
-    }
-
+          (
+            a.coach_notes
+              ? '<div class="progress-history-meta" style="margin-top:8px;font-style:italic;">' +
+                  escHTML(a.coach_notes) +
+                '</div>'
+              : ''
+          ) +
+        '</div>';
+    });
+  } else {
     html +=
-        '</div>' +
+      '<div class="progress-empty-clean" style="margin-top:12px;">' +
+        'Todavía no hay historial adicional relevante para mostrar.' +
       '</div>';
-  });
+  }
+
+  html +=
+      '</div>' +
+    '</div>';
 
   el.innerHTML = html;
 }
