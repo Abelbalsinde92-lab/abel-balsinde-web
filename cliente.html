@@ -3411,6 +3411,189 @@ body {
     font-size: 42px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   AB SYSTEM CLIENT — BOTTOM NAV FIELD PATCH v2
+   Pegar al FINAL del <style>, después del parche visual v1
+═══════════════════════════════════════════════════════ */
+
+/* El cliente deja de usar nav superior y pasa a nav inferior estilo Field */
+.client-nav {
+  position: fixed !important;
+  top: auto !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+
+  z-index: 300 !important;
+
+  height: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  padding: 0 10px env(safe-area-inset-bottom, 0px) !important;
+
+  background: rgba(18,18,20,.96) !important;
+  border-top: 1px solid var(--divider) !important;
+  border-bottom: none !important;
+
+  backdrop-filter: blur(22px) !important;
+  -webkit-backdrop-filter: blur(22px) !important;
+
+  display: flex !important;
+  align-items: stretch !important;
+  gap: 4px !important;
+
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  white-space: nowrap !important;
+
+  scrollbar-width: none !important;
+}
+
+.client-nav::-webkit-scrollbar {
+  display: none !important;
+}
+
+.client-nav button {
+  flex: 0 0 62px !important;
+  min-width: 62px !important;
+  height: 76px !important;
+
+  padding: 8px 4px 7px !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+
+  background: transparent !important;
+  border: none !important;
+  border-top: 3px solid transparent !important;
+  border-bottom: none !important;
+
+  color: rgba(255,255,255,.46) !important;
+
+  font-size: 0 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+
+  transition: color .15s, border-color .15s, background .15s;
+}
+
+.client-nav button::before {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: .04em;
+  color: rgba(255,255,255,.48);
+}
+
+.client-nav button::after {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.48);
+}
+
+.client-nav button.active {
+  border-top-color: var(--sport) !important;
+  background: linear-gradient(180deg, rgba(0,229,255,.08), transparent 55%) !important;
+}
+
+.client-nav button.active::before,
+.client-nav button.active::after {
+  color: var(--sport) !important;
+}
+
+/* Códigos visuales estilo Admin Field */
+#navHome::before {
+  content: "01";
+}
+
+#navHome::after {
+  content: "INICIO";
+}
+
+#navTraining::before {
+  content: "TR";
+}
+
+#navTraining::after {
+  content: "ENTRENAR";
+}
+
+#navReservations::before {
+  content: "RS";
+}
+
+#navReservations::after {
+  content: "RESERVAS";
+}
+
+#navProgress::before {
+  content: "PR";
+}
+
+#navProgress::after {
+  content: "PROGRESO";
+}
+
+#navHealth::before {
+  content: "SA";
+}
+
+#navHealth::after {
+  content: "SALUD";
+}
+
+#navAtleta::before {
+  content: "AT";
+}
+
+#navAtleta::after {
+  content: "ATLETA";
+}
+
+#navProfile::before {
+  content: "+";
+  font-size: 30px;
+}
+
+#navProfile::after {
+  content: "MÁS";
+}
+
+/* Compensar barra inferior */
+.dash-main {
+  padding-bottom: calc(118px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Ya no necesitamos compensar nav superior */
+@media (max-width: 480px) {
+  .dash-main {
+    padding-top: calc(104px + env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: calc(122px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* Header queda solo arriba, más limpio */
+@media (max-width: 480px) {
+  .dash-header {
+    height: calc(86px + env(safe-area-inset-top, 0px)) !important;
+    min-height: calc(86px + env(safe-area-inset-top, 0px)) !important;
+  }
+}
+
+/* Las secciones ya no necesitan tanto aire arriba */
+.section-header {
+  padding-top: 8px !important;
+}
+
+/* Evitar que el navegador tape botones finales */
+.action-box:last-child {
+  margin-bottom: 18px;
+}
 </style>
 </head>
 <body>
