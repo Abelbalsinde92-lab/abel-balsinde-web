@@ -6063,13 +6063,15 @@ if (clientAssessments.length) {
   const resultCountByAssessment = new Map();
 
   clientAssessmentResults.forEach(r => {
-    const id = String(r.assessment_id);
+  if (!hasAssessmentResultValue(r)) return;
 
-    resultCountByAssessment.set(
-      id,
-      (resultCountByAssessment.get(id) || 0) + 1
-    );
-  });
+  const id = String(r.assessment_id);
+
+  resultCountByAssessment.set(
+    id,
+    (resultCountByAssessment.get(id) || 0) + 1
+  );
+});
 
   function assessmentGroupKey(a) {
     return [
@@ -10616,10 +10618,9 @@ function renderAssessments() {
   .length;
 
   const latestUseful = useful[0] || null;
-  const latestAssessment = latestUseful?.assessment || clientAssessments[0] || null;
-  const latestResults = latestUseful?.results || (
-  latestAssessment ? getMeasuredResultsForAssessmentClient(latestAssessment.id) : []
-);
+const latestAssessment = latestUseful?.assessment || null;
+const latestResults = latestUseful?.results || [];
+const pendingAssessment = !latestAssessment ? (clientAssessments[0] || null) : null;
 
   let html = trainingProgressHTML;
 
@@ -10629,14 +10630,41 @@ function renderAssessments() {
     '</div>';
 
   if (!latestAssessment) {
+  if (pendingAssessment) {
+    html +=
+      '<div class="progress-clean-hero">' +
+        '<div class="progress-clean-kicker">' + uiText('lastEvaluation') + '</div>' +
+
+        '<div class="progress-clean-title">' +
+          escHTML(pendingAssessment.assessment_name || uiText('functionalTest')) +
+        '</div>' +
+
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">' +
+          '<span class="badge badge-yellow">' +
+            (getLang() === 'sr' ? 'Čeka rezultate' : 'Pendiente de resultados') +
+          '</span>' +
+          '<span class="progress-clean-sub">' +
+            (pendingAssessment.assessment_date ? formatDate(pendingAssessment.assessment_date) : '—') +
+          '</span>' +
+          '<span class="progress-clean-sub">0 ' + uiText('results') + '</span>' +
+        '</div>' +
+
+        '<div class="progress-clean-sub">' +
+          (getLang() === 'sr'
+            ? 'Test je kreiran, ali Abel još nije uneo rezultate.'
+            : 'El test está creado, pero Abel todavía no ha guardado resultados reales.') +
+        '</div>' +
+      '</div>';
+  } else {
     html +=
       '<div class="progress-empty-clean">' +
         uiText('whenAbelTests') +
       '</div>';
-
-    el.innerHTML = html;
-    return;
   }
+
+  el.innerHTML = html;
+  return;
+}
 
   const latestDate = latestAssessment.assessment_date
     ? formatDate(latestAssessment.assessment_date)
