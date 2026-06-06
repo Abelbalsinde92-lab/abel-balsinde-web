@@ -10498,20 +10498,29 @@ function normalizeAssessmentStatusClient(s) {
     .replace(/[\u0300-\u036f]/g, '');
 }
 
-function getResultsForAssessmentClient(assessmentId) {
-  return (clientAssessmentResults || [])
-    .filter(r => String(r.assessment_id) === String(assessmentId))
-    .sort((a, b) => Number(a.item_order || 0) - Number(b.item_order || 0));
+function hasAssessmentResultValue(r) {
+  return (
+    r &&
+    r.result_value !== null &&
+    r.result_value !== undefined &&
+    String(r.result_value).trim() !== ''
+  );
+}
+
+function getMeasuredResultsForAssessmentClient(assessmentId) {
+  return getResultsForAssessmentClient(assessmentId)
+    .filter(hasAssessmentResultValue);
 }
 
 function getUsefulAssessmentsForClient() {
   const list = [];
 
   (clientAssessments || []).forEach(a => {
-    const results = getResultsForAssessmentClient(a.id);
-    const status = normalizeAssessmentStatusClient(a.status);
+    const allItems = getResultsForAssessmentClient(a.id);
+const results = allItems.filter(hasAssessmentResultValue);
+const status = normalizeAssessmentStatusClient(a.status);
 
-    const hasResults = results.length > 0;
+const hasResults = results.length > 0;
     const isInProgress =
       status.includes('progreso') ||
       status.includes('pendiente') ||
@@ -10601,13 +10610,15 @@ function renderAssessments() {
 
   const useful = getUsefulAssessmentsForClient();
   const totalTests = clientAssessments.length;
-  const totalResults = clientAssessmentResults.length;
+  const totalResults = (clientAssessmentResults || [])
+  .filter(hasAssessmentResultValue)
+  .length;
 
   const latestUseful = useful[0] || null;
   const latestAssessment = latestUseful?.assessment || clientAssessments[0] || null;
   const latestResults = latestUseful?.results || (
-    latestAssessment ? getResultsForAssessmentClient(latestAssessment.id) : []
-  );
+  latestAssessment ? getMeasuredResultsForAssessmentClient(latestAssessment.id) : []
+);
 
   let html = trainingProgressHTML;
 
