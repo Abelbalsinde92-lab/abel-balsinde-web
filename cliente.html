@@ -10493,6 +10493,15 @@ function dLabel(d){
 }
 function dColor(d){if(d==='higher_better')return'var(--streak)';if(d==='lower_better')return'var(--medical)';return'var(--text-secondary)';}
 function toggleAssessmentCard(id){document.getElementById('ac-'+id)?.classList.toggle('open');}
+
+function getResultsForAssessmentClient(assessmentId) {
+  if (!assessmentId) return [];
+
+  return (clientAssessmentResults || [])
+    .filter(r => String(r.assessment_id) === String(assessmentId))
+    .sort((a, b) => Number(a.item_order || 0) - Number(b.item_order || 0));
+}
+
 function normalizeAssessmentStatusClient(s) {
   return String(s || '')
     .toLowerCase()
