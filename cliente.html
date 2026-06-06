@@ -10879,6 +10879,87 @@ function renderProgressResultClean(r) {
   );
 }
 
+function buildProgressMiniChartForResult(r) {
+  if (!r || !r.exercise_name) return '';
+
+  const history = buildExerciseHistory(r.exercise_name)
+    .map(p => ({
+      date: p.date,
+      value: Number(String(p.value || '').replace(',', '.'))
+    }))
+    .filter(p =>
+      p.date &&
+      Number.isFinite(p.value)
+    );
+
+  if (history.length < 2) return '';
+
+  const chart = buildMiniChart(history);
+
+  if (!chart) return '';
+
+  return (
+    '<div class="mini-chart-wrap">' +
+      '<div class="mini-chart-title">' +
+        (getLang() === 'sr' ? 'Napredak' : 'Evolución') +
+      '</div>' +
+      chart +
+    '</div>'
+  );
+}
+
+function renderProgressResultWithChart(r) {
+  const directionText = dLabel(r.direction);
+  const directionColor = dColor(r.direction);
+  const chartHTML = buildProgressMiniChartForResult(r);
+
+  return (
+    '<div class="progress-result-clean">' +
+
+      '<div class="progress-result-top">' +
+
+        '<div style="flex:1;min-width:0;">' +
+          '<div class="progress-result-name">' +
+            escHTML(r.exercise_name || uiText('exercise')) +
+          '</div>' +
+
+          '<div class="progress-result-meta">' +
+            escHTML(r.metric_type || '') +
+            (
+              r.direction
+                ? ' · <span style="color:' + directionColor + '">' + directionText + '</span>'
+                : ''
+            ) +
+          '</div>' +
+
+          (
+            r.note
+              ? '<div class="progress-result-meta" style="margin-top:5px;font-style:italic;">' +
+                  escHTML(r.note) +
+                '</div>'
+              : ''
+          ) +
+        '</div>' +
+
+        '<div style="flex-shrink:0;text-align:right;">' +
+          '<div class="progress-result-value">' +
+            escHTML(r.result_value || '—') +
+          '</div>' +
+          (
+            r.unit
+              ? '<div class="progress-result-meta">' + escHTML(r.unit) + '</div>'
+              : ''
+          ) +
+        '</div>' +
+
+      '</div>' +
+
+      chartHTML +
+
+    '</div>'
+  );
+}
+
 function renderAssessments() {
   const el = document.getElementById('sectionAssessments');
   const badge = document.getElementById('assessmentsBadge');
@@ -11011,7 +11092,7 @@ const pendingAssessment = !latestAssessment ? (clientAssessments[0] || null) : n
     '</div>';
 
   if (latestResults.length) {
-    html += latestResults.slice(0, 6).map(renderProgressResultClean).join('');
+    html += latestResults.slice(0, 6).map(renderProgressResultWithChart).join('');
   } else {
     html +=
       '<div class="progress-empty-clean">' +
