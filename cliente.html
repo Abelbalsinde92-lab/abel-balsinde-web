@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-title" content="AB SYSTEM">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -4972,6 +4972,206 @@ body {
 .client-nav button::after {
   font-size: 8px !important;
   letter-spacing: .14em !important;
+}
+
+/* ═══════════════════════════════════════════════════════
+   AB SYSTEM CLIENT — SORA TYPOGRAPHY PATCH v1
+   Tipografía única para toda el área cliente
+═══════════════════════════════════════════════════════ */
+
+:root {
+  --font-ui: 'Sora', sans-serif;
+
+  /* Reemplaza todas las voces anteriores */
+  --font-display: var(--font-ui);
+  --font-body: var(--font-ui);
+  --font-mono: var(--font-ui);
+}
+
+/* Base global */
+html,
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-ui) !important;
+}
+
+/* Texto general */
+body {
+  font-family: var(--font-ui) !important;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Títulos grandes */
+.login-title,
+.section-header h2,
+.training-guide-title,
+.training-mini-day,
+.training-finish-title,
+.training-notes-title,
+.training-session-completed-title,
+.assessment-card-title,
+.inactivity-title,
+.onboarding-title,
+.training-adapted-title,
+.progress-clean-title,
+.metric-editor-title,
+.home-ring-value,
+.summary-value.big,
+.card-metrica strong {
+  font-family: var(--font-ui) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.045em !important;
+  line-height: 1.02 !important;
+}
+
+/* Títulos de tarjetas */
+.data-card .dc-title,
+.training-step-title,
+.training-exercise-title,
+.progress-result-name,
+.progress-history-title,
+.quick-card-title,
+.assessment-ex-name,
+.plan-item .pi-value,
+.summary-value {
+  font-family: var(--font-ui) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 1.22 !important;
+}
+
+/* Labels técnicos pequeños */
+.next-label,
+.summary-label,
+.plan-item .pi-label,
+.home-ring-label,
+.card-metrica span,
+.training-mini-week,
+.training-level-tag,
+.training-step-status,
+.training-mini-label,
+.exercise-knowledge-label,
+.exercise-video-toggle,
+.exercise-knowledge-toggle,
+.progress-clean-kicker,
+.progress-kpi-label,
+.progress-archive-title,
+.metric-editor-kicker,
+.field-group label,
+.health-tab,
+.training-day-tab,
+.client-nav button::after,
+.badge,
+.estado-tag {
+  font-family: var(--font-ui) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
+/* Texto secundario */
+.data-card .dc-sub,
+.data-card .dc-note,
+.training-guide-meta,
+.training-mini-meta,
+.training-mini-title,
+.training-step-meta,
+.training-finish-sub,
+.training-notes-sub,
+.training-session-completed-sub,
+.inactivity-text,
+.onboarding-text,
+.exercise-knowledge-text,
+.exercise-video-note,
+.progress-clean-sub,
+.progress-result-meta,
+.progress-history-meta,
+.empty-state {
+  font-family: var(--font-ui) !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.65 !important;
+}
+
+/* Botones */
+.client-action-btn,
+.copy-summary-btn,
+.training-complete-block-btn,
+.btn-login,
+.btn-wa-login,
+.timer-toggle-btn,
+.wt-mode-pill,
+.wt-iv-preset,
+.cal-slot-badge,
+.avatar-upload-btn {
+  font-family: var(--font-ui) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+/* Bottom nav con iconos: etiqueta más limpia */
+.client-nav button::after {
+  font-size: 8.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.11em !important;
+}
+
+/* Si seguimos usando letras/códigos temporalmente */
+.client-nav button::before {
+  font-family: var(--font-ui) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+}
+
+/* Fecha grande del home */
+#sectionHome > div:first-child [style*="font-family:var(--font-display)"] {
+  font-family: var(--font-ui) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.05em !important;
+}
+
+/* Ajuste de títulos largos en tarjetas */
+#sectionHome .data-card.next-session .dc-title,
+.training-guide-title,
+.training-mini-day,
+.progress-clean-title {
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Compensar que Sora ocupa más ancho que Bebas */
+@media (max-width: 480px) {
+  .training-guide-title {
+    font-size: 25px !important;
+  }
+
+  .training-mini-day {
+    font-size: 28px !important;
+  }
+
+  .inactivity-title,
+  .onboarding-title,
+  .training-adapted-title {
+    font-size: 24px !important;
+  }
+
+  #sectionHome .data-card.next-session .dc-title {
+    font-size: 17px !important;
+    line-height: 1.18 !important;
+  }
+
+  .section-header h2 {
+    font-size: 28px !important;
+  }
+
+  .home-ring-value {
+    font-size: 22px !important;
+  }
 }
 </style>
 </head>
