@@ -1337,99 +1337,288 @@ footer {
 }
 
 /* ═══════════════════════════════════════════════════════
-   RESPONSIVE
+   RESPONSIVE — LIMPIO
 ═══════════════════════════════════════════════════════ */
-@media (max-width: 1024px) {
-  .hero-content { grid-template-columns: 1fr 1fr; gap: 2rem; }
-  .how-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-  .how-sticky { position: static; }
-  .diff-grid { grid-template-columns: 1fr; }
-  .coach-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-  .coach-visual { aspect-ratio: 16/9; max-height: 340px; }
-  .apply-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-  .faq-layout { grid-template-columns: 1fr; gap: 2rem; }
-  .faq-list { max-width: 100%; }
-}
 
-@media (max-width: 900px) {
+/* Tablet / móvil grande */
+@media (max-width: 1100px) {
+  nav.desk,
+  .header-right {
+    display: none;
+  }
+
+  .ham {
+    display: flex;
+  }
+
+  #header {
+    height: 72px;
+    padding: 0 1.5rem;
+  }
+
+  .mobile-menu {
+    top: 72px;
+  }
+
   .hero-content {
     grid-template-columns: 1fr;
-    gap: 2rem;
-    padding-top: 2.25rem;
+    gap: 2.5rem;
+    padding-top: 2.5rem;
+  }
+
+  .hero-left {
+    max-width: 680px;
   }
 
   .hero-right {
-    min-height: 500px;
-    margin-top: 1rem;
+    min-height: 520px;
+    margin-top: .5rem;
+  }
+
+  .hero-right::before {
+    width: min(92vw, 430px);
+    height: 520px;
+    border-radius: 30px;
+  }
+
+  .screens-stack {
+    width: min(92vw, 430px);
+    max-width: none;
+    height: 520px;
+  }
+
+  .screen-main {
+    width: min(72vw, 285px);
+    top: 64px;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translateX(-50%);
+    animation: none;
+    z-index: 3;
+  }
+
+  .screen-secondary {
+    display: none !important;
+  }
+
+  .screen-tag {
+    top: auto;
+    right: auto;
+    bottom: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    height: auto;
+    min-width: auto;
+    min-height: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: .52rem;
+    line-height: 1;
+  }
+
+  .how-grid,
+  .apply-grid,
+  .faq-layout,
+  .coach-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .how-sticky {
+    position: static;
+  }
+
+  .diff-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .coach-visual {
+    aspect-ratio: 16 / 9;
+    max-height: 340px;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .forwho-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Móvil */
+@media (max-width: 600px) {
+  section {
+    padding: clamp(3.5rem, 12vw, 5rem) 1.25rem;
+  }
+
+  #hero {
+    min-height: auto;
+    padding-top: 72px;
+  }
+
+  .hero-content {
+    padding: 2rem 1.25rem 3.5rem;
+    gap: 2rem;
+  }
+
+  .hero-pretitle {
+    margin-bottom: 1.1rem;
+  }
+
+  .hero-pretitle span {
+    font-size: .56rem;
+    line-height: 1.4;
+  }
+
+  .hero-h1 {
+    font-size: clamp(2.05rem, 10vw, 2.75rem);
+    line-height: 1.08;
+    letter-spacing: -1px;
+    margin-bottom: 1.2rem;
+  }
+
+  .hero-sub {
+    font-size: .88rem;
+    line-height: 1.65;
+    margin-bottom: 1.7rem;
+  }
+
+  .hero-ctas {
+    flex-direction: column;
+  }
+
+  .hero-ctas .btn {
+    width: 100%;
+  }
+
+  .hero-chips {
+    gap: .45rem;
+    margin-top: 1.25rem;
+  }
+
+  .hero-chip {
+    font-size: .52rem;
+    padding: .45rem .7rem;
+  }
+
+  .hero-right {
+    min-height: 430px;
+    margin-top: .25rem;
   }
 
   .hero-right::before {
     width: min(92vw, 360px);
-    height: 500px;
+    height: 430px;
     border-radius: 28px;
   }
 
   .screens-stack {
-    height: 500px;
-    max-width: 360px;
+    width: min(92vw, 360px);
+    height: 430px;
   }
 
   .screen-main {
-    width: min(76vw, 285px);
-    top: 42px;
+    width: min(68vw, 245px);
+    top: 54px;
     left: 50%;
     transform: translateX(-50%);
+    animation: none;
   }
 
-  .screen-secondary {
+  .screen-frame {
+    border-radius: 34px;
+    padding: 8px;
+  }
+
+  .screen-frame img {
+    border-radius: 27px;
+  }
+
+  .screen-frame::before {
+    top: 8px;
+    width: 74px;
+    height: 22px;
+  }
+
+  .screen-tag {
+    bottom: 26px;
+    left: 50%;
+    right: auto;
+    top: auto;
+    transform: translateX(-50%);
+    font-size: .48rem;
+    padding: 7px 12px;
+  }
+
+  .ticker {
     display: none;
   }
 
-  .screen-tag {
-    top: 24px;
-    right: 50%;
-    transform: translateX(50%);
+  .features-grid,
+  .forwho-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-title {
+    font-size: clamp(1.8rem, 8vw, 2.4rem);
+  }
+
+  .cta-title {
+    font-size: clamp(2rem, 9vw, 2.8rem);
+  }
+
+  .cta-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cta-actions .btn {
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .footer-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+  }
+
+  .logo-sub {
+    display: none;
   }
 }
 
-@media (max-width: 480px) {
+/* Móvil pequeño */
+@media (max-width: 390px) {
+  .hero-right {
+    min-height: 400px;
+  }
+
+  .hero-right::before {
+    height: 400px;
+  }
+
   .screens-stack {
-    height: 395px;
-    max-width: 300px;
+    height: 400px;
   }
 
   .screen-main {
-    width: 175px;
-  }
-
-  .screen-secondary {
-    width: 158px;
+    width: min(70vw, 225px);
+    top: 50px;
   }
 
   .screen-tag {
-    bottom: 125px;
-    right: 4px;
-    font-size: .48rem;
+    bottom: 22px;
   }
-}
-
-@media (max-width: 600px) {
-  .features-grid { grid-template-columns: 1fr; }
-  .forwho-grid { grid-template-columns: 1fr; }
-  .hero-ctas { flex-direction: column; }
-  .hero-ctas .btn { width: 100%; }
-  .cta-actions { flex-direction: column; align-items: center; }
-  .cta-actions .btn { width: 100%; max-width: 340px; }
-  .footer-top { flex-direction: column; align-items: flex-start; }
-  .footer-bottom { flex-direction: column; }
-  .diff-grid { grid-template-columns: 1fr; }
-  .logo-sub { display: none; }
-}
-
-@media (max-width: 480px) {
-  .hero-h1 { font-size: clamp(2.1rem, 10vw, 2.8rem); letter-spacing: -1px; }
-  .section-title { font-size: clamp(1.8rem, 8vw, 2.4rem); }
-  .cta-title { font-size: clamp(2rem, 9vw, 2.8rem); }
 }
 </style>
 </head>
