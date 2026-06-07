@@ -5406,8 +5406,8 @@ let calClientReservations = [];
 let calShowFullView = false;
 let AB_LANG = "es";
 
-function statusLabel(esLabel, srLabel) {
-  return getLang() === 'sr' ? srLabel : esLabel;
+function statusLabel(esLabel, srLabel, enLabel) {
+  return getLang()==='sr' ? srLabel : getLang()==='en' ? (enLabel || esLabel) : esLabel;
 }
 
 /**
@@ -5710,7 +5710,7 @@ function clientWA(text) {
     ? 'Zdravo Abel, ja sam '
     : 'Hola Abel, soy ';
 
-  const fallbackName = getLang() === 'sr' ? 'klijent' : 'cliente';
+  const fallbackName = getLang()==='sr' ? 'klijent' : getLang()==='en' ? 'client' : 'cliente';
 
   openWA(prefix + (clientData?.name || fallbackName) + '. ' + text);
 }
@@ -5722,7 +5722,7 @@ function todayISO() {
   return `${y}-${m}-${day}`;
 }
 function todayFormatted() {
-  const locale = getLang() === 'sr' ? 'sr-RS' : 'es-ES';
+  const locale = getLang()==='sr' ? 'sr-RS' : getLang()==='en' ? 'en-GB' : 'es-ES';
 
   return new Date().toLocaleDateString(locale, {
     weekday: 'long',
@@ -5849,11 +5849,11 @@ function getPendingUpcomingReservations() {
 
 function reservationClientStatusLabel(r) {
   if (isPendingReservation(r)) {
-    return getLang() === 'sr' ? 'Za potvrdu' : 'Por confirmar';
+    return getLang()==='sr' ? 'Za potvrdu' : getLang()==='en' ? 'To confirm' : 'Por confirmar';
   }
 
   if (isConfirmedReservation(r)) {
-    return getLang() === 'sr' ? 'Potvrđeno' : 'Confirmada';
+    return getLang()==='sr' ? 'Potvrđeno' : getLang()==='en' ? 'Confirmed' : 'Confirmada';
   }
 
   return r?.status || '—';
@@ -5869,7 +5869,7 @@ function formatMoney(amount, currency) {
   if (amount == null) return '—';
 
   const cur = (currency || 'EUR').toUpperCase();
-  const locale = getLang() === 'sr' ? 'sr-RS' : 'es-ES';
+  const locale = getLang()==='sr' ? 'sr-RS' : getLang()==='en' ? 'en-GB' : 'es-ES';
 
   try {
     return new Intl.NumberFormat(locale, {
@@ -5895,15 +5895,15 @@ function paymentBadge(s) {
   const v = String(s).toLowerCase();
 
   if (['pagado','paid'].includes(v)) {
-    return '<span class="badge badge-green">' + (getLang() === 'sr' ? 'Plaćeno' : 'Pagado') + '</span>';
+    return '<span class="badge badge-green">' + (getLang()==='sr' ? 'Plaćeno' : getLang()==='en' ? 'Paid' : 'Pagado') + '</span>';
   }
 
   if (['pendiente','pending'].includes(v)) {
-    return '<span class="badge badge-yellow">' + (getLang() === 'sr' ? 'Na čekanju' : 'Pendiente') + '</span>';
+    return '<span class="badge badge-yellow">' + (getLang()==='sr' ? 'Na čekanju' : getLang()==='en' ? 'Pending' : 'Pendiente') + '</span>';
   }
 
   if (['vencido','overdue'].includes(v)) {
-    return '<span class="badge badge-red">' + (getLang() === 'sr' ? 'Kasni' : 'Vencido') + '</span>';
+    return '<span class="badge badge-red">' + (getLang()==='sr' ? 'Kasni' : getLang()==='en' ? 'Overdue' : 'Vencido') + '</span>';
   }
 
   return '<span class="badge badge-gray">' + s + '</span>';
@@ -5914,15 +5914,15 @@ function genericBadge(s) {
   const v = String(s).toLowerCase();
 
   if (['activo','active','confirmada','confirmado','confirmed','completado','completed','realizada','done'].includes(v)) {
-    return '<span class="badge badge-green">' + (getLang() === 'sr' ? 'Potvrđeno' : 'Confirmado') + '</span>';
+    return '<span class="badge badge-green">' + (getLang()==='sr' ? 'Potvrđeno' : getLang()==='en' ? 'Confirmed' : 'Confirmado') + '</span>';
   }
 
   if (['pendiente','pending','reservada','reserved'].includes(v)) {
-    return '<span class="badge badge-yellow">' + (getLang() === 'sr' ? 'Na čekanju' : 'Pendiente') + '</span>';
+    return '<span class="badge badge-yellow">' + (getLang()==='sr' ? 'Na čekanju' : getLang()==='en' ? 'Pending' : 'Pendiente') + '</span>';
   }
 
   if (['cancelada','cancelado','cancelled','vencido','overdue','inactivo'].includes(v)) {
-    return '<span class="badge badge-red">' + (getLang() === 'sr' ? 'Otkazano' : 'Cancelado') + '</span>';
+    return '<span class="badge badge-red">' + (getLang()==='sr' ? 'Otkazano' : getLang()==='en' ? 'Cancelled' : 'Cancelado') + '</span>';
   }
 
   return '<span class="badge badge-gray">' + s + '</span>';
@@ -6017,18 +6017,18 @@ function getAssignmentScopeLabel() {
   }
 
   if (s === 'day') {
-    return getLang() === 'sr' ? 'Dodeljen dan' : 'Día asignado';
+    return getLang()==='sr' ? 'Dodeljen dan' : getLang()==='en' ? 'Assigned day' : 'Día asignado';
   }
 
   if (s === 'week') {
-    return getLang() === 'sr' ? 'Dodeljena nedelja' : 'Semana asignada';
+    return getLang()==='sr' ? 'Dodeljena nedelja' : getLang()==='en' ? 'Assigned week' : 'Semana asignada';
   }
 
   if (s === 'month') {
-    return getLang() === 'sr' ? 'Dodeljen mesec' : 'Mes asignado';
+    return getLang()==='sr' ? 'Dodeljen mesec' : getLang()==='en' ? 'Assigned month' : 'Mes asignado';
   }
 
-  return getLang() === 'sr' ? 'Kompletan plan' : 'Plan completo';
+  return getLang()==='sr' ? 'Kompletan plan' : getLang()==='en' ? 'Full plan' : 'Plan completo';
 }
 function getAssignedTrainingLevel() {
   const raw=clientTrainingAssignment?.assigned_level||clientTrainingProgram?.level||'N1';
@@ -6188,8 +6188,8 @@ async function loadClientDashboard(clientId) {
     clientData = client;
 applyClientView();
 
-AB_LANG = (clientData.preferred_lang || 'es').toLowerCase();
-    document.documentElement.lang = AB_LANG === 'sr' ? 'sr' : 'es';
+AB_LANG = (['es','sr','en'].includes((clientData.preferred_lang||'').toLowerCase()) ? clientData.preferred_lang : 'es').toLowerCase();
+    document.documentElement.lang = AB_LANG;
 
     const [
   resR,
@@ -6846,7 +6846,7 @@ document.querySelectorAll('.section-header').forEach(el => {
   const wa=document.getElementById('btnHeaderWA');
   if (wa) {
   wa.onclick = () => openWA(
-    (getLang() === 'sr' ? 'Zdravo Abel, ja sam ' : 'Hola Abel, soy ') +
+    (getLang()==='sr' ? 'Zdravo Abel, ja sam ' : getLang()==='en' ? 'Hi Abel, I am ' : 'Hola Abel, soy ') +
     name +
     '. ' +
     uiText('waPlanQuestion')
@@ -7373,6 +7373,258 @@ function uiText(key) {
       waNeedHelpLogin: 'Zdravo Abel, treba mi pomoć da uđem u klijentsku zonu.',
       waPlanQuestion: 'Imam pitanje u vezi sa mojim planom.',
       waNeedHelpClientArea: 'Zdravo, treba mi pomoć oko moje klijentske zone.'
+    },
+
+    en: {
+      /* LOGIN */
+      loginTitle: 'CLIENT AREA',
+      loginSubtitle: 'Access your personal tracking.',
+      phone: 'Phone',
+      accessCode: 'Access code',
+      enter: 'Enter',
+      needHelp: 'Need help?',
+      loadingSession: 'Loading session',
+      completeBothFields: 'Complete both fields.',
+      wrongLogin: 'Phone or code incorrect.',
+      loginConnectionError: 'Error validating access. Try again.',
+      connectionError: 'Connection error. Try again.',
+      adminLoginInfo: 'You are admin. Enter a client credentials to view their account.',
+      logout: 'Log out',
+
+      /* NAVIGATION */
+      home: 'Home',
+      train: 'Train',
+      training: 'Training',
+      progress: 'Progress',
+      health: 'Health',
+      profile: 'Profile',
+      today: 'Today',
+
+      /* GENERAL */
+      hello: 'Hello',
+      pending: 'Pending',
+      completed: 'Completed',
+      available: 'Available',
+      general: 'General',
+      followUp: 'Follow-up',
+      status: 'Status',
+      start: 'Start',
+      next: 'Next',
+      client: 'Client',
+      coach: 'Coach',
+      exercise: 'Exercise',
+      reservation: 'Booking',
+      noData: 'No data',
+      diagnostic: 'Diagnostic',
+      at: 'at',
+      atTime: 'at',
+
+      /* HOME */
+      mainTraining: 'Main training',
+      noTrainingVisible: 'No training visible for your account yet.',
+      startTraining: 'Start training',
+      viewCompletedTraining: 'View completed training',
+      nextReservation: 'Next booking',
+      noNextReservation: 'No upcoming booking',
+      noNextReservationShort: 'No upcoming booking',
+      tapCalendar: 'Tap to view calendar',
+      contactAbel: 'Contact Abel',
+      advance: 'Progress',
+      consistency: 'Consistency',
+      sessions: 'sessions',
+      of: 'of',
+      firstPendingTraining: 'First training pending',
+      firstStepCompleted: 'First step completed',
+      goodStreak: 'Good streak',
+      weekCompleted: 'Week completed',
+      startYourStreak: 'Start your streak',
+      noActiveIndications: 'No active indications',
+      activeIndications: 'Active indications',
+      pendingIndication: 'Pending indication',
+
+      /* PLAN */
+      plan: 'Plan',
+      activePlan: 'Active plan',
+      assignedPlan: 'No plan assigned',
+      mainObjective: 'Main objective',
+      nutritionObjective: 'Nutrition objective',
+      noObjective: 'No objective registered',
+      activeProgram: 'Active program',
+      activeProgramLabel: 'Active program',
+      programActive: 'Active program',
+      programActiveFallback: 'Active program',
+      scope: 'Scope',
+      levelLabel: 'Level',
+      currentWeekLabel: 'Current week',
+      programObjective: 'Program objective',
+      noProgramAssigned: 'No program assigned yet. Abel will update this section when your plan is ready.',
+      consultPlanAdjustment: 'Request plan adjustment',
+      viewPlanDetails: 'View plan details',
+
+      /* TRAINING */
+      assignedTraining: 'Assigned training',
+      progressSummary: 'Progress summary',
+      completedSessions: 'Completed sessions',
+      planProgress: 'Plan progress',
+      lastTraining: 'Last training',
+      noCompletedTraining: 'No completed training',
+      registered: 'Registered',
+      recentActivity: 'Recent activity',
+      completedSessionsText: 'sessions completed',
+      planCompleted: 'Plan completed. Abel can review the next block of work.',
+      goodProgress: 'Good progress. Keep completing sessions to maintain consistency.',
+      noCompletedTrainingYet: 'No completed training registered yet.',
+      whenCloseSession: 'When you close a session, it will appear here.',
+      noTrainingForScope: 'No training available for this scope.',
+
+      allCompletedQuestion: 'All completed?',
+      beforeClosingSession: 'Before closing, mark how the session went.',
+      quickObservations: 'Quick notes',
+      helpAbelAdjust: 'Help Abel adjust loads and difficulty for your next training.',
+      optionalCommentForAbel: 'Optional comment for Abel...',
+      closeTraining: 'Close training',
+      trainingSaved: 'Training saved',
+      goodJobProgressSaved: 'Good work. Your progress has been registered.',
+      nextTrainingUnlocked: 'Next training unlocked. You can continue when you are ready.',
+      sessionCompletedAbelReview: 'Session completed. Abel will review your notes.',
+      trainingCompletedTitle: 'Training completed',
+      sessionRegisteredOn: 'Session registered on',
+      abelWillReviewNotes: 'Abel will review your notes.',
+      observations: 'Observations',
+      sentNote: 'Note sent',
+
+      /* TRAINING FEEDBACK */
+      feedbackOk: 'All good, no discomfort',
+      feedbackDiscomfort: 'I had some discomfort',
+      feedbackPainStopped: 'I felt pain and stopped',
+      feedbackLowerWeight: 'I had to lower the weight',
+      feedbackHigherWeight: 'I had to increase the weight',
+      feedbackVeryTired: 'I felt very tired',
+      feedbackCouldNotComplete: 'I could not complete all blocks',
+      feedbackNoTime: 'I ran out of time',
+      feedbackDidNotUnderstand: 'I did not understand an exercise well',
+      feedbackNeedsReview: 'I need Abel to review this training',
+
+      /* EVALUATIONS / PROGRESS */
+      evaluations: 'Assessments',
+      evaluationsAndTests: 'Assessments and tests',
+      lastEvaluation: 'Last assessment',
+      functionalTest: 'Functional test',
+      doneStatus: 'done',
+      results: 'results',
+      result: 'result',
+      reviewMainResults: 'Review your main results and the progress recorded by Abel.',
+      testsDone: 'Tests done',
+      savedResults: 'Saved results',
+      lastTest: 'Last test',
+      mainProgress: 'Your main progress',
+      progressHistory: 'Progress history',
+      noTestsRegistered: 'No tests registered',
+      whenAbelTests: 'When Abel runs a test, your results and progress will appear here.',
+      noResultsRegistered: 'No results registered.',
+      thisTestNoResults: 'This test has no registered results.',
+      higherBetter: 'Higher is better',
+      lowerBetter: 'Lower is better',
+      reference: 'Reference',
+      evolution: 'Evolution',
+
+      /* BOOKINGS */
+      reservations: 'Bookings',
+      noReservationsRegistered: 'No bookings registered yet.',
+      noReservationsYet: 'You have no bookings registered yet.',
+      noReservations: 'No bookings',
+      requestReservation: 'Request new booking',
+      requestNewReservationText: 'I want to request a new training booking.',
+      requestNewTrainingReservation: 'I want to request a new training booking.',
+      nextSession: 'Next session',
+      nextSessionSummary: 'Next booking',
+      session: 'Session',
+
+      /* PAYMENTS */
+      payments: 'Payments',
+      payment: 'Payment',
+      noPayments: 'No payments registered.',
+      noPaymentsRegistered: 'No payments registered.',
+      paymentDue: 'Due',
+      due: 'Due',
+      dueDate: 'Due date',
+      expires: 'Expires',
+      paymentMethod: 'Method',
+      paymentsStatus: 'Payment status',
+      upToDate: 'Up to date',
+      pendingSingular: 'pending',
+      pendingPlural: 'pending',
+
+      /* HEALTH */
+      healthIndications: 'Health indications',
+      noActiveHealthNotes: 'No active indications',
+      noHealthAlerts: 'No health alerts or indications registered for this client.',
+      generalStatus: 'General status',
+      trainingControl: 'Training control',
+      maxHeartRate: 'Max heart rate',
+
+      /* COMBAT METRICS */
+      combatAthlete: 'Combat athlete',
+      performanceStatus: 'Performance status',
+      combatMetricsActive: 'Combat metrics active',
+      viewHealth: 'View health',
+      combatSummaryText: 'Review muscle fatigue, cortisol, cardiac recovery and combat weight.',
+      combatMetricsIntro: 'These metrics help monitor fatigue, recovery and training adaptation. They do not replace a medical evaluation.',
+      performanceMetrics: 'Performance metrics',
+      muscleFatigueCK: 'Muscle fatigue / CK',
+      cortisol: 'Cortisol',
+      heartRecovery1min: 'Heart recovery 1 min',
+      ppmAtMinute: 'bpm at one minute',
+      heartDrop: 'Drop',
+      maxHrUsed: 'Max HR used',
+      combatWeight: 'Combat weight',
+      lastUpdate: 'Last update',
+      generalHealthIntro: 'Here Abel can register general observations, discomfort, rest, training adaptation and basic recommendations.',
+      combatMetricsDisabled: 'This profile does not have specific combat metrics enabled. If Abel considers it necessary, they can be activated from the admin panel.',
+
+      /* DAILY CHECK-IN */
+      dailyCheckin: 'Daily check-in',
+      todayStatus: 'Today status',
+      dailyCheckinIntro: 'Log sleep, energy and discomfort so Abel can better adjust your training.',
+      sleepHours: 'Sleep hours',
+      sleepQuality: 'Sleep quality',
+      energyLevel: 'Energy',
+      sorenessLevel: 'Discomfort',
+      optionalComment: 'Optional comment',
+      dailyCheckinCommentPlaceholder: 'E.g.: Slept badly, knee discomfort, feeling good...',
+      saveCheckin: 'Save check-in',
+      saving: 'Saving...',
+      checkinSaved: 'Check-in saved',
+      checkinSavedText: 'Thank you. Abel can review this information before adjusting your training.',
+      checkinSaveError: 'Could not save check-in.',
+
+      /* PROFILE */
+      profileTitle: 'Profile',
+      profileManageIntro: 'Manage your plan, bookings, payments and personal data.',
+      personalData: 'Personal data',
+      name: 'Name',
+      email: 'Email',
+      city: 'City',
+      notes: 'Notes',
+      coachNotes: 'Coach notes',
+      coachNotesShort: 'Coach notes',
+      coachNotesTitle: 'Coach notes',
+      noCoachNotes: 'No coach notes yet.',
+      noCoachNotesRegistered: 'No coach notes yet.',
+      needHelpProfile: 'I need help with my profile or plan.',
+
+      /* SUMMARY */
+      metrics: 'Metrics',
+      lastCoachNote: 'Last coach note',
+      copySummary: 'Copy summary to clipboard',
+      copied: 'Copied',
+      couldNotCopy: 'Could not copy.',
+      summaryTitle: 'AB Coach summary',
+
+      /* WHATSAPP */
+      waNeedHelpLogin: 'Hi Abel, I need help accessing the client area.',
+      waPlanQuestion: 'I have a question about my plan.',
+      waNeedHelpClientArea: 'Hi, I need help with my client area.'
     }
   };
 
@@ -7387,7 +7639,7 @@ function applyStaticTranslations() {
 
   set('navHome', uiText('home'));
   set('navTraining', uiText('train'));
-  set('navReservations', getLang() === 'sr' ? 'Termini' : 'Reservas');
+  set('navReservations', getLang()==='sr' ? 'Termini' : getLang()==='en' ? 'Bookings' : 'Reservas');
   set('navProgress', uiText('progress'));
   set('navHealth', uiText('health'));
   set('navProfile', uiText('profile'));
@@ -7427,7 +7679,8 @@ function pickLang(obj, base) {
   return String(obj[base] || '').trim();
 }
 function getLang() {
-  return (clientData?.preferred_lang || AB_LANG || 'es').toLowerCase();
+  const l = (clientData?.preferred_lang || AB_LANG || 'es').toLowerCase();
+  return ['es','sr','en'].includes(l) ? l : 'es';
 }
 
 /* ══ HOME RINGS ══ */
@@ -7990,7 +8243,7 @@ function renderHome() {
 
   if (badge) badge.textContent = uiText('today') + ' · v20260519';
 
-  const fallbackName = getLang() === 'sr' ? 'klijent' : 'cliente';
+  const fallbackName = getLang()==='sr' ? 'klijent' : getLang()==='en' ? 'client' : 'cliente';
 const firstName = String(clientData.name || fallbackName).split(' ')[0] || fallbackName;
   const today = todayISO();
   const dateStr = todayFormatted();
@@ -11968,9 +12221,9 @@ function renderSummary(){
   );
 
   const payStatus = hasOverdue
-    ? (getLang() === 'sr' ? 'Kasni' : 'Vencido')
+    ? (getLang()==='sr' ? 'Kasni' : getLang()==='en' ? 'Overdue' : 'Vencido')
     : hasPending
-      ? (getLang() === 'sr' ? 'Na čekanju' : 'Pendiente')
+      ? (getLang()==='sr' ? 'Na čekanju' : getLang()==='en' ? 'Pending' : 'Pendiente')
       : uiText('upToDate');
 
   const payClass = hasOverdue
@@ -12117,9 +12370,9 @@ function copySummaryToClipboard(){
   );
 
   const payStatus = hasOverdue
-    ? (getLang() === 'sr' ? 'Kasni' : 'Vencido')
+    ? (getLang()==='sr' ? 'Kasni' : getLang()==='en' ? 'Overdue' : 'Vencido')
     : hasPending
-      ? (getLang() === 'sr' ? 'Na čekanju' : 'Pendiente')
+      ? (getLang()==='sr' ? 'Na čekanju' : getLang()==='en' ? 'Pending' : 'Pendiente')
       : uiText('upToDate');
 
   let rawNotes = clientData.notes;
