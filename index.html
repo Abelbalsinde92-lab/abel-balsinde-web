@@ -6,10 +6,10 @@
 <title>AB SYSTEM | Entrenamiento con estructura, seguimiento y adaptación real</title>
 <meta name="description" content="AB SYSTEM conecta planificación, entrenamiento, check-ins, reservas, salud y progreso en un solo sistema. Tu coach, tu plan, tu progreso.">
 <link rel="canonical" href="https://absystem.dbarrio.app/">
-<link rel="alternate" hreflang="es" href="https://abeltrainer.vercel.app/">
-<link rel="alternate" hreflang="sr" href="https://abeltrainer.vercel.app/sr.html">
-<link rel="alternate" hreflang="en" href="https://abeltrainer.vercel.app/en.html">
-<link rel="alternate" hreflang="x-default" href="https://abeltrainer.vercel.app/">
+<link rel="alternate" hreflang="es" href="https://absystem.dbarrio.app/">
+<link rel="alternate" hreflang="sr" href="https://absystem.dbarrio.app/sr.html">
+<link rel="alternate" hreflang="en" href="https://absystem.dbarrio.app/en.html">
+<link rel="alternate" hreflang="x-default" href="https://absystem.dbarrio.app/">
 <meta name="theme-color" content="#000000">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1342,10 +1342,65 @@ footer {
 @media (max-width: 900px) {
   nav.desk, .header-right .btn-primary, .lang-switch { display: none; }
   .ham { display: flex; }
+
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    padding-top: 2.5rem;
+    text-align: left;
+  }
+
+  .hero-right {
+    display: flex;
+    justify-content: center;
+    margin-top: .5rem;
+  }
+
+  .screens-stack {
+    height: 430px;
+    max-width: 330px;
+  }
+
+  .screen-main {
+    width: 185px;
+    top: 0;
+    left: 5px;
+  }
+
+  .screen-secondary {
+    width: 170px;
+    right: 5px;
+    bottom: 0;
+  }
+
+  .screen-tag {
+    bottom: 140px;
+    right: 10px;
+  }
+
   .features-grid { grid-template-columns: 1fr 1fr; }
   .forwho-grid { grid-template-columns: 1fr 1fr; }
-  .hero-content { grid-template-columns: 1fr; }
-  .hero-right { display: none; }
+}
+
+@media (max-width: 480px) {
+  .screens-stack {
+    height: 395px;
+    max-width: 300px;
+  }
+
+  .screen-main {
+    width: 175px;
+  }
+
+  .screen-secondary {
+    width: 158px;
+  }
+
+  .screen-tag {
+    bottom: 125px;
+    right: 4px;
+    font-size: .48rem;
+  }
 }
 
 @media (max-width: 600px) {
@@ -1397,7 +1452,7 @@ footer {
       <span>|</span>
       <a href="/en.html">EN</a>
     </div>
-    <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20probar%20la%20primera%20semana%20gratis%20de%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Primera semana gratis</a>
+    <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20hacer%20una%20evaluaci%C3%B3n%20inicial%20con%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Solicitar evaluación</a>
   </div>
 
   <button class="ham" id="hamBtn" onclick="toggleMenu()" aria-label="Menú">
@@ -1927,7 +1982,9 @@ footer {
             <span class="faq-q-text">¿Cómo es el primer paso para empezar?</span>
             <span class="faq-q-icon">+</span>
           </button>
-          <div class="faq-a"><p>Rellena el formulario de esta página o escribe por WhatsApp. Abel revisará tu perfil y te contactará para hacer una evaluación inicial, definir tu objetivo y asignar el plan adecuado.</p></div>
+          <div class="faq-a">
+  <p>El primer paso es escribir por WhatsApp. Abel revisa tu caso, te pregunta lo necesario y te propone una evaluación inicial para definir tu punto de partida y el plan adecuado.</p>
+</div>
         </div>
       </div>
     </div>
@@ -2035,49 +2092,6 @@ function toggleFaq(btn) {
     item.classList.add('open');
     answer.style.maxHeight = answer.scrollHeight + 'px';
   }
-}
-
-// Form submit → WhatsApp
-function submitForm() {
-  const name = document.getElementById('fname').value.trim();
-  const email = document.getElementById('femail').value.trim();
-  const goal = document.getElementById('fgoal').value;
-  const commitment = document.querySelector('input[name="commitment"]:checked');
-
-  if (!name || !email || !goal || !commitment) {
-    alert('Por favor completa todos los campos antes de enviar.');
-    return;
-  }
-
-  const goalLabels = {
-    fuerza: 'Fuerza y músculo',
-    salud: 'Salud y bienestar general',
-    recomposicion: 'Recomposición corporal',
-    rendimiento: 'Rendimiento deportivo',
-    movilidad: 'Movilidad y control corporal'
-  };
-
-  const msg = `Hola Abel, he completado la solicitud:\n\nNombre: ${name}\nEmail: ${email}\nObjetivo: ${goalLabels[goal] || goal}\nCompromiso: ${commitment.value === 'si' ? '✓ Al 100%' : 'Todavía evaluando'}`;
-  openWA('apply', msg);
-
-  document.getElementById('appForm').style.display = 'none';
-  document.getElementById('formSuccess').classList.add('show');
-}
-
-// Scroll reveal
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) e.target.classList.add('visible');
-  });
-}, { threshold: .08 });
-
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-// PWA service worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  });
 }
 </script>
 </body>
