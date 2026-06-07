@@ -431,373 +431,7 @@ nav.desk a:hover { color: var(--text); }
   border-radius: 6px;
 }
 
-/* ═══════════════════════════════════════════════════════
-   HERO PRODUCT STAGE — sin capturas reales todavía
-═══════════════════════════════════════════════════════ */
-
-.hero-right {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 620px;
-  animation: fadeUp .7s ease .2s both;
-}
-
-.product-stage {
-  position: relative;
-  width: min(100%, 520px);
-  height: 620px;
-  border-radius: 34px;
-  background:
-    radial-gradient(circle at 70% 18%, rgba(0,229,255,.18), transparent 34%),
-    linear-gradient(145deg, var(--stage-2), var(--stage));
-  border: 1px solid rgba(0,229,255,.16);
-  box-shadow:
-    0 40px 120px rgba(0,0,0,.75),
-    inset 0 1px 0 rgba(255,255,255,.04);
-  overflow: hidden;
-}
-
-.product-stage::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(0,229,255,.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,.035) 1px, transparent 1px);
-  background-size: 48px 48px;
-  opacity: .7;
-  pointer-events: none;
-}
-
-.phone {
-  position: absolute;
-  background: #050607;
-  border-radius: 38px;
-  padding: 16px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,.13);
-  box-shadow:
-    0 26px 70px rgba(0,0,0,.78),
-    inset 0 1px 0 rgba(255,255,255,.04);
-}
-
-.phone-main {
-  width: 300px;
-  height: 540px;
-  left: 42px;
-  top: 46px;
-  z-index: 3;
-}
-
-.phone-back {
-  width: 250px;
-  height: 440px;
-  right: 28px;
-  bottom: 54px;
-  z-index: 2;
-  opacity: .78;
-  transform: scale(.96);
-  border-color: rgba(0,229,255,.22);
-}
-
-.phone-notch {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 92px;
-  height: 28px;
-  transform: translateX(-50%);
-  background: #050607;
-  border-radius: 0 0 16px 16px;
-  z-index: 5;
-}
-
-.app-top {
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-}
-
-.avatar-dot {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 30%, rgba(255,255,255,.8), transparent 22%),
-    linear-gradient(135deg, #1b2a32, #00e5ff);
-  border: 1px solid rgba(0,229,255,.4);
-}
-
-.app-status {
-  font-size: .48rem;
-  font-weight: 800;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--cyan);
-  background: rgba(0,229,255,.10);
-  border: 1px solid rgba(0,229,255,.22);
-  padding: 7px 10px;
-  border-radius: 8px;
-}
-
-.app-mini-label {
-  font-size: .52rem;
-  font-weight: 800;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--text-2);
-  text-align: center;
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.08);
-  padding: 9px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-}
-
-.load-tabs {
-  display: flex;
-  gap: 7px;
-  margin-bottom: 12px;
-}
-
-.load-tabs span {
-  flex: 1;
-  text-align: center;
-  font-size: .5rem;
-  font-weight: 800;
-  color: var(--text-2);
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 999px;
-  padding: 8px 0;
-}
-
-.load-tabs span.active {
-  color: var(--cyan);
-  border-color: rgba(0,229,255,.55);
-  background: rgba(0,229,255,.12);
-}
-
-.session-card {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  background: #14161a;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 12px;
-}
-
-.session-icon {
-  color: var(--cyan);
-  font-size: 1.1rem;
-}
-
-.session-card strong {
-  display: block;
-  font-size: .68rem;
-  line-height: 1.25;
-  text-transform: uppercase;
-  letter-spacing: .02em;
-}
-
-.session-card small {
-  display: block;
-  margin-top: 6px;
-  font-size: .52rem;
-  color: var(--cyan);
-  letter-spacing: .08em;
-}
-
-.timer-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 10px;
-  background: #111318;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 12px;
-}
-
-.timer-row strong {
-  font-size: .9rem;
-  letter-spacing: .05em;
-}
-
-.timer-row span {
-  font-size: .48rem;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  color: var(--cyan);
-}
-
-.timer-row button {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: var(--cyan);
-  color: #000;
-  font-size: .65rem;
-  font-weight: 800;
-}
-
-.exercise-list {
-  background: #111318;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.exercise-row {
-  display: flex;
-  gap: 10px;
-  padding: 13px 10px;
-  border-bottom: 1px solid rgba(255,255,255,.06);
-}
-
-.exercise-row:last-child {
-  border-bottom: 0;
-}
-
-.check {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  border: 2px solid rgba(255,255,255,.22);
-  flex-shrink: 0;
-}
-
-.exercise-row strong {
-  display: block;
-  font-size: .66rem;
-  line-height: 1.25;
-}
-
-.exercise-row small {
-  display: block;
-  margin-top: 3px;
-  font-size: .5rem;
-  color: var(--text-2);
-}
-
-.phone-nav {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 14px;
-  height: 42px;
-  background: #0d0f13;
-  border-top: 1px solid rgba(255,255,255,.08);
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  align-items: center;
-  border-radius: 12px;
-}
-
-.phone-nav span {
-  text-align: center;
-  font-size: .45rem;
-  font-weight: 700;
-  letter-spacing: .10em;
-  text-transform: uppercase;
-  color: var(--text-2);
-}
-
-.phone-nav span.active {
-  color: var(--cyan);
-}
-
-.profile-card {
-  margin-top: 48px;
-  background: #14161a;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.profile-card small {
-  display: block;
-  font-size: .5rem;
-  color: var(--cyan);
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.profile-card strong {
-  display: block;
-  font-size: 1rem;
-  margin-bottom: 6px;
-}
-
-.profile-card span {
-  font-size: .62rem;
-  color: var(--text-2);
-}
-
-.metric-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.metric-grid div {
-  background: #111318;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 10px;
-  padding: 12px;
-}
-
-.metric-grid strong {
-  display: block;
-  font-size: 1rem;
-  color: var(--text);
-}
-
-.metric-grid span {
-  font-size: .48rem;
-  color: var(--text-2);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-}
-
-.action-card {
-  margin-top: 10px;
-  background: var(--cyan);
-  color: #000;
-  border-radius: 10px;
-  padding: 13px;
-  font-size: .56rem;
-  font-weight: 800;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  text-align: center;
-}
-
-.stage-badge {
-  position: absolute;
-  right: 28px;
-  top: 28px;
-  z-index: 6;
-  background: var(--cyan);
-  color: #000;
-  font-size: .54rem;
-  font-weight: 800;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  padding: 8px 13px;
-  border-radius: 8px;
-  box-shadow: 0 6px 24px rgba(0,229,255,.35);
-  white-space: nowrap;
-}
+/* Mockup CSS antiguo eliminado: el hero usa capturas reales de AB SYSTEM. */
 
 @media (max-width: 1100px) {
   nav.desk,
@@ -2335,6 +1969,164 @@ footer {
   }
 }
 
+
+
+/* ═══════════════════════════════════════════════════════
+   AB POLISH — hero más claro, limpio y preparado para capturas reales
+═══════════════════════════════════════════════════════ */
+#hero {
+  background:
+    radial-gradient(circle at 78% 42%, rgba(0,229,255,.085), transparent 34%),
+    radial-gradient(circle at 18% 10%, rgba(255,255,255,.035), transparent 26%),
+    linear-gradient(180deg, #040608 0%, #020304 74%);
+}
+
+#hero::before {
+  opacity: .72;
+  mask-image: radial-gradient(ellipse 86% 82% at 72% 48%, rgba(0,0,0,.85) 0%, transparent 72%);
+}
+
+#hero::after {
+  top: 12%;
+  right: -2%;
+  width: 54vw;
+  height: 54vw;
+  background: radial-gradient(ellipse, rgba(0,229,255,.105) 0%, transparent 62%);
+}
+
+.hero-trust {
+  margin-top: 1.1rem;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: rgba(255,255,255,.72);
+  animation: fadeUp .6s ease .5s both;
+}
+
+.ab-showcase {
+  width: min(100%, 560px);
+  height: 650px;
+  background:
+    radial-gradient(circle at 70% 24%, rgba(0,229,255,.22), transparent 34%),
+    radial-gradient(circle at 18% 86%, rgba(255,255,255,.045), transparent 26%),
+    linear-gradient(145deg, #14202a 0%, #0c151c 54%, #05080a 100%);
+  border-color: rgba(0,229,255,.26);
+  box-shadow:
+    0 34px 96px rgba(0,0,0,.66),
+    0 0 0 1px rgba(255,255,255,.035),
+    inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+.ab-showcase::before {
+  opacity: .44;
+}
+
+.ab-showcase::after {
+  height: 20%;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,.34));
+}
+
+.ab-screen img {
+  box-shadow:
+    0 18px 54px rgba(0,0,0,.58),
+    0 0 0 1px rgba(255,255,255,.15);
+}
+
+.ab-screen.is-active {
+  width: 306px;
+  left: 48px;
+  top: 34px;
+}
+
+.ab-screen.is-next {
+  width: 248px;
+  right: 30px;
+  top: 104px;
+  opacity: .66;
+  filter: brightness(.96) saturate(.98);
+}
+
+.ab-screen.is-next:hover {
+  opacity: .82;
+  filter: brightness(1.04) saturate(1.04);
+}
+
+.ab-screen.has-image-error {
+  width: 306px;
+  min-height: 530px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.025)),
+    #080b0e;
+  border: 1px solid rgba(255,255,255,.14);
+}
+
+.ab-screen.has-image-error img { display: none; }
+
+.ab-screen.has-image-error::before {
+  content: 'Sube esta imagen a Vercel con el mismo nombre';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  text-align: center;
+  color: rgba(255,255,255,.72);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.ab-showcase-tabs button {
+  background: rgba(4,8,10,.68);
+}
+
+.footer-social .social-link {
+  min-width: 86px;
+}
+
+@media (max-width: 1180px) {
+  .ab-showcase {
+    width: min(100%, 382px);
+    height: 545px;
+  }
+
+  .ab-showcase-stage {
+    height: 462px;
+  }
+
+  .ab-screen.is-active,
+  .ab-screen.is-next {
+    width: 258px;
+    left: 50%;
+    top: 22px;
+  }
+
+  .ab-screen.has-image-error {
+    min-height: 452px;
+  }
+}
+
+@media (max-width: 420px) {
+  .ab-showcase {
+    height: 518px;
+  }
+
+  .ab-showcase-stage {
+    height: 438px;
+  }
+
+  .ab-screen.is-active,
+  .ab-screen.is-next {
+    width: 236px;
+  }
+
+  .hero-trust {
+    font-size: .64rem;
+    line-height: 1.55;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2412,13 +2204,13 @@ footer {
       </p>
 
       <div class="hero-ctas">
-        <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20probar%20la%20primera%20semana%20gratis%20de%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Primera semana gratis</a>
+        <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20hacer%20una%20evaluaci%C3%B3n%20inicial%20con%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Evaluación inicial gratis</a>
         <a href="#how" class="btn btn-outline">Ver sistema en acción</a>
       </div>
       
-        <p style="margin-top:1.1rem;font-size:.68rem;font-weight:500;letter-spacing:.02em;color:var(--text-2);animation:fadeUp .6s ease .5s both">
-     <strong style="color:var(--text)"></strong> · UWW Level 2 · +80 clientes activos
-  </p>
+      <p class="hero-trust">
+        UWW Level 2 · Entrenamiento funcional con base de lucha · Belgrado / online
+      </p>
 
       <div class="hero-chips">
   <a href="#features" class="hero-chip">Evaluación</a>
@@ -2438,6 +2230,7 @@ footer {
 <button class="ab-screen is-active" data-screen="0" type="button" aria-label="Ver sesión activa Bloque 3">
   <img
     src="/IMG_2394.jpeg"
+    onerror="this.parentElement.classList.add('has-image-error')"
     alt="AB SYSTEM — Bloque 3 Circuito Clinch-Fitness con remo en postura de lucha, woodchop y pummeling"
     loading="eager"
     decoding="async"
@@ -2447,6 +2240,7 @@ footer {
 <button class="ab-screen is-next" data-screen="1" type="button" aria-label="Ver perfil cliente activo">
   <img
     src="/IMG_2391.jpeg"
+    onerror="this.parentElement.classList.add('has-image-error')"
     alt="AB SYSTEM — Perfil cliente ACTIVO con 100% adherencia, accesos rápidos y próxima sesión"
     loading="eager"
     decoding="async"
@@ -2838,12 +2632,12 @@ footer {
         </p>
 
         <div style="background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.18);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
-          <div style="font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:.5rem;">Primera semana gratis</div>
+          <div style="font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:.5rem;">Evaluación inicial gratis</div>
           <div style="font-size:.82rem;font-weight:400;line-height:1.6;color:var(--text-2);">Belgrado presencial desde 120€/mes · Online desde 90€/mes. Evaluación inicial incluida. Sin permanencia.</div>
         </div>
 
         <a
-          href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20probar%20la%20primera%20semana%20gratis%20de%20AB%20SYSTEM.%20Me%20gustar%C3%ADa%20hacer%20una%20evaluaci%C3%B3n%20inicial."
+          href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20hacer%20una%20evaluaci%C3%B3n%20inicial%20con%20AB%20SYSTEM.%20Me%20gustar%C3%ADa%20hacer%20una%20evaluaci%C3%B3n%20inicial."
           target="_blank"
           rel="noopener"
           class="btn btn-wa"
@@ -2917,7 +2711,7 @@ footer {
             <span class="faq-q-text">¿Cuánto cuesta y qué incluye?</span>
             <span class="faq-q-icon">+</span>
           </button>
-          <div class="faq-a"><p>Belgrado presencial desde 120€/mes. Online desde 90€/mes. Incluye evaluación, plan personalizado, seguimiento diario y ajustes del coach. Primera semana gratis.</p></div>
+          <div class="faq-a"><p>Belgrado presencial desde 120€/mes. Online desde 90€/mes. Incluye evaluación, plan personalizado, seguimiento diario y ajustes del coach. Evaluación inicial gratis.</p></div>
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">
@@ -2974,14 +2768,11 @@ footer {
         <a href="#apply" class="footer-link">Evaluación</a>
         <a href="#faq" class="footer-link">FAQ</a>
         <a href="/cliente.html" class="footer-link c">Área cliente</a>
-        <a href="/admin.html" class="footer-link a">Admin</a>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:.75rem;align-items:flex-end;">
         <div class="footer-social">
-          <a href="#" class="social-link" aria-label="Instagram">IG</a>
-          <a href="#" class="social-link" aria-label="TikTok">TT</a>
-          <a href="https://wa.me/381638112348" class="social-link" aria-label="WhatsApp" target="_blank" rel="noopener">WA</a>
+          <a href="https://wa.me/381638112348" class="social-link" aria-label="WhatsApp" target="_blank" rel="noopener">WhatsApp</a>
         </div>
         <div class="lang-switch" style="display:flex;">
           <a href="/" style="font-size:.58rem;font-weight:600;letter-spacing:.10em;color:var(--cyan);">ES</a>
