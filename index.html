@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AB SYSTEM | Entrenamiento con estructura, seguimiento y adaptación real</title>
-<meta name="description" content="AB SYSTEM no es una app de rutinas. Es un sistema de entrenamiento con evaluación, planificación, seguimiento y adaptación real. Dirigido por un coach en Belgrado.">
+<meta name="description" content="AB SYSTEM conecta planificación, entrenamiento, check-ins, reservas, salud y progreso en un solo sistema. Tu coach, tu plan, tu progreso.">
 <link rel="canonical" href="https://absystem.dbarrio.app/">
 <link rel="alternate" hreflang="es" href="https://abeltrainer.vercel.app/">
 <link rel="alternate" hreflang="sr" href="https://abeltrainer.vercel.app/sr.html">
@@ -13,195 +13,228 @@
 <meta name="theme-color" content="#000000">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    TOKENS
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 :root {
-  --black: #000000;
-  --void: #080808;
-  --surface: #0d0d0d;
-  --surface2: #141414;
-  --surface3: #1a1a1a;
-  --border: rgba(255,255,255,.07);
-  --border-cyan: rgba(0,210,220,.25);
+  --bg:       #000000;
+  --card:     #121214;
+  --card-2:   #151519;
+  --border:   rgba(255,255,255,.10);
+  --border-c: rgba(0,229,255,.30);
 
-  --white: #FFFFFF;
-  --off-white: #E5E5E5;
-  --gray: #707070;
-  --gray2: #454545;
+  --text:     #FFFFFF;
+  --text-2:   #8F8F99;
 
-  --cyan: #00D2DC;
-  --cyan-dim: rgba(0,210,220,.12);
-  --cyan-glow: rgba(0,210,220,.18);
+  --cyan:     #00E5FF;
+  --cyan-dim: rgba(0,229,255,.10);
+  --green:    #00E676;
+  --amber:    #FFB340;
+  --red:      #FF5A5A;
 
-  --red: #E20613;
+  --font-main: 'Sora', system-ui, -apple-system, sans-serif;
+  --font-body: var(--font-main);
+  --font-display: var(--font-main);
+  --font-mono: var(--font-main);
 
-  --font-display: 'Barlow Condensed', sans-serif;
-  --font-body: 'Barlow', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --r: 12px;
+  --max: 1160px;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   RESET & BASE
-═══════════════════════════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; font-size: 16px; }
+/* ═══ RESET ═══════════════════════════════════════════ */
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 body {
-  font-family: var(--font-body);
-  background: var(--black);
-  color: var(--off-white);
+  font-family: var(--font-main);
+  background: var(--bg);
+  color: var(--text);
   overflow-x: hidden;
-  cursor: default;
+  -webkit-font-smoothing: antialiased;
 }
 a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; }
-button { cursor: pointer; border: 0; background: none; font-family: inherit; }
+button { cursor: pointer; border: 0; background: none; font-family: inherit; color: inherit; }
 
-/* ═══════════════════════════════════════════════════════════
-   NOISE OVERLAY
-═══════════════════════════════════════════════════════════ */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  opacity: .4;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   SCROLLBAR
-═══════════════════════════════════════════════════════════ */
+/* ═══ SCROLLBAR ═══════════════════════════════════════ */
 ::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--cyan); }
 
-/* ═══════════════════════════════════════════════════════════
-   TYPOGRAPHY UTILITIES
-═══════════════════════════════════════════════════════════ */
-.label {
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--gray);
-}
+/* ═══ LAYOUT ══════════════════════════════════════════ */
+.inner { max-width: var(--max); margin: 0 auto; }
+section { padding: clamp(4rem, 8vw, 6.5rem) clamp(1.25rem, 5vw, 3rem); }
 
-.label-cyan {
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--cyan);
-}
-
-.bracket {
-  color: var(--cyan);
-  font-family: var(--font-display);
+/* ═══ TYPOGRAPHY ══════════════════════════════════════ */
+.label-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .68rem;
   font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: .85rem;
+}
+.label-tag::before {
+  content: '';
+  width: 22px;
+  height: 1px;
+  background: var(--cyan);
+  flex-shrink: 0;
 }
 
-/* ═══════════════════════════════════════════════════════════
+.section-title {
+  font-size: clamp(2rem, 4.5vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -1px;
+  color: var(--text);
+}
+.section-title .accent { color: var(--cyan); }
+
+/* ═══ BUTTONS ═════════════════════════════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-main);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border-radius: 8px;
+  transition: all .18s;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--cyan);
+  color: #000;
+  border: 1px solid var(--cyan);
+}
+.btn-primary:hover { background: transparent; color: var(--cyan); }
+.btn-outline {
+  background: transparent;
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+.btn-outline:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn-wa {
+  background: rgba(0,230,118,.12);
+  color: var(--green);
+  border: 1px solid rgba(0,230,118,.35);
+}
+.btn-wa:hover { background: rgba(0,230,118,.2); }
+
+/* ═══ ANIMATIONS ══════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+@keyframes scanline {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(140vh); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.reveal { opacity: 0; }
+.reveal.visible { animation: fadeUp .65s ease forwards; }
+.d1 { animation-delay: .10s; }
+.d2 { animation-delay: .20s; }
+.d3 { animation-delay: .30s; }
+.d4 { animation-delay: .40s; }
+
+/* ═══════════════════════════════════════════════════════
    HEADER
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 #header {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 900;
-  height: 68px;
-  padding: 0 clamp(1.25rem, 5vw, 3.5rem);
+  height: 64px;
+  padding: 0 clamp(1.25rem, 5vw, 3rem);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: rgba(0,0,0,.82);
+  background: rgba(0,0,0,.88);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
   transition: border-color .3s;
 }
+#header.scrolled { border-color: rgba(0,229,255,.12); }
 
-#header.scrolled { border-color: rgba(0,210,220,.1); }
-
-/* Logo */
 .logo-mark {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.logo-brackets {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 1.75rem;
-  line-height: 1;
+.logo-letters {
+  font-size: 1.35rem;
+  font-weight: 800;
   letter-spacing: -.02em;
+  color: var(--text);
 }
-.logo-brackets .b { color: var(--cyan); }
-.logo-brackets .letters { color: var(--white); }
-.logo-sub-text {
-  font-family: var(--font-mono);
-  font-size: .52rem;
-  letter-spacing: .14em;
+.logo-letters .c { color: var(--cyan); }
+.logo-sub {
+  font-size: .5rem;
+  font-weight: 600;
+  letter-spacing: .18em;
   text-transform: uppercase;
-  color: var(--gray);
-  line-height: 1.35;
+  color: var(--text-2);
   border-left: 1px solid var(--border);
   padding-left: 10px;
+  line-height: 1.4;
 }
-.logo-sub-text span { display: block; color: var(--cyan); }
+.logo-sub span { display: block; color: var(--cyan); }
 
-/* Nav */
 nav.desk {
   display: flex;
   align-items: center;
-  gap: 2.5rem;
+  gap: 2rem;
 }
 nav.desk a {
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .15em;
+  font-size: .65rem;
+  font-weight: 600;
+  letter-spacing: .10em;
   text-transform: uppercase;
-  color: var(--gray);
+  color: var(--text-2);
   transition: color .15s;
-  position: relative;
 }
-nav.desk a::after {
-  content: '';
-  position: absolute;
-  bottom: -4px; left: 0; right: 0;
-  height: 1px;
-  background: var(--cyan);
-  transform: scaleX(0);
-  transition: transform .2s;
-}
-nav.desk a:hover { color: var(--white); }
-nav.desk a:hover::after { transform: scaleX(1); }
+nav.desk a:hover { color: var(--text); }
 
 .header-right {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
-
 .lang-switch {
   display: flex;
   gap: .5rem;
   align-items: center;
 }
 .lang-switch a, .lang-switch span {
-  font-family: var(--font-mono);
   font-size: .58rem;
-  letter-spacing: .12em;
-  color: var(--gray);
+  font-weight: 600;
+  letter-spacing: .10em;
+  color: var(--text-2);
   transition: color .15s;
 }
 .lang-switch a:hover, .lang-switch a.active { color: var(--cyan); }
 .lang-switch span { color: var(--border); }
 
-/* Hamburger */
 .ham {
   display: none;
   flex-direction: column;
@@ -212,251 +245,106 @@ nav.desk a:hover::after { transform: scaleX(1); }
   display: block;
   width: 20px;
   height: 1.5px;
-  background: var(--white);
-  transition: all .3s;
+  background: var(--text);
+  transition: all .25s;
 }
+.ham.open span:nth-child(1) { transform: rotate(45deg) translate(4.5px,4.5px); }
+.ham.open span:nth-child(2) { opacity: 0; }
+.ham.open span:nth-child(3) { transform: rotate(-45deg) translate(4.5px,-4.5px); }
 
-/* Mobile nav */
 .mobile-menu {
   display: none;
   position: fixed;
-  top: 68px; left: 0; right: 0;
+  top: 64px; left: 0; right: 0;
   background: rgba(0,0,0,.97);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-cyan);
+  border-bottom: 1px solid var(--border-c);
   z-index: 899;
-  padding: 1.5rem clamp(1.25rem, 5vw, 3.5rem) 2rem;
+  padding: 1.5rem clamp(1.25rem, 5vw, 3rem) 2rem;
   flex-direction: column;
-  gap: .75rem;
+  gap: .5rem;
 }
 .mobile-menu.open { display: flex; }
 .mobile-menu a {
-  font-family: var(--font-mono);
   font-size: .72rem;
-  letter-spacing: .15em;
+  font-weight: 600;
+  letter-spacing: .10em;
   text-transform: uppercase;
-  color: var(--gray);
-  padding: .75rem 0;
+  color: var(--text-2);
+  padding: .85rem 0;
   border-bottom: 1px solid var(--border);
   transition: color .15s;
 }
-.mobile-menu a:hover { color: var(--white); }
-.mobile-menu a.cta-mobile {
-  color: var(--black);
+.mobile-menu a:hover { color: var(--text); }
+.mobile-menu .cta-m {
+  color: #000;
   background: var(--cyan);
-  border: 1px solid var(--cyan);
-  padding: .85rem 1.25rem;
   text-align: center;
-  margin-top: .5rem;
+  border-radius: 8px;
+  margin-top: .75rem;
+  padding: 1rem;
+  border: 0;
 }
 .mobile-lang {
   display: flex;
   gap: 1rem;
-  margin-top: .5rem;
+  padding-top: 1rem;
 }
 .mobile-lang a {
-  font-family: var(--font-mono);
   font-size: .62rem;
+  font-weight: 600;
   letter-spacing: .12em;
-  color: var(--gray);
+  color: var(--text-2);
   border: 0;
-  padding: .25rem 0;
+  padding: 0;
 }
 .mobile-lang a.active { color: var(--cyan); }
 
-/* ═══════════════════════════════════════════════════════════
-   BUTTONS
-═══════════════════════════════════════════════════════════ */
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: var(--cyan);
-  color: var(--black);
-  font-family: var(--font-mono);
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  padding: 15px 32px;
-  border: 1px solid var(--cyan);
-  transition: background .2s, color .2s;
-  position: relative;
-  overflow: hidden;
-}
-.btn-primary::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: transparent;
-  border: 1px solid var(--cyan);
-  transform: scale(1.04);
-  opacity: 0;
-  transition: opacity .2s, transform .2s;
-}
-.btn-primary:hover {
-  background: transparent;
-  color: var(--cyan);
-}
-.btn-primary:hover::before {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.btn-outline {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: transparent;
-  color: var(--white);
-  font-family: var(--font-mono);
-  font-size: .68rem;
-  font-weight: 500;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  padding: 14px 28px;
-  border: 1px solid var(--border);
-  transition: border-color .2s, color .2s;
-}
-.btn-outline:hover {
-  border-color: var(--cyan);
-  color: var(--cyan);
-}
-
-.btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: transparent;
-  color: var(--cyan);
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  padding: 10px 18px;
-  border: 1px solid var(--border-cyan);
-  transition: background .2s, color .2s;
-}
-.btn-ghost:hover {
-  background: var(--cyan-dim);
-  color: var(--white);
-}
-
-.wa-icon { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
-
-/* ═══════════════════════════════════════════════════════════
-   LAYOUT
-═══════════════════════════════════════════════════════════ */
-.inner { max-width: 1200px; margin: 0 auto; }
-section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
-
-/* ═══════════════════════════════════════════════════════════
-   ANIMATIONS
-═══════════════════════════════════════════════════════════ */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes scanline {
-  from { transform: translateY(-100%); }
-  to   { transform: translateY(100vh); }
-}
-@keyframes pulse-border {
-  0%, 100% { border-color: rgba(0,210,220,.25); }
-  50% { border-color: rgba(0,210,220,.6); }
-}
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-.reveal { opacity: 0; }
-.reveal.visible { animation: fadeUp .7s ease forwards; }
-.d1 { animation-delay: .1s; }
-.d2 { animation-delay: .2s; }
-.d3 { animation-delay: .3s; }
-.d4 { animation-delay: .4s; }
-.d5 { animation-delay: .5s; }
-
-/* ═══════════════════════════════════════════════════════════
-   HERO — IMAGE LAYOUT
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   HERO — Sistema protagonista, mockups en HTML/CSS
+═══════════════════════════════════════════════════════ */
 #hero {
   min-height: 100svh;
-  padding-top: 68px;
+  padding-top: 64px;
   display: flex;
   align-items: center;
   position: relative;
   overflow: hidden;
-  background: var(--black);
+  background: var(--bg);
 }
 
-.hero-image-layout {
-  isolation: isolate;
-}
-
-.hero-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background:
-    linear-gradient(90deg,
-      rgba(0,0,0,1) 0%,
-      rgba(0,0,0,.96) 20%,
-      rgba(0,0,0,.76) 42%,
-      rgba(0,0,0,.28) 68%,
-      rgba(0,0,0,.18) 100%
-    ),
-    linear-gradient(180deg,
-      rgba(0,0,0,.22) 0%,
-      rgba(0,0,0,.05) 45%,
-      rgba(0,0,0,.78) 100%
-    ),
-    url('/hero-abel-trainer.png.PNG');
-  background-size: cover;
-  background-position: center right;
-  background-repeat: no-repeat;
-}
-
+/* Grid sutil de fondo */
 #hero::before {
   content: '';
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 0;
   background-image:
-    linear-gradient(rgba(0,210,220,.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,210,220,.035) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: linear-gradient(90deg, rgba(0,0,0,.55) 0%, transparent 65%);
+    linear-gradient(rgba(0,229,255,.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,.028) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 80% at 70% 50%, rgba(0,0,0,.7) 0%, transparent 70%);
   pointer-events: none;
 }
-
+/* Glow radial detrás de mockups */
 #hero::after {
   content: '';
   position: absolute;
-  top: 18%;
-  left: 8%;
-  width: 520px;
-  height: 520px;
-  z-index: 1;
-  background: radial-gradient(ellipse, rgba(0,210,220,.10) 0%, transparent 70%);
+  top: 20%; right: 5%;
+  width: 50vw; height: 60vw;
+  max-width: 700px; max-height: 700px;
+  background: radial-gradient(ellipse, rgba(0,229,255,.07) 0%, transparent 65%);
+  z-index: 0;
   pointer-events: none;
 }
 
 .hero-scanline {
   position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
+  left: 0; right: 0;
+  height: 1px;
   z-index: 2;
-  background: linear-gradient(90deg, transparent, rgba(0,210,220,.15), transparent);
-  animation: scanline 7s linear infinite;
+  background: linear-gradient(90deg, transparent, rgba(0,229,255,.18), transparent);
+  animation: scanline 9s linear infinite;
   pointer-events: none;
 }
 
@@ -464,556 +352,315 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--max);
   margin: 0 auto;
-  padding: clamp(4rem, 7vw, 6rem) 0;
+  padding: clamp(3rem, 6vw, 5rem) clamp(1.25rem, 5vw, 3rem);
   display: grid;
-  grid-template-columns: minmax(0, 560px) 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 4rem;
   align-items: center;
 }
 
-.hero-left {
-  max-width: 580px;
-}
+.hero-left {}
 
 .hero-pretitle {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 1.5rem;
-  animation: fadeUp .6s ease .1s both;
+  animation: fadeUp .5s ease .05s both;
 }
-
 .hero-pretitle .line {
-  width: 32px;
-  height: 1px;
+  width: 24px; height: 1px;
   background: var(--cyan);
 }
-
 .hero-pretitle span {
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .22em;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .18em;
   text-transform: uppercase;
   color: var(--cyan);
 }
 
 .hero-h1 {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: clamp(3rem, 6.2vw, 5.8rem);
-  line-height: .95;
-  letter-spacing: 0;
-  color: var(--white);
-  margin-bottom: 2rem;
-  text-transform: uppercase;
-  animation: fadeUp .7s ease .2s both;
+  font-size: clamp(2.4rem, 4.8vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -1.5px;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  animation: fadeUp .6s ease .15s both;
 }
+.hero-h1 .accent { color: var(--cyan); }
 
-.hero-h1 .block {
-  display: block;
-}
-
-.hero-h1 .accent {
-  color: var(--cyan);
-}
-
-.hero-h1 .block {
-  display: block;
-}
-
-.hero-desc {
-  font-size: clamp(.98rem, 1.5vw, 1.15rem);
-  color: rgba(229,229,229,.74);
-  line-height: 1.75;
-  font-weight: 300;
-  max-width: 520px;
-  margin-bottom: 2.4rem;
-  animation: fadeUp .7s ease .3s both;
+.hero-sub {
+  font-size: clamp(.9rem, 1.4vw, 1.05rem);
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--text-2);
+  max-width: 500px;
+  margin-bottom: 2.2rem;
+  animation: fadeUp .6s ease .25s both;
 }
 
 .hero-ctas {
   display: flex;
-  gap: 1rem;
+  gap: .85rem;
   flex-wrap: wrap;
-  animation: fadeUp .7s ease .4s both;
+  animation: fadeUp .6s ease .35s both;
 }
 
-.hero-mini-points {
-  margin-top: 2rem;
+.hero-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: .6rem;
-  animation: fadeUp .7s ease .5s both;
+  gap: .5rem;
+  margin-top: 1.75rem;
+  animation: fadeUp .6s ease .45s both;
 }
-
-.hero-mini-points span {
-  font-family: var(--font-mono);
+.hero-chip {
   font-size: .58rem;
-  letter-spacing: .14em;
+  font-weight: 600;
+  letter-spacing: .12em;
   text-transform: uppercase;
-  color: var(--gray);
+  color: var(--text-2);
   border: 1px solid var(--border);
-  background: rgba(0,0,0,.34);
-  padding: .55rem .75rem;
+  background: rgba(255,255,255,.025);
+  padding: .5rem .85rem;
+  border-radius: 6px;
 }
 
-.hero-mini-points span::before {
-  content: '[ ';
-  color: var(--cyan);
+/* ── Screenshots reales ── */
+.hero-right {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeUp .7s ease .2s both;
 }
 
-.hero-mini-points span::after {
-  content: ' ]';
-  color: var(--cyan);
+.screens-stack {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 580px;
 }
 
-/* Ocultamos los stats antiguos del hero */
-.hero-right,
-.hero-stat-block,
-.hero-stats-row,
-.status-bar {
-  display: none !important;
+@media (max-width: 1100px) {
+  .screens-stack { height: 480px; }
+  .screen-main  { width: 195px; }
+  .screen-secondary { width: 182px; }
 }
 
-/* Mobile */
-@media (max-width: 900px) {
-  #hero {
-    min-height: 100svh;
-    align-items: flex-end;
-  }
-
-  .hero-bg {
-    background:
-      linear-gradient(180deg,
-        rgba(0,0,0,.18) 0%,
-        rgba(0,0,0,.32) 35%,
-        rgba(0,0,0,.88) 72%,
-        rgba(0,0,0,1) 100%
-      ),
-      linear-gradient(90deg,
-        rgba(0,0,0,.72) 0%,
-        rgba(0,0,0,.22) 50%,
-        rgba(0,0,0,.12) 100%
-      ),
-      url('/hero-abel-trainer.png.PNG');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: 64% 18%;
-  }
-
-  .hero-content {
-    grid-template-columns: 1fr;
-    padding: 46svh 0 3.25rem;
-  }
+/* Marco de iPhone — pantalla principal */
+.screen-frame {
+  position: absolute;
+  background: #0a0a0a;
+  border-radius: 40px;
+  padding: 10px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.10),
+    0 32px 80px rgba(0,0,0,.75),
+    0 0 0 8px #111,
+    0 0 0 9px rgba(255,255,255,.06);
+  overflow: hidden;
 }
 
-  .hero-left {
-    max-width: 100%;
-  }
-
-  .hero-h1 {
-    font-size: clamp(2.55rem, 13vw, 4.2rem);
-    margin-bottom: 1.35rem;
-  }
-
-  .hero-desc {
-    font-size: .98rem;
-    line-height: 1.65;
-    margin-bottom: 1.8rem;
-    max-width: 96%;
-  }
-
-  .hero-ctas {
-    flex-direction: column;
-  }
-
-  .hero-ctas .btn-primary,
-  .hero-ctas .btn-outline,
-  .hero-ctas .btn-ghost {
-    width: 100%;
-  }
-
-  .hero-mini-points {
-    margin-top: 1.35rem;
-  }
-
-     #para-quien {
-    padding-top: 2.5rem;
-  }
+/* Pantalla principal: perfil — izquierda, encima */
+.screen-main {
+  width: 230px;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  animation: float 7s ease-in-out infinite;
 }
 
-@media (max-width: 480px) {
-  .hero-bg {
-    background-position: 66% 12%;
-  }
-
-  .hero-content {
-    padding-top: 44svh;
-  }
-
-  .hero-pretitle span {
-    font-size: .54rem;
-    letter-spacing: .18em;
-  }
-
-  .hero-mini-points span {
-    font-size: .52rem;
-    padding: .48rem .62rem;
-  }
+/* Pantalla secundaria: bloque — derecha, debajo */
+.screen-secondary {
+  width: 215px;
+  bottom: 0;
+  right: 0;
+  z-index: 1;
+  animation: float 8s ease-in-out 1.2s infinite;
+  box-shadow:
+    0 0 0 1px rgba(0,229,255,.18),
+    0 24px 60px rgba(0,0,0,.7),
+    0 0 0 8px #111,
+    0 0 0 9px rgba(0,229,255,.08);
 }
 
-  .hero-content {
-    padding-top: 40svh;
-  }
-
-  .hero-pretitle span {
-    font-size: .54rem;
-    letter-spacing: .18em;
-  }
-
-  .hero-mini-points span {
-    font-size: .52rem;
-    padding: .48rem .62rem;
-  }
-
-  #para-quien {
-    padding-top: 2rem;
-  }
+.screen-frame img {
+  width: 100%;
+  border-radius: 32px;
+  display: block;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   TICKER / MARQUEE
-═══════════════════════════════════════════════════════════ */
+/* Notch decorativo */
+.screen-frame::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 24px;
+  background: #0a0a0a;
+  border-radius: 0 0 14px 14px;
+  z-index: 10;
+}
+
+/* Etiqueta flotante sobre la pantalla secundaria */
+.screen-tag {
+  position: absolute;
+  bottom: 180px;
+  right: -16px;
+  z-index: 5;
+  background: var(--cyan);
+  color: #000;
+  font-size: .52rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,229,255,.35);
+  white-space: nowrap;
+}
+
+/* ═══ TICKER ══════════════════════════════════════════ */
 .ticker {
   background: var(--cyan);
-  padding: .65rem 0;
+  padding: .6rem 0;
   overflow: hidden;
   white-space: nowrap;
 }
 .ticker-inner {
   display: inline-flex;
-  gap: 3rem;
-  animation: marquee 25s linear infinite;
-}
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  gap: 2.5rem;
+  animation: marquee 22s linear infinite;
 }
 .ticker span {
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--black);
-  font-weight: 700;
-}
-.ticker .sep {
-  color: rgba(0,0,0,.3);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   PILLARS
-═══════════════════════════════════════════════════════════ */
-#pillars {
-  background: var(--void);
-}
-
-.section-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 2rem;
-  margin-bottom: 3.5rem;
-}
-
-.section-title {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: clamp(2.4rem, 5vw, 4.2rem);
-  line-height: .92;
-  letter-spacing: -.01em;
-  color: var(--white);
-}
-.section-title .accent { color: var(--cyan); }
-
-.section-number {
-  font-family: var(--font-mono);
   font-size: .6rem;
-  color: var(--gray2);
-  letter-spacing: .2em;
-  white-space: nowrap;
-  padding-top: .5rem;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #000;
+}
+.ticker .sep { color: rgba(0,0,0,.3); }
+
+/* ═══════════════════════════════════════════════════════
+   FEATURES — Qué hace AB SYSTEM
+═══════════════════════════════════════════════════════ */
+#features {
+  background: #080808;
+  border-top: 1px solid var(--border);
 }
 
-.pillars-grid {
+.features-header {
+  max-width: 560px;
+  margin-bottom: 3rem;
+}
+
+.features-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0;
+  gap: 1px;
+  background: var(--border);
   border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
 }
 
-.pillar {
-  padding: 2.5rem;
-  border-right: 1px solid var(--border);
-  position: relative;
+.feature-card {
+  background: var(--card);
+  padding: 2rem;
   transition: background .2s;
+  position: relative;
 }
-.pillar:last-child { border-right: 0; }
-.pillar:hover { background: var(--surface); }
-
-.pillar::before {
+.feature-card:hover { background: var(--card-2); }
+.feature-card::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
   background: var(--cyan);
   transform: scaleX(0);
-  transition: transform .3s;
+  transition: transform .28s;
 }
-.pillar:hover::before { transform: scaleX(1); }
+.feature-card:hover::before { transform: scaleX(1); }
 
-.pillar-num {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 4rem;
-  color: var(--surface3);
-  line-height: 1;
-  margin-bottom: .5rem;
-  transition: color .3s;
-}
-.pillar:hover .pillar-num { color: var(--surface2); }
-
-.pillar-tag {
-  font-family: var(--font-mono);
-  font-size: .65rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--cyan);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.pillar-tag::before {
-  content: '';
-  width: 16px;
-  height: 1px;
-  background: var(--cyan);
-  flex-shrink: 0;
-}
-
-.pillar h3 {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.5rem;
-  letter-spacing: .04em;
-  color: var(--white);
-  text-transform: uppercase;
-  margin-bottom: .75rem;
-}
-
-.pillar p {
-  font-size: .88rem;
-  color: var(--gray);
-  line-height: 1.75;
-  font-weight: 300;
-}
-
-.pillar-list {
-  list-style: none;
-  margin-top: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.pillar-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: .8rem;
-  color: var(--gray);
-  font-weight: 300;
-}
-.pillar-list li::before {
-  content: '→';
-  color: var(--cyan);
-  font-size: .7rem;
-  margin-top: 1px;
-  flex-shrink: 0;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   AUTHORITY / CREDENTIALS
-═══════════════════════════════════════════════════════════ */
-#authority {
-  background: var(--black);
-}
-
-.auth-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6rem;
-  align-items: start;
-}
-
-.auth-left {}
-.auth-visual {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  aspect-ratio: 3/4;
-  max-height: 580px;
-  position: relative;
-  overflow: hidden;
+.feature-icon {
+  width: 40px; height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.auth-visual img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  filter: grayscale(20%) contrast(1.1) brightness(.85);
-}
-.auth-visual-placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-.auth-visual-placeholder .icon {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 4rem;
-  color: var(--surface3);
-}
-
-/* Scan effect on photo */
-.auth-visual::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg,
-    transparent 0%,
-    rgba(0,210,220,.04) 50%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-
-.auth-corner {
-  position: absolute;
-  bottom: 0; right: 0;
-  background: rgba(0,0,0,.9);
-  border-top: 1px solid var(--border-cyan);
-  border-left: 1px solid var(--border-cyan);
-  padding: 1rem 1.25rem;
-}
-.auth-corner b {
-  font-family: var(--font-display);
-  font-size: 1.4rem;
-  color: var(--cyan);
-  display: block;
-  font-weight: 800;
-}
-.auth-corner span {
-  font-family: var(--font-mono);
-  font-size: .52rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--gray);
-}
-
-.auth-right {}
-
-.cred-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 2rem;
-}
-
-.cred {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  padding: 1.25rem;
-  border: 1px solid var(--border);
-  transition: border-color .2s, background .2s;
-}
-.cred:hover {
-  border-color: var(--border-cyan);
-  background: var(--surface);
-}
-
-.cred-icon {
-  width: 34px; height: 34px;
+  border: 1px solid rgba(0,229,255,.22);
+  border-radius: 10px;
   background: var(--cyan-dim);
-  border: 1px solid var(--border-cyan);
-  display: grid;
-  place-items: center;
+  margin-bottom: 1.25rem;
   flex-shrink: 0;
 }
-.cred-icon::after {
-  content: '';
-  width: 8px; height: 8px;
-  background: var(--cyan);
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+.feature-icon svg {
+  width: 20px; height: 20px;
+  stroke: var(--cyan);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.cred strong {
-  font-family: var(--font-mono);
-  font-size: .68rem;
-  letter-spacing: .1em;
-  color: var(--white);
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 2px;
+.feature-title {
+  font-size: .88rem;
+  font-weight: 700;
+  letter-spacing: -.2px;
+  color: var(--text);
+  margin-bottom: .5rem;
 }
-.cred small {
-  font-size: .8rem;
-  color: var(--gray);
-  font-weight: 300;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   METHOD / PROCESS
-═══════════════════════════════════════════════════════════ */
-#method {
-  background: var(--black);
+.feature-desc {
+  font-size: .78rem;
+  font-weight: 400;
+  line-height: 1.65;
+  color: var(--text-2);
 }
 
-.method-grid {
+/* ═══════════════════════════════════════════════════════
+   HOW IT WORKS — Proceso paso a paso
+═══════════════════════════════════════════════════════ */
+#how {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.how-grid {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 1fr 1.6fr;
   gap: 5rem;
   align-items: start;
 }
 
-.method-steps {
+.how-sticky {
+  position: sticky;
+  top: 88px;
+}
+
+.steps {
   display: flex;
   flex-direction: column;
-  gap: 0;
   border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
 }
 
 .step {
   display: flex;
-  gap: 1.5rem;
-  padding: 1.75rem;
+  gap: 1.25rem;
+  padding: 1.5rem;
   border-bottom: 1px solid var(--border);
   position: relative;
-  transition: background .2s;
+  transition: background .18s;
   cursor: default;
 }
 .step:last-child { border-bottom: 0; }
-.step:hover { background: var(--surface); }
-
+.step:hover { background: var(--card); }
 .step::before {
   content: '';
   position: absolute;
@@ -1021,431 +668,473 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
   width: 2px;
   background: var(--cyan);
   transform: scaleY(0);
-  transition: transform .3s;
+  transition: transform .25s;
 }
 .step:hover::before { transform: scaleY(1); }
 
 .step-num {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 2.4rem;
-  color: var(--surface3);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: rgba(255,255,255,.07);
   line-height: 1;
-  width: 40px;
+  width: 36px;
   flex-shrink: 0;
-  transition: color .3s;
+  letter-spacing: -1px;
+  transition: color .2s;
 }
-.step:hover .step-num { color: var(--cyan); }
+.step:hover .step-num { color: rgba(0,229,255,.3); }
 
 .step-body strong {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--white);
   display: block;
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--text);
   margin-bottom: 4px;
 }
 .step-body p {
-  font-size: .82rem;
-  color: var(--gray);
+  font-size: .78rem;
+  font-weight: 400;
   line-height: 1.6;
-  font-weight: 300;
+  color: var(--text-2);
 }
 
-/* Panel mockup */
-.panel-wrap {
-  position: sticky;
-  top: 100px;
+/* ═══════════════════════════════════════════════════════
+   FOR WHO — Para quién es
+═══════════════════════════════════════════════════════ */
+#for-who {
+  background: #080808;
+  border-top: 1px solid var(--border);
 }
 
-.panel {
-  background: var(--surface);
-  border: 1px solid var(--border-cyan);
-  overflow: hidden;
-}
-
-.panel-header {
-  background: var(--surface2);
-  padding: 1rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border);
-}
-
-.panel-logo-text {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: .08em;
-  color: var(--white);
-}
-
-.panel-user-tag {
-  font-family: var(--font-mono);
-  font-size: .58rem;
-  letter-spacing: .1em;
-  color: var(--cyan);
-}
-
-.panel-body { padding: 1.25rem; }
-
-.panel-metrics {
+.forwho-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 1rem;
-}
-
-.p-metric {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  padding: 1rem;
-}
-.p-metric b {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.8rem;
-  display: block;
-  line-height: 1;
-  color: var(--white);
-}
-.p-metric b .c { color: var(--cyan); }
-.p-metric .pm-label {
-  font-family: var(--font-mono);
-  font-size: .52rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--gray);
-  display: block;
-  margin-top: 4px;
-}
-
-.p-progress {
-  height: 3px;
-  background: var(--surface2);
-  margin-bottom: 1rem;
-  overflow: hidden;
-}
-.p-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--cyan), rgba(0,210,220,.4));
-  width: 62%;
-}
-
-.p-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: .85rem 1rem;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  font-size: .8rem;
-  color: var(--gray);
-  margin-top: 6px;
-}
-.tag-ok {
-  font-family: var(--font-mono);
-  font-size: .55rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--cyan);
-}
-.tag-pend {
-  font-family: var(--font-mono);
-  font-size: .55rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--red);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   PLANS
-═══════════════════════════════════════════════════════════ */
-#plans {
-  background: var(--void);
-}
-
-.plans-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
   margin-top: 3rem;
 }
 
-.plan {
-  background: var(--surface);
-  padding: 2.5rem 2rem;
-  display: flex;
-  flex-direction: column;
-  position: relative;
+.forwho-card {
+  background: var(--card);
+  padding: 2rem;
+  min-height: 230px;
   transition: background .2s;
 }
-.plan:hover { background: var(--surface2); }
+.forwho-card:hover { background: var(--card-2); }
 
-.plan.featured {
-  background: var(--surface2);
-}
-.plan.featured::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--cyan);
-}
-.plan.featured:hover { background: var(--surface3); }
-
-.plan-tag {
-  font-family: var(--font-mono);
-  font-size: .55rem;
-  letter-spacing: .18em;
+.forwho-num {
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--cyan);
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+.forwho-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -.3px;
+  color: var(--text);
+  margin-bottom: .65rem;
+  line-height: 1.3;
+}
+.forwho-card p {
+  font-size: .78rem;
+  font-weight: 400;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+
+.for-who-note {
+  margin-top: 2rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--cyan-dim);
+  border: 1px solid rgba(0,229,255,.2);
+  border-radius: var(--r);
+  font-size: .88rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.65;
+}
+.for-who-note strong { color: var(--cyan); }
+
+/* ═══════════════════════════════════════════════════════
+   DIFFERENTIATOR — No es una plantilla vacía
+═══════════════════════════════════════════════════════ */
+#differentiator {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.diff-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-top: 3rem;
+}
+
+.diff-col {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.diff-col-header {
+  padding: .85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.plan-tag .rec-badge {
-  background: var(--cyan);
-  color: var(--black);
-  padding: 2px 8px;
-  font-weight: 700;
-  letter-spacing: .1em;
-}
-
-.plan h3 {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 2.2rem;
-  letter-spacing: .02em;
-  text-transform: uppercase;
-  color: var(--white);
-  margin-bottom: .25rem;
-}
-
-.plan-sub {
-  font-family: var(--font-mono);
+.diff-col-header span {
   font-size: .6rem;
-  letter-spacing: .12em;
+  font-weight: 700;
+  letter-spacing: .14em;
   text-transform: uppercase;
-  color: var(--gray);
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
+}
+.diff-col.generic .diff-col-header { background: rgba(255,255,255,.02); }
+.diff-col.generic .diff-col-header span { color: var(--text-2); }
+.diff-col.system { border-color: rgba(0,229,255,.25); }
+.diff-col.system .diff-col-header { background: var(--cyan-dim); }
+.diff-col.system .diff-col-header span { color: var(--cyan); }
+.diff-col.system .diff-col-header::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  flex-shrink: 0;
 }
 
-.plan ul {
-  list-style: none;
-  flex: 1;
+.diff-items { padding: 1rem 1.25rem; }
+.diff-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: .75rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .8rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.diff-item:last-child { border-bottom: 0; }
+.diff-item .icon {
+  width: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.diff-col.generic .icon { color: rgba(255,90,90,.6); }
+.diff-col.system .icon { color: var(--green); }
+.diff-col.system .diff-item { color: var(--text); }
+
+/* ═══════════════════════════════════════════════════════
+   COACH — Presencia humana controlada
+═══════════════════════════════════════════════════════ */
+#coach {
+  background: #080808;
+  border-top: 1px solid var(--border);
+}
+
+.coach-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+.coach-visual {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  aspect-ratio: 3/4;
+  max-height: 520px;
+  overflow: hidden;
+  position: relative;
+}
+.coach-visual img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  filter: grayscale(15%) contrast(1.08);
+}
+.coach-visual::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,.7) 100%);
+  pointer-events: none;
+}
+.coach-badge {
+  position: absolute;
+  bottom: 0; right: 0;
+  background: rgba(0,0,0,.9);
+  border-top: 1px solid rgba(0,229,255,.3);
+  border-left: 1px solid rgba(0,229,255,.3);
+  padding: .85rem 1.1rem;
+  z-index: 1;
+  border-top-left-radius: 8px;
+}
+.coach-badge strong {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--cyan);
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.coach-badge span {
+  font-size: .5rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+/* Si no hay foto, mostrar placeholder */
+.coach-placeholder {
+  width: 100%; height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 2rem;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
 }
-.plan li {
-  display: flex;
-  gap: 10px;
-  font-size: .85rem;
-  color: var(--gray);
-  font-weight: 300;
+.coach-placeholder svg {
+  width: 64px; height: 64px;
+  stroke: rgba(255,255,255,.1);
+  fill: none;
+  stroke-width: 1;
 }
-.plan li::before { content: '—'; color: var(--gray2); flex-shrink: 0; }
-.plan.featured li::before { content: '✓'; color: var(--cyan); }
+.coach-placeholder span {
+  font-size: .6rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
 
-/* ═══════════════════════════════════════════════════════════
-   APPLICATION FORM
-═══════════════════════════════════════════════════════════ */
+.coach-right {}
+
+.coach-right p {
+  font-size: .9rem;
+  font-weight: 400;
+  line-height: 1.8;
+  color: var(--text-2);
+  margin: 1.25rem 0 2rem;
+  max-width: 480px;
+}
+
+.cred-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cred {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color .18s, background .18s;
+}
+.cred:hover { border-color: var(--border-c); background: var(--card); }
+.cred-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--cyan);
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+.cred strong {
+  display: block;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.cred small {
+  font-size: .72rem;
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════════
+   APPLY — Formulario
+═══════════════════════════════════════════════════════ */
 #apply {
-  background: var(--black);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
 }
 
 .apply-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 5rem;
+  gap: 4rem;
   align-items: start;
 }
 
-.apply-left {}
 .apply-left p {
-  font-size: .92rem;
-  color: var(--gray);
+  font-size: .9rem;
+  font-weight: 400;
   line-height: 1.8;
-  font-weight: 300;
-  max-width: 420px;
-  margin-top: 1.5rem;
+  color: var(--text-2);
+  max-width: 400px;
+  margin: 1.25rem 0 2rem;
 }
 
-.apply-callouts {
+.apply-steps {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 2.5rem;
+  gap: 8px;
 }
-.callout {
+.apply-step {
   display: flex;
-  gap: 1rem;
+  gap: .85rem;
   align-items: flex-start;
   padding: 1rem 1.25rem;
   border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color .18s;
 }
-.callout:hover { border-color: var(--border-cyan); }
-.callout-icon {
-  font-family: var(--font-mono);
-  font-size: .7rem;
-  color: var(--cyan);
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-.callout p { font-size: .82rem; color: var(--gray); font-weight: 300; margin: 0; }
-.callout strong { font-family: var(--font-mono); font-size: .65rem; letter-spacing: .1em; color: var(--white); display: block; margin-bottom: 3px; }
-
-/* Form */
-.form-wrap {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 2.5rem;
-}
-
-.form-title {
-  font-family: var(--font-mono);
+.apply-step:hover { border-color: var(--border-c); }
+.apply-step-num {
   font-size: .6rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: .1em;
   color: var(--cyan);
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  width: 22px;
+  flex-shrink: 0;
+  padding-top: 2px;
 }
-.form-title span { color: var(--gray2); }
-
-.field {
-  margin-bottom: 1.25rem;
-}
-.field label {
+.apply-step strong {
   display: block;
-  font-family: var(--font-mono);
-  font-size: .58rem;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.apply-step p { font-size: .74rem; font-weight: 400; color: var(--text-2); line-height: 1.55; margin: 0; }
+
+.form-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 2rem;
+}
+.form-header {
+  font-size: .6rem;
+  font-weight: 700;
   letter-spacing: .16em;
   text-transform: uppercase;
-  color: var(--gray);
-  margin-bottom: 8px;
+  color: var(--cyan);
+  margin-bottom: 1.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
 }
-.field input,
-.field select {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--white);
-  font-family: var(--font-body);
-  font-size: .9rem;
-  font-weight: 300;
-  padding: 13px 16px;
-  outline: none;
-  transition: border-color .2s;
-  appearance: none;
-  -webkit-appearance: none;
-}
-.field input::placeholder { color: var(--gray2); }
-.field input:focus,
-.field select:focus { border-color: var(--cyan); }
 
+.field { margin-bottom: 1.1rem; }
+.field label {
+  display: block;
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-bottom: 7px;
+}
+.field input, .field select {
+  width: 100%;
+  background: #0a0a0c;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-main);
+  font-size: .88rem;
+  font-weight: 400;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color .18s;
+  appearance: none;
+}
+.field input::placeholder { color: var(--text-2); opacity: .5; }
+.field input:focus, .field select:focus { border-color: var(--cyan); }
 .select-wrap { position: relative; }
 .select-wrap::after {
   content: '▾';
   position: absolute;
-  right: 16px;
-  top: 50%;
+  right: 14px; top: 50%;
   transform: translateY(-50%);
   color: var(--cyan);
   pointer-events: none;
-  font-size: .8rem;
+  font-size: .75rem;
 }
-.field select option { background: var(--surface2); }
+.field select option { background: var(--card); }
 
-.radio-group {
-  display: flex;
-  gap: 1rem;
-}
-.radio-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
+.radio-group { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2px; }
+.radio-item { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .radio-item input[type="radio"] { display: none; }
 .radio-box {
-  width: 16px; height: 16px;
-  border: 1px solid var(--gray2);
+  width: 15px; height: 15px;
+  border: 1px solid var(--text-2);
+  border-radius: 3px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  transition: border-color .2s;
+  transition: border-color .15s;
 }
-.radio-item:has(input:checked) .radio-box {
-  border-color: var(--cyan);
-}
+.radio-item:has(input:checked) .radio-box { border-color: var(--cyan); }
 .radio-item:has(input:checked) .radio-box::after {
   content: '';
-  width: 8px; height: 8px;
+  width: 7px; height: 7px;
   background: var(--cyan);
+  border-radius: 2px;
 }
 .radio-item span {
-  font-family: var(--font-mono);
-  font-size: .65rem;
-  letter-spacing: .1em;
-  color: var(--gray);
+  font-size: .7rem;
+  font-weight: 500;
+  color: var(--text-2);
 }
 
 .form-note {
-  font-size: .72rem;
-  color: var(--gray2);
+  font-size: .68rem;
+  font-weight: 400;
+  color: var(--text-2);
   line-height: 1.6;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
   border-top: 1px solid var(--border);
 }
 
-/* Form success */
 .form-success {
   display: none;
   text-align: center;
-  padding: 3rem 2rem;
+  padding: 2.5rem 1rem;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: .85rem;
 }
 .form-success.show { display: flex; }
-.success-icon {
-  font-family: var(--font-display);
-  font-size: 3rem;
-  color: var(--cyan);
-}
+.success-icon { width: 48px; height: 48px; color: var(--cyan); }
 .success-title {
-  font-family: var(--font-display);
+  font-size: 1.2rem;
   font-weight: 800;
-  font-size: 1.5rem;
-  color: var(--white);
-  letter-spacing: .04em;
+  color: var(--text);
+  letter-spacing: -.5px;
 }
-.success-sub {
-  font-size: .85rem;
-  color: var(--gray);
-}
+.success-sub { font-size: .82rem; font-weight: 400; color: var(--text-2); }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    FAQ
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 #faq {
-  background: var(--void);
+  background: #080808;
+  border-top: 1px solid var(--border);
 }
 
 .faq-layout {
@@ -1455,65 +1144,57 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
   align-items: start;
 }
 
-.faq-list { max-width: 680px; }
-
+.faq-list { max-width: 660px; }
 .faq-item { border-bottom: 1px solid var(--border); }
-
 .faq-q {
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding: 1.5rem 0;
+  padding: 1.35rem 0;
   background: none;
   border: 0;
   cursor: pointer;
   text-align: left;
-  color: var(--white);
+  color: var(--text);
 }
 .faq-q-text {
-  font-family: var(--font-body);
-  font-size: .95rem;
-  font-weight: 400;
-  color: var(--off-white);
+  font-size: .9rem;
+  font-weight: 500;
+  color: var(--text);
   transition: color .15s;
+  line-height: 1.45;
 }
 .faq-q:hover .faq-q-text { color: var(--cyan); }
 .faq-q-icon {
   width: 24px; height: 24px;
   border: 1px solid var(--border);
+  border-radius: 6px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  color: var(--gray);
-  font-size: 1.1rem;
-  transition: border-color .2s, color .2s, transform .3s;
+  color: var(--text-2);
+  font-size: 1rem;
+  transition: border-color .18s, color .18s, transform .28s;
 }
-.faq-item.open .faq-q-icon {
-  border-color: var(--cyan);
-  color: var(--cyan);
-  transform: rotate(45deg);
-}
-.faq-a {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height .35s ease;
-}
+.faq-item.open .faq-q-icon { border-color: var(--cyan); color: var(--cyan); transform: rotate(45deg); }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height .32s ease; }
 .faq-a p {
-  padding-bottom: 1.5rem;
-  font-size: .88rem;
-  color: var(--gray);
-  line-height: 1.8;
-  font-weight: 300;
+  padding-bottom: 1.35rem;
+  font-size: .82rem;
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.75;
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    CTA FINAL
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 #cta-final {
-  background: var(--black);
-  padding: clamp(5rem, 10vw, 9rem) clamp(1.25rem, 5vw, 3.5rem);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: clamp(5rem, 10vw, 8rem) clamp(1.25rem, 5vw, 3rem);
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -1522,146 +1203,138 @@ section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3.5rem); }
   content: '';
   position: absolute;
   top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 900px; height: 900px;
-  background: radial-gradient(ellipse, rgba(0,210,220,.06) 0%, transparent 65%);
+  transform: translate(-50%,-50%);
+  width: 800px; height: 800px;
+  background: radial-gradient(ellipse, rgba(0,229,255,.055) 0%, transparent 65%);
   pointer-events: none;
 }
 
 .cta-eyebrow {
-  font-family: var(--font-mono);
-  font-size: .6rem;
-  letter-spacing: .25em;
-  text-transform: uppercase;
-  color: var(--gray);
-  margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-bottom: 1.5rem;
 }
 .cta-eyebrow::before, .cta-eyebrow::after {
   content: '';
-  width: 40px;
-  height: 1px;
+  width: 36px; height: 1px;
   background: var(--border);
 }
 
 .cta-title {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: clamp(3rem, 7vw, 6.5rem);
-  line-height: .88;
-  letter-spacing: -.02em;
-  color: var(--white);
-  text-transform: uppercase;
-  max-width: 800px;
-  margin: 0 auto 2rem;
+  font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -2px;
+  color: var(--text);
+  max-width: 700px;
+  margin: 0 auto 1.25rem;
 }
 .cta-title .accent { color: var(--cyan); }
 
 .cta-sub {
-  font-size: clamp(.9rem, 1.5vw, 1.05rem);
-  color: var(--gray);
+  font-size: clamp(.88rem, 1.3vw, 1rem);
+  font-weight: 400;
   line-height: 1.7;
-  font-weight: 300;
-  max-width: 520px;
-  margin: 0 auto 3rem;
+  color: var(--text-2);
+  max-width: 480px;
+  margin: 0 auto 2.5rem;
 }
 
 .cta-actions {
   display: flex;
-  gap: 1rem;
+  gap: .85rem;
   justify-content: center;
   flex-wrap: wrap;
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    FOOTER
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 footer {
-  background: var(--black);
+  background: var(--bg);
   border-top: 1px solid var(--border);
-  padding: 3rem clamp(1.25rem, 5vw, 3.5rem);
+  padding: 2.5rem clamp(1.25rem, 5vw, 3rem);
 }
 
-.footer-top {
-  max-width: 1200px;
+.footer-inner {
+  max-width: var(--max);
   margin: 0 auto;
+}
+.footer-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 2rem;
-  padding-bottom: 2.5rem;
+  padding-bottom: 2rem;
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
 }
-
 .footer-links {
   display: flex;
-  gap: 2rem;
+  gap: 1.75rem;
   flex-wrap: wrap;
 }
 .footer-link {
-  font-family: var(--font-mono);
   font-size: .6rem;
-  letter-spacing: .15em;
+  font-weight: 600;
+  letter-spacing: .12em;
   text-transform: uppercase;
-  color: var(--gray);
+  color: var(--text-2);
   transition: color .15s;
 }
-.footer-link:hover { color: var(--white); }
-.footer-link.c { color: rgba(0,210,220,.6); }
+.footer-link:hover { color: var(--text); }
+.footer-link.c { color: rgba(0,229,255,.6); }
 .footer-link.c:hover { color: var(--cyan); }
-.footer-link.a { opacity: .3; }
+.footer-link.a { opacity: .25; }
 .footer-link.a:hover { opacity: 1; color: var(--red); }
 
-.footer-social {
-  display: flex;
-  gap: 1rem;
-}
+.footer-social { display: flex; gap: .75rem; }
 .social-link {
-  width: 34px; height: 34px;
+  width: 32px; height: 32px;
   border: 1px solid var(--border);
+  border-radius: 7px;
   display: grid;
   place-items: center;
-  font-family: var(--font-mono);
   font-size: .55rem;
-  color: var(--gray);
+  font-weight: 700;
   letter-spacing: .05em;
-  transition: border-color .2s, color .2s;
+  color: var(--text-2);
+  transition: border-color .18s, color .18s;
 }
-.social-link:hover {
-  border-color: var(--cyan);
-  color: var(--cyan);
-}
+.social-link:hover { border-color: var(--cyan); color: var(--cyan); }
 
 .footer-bottom {
-  max-width: 1200px;
-  margin: 1.5rem auto 0;
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+  padding-top: 1.5rem;
 }
 .footer-legal {
-  font-family: var(--font-mono);
-  font-size: .55rem;
-  letter-spacing: .12em;
-  color: var(--gray2);
+  font-size: .56rem;
+  font-weight: 500;
+  letter-spacing: .08em;
+  color: rgba(143,143,153,.5);
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    RESPONSIVE
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 @media (max-width: 1024px) {
-  .hero-content { grid-template-columns: 1fr; gap: 3rem; }
-  .hero-right { display: none; }
-  .auth-grid { grid-template-columns: 1fr; gap: 3rem; }
-  .auth-visual { aspect-ratio: 16/9; max-height: 360px; }
-  .method-grid { grid-template-columns: 1fr; gap: 3rem; }
-  .panel-wrap { position: static; }
-  .apply-grid { grid-template-columns: 1fr; gap: 3rem; }
+  .hero-content { grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .how-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  .how-sticky { position: static; }
+  .diff-grid { grid-template-columns: 1fr; }
+  .coach-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  .coach-visual { aspect-ratio: 16/9; max-height: 340px; }
+  .apply-grid { grid-template-columns: 1fr; gap: 2.5rem; }
   .faq-layout { grid-template-columns: 1fr; gap: 2rem; }
   .faq-list { max-width: 100%; }
 }
@@ -1669,317 +1342,52 @@ footer {
 @media (max-width: 900px) {
   nav.desk, .header-right .btn-primary, .lang-switch { display: none; }
   .ham { display: flex; }
-  .pillars-grid { grid-template-columns: 1fr; }
-  .pillar { border-right: 0; border-bottom: 1px solid var(--border); }
-  .pillar:last-child { border-bottom: 0; }
-  .plans-grid { grid-template-columns: 1fr; gap: 1px; }
-  .team-split { grid-template-columns: 1fr; }
-  .team-visual { min-height: 300px; }
-  .team-text { border-right: 0; border-bottom: 1px solid var(--border); }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .forwho-grid { grid-template-columns: 1fr 1fr; }
+  .hero-content { grid-template-columns: 1fr; }
+  .hero-right { display: none; }
 }
 
 @media (max-width: 600px) {
-  .hero-h1 { font-size: clamp(2.6rem, 8vw, 3.5rem); }
+  .features-grid { grid-template-columns: 1fr; }
+  .forwho-grid { grid-template-columns: 1fr; }
   .hero-ctas { flex-direction: column; }
-  .hero-ctas .btn-primary, .hero-ctas .btn-outline, .hero-ctas .btn-ghost { width: 100%; }
-  .panel-metrics { grid-template-columns: repeat(2, 1fr); }
-  .form-wrap { padding: 1.5rem; }
+  .hero-ctas .btn { width: 100%; }
   .cta-actions { flex-direction: column; align-items: center; }
+  .cta-actions .btn { width: 100%; max-width: 340px; }
   .footer-top { flex-direction: column; align-items: flex-start; }
   .footer-bottom { flex-direction: column; }
-  .hero-stats-row { grid-template-columns: 1fr; }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   FOR WHO
-═══════════════════════════════════════════════════════════ */
-#for-who {
-  background: var(--black);
-  border-top: 1px solid var(--border);
-}
-
-.forwho-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border: 1px solid var(--border);
-  background: var(--surface);
-}
-
-.forwho-card {
-  padding: 2rem;
-  border-right: 1px solid var(--border);
-  min-height: 250px;
-  transition: background .2s, border-color .2s;
-}
-
-.forwho-card:last-child {
-  border-right: 0;
-}
-
-.forwho-card:hover {
-  background: var(--surface2);
-}
-
-.forwho-card span {
-  font-family: var(--font-mono);
-  font-size: .62rem;
-  letter-spacing: .2em;
-  color: var(--cyan);
-  display: block;
-  margin-bottom: 1.2rem;
-}
-
-.forwho-card h3 {
-  font-family: var(--font-display);
-  font-size: 1.55rem;
-  line-height: 1;
-  letter-spacing: .04em;
-  color: var(--white);
-  text-transform: uppercase;
-  margin-bottom: 1rem;
-}
-
-.forwho-card p {
-  color: var(--gray);
-  font-size: .88rem;
-  line-height: 1.7;
-  font-weight: 300;
-}
-
-@media (max-width: 1024px) {
-  .forwho-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .forwho-card:nth-child(2) {
-    border-right: 0;
-  }
-
-  .forwho-card:nth-child(1),
-  .forwho-card:nth-child(2) {
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-@media (max-width: 600px) {
-  .forwho-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .forwho-card {
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
-    min-height: auto;
-  }
-
-  .forwho-card:last-child {
-    border-bottom: 0;
-  }
-}
-
-@media (max-width: 600px) {
-  .logo-mark {
-    gap: 8px;
-  }
-
-  .logo-brackets {
-    font-size: 1.55rem;
-  }
-
-  .logo-sub-text {
-    font-size: .44rem;
-    letter-spacing: .12em;
-    padding-left: 8px;
-    line-height: 1.25;
-  }
-}
-
-/* ═══ PARCHE FINAL LIMPIO MOBILE HERO + AUTH + CTA ═══ */
-
-/* Oculta el placeholder de la tarjeta de credenciales */
-.auth-visual-placeholder {
-  display: none !important;
-}
-
-.auth-visual img {
-  position: relative;
-  z-index: 1;
-}
-
-.auth-corner {
-  z-index: 2;
-}
-
-@media (max-width: 900px) {
-  #hero {
-    min-height: 100svh;
-    align-items: flex-end;
-  }
-
-  .hero-bg {
-    background:
-      linear-gradient(180deg,
-        rgba(0,0,0,.10) 0%,
-        rgba(0,0,0,.24) 34%,
-        rgba(0,0,0,.86) 72%,
-        rgba(0,0,0,1) 100%
-      ),
-      linear-gradient(90deg,
-        rgba(0,0,0,.72) 0%,
-        rgba(0,0,0,.24) 50%,
-        rgba(0,0,0,.12) 100%
-      ),
-      url('/hero-abel-trainer.png.PNG?v=20260521-06');
-
-    background-repeat: no-repeat;
-    background-size: auto 78svh;
-    background-position: 58% 78px;
-  }
-
-  .hero-content {
-    grid-template-columns: 1fr;
-    padding: 49svh 0 calc(5.5rem + env(safe-area-inset-bottom));
-  }
-
-  .hero-left {
-    max-width: 100%;
-  }
-
-  .hero-h1 {
-    font-size: clamp(2.35rem, 11.5vw, 3.85rem);
-    line-height: 1;
-    letter-spacing: 0;
-    margin-bottom: 1.55rem;
-  }
-
-  .hero-desc {
-    max-width: 92%;
-    font-size: .98rem;
-    line-height: 1.7;
-    margin-bottom: 2.2rem;
-  }
-
-  .hero-ctas {
-    flex-direction: column;
-    gap: .85rem;
-  }
-
-  .hero-ctas .btn-primary,
-  .hero-ctas .btn-outline,
-  .hero-ctas .btn-ghost {
-    width: 100%;
-    min-height: 56px;
-  }
-}
-
-@media (max-width: 600px) {
-  #faq {
-    padding-bottom: 3.8rem;
-  }
-
-  #cta-final {
-    padding: 5.8rem 1.35rem calc(7rem + env(safe-area-inset-bottom));
-  }
-
-  .cta-eyebrow {
-    font-size: .5rem;
-    letter-spacing: .14em;
-    gap: 8px;
-    margin-bottom: 1.5rem;
-  }
-
-  .cta-eyebrow::before,
-  .cta-eyebrow::after {
-    width: 24px;
-  }
-
-  .cta-title {
-    font-size: clamp(2.55rem, 12.5vw, 3.8rem);
-    line-height: .98;
-    letter-spacing: 0;
-    margin-bottom: 1.75rem;
-  }
-
-  .cta-sub {
-    max-width: 92%;
-    font-size: .95rem;
-    line-height: 1.72;
-    margin-bottom: 2.6rem;
-  }
-
-  .cta-actions {
-    width: 100%;
-    gap: 1rem;
-  }
-
-  .cta-actions .btn-primary,
-  .cta-actions .btn-outline {
-    width: 100%;
-    min-height: 60px;
-    padding: 16px 18px;
-    font-size: .64rem;
-    letter-spacing: .12em;
-  }
-
-  .auth-visual {
-    aspect-ratio: 16 / 10;
-    max-height: 300px;
-  }
-
-  .auth-visual img {
-    object-fit: cover;
-    object-position: center top;
-  }
-
-  .auth-corner {
-    padding: .85rem 1rem;
-  }
+  .diff-grid { grid-template-columns: 1fr; }
+  .logo-sub { display: none; }
 }
 
 @media (max-width: 480px) {
-  .hero-bg {
-    background-size: auto 76svh;
-    background-position: 58% 78px;
-  }
-
-  .hero-content {
-    padding-top: 49svh;
-  }
-
-  .hero-pretitle {
-    margin-bottom: 1.25rem;
-  }
-
-  .hero-pretitle span {
-    font-size: .52rem;
-    letter-spacing: .16em;
-  }
+  .hero-h1 { font-size: clamp(2.1rem, 10vw, 2.8rem); letter-spacing: -1px; }
+  .section-title { font-size: clamp(1.8rem, 8vw, 2.4rem); }
+  .cta-title { font-size: clamp(2rem, 9vw, 2.8rem); }
 }
 </style>
 </head>
 <body>
 
-<!-- ═══ HEADER ═══════════════════════════════════════════ -->
+<!-- ═══ HEADER ════════════════════════════════════════ -->
 <header id="header">
   <a href="#hero" class="logo-mark" aria-label="AB SYSTEM">
-  <div class="logo-brackets">
-    <span class="b">[</span><span class="letters">AB</span><span class="b">]</span>
-  </div>
-  <div class="logo-sub-text">
-    <span>SYSTEM</span>
-    Matriz operativa
-  </div>
-</a>
+    <div class="logo-letters"><span class="c">[</span>AB<span class="c">]</span></div>
+    <div class="logo-sub">
+      <span>SYSTEM</span>
+      Health &amp; Performance
+    </div>
+  </a>
 
   <nav class="desk">
-  <a href="#que-ganas">Qué ganas</a>
-  <a href="#diferenciador">Diferencia</a>
-  <a href="#como-funciona">Cómo funciona</a>
-  <a href="#para-quien">Para quién</a>
-  <a href="#coach">Coach</a>
-  <a href="#apply">Evaluación</a>
-  <a href="/cliente.html">Área cliente</a>
-</nav>
+    <a href="#features">El sistema</a>
+    <a href="#how">Cómo funciona</a>
+    <a href="#for-who">Para quién</a>
+    <a href="#coach">Coach</a>
+    <a href="#apply">Evaluación</a>
+    <a href="/cliente.html">Área cliente</a>
+  </nav>
 
   <div class="header-right">
     <div class="lang-switch">
@@ -1989,28 +1397,23 @@ footer {
       <span>|</span>
       <a href="/en.html">EN</a>
     </div>
-    <a href="#apply" class="btn-primary">
-  Reservar evaluación
-</a>
+    <a href="#apply" class="btn btn-primary">Solicitar evaluación</a>
   </div>
 
-  <button class="ham" onclick="toggleMenu()" aria-label="Menú">
+  <button class="ham" id="hamBtn" onclick="toggleMenu()" aria-label="Menú">
     <span></span><span></span><span></span>
   </button>
 </header>
 
 <!-- Mobile nav -->
 <div class="mobile-menu" id="mobileNav">
-  <a href="#que-ganas" onclick="closeMenu()">Qué ganas</a>
-  <a href="#diferenciador" onclick="closeMenu()">Diferencia</a>
-  <a href="#como-funciona" onclick="closeMenu()">Cómo funciona</a>
-  <a href="#para-quien" onclick="closeMenu()">Para quién</a>
+  <a href="#features" onclick="closeMenu()">El sistema</a>
+  <a href="#how" onclick="closeMenu()">Cómo funciona</a>
+  <a href="#for-who" onclick="closeMenu()">Para quién</a>
   <a href="#coach" onclick="closeMenu()">Coach</a>
   <a href="#apply" onclick="closeMenu()">Evaluación</a>
   <a href="/cliente.html" onclick="closeMenu()">Área cliente</a>
-  <a href="#apply" class="cta-mobile" onclick="closeMenu();">
-    [ RESERVAR EVALUACIÓN ]
-  </a>
+  <a href="#apply" class="cta-m" onclick="closeMenu()">Solicitar evaluación</a>
   <div class="mobile-lang">
     <a class="active" href="/">ES</a>
     <a href="/sr.html">SR</a>
@@ -2018,12 +1421,11 @@ footer {
   </div>
 </div>
 
-<!-- ═══ HERO ═══════════════════════════════════════════════ -->
-<section id="hero" class="hero-image-layout">
-  <div class="hero-bg" aria-hidden="true"></div>
+<!-- ═══ HERO ══════════════════════════════════════════ -->
+<section id="hero">
   <div class="hero-scanline" aria-hidden="true"></div>
 
-  <div class="hero-content inner">
+  <div class="hero-content">
     <div class="hero-left">
       <div class="hero-pretitle">
         <div class="line"></div>
@@ -2031,228 +1433,379 @@ footer {
       </div>
 
       <h1 class="hero-h1">
-        <span class="block">AB SYSTEM</span>
-        <span class="block accent">ESTRUCTURA,</span>
-        <span class="block">SEGUIMIENTO</span>
-        <span class="block">Y ADAPTACIÓN</span>
-        <span class="block">REAL.</span>
+        Tu entrenamiento,<br>
+        tu progreso y tu<br>
+        coach en <span class="accent">un solo sistema.</span>
       </h1>
 
-      <p class="hero-desc">
-        No es una rutina genérica ni entrenar por entrenar. Cada persona tiene un punto de partida, un objetivo y una realidad diferente. Por eso tu plan se construye con evaluación, se ejecuta con un coach real y se ajusta con datos.
+      <p class="hero-sub">
+        AB SYSTEM conecta planificación, entrenamiento, check-ins, reservas, salud y progreso para que entrenes con estructura y seguimiento real.
       </p>
 
       <div class="hero-ctas">
-        <a href="#apply" class="btn-primary">
-          [ RESERVAR EVALUACIÓN INICIAL ]
-        </a>
-        <a href="#como-funciona" class="btn-outline">Ver cómo funciona</a>
+        <a href="#apply" class="btn btn-primary">Solicitar evaluación</a>
+        <a href="#how" class="btn btn-outline">Ver cómo funciona</a>
       </div>
 
-      <div class="hero-mini-points">
-        <span>Evaluación</span>
-        <span>Planificación</span>
-        <span>Seguimiento</span>
-        <span>Adaptación</span>
+      <div class="hero-chips">
+        <span class="hero-chip">Evaluación</span>
+        <span class="hero-chip">Planificación</span>
+        <span class="hero-chip">Seguimiento</span>
+        <span class="hero-chip">Adaptación</span>
+        <span class="hero-chip">Check-in diario</span>
+      </div>
+    </div>
+
+    <!-- Screenshots reales de la app -->
+    <div class="hero-right">
+      <div class="screens-stack">
+
+        <!-- Pantalla principal: perfil del cliente -->
+        <div class="screen-frame screen-main">
+          <img
+            src="/cliente-2.png"
+            alt="AB SYSTEM — Perfil del cliente con adherencia, próxima sesión y accesos rápidos"
+            loading="eager"
+            decoding="async"
+          >
+        </div>
+
+        <!-- Pantalla secundaria: bloque de entrenamiento activo -->
+        <div class="screen-frame screen-secondary">
+          <img
+            src="/cliente.png"
+            alt="AB SYSTEM — Bloque de entrenamiento activo con checklist de ejercicios"
+            loading="eager"
+            decoding="async"
+          >
+        </div>
+
+        <!-- Etiqueta de contexto -->
+        <div class="screen-tag">Sistema real</div>
+
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ FOR WHO ═══════════════════════════════════════════ -->
-<section id="para-quien">
-  <div class="inner">
-    <div class="section-header reveal">
-      <div>
-        <div class="label-cyan" style="margin-bottom:.75rem; display:flex; align-items:center; gap:10px;">
-  <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
-  Para quién es
+<!-- ═══ TICKER ═════════════════════════════════════════ -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-inner">
+    <span>Entrenamiento estructurado</span><span class="sep">·</span>
+    <span>Check-in diario</span><span class="sep">·</span>
+    <span>Progreso real</span><span class="sep">·</span>
+    <span>Salud y adaptación</span><span class="sep">·</span>
+    <span>Reservas y comunicación</span><span class="sep">·</span>
+    <span>Seguimiento del coach</span><span class="sep">·</span>
+    <span>Evaluación inicial</span><span class="sep">·</span>
+    <span>Plan personalizado</span><span class="sep">·</span>
+    <span>Entrenamiento estructurado</span><span class="sep">·</span>
+    <span>Check-in diario</span><span class="sep">·</span>
+    <span>Progreso real</span><span class="sep">·</span>
+    <span>Salud y adaptación</span><span class="sep">·</span>
+    <span>Reservas y comunicación</span><span class="sep">·</span>
+    <span>Seguimiento del coach</span><span class="sep">·</span>
+    <span>Evaluación inicial</span><span class="sep">·</span>
+    <span>Plan personalizado</span><span class="sep">·</span>
+  </div>
 </div>
-<h2 class="section-title">PARA QUIEN QUIERE<br><span class="accent">ENTRENAR CON CONTROL</span></h2>
-      </div>
-      <div class="section-number">SECTION_01</div>
+
+<!-- ═══ FEATURES — Qué hace AB SYSTEM ════════════════ -->
+<section id="features">
+  <div class="inner">
+    <div class="features-header">
+      <div class="label-tag reveal">Qué hace AB SYSTEM</div>
+      <h2 class="section-title reveal d1">Un sistema,<br>no una <span class="accent">lista de ejercicios.</span></h2>
     </div>
+
+    <div class="features-grid">
+      <div class="feature-card reveal d1">
+        <div class="feature-icon">
+          <!-- Dumbbell -->
+          <svg viewBox="0 0 24 24"><path d="M6.5 6.5h11"/><path d="M6.5 17.5h11"/><circle cx="4" cy="9" r="2"/><circle cx="4" cy="15" r="2"/><circle cx="20" cy="9" r="2"/><circle cx="20" cy="15" r="2"/><line x1="4" y1="9" x2="4" y2="15"/><line x1="20" y1="9" x2="20" y2="15"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
+        </div>
+        <div class="feature-title">Entrenamiento estructurado</div>
+        <div class="feature-desc">Sesiones organizadas por bloques, objetivos, dificultad y seguimiento. Sin improvisar.</div>
+      </div>
+
+      <div class="feature-card reveal d2">
+        <div class="feature-icon">
+          <!-- Check/clipboard -->
+          <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+        </div>
+        <div class="feature-title">Check-in diario</div>
+        <div class="feature-desc">Registra sueño, energía y sensaciones. El coach ve tu estado antes de cada sesión.</div>
+      </div>
+
+      <div class="feature-card reveal d3">
+        <div class="feature-icon">
+          <!-- Chart -->
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="feature-title">Progreso y evaluaciones</div>
+        <div class="feature-desc">Evaluación inicial, métricas de fuerza, movilidad y resistencia. Ves cómo avanzas.</div>
+      </div>
+
+      <div class="feature-card reveal d1">
+        <div class="feature-icon">
+          <!-- Heart -->
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        </div>
+        <div class="feature-title">Salud y adaptación</div>
+        <div class="feature-desc">Si hay una molestia o limitación, el plan se adapta. No se para, se ajusta.</div>
+      </div>
+
+      <div class="feature-card reveal d2">
+        <div class="feature-icon">
+          <!-- Calendar -->
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="feature-title">Reservas y comunicación</div>
+        <div class="feature-desc">Agenda sesiones, recibe notificaciones y comunícate con el coach desde la misma app.</div>
+      </div>
+
+      <div class="feature-card reveal d3">
+        <div class="feature-icon">
+          <!-- User/coach -->
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="feature-title">Seguimiento del coach</div>
+        <div class="feature-desc">El coach tiene visibilidad completa de cada cliente, ajusta cargas y detecta problemas antes de que sean mayores.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ══════════════════════════════════ -->
+<section id="how">
+  <div class="inner">
+    <div class="how-grid">
+      <div class="how-sticky">
+        <div class="label-tag reveal">Cómo funciona</div>
+        <h2 class="section-title reveal d1">De la evaluación<br>al progreso,<br><span class="accent">sin improvisar.</span></h2>
+        <p class="reveal d2" style="font-size:.9rem;font-weight:400;line-height:1.75;color:var(--text-2);margin-top:1.25rem;max-width:340px;">
+          Cada cliente pasa por el mismo proceso: evaluación honesta, plan real, seguimiento constante y ajuste cuando hace falta.
+        </p>
+      </div>
+
+      <div class="steps">
+        <div class="step reveal d1">
+          <div class="step-num">01</div>
+          <div class="step-body">
+            <strong>Evaluación inicial</strong>
+            <p>Conocemos tu nivel, movilidad, condición física, objetivos y posibles limitaciones antes de asignar nada.</p>
+          </div>
+        </div>
+        <div class="step reveal d2">
+          <div class="step-num">02</div>
+          <div class="step-body">
+            <strong>Plan asignado</strong>
+            <p>Se te asigna un plan específico según tu perfil. No es una plantilla genérica adaptada a nadie.</p>
+          </div>
+        </div>
+        <div class="step reveal d3">
+          <div class="step-num">03</div>
+          <div class="step-body">
+            <strong>Entrenamiento guiado</strong>
+            <p>Cada sesión tiene bloques, ejercicios, cargas y objetivos claros. El coach ve en tiempo real cómo va cada cliente.</p>
+          </div>
+        </div>
+        <div class="step reveal d4">
+          <div class="step-num">04</div>
+          <div class="step-body">
+            <strong>Check-in y sensaciones</strong>
+            <p>Registras energía, sueño y cómo te encuentras. El sistema detecta patrones. El coach ajusta si hace falta.</p>
+          </div>
+        </div>
+        <div class="step reveal d4">
+          <div class="step-num">05</div>
+          <div class="step-body">
+            <strong>Ajustes del coach</strong>
+            <p>Si hay molestias, cambios de objetivo o bajón de rendimiento, el plan se modifica. Siempre hay una razón detrás del cambio.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOR WHO ════════════════════════════════════════ -->
+<section id="for-who">
+  <div class="inner">
+    <div class="reveal"><div class="label-tag">Para quién es</div></div>
+    <h2 class="section-title reveal d1">Para quien quiere<br><span class="accent">entrenar con control.</span></h2>
 
     <div class="forwho-grid">
       <div class="forwho-card reveal d1">
-        <span>01</span>
-        <h3>Personas que quieren ponerse en forma</h3>
-        <p>Si quieres entrenar con estructura, mejorar tu cuerpo y sentirte con más energía sin hacer rutinas al azar.</p>
+        <span class="forwho-num">01</span>
+        <h3>Clientes que quieren ponerse en forma</h3>
+        <p>Si quieres mejorar tu cuerpo y sentirte con más energía sin hacer rutinas al azar ni perder el tiempo.</p>
       </div>
-
       <div class="forwho-card reveal d2">
-        <span>02</span>
-        <h3>Principiantes</h3>
-        <p>Si estás empezando, el trabajo se adapta a tu nivel: técnica, movilidad, fuerza básica y progresión segura.</p>
+        <span class="forwho-num">02</span>
+        <h3>Personas que quieren moverse mejor</h3>
+        <p>Movilidad, postura, control corporal. Entrenar bien es más que levantar peso.</p>
       </div>
-
       <div class="forwho-card reveal d3">
-        <span>03</span>
-        <h3>Personas ocupadas</h3>
-        <p>Si necesitas entrenar de forma eficiente, con sesiones claras, objetivos medibles y seguimiento real.</p>
+        <span class="forwho-num">03</span>
+        <h3>Atletas o perfiles de rendimiento</h3>
+        <p>Si ya tienes base deportiva y necesitas planificación real, seguimiento de carga y evaluaciones de rendimiento.</p>
       </div>
-
       <div class="forwho-card reveal d4">
-        <span>04</span>
-        <h3>Atletas o ex atletas</h3>
-        <p>Si ya tienes base deportiva y quieres recuperar rendimiento, condición física o preparación específica.</p>
+        <span class="forwho-num">04</span>
+        <h3>Entrenamiento funcional con base de lucha</h3>
+        <p>Fuerza útil, coordinación, resistencia y técnica de movimiento con metodología de combate adaptada a cualquier perfil.</p>
       </div>
+    </div>
+
+    <div class="for-who-note reveal">
+      <strong>Fuerza, condición física, movilidad, agarre, coordinación y técnica sin impacto.</strong><br>
+      El sistema se ajusta al punto de partida de cada persona. No hay requisitos previos para empezar.
     </div>
   </div>
 </section>
 
-<!-- ═══ PILLARS ═══════════════════════════════════════════ -->
-<section id="que-ganas">
+<!-- ═══ DIFFERENTIATOR ════════════════════════════════ -->
+<section id="differentiator">
   <div class="inner">
-    <div class="section-header reveal">
-      <div>
-        <div class="label-cyan" style="margin-bottom:.75rem; display:flex; align-items:center; gap:10px;">
-  <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
-  Qué ganas con AB SYSTEM
-</div>
-<h2 class="section-title">ENTRENAS CON<br><span class="accent">ESTRUCTURA</span></h2>
-      </div>
-      <div class="section-number">SECTION_01</div>
-    </div>
+    <div class="reveal"><div class="label-tag">Por qué AB SYSTEM</div></div>
+    <h2 class="section-title reveal d1">No es una plantilla vacía.<br><span class="accent">Es un sistema real.</span></h2>
 
-    <div class="pillars-grid">
-      <div class="pillar reveal d1">
-        <div class="pillar-num">01</div>
-        <div class="pillar-tag">Health</div>
-        <h3>Salud Integral</h3>
-        <p>Optimización energética y longevidad como base del rendimiento. Sin salud no hay performance sostenible.</p>
-        <ul class="pillar-list">
-          <li>Optimización energética y hormonal</li>
-          <li>Calidad del sueño y recuperación</li>
-          <li>Hábitos base y longevidad celular</li>
-          <li>Nutrición orientativa deportiva</li>
-        </ul>
-      </div>
-
-      <div class="pillar reveal d2">
-        <div class="pillar-num">02</div>
-        <div class="pillar-tag">Performance</div>
-        <h3>Rendimiento</h3>
-        <p>Desarrollo de fuerza funcional, biomecánica avanzada y acondicionamiento atlético con base metodológica real.</p>
-        <ul class="pillar-list">
-          <li>Fuerza funcional y útil</li>
-          <li>Biomecánica y control corporal</li>
-          <li>Resistencia y capacidad de trabajo</li>
-          <li>Progresión medible y real</li>
-        </ul>
-      </div>
-
-      <div class="pillar reveal d3">
-        <div class="pillar-num">03</div>
-        <div class="pillar-tag">Coaching</div>
-        <h3>Seguimiento</h3>
-        <p>Comunicación directa, métricas en tiempo real y planificación personalizada. El coach ajusta el proceso según resultados.</p>
-        <ul class="pillar-list">
-          <li>Seguimiento diario y check-ins</li>
-          <li>Métricas y registro de progreso</li>
-          <li>Ajustes según evolución real</li>
-          <li>Panel privado del cliente</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- NUEVA SECCIÓN DIFERENCIADOR -->
-<section id="diferenciador" style="background: var(--black); border-top: 1px solid var(--border);">
-  <div class="inner">
-    <div class="section-header reveal">
-      <div>
-        <div class="label-cyan" style="margin-bottom:.75rem; display:flex; align-items:center; gap:10px;">
-          <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
-          Qué nos diferencia
+    <div class="diff-grid">
+      <div class="diff-col generic reveal d1">
+        <div class="diff-col-header">
+          <span>Plan genérico</span>
         </div>
-        <h2 class="section-title">LA TECNOLOGÍA<br>ORGANIZA.<br><span class="accent">EL COACH DIRIGE.</span></h2>
-      </div>
-      <div class="section-number">SECTION_02</div>
-    </div>
-    
-    <div style="max-width: 680px;">
-      <p class="reveal" style="font-size: 1.05rem; color: var(--off-white); line-height: 1.8; font-weight: 300; margin-bottom: 1.5rem;">
-        AB SYSTEM no es una app genérica de rutinas. Tampoco es solo una agenda de clases o una lista de ejercicios.
-      </p>
-      <p class="reveal d1" style="font-size: .95rem; color: var(--gray); line-height: 1.8; font-weight: 300;">
-        Es una plataforma de entrenamiento que une planificación, evaluación, seguimiento y adaptación en un mismo sistema. La tecnología ayuda a organizar el proceso, pero la dirección sigue estando en manos de un coach real. Cada sesión tiene lógica, cada ajuste tiene un motivo y cada cliente recibe una experiencia más personalizada.
-      </p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ AUTHORITY ══════════════════════════════════════════ -->
-<section id="coach">
-  <div class="inner">
-    <div class="auth-grid">
-      <div class="auth-visual reveal">
-        <img
-  src="hero-abel-trainer.png.PNG?v=20260521-03"
-  alt="Abel Trainer — Health & Performance en Belgrado"
-  loading="lazy"
->
-        <div class="auth-visual-placeholder" aria-hidden="true">
-          <svg class="placeholder-svg" viewBox="0 0 100 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="30" r="22" stroke="white" stroke-width="1.5"/>
-            <path d="M10 140 C10 90 90 90 90 140" stroke="white" stroke-width="1.5"/>
-          </svg>
-          <div class="placeholder-label">
-            Foto del entrenador<br>
-            Abel Balsinde
+        <div class="diff-items">
+          <div class="diff-item">
+            <span class="icon">✗</span>
+            Misma rutina para todos
+          </div>
+          <div class="diff-item">
+            <span class="icon">✗</span>
+            Sin evaluación de partida
+          </div>
+          <div class="diff-item">
+            <span class="icon">✗</span>
+            Sin seguimiento real entre sesiones
+          </div>
+          <div class="diff-item">
+            <span class="icon">✗</span>
+            Sin adaptación a molestias o cambios
+          </div>
+          <div class="diff-item">
+            <span class="icon">✗</span>
+            Sin visibilidad del coach en tiempo real
+          </div>
+          <div class="diff-item">
+            <span class="icon">✗</span>
+            Sin datos de progreso ni carga
           </div>
         </div>
-        <div class="auth-corner">
-          <b>UWW</b>
+      </div>
+
+      <div class="diff-col system reveal d2">
+        <div class="diff-col-header">
+          <span>AB SYSTEM</span>
+        </div>
+        <div class="diff-items">
+          <div class="diff-item">
+            <span class="icon">✓</span>
+            Plan personalizado desde evaluación inicial
+          </div>
+          <div class="diff-item">
+            <span class="icon">✓</span>
+            Evaluación real antes de asignar nada
+          </div>
+          <div class="diff-item">
+            <span class="icon">✓</span>
+            Check-in diario, sensaciones y alertas
+          </div>
+          <div class="diff-item">
+            <span class="icon">✓</span>
+            Adaptación automática y manual del plan
+          </div>
+          <div class="diff-item">
+            <span class="icon">✓</span>
+            El coach ve el estado de cada cliente en sala
+          </div>
+          <div class="diff-item">
+            <span class="icon">✓</span>
+            Métricas de progreso, cargas y adherencia
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ COACH ══════════════════════════════════════════ -->
+<section id="coach">
+  <div class="inner">
+    <div class="coach-grid">
+      <div class="coach-visual reveal">
+        <img
+          src="/hero-abel-trainer.png.PNG"
+          alt="Abel Balsinde — Entrenador UWW Level 2, Belgrado"
+          loading="lazy"
+          onerror="this.style.display='none'"
+        >
+        <!-- Placeholder si no carga la imagen -->
+        <div class="coach-placeholder" aria-hidden="true">
+          <svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="32" r="22" stroke-width="1.5"/>
+            <path d="M10 140 C10 90 90 90 90 140" stroke-width="1.5"/>
+          </svg>
+          <span>Abel Balsinde</span>
+        </div>
+        <div class="coach-badge">
+          <strong>UWW</strong>
           <span>Level 2 Certified</span>
         </div>
       </div>
 
-      <div class="auth-right">
-        <div class="label-cyan reveal" style="display:flex; align-items:center; gap:10px; margin-bottom:.75rem;">
-  <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
-  Una persona real detrás del sistema
-</div>
-<h2 class="section-title reveal d1">AB SYSTEM<br>LO DIRIGE<br><span class="accent">ABEL BALSINDE</span></h2>
-        <p class="reveal d2" style="font-size:.92rem; color:var(--gray); line-height:1.8; font-weight:300; margin:1.5rem 0 2rem;">
-  Entrenador de lucha olímpica y preparación física con experiencia como atleta y coach. La plataforma organiza el proceso, pero el seguimiento, las decisiones y los ajustes vienen de una mirada profesional.
-</p>
+      <div class="coach-right">
+        <div class="label-tag reveal">Creado desde la experiencia real</div>
+        <h2 class="section-title reveal d1">Detrás del sistema<br>hay un coach <span class="accent">real.</span></h2>
+
+        <p class="reveal d2">
+          AB SYSTEM nace del trabajo diario con clientes, atletas y sesiones reales en sala. La plataforma organiza el proceso, pero el seguimiento, las decisiones y los ajustes vienen de una mirada profesional. Detrás del sistema hay un coach que evalúa, ajusta y acompaña.
+        </p>
 
         <div class="cred-list">
           <div class="cred reveal d1">
-            <div class="cred-icon"></div>
+            <div class="cred-dot"></div>
             <div>
-              <strong>Formación cubana</strong>
-              <small>Escuela de deporte, lucha olímpica y preparación física de alto nivel</small>
+              <strong>Formación cubana en lucha olímpica</strong>
+              <small>Escuela de deporte, preparación física de alto nivel y metodología de rendimiento</small>
             </div>
           </div>
           <div class="cred reveal d2">
-            <div class="cred-icon"></div>
+            <div class="cred-dot"></div>
             <div>
               <strong>UWW Level 2 Coaching</strong>
               <small>Certificación internacional de entrenador — United World Wrestling</small>
             </div>
           </div>
           <div class="cred reveal d2">
-            <div class="cred-icon"></div>
+            <div class="cred-dot"></div>
             <div>
               <strong>Diploma Federal de Entrenador</strong>
               <small>Federación Española de Lucha — formación técnica de élite</small>
             </div>
           </div>
           <div class="cred reveal d3">
-            <div class="cred-icon"></div>
+            <div class="cred-dot"></div>
             <div>
-              <strong>Rvacki klub Partizan</strong>
-              <small>Entrenador en el club de élite de Belgrado, Serbia</small>
+              <strong>Rvacki klub Partizan, Belgrado</strong>
+              <small>Entrenador en uno de los clubes de referencia de Serbia</small>
             </div>
           </div>
           <div class="cred reveal d3">
-            <div class="cred-icon"></div>
+            <div class="cred-dot"></div>
             <div>
               <strong>Club de Lluita Camp de Morvedre</strong>
-              <small>Entrenador en España — experiencia con deportistas y no atletas</small>
+              <small>Experiencia con deportistas y clientes no atletas en España</small>
             </div>
           </div>
         </div>
@@ -2261,93 +1814,34 @@ footer {
   </div>
 </section>
 
-<!-- ═══ METHOD ══════════════════════════════════════════════ -->
-<section id="como-funciona">
-  <div class="inner">
-    <div class="section-header reveal">
-      <div>
-        <div class="label-cyan" style="margin-bottom:.75rem; display:flex; align-items:center; gap:10px;">
-  <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
-  Cómo funciona
-</div>
-<h2 class="section-title">DE LA EVALUACIÓN<br>AL PROGRESO,<br><span class="accent">SIN IMPROVISAR</span></h2>
-      </div>
-      <div class="section-number">SECTION_02</div>
-    </div>
-
-    <div class="method-grid">
-      <div class="method-steps">
-        <div class="step reveal d1">
-  <div class="step-num">01</div>
-  <div class="step-body">
-    <strong>Evaluación inicial</strong>
-    <p>Conocemos tu nivel, movilidad, condición física, objetivos y posibles limitaciones.</p>
-  </div>
-</div>
-<div class="step reveal d2">
-  <div class="step-num">02</div>
-  <div class="step-body">
-    <strong>Plan adaptado</strong>
-    <p>Asignamos un entrenamiento según tu perfil. No es genérico.</p>
-  </div>
-</div>
-<div class="step reveal d3">
-  <div class="step-num">03</div>
-  <div class="step-body">
-    <strong>Registro y seguimiento</strong>
-    <p>Sesiones, sensaciones, energía, molestias y evolución quedan guardadas.</p>
-  </div>
-</div>
-<div class="step reveal d4">
-  <div class="step-num">04</div>
-  <div class="step-body">
-    <strong>Ajuste constante</strong>
-    <p>Si hace falta, modificamos para que sigas progresando con seguridad y sin forzar de más.</p>
-  </div>
-</div>
-      </div>
-
-      <div class="panel-wrap reveal d2">
-  <div style="border: 1px solid var(--border-cyan); overflow: hidden; border-radius: 2px;">
-    <img
-      src="/app-screenshot.png.png"
-      alt="AB SYSTEM — Panel del coach"
-      style="width:100%; display:block; filter: brightness(.92) contrast(1.05);"
-    >
-  </div>
-</div>
-
-<!-- ═══ APPLICATION FORM ════════════════════════════════════ -->
+<!-- ═══ APPLY ═════════════════════════════════════════ -->
 <section id="apply">
   <div class="inner">
     <div class="apply-grid">
       <div class="apply-left">
-        <div class="label-cyan" style="display:flex; align-items:center; gap:10px; margin-bottom:.75rem;">
-  <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
-  Primer paso
-</div>
-<h2 class="section-title">EMPIEZA CON<br><span class="accent">UNA EVALUACIÓN</span></h2>
-        <p class="reveal d2" style="font-size:.92rem; color:var(--gray); line-height:1.8; font-weight:300; max-width:420px; margin-top:1.5rem;">
-  El primer paso es conocer tu punto de partida. Reserva una sesión de reconocimiento y descubre qué necesitas mejorar y qué camino tiene más sentido para ti.
-</p>
+        <div class="label-tag reveal">Primer paso</div>
+        <h2 class="section-title reveal d1">Empieza con<br>una <span class="accent">evaluación.</span></h2>
+        <p class="reveal d2">
+          El primer paso es conocer tu punto de partida. Reserva una sesión de evaluación y descubre qué necesitas mejorar y qué camino tiene más sentido para ti.
+        </p>
 
-        <div class="apply-callouts">
-          <div class="callout reveal d2">
-            <div class="callout-icon">01</div>
+        <div class="apply-steps">
+          <div class="apply-step reveal d2">
+            <div class="apply-step-num">01</div>
             <div>
-              <strong>Evaluación del perfil</strong>
-              <p>Se revisa tu objetivo y nivel actual antes de asignar plan</p>
+              <strong>Perfil y objetivo</strong>
+              <p>Se revisa tu nivel, objetivo y punto de partida antes de asignar nada</p>
             </div>
           </div>
-          <div class="callout reveal d3">
-            <div class="callout-icon">02</div>
+          <div class="apply-step reveal d3">
+            <div class="apply-step-num">02</div>
             <div>
               <strong>Respuesta directa</strong>
-              <p>Abel responde por WhatsApp con la propuesta adecuada</p>
+              <p>Abel responde por WhatsApp con la propuesta adecuada en menos de 24h</p>
             </div>
           </div>
-          <div class="callout reveal d3">
-            <div class="callout-icon">03</div>
+          <div class="apply-step reveal d3">
+            <div class="apply-step-num">03</div>
             <div>
               <strong>Inicio del proceso</strong>
               <p>Evaluación inicial y asignación del plan personalizado</p>
@@ -2357,37 +1851,32 @@ footer {
       </div>
 
       <div class="form-wrap reveal d2">
-        <div class="form-title">
-          <span>Formulario de aplicación</span>
-          <span>SECTION_04</span>
-        </div>
+        <div class="form-header">Formulario de evaluación</div>
 
         <div id="appForm">
           <div class="field">
             <label for="fname">Nombre completo</label>
             <input type="text" id="fname" placeholder="Tu nombre y apellidos">
           </div>
-
           <div class="field">
             <label for="femail">Correo electrónico</label>
             <input type="email" id="femail" placeholder="tu@email.com">
           </div>
-
           <div class="field">
             <label for="fgoal">Objetivo principal</label>
             <div class="select-wrap">
               <select id="fgoal">
                 <option value="" disabled selected>Selecciona tu objetivo</option>
-                <option value="fuerza">Fuerza</option>
-                <option value="salud">Salud</option>
+                <option value="fuerza">Fuerza y músculo</option>
+                <option value="salud">Salud y bienestar general</option>
                 <option value="recomposicion">Recomposición corporal</option>
-                <option value="elite">Rendimiento de élite</option>
+                <option value="rendimiento">Rendimiento deportivo</option>
+                <option value="movilidad">Movilidad y control corporal</option>
               </select>
             </div>
           </div>
-
           <div class="field">
-            <label>¿Estás listo para comprometerte al 100% con el proceso?</label>
+            <label>¿Puedes comprometerte con el proceso?</label>
             <div class="radio-group">
               <label class="radio-item">
                 <input type="radio" name="commitment" value="si">
@@ -2395,27 +1884,29 @@ footer {
                 <span>Sí, al 100%</span>
               </label>
               <label class="radio-item">
-                <input type="radio" name="commitment" value="no">
+                <input type="radio" name="commitment" value="evaluando">
                 <div class="radio-box"></div>
-                <span>Todavía no estoy seguro</span>
+                <span>Todavía evaluando</span>
               </label>
             </div>
           </div>
 
-          <div style="margin-top:1.75rem;">
-            <button class="btn-primary" style="width:100%;" onclick="submitForm()">
-              [ ENVIAR APLICACIÓN AL EQUIPO ]
+          <div style="margin-top:1.5rem;">
+            <button class="btn btn-primary" style="width:100%;" onclick="submitForm()">
+              Enviar solicitud
             </button>
           </div>
 
           <div class="form-note">
-            Tu solicitud se revisa manualmente. Abel responde en menos de 24h por WhatsApp o correo electrónico.
+            Tu solicitud se revisa manualmente. Abel responde en menos de 24h por WhatsApp o correo.
           </div>
         </div>
 
         <div class="form-success" id="formSuccess">
-          <div class="success-icon">[✓]</div>
-          <div class="success-title">APLICACIÓN ENVIADA</div>
+          <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <div class="success-title">Solicitud enviada</div>
           <p class="success-sub">Abel revisará tu perfil y te contactará en menos de 24 horas para el siguiente paso.</p>
         </div>
       </div>
@@ -2423,18 +1914,15 @@ footer {
   </div>
 </section>
 
-<!-- ═══ FAQ ══════════════════════════════════════════════════ -->
+<!-- ═══ FAQ ════════════════════════════════════════════ -->
 <section id="faq">
   <div class="inner">
     <div class="faq-layout">
       <div>
-        <div class="label-cyan reveal" style="display:flex; align-items:center; gap:10px; margin-bottom:.75rem;">
-          <span style="width:20px; height:1px; background:var(--cyan); display:block;"></span>
-          Preguntas frecuentes
-        </div>
-        <h2 class="section-title reveal d1">PREGUNTAS<br><span class="accent">CLAVE</span></h2>
-        <p class="reveal d2" style="font-size:.88rem; color:var(--gray); font-weight:300; line-height:1.8; margin-top:1.5rem; max-width:300px;">
-          Todo lo que necesitas saber antes de aplicar al programa.
+        <div class="label-tag reveal">Preguntas frecuentes</div>
+        <h2 class="section-title reveal d1">Preguntas<br><span class="accent">clave.</span></h2>
+        <p class="reveal d2" style="font-size:.85rem;font-weight:400;line-height:1.75;color:var(--text-2);margin-top:1.25rem;max-width:280px;">
+          Lo que necesitas saber antes de dar el primer paso.
         </p>
       </div>
 
@@ -2448,130 +1936,122 @@ footer {
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">¿El entrenamiento es solo para perder grasa?</span>
+            <span class="faq-q-text">¿Es solo para perder grasa o ganar músculo?</span>
             <span class="faq-q-icon">+</span>
           </button>
-          <div class="faq-a"><p>No. El sistema trabaja fuerza, movilidad, resistencia y condición física integral. La recomposición corporal puede ser uno de los resultados, pero el objetivo se define en la evaluación inicial según tu caso.</p></div>
+          <div class="faq-a"><p>No. El sistema trabaja fuerza, movilidad, resistencia y condición física integral. El objetivo se define en la evaluación inicial según tu caso. La recomposición corporal puede ser uno de los resultados, pero no el único.</p></div>
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">
             <span class="faq-q-text">¿Hay seguimiento real entre sesiones?</span>
             <span class="faq-q-icon">+</span>
           </button>
-          <div class="faq-a"><p>Sí. El seguimiento es parte central del sistema. Se registran métricas, se realizan check-ins periódicos y el plan se ajusta según tus resultados reales, no según plantillas genéricas.</p></div>
+          <div class="faq-a"><p>Sí. El seguimiento es parte central del sistema. Se registran métricas, check-ins periódicos y el plan se ajusta según resultados reales, no según plantillas genéricas.</p></div>
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">
             <span class="faq-q-text">¿Puedo entrenar online sin estar en Belgrado?</span>
             <span class="faq-q-icon">+</span>
           </button>
-          <div class="faq-a"><p>Sí. El plan Online está diseñado para seguimiento a distancia: plan personalizado, revisión periódica, ajustes según resultados y comunicación directa. Mismo estándar, diferente modalidad.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">¿La nutrición está incluida en todos los planes?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>La orientación deportiva general (estimación calórica, proteína, hábitos base) está integrada en el plan Performance. No sustituye asesoramiento nutricional profesional. No está incluida en el plan Inicio.</p></div>
+          <div class="faq-a"><p>Sí. El plan online está diseñado para seguimiento a distancia: plan personalizado, revisión periódica, ajustes según resultados y comunicación directa. Mismo estándar, diferente modalidad.</p></div>
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">
             <span class="faq-q-text">¿Cómo es el primer paso para empezar?</span>
             <span class="faq-q-icon">+</span>
           </button>
-          <div class="faq-a"><p>Rellena el formulario de aplicación de esta página o escribe por WhatsApp. Abel revisará tu perfil y te contactará para hacer una evaluación inicial, definir tu objetivo y asignar el plan adecuado.</p></div>
+          <div class="faq-a"><p>Rellena el formulario de esta página o escribe por WhatsApp. Abel revisará tu perfil y te contactará para hacer una evaluación inicial, definir tu objetivo y asignar el plan adecuado.</p></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ CTA FINAL ════════════════════════════════════════════ -->
+<!-- ═══ CTA FINAL ══════════════════════════════════════ -->
 <section id="cta-final">
   <div class="cta-eyebrow reveal">Empieza con estructura</div>
-  <h2 class="cta-title reveal d1">
-    ENTRENA CON<br>
-    <span class="accent">MÉTODO.</span>
-  </h2>
+  <h2 class="cta-title reveal d1">Entrena con<br><span class="accent">seguimiento real.</span></h2>
   <p class="cta-sub reveal d2">
-    Fuerza, movilidad y condición física con un sistema progresivo basado en experiencia deportiva real. Reserva una prueba y vemos tu punto de partida.
+    Fuerza, condición física y movilidad con un sistema que evalúa, planifica, sigue y adapta. El primer paso es una evaluación.
   </p>
   <div class="cta-actions reveal d3">
-    <a href="#apply" class="btn-primary">
-  Reservar evaluación
-</a>
-    <a href="#apply" class="btn-outline">Completar aplicación</a>
+    <a href="#apply" class="btn btn-primary">Solicitar evaluación</a>
+    <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20información%20sobre%20AB%20SYSTEM." class="btn btn-wa" target="_blank" rel="noopener">
+      <svg class="wa-icon" viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.122 1.526 5.854L0 24l6.335-1.524A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-4.988-1.362l-.358-.213-3.76.904.969-3.674-.233-.374A9.793 9.793 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182c5.421 0 9.818 4.396 9.818 9.818 0 5.421-4.397 9.818-9.818 9.818z"/></svg>
+      Hablar por WhatsApp
+    </a>
   </div>
 </section>
 
-<!-- ═══ FOOTER ═══════════════════════════════════════════════ -->
+<!-- ═══ FOOTER ════════════════════════════════════════ -->
 <footer>
-  <div class="footer-top">
-    <a href="#hero" class="logo-mark" aria-label="Abel Trainer">
-      <div class="logo-brackets" style="font-size:1.5rem;">
-        <span class="b">[</span><span class="letters">AB</span><span class="b">]</span>
-      </div>
-      <div class="logo-sub-text">
-        <span>Sistema de entrenamiento</span>
-AB SYSTEM · Belgrado
-      </div>
-    </a>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <a href="#hero" class="logo-mark" aria-label="AB SYSTEM">
+        <div class="logo-letters" style="font-size:1.15rem;"><span class="c">[</span>AB<span class="c">]</span></div>
+        <div class="logo-sub">
+          <span>SYSTEM</span>
+          Health &amp; Performance · Belgrado
+        </div>
+      </a>
 
-    <div class="footer-links">
-      <a href="#pillars" class="footer-link">Metodología</a>
-      <a href="#authority" class="footer-link">Credenciales</a>
-      <a href="#plans" class="footer-link">Planes</a>
-      <a href="#apply" class="footer-link">Aplicar</a>
-      <a href="#faq" class="footer-link">FAQ</a>
-      <a href="/cliente.html" class="footer-link c">Área cliente</a>
-      <a href="/admin.html" class="footer-link a">Admin</a>
+      <div class="footer-links">
+        <a href="#features" class="footer-link">El sistema</a>
+        <a href="#how" class="footer-link">Cómo funciona</a>
+        <a href="#for-who" class="footer-link">Para quién</a>
+        <a href="#coach" class="footer-link">Coach</a>
+        <a href="#apply" class="footer-link">Evaluación</a>
+        <a href="#faq" class="footer-link">FAQ</a>
+        <a href="/cliente.html" class="footer-link c">Área cliente</a>
+        <a href="/admin.html" class="footer-link a">Admin</a>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:.75rem;align-items:flex-end;">
+        <div class="footer-social">
+          <a href="#" class="social-link" aria-label="Instagram">IG</a>
+          <a href="#" class="social-link" aria-label="TikTok">TT</a>
+          <a href="https://wa.me/381638112348" class="social-link" aria-label="WhatsApp" target="_blank" rel="noopener">WA</a>
+        </div>
+        <div class="lang-switch" style="display:flex;">
+          <a href="/" style="font-size:.58rem;font-weight:600;letter-spacing:.10em;color:var(--cyan);">ES</a>
+          <span style="font-size:.58rem;color:var(--border);">|</span>
+          <a href="/sr.html" style="font-size:.58rem;font-weight:600;letter-spacing:.10em;color:var(--text-2);">SR</a>
+          <span style="font-size:.58rem;color:var(--border);">|</span>
+          <a href="/en.html" style="font-size:.58rem;font-weight:600;letter-spacing:.10em;color:var(--text-2);">EN</a>
+        </div>
+      </div>
     </div>
 
-    <div style="display:flex; flex-direction:column; gap:.75rem; align-items:flex-end;">
-      <div class="footer-social">
-        <a href="#" class="social-link" aria-label="Instagram">IG</a>
-        <a href="#" class="social-link" aria-label="TikTok">TT</a>
-        <a href="#" class="social-link" aria-label="WhatsApp" onclick="openWA('contact','Hola Abel.');return false;">WA</a>
-      </div>
-      <div class="lang-switch" style="display:flex;">
-        <a href="/" style="font-family:var(--font-mono); font-size:.58rem; letter-spacing:.12em; color:var(--cyan);">ES</a>
-        <span style="font-family:var(--font-mono); font-size:.58rem; color:var(--border);">|</span>
-        <a href="/sr.html" style="font-family:var(--font-mono); font-size:.58rem; letter-spacing:.12em; color:var(--gray);">SR</a>
-        <span style="font-family:var(--font-mono); font-size:.58rem; color:var(--border);">|</span>
-        <a href="/en.html" style="font-family:var(--font-mono); font-size:.58rem; letter-spacing:.12em; color:var(--gray);">EN</a>
-      </div>
+    <div class="footer-bottom">
+      <span class="footer-legal">© 2026 AB SYSTEM. Todos los derechos reservados.</span>
+      <span class="footer-legal">Orientación deportiva general. No sustituye consejo médico ni nutricional profesional.</span>
     </div>
-  </div>
-
-  <div class="footer-bottom">
-    <span class="footer-legal">© 2026 AB SYSTEM. Todos los derechos reservados.</span>
-    <span class="footer-legal">Orientación deportiva general. No sustituye consejo médico ni nutricional profesional.</span>
   </div>
 </footer>
 
-<!-- ═══ SCRIPTS ══════════════════════════════════════════════ -->
+<!-- ═══ SCRIPTS ════════════════════════════════════════ -->
 <script>
 // WhatsApp
-function buildWAUrl(phone, msg) {
-  const clean = (phone||'381638112348').replace(/[\s+\-()]/g, '');
-  return 'https://wa.me/' + clean + '?text=' + encodeURIComponent(msg);
-}
 function openWA(ctx, msg) {
-  window.open(buildWAUrl('381638112348', msg), '_blank');
+  window.open('https://wa.me/381638112348?text=' + encodeURIComponent(msg), '_blank', 'noopener');
 }
+
+// Header scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('header').classList.toggle('scrolled', window.scrollY > 20);
+}, { passive: true });
 
 // Mobile menu
 function toggleMenu() {
-  document.getElementById('mobileNav').classList.toggle('open');
+  const nav = document.getElementById('mobileNav');
+  const btn = document.getElementById('hamBtn');
+  const isOpen = nav.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
 }
 function closeMenu() {
   document.getElementById('mobileNav').classList.remove('open');
+  document.getElementById('hamBtn').classList.remove('open');
 }
-
-// Header scroll state
-window.addEventListener('scroll', () => {
-  document.getElementById('header').classList.toggle('scrolled', window.scrollY > 20);
-});
 
 // FAQ accordion
 function toggleFaq(btn) {
@@ -2590,7 +2070,7 @@ function toggleFaq(btn) {
   }
 }
 
-// Form submit
+// Form submit → WhatsApp
 function submitForm() {
   const name = document.getElementById('fname').value.trim();
   const email = document.getElementById('femail').value.trim();
@@ -2602,7 +2082,15 @@ function submitForm() {
     return;
   }
 
-  const msg = `Hola Abel, he completado la aplicación:\n\nNombre: ${name}\nEmail: ${email}\nObjetivo: ${goal}\nCompromiso: ${commitment.value === 'si' ? '✓ Sí, al 100%' : 'Todavía evaluando'}`;
+  const goalLabels = {
+    fuerza: 'Fuerza y músculo',
+    salud: 'Salud y bienestar general',
+    recomposicion: 'Recomposición corporal',
+    rendimiento: 'Rendimiento deportivo',
+    movilidad: 'Movilidad y control corporal'
+  };
+
+  const msg = `Hola Abel, he completado la solicitud:\n\nNombre: ${name}\nEmail: ${email}\nObjetivo: ${goalLabels[goal] || goal}\nCompromiso: ${commitment.value === 'si' ? '✓ Al 100%' : 'Todavía evaluando'}`;
   openWA('apply', msg);
 
   document.getElementById('appForm').style.display = 'none';
@@ -2610,15 +2098,15 @@ function submitForm() {
 }
 
 // Scroll reveal
-const observer = new IntersectionObserver((entries) => {
+const observer = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if (e.isIntersecting) e.target.classList.add('visible');
   });
-}, { threshold: .1 });
+}, { threshold: .08 });
 
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-// PWA
+// PWA service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
