@@ -93,7 +93,9 @@ a{text-decoration:none;color:inherit}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:var(--bot-h);padding-bottom:var(--safe-b);color:var(--text-2);position:relative;transition:color .15s}
 .tab.on{color:var(--sport)}
 .tab:active{opacity:.6}
-.tab-i{font-size:1.3rem;line-height:1}
+.tab-i{display:flex;align-items:center;justify-content:center;width:24px;height:24px;line-height:1}
+.tab-i svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:stroke .15s}
+.tab.on .tab-i svg{stroke:var(--sport)}
 .tab-l{font-family:var(--font-m);font-size:.55rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
 .tab-b{position:absolute;top:6px;right:calc(50% - 18px);min-width:18px;height:18px;background:var(--medical);color:var(--bg);border-radius:9px;font-family:var(--font-m);font-size:.55rem;display:none;align-items:center;justify-content:center;padding:0 5px;font-weight:700}
 .tab-b.on{display:flex}
@@ -429,9 +431,9 @@ a{text-decoration:none;color:inherit}
 .cl-check{
   width:28px;
   height:28px;
-  border-radius:8px;
-  border:1.5px solid var(--card-border);
-  background:transparent;
+  border-radius:6px;
+  border:2px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.04);
   flex-shrink:0;
   display:flex;
   align-items:center;
@@ -439,13 +441,19 @@ a{text-decoration:none;color:inherit}
   margin-top:1px;
   transition:all .12s;
   cursor:pointer;
+  box-shadow:inset 0 0 0 0 transparent;
+}
+.cl-check:hover{
+  border-color:rgba(255,255,255,.5);
+  background:rgba(255,255,255,.07);
 }
 .cl-check.done{
-  background:rgba(0,230,118,.15);
+  background:rgba(0,230,118,.18);
   border-color:var(--streak);
   color:var(--streak);
+  box-shadow:0 0 0 3px rgba(0,230,118,.10);
 }
-.cl-check:active{transform:scale(.9)}
+.cl-check:active{transform:scale(.88)}
 
 .cl-num{
   font-family:var(--font-m);
@@ -2451,20 +2459,32 @@ a{text-decoration:none;color:inherit}
 
 <nav class="nav">
   <div class="tab on" id="tab-hoy" onclick="showScr('hoy')">
-    <span class="tab-i mono">01</span><span class="tab-l">Hoy</span>
+    <span class="tab-i">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+    </span>
+    <span class="tab-l">Hoy</span>
   </div>
 
   <div class="tab" id="tab-clientes" onclick="showScr('clientes')">
-    <span class="tab-i mono">CL</span><span class="tab-l">Clientes</span>
+    <span class="tab-i">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg>
+    </span>
+    <span class="tab-l">Clientes</span>
   </div>
 
   <div class="tab" id="tab-alertas" onclick="showScr('alertas')">
-    <span class="tab-i mono">!</span><span class="tab-l">Alertas</span>
+    <span class="tab-i">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    </span>
+    <span class="tab-l">Alertas</span>
     <span class="tab-b" id="badge-al"></span>
   </div>
 
   <div class="tab" id="tab-mas" onclick="showScr('mas')">
-    <span class="tab-i mono">+</span><span class="tab-l">Más</span>
+    <span class="tab-i">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+    </span>
+    <span class="tab-l">Más</span>
     <span class="tab-b" id="badge-mas"></span>
   </div>
 </nav>
@@ -3693,7 +3713,7 @@ function buildSessionCard(r){
 
   const urgency=critical||ciStatus==='alerta'?'urg':(ciStatus==='revisar'||pendPay.length||!ci)?'wrn':'ok';
 
-  const ciBadge=!ci?`<span class="b b-inactivo">Sin CI</span>`
+  const ciBadge=!ci?`<span class="b" style="background:rgba(255,179,64,.12);color:var(--warn);border:1px solid rgba(255,179,64,.35)">Sin CI</span>`
     :ciStatus==='alerta'?`<span class="b b-alerta">⚠ CI</span>`
     :ciStatus==='revisar'?`<span class="b b-revisar">CI?</span>`
     :`<span class="b b-normal">CI ✓</span>`;
@@ -3900,7 +3920,7 @@ function buildClientCard(c){
           <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:nowrap;overflow:hidden">
             ${ci
               ?`<span style="font-family:var(--font-m);font-size:.5rem;padding:2px 6px;border-radius:4px;font-weight:700;flex-shrink:0;background:${ciStatus==='alerta'?'rgba(255,90,90,.12)':ciStatus==='revisar'?'rgba(255,179,64,.1)':'rgba(0,230,118,.1)'};color:${ciStatus==='alerta'?'var(--medical)':ciStatus==='revisar'?'var(--warn)':'var(--streak)'}">CI ${ciStatus}</span>`
-              :`<span style="font-family:var(--font-m);font-size:.5rem;padding:2px 6px;border-radius:4px;font-weight:700;flex-shrink:0;background:rgba(255,255,255,.05);color:var(--text-2)">Sin CI</span>`
+              :`<span style="font-family:var(--font-m);font-size:.5rem;padding:2px 6px;border-radius:4px;font-weight:700;flex-shrink:0;background:rgba(255,179,64,.1);color:var(--warn);border:1px solid rgba(255,179,64,.3)">Sin CI</span>`
             }
             ${program?`<span style="font-family:var(--font-m);font-size:.52rem;color:var(--sport);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${esc(program.name||program.nameEs||'')}</span>`:''}
             ${pendPay.length?`<span style="font-family:var(--font-m);font-size:.5rem;padding:2px 6px;border-radius:4px;font-weight:700;flex-shrink:0;background:rgba(255,179,64,.1);color:var(--warn)">€</span>`:''}
@@ -3979,7 +3999,13 @@ function renderPerfil(){
   const d14=new Date();d14.setDate(d14.getDate()-14);
   const last14=clientLogs.filter(l=>String(l.trainingDate||l.training_date||l.completedAt||l.completed_at||'').slice(0,10)>=d14.toISOString().slice(0,10)).length;
   const trend=last14-(last28-last14);
-  const weekTarget=Math.min(Math.max(assign?(getAssignmentVisibleSessions(assign).length||3):3,1),7);
+  // weekTarget = sesiones por semana del plan actual (no total visible)
+  const _weekSessions = assign ? (() => {
+    const pos = getVisibleSessionPositions(assign);
+    const currentWeek = getAssignmentWeek(assign);
+    return pos.filter(p => Number(p.weekNumber) === Number(currentWeek)).length || 0;
+  })() : 0;
+  const weekTarget = Math.min(Math.max(_weekSessions || (assign ? 3 : 3), 1), 7);
   const dotsHTML=Array(weekTarget).fill(0).map((_,i)=>`<span style="flex:1;height:3px;border-radius:2px;background:${i<thisWeekCount?'var(--sport)':'var(--divider)'}"></span>`).join('');
 
   /* ── Condition badges ── */
@@ -4034,7 +4060,7 @@ function renderPerfil(){
 
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
       ${badge(c.status || 'prospecto', c.status || 'prospecto')}
-      ${todayCI ? badge(ciStatus || 'normal', ciStatus || 'normal') : badge('Sin CI','inactivo')}
+      ${todayCI ? badge(ciStatus || 'normal', ciStatus || 'normal') : `<span class="b" style="background:rgba(255,179,64,.12);color:var(--warn);border:1px solid rgba(255,179,64,.3)">Sin CI</span>`}
     </div>
   </div>
 </div>
@@ -7769,7 +7795,7 @@ function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,not
 <div class="wt-ci">
   <div class="wt-ci-row">
     <span class="dk">Check-in hoy</span>
-    <span>${ci ? badge(ciStatus || 'normal', ciStatus || 'normal') : badge('Sin CI','inactivo')}</span>
+    <span>${ci ? badge(ciStatus || 'normal', ciStatus || 'normal') : `<span class="b" style="background:rgba(255,179,64,.12);color:var(--warn);border:1px solid rgba(255,179,64,.3)">Sin CI</span>`}</span>
   </div>
 
   ${ci ? `
@@ -8121,17 +8147,19 @@ function buildTimerCompact(){
 /* ── Construir fila de dosificación compacta para el checklist ── */
 function buildClMeta(ex){
   const d = getDoseData(ex);
-  const parts = [];
+  // Retorna objeto con dato principal y nota secundaria separados
+  const main = [];
+  const note = [];
 
-  if(d.sets && d.reps) parts.push(`${d.sets}×${d.reps}`);
-  else if(d.sets) parts.push(`${d.sets} series`);
-  else if(d.reps) parts.push(`${d.reps} reps`);
+  if(d.sets && d.reps) main.push(`${d.sets}×${d.reps}`);
+  else if(d.sets) main.push(`${d.sets} series`);
+  else if(d.reps) main.push(`${d.reps} reps`);
 
-  if(d.duration) parts.push(d.duration);
-  if(d.rest) parts.push(`desc ${d.rest}`);
-  if(d.tempo) parts.push(`tempo ${d.tempo}`);
+  if(d.duration) main.push(d.duration);
+  if(d.rest) note.push(`desc ${d.rest}`);
+  if(d.tempo) note.push(d.tempo);
 
-  return parts.join(' · ');
+  return { main: main.join(' · '), note: note.join(' · '), full: [...main,...note].join(' · ') };
 }
 
 /* ── Texto de carga para la fila ── */
@@ -8178,7 +8206,7 @@ function buildClInstructionRow(ex, index){
   const desc = ex.description || ex.descriptionEs || ex.description_es || '';
   const d = getDoseData(ex);
   const meta = buildClMeta(ex);
-  const detail = [desc, meta].filter(Boolean).join(' · ').slice(0, 120);
+  const detail = [desc, meta.full].filter(Boolean).join(' · ').slice(0, 120);
   return `
     <div class="cl-instr">
       <span class="cl-instr-tag">Instrucción</span>
@@ -8208,7 +8236,8 @@ function buildClAdaptedRow(r, index, c){
         ${isSub ? `<span class="cl-sub-label">Sustituye</span><span class="cl-substitute">${esc(original)}</span>` : ''}
         ${isMod ? `<span class="cl-adapt-label">Modificado</span>` : ''}
         <div class="cl-name">${esc(title)}</div>
-        ${meta ? `<div class="cl-meta">${esc(meta)}</div>` : ''}
+        ${meta.main ? `<div class="cl-meta" style="font-weight:600;color:var(--text)">${esc(meta.main)}</div>` : ''}
+        ${meta.note ? `<div class="cl-meta" style="color:var(--text-2);font-size:.54rem">${esc(meta.note)}</div>` : ''}
         ${(isSub || isMod) && r.explicacion_cliente ? `<div class="cl-meta" style="color:var(--text-2)">${esc(r.explicacion_cliente)}</div>` : ''}
       </div>
     </div>
@@ -8239,7 +8268,8 @@ function buildClExerciseRow(ex, index, clientId, block){
       <span class="cl-num">${String(index+1).padStart(2,'0')}</span>
       <div class="cl-body" onclick="toggleExerciseDetail('${exId}')">
         <div class="cl-name">${esc(getExerciseTitle(ex))}</div>
-        ${meta ? `<div class="cl-meta">${esc(meta)}</div>` : ''}
+        ${meta.main ? `<div class="cl-meta" style="font-weight:600;color:var(--text)">${esc(meta.main)}</div>` : ''}
+        ${meta.note ? `<div class="cl-meta" style="color:var(--text-2);font-size:.54rem">${esc(meta.note)}</div>` : ''}
         ${loadText ? `<div class="cl-load">${esc(loadText)}</div>` : ''}
         ${hasSuggestedLoad(ex) ? buildClLoadInput(ex, exId) : ''}
         ${isDetail ? buildClExerciseDetail(ex, exId, clientId, videoUrl, blockId) : ''}
@@ -9954,7 +9984,8 @@ function buildAdaptedClRow(ex, index, clientId, reviewKey){
       <div class="cl-body" onclick="toggleExerciseDetail('${reviewKey}')">
         ${adaptTag}
         <div class="cl-name">${esc(ex.name || ex.nameEs || 'Ejercicio')}</div>
-        ${meta ? `<div class="cl-meta">${esc(meta)}</div>` : ''}
+        ${meta.main ? `<div class="cl-meta" style="font-weight:600;color:var(--text)">${esc(meta.main)}</div>` : ''}
+        ${meta.note ? `<div class="cl-meta" style="color:var(--text-2);font-size:.54rem">${esc(meta.note)}</div>` : ''}
         ${loadText ? `<div class="cl-load">${esc(loadText)}${ex._loadFromSubstitute ? ' <span style="opacity:.6;font-size:.44rem">ref.</span>' : ''}</div>` : ''}
         ${hasSuggestedLoad(ex) ? buildClLoadInput(ex, reviewKey) : ''}
         ${coachNote && !isDetail ? `<div class="cl-meta" style="color:var(--text-2);margin-top:2px">${esc(coachNote.slice(0,80))}${coachNote.length>80?'…':''}</div>` : ''}
