@@ -2030,6 +2030,311 @@ footer {
     bottom: 22px;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   FINAL FIX — HERO SCREEN SHOWCASE WITH REAL AB IMAGES
+   Reemplaza visualmente el mockup dibujado por capturas reales.
+═══════════════════════════════════════════════════════ */
+
+#hero {
+  min-height: 100svh;
+}
+
+.hero-content {
+  align-items: center;
+}
+
+.hero-right {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 640px;
+  animation: fadeUp .7s ease .2s both;
+}
+
+.ab-showcase {
+  position: relative;
+  width: min(100%, 540px);
+  height: 640px;
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 68% 22%, rgba(0,229,255,.18), transparent 35%),
+    linear-gradient(145deg, #101923, #071015 68%, #030506);
+  border: 1px solid rgba(0,229,255,.18);
+  box-shadow:
+    0 44px 130px rgba(0,0,0,.82),
+    inset 0 1px 0 rgba(255,255,255,.05);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ab-showcase::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  opacity: .58;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ab-showcase::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 32%;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,.64));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ab-showcase-stage {
+  position: relative;
+  width: 100%;
+  height: 558px;
+  z-index: 2;
+}
+
+.ab-screen {
+  position: absolute;
+  display: block;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 30px;
+  overflow: hidden;
+  transition:
+    transform .45s ease,
+    opacity .35s ease,
+    filter .35s ease,
+    width .45s ease,
+    left .45s ease,
+    right .45s ease,
+    top .45s ease;
+}
+
+.ab-screen img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 30px;
+  box-shadow:
+    0 24px 70px rgba(0,0,0,.76),
+    0 0 0 1px rgba(255,255,255,.12);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.ab-screen.is-active {
+  width: 292px;
+  left: 56px;
+  top: 44px;
+  z-index: 4;
+  opacity: 1;
+  transform: translate3d(0,0,0) scale(1);
+  filter: none;
+}
+
+.ab-screen.is-next {
+  width: 238px;
+  right: 34px;
+  top: 112px;
+  z-index: 3;
+  opacity: .46;
+  transform: translate3d(0,0,0) scale(.96);
+  filter: brightness(.74) saturate(.82);
+}
+
+.ab-screen.is-next:hover {
+  opacity: .68;
+  filter: brightness(.9) saturate(1);
+}
+
+.ab-showcase-tabs {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ab-showcase-tabs button {
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.45);
+  color: var(--text-2);
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+  transition: all .2s ease;
+}
+
+.ab-showcase-tabs button.is-active {
+  background: var(--cyan);
+  color: #000;
+  border-color: var(--cyan);
+  box-shadow: 0 10px 34px rgba(0,229,255,.28);
+}
+
+.ab-showcase-tabs button:not(.is-active):hover {
+  border-color: rgba(0,229,255,.32);
+  color: var(--text);
+}
+
+@media (max-width: 1180px) {
+  nav.desk,
+  .header-right {
+    display: none !important;
+  }
+
+  .ham {
+    display: flex !important;
+  }
+
+  #header {
+    height: 72px;
+    padding: 0 1.5rem;
+    background: rgba(0,0,0,.94);
+  }
+
+  .mobile-menu {
+    top: 72px;
+  }
+
+  #hero {
+    min-height: auto;
+    padding-top: 72px;
+    align-items: flex-start;
+  }
+
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 2.35rem 1.25rem 3.25rem;
+  }
+
+  .hero-pretitle {
+    margin-bottom: 1rem;
+  }
+
+  .hero-h1 {
+    font-size: clamp(2rem, 9vw, 2.75rem);
+    line-height: 1.08;
+    margin-bottom: 1rem;
+  }
+
+  .hero-sub {
+    font-size: .92rem;
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-ctas {
+    flex-direction: column;
+    gap: .7rem;
+  }
+
+  .hero-ctas .btn {
+    width: 100%;
+  }
+
+  .hero-chips {
+    margin-top: 1.2rem;
+    gap: .45rem;
+  }
+
+  .hero-chip {
+    font-size: .54rem;
+    padding: .48rem .7rem;
+  }
+
+  .hero-right {
+    min-height: auto;
+    margin-top: .4rem;
+  }
+
+  .ab-showcase {
+    width: min(100%, 372px);
+    height: 540px;
+    border-radius: 28px;
+    margin: 0 auto;
+  }
+
+  .ab-showcase-stage {
+    height: 458px;
+  }
+
+  .ab-screen.is-active {
+    width: 252px;
+    left: 50%;
+    top: 24px;
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+    filter: none;
+    pointer-events: auto;
+  }
+
+  .ab-screen.is-next {
+    width: 252px;
+    left: 50%;
+    right: auto;
+    top: 24px;
+    transform: translateX(-50%) scale(.94);
+    opacity: 0;
+    filter: brightness(.7);
+    pointer-events: none;
+  }
+
+  .ab-showcase-tabs {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+  }
+
+  .ticker {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .ab-showcase {
+    height: 510px;
+  }
+
+  .ab-showcase-stage {
+    height: 430px;
+  }
+
+  .ab-screen.is-active,
+  .ab-screen.is-next {
+    width: 232px;
+  }
+
+  .ab-showcase-tabs button {
+    font-size: .52rem;
+    min-height: 42px;
+    letter-spacing: .11em;
+  }
+}
+
+@media (max-width: 360px) {
+  .ab-screen.is-active,
+  .ab-screen.is-next {
+    width: 214px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2122,100 +2427,35 @@ footer {
 
     <!-- Screenshots reales de la app -->
     <div class="hero-right">
-  <div class="product-stage">
+      <div class="ab-showcase" data-ab-showcase>
 
-    <div class="phone phone-main">
-      <div class="phone-notch"></div>
+        <div class="ab-showcase-stage">
+          <button class="ab-screen is-active" data-screen="0" type="button" aria-label="Ver pantalla de sesión activa">
+            <img
+              src="/cliente-2.png.jpg"
+              alt="AB SYSTEM — Sesión activa con bloque de entrenamiento, cronómetro y ejercicios"
+              loading="eager"
+              decoding="async"
+            >
+          </button>
 
-      <div class="app-top">
-        <div class="avatar-dot"></div>
-        <div class="app-status">Sesión activa</div>
-      </div>
-
-      <div class="app-mini-label">Bloques</div>
-
-      <div class="load-tabs">
-        <span>60%</span>
-        <span>65%</span>
-        <span class="active">70%</span>
-        <span>75%</span>
-      </div>
-
-      <div class="session-card">
-        <div class="session-icon">↯</div>
-        <div>
-          <strong>Bloque 2 — Transferencia técnica</strong>
-          <small>Entrada controlada · 0/3</small>
-        </div>
-      </div>
-
-      <div class="timer-row">
-        <strong>00:00</strong>
-        <span>Cronómetro</span>
-        <button>▶</button>
-      </div>
-
-      <div class="exercise-list">
-        <div class="exercise-row">
-          <span class="check"></span>
-          <div>
-            <strong>Entrada al aire desde postura</strong>
-            <small>3×5 / lado · desc 45 seg</small>
-          </div>
+          <button class="ab-screen is-next" data-screen="1" type="button" aria-label="Ver pantalla de perfil del cliente">
+            <img
+              src="/cliente.png.jpg"
+              alt="AB SYSTEM — Perfil del cliente con accesos rápidos, métricas y próxima sesión"
+              loading="eager"
+              decoding="async"
+            >
+          </button>
         </div>
 
-        <div class="exercise-row">
-          <span class="check"></span>
-          <div>
-            <strong>Entrada desde agarre cuello-tríceps</strong>
-            <small>3×4 / lado · desc 60 seg</small>
-          </div>
+        <div class="ab-showcase-tabs" aria-label="Cambiar pantalla del sistema">
+          <button class="is-active" type="button" data-go-screen="0">Sesión activa</button>
+          <button type="button" data-go-screen="1">Perfil cliente</button>
         </div>
 
-        <div class="exercise-row">
-          <span class="check"></span>
-          <div>
-            <strong>Levantón parcial controlado</strong>
-            <small>3×3 / lado · desc 60-90 seg</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="phone-nav">
-        <span>Hoy</span>
-        <span class="active">Clientes</span>
-        <span>Alertas</span>
-        <span>Más</span>
       </div>
     </div>
-
-    <div class="phone phone-back">
-      <div class="phone-notch"></div>
-
-      <div class="profile-card">
-        <small>Cliente</small>
-        <strong>Plan activo</strong>
-        <span>Funcional con base de lucha</span>
-      </div>
-
-      <div class="metric-grid">
-        <div>
-          <strong>8</strong>
-          <span>Reservas</span>
-        </div>
-        <div>
-          <strong>100%</strong>
-          <span>Adherencia</span>
-        </div>
-      </div>
-
-      <div class="action-card">Iniciar sesión de hoy →</div>
-    </div>
-
-    <div class="stage-badge">Sistema real</div>
-
-  </div>
-</div>
   </div>
 </section>
 
@@ -2785,6 +3025,48 @@ if ('IntersectionObserver' in window) {
 } else {
   document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
 }
+
+
+// Hero real screens switcher
+function initABShowcase() {
+  const root = document.querySelector('[data-ab-showcase]');
+  if (!root) return;
+
+  const screens = Array.from(root.querySelectorAll('[data-screen]'));
+  const tabs = Array.from(root.querySelectorAll('[data-go-screen]'));
+
+  function setActive(index) {
+    screens.forEach((screen, i) => {
+      screen.classList.toggle('is-active', i === index);
+      screen.classList.toggle('is-next', i !== index);
+      screen.setAttribute('aria-pressed', i === index ? 'true' : 'false');
+    });
+
+    tabs.forEach((tab, i) => {
+      tab.classList.toggle('is-active', i === index);
+      tab.setAttribute('aria-pressed', i === index ? 'true' : 'false');
+    });
+  }
+
+  screens.forEach(screen => {
+    screen.addEventListener('click', () => {
+      const index = Number(screen.dataset.screen || 0);
+      setActive(index);
+    });
+  });
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const index = Number(tab.dataset.goScreen || 0);
+      setActive(index);
+    });
+  });
+
+  setActive(0);
+}
+
+initABShowcase();
+
 </script>
 </body>
 </html>
