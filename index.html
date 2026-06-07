@@ -2127,6 +2127,309 @@ footer {
   }
 }
 
+
+
+/* ═══════════════════════════════════════════════════════
+   AB FIX — iOS captura de página completa / fullscreen
+   Evita que Safari/iPhone pierda imágenes con absolute + transform
+   En móvil dejamos una captura estable y las pestañas cambian la imagen.
+═══════════════════════════════════════════════════════ */
+@media (max-width: 1180px) {
+  .hero-right {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .ab-showcase {
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 18px 16px 16px !important;
+    overflow: visible !important;
+  }
+
+  .ab-showcase-stage {
+    position: relative !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    z-index: 2 !important;
+  }
+
+  .ab-screen,
+  .ab-screen.is-active,
+  .ab-screen.is-next {
+    position: relative !important;
+    display: block !important;
+    inset: auto !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    width: min(100%, 258px) !important;
+    margin: 0 auto !important;
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    pointer-events: auto !important;
+    border-radius: 26px !important;
+  }
+
+  .ab-screen.is-next {
+    display: none !important;
+  }
+
+  .ab-screen.is-active {
+    display: block !important;
+  }
+
+  .ab-screen img {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+
+  .ab-showcase-tabs {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin: 14px 0 0 !important;
+    z-index: 8 !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .ab-showcase {
+    padding: 16px 14px 14px !important;
+  }
+
+  .ab-screen,
+  .ab-screen.is-active,
+  .ab-screen.is-next {
+    width: min(100%, 236px) !important;
+  }
+}
+
+/* Cuando iPhone genera PDF/captura de página completa suele usar un flujo parecido a impresión.
+   Aquí quitamos animaciones, filtros, capas absolutas y overlays para que las imágenes no desaparezcan. */
+@media print {
+  * {
+    animation: none !important;
+    transition: none !important;
+    filter: none !important;
+  }
+
+  body {
+    background: #000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #header {
+    position: static !important;
+  }
+
+  .ab-showcase {
+    height: auto !important;
+    overflow: visible !important;
+    page-break-inside: avoid !important;
+  }
+
+  .ab-showcase::before,
+  .ab-showcase::after {
+    display: none !important;
+  }
+
+  .ab-showcase-stage {
+    position: relative !important;
+    display: flex !important;
+    gap: 14px !important;
+    height: auto !important;
+    padding: 18px !important;
+  }
+
+  .ab-screen,
+  .ab-screen.is-active,
+  .ab-screen.is-next {
+    position: relative !important;
+    display: block !important;
+    inset: auto !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    width: 47% !important;
+    margin: 0 !important;
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+
+  .ab-screen img {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+
+  .ab-showcase-tabs,
+  .ticker,
+  .mobile-menu,
+  .ham {
+    display: none !important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   AB POLISH 02 — lectura móvil más rápida y tarjetas compactas
+═══════════════════════════════════════════════════════ */
+.features-header { margin-bottom: 2.25rem; }
+.feature-card { min-height: auto; }
+.feature-icon { margin-bottom: .95rem; }
+.feature-title { margin-bottom: .38rem; }
+
+.step { padding: 1.25rem 1.35rem; }
+.step-num {
+  width: 34px;
+  color: rgba(0,229,255,.34);
+}
+.step:hover .step-num { color: rgba(0,229,255,.55); }
+
+.forwho-card { min-height: 205px; }
+.forwho-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 22px;
+  padding: 0 .45rem;
+  margin-bottom: .85rem;
+  border: 1px solid rgba(0,229,255,.24);
+  border-radius: 999px;
+  background: rgba(0,229,255,.07);
+  letter-spacing: .04em;
+  line-height: 1;
+}
+
+.apply-left > p,
+.form-wrap > p {
+  max-width: 520px;
+}
+
+@media (max-width: 600px) {
+  section {
+    padding-top: 4.4rem;
+    padding-bottom: 4.4rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.85rem, 9vw, 2.45rem);
+    line-height: 1.05;
+  }
+
+  .features-header {
+    margin-bottom: 1.7rem;
+  }
+
+  .feature-card,
+  .forwho-card {
+    padding: 1.25rem;
+    min-height: auto;
+  }
+
+  .feature-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    margin-bottom: .8rem;
+  }
+
+  .feature-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .feature-title,
+  .forwho-card h3 {
+    font-size: .92rem;
+  }
+
+  .feature-desc,
+  .forwho-card p,
+  .step-body p {
+    font-size: .76rem;
+    line-height: 1.52;
+  }
+
+  .how-sticky p {
+    max-width: none !important;
+    margin-top: .9rem !important;
+    line-height: 1.58 !important;
+  }
+
+  .steps {
+    border-radius: 14px;
+  }
+
+  .step {
+    padding: 1.05rem 1rem;
+    gap: .85rem;
+  }
+
+  .step-num {
+    width: 26px;
+    font-size: 1.15rem;
+    letter-spacing: 0;
+    color: rgba(0,229,255,.44);
+  }
+
+  .step-body strong {
+    font-size: .82rem;
+  }
+
+  .forwho-grid {
+    margin-top: 1.8rem;
+  }
+
+  .forwho-num {
+    min-width: 28px;
+    height: 20px;
+    font-size: .55rem;
+    margin-bottom: .7rem;
+  }
+
+  .for-who-note {
+    margin-top: 1.25rem;
+    padding: 1rem;
+    font-size: .8rem;
+    line-height: 1.55;
+  }
+
+  .diff-card {
+    padding: 1.25rem !important;
+  }
+
+  .apply-left > p,
+  .form-wrap > p {
+    font-size: .84rem !important;
+    line-height: 1.6 !important;
+  }
+
+  .apply-steps {
+    margin-top: 1.5rem;
+  }
+
+  .apply-step {
+    padding: 1rem 0;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2158,7 +2461,7 @@ footer {
       <span>|</span>
       <a href="/en.html">EN</a>
     </div>
-    <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20hacer%20una%20evaluaci%C3%B3n%20inicial%20con%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Solicitar evaluación</a>
+    <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20hacer%20una%20evaluaci%C3%B3n%20inicial%20con%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Evaluación inicial</a>
   </div>
 
   <button class="ham" id="hamBtn" onclick="toggleMenu()" aria-label="Menú">
@@ -2174,7 +2477,7 @@ footer {
   <a href="#coach" onclick="closeMenu()">Coach</a>
   <a href="#apply" onclick="closeMenu()">Evaluación</a>
   <a href="/cliente.html" onclick="closeMenu()">Área cliente</a>
-  <a href="#apply" class="cta-m" onclick="closeMenu()">Solicitar evaluación</a>
+  <a href="#apply" class="cta-m" onclick="closeMenu()">Evaluación inicial</a>
   <div class="mobile-lang">
     <a class="active" href="/">ES</a>
     <a href="/sr.html">SR</a>
@@ -2295,7 +2598,7 @@ footer {
           <svg viewBox="0 0 24 24"><path d="M6.5 6.5h11"/><path d="M6.5 17.5h11"/><circle cx="4" cy="9" r="2"/><circle cx="4" cy="15" r="2"/><circle cx="20" cy="9" r="2"/><circle cx="20" cy="15" r="2"/><line x1="4" y1="9" x2="4" y2="15"/><line x1="20" y1="9" x2="20" y2="15"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
         </div>
         <div class="feature-title">Entrenamiento estructurado</div>
-        <div class="feature-desc">Sesiones organizadas por bloques, objetivos, dificultad y seguimiento. Sin improvisar.</div>
+        <div class="feature-desc">Sesiones por bloques, objetivos y nivel. Sin improvisar.</div>
         <img src="/IMG_2392.jpeg" alt="Ejemplo real Bloque 3" style="margin-top:1.2rem;border-radius:8px;border:1px solid var(--border);width:100%;opacity:.92" loading="lazy">
       </div>
 
@@ -2305,7 +2608,7 @@ footer {
           <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
         </div>
         <div class="feature-title">Check-in diario</div>
-        <div class="feature-desc">Registra sueño, energía y sensaciones. El coach ve tu estado antes de cada sesión.</div>
+        <div class="feature-desc">Sueño, energía y sensaciones antes de entrenar.</div>
       </div>
 
       <div class="feature-card reveal d3">
@@ -2314,7 +2617,7 @@ footer {
           <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         </div>
         <div class="feature-title">Progreso y evaluaciones</div>
-        <div class="feature-desc">Evaluación inicial, métricas de fuerza, movilidad y resistencia. Ves cómo avanzas.</div>
+        <div class="feature-desc">Evaluación inicial, métricas y evolución visible.</div>
       </div>
 
       <div class="feature-card reveal d1">
@@ -2323,7 +2626,7 @@ footer {
           <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
         </div>
         <div class="feature-title">Salud y adaptación</div>
-        <div class="feature-desc">Si hay una molestia o limitación, el plan se adapta. No se para, se ajusta.</div>
+        <div class="feature-desc">Si aparece una molestia, el plan se ajusta.</div>
       </div>
 
       <div class="feature-card reveal d2">
@@ -2332,7 +2635,7 @@ footer {
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </div>
         <div class="feature-title">Reservas y comunicación</div>
-        <div class="feature-desc">Agenda sesiones, recibe notificaciones y comunícate con el coach desde la misma app.</div>
+        <div class="feature-desc">Agenda, recordatorios y contacto directo con el coach.</div>
       </div>
 
       <div class="feature-card reveal d3">
@@ -2341,7 +2644,7 @@ footer {
           <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
         <div class="feature-title">Seguimiento del coach</div>
-        <div class="feature-desc">El coach tiene visibilidad completa de cada cliente, ajusta cargas y detecta problemas antes de que sean mayores.</div>
+        <div class="feature-desc">El coach ve el proceso, ajusta cargas y detecta señales.</div>
       </div>
     </div>
   </div>
@@ -2355,7 +2658,7 @@ footer {
         <div class="label-tag reveal">Cómo funciona</div>
         <h2 class="section-title reveal d1">De la evaluación<br>al progreso,<br><span class="accent">sin improvisar.</span></h2>
         <p class="reveal d2" style="font-size:.9rem;font-weight:400;line-height:1.75;color:var(--text-2);margin-top:1.25rem;max-width:340px;">
-          Cada cliente pasa por el mismo proceso: evaluación honesta, plan real, seguimiento constante y ajuste cuando hace falta.
+          Proceso simple: evaluación, plan, entrenamiento, check-in y ajustes cuando hace falta.
         </p>
       </div>
 
@@ -2364,35 +2667,35 @@ footer {
           <div class="step-num">01</div>
           <div class="step-body">
             <strong>Evaluación inicial</strong>
-            <p>Conocemos tu nivel, movilidad, condición física, objetivos y posibles limitaciones antes de asignar nada.</p>
+            <p>Nivel, movilidad, condición física, objetivos y limitaciones.</p>
           </div>
         </div>
         <div class="step reveal d2">
           <div class="step-num">02</div>
           <div class="step-body">
             <strong>Plan asignado</strong>
-            <p>Se te asigna un plan específico según tu perfil. No es una plantilla genérica adaptada a nadie.</p>
+            <p>Plan según tu perfil, objetivo y punto de partida.</p>
           </div>
         </div>
         <div class="step reveal d3">
           <div class="step-num">03</div>
           <div class="step-body">
             <strong>Entrenamiento guiado</strong>
-            <p>Cada sesión tiene bloques, ejercicios, cargas y objetivos claros. El coach ve en tiempo real cómo va cada cliente.</p>
+            <p>Bloques, ejercicios, cargas y objetivos claros.</p>
           </div>
         </div>
         <div class="step reveal d4">
           <div class="step-num">04</div>
           <div class="step-body">
             <strong>Check-in y sensaciones</strong>
-            <p>Registras energía, sueño y cómo te encuentras. El sistema detecta patrones. El coach ajusta si hace falta.</p>
+            <p>Sueño, energía y sensaciones para ajustar mejor.</p>
           </div>
         </div>
         <div class="step reveal d4">
           <div class="step-num">05</div>
           <div class="step-body">
             <strong>Ajustes del coach</strong>
-            <p>Si hay molestias, cambios de objetivo o bajón de rendimiento, el plan se modifica. Siempre hay una razón detrás del cambio.</p>
+            <p>Molestias, fatiga o cambio de objetivo: el plan se modifica con criterio.</p>
           </div>
         </div>
       </div>
@@ -2410,28 +2713,28 @@ footer {
       <div class="forwho-card reveal d1">
         <span class="forwho-num">01</span>
         <h3>Clientes que quieren ponerse en forma</h3>
-        <p>Si quieres mejorar tu cuerpo y sentirte con más energía sin hacer rutinas al azar ni perder el tiempo.</p>
+        <p>Mejora cuerpo, energía y constancia sin rutinas al azar.</p>
       </div>
       <div class="forwho-card reveal d2">
         <span class="forwho-num">02</span>
         <h3>Personas que quieren moverse mejor</h3>
-        <p>Movilidad, postura, control corporal. Entrenar bien es más que levantar peso.</p>
+        <p>Movilidad, postura y control corporal para entrenar mejor.</p>
       </div>
       <div class="forwho-card reveal d3">
         <span class="forwho-num">03</span>
         <h3>Atletas o perfiles de rendimiento</h3>
-        <p>Si ya tienes base deportiva y necesitas planificación real, seguimiento de carga y evaluaciones de rendimiento.</p>
+        <p>Planificación, control de carga y evaluaciones reales.</p>
       </div>
       <div class="forwho-card reveal d4">
         <span class="forwho-num">04</span>
         <h3>Entrenamiento funcional con base de lucha</h3>
-        <p>Fuerza útil, coordinación, resistencia y técnica de movimiento con metodología de combate adaptada a cualquier perfil.</p>
+        <p>Fuerza, coordinación, agarre y técnica sin impacto.</p>
       </div>
     </div>
 
     <div class="for-who-note reveal">
-      <strong>Fuerza, condición física, movilidad, agarre, coordinación y técnica sin impacto.</strong><br>
-      El sistema se ajusta al punto de partida de cada persona. No hay requisitos previos para empezar.
+      <strong>Sin requisitos previos.</strong><br>
+      Se ajusta a tu punto de partida: nivel, movilidad, tiempo y objetivo.
     </div>
   </div>
 </section>
@@ -2593,7 +2896,7 @@ footer {
         <div class="label-tag reveal">Primer paso</div>
         <h2 class="section-title reveal d1">Empieza con<br>una <span class="accent">evaluación.</span></h2>
         <p class="reveal d2">
-          El primer paso es conocer tu punto de partida. Reserva una sesión de evaluación y descubre qué necesitas mejorar y qué camino tiene más sentido para ti.
+          Antes de asignarte un plan, evaluamos tu punto de partida. Así sabes qué necesitas mejorar y cómo vamos a trabajarlo.
         </p>
       
               <img src="/IMG_2391.jpeg" alt="Perfil prospecto día 1" style="margin-top:1.5rem;border-radius:10px;border:1px solid var(--border);max-width:340px;width:100%" loading="lazy">
@@ -2604,21 +2907,21 @@ footer {
             <div class="apply-step-num">01</div>
             <div>
               <strong>Perfil y objetivo</strong>
-              <p>Se revisa tu nivel, objetivo y punto de partida antes de asignar nada</p>
+              <p>Nivel, objetivo y punto de partida antes de asignar nada</p>
             </div>
           </div>
           <div class="apply-step reveal d3">
             <div class="apply-step-num">02</div>
             <div>
               <strong>Respuesta directa</strong>
-              <p>Abel responde por WhatsApp con la propuesta adecuada en menos de 24h</p>
+              <p>Respuesta por WhatsApp con una propuesta concreta</p>
             </div>
           </div>
           <div class="apply-step reveal d3">
             <div class="apply-step-num">03</div>
             <div>
               <strong>Inicio del proceso</strong>
-              <p>Evaluación inicial y asignación del plan personalizado</p>
+              <p>Evaluación inicial y plan adaptado a tu perfil</p>
             </div>
           </div>
         </div>
@@ -2628,7 +2931,7 @@ footer {
         <div class="form-header">Primer paso — sin formularios</div>
 
         <p style="font-size:.9rem;font-weight:400;line-height:1.75;color:var(--text-2);margin-bottom:1rem;">
-          Escribe por WhatsApp directamente. Abel responde en menos de 24h con una propuesta concreta según tu objetivo y punto de partida.
+          Escribe por WhatsApp. Recibes una respuesta directa con el siguiente paso según tu objetivo y punto de partida.
         </p>
 
         <div style="background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.18);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
@@ -2648,7 +2951,7 @@ footer {
         </a>
 
         <div class="form-note">
-          Sin formularios. Sin esperas. Una conversación directa con el coach.
+          Sin formularios largos. Conversación directa con el coach.
         </div>
       </div>
     </div>
@@ -2740,7 +3043,7 @@ footer {
     Fuerza, condición física y movilidad con un sistema que evalúa, planifica, sigue y adapta. El primer paso es una evaluación.
   </p>
   <div class="cta-actions reveal d3">
-    <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20hacer%20una%20evaluaci%C3%B3n%20inicial%20con%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Solicitar evaluación</a>
+    <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20hacer%20una%20evaluaci%C3%B3n%20inicial%20con%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Evaluación inicial</a>
     <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20información%20sobre%20AB%20SYSTEM." class="btn btn-wa" target="_blank" rel="noopener">
       <svg class="wa-icon" viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.122 1.526 5.854L0 24l6.335-1.524A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-4.988-1.362l-.358-.213-3.76.904.969-3.674-.233-.374A9.793 9.793 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182c5.421 0 9.818 4.396 9.818 9.818 0 5.421-4.397 9.818-9.818 9.818z"/></svg>
       Hablar por WhatsApp
