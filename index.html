@@ -20,9 +20,11 @@
    TOKENS
 ═══════════════════════════════════════════════════════ */
 :root {
-  --bg:       #000000;
-  --card:     #121214;
-  --card-2:   #151519;
+  --bg:       #020304;
+  --card:     #101216;
+  --card-2:   #15181D;
+  --stage:    #080D12;
+  --stage-2:  #0D151C;
   --border:   rgba(255,255,255,.10);
   --border-c: rgba(0,229,255,.30);
 
@@ -429,100 +431,110 @@ nav.desk a:hover { color: var(--text); }
   border-radius: 6px;
 }
 
-/* ── Screenshots reales ── */
+/* HERO PRODUCT STAGE */
 .hero-right {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   animation: fadeUp .7s ease .2s both;
+  min-height: 620px;
+}
+
+.hero-right::before {
+  content: '';
+  position: absolute;
+  width: min(100%, 520px);
+  height: 620px;
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 70% 18%, rgba(0,229,255,.18), transparent 34%),
+    linear-gradient(145deg, var(--stage-2), var(--stage));
+  border: 1px solid rgba(0,229,255,.16);
+  box-shadow:
+    0 40px 120px rgba(0,0,0,.75),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  z-index: 0;
 }
 
 .screens-stack {
   position: relative;
   width: 100%;
-  max-width: 420px;
-  height: 580px;
+  max-width: 500px;
+  height: 620px;
+  z-index: 2;
+  isolation: isolate;
 }
 
-@media (max-width: 1100px) {
-  .screens-stack { height: 480px; }
-  .screen-main  { width: 195px; }
-  .screen-secondary { width: 182px; }
-}
-
-/* Marco de iPhone — pantalla principal */
+/* Marco común */
 .screen-frame {
   position: absolute;
-  background: #0a0a0a;
-  border-radius: 40px;
-  padding: 10px;
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,.10),
-    0 32px 80px rgba(0,0,0,.75),
-    0 0 0 8px #111,
-    0 0 0 9px rgba(255,255,255,.06);
+  background: #050607;
+  border-radius: 38px;
+  padding: 9px;
   overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.14),
+    0 26px 70px rgba(0,0,0,.75);
 }
 
-/* Pantalla principal: perfil — izquierda, encima */
+/* Pantalla protagonista */
 .screen-main {
-  width: 230px;
-  top: 0;
-  left: 0;
-  z-index: 2;
+  width: 295px;
+  top: 56px;
+  left: 34px;
+  z-index: 3;
   animation: float 7s ease-in-out infinite;
 }
 
-/* Pantalla secundaria: bloque — derecha, debajo */
+/* Pantalla secundaria, visible pero no dominante */
 .screen-secondary {
-  width: 215px;
-  bottom: 0;
-  right: 0;
-  z-index: 1;
+  width: 245px;
+  right: 26px;
+  bottom: 60px;
+  z-index: 2;
+  opacity: .82;
+  transform: translateX(0);
   animation: float 8s ease-in-out 1.2s infinite;
   box-shadow:
-    0 0 0 1px rgba(0,229,255,.18),
-    0 24px 60px rgba(0,0,0,.7),
-    0 0 0 8px #111,
-    0 0 0 9px rgba(0,229,255,.08);
+    0 0 0 1px rgba(0,229,255,.22),
+    0 24px 60px rgba(0,0,0,.7);
 }
 
 .screen-frame img {
   width: 100%;
-  border-radius: 32px;
+  border-radius: 30px;
   display: block;
+  filter: brightness(1.08) contrast(1.04);
 }
 
-/* Notch decorativo */
 .screen-frame::before {
   content: '';
   position: absolute;
-  top: 10px;
+  top: 9px;
   left: 50%;
   transform: translateX(-50%);
-  width: 80px;
+  width: 82px;
   height: 24px;
-  background: #0a0a0a;
-  border-radius: 0 0 14px 14px;
+  background: #050607;
+  border-radius: 0 0 15px 15px;
   z-index: 10;
 }
 
-/* Etiqueta flotante sobre la pantalla secundaria */
 .screen-tag {
   position: absolute;
-  bottom: 180px;
-  right: -16px;
-  z-index: 5;
+  right: 42px;
+  top: 36px;
+  z-index: 6;
   background: var(--cyan);
   color: #000;
-  font-size: .52rem;
+  font-size: .54rem;
   font-weight: 800;
-  letter-spacing: .12em;
+  letter-spacing: .14em;
   text-transform: uppercase;
-  padding: 5px 10px;
-  border-radius: 6px;
-  box-shadow: 0 4px 16px rgba(0,229,255,.35);
+  padding: 7px 12px;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,229,255,.35);
   white-space: nowrap;
 }
 
@@ -1340,46 +1352,44 @@ footer {
 }
 
 @media (max-width: 900px) {
-  nav.desk, .header-right .btn-primary, .lang-switch { display: none; }
-  .ham { display: flex; }
-
   .hero-content {
     grid-template-columns: 1fr;
-    gap: 2.5rem;
-    padding-top: 2.5rem;
-    text-align: left;
+    gap: 2rem;
+    padding-top: 2.25rem;
   }
 
   .hero-right {
-    display: flex;
-    justify-content: center;
-    margin-top: .5rem;
+    min-height: 500px;
+    margin-top: 1rem;
+  }
+
+  .hero-right::before {
+    width: min(92vw, 360px);
+    height: 500px;
+    border-radius: 28px;
   }
 
   .screens-stack {
-    height: 430px;
-    max-width: 330px;
+    height: 500px;
+    max-width: 360px;
   }
 
   .screen-main {
-    width: 185px;
-    top: 0;
-    left: 5px;
+    width: min(76vw, 285px);
+    top: 42px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .screen-secondary {
-    width: 170px;
-    right: 5px;
-    bottom: 0;
+    display: none;
   }
 
   .screen-tag {
-    bottom: 140px;
-    right: 10px;
+    top: 24px;
+    right: 50%;
+    transform: translateX(50%);
   }
-
-  .features-grid { grid-template-columns: 1fr 1fr; }
-  .forwho-grid { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 480px) {
