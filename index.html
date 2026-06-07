@@ -1739,10 +1739,9 @@ footer {
 }
 
 /* ═══════════════════════════════════════════════════════
-   RESPONSIVE — LIMPIO
+   MOBILE HERO FIX — AB SYSTEM
 ═══════════════════════════════════════════════════════ */
 
-/* Tablet / móvil grande */
 @media (max-width: 1100px) {
   nav.desk,
   .header-right {
@@ -1756,92 +1755,195 @@ footer {
   #header {
     height: 72px;
     padding: 0 1.5rem;
+    background: rgba(0,0,0,.94);
   }
 
   .mobile-menu {
     top: 72px;
   }
 
-  .hero-content {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-    padding-top: 2.5rem;
+  #hero {
+    min-height: auto;
+    padding-top: 72px;
+    align-items: flex-start;
   }
 
-  .hero-left {
-    max-width: 680px;
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 1.8rem;
+    padding: 2.4rem 1.25rem 3rem;
+  }
+
+  .hero-pretitle {
+    margin-bottom: 1rem;
+  }
+
+  .hero-h1 {
+    font-size: clamp(2rem, 9vw, 2.75rem);
+    line-height: 1.08;
+    margin-bottom: 1rem;
+  }
+
+  .hero-sub {
+    font-size: .92rem;
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-ctas {
+    flex-direction: column;
+    gap: .7rem;
+  }
+
+  .hero-ctas .btn {
+    width: 100%;
+  }
+
+  .hero-chips {
+    margin-top: 1.2rem;
+    gap: .45rem;
+  }
+
+  .hero-chip {
+    font-size: .54rem;
+    padding: .48rem .7rem;
   }
 
   .hero-right {
-    min-height: 520px;
+    min-height: auto;
     margin-top: .5rem;
   }
 
-  .hero-right::before {
-    width: min(92vw, 430px);
-    height: 520px;
-    border-radius: 30px;
+  .product-stage {
+    width: 100%;
+    max-width: 360px;
+    height: 390px;
+    margin: 0 auto;
+    border-radius: 28px;
   }
 
-  .screens-stack {
-    width: min(92vw, 430px);
-    max-width: none;
-    height: 520px;
-  }
-
-  .screen-main {
-    width: min(72vw, 285px);
-    top: 64px;
+  .phone-main {
+    width: 250px;
+    height: 355px;
     left: 50%;
-    right: auto;
-    bottom: auto;
+    top: 18px;
     transform: translateX(-50%);
-    animation: none;
-    z-index: 3;
+    border-radius: 32px;
+    padding: 12px;
   }
 
-  .screen-secondary {
-    display: none !important;
+  .phone-back {
+    display: none;
   }
 
-  .screen-tag {
-    top: auto;
-    right: auto;
-    bottom: 34px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: auto;
-    height: auto;
-    min-width: auto;
-    min-height: auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 14px;
-    border-radius: 8px;
+  .phone-notch {
+    width: 74px;
+    height: 22px;
+  }
+
+  .app-top {
+    height: 38px;
+    margin-bottom: 8px;
+  }
+
+  .avatar-dot {
+    width: 24px;
+    height: 24px;
+  }
+
+  .app-status {
+    font-size: .43rem;
+    padding: 6px 8px;
+  }
+
+  .app-mini-label {
+    font-size: .46rem;
+    padding: 7px;
+    margin-bottom: 8px;
+  }
+
+  .load-tabs {
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+
+  .load-tabs span {
+    font-size: .45rem;
+    padding: 6px 0;
+  }
+
+  .session-card {
+    padding: 10px;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .session-card strong {
+    font-size: .55rem;
+  }
+
+  .session-card small {
+    font-size: .45rem;
+    margin-top: 4px;
+  }
+
+  .timer-row {
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+
+  .timer-row strong {
+    font-size: .78rem;
+  }
+
+  .timer-row span {
+    font-size: .42rem;
+  }
+
+  .timer-row button {
+    width: 25px;
+    height: 25px;
+  }
+
+  .exercise-row {
+    padding: 9px 8px;
+    gap: 8px;
+  }
+
+  .check {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+  }
+
+  .exercise-row strong {
     font-size: .52rem;
-    line-height: 1;
+    line-height: 1.25;
   }
 
-  .how-grid,
-  .apply-grid,
-  .faq-layout,
-  .coach-grid {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
+  .exercise-row small {
+    font-size: .42rem;
   }
 
-  .how-sticky {
-    position: static;
+  .phone-nav {
+    left: 12px;
+    right: 12px;
+    bottom: 10px;
+    height: 36px;
   }
 
-  .diff-grid {
-    grid-template-columns: 1fr;
+  .phone-nav span {
+    font-size: .38rem;
   }
 
-  .coach-visual {
-    aspect-ratio: 16 / 9;
-    max-height: 340px;
+  .stage-badge {
+    bottom: 14px;
+    top: auto;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    font-size: .48rem;
+    padding: 7px 11px;
   }
 
   .features-grid {
@@ -1851,111 +1953,44 @@ footer {
   .forwho-grid {
     grid-template-columns: 1fr 1fr;
   }
-}
 
-/* Móvil */
-@media (max-width: 600px) {
-  section {
-    padding: clamp(3.5rem, 12vw, 5rem) 1.25rem;
+  .how-grid,
+  .coach-grid,
+  .apply-grid,
+  .faq-layout,
+  .diff-grid {
+    grid-template-columns: 1fr;
   }
 
-  #hero {
-    min-height: auto;
-    padding-top: 72px;
+  .how-sticky {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  section {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
   }
 
   .hero-content {
-    padding: 2rem 1.25rem 3.5rem;
-    gap: 2rem;
+    padding-top: 2rem;
+    padding-bottom: 2.7rem;
   }
 
-  .hero-pretitle {
-    margin-bottom: 1.1rem;
+  .product-stage {
+    max-width: 335px;
+    height: 360px;
   }
 
-  .hero-pretitle span {
-    font-size: .56rem;
-    line-height: 1.4;
-  }
-
-  .hero-h1 {
-    font-size: clamp(2.05rem, 10vw, 2.75rem);
-    line-height: 1.08;
-    letter-spacing: -1px;
-    margin-bottom: 1.2rem;
-  }
-
-  .hero-sub {
-    font-size: .88rem;
-    line-height: 1.65;
-    margin-bottom: 1.7rem;
-  }
-
-  .hero-ctas {
-    flex-direction: column;
-  }
-
-  .hero-ctas .btn {
-    width: 100%;
-  }
-
-  .hero-chips {
-    gap: .45rem;
-    margin-top: 1.25rem;
+  .phone-main {
+    width: 232px;
+    height: 330px;
+    top: 15px;
   }
 
   .hero-chip {
-    font-size: .52rem;
-    padding: .45rem .7rem;
-  }
-
-  .hero-right {
-    min-height: 430px;
-    margin-top: .25rem;
-  }
-
-  .hero-right::before {
-    width: min(92vw, 360px);
-    height: 430px;
-    border-radius: 28px;
-  }
-
-  .screens-stack {
-    width: min(92vw, 360px);
-    height: 430px;
-  }
-
-  .screen-main {
-    width: min(68vw, 245px);
-    top: 54px;
-    left: 50%;
-    transform: translateX(-50%);
-    animation: none;
-  }
-
-  .screen-frame {
-    border-radius: 34px;
-    padding: 8px;
-  }
-
-  .screen-frame img {
-    border-radius: 27px;
-  }
-
-  .screen-frame::before {
-    top: 8px;
-    width: 74px;
-    height: 22px;
-  }
-
-  .screen-tag {
-    bottom: 26px;
-    left: 50%;
-    right: auto;
-    top: auto;
-    transform: translateX(-50%);
-    font-size: .48rem;
-    padding: 7px 12px;
+    font-size: .5rem;
   }
 
   .ticker {
@@ -1965,33 +2000,6 @@ footer {
   .features-grid,
   .forwho-grid {
     grid-template-columns: 1fr;
-  }
-
-  .section-title {
-    font-size: clamp(1.8rem, 8vw, 2.4rem);
-  }
-
-  .cta-title {
-    font-size: clamp(2rem, 9vw, 2.8rem);
-  }
-
-  .cta-actions {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .cta-actions .btn {
-    width: 100%;
-    max-width: 340px;
-  }
-
-  .footer-top {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .footer-bottom {
-    flex-direction: column;
   }
 
   .logo-sub {
