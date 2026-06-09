@@ -2583,7 +2583,8 @@ const state = {
   sessionLoadCache:{},
   activeWorkoutLoadPercentage:70,
   activeExerciseDetailId: null,
-  timerExpanded: false
+  timerExpanded: false,
+  strengthRefCache: {}   // { clientId__exerciseCode: {...} }
 };
 
 let currentScr='hoy';
@@ -8005,6 +8006,11 @@ async function openWorkoutBlock(blockIdRaw){
     try{
       const planForLoad = getWorkoutPlanForClient(c);
       await ensureSessionLoadPrescriptionLoaded(c, planForLoad);
+      // Precargar referencias de fuerza por fase en paralelo
+      const blockNow = planForLoad.blocks.find(b => String(getRealBlockId(b)) === String(blockId));
+      if(blockNow?.exercises?.length){
+        preloadStrengthRefsForBlock(c.id, blockNow.exercises).catch(() => {});
+      }
     }catch(err){
       console.warn('No se pudo aplicar cargas al bloque abierto:', err);
     }
@@ -8245,6 +8251,105 @@ function buildClAdaptedRow(r, index, c){
 }
 
 /* ── Fila de ejercicio normal (checklist principal) ── */
+
+/* ════════════════════════════════════════════════════════
+   AB SYSTEM — REFERENCIAS DE CARGA POR FASE
+   Usa ab_get_exercise_load_reference (RPC Supabase)
+════════════════════════════════════════════════════════ */
+
+function getStrengthRefCacheKey(clientId, exerciseCode){
+  return `${clientId}__${exerciseCode}`;
+}
+
+/* Carga la referencia de fuerza para un ejercicio.
+   Cachea el resultado para no repetir llamadas en el mismo render. */
+async function loadStrengthRef(clientId, exerciseCode, movementPattern){
+  if(!exerciseCode || !clientId) return null;
+  const key = getStrengthRefCacheKey(clientId, exerciseCode);
+  if(state.strengthRefCache[key] !== undefined) return state.strengthRefCache[key];
+
+  try{
+    const { data, error } = await db.rpc('ab_get_exercise_load_reference', {
+      p_client_id:        clientId,
+      p_exercise_code:    exerciseCode,
+      p_movement_pattern: movementPattern || null,
+      p_phase_key:        null  // detecta fase automáticamente
+    });
+    const result = error ? null : (data || null);
+    state.strengthRefCache[key] = result;
+    return result;
+  }catch(e){
+    state.strengthRefCache[key] = null;
+    return null;
+  }
+}
+
+/* Precarga referencias para todos los ejercicios de un bloque en paralelo */
+async function preloadStrengthRefsForBlock(clientId, exercises){
+  const promises = exercises
+    .filter(ex => ex.exerciseCode || ex.exercise_code)
+    .map(ex => loadStrengthRef(
+      clientId,
+      ex.exerciseCode || ex.exercise_code,
+      ex.movementPatternKey || ex.movement_pattern_key || null
+    ));
+  await Promise.allSettled(promises);
+}
+
+/* Construye el badge de referencia de carga para la fila del checklist */
+function buildClStrengthRef(ex, clientId){
+  const code = ex.exerciseCode || ex.exercise_code || null;
+  if(!code || !clientId) return '';
+
+  const key = getStrengthRefCacheKey(clientId, code);
+  const ref = state.strengthRefCache[key];
+
+  // No cargado aún → silencio (se carga en background)
+  if(ref === undefined) return '';
+  // Sin perfil de fuerza → silencio
+  if(!ref || ref.ok === false) return '';
+  // Sin rango de carga → silencio
+  if(!ref.load_min_kg && !ref.load_max_kg) return '';
+
+  const phaseColors = {
+    base_general:           'rgba(0,200,232,.7)',
+    fuerza_base:            'rgba(255,179,64,.8)',
+    conversion_potencia:    'rgba(255,90,90,.75)',
+    precompetitiva:         'rgba(255,90,90,.9)',
+    semana_competitiva:     'rgba(255,90,90,1)',
+    transferencia_especifica:'rgba(0,230,118,.8)',
+    postcompeticion:        'rgba(143,143,153,.7)',
+  };
+  const phaseColor = phaseColors[ref.phase_key] || 'rgba(0,200,232,.7)';
+
+  const loadText = ref.load_min_kg && ref.load_max_kg
+    ? `${ref.load_min_kg}–${ref.load_max_kg} kg`
+    : ref.load_min_kg
+      ? `desde ${ref.load_min_kg} kg`
+      : `hasta ${ref.load_max_kg} kg`;
+
+  const rpeText = ref.rpe_min && ref.rpe_max
+    ? ` · RPE ${ref.rpe_min}–${ref.rpe_max}` : '';
+
+  const setsRepsText = (ref.sets_min && ref.reps_min)
+    ? ` · ${ref.sets_min}-${ref.sets_max}×${ref.reps_min}-${ref.reps_max}` : '';
+
+  return `
+    <div style="
+      display:inline-flex;align-items:center;gap:5px;
+      margin-top:3px;padding:3px 7px;
+      background:rgba(0,0,0,.3);
+      border:1px solid ${phaseColor};
+      border-radius:5px;font-family:var(--font-m);
+      font-size:.48rem;letter-spacing:.06em;
+      color:${phaseColor};line-height:1.4;
+    ">
+      <span style="opacity:.7">Ref. fase:</span>
+      <strong>${esc(loadText)}${rpeText}${setsRepsText}</strong>
+    </div>
+  `;
+}
+
 function buildClExerciseRow(ex, index, clientId, block){
   if(!canRenderFieldItem(ex)) return '';
   const itemType = ex.fieldItemType || ex.field_item_type || 'exercise';
@@ -8272,6 +8377,7 @@ function buildClExerciseRow(ex, index, clientId, block){
         ${meta.note ? `<div class="cl-meta" style="color:var(--text-2);font-size:.54rem">${esc(meta.note)}</div>` : ''}
         ${loadText ? `<div class="cl-load">${esc(loadText)}</div>` : ''}
         ${hasSuggestedLoad(ex) ? buildClLoadInput(ex, exId) : ''}
+        ${buildClStrengthRef(ex, clientId)}
         ${isDetail ? buildClExerciseDetail(ex, exId, clientId, videoUrl, blockId) : ''}
       </div>
       <span class="cl-detail-btn" onclick="toggleExerciseDetail('${exId}')">
