@@ -5404,6 +5404,7 @@ let calSelectedSlot = null;
 let calPublicSlots = [];
 let calClientReservations = [];
 let calShowFullView = false;
+let clientStrengthRefCache = {};   // { exerciseCode: ref } para el cliente activo
 let AB_LANG = "es";
 
 function statusLabel(esLabel, srLabel, enLabel) {
@@ -6797,6 +6798,13 @@ async function renderDashboard() {
   document.documentElement.lang = getLang() === "sr" ? "sr" : "es";
 
   applyStaticTranslations();
+  // Precargar referencias de fuerza en background
+  if(clientData?.id && typeof preloadClientStrengthRefs === 'function'){
+    const allExercises = (clientTrainingProgram?.blocks || [])
+      .flatMap(b => b.exercises || [])
+      .filter(ex => ex.exercise_code || ex.exerciseCode);
+    if(allExercises.length) preloadClientStrengthRefs(allExercises).catch(()=>{});
+  }
   
   injectAvatarInHeader();
 
@@ -10375,6 +10383,94 @@ function buildClientInstructionCard(ex){
   );
 }
 
+
+/* ════════════════════════════════════════════════════════
+   AB SYSTEM — REFERENCIA DE CARGA POR FASE (CLIENTE)
+════════════════════════════════════════════════════════ */
+
+async function loadClientStrengthRef(exerciseCode, movementPattern){
+  if(!exerciseCode || !clientData?.id) return null;
+  if(clientStrengthRefCache[exerciseCode] !== undefined)
+    return clientStrengthRefCache[exerciseCode];
+
+  try{
+    const { data, error } = await supabase.rpc('ab_get_exercise_load_reference', {
+      p_client_id:        clientData.id,
+      p_exercise_code:    exerciseCode,
+      p_movement_pattern: movementPattern || null,
+      p_phase_key:        null
+    });
+    const result = error ? null : (data || null);
+    clientStrengthRefCache[exerciseCode] = result;
+    return result;
+  }catch(e){
+    clientStrengthRefCache[exerciseCode] = null;
+    return null;
+  }
+}
+
+async function preloadClientStrengthRefs(exercises){
+  clientStrengthRefCache = {};
+  const promises = (exercises || [])
+    .filter(ex => ex.exercise_code || ex.exerciseCode)
+    .map(ex => loadClientStrengthRef(
+      ex.exercise_code || ex.exerciseCode,
+      ex.movement_pattern_key || ex.movementPatternKey || null
+    ));
+  await Promise.allSettled(promises);
+}
+
+function buildClientStrengthRefBadge(ex){
+  const code = ex.exercise_code || ex.exerciseCode || null;
+  if(!code) return '';
+  const ref = clientStrengthRefCache[code];
+  if(!ref || ref.ok === false) return '';
+  if(!ref.load_min_kg && !ref.load_max_kg) return '';
+
+  const lang = getLang();
+  const loadText = ref.load_min_kg && ref.load_max_kg
+    ? `${ref.load_min_kg}–${ref.load_max_kg} kg`
+    : ref.load_min_kg ? `desde ${ref.load_min_kg} kg`
+    : `hasta ${ref.load_max_kg} kg`;
+
+  const rpeText = ref.rpe_min && ref.rpe_max
+    ? ` · RPE ${ref.rpe_min}–${ref.rpe_max}` : '';
+
+  const setsRepsText = ref.sets_min && ref.reps_min
+    ? ` · ${ref.sets_min}-${ref.sets_max}×${ref.reps_min}-${ref.reps_max}` : '';
+
+  const phaseColors = {
+    base_general:            '#00C8E8',
+    fuerza_base:             '#FFB340',
+    conversion_potencia:     '#FF5A5A',
+    precompetitiva:          '#FF5A5A',
+    semana_competitiva:      '#FF5A5A',
+    transferencia_especifica:'#00E676',
+    postcompeticion:         '#8F8F99',
+  };
+  const color = phaseColors[ref.phase_key] || '#00C8E8';
+
+  const label = lang === 'en' ? 'Phase ref:' : lang === 'sr' ? 'Ref. faze:' : 'Ref. fase:';
+
+  return (
+    '<div class="client-strength-ref" style="' +
+      'display:flex;align-items:center;gap:6px;' +
+      'margin:6px 0 2px;padding:5px 10px;' +
+      'background:rgba(0,0,0,.25);' +
+      'border:1px solid ' + color + '40;' +
+      'border-radius:6px;' +
+    '">' +
+      '<span style="font-size:.58rem;font-weight:700;letter-spacing:.08em;' +
+        'text-transform:uppercase;color:' + color + ';opacity:.8">' +
+        label +
+      '</span>' +
+      '<span style="font-size:.7rem;font-weight:700;color:' + color + '">' +
+        loadText + rpeText + setsRepsText +
+      '</span>' +
+    '</div>'
+  );
+}
+
 function buildExerciseHTML(ex){
   ex = enrichExerciseWithKnowledge(ex);
   ex = getExerciseWithActiveAdaptation(ex);
@@ -10437,7 +10533,10 @@ const variant = ex.client_variant || baseVariant;
 
     html += '</div>';
   }
-  
+
+  // Referencia de carga por fase (si existe perfil de fuerza)
+  html += buildClientStrengthRefBadge(ex);
+
   if (ex.client_exercise_status) {
   html +=
     '<div class="training-client-status">[' + ex.client_exercise_status + ']</div>';
