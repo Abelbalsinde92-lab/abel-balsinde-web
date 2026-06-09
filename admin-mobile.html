@@ -13061,26 +13061,54 @@ async function renderEvalRecommendation() {
   if (!el) return;
   el.innerHTML = '<div style="padding:20px"><div class="eval-loading">Calculando resultado...</div></div>';
 
-  const { error: fe } = await db.rpc('calcular_nivel_evaluacion', {
-    p_evaluacion_id: evalState.evaluacionId,
-    p_assessment_id: evalState.assessmentId,
-  });
+  // Marcar assessment como completado
+  if (evalState.assessmentId) {
+    await db.from('client_assessments')
+      .update({ status: 'completado' })
+      .eq('id', evalState.assessmentId);
+  }
 
-  await db.from('client_assessments').update({ status: 'completado' })
-    .eq('id', evalState.assessmentId);
+  // Intentar calcular nivel con RPC (puede no existir si el flujo es nuevo)
+  let ev = null;
+  if (evalState.evaluacionId) {
+    const { error: fe } = await db.rpc('calcular_nivel_evaluacion', {
+      p_evaluacion_id: evalState.evaluacionId,
+      p_assessment_id: evalState.assessmentId,
+    }).catch(() => ({ error: { message: 'RPC no disponible' } }));
 
-  if (fe) { showToast('Error al calcular: ' + fe.message, 'err'); return; }
+    if (!fe) {
+      const { data } = await db.from('evaluaciones')
+        .select('*, training_programs(name), mobility_chains(name, level)')
+        .eq('id', evalState.evaluacionId).single();
+      ev = data;
+    }
+  }
 
-  const { data: ev } = await db.from('evaluaciones')
-    .select('*, training_programs(name), mobility_chains(name, level)')
-    .eq('id', evalState.evaluacionId).single();
+  // ── Construir resumen de resultados desde evalState.results ──
+  const resultItems = evalState.items
+    .filter(i => evalState.results[i.exercise_name] != null)
+    .map(i => {
+      const val = evalState.results[i.exercise_name];
+      const reps = evalState.results[i.exercise_name + '__reps'];
+      const unit = i.requires_load ? 'kg'
+                 : i.requires_time ? 's'
+                 : i.requires_distance ? 'm'
+                 : i.requires_reps ? 'reps'
+                 : (i.unit || '');
+      const displayVal = reps
+        ? `${val} kg × ${reps} reps`
+        : `${val}${unit ? ' ' + unit : ''}`;
+      return { name: i.item_name || i.name || i.exercise_name, val: displayVal, optional: i.is_optional };
+    });
 
-  if (!ev) { showToast('No se pudo cargar el resultado', 'err'); return; }
+  const filledCount  = resultItems.length;
+  const totalCount   = evalState.items.length;
 
-  const nivel = ev.recommended_level || 0;
-  const planName = ev.training_programs?.name || '—';
-  const chainName = ev.mobility_chains?.name || '—';
-  const chainLevel = ev.mobility_chains?.level || '';
+  // ── Nivel calculado por RPC o estimado localmente ──
+  const nivel     = ev?.recommended_level || 0;
+  const planName  = ev?.training_programs?.name || null;
+  const chainName = ev?.mobility_chains?.name   || null;
+  const chainLevel= ev?.mobility_chains?.level  || '';
 
   const stars = Array(4).fill(0).map((_,i) =>
     `<span class="${i < nivel ? 'eval-star-on' : 'eval-star'}">★</span>`
@@ -13088,13 +13116,17 @@ async function renderEvalRecommendation() {
 
   el.innerHTML = `
     <div style="padding:16px 20px 80px">
+
       <div class="eval-result-hero">
-        <div class="eval-result-label">Resultado de la evaluación</div>
+        <div class="eval-result-label">Evaluación completada</div>
         <div class="eval-result-client">${escHTML(evalState.clientName)}</div>
-        <div class="eval-stars">${stars}</div>
-        <div class="eval-result-level">Nivel ${nivel} / 4</div>
+        <div style="font-family:var(--font-m);font-size:.65rem;color:var(--text-secondary);margin-top:4px">
+          ${filledCount} / ${totalCount} tests registrados
+        </div>
+        ${nivel > 0 ? `<div class="eval-stars">${stars}</div><div class="eval-result-level">Nivel ${nivel} / 4</div>` : ''}
       </div>
 
+      ${ev ? `
       <div class="eval-result-grid">
         <div class="eval-result-card">
           <div class="eval-rc-label">Fuerza</div>
@@ -13108,27 +13140,38 @@ async function renderEvalRecommendation() {
           <div class="eval-rc-label">Resistencia</div>
           <div class="eval-rc-val">${ev.nivel_resistencia || '—'}/4</div>
         </div>
+      </div>` : ''}
+
+      <div class="eval-recommendation" style="margin-top:16px">
+        <div class="eval-rec-title">Resultados registrados</div>
+        ${resultItems.map(r => `
+          <div class="eval-rec-item">
+            <span class="eval-rec-label">${escHTML(r.name)}</span>
+            <span class="eval-rec-value" style="color:var(--sport);font-weight:700">${escHTML(r.val)}</span>
+          </div>`).join('')}
       </div>
 
-      <div class="eval-recommendation">
+      ${planName || chainName ? `
+      <div class="eval-recommendation" style="margin-top:12px">
         <div class="eval-rec-title">Recomendación del sistema</div>
-        <div class="eval-rec-item">
+        ${planName ? `<div class="eval-rec-item">
           <span class="eval-rec-label">Plan</span>
           <span class="eval-rec-value">${escHTML(planName)}</span>
-        </div>
-        <div class="eval-rec-item">
+        </div>` : ''}
+        ${chainName ? `<div class="eval-rec-item">
           <span class="eval-rec-label">Movilidad</span>
           <span class="eval-rec-value">${escHTML(chainName)}${chainLevel ? ' ('+chainLevel+')' : ''}</span>
-        </div>
-        ${ev.recommendation_notes ? `<div class="eval-rec-notes">${escHTML(ev.recommendation_notes)}</div>` : ''}
-      </div>
+        </div>` : ''}
+        ${ev?.recommendation_notes ? `<div class="eval-rec-notes">${escHTML(ev.recommendation_notes)}</div>` : ''}
+      </div>` : ''}
 
       <div class="eval-confirm-btns">
+        ${ev?.recommended_plan_id ? `
         <button class="btn btn-p btn-wide" onclick="confirmEvalAssignment()">
           ✓ Confirmar y asignar plan
-        </button>
+        </button>` : ''}
         <button class="btn btn-b btn-wide" style="margin-top:8px" onclick="closeEvalModal()">
-          Cerrar sin asignar
+          Cerrar evaluación
         </button>
       </div>
     </div>`;
