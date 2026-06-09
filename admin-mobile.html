@@ -1316,6 +1316,52 @@ a{text-decoration:none;color:inherit}
 }
 .eval-number-input { flex: 1; font-size: 24px !important; text-align: center; }
 .eval-unit-label { font-size: 16px; color: var(--text-secondary); }
+.eval-unit-highlight {
+  color: var(--sport) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  min-width: 36px;
+  text-align: right;
+}
+.eval-unit-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,200,232,.08);
+  border: 1px solid rgba(0,200,232,.22);
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin: 8px 0 12px;
+  font-family: var(--font-m);
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--sport);
+  letter-spacing: .04em;
+}
+.eval-sub-label {
+  display: block;
+  font-family: var(--font-m);
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 14px 0 6px;
+}
+.eval-reps-wrap {
+  margin-top: 4px;
+}
+.eval-protocol-note {
+  background: rgba(255,255,255,.04);
+  border-left: 2px solid rgba(0,200,232,.4);
+  border-radius: 0 6px 6px 0;
+  padding: 8px 12px;
+  margin-top: 10px;
+  font-family: var(--font-m);
+  font-size: .7rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
 
 /* Navigation */
 .eval-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
@@ -12701,6 +12747,42 @@ function getFallbackItems(type) {
   return base;
 }
 
+
+/* Devuelve { icon, label } con la unidad visual del test */
+function getEvalUnit(item) {
+  if (!item) return null;
+  if (item.requires_load && item.requires_reps) {
+    return { icon: '🏋', label: 'Introduce el peso (kg) y las repeticiones' };
+  }
+  if (item.requires_load) {
+    return { icon: '⚖', label: 'Valor en kilogramos (kg)' };
+  }
+  if (item.requires_reps) {
+    return { icon: '🔢', label: 'Número de repeticiones' };
+  }
+  if (item.requires_time) {
+    return { icon: '⏱', label: 'Tiempo en segundos' };
+  }
+  if (item.requires_distance) {
+    return { icon: '📏', label: 'Distancia en metros o centímetros' };
+  }
+  if (item.metric_type === 'level_1_3') {
+    return { icon: '📊', label: 'Calificación técnica del 1 al 3' };
+  }
+  if (item.metric_type === 'checkin') {
+    return { icon: '📋', label: 'Observación cualitativa' };
+  }
+  const unitMap = {
+    ppm:   { icon: '❤', label: 'Pulsaciones por minuto (ppm)' },
+    cm:    { icon: '📏', label: 'Centímetros (cm)' },
+    kg:    { icon: '⚖', label: 'Kilogramos (kg)' },
+    s:     { icon: '⏱', label: 'Segundos' },
+    reps:  { icon: '🔢', label: 'Repeticiones' },
+    nivel: { icon: '📊', label: 'Nivel del 1 al 3' },
+  };
+  return unitMap[item.unit] || null;
+}
+
 function renderEvalTest() {
   stopEvalTimer();
   evalState.timerSecs = 0;
@@ -12716,6 +12798,9 @@ function renderEvalTest() {
   const idx   = evalState.currentIdx;
   const prev  = evalState.results[item.exercise_name];
 
+  // Determinar unidad visual del test
+  const evalUnit = getEvalUnit(item);
+
   el.innerHTML = `
     <div style="padding:16px 20px 80px">
       <div class="eval-progress-bar">
@@ -12723,12 +12808,15 @@ function renderEvalTest() {
       </div>
       <div class="eval-test-header">
         <span class="eval-step">${idx + 1} / ${total}</span>
-        <span class="eval-test-name">${escHTML(item.exercise_name.replace(/_/g,' ').toUpperCase())}</span>
+        <span class="eval-test-name">${escHTML(item.item_name || item.name || item.exercise_name || '')}</span>
       </div>
-      <div class="eval-instruction">${escHTML(item.target_note || '')}</div>
+      ${item.category ? `<div style="font-family:var(--font-m);font-size:.52rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sport);margin-bottom:6px">${escHTML(item.category.replace(/_/g,' '))}</div>` : ''}
+      ${item.client_explanation ? `<div class="eval-instruction">${escHTML(item.client_explanation)}</div>` : ''}
+      ${evalUnit ? `<div class="eval-unit-banner">${evalUnit.icon} <span>${escHTML(evalUnit.label)}</span></div>` : ''}
       <div id="eval-input-wrap">
         ${buildEvalInput(item, prev)}
       </div>
+      ${item.protocol && item.protocol !== item.client_explanation ? `<div class="eval-protocol-note">${escHTML(item.protocol)}</div>` : ''}
       <div class="eval-nav">
         <button class="btn btn-b ${idx === 0 ? 'btn-disabled' : ''}"
           onclick="evalBack()" ${idx === 0 ? 'disabled' : ''}>← Atrás</button>
@@ -12800,14 +12888,56 @@ function buildEvalInput(item, prevValue) {
       <input id="eval-val" type="hidden" value="${prev || ''}">`;
   }
 
+  // Unidad, placeholder y hint según flags del item
+  const inputUnit = item.requires_load     ? 'kg'
+                  : item.requires_time     ? 's'
+                  : item.requires_distance ? 'm'
+                  : item.requires_reps     ? 'reps'
+                  : (unit || '');
+
+  const inputStep = item.requires_load ? '0.5' : '1';
+
+  const inputPlaceholder = item.requires_load     ? 'ej: 30'
+                         : item.requires_reps     ? 'ej: 8'
+                         : item.requires_time     ? 'ej: 45'
+                         : item.requires_distance ? 'ej: 5'
+                         : 'ej: 0';
+
+  const inputHint = item.requires_load
+    ? 'Peso usado en la serie principal (kg)'
+    : item.requires_reps
+    ? 'Número de repeticiones realizadas'
+    : item.requires_time
+    ? 'Tiempo en segundos'
+    : item.requires_distance
+    ? 'Distancia en metros'
+    : unit === 'ppm'
+    ? 'FC medida al minuto exacto de recuperación'
+    : unit === 'cm'
+    ? 'Negativo si no llega a los pies. Ej: −5'
+    : '';
+
+  const repsField = (item.requires_load && item.requires_reps)
+    ? `<div class="eval-reps-wrap">
+        <label class="eval-sub-label">Repeticiones realizadas</label>
+        <div class="eval-number-wrap">
+          <input id="eval-reps" type="number" class="fld-i eval-number-input"
+            value="${evalState.results[item.exercise_name + '__reps'] || ''}"
+            placeholder="ej: 8" step="1" min="1" max="30">
+          <span class="eval-unit-label eval-unit-highlight">reps</span>
+        </div>
+      </div>`
+    : '';
+
   return `
     <div class="eval-number-wrap">
       <input id="eval-val" type="number" class="fld-i eval-number-input"
-        value="${prev}" placeholder="Introduce el valor" step="0.1">
-      <span class="eval-unit-label">${unit}</span>
+        value="${prev}" placeholder="${inputPlaceholder}"
+        step="${inputStep}" min="0">
+      <span class="eval-unit-label eval-unit-highlight">${inputUnit}</span>
     </div>
-    ${unit === 'ppm' ? '<div class="eval-hint">FC medida al minuto exacto de recuperación</div>' : ''}
-    ${unit === 'cm' && item.exercise_name === 'sit_reach' ? '<div class="eval-hint">Negativo si no llega a los pies. Ej: -5</div>' : ''}`;
+    ${repsField}
+    ${inputHint ? `<div class="eval-hint">${inputHint}</div>` : ''}`;
 }
 
 function toggleEvalTimer() {
@@ -12891,6 +13021,13 @@ async function evalNext() {
   const val = raw !== '' ? parseFloat(raw) : null;
 
   evalState.results[item.exercise_name] = val;
+
+  // Guardar reps secundarias si el test tiene carga + reps
+  const repsEl = document.getElementById('eval-reps');
+  if (repsEl && repsEl.value.trim()) {
+    evalState.results[item.exercise_name + '__reps'] = parseInt(repsEl.value.trim(), 10);
+  }
+
   stopEvalTimer();
 
   if (val !== null) {
