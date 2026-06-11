@@ -4806,7 +4806,7 @@ function openCoachAccountModal(){
   const form=document.getElementById('modal-form');
   if(!title || !form) return;
 
-  const roleLabel = isOwnerCoach() ? 'Owner / administrador' : 'Coach colaborador';
+  const roleLabel = isOwnerCoach() ? 'Owner / administrador' : 'Coach';
   const name = getActiveCoachDisplayName();
 
   title.textContent='Mi cuenta';
@@ -4822,7 +4822,6 @@ function openCoachAccountModal(){
     <div class="card" style="margin-bottom:14px">
       <div class="card-body" style="padding:12px 14px">
         <div style="font-size:.78rem;color:var(--text-2);line-height:1.45">
-          Esta cuenta solo debe ver sus propios atletas, sus asignaciones y los planes compartidos por AB SYSTEM.
         </div>
       </div>
     </div>
