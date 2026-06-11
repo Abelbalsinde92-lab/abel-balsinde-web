@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>AB · Global</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#000;--card:#121214;--card-border:#1F1F24;--divider:#16161A;
+  --text:#FFF;--text-2:#8E8E93;
+  --sport:#00C8E8;--medical:#FF5A5A;--streak:#00E676;--warn:#FFB340;
+  --font-d:'Bebas Neue',sans-serif;
+  --font-b:'Syne',sans-serif;
+  --font-m:'DM Mono',monospace;
+  --top-h:64px;--bot-h:62px;--touch:48px;--r:14px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:var(--font-b);background:var(--bg);color:var(--text);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;overscroll-behavior:none;text-size-adjust:none;-webkit-text-size-adjust:none}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:16px}
+a{text-decoration:none;color:inherit}
+.hidden{display:none!important}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.spin{width:32px;height:32px;border:2px solid var(--divider);border-top-color:var(--sport);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading p{font-family:var(--font-m);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-2)}
+
+/* LOGIN */
+#login{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 20px calc(24px + var(--safe-b)) 20px;padding-top:calc(24px + var(--safe-t))}
+.login-card{width:100%;max-width:380px;background:var(--card);border:1px solid var(--card-border);border-top:2px solid var(--sport);border-radius:var(--r);padding:32px 24px 28px}
+.login-brand{font-family:var(--font-d);font-size:2.2rem;line-height:1;margin-bottom:4px}
+.login-sub{font-family:var(--font-m);font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sport);margin-bottom:22px}
+.login-title{font-family:var(--font-d);font-size:1.9rem;letter-spacing:.04em;margin-bottom:4px}
+.login-desc{font-size:.78rem;color:var(--text-2);font-family:var(--font-m);letter-spacing:.06em;margin-bottom:22px}
+.login-err{background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.3);color:var(--medical);border-radius:8px;padding:10px 12px;font-size:.78rem;font-family:var(--font-m);margin-bottom:14px}
+.login-field{margin-bottom:12px}
+.login-lbl{display:block;font-family:var(--font-m);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-2);margin-bottom:6px}
+.login-inp{width:100%;background:var(--bg);border:1px solid var(--card-border);border-radius:8px;color:var(--text);padding:14px;font-size:1rem;outline:none;transition:border-color .15s;min-height:var(--touch)}
+.login-inp:focus{border-color:var(--sport)}
+.login-btn{width:100%;background:var(--sport);color:#000;border-radius:8px;padding:14px;font-family:var(--font-m);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;min-height:var(--touch);margin-top:6px;font-weight:700}
+.login-btn:active{opacity:.85}
+
+/* APP */
+#app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+
+/* TOP BAR */
+.top{position:fixed;top:0;left:0;right:0;z-index:50;height:calc(var(--top-h) + var(--safe-t));padding-top:var(--safe-t);background:rgba(0,0,0,.92);border-bottom:1px solid var(--divider);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;padding-left:16px;padding-right:12px;gap:10px}
+.top-brand{font-family:var(--font-d);font-size:1.4rem;line-height:1}
+.top-sub{font-family:var(--font-m);font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sport)}
+.top-spacer{flex:1}
+.top-btn{min-width:var(--touch);height:var(--touch);background:var(--card);border:1px solid var(--card-border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-2);padding:0 12px;gap:6px;font-family:var(--font-m);font-size:.65rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.top-btn:active{opacity:.7}
+.top-btn.pri{background:rgba(0,200,232,.12);color:var(--sport);border:1px solid rgba(0,200,232,.3)}
+
+/* WRAP */
+.wrap{flex:1;overflow-y:auto;overflow-x:hidden;padding-top:calc(var(--top-h) + var(--safe-t));padding-bottom:calc(var(--bot-h) + var(--safe-b) + 12px);-webkit-overflow-scrolling:touch}
+
+/* SCREENS */
+.scr{display:none;padding:16px 16px 0}
+.scr.on{display:block;animation:fadein .15s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.scr-eye{font-family:var(--font-m);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sport);margin-bottom:3px}
+.scr-t{font-family:var(--font-d);font-size:1.9rem;letter-spacing:.03em;line-height:1;margin-bottom:16px}
+.scr-back{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-m);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);padding:6px 0;margin-bottom:12px;cursor:pointer}
+
+/* BOTTOM NAV */
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:50;height:calc(var(--bot-h) + var(--safe-b));background:var(--card);border-top:1px solid var(--divider);display:flex;align-items:flex-start;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:var(--bot-h);padding-bottom:var(--safe-b);color:var(--text-2);position:relative;transition:color .15s}
+.tab.on{color:var(--sport)}
+.tab:active{opacity:.6}
+.tab-i{display:flex;align-items:center;justify-content:center;width:24px;height:24px}
+.tab-i svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:stroke .15s}
+.tab.on .tab-i svg{stroke:var(--sport)}
+.tab-l{font-family:var(--font-m);font-size:.55rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.tab-b{position:absolute;top:6px;right:calc(50% - 18px);min-width:18px;height:18px;background:var(--medical);color:var(--bg);border-radius:9px;font-family:var(--font-m);font-size:.55rem;display:none;align-items:center;justify-content:center;padding:0 5px;font-weight:700}
+.tab-b.on{display:flex}
+.tab.on::before{content:'';position:absolute;top:0;left:22%;right:22%;height:2px;background:var(--sport);border-radius:0 0 3px 3px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.card-body{padding:14px}
+.card-title{font-family:var(--font-d);font-size:1.05rem;letter-spacing:.04em;margin-bottom:10px}
+.card-acts{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--divider);overflow-x:auto;scrollbar-width:none}
+.card-acts::-webkit-scrollbar{display:none}
+
+/* METRICS ROW */
+.mr{display:flex;gap:0;margin-bottom:14px;background:#0d0d0d;border:1px solid #1e1e1e;border-radius:12px;overflow:hidden}
+.mc{flex:1;padding:12px 10px 10px;border-top:2px solid transparent;border-right:1px solid #1e1e1e}
+.mc:last-child{border-right:none}
+.mc.b{border-top-color:var(--sport)}
+.mc.g{border-top-color:var(--streak)}
+.mc.r{border-top-color:var(--medical)}
+.mc.y{border-top-color:var(--warn)}
+.mc-n{font-family:var(--font-d);font-size:1.5rem;line-height:1;display:block}
+.mc-l{font-family:var(--font-m);font-size:.42rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);display:block;margin-top:4px}
+
+/* DATA ROWS */
+.dr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--divider);gap:10px}
+.dr:last-child{border-bottom:none}
+.dk{font-family:var(--font-m);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);white-space:nowrap}
+.dv{font-size:.85rem;font-weight:600;text-align:right}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 16px;font-family:var(--font-m);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;border-radius:8px;min-height:var(--touch);white-space:nowrap;flex-shrink:0;font-weight:700;transition:opacity .12s}
+.btn:active{opacity:.7;transform:scale(.97)}
+.btn-p{background:var(--sport);color:#000}
+.btn-s{background:var(--card);color:var(--text-2);border:1px solid var(--card-border)}
+.btn-b{background:rgba(0,200,232,.12);color:var(--sport);border:1px solid rgba(0,200,232,.3)}
+.btn-r{background:rgba(255,90,90,.12);color:var(--medical);border:1px solid rgba(255,90,90,.3)}
+.btn-g{background:rgba(0,230,118,.12);color:var(--streak);border:1px solid rgba(0,230,118,.3)}
+.btn-sm{min-height:40px;padding:0 12px;font-size:.6rem}
+.btn-wide{width:100%}
+
+/* BADGES */
+.b{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;font-family:var(--font-m);font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;flex-shrink:0;font-weight:600}
+.b::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.b-activo,.b-ok{background:rgba(0,230,118,.1);color:var(--streak)}
+.b-activo::before,.b-ok::before{background:var(--streak)}
+.b-info{background:rgba(0,200,232,.1);color:var(--sport)}
+.b-info::before{background:var(--sport)}
+.b-warn{background:rgba(255,179,64,.1);color:var(--warn)}
+.b-warn::before{background:var(--warn)}
+.b-err{background:rgba(255,90,90,.1);color:var(--medical)}
+.b-err::before{background:var(--medical)}
+
+/* SEARCH */
+.search{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:0 14px;min-height:var(--touch);margin-bottom:12px}
+.search input{background:none;border:none;outline:none;color:var(--text);font-size:1rem;flex:1;min-height:var(--touch)}
+.search input::placeholder{color:var(--text-2);opacity:.6}
+
+/* FORM FIELDS */
+.fld{margin-bottom:12px}
+.fld-l{display:block;font-family:var(--font-m);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:6px;font-weight:600}
+.fld-i,.fld-s{width:100%;background:var(--bg);border:1px solid var(--card-border);border-radius:8px;color:var(--text);padding:12px 14px;font-size:1rem;outline:none;transition:border-color .15s;min-height:var(--touch)}
+.fld-i:focus,.fld-s:focus{border-color:var(--sport)}
+.fld-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fld-acts{display:flex;gap:8px;margin-top:16px}
+.fld-acts .btn{flex:1}
+
+/* OVERLAY MODAL */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.ov.on{display:flex}
+.ms{background:var(--card);border-top:1px solid var(--card-border);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:560px;max-height:92dvh;overflow-y:auto;padding:18px 20px calc(20px + var(--safe-b)) 20px;position:relative;animation:slide-up .2s ease}
+@keyframes slide-up{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.ms-handle{width:36px;height:4px;background:var(--card-border);border-radius:2px;margin:0 auto 16px}
+.ms-title{font-family:var(--font-d);font-size:1.4rem;letter-spacing:.04em;margin-bottom:16px;padding-right:40px}
+.ms-x{position:absolute;top:12px;right:12px;color:var(--text-2);padding:8px;min-width:var(--touch);min-height:var(--touch);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700}
+.ms-x:active{color:var(--text)}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--bot-h) + var(--safe-b) + 12px);left:16px;right:16px;background:var(--card);border:1px solid rgba(0,200,232,.3);color:var(--text);border-radius:10px;padding:13px 18px;z-index:300;font-size:.88rem;box-shadow:0 20px 50px rgba(0,0,0,.5);transform:translateY(20px);opacity:0;transition:.22s;pointer-events:none;text-align:center;font-weight:600}
+.toast.on{transform:translateY(0);opacity:1}
+.toast.err{border-color:rgba(255,90,90,.4);color:var(--medical)}
+.toast.ok{border-color:rgba(0,230,118,.4)}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--text-2)}
+.empty strong{display:block;font-family:var(--font-d);font-size:1.4rem;letter-spacing:.04em;color:var(--text);margin-bottom:6px}
+
+/* AVATAR */
+.av{width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:1.05rem;background:rgba(0,200,232,.1);color:var(--sport);border:1px solid rgba(0,200,232,.2)}
+.av.lg{width:54px;height:54px;font-size:1.3rem}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spin"></div><p>Cargando…</p></div>
+
+<div id="login" class="hidden">
+  <div class="login-card">
+    <div class="login-brand">AB</div>
+    <div class="login-sub">Global · Owner Panel</div>
+    <div class="login-title">ACCESO</div>
+    <div class="login-desc">Panel de control general</div>
+    <div id="login-err" class="login-err hidden"></div>
+    <div class="login-field">
+      <label class="login-lbl" for="li-user">Usuario</label>
+      <input class="login-inp" id="li-user" type="text" placeholder="usuario" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="login-field">
+      <label class="login-lbl" for="li-pass">Contraseña</label>
+      <input class="login-inp" id="li-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="li-btn">Entrar</button>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header class="top">
+    <div>
+      <div class="top-brand">AB</div>
+      <div class="top-sub">Global</div>
+    </div>
+    <div class="top-spacer"></div>
+    <button class="top-btn" onclick="refresh()">↻</button>
+    <button class="top-btn btn-r btn-sm" onclick="doLogout()">⏻</button>
+  </header>
+
+  <div class="wrap">
+
+    <!-- HOY -->
+    <div class="scr on" id="s-hoy">
+      <div class="scr-eye">Panel de control</div>
+      <div class="scr-t">Hoy</div>
+      <div class="mr" id="hoy-metrics"></div>
+      <div id="hoy-content"></div>
+    </div>
+
+    <!-- COACHES -->
+    <div class="scr" id="s-coaches">
+      <div class="scr-eye">Gestión de sala</div>
+      <div class="scr-t">Coaches</div>
+      <div id="coaches-content"></div>
+    </div>
+
+    <!-- COACH DETALLE -->
+    <div class="scr" id="s-coach-detail">
+      <a class="scr-back" onclick="showScr('coaches')">← Coaches</a>
+      <div id="coach-detail-content"></div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="scr" id="s-clientes">
+      <div class="scr-eye">Base de datos</div>
+      <div class="scr-t">Clientes</div>
+      <div class="search">
+        <span style="color:var(--text-2)">⌕</span>
+        <input id="cli-search" type="search" placeholder="Buscar cliente…" autocapitalize="off" oninput="renderClientes()">
+      </div>
+      <div id="clientes-content"></div>
+    </div>
+
+    <!-- PROGRAMAS -->
+    <div class="scr" id="s-programas">
+      <div class="scr-eye">Planes de entrenamiento</div>
+      <div class="scr-t">Programas</div>
+      <div id="programas-content"></div>
+    </div>
+
+    <!-- ALERTAS -->
+    <div class="scr" id="s-alertas">
+      <div class="scr-eye">Notificaciones</div>
+      <div class="scr-t">Alertas</div>
+      <div class="mr" id="al-metrics"></div>
+      <div id="alertas-content"></div>
+    </div>
+
+  </div><!-- /.wrap -->
+
+  <nav class="nav">
+    <div class="tab on" id="tab-hoy" onclick="showScr('hoy')">
+      <span class="tab-i"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></span>
+      <span class="tab-l">Hoy</span>
+    </div>
+    <div class="tab" id="tab-coaches" onclick="showScr('coaches')">
+      <span class="tab-i"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg></span>
+      <span class="tab-l">Coaches</span>
+    </div>
+    <div class="tab" id="tab-clientes" onclick="showScr('clientes')">
+      <span class="tab-i"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a7 7 0 0114 0v2"/></svg></span>
+      <span class="tab-l">Clientes</span>
+    </div>
+    <div class="tab" id="tab-programas" onclick="showScr('programas')">
+      <span class="tab-i"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+      <span class="tab-l">Programas</span>
+    </div>
+    <div class="tab" id="tab-alertas" onclick="showScr('alertas')">
+      <span class="tab-i"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>
+      <span class="tab-l">Alertas</span>
+      <span class="tab-b" id="badge-al"></span>
+    </div>
+  </nav>
+</div>
+
+<!-- MODAL -->
+<div class="ov" id="modal-ov">
+  <div class="ms">
+    <div class="ms-handle"></div>
+    <button class="ms-x" onclick="closeModal()">✕</button>
+    <div class="ms-title" id="modal-title">Acción</div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL = 'https://icjuuptbcnkpwgsoyiuj.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanV1cHRiY25rcHdnc295aXVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTIzMjQsImV4cCI6MjA5MzcyODMyNH0.L__PcG-5HUkV5hpnsujrWi8mkL1o1lCKRf-mrSeO5V8';
+const db = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+const state = {
+  coaches:[], clients:[], programs:[], assignments:[], sessionLogs:[], alertas:[], checkins:[]
+};
+
+let currentScr = 'hoy';
+
+/* ── HELPERS ── */
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function todayISO(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function formatDate(s){if(!s)return'—';const[y,m,d]=String(s).split('-');return y&&m&&d?`${d}/${m}/${y}`:s}
+function initials(n){return(n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'?'}
+function snakeToCamel(obj){if(!obj||typeof obj!=='object')return obj;const out={};for(const[k,v]of Object.entries(obj)){out[k.replace(/_([a-z])/g,(_,l)=>l.toUpperCase())]=v}return out}
+function mapArr(arr){return(arr||[]).map(snakeToCamel)}
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function showToast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast on '+(type==='err'?'err':'ok');setTimeout(()=>t.classList.remove('on'),2400)}
+
+function weekStart(){
+  const d=new Date();d.setDate(d.getDate()-((d.getDay()||7)-1));
+  return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+/* ── NAV ── */
+function showScr(id){
+  currentScr=id;
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+id)?.classList.add('on');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  const tabMap={hoy:'tab-hoy',coaches:'tab-coaches','coach-detail':'tab-coaches',clientes:'tab-clientes',programas:'tab-programas',alertas:'tab-alertas'};
+  document.getElementById(tabMap[id]||'tab-hoy')?.classList.add('on');
+  document.querySelector('.wrap')?.scrollTo(0,0);
+  renderScr(id);
+}
+
+function renderScr(id){
+  if(id==='hoy') renderHoy();
+  else if(id==='coaches') renderCoaches();
+  else if(id==='clientes') renderClientes();
+  else if(id==='programas') renderProgramas();
+  else if(id==='alertas') renderAlertas();
+}
+
+/* ── MODAL ── */
+function closeModal(){document.getElementById('modal-ov')?.classList.remove('on')}
+function openModal(title, html){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal-ov').classList.add('on');
+}
+
+/* ── LOGIN ── */
+(async function pageInit(){
+  const isLogged = sessionStorage.getItem('ab_global_ok')==='true' || localStorage.getItem('ab_global_ok')==='true';
+  document.getElementById('loading').classList.add('hidden');
+  if(!isLogged){
+    document.getElementById('login').classList.remove('hidden');
+    setupLogin();
+    return;
+  }
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('modal-ov').addEventListener('click',e=>{if(e.target.id==='modal-ov')closeModal()});
+  await loadAllData();
+})();
+
+function setupLogin(){
+  document.getElementById('li-btn').addEventListener('click',attemptLogin);
+  ['li-user','li-pass'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')attemptLogin()}));
+}
+
+async function attemptLogin(){
+  const user=document.getElementById('li-user').value.trim();
+  const pass=document.getElementById('li-pass').value;
+  const err=document.getElementById('login-err');
+  err.classList.add('hidden');
+  if(!user||!pass){err.textContent='Introduce usuario y contraseña.';err.classList.remove('hidden');return}
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('loading').classList.remove('hidden');
+  try{
+    const{data:coach,error:coachErr}=await db.from('coaches').select('id,name,username,password_hash,role,is_active').eq('username',user).eq('is_active',true).maybeSingle();
+    if(coachErr&&coachErr.code==='42P01'){err.textContent='Error de sistema.';err.classList.remove('hidden');document.getElementById('loading').classList.add('hidden');document.getElementById('login').classList.remove('hidden');return}
+    if(!coach||coach.password_hash!==pass||coach.role!=='owner'){
+      document.getElementById('loading').classList.add('hidden');document.getElementById('login').classList.remove('hidden');
+      err.textContent='Acceso solo para owner.';err.classList.remove('hidden');return;
+    }
+    sessionStorage.setItem('ab_global_ok','true');localStorage.setItem('ab_global_ok','true');
+    sessionStorage.setItem('ab_global_name',coach.name);
+    location.replace(location.pathname);
+  }catch(e){
+    document.getElementById('loading').classList.add('hidden');document.getElementById('login').classList.remove('hidden');
+    err.textContent='Error de conexión.';err.classList.remove('hidden');
+  }
+}
+
+function doLogout(){
+  if(!confirm('¿Cerrar sesión?'))return;
+  ['ab_global_ok','ab_global_name'].forEach(k=>{sessionStorage.removeItem(k);localStorage.removeItem(k)});
+  location.replace(location.pathname);
+}
+
+/* ── DATA ── */
+async function loadAllData(){
+  try{
+    const today=todayISO();
+    const[
+      {data:coaches},{data:clients},{data:programs},{data:assignments},
+      {data:logs},{data:alertas},{data:checkins}
+    ]=await Promise.all([
+      db.from('coaches').select('*').eq('is_active',true).order('role',{ascending:false}),
+      db.from('clients').select('*').order('name'),
+      db.from('training_programs').select('*').order('name'),
+      db.from('client_program_assignments').select('*').eq('status','activo'),
+      db.from('client_session_logs').select('*').order('training_date',{ascending:false}).limit(200),
+      db.from('admin_alertas_detalle').select('*').order('created_at',{ascending:false}).limit(100),
+      db.from('client_daily_checkins').select('*').eq('checkin_date',today)
+    ]);
+    state.coaches=mapArr(coaches||[]);
+    state.clients=mapArr(clients||[]);
+    state.programs=mapArr(programs||[]);
+    state.assignments=mapArr(assignments||[]);
+    state.sessionLogs=mapArr(logs||[]);
+    state.alertas=mapArr(alertas||[]);
+    state.checkins=mapArr(checkins||[]);
+    renderBadges();
+    renderScr(currentScr);
+    showToast('Datos cargados ✓','ok');
+  }catch(err){console.error(err);showToast('Error cargando datos','err')}
+}
+
+async function refresh(){showToast('Actualizando…','ok');await loadAllData()}
+
+function renderBadges(){
+  const pending=state.alertas.filter(a=>!a.resueltaAt&&!a.resuelta_at&&String(a.estado||a.status||'pendiente')==='pendiente').length;
+  const el=document.getElementById('badge-al');
+  if(el){el.textContent=pending||'';el.classList.toggle('on',pending>0)}
+}
+
+/* ════ HOY ════ */
+function renderHoy(){
+  const today=todayISO();
+  const ws=weekStart();
+  const sesionesHoy=state.sessionLogs.filter(l=>String(l.trainingDate||l.training_date||'').slice(0,10)===today).length;
+  const sesionesEstaSemana=state.sessionLogs.filter(l=>String(l.trainingDate||l.training_date||'').slice(0,10)>=ws).length;
+  const alertasPendientes=state.alertas.filter(a=>!a.resueltaAt&&String(a.estado||'pendiente')==='pendiente').length;
+  const clientesActivos=state.clients.filter(c=>String(c.status||'activo')==='activo').length;
+
+  document.getElementById('hoy-metrics').innerHTML=`
+    <div class="mc b"><span class="mc-n">${sesionesHoy}</span><span class="mc-l">Hoy</span></div>
+    <div class="mc g"><span class="mc-n">${sesionesEstaSemana}</span><span class="mc-l">Esta sem.</span></div>
+    <div class="mc r"><span class="mc-n">${alertasPendientes}</span><span class="mc-l">Alertas</span></div>
+    <div class="mc y"><span class="mc-n">${clientesActivos}</span><span class="mc-l">Activos</span></div>
+  `;
+
+  const coachRows=state.coaches.map(coach=>{
+    const clientsDelCoach=state.clients.filter(c=>String(c.coachId||c.coach_id||'')=== String(coach.id));
+    const sesDelCoach=state.sessionLogs.filter(l=>{
+      const cids=new Set(clientsDelCoach.map(c=>String(c.id)));
+      return cids.has(String(l.clientId||l.client_id||''))&&String(l.trainingDate||l.training_date||'').slice(0,10)>=ws;
+    }).length;
+    const ultima=state.sessionLogs.filter(l=>{
+      const cids=new Set(clientsDelCoach.map(c=>String(c.id)));
+      return cids.has(String(l.clientId||l.client_id||''));
+    })[0];
+    return`
+      <div class="card" style="border-left:3px solid ${coach.role==='owner'?'var(--sport)':'var(--warn)'}">
+        <div class="card-body" style="padding:12px 14px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="av">${initials(coach.name)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:800;font-size:.95rem">${esc(coach.name)}</div>
+              <div style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2);margin-top:2px;text-transform:uppercase;letter-spacing:.06em">
+                ${coach.role==='owner'?'Owner':'Coach de sala'} · ${clientsDelCoach.length} clientes
+              </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-family:var(--font-d);font-size:1.4rem;color:${sesDelCoach>0?'var(--streak)':'var(--text-2)'}">${sesDelCoach}</div>
+              <div style="font-family:var(--font-m);font-size:.46rem;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">sesiones sem.</div>
+            </div>
+          </div>
+          ${ultima?`<div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);margin-top:8px">Última sesión: ${formatDate(String(ultima.trainingDate||ultima.training_date||'').slice(0,10))}</div>`:''}
+        </div>
+        <div class="card-acts">
+          <button class="btn btn-b btn-sm" onclick="openCoachDetail('${coach.id}')">Ver detalle</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('hoy-content').innerHTML=`
+    <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);margin-bottom:10px">Actividad por coach</div>
+    ${coachRows}
+    <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);margin:16px 0 10px">Check-ins hoy</div>
+    ${state.checkins.length
+      ?`<div class="card"><div class="card-body" style="padding:12px 14px">
+          ${state.checkins.map(ci=>{
+            const c=state.clients.find(x=>String(x.id)===String(ci.clientId||ci.client_id||''));
+            return`<div class="dr"><span class="dk">${esc(c?.name||'—')}</span><span class="dv" style="font-size:.8rem">ZZZ ${ci.sleepQuality||'—'} · NRG ${ci.energyLevel||'—'} · DOL ${ci.sorenessLevel||'—'}</span></div>`;
+          }).join('')}
+        </div></div>`
+      :`<div class="card"><div class="card-body" style="padding:14px;text-align:center;color:var(--text-2);font-size:.84rem">Sin check-ins hoy</div></div>`
+    }`;
+}
+
+/* ════ COACHES ════ */
+function renderCoaches(){
+  const box=document.getElementById('coaches-content');
+  box.innerHTML=state.coaches.map(coach=>{
+    const clients=state.clients.filter(c=>String(c.coachId||c.coach_id||'')=== String(coach.id));
+    const ws=weekStart();
+    const sesiones=state.sessionLogs.filter(l=>{
+      const cids=new Set(clients.map(c=>String(c.id)));
+      return cids.has(String(l.clientId||l.client_id||''))&&String(l.trainingDate||l.training_date||'').slice(0,10)>=ws;
+    }).length;
+    return`
+      <div class="card">
+        <div class="card-body" style="padding:14px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+            <div class="av lg">${initials(coach.name)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:800;font-size:1rem">${esc(coach.name)}</div>
+              <div style="font-family:var(--font-m);font-size:.52rem;color:${coach.role==='owner'?'var(--sport)':'var(--warn)'};text-transform:uppercase;letter-spacing:.08em;margin-top:2px">
+                ${coach.role==='owner'?'Owner':'Coach de sala'}
+              </div>
+              <div style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2);margin-top:2px">@${esc(coach.username||'')}</div>
+            </div>
+          </div>
+          <div class="mr" style="margin-bottom:0">
+            <div class="mc b"><span class="mc-n">${clients.length}</span><span class="mc-l">Clientes</span></div>
+            <div class="mc g"><span class="mc-n">${sesiones}</span><span class="mc-l">Ses. sem.</span></div>
+            <div class="mc y"><span class="mc-n">${state.assignments.filter(a=>clients.some(c=>String(c.id)===String(a.clientId||a.client_id||''))).length}</span><span class="mc-l">Planes activos</span></div>
+          </div>
+        </div>
+        <div class="card-acts">
+          <button class="btn btn-b btn-sm" onclick="openCoachDetail('${coach.id}')">Ver clientes</button>
+          <button class="btn btn-s btn-sm" onclick="openEditCoachAccess('${coach.id}')">Editar acceso</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openCoachDetail(coachId){
+  const coach=state.coaches.find(c=>String(c.id)===String(coachId));
+  if(!coach)return;
+  const clients=state.clients.filter(c=>String(c.coachId||c.coach_id||'')=== String(coachId));
+  const ws=weekStart();
+  const logs=state.sessionLogs.filter(l=>{
+    const cids=new Set(clients.map(c=>String(c.id)));
+    return cids.has(String(l.clientId||l.client_id||''));
+  });
+  const sesEstaSemana=logs.filter(l=>String(l.trainingDate||l.training_date||'').slice(0,10)>=ws).length;
+
+  const box=document.getElementById('coach-detail-content');
+  box.innerHTML=`
+    <div class="card" style="border-left:3px solid ${coach.role==='owner'?'var(--sport)':'var(--warn)'}">
+      <div class="card-body" style="padding:14px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div class="av lg">${initials(coach.name)}</div>
+          <div>
+            <div style="font-weight:800;font-size:1rem">${esc(coach.name)}</div>
+            <div style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2);margin-top:2px">${coach.role==='owner'?'Owner':'Coach de sala'} · @${esc(coach.username||'')}</div>
+            <div style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2);margin-top:1px">${clients.length} clientes · ${sesEstaSemana} sesiones esta semana</div>
+          </div>
+        </div>
+        <button class="btn btn-s btn-sm" onclick="openEditCoachAccess('${coach.id}')">Editar acceso</button>
+      </div>
+    </div>
+
+    <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);margin:16px 0 10px">Clientes asignados</div>
+
+    ${clients.length?clients.map(c=>{
+      const assign=state.assignments.find(a=>String(a.clientId||a.client_id||'')=== String(c.id));
+      const program=assign?state.programs.find(p=>String(p.id)===String(assign.programId||assign.program_id||''))||null:null;
+      const lastLog=logs.find(l=>String(l.clientId||l.client_id||'')=== String(c.id));
+      const otherCoaches=state.coaches.filter(co=>String(co.id)!==String(coachId));
+      return`
+        <div class="card" style="margin-bottom:8px">
+          <div class="card-body" style="padding:12px 14px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <div class="av" style="width:38px;height:38px;font-size:.9rem">${initials(c.name)}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</div>
+                <div style="font-family:var(--font-m);font-size:.52rem;color:var(--sport);margin-top:1px">${esc(program?.name||program?.nameEs||'Sin plan')}</div>
+                <div style="font-family:var(--font-m);font-size:.5rem;color:var(--text-2);margin-top:1px">Última sesión: ${formatDate(String(lastLog?.trainingDate||lastLog?.training_date||'').slice(0,10))}</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-s btn-sm" onclick="openEditClientAccess('${c.id}')">Editar acceso</button>
+              ${otherCoaches.length?`<select onchange="reasignarCliente('${c.id}',this.value,event)" style="background:var(--bg);border:1px solid var(--card-border);color:var(--text-2);padding:0 10px;border-radius:8px;font-family:var(--font-m);font-size:.58rem;min-height:40px;cursor:pointer">
+                <option value="">Reasignar a…</option>
+                ${otherCoaches.map(co=>`<option value="${co.id}">${esc(co.name)}</option>`).join('')}
+              </select>`:''}
+            </div>
+          </div>
+        </div>`;
+    }).join(''):`<div class="card"><div class="card-body" style="padding:18px;text-align:center;color:var(--text-2);font-size:.84rem">Sin clientes asignados todavía.</div></div>`}
+
+    <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);margin:16px 0 10px">Últimas 10 sesiones</div>
+    ${logs.slice(0,10).length?logs.slice(0,10).map(l=>{
+      const cli=state.clients.find(c=>String(c.id)===String(l.clientId||l.client_id||''));
+      return`<div class="card" style="margin-bottom:6px"><div class="card-body" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div><div style="font-weight:600;font-size:.88rem">${esc(cli?.name||'—')}</div><div style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2);margin-top:2px">${formatDate(String(l.trainingDate||l.training_date||'').slice(0,10))}</div></div>
+        <span class="b b-ok">${esc(l.status||'realizada')}</span>
+      </div></div>`;
+    }).join(''):`<div class="card"><div class="card-body" style="padding:14px;text-align:center;color:var(--text-2);font-size:.84rem">Sin sesiones registradas.</div></div>`}
+  `;
+  showScr('coach-detail');
+}
+
+async function reasignarCliente(clientId, newCoachId, event){
+  if(!newCoachId)return;
+  const client=state.clients.find(c=>String(c.id)===String(clientId));
+  if(!client)return;
+  if(!confirm(`¿Reasignar a ${client.name}?`)){event.target.value='';return}
+  const{error}=await db.from('clients').update({coach_id:newCoachId}).eq('id',clientId);
+  if(error){showToast('Error: '+error.message,'err');event.target.value='';return}
+  const idx=state.clients.findIndex(c=>String(c.id)===String(clientId));
+  if(idx>=0){state.clients[idx].coachId=newCoachId;state.clients[idx].coach_id=newCoachId}
+  showToast('Cliente reasignado ✓','ok');
+  const newCoach=state.coaches.find(c=>String(c.id)===String(newCoachId));
+  openCoachDetail(newCoach?.id||newCoachId);
+}
+
+/* ── Editar acceso coach ── */
+function openEditCoachAccess(coachId){
+  const coach=state.coaches.find(c=>String(c.id)===String(coachId));
+  if(!coach)return;
+  openModal(`Acceso · ${coach.name}`,`
+    <div class="fld"><label class="fld-l">Usuario</label><input class="fld-i" id="ea-user" value="${esc(coach.username||'')}" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+    <div class="fld"><label class="fld-l">Nueva contraseña</label><input class="fld-i" id="ea-pass" type="password" placeholder="Solo si quieres cambiarla"></div>
+    <div class="fld-acts">
+      <button class="btn btn-s" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-p" onclick="saveCoachAccess('${coachId}')">Guardar</button>
+    </div>
+  `);
+}
+
+async function saveCoachAccess(coachId){
+  const user=document.getElementById('ea-user')?.value.trim();
+  const pass=document.getElementById('ea-pass')?.value.trim();
+  if(!user){showToast('El usuario no puede estar vacío','err');return}
+  const payload={username:user};
+  if(pass) payload.password_hash=pass;
+  const{error}=await db.from('coaches').update(payload).eq('id',coachId);
+  if(error){showToast('Error: '+error.message,'err');return}
+  const idx=state.coaches.findIndex(c=>String(c.id)===String(coachId));
+  if(idx>=0){state.coaches[idx].username=user;if(pass)state.coaches[idx].passwordHash=pass}
+  showToast('Acceso actualizado ✓','ok');
+  closeModal();
+}
+
+/* ════ CLIENTES ════ */
+function renderClientes(){
+  const q=(document.getElementById('cli-search')?.value||'').toLowerCase().trim();
+  let rows=[...state.clients];
+  if(q) rows=rows.filter(c=>[c.name,c.phone,c.email,c.accessCode,c.access_code].join(' ').toLowerCase().includes(q));
+  rows.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+
+  document.getElementById('clientes-content').innerHTML=rows.length?rows.map(c=>{
+    const coach=state.coaches.find(co=>String(co.id)===String(c.coachId||c.coach_id||''));
+    const assign=state.assignments.find(a=>String(a.clientId||a.client_id||'')=== String(c.id));
+    const program=assign?state.programs.find(p=>String(p.id)===String(assign.programId||assign.program_id||''))||null:null;
+    const status=String(c.status||'activo').toLowerCase();
+    return`
+      <div class="card" style="margin-bottom:8px">
+        <div class="card-body" style="padding:12px 14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div class="av" style="width:38px;height:38px;font-size:.9rem">${initials(c.name)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</div>
+              <div style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2);margin-top:1px">${esc(coach?.name||'Sin coach')} · ${esc(program?.name||program?.nameEs||'Sin plan')}</div>
+            </div>
+            <span class="b b-${status==='activo'?'activo':status==='prospecto'?'info':'warn'}">${status}</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-s btn-sm" onclick="openEditClientAccess('${c.id}')">Editar acceso</button>
+          </div>
+        </div>
+      </div>`;
+  }).join(''):`<div class="empty"><strong>Sin resultados</strong></div>`;
+}
+
+/* ── Editar acceso cliente ── */
+function openEditClientAccess(clientId){
+  const c=state.clients.find(x=>String(x.id)===String(clientId));
+  if(!c)return;
+  openModal(`Acceso · ${c.name}`,`
+    <div class="fld"><label class="fld-l">Teléfono (login)</label><input class="fld-i" id="ec-phone" value="${esc(c.phone||'')}" inputmode="tel"></div>
+    <div class="fld"><label class="fld-l">Código de acceso</label><input class="fld-i" id="ec-code" value="${esc(c.accessCode||c.access_code||'')}" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:.08em" placeholder="Ej: AB1234"></div>
+    <div class="fld-acts">
+      <button class="btn btn-s" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-p" onclick="saveClientAccess('${clientId}')">Guardar</button>
+    </div>
+  `);
+}
+
+async function saveClientAccess(clientId){
+  const phone=document.getElementById('ec-phone')?.value.trim();
+  const code=document.getElementById('ec-code')?.value.trim().toUpperCase();
+  const payload={};
+  if(phone) payload.phone=phone;
+  if(code) payload.access_code=code;
+  if(!Object.keys(payload).length){showToast('Sin cambios','err');return}
+  const{error}=await db.from('clients').update(payload).eq('id',clientId);
+  if(error){showToast('Error: '+error.message,'err');return}
+  const idx=state.clients.findIndex(c=>String(c.id)===String(clientId));
+  if(idx>=0){if(phone){state.clients[idx].phone=phone}if(code){state.clients[idx].accessCode=code;state.clients[idx].access_code=code}}
+  showToast('Acceso actualizado ✓','ok');
+  closeModal();
+}
+
+/* ════ PROGRAMAS ════ */
+function renderProgramas(){
+  const box=document.getElementById('programas-content');
+  box.innerHTML=state.programs.map(p=>{
+    const assignados=state.assignments.filter(a=>String(a.programId||a.program_id||'')=== String(p.id)).length;
+    return`
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-body" style="padding:14px">
+          <div style="font-weight:800;font-size:.95rem;margin-bottom:4px">${esc(p.name||p.nameEs||'Programa')}</div>
+          <div style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2);margin-bottom:10px">${assignados} asignaciones activas</div>
+          <div class="dr" style="padding:4px 0"><span class="dk">Estado</span><span class="dv"><span class="b b-${String(p.status||'activo')==='activo'?'activo':'warn'}">${esc(p.status||'activo')}</span></span></div>
+          ${p.description?`<div style="font-size:.8rem;color:var(--text-2);line-height:1.55;margin-top:8px">${esc(p.description)}</div>`:''}
+        </div>
+      </div>`;
+  }).join('')||`<div class="empty"><strong>Sin programas</strong></div>`;
+}
+
+/* ════ ALERTAS ════ */
+function renderAlertas(){
+  const pending=state.alertas.filter(a=>!a.resueltaAt&&String(a.estado||'pendiente')==='pendiente');
+  const resueltas=state.alertas.filter(a=>a.resueltaAt||String(a.estado||'')==='resuelta');
+
+  document.getElementById('al-metrics').innerHTML=`
+    <div class="mc r"><span class="mc-n">${pending.length}</span><span class="mc-l">Pendientes</span></div>
+    <div class="mc g"><span class="mc-n">${resueltas.length}</span><span class="mc-l">Resueltas</span></div>
+    <div class="mc b"><span class="mc-n">${state.alertas.length}</span><span class="mc-l">Total</span></div>
+  `;
+
+  const rows=[...pending,...resueltas].slice(0,50);
+  document.getElementById('alertas-content').innerHTML=rows.length?rows.map(a=>{
+    const nivel=String(a.nivel||a.level||'info').toLowerCase();
+    const isPending=!a.resueltaAt&&String(a.estado||'pendiente')==='pendiente';
+    const color=nivel==='critica'||nivel==='alerta'?'var(--medical)':nivel==='revisar'?'var(--warn)':'var(--sport)';
+    return`
+      <div class="card" style="margin-bottom:8px;border-left:3px solid ${color}">
+        <div class="card-body" style="padding:12px 14px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px">
+            <div style="font-weight:700;font-size:.88rem;flex:1;min-width:0">${esc(a.titulo||a.title||'Alerta')}</div>
+            <span class="b b-${isPending?'err':'ok'}" style="flex-shrink:0">${isPending?'Pendiente':'Resuelta'}</span>
+          </div>
+          <div style="font-size:.78rem;color:var(--text-2);line-height:1.5;margin-bottom:6px">${esc(a.mensaje||a.message||'')}</div>
+          <div style="font-family:var(--font-m);font-size:.5rem;color:var(--text-2)">${esc(a.clientName||a.client_name||'')} · ${String(a.createdAt||a.created_at||'').slice(0,10)}</div>
+        </div>
+        ${isPending?`<div class="card-acts"><button class="btn btn-g btn-sm" onclick="resolverAlerta('${a.id}')">✓ Resolver</button></div>`:''}
+      </div>`;
+  }).join(''):`<div class="empty"><strong>Sin alertas</strong>Todo bajo control.</div>`;
+}
+
+async function resolverAlerta(id){
+  try{
+    const{error}=await db.rpc('admin_resolver_alerta',{p_alerta_id:id,p_nota_admin:''});
+    if(error)throw error;
+    const idx=state.alertas.findIndex(a=>String(a.id)===String(id));
+    if(idx>=0){state.alertas[idx].estado='resuelta';state.alertas[idx].resueltaAt=new Date().toISOString()}
+    renderBadges();renderAlertas();
+    showToast('✓ Alerta resuelta','ok');
+  }catch(err){showToast('Error: '+(err?.message||''),'err')}
+}
+</script>
+</body>
+</html>
