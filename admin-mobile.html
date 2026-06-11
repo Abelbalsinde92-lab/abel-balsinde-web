@@ -4909,7 +4909,9 @@ async function uploadCoachPhoto(input){
     const{data:urlData}=db.storage.from('client-photos').getPublicUrl(path);
     const photoUrl=urlData.publicUrl;
 
-    const{error:saveErr}=await db.from('coaches').update({photo_url:photoUrl, updated_at:new Date().toISOString()}).eq('id',state.coachId);
+    // Guardar la URL usando RPC segura: cada coach solo actualiza su propia foto.
+    // Evita permisos directos de UPDATE sobre la tabla coaches desde el frontend.
+    const{error:saveErr}=await db.rpc('ab_update_my_coach_photo',{p_photo_url:photoUrl});
     if(saveErr)throw saveErr;
 
     state.coachPhotoUrl=photoUrl;
