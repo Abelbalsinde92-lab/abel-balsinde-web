@@ -5704,12 +5704,45 @@ function getInitialActiveSessionId() {
 }
 
 /* ══ UTILITY ══ */
-function normalizePhone(p) { return String(p).replace(/[\s\-\(\)\+]/g,''); }
-function openWA(msg) { window.open('https://wa.me/'+normalizePhone(WA_NUMBER)+'?text='+encodeURIComponent(msg),'_blank'); }
+function normalizePhone(p) { return String(p || '').replace(/[\s\-\(\)\+]/g,''); }
+function getClientCoachName() {
+  const name = clientData?.coach_name || clientData?.coach?.name || '';
+  return String(name || '').trim() || (getLang()==='sr' ? 'trener' : getLang()==='en' ? 'your coach' : 'tu coach');
+}
+function getClientCoachGeneric() {
+  return getLang()==='sr' ? 'trener' : getLang()==='en' ? 'your coach' : 'tu coach';
+}
+function getClientCoachPhone() {
+  return clientData?.coach_phone || clientData?.coach?.phone || WA_NUMBER || '';
+}
+function coachText(text, opts = {}) {
+  const coachName = getClientCoachName();
+  const generic = opts.name ? coachName : getClientCoachGeneric();
+  return String(text || '')
+    .replace(/Contactar a Abel/g, 'Contactar a ' + coachName)
+    .replace(/Kontaktiraj Abela/g, 'Kontaktiraj ' + coachName)
+    .replace(/Contact Abel/g, 'Contact ' + coachName)
+    .replace(/Hola Abel/g, 'Hola ' + coachName)
+    .replace(/Zdravo Abel/g, 'Zdravo ' + coachName)
+    .replace(/Hi Abel/g, 'Hi ' + coachName)
+    .replace(/Abelu/g, generic)
+    .replace(/Abela/g, generic)
+    .replace(/Abel/g, generic);
+}
+function openWA(msg) {
+  const phone = normalizePhone(getClientCoachPhone());
+  if (!phone) {
+    alert(getLang()==='sr' ? 'Tvoj trener još nema podešen WhatsApp.' : getLang()==='en' ? 'Your coach does not have WhatsApp configured yet.' : 'Tu coach aún no tiene WhatsApp configurado.');
+    return;
+  }
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
+}
 function clientWA(text) {
   const prefix = getLang() === 'sr'
-    ? 'Zdravo Abel, ja sam '
-    : 'Hola Abel, soy ';
+    ? 'Zdravo ' + getClientCoachName() + ', ja sam '
+    : getLang()==='en'
+      ? 'Hi ' + getClientCoachName() + ', I am '
+      : 'Hola ' + getClientCoachName() + ', soy ';
 
   const fallbackName = getLang()==='sr' ? 'klijent' : getLang()==='en' ? 'client' : 'cliente';
 
@@ -6186,7 +6219,34 @@ async function loadClientDashboard(clientId) {
       return;
     }
 
-    clientData = client;
+    let coachContact = null;
+    try {
+      const { data: coachRow, error: coachErr } = await db
+        .rpc('ab_get_client_coach_contact', {
+          p_client_id: clientId,
+          p_access_code: client.access_code || ''
+        })
+        .maybeSingle();
+      if (!coachErr && coachRow) coachContact = coachRow;
+    } catch (e) {
+      console.warn('AB coach contact RPC not available yet:', e);
+    }
+
+    // Fallback temporal: permite funcionar si todavía no se ha creado la RPC.
+    if (!coachContact) {
+      try {
+        const { data: coachRow, error: coachErr } = await db
+          .from('v_client_with_coach_contact')
+          .select('coach_name, coach_phone, coach_email, coach_photo_url')
+          .eq('client_id', clientId)
+          .maybeSingle();
+        if (!coachErr && coachRow) coachContact = coachRow;
+      } catch (e) {
+        console.warn('AB coach contact view not available yet:', e);
+      }
+    }
+
+    clientData = { ...client, ...(coachContact || {}) };
 applyClientView();
 
 AB_LANG = (['es','sr','en'].includes((clientData.preferred_lang||'').toLowerCase()) ? clientData.preferred_lang : 'es').toLowerCase();
@@ -6853,12 +6913,7 @@ document.querySelectorAll('.section-header').forEach(el => {
   const name=clientData.name||'cliente';
   const wa=document.getElementById('btnHeaderWA');
   if (wa) {
-  wa.onclick = () => openWA(
-    (getLang()==='sr' ? 'Zdravo Abel, ja sam ' : getLang()==='en' ? 'Hi Abel, I am ' : 'Hola Abel, soy ') +
-    name +
-    '. ' +
-    uiText('waPlanQuestion')
-  );
+  wa.onclick = () => clientWA(uiText('waPlanQuestion'));
 }
   goClientSection('section-home');
   
@@ -7636,7 +7691,8 @@ function uiText(key) {
     }
   };
 
-  return dict[lang]?.[key] || dict.es[key] || key;
+  const raw = dict[lang]?.[key] || dict.es[key] || key;
+  return coachText(raw, { name: key === 'contactAbel' || String(key || '').startsWith('wa') });
 }
 
 function applyStaticTranslations() {
@@ -8006,8 +8062,8 @@ function buildNewClientOnboardingCard(context = 'home') {
     : 'Bienvenido, ' + firstName;
 
   const intro = getLang() === 'sr'
-    ? 'Tu cuenta ya está activa. Abel revisará tu información inicial y cargará tu entrenamiento cuando el plan esté preparado.'
-    : 'Tu cuenta ya está activa. Abel revisará tu información inicial y cargará tu entrenamiento cuando el plan esté preparado.';
+    ? 'Tu cuenta ya está activa. Tu coach revisará tu información inicial y cargará tu entrenamiento cuando el plan esté preparado.'
+    : 'Tu cuenta ya está activa. Tu coach revisará tu información inicial y cargará tu entrenamiento cuando el plan esté preparado.';
 
   const step1Title = getLang() === 'sr' ? 'Perfil creado' : 'Perfil creado';
   const step1Text  = getLang() === 'sr'
@@ -8016,8 +8072,8 @@ function buildNewClientOnboardingCard(context = 'home') {
 
   const step2Title = getLang() === 'sr' ? 'Revisión inicial' : 'Revisión inicial';
   const step2Text  = getLang() === 'sr'
-    ? 'Abel revisará tus objetivos, disponibilidad, nivel y posibles molestias.'
-    : 'Abel revisará tus objetivos, disponibilidad, nivel y posibles molestias.';
+    ? 'Tu coach revisará tus objetivos, disponibilidad, nivel y posibles molestias.'
+    : 'Tu coach revisará tus objetivos, disponibilidad, nivel y posibles molestias.';
 
   const step3Title = getLang() === 'sr' ? 'Plan en preparación' : 'Plan en preparación';
   const step3Text  = getLang() === 'sr'
@@ -8029,8 +8085,8 @@ function buildNewClientOnboardingCard(context = 'home') {
     : 'Plan pendiente';
 
   const waText = getLang() === 'sr'
-    ? 'Hola Abel, ya entré al área cliente. Quedo pendiente del plan.'
-    : 'Hola Abel, ya entré al área cliente. Quedo pendiente del plan.';
+    ? ('Hola ' + getClientCoachName() + ', ya entré al área cliente. Quedo pendiente del plan.')
+    : ('Hola ' + getClientCoachName() + ', ya entré al área cliente. Quedo pendiente del plan.');
 
   return (
     '<div class="onboarding-card">' +
@@ -8201,15 +8257,15 @@ function buildInactivityNoticeCard() {
 
   const text = strong
     ? (getLang() === 'sr'
-        ? 'Han pasado varios días desde tu última sesión. No hace falta compensar de golpe: vuelve con una sesión controlada y Abel revisará tus sensaciones.'
-        : 'Han pasado varios días desde tu última sesión. No hace falta compensar de golpe: vuelve con una sesión controlada y Abel revisará tus sensaciones.')
+        ? 'Han pasado varios días desde tu última sesión. No hace falta compensar de golpe: vuelve con una sesión controlada y tu coach revisará tus sensaciones.'
+        : 'Han pasado varios días desde tu última sesión. No hace falta compensar de golpe: vuelve con una sesión controlada y tu coach revisará tus sensaciones.')
     : (getLang() === 'sr'
         ? 'Llevas unos días sin cerrar sesión. Una sesión ligera hoy puede ayudarte a mantener el progreso sin forzar.'
         : 'Llevas unos días sin cerrar sesión. Una sesión ligera hoy puede ayudarte a mantener el progreso sin forzar.');
 
   const waText = getLang() === 'sr'
-    ? 'Hola Abel, llevo varios días sin entrenar. ¿Retomo con la sesión pendiente o ajustamos algo?'
-    : 'Hola Abel, llevo varios días sin entrenar. ¿Retomo con la sesión pendiente o ajustamos algo?';
+    ? ('Hola ' + getClientCoachName() + ', llevo varios días sin entrenar. ¿Retomo con la sesión pendiente o ajustamos algo?')
+    : ('Hola ' + getClientCoachName() + ', llevo varios días sin entrenar. ¿Retomo con la sesión pendiente o ajustamos algo?');
 
   return (
     '<div class="inactivity-card ' + (strong ? 'strong' : '') + '">' +
@@ -8609,7 +8665,7 @@ function tClient(key) {
       dayC: "Día C",
       day: "Día",
       trainingCompleted: "Entrenamiento completado",
-      sessionSaved: "Buen trabajo. Tu sesión quedó registrada y Abel podrá revisar tus observaciones.",
+      sessionSaved: "Buen trabajo. Tu sesión quedó registrada y tu coach podrá revisar tus observaciones.",
       details: "Ver detalles del entrenamiento",
       videoGuide: "Vídeo guía",
       openVideo: "Abrir vídeo"
@@ -8639,7 +8695,7 @@ function tClient(key) {
       dayC: "Dan C",
       day: "Dan",
       trainingCompleted: "Trening završen",
-      sessionSaved: "Dobar posao. Tvoja sesija je registrovana i Abel može da pregleda tvoje napomene.",
+      sessionSaved: "Dobar posao. Tvoja sesija je registrovana i trener može da pregleda tvoje napomene.",
       details: "Pogledaj detalje treninga",
       videoGuide: "Video vodič",
       openVideo: "Otvori video"
@@ -9048,7 +9104,7 @@ function getSessionDifficultyInfo(sessionId) {
     label: getLang() === 'sr' ? 'Vrlo intenzivno' : 'Muy intenso',
     short: getLang() === 'sr'
       ? 'Visoko opterećenje. Ako se pojavi bol ili jak umor, zaustavi se i obavesti Abela.'
-      : 'Carga alta. Si aparece dolor o fatiga excesiva, detente y avisa a Abel.'
+      : 'Carga alta. Si aparece dolor o fatiga excesiva, detente y avisa a tu coach.'
   };
 }
 
@@ -9198,8 +9254,8 @@ function buildActiveProcessAdaptationCard() {
 
   const clientMessage =
     getLang() === 'sr'
-      ? 'Nastavljamo sa kontrolisanim i progresivnim radom. Abel održava aktivna prilagođavanja radi tehnike, disanja, opterećenja i reakcije tela. Prilagođavanje ostaje aktivno dok trener ne odluči da se plan normalizuje.'
-      : 'Seguimos con un trabajo controlado y progresivo. Abel mantiene ajustes activos para cuidar la técnica, la respiración, la carga y la respuesta del cuerpo. La adaptación seguirá activa hasta que el coach decida normalizar el plan.';
+      ? 'Nastavljamo sa kontrolisanim i progresivnim radom. Trener održava aktivna prilagođavanja radi tehnike, disanja, opterećenja i reakcije tela. Prilagođavanje ostaje aktivno dok trener ne odluči da se plan normalizuje.'
+      : 'Seguimos con un trabajo controlado y progresivo. Tu coach mantiene ajustes activos para cuidar la técnica, la respiración, la carga y la respuesta del cuerpo. La adaptación seguirá activa hasta que el coach decida normalizar el plan.';
 
   return (
     '<div class="training-collapsible-card adjusted" id="activeProcessAdaptationCard">' +
