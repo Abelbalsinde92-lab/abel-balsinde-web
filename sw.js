@@ -48,8 +48,8 @@ self.addEventListener('notificationclick', event => {
 
  const isClient = data.target === 'client';
  const APP_URL = isClient
-   ? 'https://absystem.dbarrio.app/cliente.html'
-   : 'https://absystem.dbarrio.app/field.html';
+   ? 'https://absystem.app/cliente.html'
+   : 'https://absystem.app/field.html';
 
  const PAGE = isClient ? 'cliente.html' : 'field.html';
 
