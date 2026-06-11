@@ -4727,12 +4727,22 @@ async function closeMobilityChain(assignmentId, clientId){
 /* ════════════════════════════════════════════════════════
    MÁS
 ══════════════════════════════════════════════════════════ */
+function getActiveCoachDisplayName(){
+  return state.coachName || state.settings.coachName || 'Coach';
+}
+function isOwnerCoach(){
+  return state.coachRole === 'owner';
+}
 function renderMas(){
   const pendPay=state.payments.filter(p=>p.status!=='pagado').length;
   const todayCI=state.todayCheckins.length;
   const activeAssign=state.assignments.filter(a=>String(a.status||'activo')==='activo').length;
   const athleteCount=state.athletes.length;
   const totalClients=state.clients.filter(c=>c.status==='activo').length;
+  const activeCoachName = getActiveCoachDisplayName();
+  const coachCardLabel = firstName(activeCoachName || 'Coach');
+  const coachCardSub = isOwnerCoach() ? 'AJUSTES' : 'MI CUENTA';
+  const coachCardAction = isOwnerCoach() ? "showScr('ajustes')" : "openCoachAccountModal()";
 
   const ico=d=>`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--sport)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
   const ICONS={
@@ -4755,18 +4765,22 @@ function renderMas(){
     {icon:ICONS.new,  label:'Nuevo cliente',badge:0,            action:`openModal('client')`},
   ];
 
-  const coachCard=`
-    <button class="card" style="padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:90px;margin-bottom:0;position:relative" onclick="showScr('ajustes')">
-      <div style="position:relative">
-        ${getCoachAvatarHTML()}
+  const coachPhotoButton = isOwnerCoach() ? `
         <span onclick="event.stopPropagation();document.getElementById('coach-photo-input').click()"
           style="position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;background:var(--sport);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer">
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
         </span>
         <input type="file" id="coach-photo-input" accept="image/*" style="display:none" onchange="uploadCoachPhoto(this)">
+  ` : '';
+
+  const coachCard=`
+    <button class="card" style="padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:90px;margin-bottom:0;position:relative" onclick="${coachCardAction}">
+      <div style="position:relative">
+        ${getCoachAvatarHTML()}
+        ${coachPhotoButton}
       </div>
-      <span style="font-size:.7rem;font-weight:700;color:var(--text);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${esc(firstName(state.settings.coachName||'Coach'))}</span>
-      <span style="font-family:var(--font-m);font-size:.46rem;color:var(--sport);letter-spacing:.08em">AJUSTES</span>
+      <span style="font-size:.7rem;font-weight:700;color:var(--text);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${esc(coachCardLabel)}</span>
+      <span style="font-family:var(--font-m);font-size:.46rem;color:var(--sport);letter-spacing:.08em">${coachCardSub}</span>
     </button>`;
 
   const masEl=document.getElementById('mas-grid');
@@ -4787,7 +4801,43 @@ function renderMas(){
   `;
 }
 
+function openCoachAccountModal(){
+  const title=document.getElementById('modal-title');
+  const form=document.getElementById('modal-form');
+  if(!title || !form) return;
+
+  const roleLabel = isOwnerCoach() ? 'Owner / administrador' : 'Coach colaborador';
+  const name = getActiveCoachDisplayName();
+
+  title.textContent='Mi cuenta';
+  form.onsubmit=null;
+  form.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      ${getCoachAvatarHTML()}
+      <div>
+        <div style="font-size:1rem;font-weight:800;color:var(--text)">${esc(name)}</div>
+        <div style="font-family:var(--font-m);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sport);margin-top:2px">${esc(roleLabel)}</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-body" style="padding:12px 14px">
+        <div style="font-size:.78rem;color:var(--text-2);line-height:1.45">
+          Esta cuenta solo debe ver sus propios atletas, sus asignaciones y los planes compartidos por AB SYSTEM.
+        </div>
+      </div>
+    </div>
+    <div class="fld-acts">
+      <button type="button" class="btn btn-s" onclick="closeModal()">Cerrar</button>
+    </div>
+  `;
+  document.getElementById('modal-ov')?.classList.add('on');
+}
+
 async function uploadCoachPhoto(input){
+  if(!isOwnerCoach()){
+    showToast('Solo el owner puede cambiar la foto global.', 'err');
+    return;
+  }
   const file=input.files?.[0];
   if(!file){return}
   try{
@@ -6589,10 +6639,11 @@ function renderTopAvatar(){
 }
 
 function getCoachAvatarHTML(){
+  const activeCoachName = getActiveCoachDisplayName();
   const coachPhone = String(state.settings.coachPhone || COACH_PHONE_DEFAULT || '')
     .replace(/[\s+\-()]/g,'');
 
-  const coachName = cleanTxt(state.settings.coachName || 'Abel');
+  const coachName = cleanTxt(activeCoachName || 'Coach');
 
   const coachClient = state.clients.find(c => {
     const phone = String(c.phone || '')
@@ -6619,14 +6670,14 @@ function getCoachAvatarHTML(){
   if(url){
     return `
       <div class="hoy-coach-avatar">
-        <img src="${esc(url)}" alt="${esc(state.settings.coachName || 'Coach')}">
+        <img src="${esc(url)}" alt="${esc(activeCoachName || 'Coach')}">
       </div>
     `;
   }
 
     return `
     <div class="hoy-coach-avatar" style="background:rgba(0,200,232,.12)">
-      <span style="font-family:var(--font-d);font-size:1.2rem;color:var(--sport);letter-spacing:.04em">${initials(state.settings.coachName||'AB')}</span>
+      <span style="font-family:var(--font-d);font-size:1.2rem;color:var(--sport);letter-spacing:.04em">${initials(activeCoachName||'AB')}</span>
     </div>
   `;
 }
