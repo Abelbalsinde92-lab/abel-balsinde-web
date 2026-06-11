@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>AB · Field</title>
-<!-- AB Field patched v20260611-multicoach-scope -->
+<!-- AB Field patched v20260611-multicoach-program-scope -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
@@ -3493,10 +3493,10 @@ function renderSemaforoCard(d) {
   // Restaurar identidad del coach logueado
   if(isLogged){
     const storedCoachId   = sessionStorage.getItem('ab_coach_id')   || localStorage.getItem('ab_coach_id')   || '';
-    const storedCoachRole = sessionStorage.getItem('ab_coach_role') || localStorage.getItem('ab_coach_role') || 'coach';
-    const storedCoachName = sessionStorage.getItem('ab_coach_name') || localStorage.getItem('ab_coach_name') || 'Coach';
+    const storedCoachRole = sessionStorage.getItem('ab_coach_role') || localStorage.getItem('ab_coach_role') || 'owner';
+    const storedCoachName = sessionStorage.getItem('ab_coach_name') || localStorage.getItem('ab_coach_name') || 'Abel Balsinde';
     state.coachId   = storedCoachId   || null;
-    state.coachRole = storedCoachRole || 'coach';
+    state.coachRole = storedCoachRole || 'owner';
     state.coachName = storedCoachName;
   }
 
@@ -3646,197 +3646,178 @@ function doLogout(){
 }
 
 
-function isOwnerCoach(){
-  return String(state.coachRole || '').toLowerCase() === 'owner';
+async function loadVisibleTrainingPrograms(){
+  try{
+    if(state.coachRole !== 'owner' && state.coachId){
+      const [ownRes, sharedRes] = await Promise.all([
+        db.from('training_programs').select('*').eq('coach_id', state.coachId).order('name'),
+        db.from('coach_program_access').select('program_id, access_level, training_programs(*)').eq('coach_id', state.coachId)
+      ]);
+
+      if(ownRes.error) console.warn('own training programs error:', ownRes.error);
+      if(sharedRes.error) console.warn('shared training programs error:', sharedRes.error);
+
+      const byId = new Map();
+      (ownRes.data || []).forEach(p => {
+        if(p && p.id) byId.set(String(p.id), {...p, is_own_program:true, is_shared_program:false});
+      });
+      (sharedRes.data || []).forEach(row => {
+        const p = row?.training_programs || row?.trainingPrograms || null;
+        if(p && p.id){
+          const current = byId.get(String(p.id)) || p;
+          byId.set(String(p.id), {...current, is_shared_program:true, access_level: row.access_level || 'use'});
+        }
+      });
+
+      return {data:[...byId.values()].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''))), error: ownRes.error || sharedRes.error || null};
+    }
+    return await db.from('training_programs').select('*').order('name');
+  }catch(e){
+    console.warn('loadVisibleTrainingPrograms error:', e);
+    return {data:[], error:e};
+  }
 }
 
-function hasCoachScope(){
-  return !isOwnerCoach() && !!state.coachId;
-}
-
-function visibleClientIdSet(){
-  return new Set((state.clients || []).map(c => String(c.id)));
-}
-
-function filterByVisibleClients(rows){
-  rows = Array.isArray(rows) ? rows : [];
-  if(isOwnerCoach()) return rows;
-  const ids = visibleClientIdSet();
-  return rows.filter(r => ids.has(String(r.clientId || r.client_id || r.client || r.cliente_id || '')));
-}
-
-function canAccessClient(clientId){
-  if(isOwnerCoach()) return true;
-  if(!clientId) return false;
-  return visibleClientIdSet().has(String(clientId));
-}
-
-async function loadProgramsForCurrentCoach(){
-  if(isOwnerCoach() || !state.coachId){
-    const { data, error } = await db.from('training_programs').select('*');
-    if(error) throw error;
-    return data || [];
+function filterTrainingTreeToVisiblePrograms(){
+  const visibleProgramIds = new Set((state.trainingPrograms || []).map(p => String(p.id)));
+  if(!visibleProgramIds.size){
+    state.trainingWeeks = [];
+    state.trainingSessions = [];
+    state.trainingBlocks = [];
+    state.trainingExercises = [];
+    return;
   }
 
-  const [{ data: own, error: ownErr }, { data: access, error: accessErr }] = await Promise.all([
-    db.from('training_programs').select('*').eq('coach_id', state.coachId),
-    db.from('coach_program_access').select('program_id').eq('coach_id', state.coachId)
-  ]);
+  state.trainingWeeks = (state.trainingWeeks || []).filter(w => visibleProgramIds.has(String(w.programId || w.program_id || w.program || '')));
+  const visibleWeekIds = new Set(state.trainingWeeks.map(w => String(w.id)));
 
-  if(ownErr) throw ownErr;
-  if(accessErr) console.warn('coach_program_access error:', accessErr);
+  state.trainingSessions = (state.trainingSessions || []).filter(s => visibleWeekIds.has(String(s.weekId || s.week_id || '')));
+  const visibleSessionIds = new Set(state.trainingSessions.map(s => String(s.id)));
 
-  const sharedIds = [...new Set((access || []).map(x => x.program_id).filter(Boolean))];
-  let shared = [];
-  if(sharedIds.length){
-    const { data: sharedData, error: sharedErr } = await db
-      .from('training_programs')
-      .select('*')
-      .in('id', sharedIds);
-    if(sharedErr) console.warn('shared programs error:', sharedErr);
-    shared = sharedData || [];
-  }
+  state.trainingBlocks = (state.trainingBlocks || []).filter(b => visibleSessionIds.has(String(b.sessionId || b.session_id || '')));
+  const visibleBlockIds = new Set(state.trainingBlocks.map(b => String(b.id)));
 
-  const map = new Map();
-  [...(own || []), ...shared].forEach(p => map.set(String(p.id), p));
-  return [...map.values()];
+  state.trainingExercises = (state.trainingExercises || []).filter(e => visibleBlockIds.has(String(e.blockId || e.block_id || '')));
 }
 
-function filterAthletesForCurrentCoach(rows){
-  rows = Array.isArray(rows) ? rows : [];
-  if(isOwnerCoach()) return rows;
-  const ids = visibleClientIdSet();
-  return rows.filter(a => ids.has(String(a.clientId || a.client_id || a.id || '')));
+function filterCoachScopedState(){
+  if(state.coachRole === 'owner' || !state.coachId) return;
+
+  const visibleClientIds = new Set((state.clients || []).map(c => String(c.id)));
+
+  const byClient = (row) => visibleClientIds.has(String(
+    row?.clientId || row?.client_id || row?.clienteId || row?.cliente_id || row?.atletaId || row?.atleta_id || ''
+  ));
+
+  state.assignments = (state.assignments || []).filter(a => {
+    const cid = String(a.clientId || a.client_id || '');
+    const coachId = String(a.coachId || a.coach_id || '');
+    return visibleClientIds.has(cid) && (!coachId || coachId === String(state.coachId));
+  });
+  state.todayRes = (state.todayRes || []).filter(byClient);
+  state.futureRes = (state.futureRes || []).filter(byClient);
+  state.pastRes = (state.pastRes || []).filter(byClient);
+  state.allRes = [...state.todayRes, ...state.futureRes, ...state.pastRes];
+  state.payments = (state.payments || []).filter(byClient);
+  state.alertas = (state.alertas || []).filter(byClient);
+  state.todayCheckins = (state.todayCheckins || []).filter(byClient);
+  state.recentCheckins = (state.recentCheckins || []).filter(byClient);
+  state.assessments = (state.assessments || []).filter(byClient);
+  state.metrics = (state.metrics || []).filter(byClient);
+  state.clientConditions = (state.clientConditions || []).filter(byClient);
+  state.athletes = (state.athletes || []).filter(byClient);
 }
 
 async function loadAllData(){
   try{
     const today=todayISO();
-    const scoped = hasCoachScope();
-
-    const clientsQ = scoped
-      ? db.from('clients').select('*').eq('coach_id', state.coachId).order('name')
-      : db.from('clients').select('*').order('name');
-
-    const todayResQ = scoped
-      ? db.from('reservations').select('*').eq('date',today).eq('coach_id', state.coachId).order('time')
-      : db.from('reservations').select('*').eq('date',today).order('time');
-
-    const futureResQ = scoped
-      ? db.from('reservations').select('*').gt('date',today).eq('coach_id', state.coachId).order('date').limit(80)
-      : db.from('reservations').select('*').gt('date',today).order('date').limit(80);
-
-    const pastResQ = scoped
-      ? db.from('reservations').select('*').lt('date',today).eq('coach_id', state.coachId).order('date',{ascending:false}).limit(80)
-      : db.from('reservations').select('*').lt('date',today).order('date',{ascending:false}).limit(80);
-
-    const paymentsQ = scoped
-      ? db.from('payments').select('*').eq('coach_id', state.coachId).order('due_date',{ascending:false}).limit(300)
-      : db.from('payments').select('*').order('due_date',{ascending:false}).limit(300);
-
-    const alertasQ = scoped
-      ? db.from('admin_alertas_detalle').select('*').eq('coach_id', state.coachId).order('created_at',{ascending:false}).limit(200)
-      : db.from('admin_alertas_detalle').select('*').order('created_at',{ascending:false}).limit(200);
-
-    const assignmentsQ = scoped
-      ? db.from('client_program_assignments').select('*').eq('coach_id', state.coachId)
-      : db.from('client_program_assignments').select('*');
-
-    const conditionsQ = db.from('client_conditions').select('*').eq('status','active').order('start_date',{ascending:false});
-
     const[
       {data:clients},{data:todayRes},{data:futureRes},{data:pastRes},
       {data:payments},{data:alertas},{data:todayCI},{data:recentCI},
-      {data:tweeks},{data:tsessions},{data:tblocks},{data:texercises},
-      {data:videos},{data:assignments},{data:slogs},
-      {data:templates},{data:assessments},{data:metrics},{data:conditions},{data:settings},
-      tprograms
+      {data:tprograms},{data:tweeks},{data:tsessions},{data:tblocks},
+      {data:texercises},{data:videos},{data:assignments},{data:slogs},
+      {data:templates},{data:assessments},{data:metrics},{data:conditions},{data:settings}
     ]=await Promise.all([
-      clientsQ,
-      todayResQ,
-      futureResQ,
-      pastResQ,
-      paymentsQ,
-      alertasQ,
+      // ── Filtrado por coach_id si no es owner ──
+      (state.coachRole !== 'owner' && state.coachId
+        ? db.from('clients').select('*').eq('coach_id', state.coachId).order('name')
+        : db.from('clients').select('*').order('name')),
+      (state.coachRole !== 'owner' && state.coachId
+        ? db.from('reservations').select('*').eq('date',today).eq('coach_id', state.coachId).order('time')
+        : db.from('reservations').select('*').eq('date',today).order('time')),
+      (state.coachRole !== 'owner' && state.coachId
+        ? db.from('reservations').select('*').gt('date',today).eq('coach_id', state.coachId).order('date').limit(80)
+        : db.from('reservations').select('*').gt('date',today).order('date').limit(80)),
+      (state.coachRole !== 'owner' && state.coachId
+        ? db.from('reservations').select('*').lt('date',today).eq('coach_id', state.coachId).order('date',{ascending:false}).limit(80)
+        : db.from('reservations').select('*').lt('date',today).order('date',{ascending:false}).limit(80)),
+      (state.coachRole !== 'owner' && state.coachId
+        ? db.from('payments').select('*').eq('coach_id', state.coachId).order('due_date',{ascending:false}).limit(300)
+        : db.from('payments').select('*').order('due_date',{ascending:false}).limit(300)),
+      db.from('admin_alertas_detalle').select('*').order('created_at',{ascending:false}).limit(200),
       db.from('client_daily_checkins').select('*').eq('checkin_date',today),
       db.from('client_daily_checkins').select('*').order('checkin_date',{ascending:false}).limit(80),
+      loadVisibleTrainingPrograms(),
       db.from('training_weeks').select('*').order('week_number'),
       db.from('training_sessions').select('*').order('session_number'),
       db.from('training_blocks').select('*').order('block_order'),
       db.from('training_exercises').select('*').not('block_id','is',null).order('exercise_order').limit(3000),
       db.from('exercise_video_library').select('*').order('priority'),
-      assignmentsQ,
+      (state.coachRole !== 'owner' && state.coachId
+        ? db.from('client_program_assignments').select('*').eq('coach_id', state.coachId)
+        : db.from('client_program_assignments').select('*')),
       db.from('client_session_logs').select('*').order('updated_at',{ascending:false}).limit(200),
       db.from('templates').select('*').order('name'),
       db.from('client_assessments').select('*').order('assessment_date',{ascending:false}).limit(80),
       db.from('metrics').select('*').order('date',{ascending:false}).limit(150),
-      conditionsQ,
-      db.from('settings').select('*').eq('id','main').maybeSingle(),
-      loadProgramsForCurrentCoach()
+db.from('client_conditions').select('*').eq('status','active').order('start_date',{ascending:false}),
+db.from('settings').select('*').eq('id','main').maybeSingle()
     ]);
-
-    state.clients=mapArr(clients);
-    state.todayRes=mapArr(todayRes);
-    state.futureRes=mapArr(futureRes);
-    state.pastRes=mapArr(pastRes);
+    state.clients=mapArr(clients);state.todayRes=mapArr(todayRes);state.futureRes=mapArr(futureRes);state.pastRes=mapArr(pastRes);
     state.allRes=[...state.todayRes,...state.futureRes,...state.pastRes];
-    state.payments=mapArr(payments);
-    state.alertas=mapArr(alertas);
-    state.todayCheckins=filterByVisibleClients(mapArr(todayCI));
-    state.recentCheckins=filterByVisibleClients(mapArr(recentCI));
-    state.trainingPrograms=mapArr(tprograms);
-    const visibleProgramIds = new Set(state.trainingPrograms.map(p => String(p.id)));
-
-    state.trainingWeeks=mapArr(tweeks).filter(w => isOwnerCoach() || visibleProgramIds.has(String(w.programId || w.program_id || '')));
-    const visibleWeekIds = new Set(state.trainingWeeks.map(w => String(w.id)));
-
-    state.trainingSessions=mapArr(tsessions).filter(s => isOwnerCoach() || visibleWeekIds.has(String(s.weekId || s.week_id || '')));
-    const visibleSessionIds = new Set(state.trainingSessions.map(s => String(s.id)));
-
-    state.trainingBlocks=mapArr(tblocks).filter(b => isOwnerCoach() || visibleSessionIds.has(String(b.sessionId || b.session_id || '')));
-    const visibleBlockIds = new Set(state.trainingBlocks.map(b => String(b.id)));
-
-    state.trainingExercises=mapArr(texercises).filter(e => isOwnerCoach() || visibleBlockIds.has(String(e.blockId || e.block_id || '')));
-    state.videoLibrary=mapArr(videos);
-    state.assignments=mapArr(assignments);
-    state.sessionLogs=filterByVisibleClients(mapArr(slogs));
-    state.templates=mapArr(templates);
-    state.assessments=filterByVisibleClients(mapArr(assessments));
-    state.metrics=filterByVisibleClients(mapArr(metrics));
-    state.clientConditions=filterByVisibleClients(mapArr(conditions));
+    state.payments=mapArr(payments);state.alertas=mapArr(alertas);state.todayCheckins=mapArr(todayCI);state.recentCheckins=mapArr(recentCI);
+    state.trainingPrograms=mapArr(tprograms);state.trainingWeeks=mapArr(tweeks);state.trainingSessions=mapArr(tsessions);
+    state.trainingBlocks=mapArr(tblocks);state.trainingExercises=mapArr(texercises);state.videoLibrary=mapArr(videos);
+    state.assignments=mapArr(assignments);state.sessionLogs=mapArr(slogs);state.templates=mapArr(templates);
+    state.assessments=mapArr(assessments);state.metrics=mapArr(metrics);
+   state.clientConditions=Array.isArray(conditions) ? mapArr(conditions) : [];
     if(settings)state.settings={...state.settings,...snakeToCamel(settings)};
 
-    try{
-      const {data:athletes,error:athErr}=await db.rpc('get_admin_athlete_list');
+    filterTrainingTreeToVisiblePrograms();
+    filterCoachScopedState();
 
-      if(athErr){
-        console.warn('get_admin_athlete_list error:',athErr);
-        state.athletes=[];
-      }else{
-        state.athletes=filterAthletesForCurrentCoach(mapArr(athletes||[]));
-      }
-    }catch(e){
-      console.warn('No se pudo cargar lista de atletas:',e);
-      state.athletes=[];
-    }
+try{
+  const {data:athletes,error:athErr}=await db.rpc('get_admin_athlete_list');
 
-    renderAll();
-    showToast('Datos cargados ✓', 'ok');
+  if(athErr){
+    console.warn('get_admin_athlete_list error:',athErr);
+    state.athletes=[];
+  }else{
+    state.athletes=mapArr(athletes||[]);
+    filterCoachScopedState();
+  }
+}catch(e){
+  console.warn('No se pudo cargar lista de atletas:',e);
+  state.athletes=[];
+}
 
-    // Activar notificaciones realtime
-    if(!realtimeInitialized){
-      setupRealtimeNotifications();
-      realtimeInitialized = true;
-    }
+renderAll();
+showToast('Datos cargados ✓', 'ok');
 
-    // Activar push (pide permiso si no lo tiene). Guardado para navegadores donde Notification no existe.
-    if ('Notification' in window) {
-      if (Notification.permission === 'default') {
-        setTimeout(() => initPushNotifications(), 3000);
-      } else if (Notification.permission === 'granted') {
-        initPushNotifications();
-      }
-    }
+// Activar notificaciones realtime
+if(!realtimeInitialized){
+  setupRealtimeNotifications();
+  realtimeInitialized = true;
+}
+
+// Activar push (pide permiso si no lo tiene). Guardado para navegadores donde Notification no existe.
+if ('Notification' in window) {
+  if (Notification.permission === 'default') {
+    setTimeout(() => initPushNotifications(), 3000);
+  } else if (Notification.permission === 'granted') {
+    initPushNotifications();
+  }
+}
   }catch(err){console.error('loadAllData error:',err);showToast('Error cargando datos','err')}
 }
 
@@ -5131,16 +5112,11 @@ async function refreshAthletes(){
     throw error;
   }
 
-  state.athletes=filterAthletesForCurrentCoach(mapArr(data||[]));
+  state.athletes=mapArr(data||[]);
   return state.athletes;
 }
 
 async function refreshAthleteDashboard(clientId){
-  if(!canAccessClient(clientId)){
-    console.warn('Acceso bloqueado a atleta de otro coach:', clientId);
-    return null;
-  }
-
   const {data,error}=await db.rpc('get_athlete_dashboard',{
     p_client_id:clientId
   });
@@ -5237,11 +5213,6 @@ function buildAthleteCard(a){
 
 async function openAthleteDashboard(clientId){
   try{
-    if(!canAccessClient(clientId)){
-      showToast('No tienes acceso a este atleta','err');
-      return;
-    }
-
     showToast('Cargando atleta…','ok');
 
     const {data,error}=await db.rpc('get_athlete_dashboard',{
@@ -5599,7 +5570,7 @@ function closeModal(){
   document.getElementById('modal-title').textContent='Acción';
   activeModal=null;
 }
-function clientOpts(selectedId=''){return state.clients.map(c=>`<option value="${c.id}" ${String(selectedId)===String(c.id)?'selected':''}>${esc(c.name)}</option>`).join('')}
+function clientOpts(selectedId=''){return state.clients.length ? state.clients.map(c=>`<option value="${c.id}" ${String(selectedId)===String(c.id)?'selected':''}>${esc(c.name)}</option>`).join('') : '<option value="" disabled selected>Primero crea un atleta</option>'}
 function toggleClientTypeFields(){
   const sel = document.querySelector('#modal-form select[name="clientType"]');
   const box = document.getElementById('client-athlete-fields');
@@ -5608,7 +5579,7 @@ function toggleClientTypeFields(){
 
   box.style.display = sel.value === 'general' ? 'none' : '';
 }
-function programOpts(selectedId=''){return state.trainingPrograms.map(p=>`<option value="${p.id}" ${String(selectedId)===String(p.id)?'selected':''}>${esc(p.name||p.nameEs||'Programa sin nombre')}</option>`).join('')}
+function programOpts(selectedId=''){return state.trainingPrograms.length ? state.trainingPrograms.map(p=>`<option value="${p.id}" ${String(selectedId)===String(p.id)?'selected':''}>${esc(p.name||p.nameEs||'Programa sin nombre')}</option>`).join('') : '<option value="" disabled selected>Sin planes disponibles</option>'}
 function formData(form){return Object.fromEntries(new FormData(form).entries())}
 
 async function upsertItem(stateKey,tableName,data){
@@ -5640,6 +5611,15 @@ function openModal(type,id=null,prefill={}){
   const P=prefill||{};
   const actions=`<div class="fld-acts"><button type="button" class="btn btn-s" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-p">Guardar</button></div>`;
   const get=(arrKey)=>state[arrKey]?.find(x=>String(x.id)===String(id))||{};
+
+  if(type==='assignment' && !state.clients.length){
+    showToast('Primero crea un atleta para poder asignar un plan.', 'err');
+    return;
+  }
+  if(type==='assignment' && !state.trainingPrograms.length){
+    showToast('No hay planes disponibles para este coach.', 'err');
+    return;
+  }
 
   if(type==='client'){
   const c=get('clients');
@@ -6129,8 +6109,16 @@ async function saveModal(e){
       data.assignedMonth = Number(data.assignedMonth || 1);
       data.assignedSessionNumber = Number(data.assignedSessionNumber || 1);
       if(!data.clientId||!data.programId){showToast('Selecciona cliente y programa','err');return}
+      const selectedClient = clientById(data.clientId);
+      if(state.coachRole !== 'owner' && (!selectedClient || String(selectedClient.coachId || selectedClient.coach_id || '') !== String(state.coachId))){
+        showToast('Este atleta no pertenece a este coach.', 'err');
+        return;
+      }
+      data.coachId = (selectedClient?.coachId || selectedClient?.coach_id || state.coachId || data.coachId || data.coach_id || null);
       if(closeOld&&!id){
-        const{error:closeErr}=await db.from('client_program_assignments').update({status:'finalizado'}).eq('client_id',data.clientId).or('status.eq.activo,status.is.null');
+        let closeQ = db.from('client_program_assignments').update({status:'finalizado'}).eq('client_id',data.clientId).or('status.eq.activo,status.is.null');
+        if(data.coachId) closeQ = closeQ.eq('coach_id', data.coachId);
+        const{error:closeErr}=await closeQ;
         if(closeErr)console.warn('No se pudieron cerrar asignaciones anteriores:',closeErr);
         state.assignments.forEach(a=>{
           const sameClient=String(a.clientId||a.client_id)===String(data.clientId);
