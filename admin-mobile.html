@@ -2620,6 +2620,8 @@ const state = {
   coachId: null,    // UUID del coach logueado (null = todos los datos)
   coachRole: null,  // 'owner' | 'coach'
   coachName: null,  // nombre real del coach logueado
+  coachPhotoUrl: null, // foto propia del coach logueado
+  coachEmail: null,
   activeWorkoutSessionNumber:1,
    manualPathologyByClient:{},
    selectedClientId:null,
@@ -3495,9 +3497,13 @@ function renderSemaforoCard(d) {
     const storedCoachId   = sessionStorage.getItem('ab_coach_id')   || localStorage.getItem('ab_coach_id')   || '';
     const storedCoachRole = sessionStorage.getItem('ab_coach_role') || localStorage.getItem('ab_coach_role') || 'owner';
     const storedCoachName = sessionStorage.getItem('ab_coach_name') || localStorage.getItem('ab_coach_name') || 'Abel Balsinde';
+    const storedCoachPhoto = sessionStorage.getItem('ab_coach_photo_url') || localStorage.getItem('ab_coach_photo_url') || '';
+    const storedCoachEmail = sessionStorage.getItem('ab_coach_email') || localStorage.getItem('ab_coach_email') || '';
     state.coachId   = storedCoachId   || null;
     state.coachRole = storedCoachRole || 'owner';
     state.coachName = storedCoachName;
+    state.coachPhotoUrl = storedCoachPhoto || null;
+    state.coachEmail = storedCoachEmail || null;
   }
 
 if(!isLogged){
@@ -3520,6 +3526,7 @@ if(!isLogged){
       if(e.target.id === 'video-ov') closeVideoModal();
     });
 
+    await loadCurrentCoachProfile();
     await loadAllData();
    
    // Registrar Service Worker
@@ -3571,7 +3578,7 @@ async function attemptLogin(){
     // ── Autenticar contra tabla coaches (multicoach) ──
     const { data: coach, error: coachErr } = await db
       .from('coaches')
-      .select('id, name, username, password_hash, role, is_active')
+      .select('*')
       .eq('username', user)
       .eq('is_active', true)
       .maybeSingle();
@@ -3610,12 +3617,16 @@ async function attemptLogin(){
     sessionStorage.setItem('ab_coach_id', coach.id);
     sessionStorage.setItem('ab_coach_role', coach.role);
     sessionStorage.setItem('ab_coach_name', coach.name);
+    sessionStorage.setItem('ab_coach_photo_url', coach.photo_url || coach.avatar_url || coach.profile_photo_url || '');
+    sessionStorage.setItem('ab_coach_email', coach.email || '');
 
     localStorage.setItem('ab_role', coach.role === 'owner' ? 'admin' : 'coach');
     localStorage.setItem('ab_admin_ok', 'true');
     localStorage.setItem('ab_coach_id', coach.id);
     localStorage.setItem('ab_coach_role', coach.role);
     localStorage.setItem('ab_coach_name', coach.name);
+    localStorage.setItem('ab_coach_photo_url', coach.photo_url || coach.avatar_url || coach.profile_photo_url || '');
+    localStorage.setItem('ab_coach_email', coach.email || '');
 
     location.replace(location.pathname);
   }catch(e){
@@ -3629,7 +3640,7 @@ async function attemptLogin(){
 function doLogout(){
   if(!confirm('¿Cerrar sesión?')) return;
 
-  ['ab_role','ab_admin_ok','ab_coach_id','ab_coach_role','ab_coach_name'].forEach(k => {
+  ['ab_role','ab_admin_ok','ab_coach_id','ab_coach_role','ab_coach_name','ab_coach_photo_url','ab_coach_email'].forEach(k => {
     sessionStorage.removeItem(k);
     localStorage.removeItem(k);
   });
@@ -3637,11 +3648,50 @@ function doLogout(){
   state.coachId   = null;
   state.coachRole = null;
   state.coachName = null;
+  state.coachPhotoUrl = null;
+  state.coachEmail = null;
 
   if(window.Auth && typeof Auth.logout === 'function'){
     Auth.logout();
   }else{
     location.replace(location.pathname);
+  }
+}
+
+
+async function loadCurrentCoachProfile(){
+  if(!state.coachId || !db) return null;
+  try{
+    const {data:coach,error} = await db
+      .from('coaches')
+      .select('*')
+      .eq('id', state.coachId)
+      .maybeSingle();
+
+    if(error){
+      console.warn('loadCurrentCoachProfile error:', error);
+      return null;
+    }
+    if(!coach) return null;
+
+    state.coachName = coach.name || state.coachName;
+    state.coachRole = coach.role || state.coachRole;
+    state.coachEmail = coach.email || state.coachEmail || null;
+    state.coachPhotoUrl = coach.photo_url || coach.avatar_url || coach.profile_photo_url || state.coachPhotoUrl || null;
+
+    sessionStorage.setItem('ab_coach_name', state.coachName || 'Coach');
+    sessionStorage.setItem('ab_coach_role', state.coachRole || 'coach');
+    sessionStorage.setItem('ab_coach_photo_url', state.coachPhotoUrl || '');
+    sessionStorage.setItem('ab_coach_email', state.coachEmail || '');
+    localStorage.setItem('ab_coach_name', state.coachName || 'Coach');
+    localStorage.setItem('ab_coach_role', state.coachRole || 'coach');
+    localStorage.setItem('ab_coach_photo_url', state.coachPhotoUrl || '');
+    localStorage.setItem('ab_coach_email', state.coachEmail || '');
+
+    return coach;
+  }catch(err){
+    console.warn('loadCurrentCoachProfile exception:', err);
+    return null;
   }
 }
 
@@ -4765,13 +4815,13 @@ function renderMas(){
     {icon:ICONS.new,  label:'Nuevo cliente',badge:0,            action:`openModal('client')`},
   ];
 
-  const coachPhotoButton = isOwnerCoach() ? `
+  const coachPhotoButton = `
         <span onclick="event.stopPropagation();document.getElementById('coach-photo-input').click()"
           style="position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;background:var(--sport);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer">
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
         </span>
         <input type="file" id="coach-photo-input" accept="image/*" style="display:none" onchange="uploadCoachPhoto(this)">
-  ` : '';
+  `;
 
   const coachCard=`
     <button class="card" style="padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:90px;margin-bottom:0;position:relative" onclick="${coachCardAction}">
@@ -4806,22 +4856,31 @@ function openCoachAccountModal(){
   const form=document.getElementById('modal-form');
   if(!title || !form) return;
 
-  const roleLabel = isOwnerCoach() ? 'Owner / administrador' : 'Coach';
+  const roleLabel = isOwnerCoach() ? 'Owner / administrador' : 'Coach colaborador';
   const name = getActiveCoachDisplayName();
 
   title.textContent='Mi cuenta';
   form.onsubmit=null;
   form.innerHTML=`
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-      ${getCoachAvatarHTML()}
+      <div style="position:relative">
+        ${getCoachAvatarHTML()}
+        <span onclick="document.getElementById('coach-account-photo-input').click()"
+          style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;background:var(--sport);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </span>
+        <input type="file" id="coach-account-photo-input" accept="image/*" style="display:none" onchange="uploadCoachPhoto(this)">
+      </div>
       <div>
         <div style="font-size:1rem;font-weight:800;color:var(--text)">${esc(name)}</div>
         <div style="font-family:var(--font-m);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sport);margin-top:2px">${esc(roleLabel)}</div>
       </div>
     </div>
+    <button type="button" class="btn btn-b" style="width:100%;margin-bottom:12px" onclick="document.getElementById('coach-account-photo-input').click()">Cambiar foto de perfil</button>
     <div class="card" style="margin-bottom:14px">
       <div class="card-body" style="padding:12px 14px">
         <div style="font-size:.78rem;color:var(--text-2);line-height:1.45">
+          Esta cuenta solo debe ver sus propios atletas, sus asignaciones y los planes compartidos por AB SYSTEM.
         </div>
       </div>
     </div>
@@ -4833,31 +4892,49 @@ function openCoachAccountModal(){
 }
 
 async function uploadCoachPhoto(input){
-  if(!isOwnerCoach()){
-    showToast('Solo el owner puede cambiar la foto global.', 'err');
-    return;
-  }
   const file=input.files?.[0];
   if(!file){return}
+  if(!state.coachId){
+    showToast('No se encontró el coach activo.', 'err');
+    return;
+  }
   try{
     showToast('Subiendo foto…','ok');
-    const ext=file.name.split('.').pop();
-    const path=`coach/avatar.${ext}`;
-    const{error:upErr}=await db.storage.from('client-photos').upload(path,file,{upsert:true,contentType:file.type});
+    const ext=(file.name.split('.').pop() || 'jpg').toLowerCase();
+    const safeExt = ['jpg','jpeg','png','webp'].includes(ext) ? ext : 'jpg';
+    const path=`coaches/${state.coachId}/avatar.${safeExt}`;
+    const{error:upErr}=await db.storage.from('client-photos').upload(path,file,{upsert:true,contentType:file.type || 'image/jpeg'});
     if(upErr)throw upErr;
+
     const{data:urlData}=db.storage.from('client-photos').getPublicUrl(path);
     const photoUrl=urlData.publicUrl;
-    const{error:saveErr}=await db.from('settings').update({coach_photo_url:photoUrl}).eq('id','main');
+
+    const{error:saveErr}=await db.from('coaches').update({photo_url:photoUrl, updated_at:new Date().toISOString()}).eq('id',state.coachId);
     if(saveErr)throw saveErr;
-    state.settings.coachPhotoUrl=photoUrl;
+
+    state.coachPhotoUrl=photoUrl;
+    sessionStorage.setItem('ab_coach_photo_url', photoUrl);
+    localStorage.setItem('ab_coach_photo_url', photoUrl);
+
+    // Compatibilidad: si el owner cambia su foto, también actualizamos settings.
+    if(isOwnerCoach()){
+      try{
+        await db.from('settings').update({coach_photo_url:photoUrl}).eq('id','main');
+        state.settings.coachPhotoUrl=photoUrl;
+      }catch(e){ console.warn('No se pudo actualizar settings.coach_photo_url:', e); }
+    }
+
+    renderTopAvatar();
     renderMas();
-    showToast('Foto actualizada ✓','ok');
+    if(document.getElementById('modal-ov')?.classList.contains('on')) openCoachAccountModal();
+    showToast('Foto de perfil actualizada ✓','ok');
   }catch(err){
     console.error(err);
     showToast('Error subiendo foto: '+(err.message||''),'err');
+  }finally{
+    if(input) input.value='';
   }
-}
-</script>
+}</script>
 
 <script>
 /* ════════════════════════════════════════════════════════
@@ -6618,7 +6695,9 @@ function renderTopAvatar(){
   const el = document.getElementById('top-coach-avatar');
   if(!el) return;
 
-  // Usar nombre del coach logueado si existe, si no el de settings
+  el.onclick = () => isOwnerCoach() ? showScr('ajustes') : openCoachAccountModal();
+
+  // Usar nombre/foto del coach logueado si existe, si no el de settings
   const activeCoachName = state.coachName || state.settings.coachName || 'Abel';
   const coachPhone = String(state.settings.coachPhone || COACH_PHONE_DEFAULT || '').replace(/[\s+\-()]/g,'');
   const coachName = cleanTxt(activeCoachName);
@@ -6628,10 +6707,10 @@ function renderTopAvatar(){
     return (phone && coachPhone && phone === coachPhone) || (cleanTxt(c.name || '') === coachName);
   });
 
-  const url = coachClient?.photoUrl || coachClient?.photo_url || coachClient?.avatarUrl || coachClient?.avatar_url || '';
+  const url = state.coachPhotoUrl || coachClient?.photoUrl || coachClient?.photo_url || coachClient?.avatarUrl || coachClient?.avatar_url || state.settings.coachPhotoUrl || '';
 
   if(url){
-    el.innerHTML = `<img src="${esc(url)}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.textContent='AB'">`;
+    el.innerHTML = `<img src="${esc(url)}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.textContent='${esc(initials(activeCoachName || 'AB'))}'">`;
   } else {
     el.textContent = initials(state.coachName || state.settings.coachName || 'AB');
   }
@@ -6656,6 +6735,7 @@ function getCoachAvatarHTML(){
   });
 
   const url =
+    state.coachPhotoUrl ||
     coachClient?.photoUrl ||
     coachClient?.photo_url ||
     coachClient?.avatarUrl ||
@@ -6664,6 +6744,7 @@ function getCoachAvatarHTML(){
     coachClient?.profile_photo ||
     coachClient?.imageUrl ||
     coachClient?.image_url ||
+    state.settings.coachPhotoUrl ||
     '';
 
   if(url){
