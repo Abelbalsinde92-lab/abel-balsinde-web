@@ -7682,9 +7682,14 @@ if(loginHelpBtn){
 }
 
 /* ══ LANG ══ */
-function pickLang(obj, base) {
+function pickLang(obj, base, lang) {
   if (!obj) return '';
-  return String(obj[base] || '').trim();
+  const l = lang || getLang?.() || AB_LANG || 'es';
+  // Intentar campo con sufijo de idioma primero
+  if (l === 'en') return String(obj[base + '_en'] || obj[base] || '').trim();
+  if (l === 'sr') return String(obj[base + '_sr'] || obj[base] || '').trim();
+  // ES: preferir _es, caer a campo base
+  return String(obj[base + '_es'] || obj[base] || '').trim();
 }
 function getLang() {
   const l = (clientData?.preferred_lang || AB_LANG || 'es').toLowerCase();
