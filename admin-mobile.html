@@ -3473,11 +3473,43 @@ function renderSemaforoCard(d) {
    INIT
 ══════════════════════════════════════════════════════════ */
 
+
+function clearABFieldSession(){
+  [
+    'ab_role','ab_admin_ok','ab_coach_id','ab_coach_role','ab_coach_name','ab_coach_photo_url','ab_coach_email',
+    'ab_owner_ok','ab_admin_token','ab_session','ab_user','ab_username','ab_last_user','ab_auth','ab_auth_user',
+    'sb-access-token','sb-refresh-token'
+  ].forEach(k=>{
+    try{ sessionStorage.removeItem(k); }catch(_e){}
+    try{ localStorage.removeItem(k); }catch(_e){}
+  });
+  try{
+    Object.keys(localStorage).forEach(k=>{
+      if(k.startsWith('ab_') || k.includes('supabase') || k.startsWith('sb-')) localStorage.removeItem(k);
+    });
+    Object.keys(sessionStorage).forEach(k=>{
+      if(k.startsWith('ab_') || k.includes('supabase') || k.startsWith('sb-')) sessionStorage.removeItem(k);
+    });
+  }catch(_e){}
+}
+
 (async function pageInit(){
   try{
     if(AB_BOOT_ERROR) throw AB_BOOT_ERROR;
 
     const params = new URLSearchParams(location.search);
+
+    // Permite cambiar de cuenta sin quedar atrapado en la sesión anterior.
+    // Uso: /admin-mobile.html?logout=1 o /admin-mobile.html?switch_account=1
+    if(params.has('logout') || params.has('switch_account') || params.has('reset_login')){
+      clearABFieldSession();
+      history.replaceState({}, '', location.pathname);
+      document.getElementById('loading')?.classList.add('hidden');
+      document.getElementById('app')?.classList.add('hidden');
+      document.getElementById('login')?.classList.remove('hidden');
+      setupLogin();
+      return;
+    }
 
     if(params.has('auth') || params.has('logged_out') || params.has('v')){
       history.replaceState({}, '', location.pathname);
@@ -3571,6 +3603,8 @@ async function attemptLogin(){
   const pass=document.getElementById('li-pass').value;
   const err=document.getElementById('login-err');
   err.classList.add('hidden');
+  // Evitar que datos de un coach anterior se mezclen con el nuevo login.
+  clearABFieldSession();
   if(!user||!pass){err.textContent='Introduce usuario y contraseña.';err.classList.remove('hidden');return}
   document.getElementById('login').classList.add('hidden');
   document.getElementById('loading').classList.remove('hidden');
@@ -3640,10 +3674,7 @@ async function attemptLogin(){
 function doLogout(){
   if(!confirm('¿Cerrar sesión?')) return;
 
-  ['ab_role','ab_admin_ok','ab_coach_id','ab_coach_role','ab_coach_name','ab_coach_photo_url','ab_coach_email'].forEach(k => {
-    sessionStorage.removeItem(k);
-    localStorage.removeItem(k);
-  });
+  clearABFieldSession();
 
   state.coachId   = null;
   state.coachRole = null;
@@ -3651,11 +3682,8 @@ function doLogout(){
   state.coachPhotoUrl = null;
   state.coachEmail = null;
 
-  if(window.Auth && typeof Auth.logout === 'function'){
-    Auth.logout();
-  }else{
-    location.replace(location.pathname);
-  }
+  // Forzar pantalla de login y evitar que una sesión antigua de Safari vuelva a entrar sola.
+  location.replace(location.pathname + '?logout=1');
 }
 
 
