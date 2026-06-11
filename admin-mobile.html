@@ -2617,6 +2617,9 @@ const state = {
    activeAthleteSection:null,
    activeAthleteSectionData:null,
    settings:{coachName:'Abel Balsinde',coachPhone:COACH_PHONE_DEFAULT,coachCity:'Belgrado',adminUsername:ADMIN_USER_DEFAULT},
+  coachId: null,    // UUID del coach logueado (null = todos los datos)
+  coachRole: null,  // 'owner' | 'coach'
+  coachName: null,  // nombre real del coach logueado
   activeWorkoutSessionNumber:1,
    manualPathologyByClient:{},
    selectedClientId:null,
@@ -3487,6 +3490,16 @@ function renderSemaforoCard(d) {
     Auth.isAdmin()
   );
 
+  // Restaurar identidad del coach logueado
+  if(isLogged){
+    const storedCoachId   = sessionStorage.getItem('ab_coach_id')   || localStorage.getItem('ab_coach_id')   || '';
+    const storedCoachRole = sessionStorage.getItem('ab_coach_role') || localStorage.getItem('ab_coach_role') || 'owner';
+    const storedCoachName = sessionStorage.getItem('ab_coach_name') || localStorage.getItem('ab_coach_name') || 'Abel Balsinde';
+    state.coachId   = storedCoachId   || null;
+    state.coachRole = storedCoachRole || 'owner';
+    state.coachName = storedCoachName;
+  }
+
 if(!isLogged){
       document.getElementById('loading')?.classList.add('hidden');
       document.getElementById('app')?.classList.add('hidden');
@@ -3555,23 +3568,60 @@ async function attemptLogin(){
   document.getElementById('login').classList.add('hidden');
   document.getElementById('loading').classList.remove('hidden');
   try{
-    const{data:sett}=await db.from('settings').select('admin_username,admin_password').eq('id','main').maybeSingle();
-    const vu=sett?.admin_username||ADMIN_USER_DEFAULT;
-    const vp=sett?.admin_password||ADMIN_PASS_DEFAULT;
-    if(user===vu&&pass===vp){
-      sessionStorage.setItem('ab_role','admin');
-sessionStorage.setItem('ab_admin_ok','true');
+    // ── Autenticar contra tabla coaches (multicoach) ──
+    const { data: coach, error: coachErr } = await db
+      .from('coaches')
+      .select('id, name, username, password_hash, role, is_active')
+      .eq('username', user)
+      .eq('is_active', true)
+      .maybeSingle();
 
-localStorage.setItem('ab_role','admin');
-localStorage.setItem('ab_admin_ok','true');
-
-location.replace(location.pathname);
-    }else{
-      document.getElementById('loading').classList.add('hidden');document.getElementById('login').classList.remove('hidden');
-      err.textContent='Credenciales incorrectas.';err.classList.remove('hidden');
+    // Fallback: si no existe la tabla coaches, usar credenciales de settings
+    if(coachErr && coachErr.code === '42P01'){
+      const{data:sett}=await db.from('settings').select('admin_username,admin_password').eq('id','main').maybeSingle();
+      const vu=sett?.admin_username||ADMIN_USER_DEFAULT;
+      const vp=sett?.admin_password||ADMIN_PASS_DEFAULT;
+      if(user===vu&&pass===vp){
+        sessionStorage.setItem('ab_role','admin');
+        sessionStorage.setItem('ab_admin_ok','true');
+        sessionStorage.setItem('ab_coach_id','');
+        sessionStorage.setItem('ab_coach_role','owner');
+        sessionStorage.setItem('ab_coach_name','Abel Balsinde');
+        localStorage.setItem('ab_role','admin');
+        localStorage.setItem('ab_admin_ok','true');
+        localStorage.setItem('ab_coach_id','');
+        localStorage.setItem('ab_coach_role','owner');
+        localStorage.setItem('ab_coach_name','Abel Balsinde');
+        location.replace(location.pathname);
+        return;
+      }
     }
+
+    if(!coach || coach.password_hash !== pass){
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('login').classList.remove('hidden');
+      err.textContent='Credenciales incorrectas.';err.classList.remove('hidden');
+      return;
+    }
+
+    // Login correcto — guardar sesión del coach
+    sessionStorage.setItem('ab_role', coach.role === 'owner' ? 'admin' : 'coach');
+    sessionStorage.setItem('ab_admin_ok', 'true');
+    sessionStorage.setItem('ab_coach_id', coach.id);
+    sessionStorage.setItem('ab_coach_role', coach.role);
+    sessionStorage.setItem('ab_coach_name', coach.name);
+
+    localStorage.setItem('ab_role', coach.role === 'owner' ? 'admin' : 'coach');
+    localStorage.setItem('ab_admin_ok', 'true');
+    localStorage.setItem('ab_coach_id', coach.id);
+    localStorage.setItem('ab_coach_role', coach.role);
+    localStorage.setItem('ab_coach_name', coach.name);
+
+    location.replace(location.pathname);
   }catch(e){
-    console.error(e);document.getElementById('loading').classList.add('hidden');document.getElementById('login').classList.remove('hidden');
+    console.error(e);
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('login').classList.remove('hidden');
     err.textContent='Error de conexión.';err.classList.remove('hidden');
   }
 }
@@ -3579,11 +3629,14 @@ location.replace(location.pathname);
 function doLogout(){
   if(!confirm('¿Cerrar sesión?')) return;
 
-  sessionStorage.removeItem('ab_role');
-  sessionStorage.removeItem('ab_admin_ok');
+  ['ab_role','ab_admin_ok','ab_coach_id','ab_coach_role','ab_coach_name'].forEach(k => {
+    sessionStorage.removeItem(k);
+    localStorage.removeItem(k);
+  });
 
-  localStorage.removeItem('ab_role');
-  localStorage.removeItem('ab_admin_ok');
+  state.coachId   = null;
+  state.coachRole = null;
+  state.coachName = null;
 
   if(window.Auth && typeof Auth.logout === 'function'){
     Auth.logout();
@@ -3602,15 +3655,28 @@ async function loadAllData(){
       {data:texercises},{data:videos},{data:assignments},{data:slogs},
       {data:templates},{data:assessments},{data:metrics},{data:conditions},{data:settings}
     ]=await Promise.all([
-      db.from('clients').select('*').order('name'),
-      db.from('reservations').select('*').eq('date',today).order('time'),
-      db.from('reservations').select('*').gt('date',today).order('date').limit(80),
-      db.from('reservations').select('*').lt('date',today).order('date',{ascending:false}).limit(80),
-      db.from('payments').select('*').order('due_date',{ascending:false}).limit(300),
+      // ── Filtrado por coach_id si no es owner ──
+      (state.coachRole !== 'owner' && state.coachId
+        ? db.from('clients').select('*').eq('coach_id', state.coachId).order('name')
+        : db.from('clients').select('*').order('name')),
+      (state.coachRole !== 'owner' && state.coachId
+        ? db.from('reservations').select('*').eq('date',today).eq('coach_id', state.coachId).order('time')
+        : db.from('reservations').select('*').eq('date',today).order('time')),
+      (state.coachRole !== 'owner' && state.coachId
+        ? db.from('reservations').select('*').gt('date',today).eq('coach_id', state.coachId).order('date').limit(80)
+        : db.from('reservations').select('*').gt('date',today).order('date').limit(80)),
+      (state.coachRole !== 'owner' && state.coachId
+        ? db.from('reservations').select('*').lt('date',today).eq('coach_id', state.coachId).order('date',{ascending:false}).limit(80)
+        : db.from('reservations').select('*').lt('date',today).order('date',{ascending:false}).limit(80)),
+      (state.coachRole !== 'owner' && state.coachId
+        ? db.from('payments').select('*').eq('coach_id', state.coachId).order('due_date',{ascending:false}).limit(300)
+        : db.from('payments').select('*').order('due_date',{ascending:false}).limit(300)),
       db.from('admin_alertas_detalle').select('*').order('created_at',{ascending:false}).limit(200),
       db.from('client_daily_checkins').select('*').eq('checkin_date',today),
       db.from('client_daily_checkins').select('*').order('checkin_date',{ascending:false}).limit(80),
-      db.from('training_programs').select('*'),
+      (state.coachRole !== 'owner' && state.coachId
+        ? db.from('training_programs').select('*').eq('coach_id', state.coachId)
+        : db.from('training_programs').select('*')),
       db.from('training_weeks').select('*').order('week_number'),
       db.from('training_sessions').select('*').order('session_number'),
       db.from('training_blocks').select('*').order('block_order'),
@@ -5873,13 +5939,14 @@ async function saveModal(e){
   data.athlete_profile = clientType === 'athlete' ? 'athlete' : clientType;
   data.enable_combat_metrics = clientType === 'combat';
 
+  // Asignar coach_id del coach logueado al crear cliente nuevo
+  const clientPayload = { ...data, notes: id ? (clientById(id)?.notes || []) : [] };
+  if(!id && state.coachId) clientPayload.coach_id = state.coachId;
+
   const saved = await upsertItem(
     'clients',
     'clients',
-    {
-      ...data,
-      notes:id ? (clientById(id)?.notes || []) : []
-    }
+    clientPayload
   );
 
   const { error: typeError } = await db.rpc('admin_set_client_type', {
@@ -6398,8 +6465,10 @@ function renderTopAvatar(){
   const el = document.getElementById('top-coach-avatar');
   if(!el) return;
 
+  // Usar nombre del coach logueado si existe, si no el de settings
+  const activeCoachName = state.coachName || state.settings.coachName || 'Abel';
   const coachPhone = String(state.settings.coachPhone || COACH_PHONE_DEFAULT || '').replace(/[\s+\-()]/g,'');
-  const coachName = cleanTxt(state.settings.coachName || 'Abel');
+  const coachName = cleanTxt(activeCoachName);
 
   const coachClient = state.clients.find(c => {
     const phone = String(c.phone || '').replace(/[\s+\-()]/g,'');
@@ -6411,7 +6480,7 @@ function renderTopAvatar(){
   if(url){
     el.innerHTML = `<img src="${esc(url)}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.textContent='AB'">`;
   } else {
-    el.textContent = initials(state.settings.coachName || 'AB');
+    el.textContent = initials(state.coachName || state.settings.coachName || 'AB');
   }
 }
 
