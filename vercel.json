@@ -6,6 +6,7 @@
     { "source": "/field", "destination": "/admin-mobile.html" },
     { "source": "/admin-mobile", "destination": "/admin-mobile.html" },
     { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/reset-password", "destination": "/reset-password.html" },
     { "source": "/medical", "destination": "/medical-panel.html" },
     { "source": "/nutrition", "destination": "/nutrition-panel.html" },
     { "source": "/sr", "destination": "/sr.html" },
@@ -32,6 +33,18 @@
     },
     {
       "source": "/admin.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0" }
+      ]
+    },
+    {
+      "source": "/reset-password",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0" }
+      ]
+    },
+    {
+      "source": "/reset-password.html",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, max-age=0" }
       ]
