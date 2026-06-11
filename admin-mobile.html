@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>AB · Field</title>
-<!-- AB Field patched v20260603-guard -->
+<!-- AB Field patched v20260611-multicoach-scope -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
@@ -3493,10 +3493,10 @@ function renderSemaforoCard(d) {
   // Restaurar identidad del coach logueado
   if(isLogged){
     const storedCoachId   = sessionStorage.getItem('ab_coach_id')   || localStorage.getItem('ab_coach_id')   || '';
-    const storedCoachRole = sessionStorage.getItem('ab_coach_role') || localStorage.getItem('ab_coach_role') || 'owner';
-    const storedCoachName = sessionStorage.getItem('ab_coach_name') || localStorage.getItem('ab_coach_name') || 'Abel Balsinde';
+    const storedCoachRole = sessionStorage.getItem('ab_coach_role') || localStorage.getItem('ab_coach_role') || 'coach';
+    const storedCoachName = sessionStorage.getItem('ab_coach_name') || localStorage.getItem('ab_coach_name') || 'Coach';
     state.coachId   = storedCoachId   || null;
-    state.coachRole = storedCoachRole || 'owner';
+    state.coachRole = storedCoachRole || 'coach';
     state.coachName = storedCoachName;
   }
 
@@ -3645,92 +3645,198 @@ function doLogout(){
   }
 }
 
+
+function isOwnerCoach(){
+  return String(state.coachRole || '').toLowerCase() === 'owner';
+}
+
+function hasCoachScope(){
+  return !isOwnerCoach() && !!state.coachId;
+}
+
+function visibleClientIdSet(){
+  return new Set((state.clients || []).map(c => String(c.id)));
+}
+
+function filterByVisibleClients(rows){
+  rows = Array.isArray(rows) ? rows : [];
+  if(isOwnerCoach()) return rows;
+  const ids = visibleClientIdSet();
+  return rows.filter(r => ids.has(String(r.clientId || r.client_id || r.client || r.cliente_id || '')));
+}
+
+function canAccessClient(clientId){
+  if(isOwnerCoach()) return true;
+  if(!clientId) return false;
+  return visibleClientIdSet().has(String(clientId));
+}
+
+async function loadProgramsForCurrentCoach(){
+  if(isOwnerCoach() || !state.coachId){
+    const { data, error } = await db.from('training_programs').select('*');
+    if(error) throw error;
+    return data || [];
+  }
+
+  const [{ data: own, error: ownErr }, { data: access, error: accessErr }] = await Promise.all([
+    db.from('training_programs').select('*').eq('coach_id', state.coachId),
+    db.from('coach_program_access').select('program_id').eq('coach_id', state.coachId)
+  ]);
+
+  if(ownErr) throw ownErr;
+  if(accessErr) console.warn('coach_program_access error:', accessErr);
+
+  const sharedIds = [...new Set((access || []).map(x => x.program_id).filter(Boolean))];
+  let shared = [];
+  if(sharedIds.length){
+    const { data: sharedData, error: sharedErr } = await db
+      .from('training_programs')
+      .select('*')
+      .in('id', sharedIds);
+    if(sharedErr) console.warn('shared programs error:', sharedErr);
+    shared = sharedData || [];
+  }
+
+  const map = new Map();
+  [...(own || []), ...shared].forEach(p => map.set(String(p.id), p));
+  return [...map.values()];
+}
+
+function filterAthletesForCurrentCoach(rows){
+  rows = Array.isArray(rows) ? rows : [];
+  if(isOwnerCoach()) return rows;
+  const ids = visibleClientIdSet();
+  return rows.filter(a => ids.has(String(a.clientId || a.client_id || a.id || '')));
+}
+
 async function loadAllData(){
   try{
     const today=todayISO();
+    const scoped = hasCoachScope();
+
+    const clientsQ = scoped
+      ? db.from('clients').select('*').eq('coach_id', state.coachId).order('name')
+      : db.from('clients').select('*').order('name');
+
+    const todayResQ = scoped
+      ? db.from('reservations').select('*').eq('date',today).eq('coach_id', state.coachId).order('time')
+      : db.from('reservations').select('*').eq('date',today).order('time');
+
+    const futureResQ = scoped
+      ? db.from('reservations').select('*').gt('date',today).eq('coach_id', state.coachId).order('date').limit(80)
+      : db.from('reservations').select('*').gt('date',today).order('date').limit(80);
+
+    const pastResQ = scoped
+      ? db.from('reservations').select('*').lt('date',today).eq('coach_id', state.coachId).order('date',{ascending:false}).limit(80)
+      : db.from('reservations').select('*').lt('date',today).order('date',{ascending:false}).limit(80);
+
+    const paymentsQ = scoped
+      ? db.from('payments').select('*').eq('coach_id', state.coachId).order('due_date',{ascending:false}).limit(300)
+      : db.from('payments').select('*').order('due_date',{ascending:false}).limit(300);
+
+    const alertasQ = scoped
+      ? db.from('admin_alertas_detalle').select('*').eq('coach_id', state.coachId).order('created_at',{ascending:false}).limit(200)
+      : db.from('admin_alertas_detalle').select('*').order('created_at',{ascending:false}).limit(200);
+
+    const assignmentsQ = scoped
+      ? db.from('client_program_assignments').select('*').eq('coach_id', state.coachId)
+      : db.from('client_program_assignments').select('*');
+
+    const conditionsQ = db.from('client_conditions').select('*').eq('status','active').order('start_date',{ascending:false});
+
     const[
       {data:clients},{data:todayRes},{data:futureRes},{data:pastRes},
       {data:payments},{data:alertas},{data:todayCI},{data:recentCI},
-      {data:tprograms},{data:tweeks},{data:tsessions},{data:tblocks},
-      {data:texercises},{data:videos},{data:assignments},{data:slogs},
-      {data:templates},{data:assessments},{data:metrics},{data:conditions},{data:settings}
+      {data:tweeks},{data:tsessions},{data:tblocks},{data:texercises},
+      {data:videos},{data:assignments},{data:slogs},
+      {data:templates},{data:assessments},{data:metrics},{data:conditions},{data:settings},
+      tprograms
     ]=await Promise.all([
-      // ── Filtrado por coach_id si no es owner ──
-      (state.coachRole !== 'owner' && state.coachId
-        ? db.from('clients').select('*').eq('coach_id', state.coachId).order('name')
-        : db.from('clients').select('*').order('name')),
-      (state.coachRole !== 'owner' && state.coachId
-        ? db.from('reservations').select('*').eq('date',today).eq('coach_id', state.coachId).order('time')
-        : db.from('reservations').select('*').eq('date',today).order('time')),
-      (state.coachRole !== 'owner' && state.coachId
-        ? db.from('reservations').select('*').gt('date',today).eq('coach_id', state.coachId).order('date').limit(80)
-        : db.from('reservations').select('*').gt('date',today).order('date').limit(80)),
-      (state.coachRole !== 'owner' && state.coachId
-        ? db.from('reservations').select('*').lt('date',today).eq('coach_id', state.coachId).order('date',{ascending:false}).limit(80)
-        : db.from('reservations').select('*').lt('date',today).order('date',{ascending:false}).limit(80)),
-      (state.coachRole !== 'owner' && state.coachId
-        ? db.from('payments').select('*').eq('coach_id', state.coachId).order('due_date',{ascending:false}).limit(300)
-        : db.from('payments').select('*').order('due_date',{ascending:false}).limit(300)),
-      db.from('admin_alertas_detalle').select('*').order('created_at',{ascending:false}).limit(200),
+      clientsQ,
+      todayResQ,
+      futureResQ,
+      pastResQ,
+      paymentsQ,
+      alertasQ,
       db.from('client_daily_checkins').select('*').eq('checkin_date',today),
       db.from('client_daily_checkins').select('*').order('checkin_date',{ascending:false}).limit(80),
-      (state.coachRole !== 'owner' && state.coachId
-        ? db.from('training_programs').select('*').eq('coach_id', state.coachId)
-        : db.from('training_programs').select('*')),
       db.from('training_weeks').select('*').order('week_number'),
       db.from('training_sessions').select('*').order('session_number'),
       db.from('training_blocks').select('*').order('block_order'),
       db.from('training_exercises').select('*').not('block_id','is',null).order('exercise_order').limit(3000),
       db.from('exercise_video_library').select('*').order('priority'),
-      db.from('client_program_assignments').select('*'),
+      assignmentsQ,
       db.from('client_session_logs').select('*').order('updated_at',{ascending:false}).limit(200),
       db.from('templates').select('*').order('name'),
       db.from('client_assessments').select('*').order('assessment_date',{ascending:false}).limit(80),
       db.from('metrics').select('*').order('date',{ascending:false}).limit(150),
-db.from('client_conditions').select('*').eq('status','active').order('start_date',{ascending:false}),
-db.from('settings').select('*').eq('id','main').maybeSingle()
+      conditionsQ,
+      db.from('settings').select('*').eq('id','main').maybeSingle(),
+      loadProgramsForCurrentCoach()
     ]);
-    state.clients=mapArr(clients);state.todayRes=mapArr(todayRes);state.futureRes=mapArr(futureRes);state.pastRes=mapArr(pastRes);
+
+    state.clients=mapArr(clients);
+    state.todayRes=mapArr(todayRes);
+    state.futureRes=mapArr(futureRes);
+    state.pastRes=mapArr(pastRes);
     state.allRes=[...state.todayRes,...state.futureRes,...state.pastRes];
-    state.payments=mapArr(payments);state.alertas=mapArr(alertas);state.todayCheckins=mapArr(todayCI);state.recentCheckins=mapArr(recentCI);
-    state.trainingPrograms=mapArr(tprograms);state.trainingWeeks=mapArr(tweeks);state.trainingSessions=mapArr(tsessions);
-    state.trainingBlocks=mapArr(tblocks);state.trainingExercises=mapArr(texercises);state.videoLibrary=mapArr(videos);
-    state.assignments=mapArr(assignments);state.sessionLogs=mapArr(slogs);state.templates=mapArr(templates);
-    state.assessments=mapArr(assessments);state.metrics=mapArr(metrics);
-   state.clientConditions=Array.isArray(conditions) ? mapArr(conditions) : [];
+    state.payments=mapArr(payments);
+    state.alertas=mapArr(alertas);
+    state.todayCheckins=filterByVisibleClients(mapArr(todayCI));
+    state.recentCheckins=filterByVisibleClients(mapArr(recentCI));
+    state.trainingPrograms=mapArr(tprograms);
+    const visibleProgramIds = new Set(state.trainingPrograms.map(p => String(p.id)));
+
+    state.trainingWeeks=mapArr(tweeks).filter(w => isOwnerCoach() || visibleProgramIds.has(String(w.programId || w.program_id || '')));
+    const visibleWeekIds = new Set(state.trainingWeeks.map(w => String(w.id)));
+
+    state.trainingSessions=mapArr(tsessions).filter(s => isOwnerCoach() || visibleWeekIds.has(String(s.weekId || s.week_id || '')));
+    const visibleSessionIds = new Set(state.trainingSessions.map(s => String(s.id)));
+
+    state.trainingBlocks=mapArr(tblocks).filter(b => isOwnerCoach() || visibleSessionIds.has(String(b.sessionId || b.session_id || '')));
+    const visibleBlockIds = new Set(state.trainingBlocks.map(b => String(b.id)));
+
+    state.trainingExercises=mapArr(texercises).filter(e => isOwnerCoach() || visibleBlockIds.has(String(e.blockId || e.block_id || '')));
+    state.videoLibrary=mapArr(videos);
+    state.assignments=mapArr(assignments);
+    state.sessionLogs=filterByVisibleClients(mapArr(slogs));
+    state.templates=mapArr(templates);
+    state.assessments=filterByVisibleClients(mapArr(assessments));
+    state.metrics=filterByVisibleClients(mapArr(metrics));
+    state.clientConditions=filterByVisibleClients(mapArr(conditions));
     if(settings)state.settings={...state.settings,...snakeToCamel(settings)};
 
-try{
-  const {data:athletes,error:athErr}=await db.rpc('get_admin_athlete_list');
+    try{
+      const {data:athletes,error:athErr}=await db.rpc('get_admin_athlete_list');
 
-  if(athErr){
-    console.warn('get_admin_athlete_list error:',athErr);
-    state.athletes=[];
-  }else{
-    state.athletes=mapArr(athletes||[]);
-  }
-}catch(e){
-  console.warn('No se pudo cargar lista de atletas:',e);
-  state.athletes=[];
-}
+      if(athErr){
+        console.warn('get_admin_athlete_list error:',athErr);
+        state.athletes=[];
+      }else{
+        state.athletes=filterAthletesForCurrentCoach(mapArr(athletes||[]));
+      }
+    }catch(e){
+      console.warn('No se pudo cargar lista de atletas:',e);
+      state.athletes=[];
+    }
 
-renderAll();
-showToast('Datos cargados ✓', 'ok');
+    renderAll();
+    showToast('Datos cargados ✓', 'ok');
 
-// Activar notificaciones realtime
-if(!realtimeInitialized){
-  setupRealtimeNotifications();
-  realtimeInitialized = true;
-}
+    // Activar notificaciones realtime
+    if(!realtimeInitialized){
+      setupRealtimeNotifications();
+      realtimeInitialized = true;
+    }
 
-// Activar push (pide permiso si no lo tiene). Guardado para navegadores donde Notification no existe.
-if ('Notification' in window) {
-  if (Notification.permission === 'default') {
-    setTimeout(() => initPushNotifications(), 3000);
-  } else if (Notification.permission === 'granted') {
-    initPushNotifications();
-  }
-}
+    // Activar push (pide permiso si no lo tiene). Guardado para navegadores donde Notification no existe.
+    if ('Notification' in window) {
+      if (Notification.permission === 'default') {
+        setTimeout(() => initPushNotifications(), 3000);
+      } else if (Notification.permission === 'granted') {
+        initPushNotifications();
+      }
+    }
   }catch(err){console.error('loadAllData error:',err);showToast('Error cargando datos','err')}
 }
 
@@ -5025,11 +5131,16 @@ async function refreshAthletes(){
     throw error;
   }
 
-  state.athletes=mapArr(data||[]);
+  state.athletes=filterAthletesForCurrentCoach(mapArr(data||[]));
   return state.athletes;
 }
 
 async function refreshAthleteDashboard(clientId){
+  if(!canAccessClient(clientId)){
+    console.warn('Acceso bloqueado a atleta de otro coach:', clientId);
+    return null;
+  }
+
   const {data,error}=await db.rpc('get_athlete_dashboard',{
     p_client_id:clientId
   });
@@ -5126,6 +5237,11 @@ function buildAthleteCard(a){
 
 async function openAthleteDashboard(clientId){
   try{
+    if(!canAccessClient(clientId)){
+      showToast('No tienes acceso a este atleta','err');
+      return;
+    }
+
     showToast('Cargando atleta…','ok');
 
     const {data,error}=await db.rpc('get_athlete_dashboard',{
