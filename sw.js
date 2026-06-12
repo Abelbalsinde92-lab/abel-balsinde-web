@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ab-kill-cache-v24';
+const CACHE_NAME = 'ab-no-cache-v25-coach-clean-01';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -15,16 +15,30 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+
   const url = new URL(event.request.url);
 
-  const isHtml =
+  const mustGoNetwork =
     event.request.mode === 'navigate' ||
     url.pathname === '/' ||
-    url.pathname.endsWith('.html') ||
-    url.pathname.endsWith('sw.js');
+    url.pathname === '/index.html' ||
+    url.pathname === '/coach' ||
+    url.pathname === '/coach.html' ||
+    url.pathname === '/admin-mobile' ||
+    url.pathname === '/admin-mobile.html' ||
+    url.pathname === '/cliente' ||
+    url.pathname === '/cliente.html' ||
+    url.pathname === '/admin' ||
+    url.pathname === '/admin.html' ||
+    url.pathname === '/auth.js' ||
+    url.pathname === '/sw.js' ||
+    url.pathname === '/manifest.json';
 
-  if (isHtml) {
-    event.respondWith(fetch(event.request, { cache: 'reload' }));
+  if (mustGoNetwork) {
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' })
+    );
     return;
   }
 
@@ -33,7 +47,17 @@ self.addEventListener('fetch', event => {
 
 self.addEventListener('push', event => {
   if (!event.data) return;
-  const d = event.data.json();
+
+  let d = {};
+
+  try {
+    d = event.data.json();
+  } catch (err) {
+    d = {
+      title: 'AB SYSTEM',
+      body: event.data.text() || ''
+    };
+  }
 
   event.waitUntil(
     self.registration.showNotification(d.title || 'AB SYSTEM', {
@@ -56,20 +80,23 @@ self.addEventListener('notificationclick', event => {
   const action = event.action;
 
   const isClient = data.target === 'client';
-  const APP_URL = isClient
-    ? 'https://absystem.app/cliente.html'
-    : 'https://absystem.app/admin-mobile.html';
 
-  const PAGE = isClient ? 'cliente.html' : 'admin-mobile.html';
+  const APP_URL = isClient
+    ? 'https://absystem.app/cliente?v=push-client-01'
+    : 'https://absystem.app/coach?v=push-coach-clean-01';
+
+  const PAGE = isClient ? '/cliente' : '/coach';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(cls => {
         const existing = cls.find(c => c.url.includes(PAGE));
+
         if (existing) {
           existing.postMessage({ action, data });
           return existing.focus();
         }
+
         return clients.openWindow(APP_URL);
       })
   );
