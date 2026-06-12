@@ -5374,7 +5374,13 @@ async function logoutClient() {
   } catch (e) {
     console.warn('Logout cliente RPC:', e);
   }
-  try { Auth.logout(); } catch { location.reload(); }
+  try {
+    if (window.Auth?.logoutLocal) Auth.logoutLocal();
+  } catch (e) {}
+  history.replaceState({}, '', location.pathname);
+  showLoading(false);
+  document.getElementById('dashboardScreen')?.classList.add('hidden');
+  document.getElementById('loginScreen')?.classList.remove('hidden');
 }
 
 
@@ -6232,7 +6238,7 @@ async function loginClient() {
     const { data: loginData, error: loginError } = await db.rpc('ab_client_login', {
       p_client_id: found.id,
       p_access_code: code,
-      p_user_agent: navigator.userAgent || 'cliente-html-rpc-01'
+      p_user_agent: navigator.userAgent || 'cliente-html-rpc-03'
     });
 
     if(loginError) throw loginError;
@@ -6449,7 +6455,6 @@ async function loadClientDashboard(sessionToken) {
 
     if (!token) {
       clearClientSession();
-      try { Auth.logout(); } catch(e) {}
       showLoading(false);
       document.getElementById('loginScreen')?.classList.remove('hidden');
       document.getElementById('dashboardScreen')?.classList.add('hidden');
@@ -6627,7 +6632,6 @@ async function loadClientDashboard(sessionToken) {
     console.error('Load error:', err);
 
     clearClientSession();
-    try { Auth.logout(); } catch(e) {}
 
     document.getElementById('loginScreen')?.classList.remove('hidden');
     document.getElementById('dashboardScreen')?.classList.add('hidden');
@@ -8093,7 +8097,7 @@ function renderHome() {
   const badge = document.getElementById('homeBadge');
   if (!el || !clientData) return;
 
-  if (badge) badge.textContent = uiText('today') + ' · cliente-rpc-02';
+  if (badge) badge.textContent = uiText('today') + ' · cliente-rpc-03';
 
   const fallbackName = getLang()==='sr' ? 'klijent' : getLang()==='en' ? 'client' : 'cliente';
 const firstName = String(clientData.name || fallbackName).split(' ')[0] || fallbackName;
@@ -13614,7 +13618,7 @@ function toggleAccordion(button){const block=button.closest('.accordion-block');
 
 /* ══ EVENTOS ══ */
 document.getElementById('btnLogin')?.addEventListener('click',loginClient);
-document.getElementById('btnLogout')?.addEventListener('click',()=>Auth.logout());
+document.getElementById('btnLogout')?.addEventListener('click',()=>logoutClient());
 ['inputPhone','inputCode'].forEach(id=>{document.getElementById(id)?.addEventListener('keydown',e=>{if(e.key==='Enter')loginClient();});});
 
 /* ══ INIT ══ */
@@ -13623,7 +13627,7 @@ document.getElementById('btnLogout')?.addEventListener('click',()=>Auth.logout()
 
   if (params.has('logout') || params.has('logged_out')) {
     clearClientSession();
-    try { Auth.logout(); } catch(e) {}
+    try { if (window.Auth?.logoutLocal) Auth.logoutLocal(); } catch(e) {}
     history.replaceState({}, '', location.pathname);
   }
 
