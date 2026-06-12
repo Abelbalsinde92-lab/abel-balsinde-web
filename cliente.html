@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AB SYSTEM — Área Cliente</title>
+  <title>AB SYSTEM — Área Cliente · RPC 05</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json?v=20260522-01">
 <link rel="icon" href="/favicon-32.png?v=20260522-01" type="image/png">
@@ -5330,7 +5330,7 @@ body {
   </main>
 </div>
 
-<script src="/auth.js?v=20260515-02"></script>
+<!-- cliente-rpc-05: Auth antiguo desactivado para evitar bloqueos de login -->
 
 <script>
 /* ══════════════════════════════════════════════════════════
@@ -5374,10 +5374,9 @@ async function logoutClient() {
   } catch (e) {
     console.warn('Logout cliente RPC:', e);
   }
-  try {
-    if (window.Auth?.logoutLocal) Auth.logoutLocal();
-  } catch (e) {}
-  history.replaceState({}, '', location.pathname);
+  // No llamar Auth.logout()/Auth.logoutLocal aquí: en iPhone puede provocar bucles
+  // de recarga si queda mezclado con parámetros ?logout o sesiones antiguas.
+  try { history.replaceState({}, '', location.pathname); } catch(e) {}
   showLoading(false);
   document.getElementById('dashboardScreen')?.classList.add('hidden');
   document.getElementById('loginScreen')?.classList.remove('hidden');
@@ -6218,28 +6217,44 @@ async function loginClient() {
   showLoading(true);
 
   try {
-    // Paso 1: resolver el cliente con el flujo actual teléfono + código.
-    // Paso 2: crear sesión segura nueva por RPC ab_client_login().
-    const { data: foundData, error: foundError } = await db.rpc('client_login_by_phone_code', {
+    // Flujo nuevo: login directo por teléfono + código.
+    // Evita mezclar el área cliente con Auth antiguo/admin.
+    let loginData = null;
+    let loginError = null;
+
+    const direct = await db.rpc('ab_client_login_by_phone_code', {
       p_phone: phone,
-      p_access_code: code
-    });
-
-    if(foundError) throw foundError;
-
-    const found = Array.isArray(foundData) ? foundData[0] : foundData;
-
-    if(!found?.id){
-      showLoading(false);
-      showError(uiText('wrongLogin'));
-      return;
-    }
-
-    const { data: loginData, error: loginError } = await db.rpc('ab_client_login', {
-      p_client_id: found.id,
       p_access_code: code,
-      p_user_agent: navigator.userAgent || 'cliente-html-rpc-03'
+      p_user_agent: navigator.userAgent || 'cliente-html-rpc-04'
     });
+
+    if (direct.error) {
+      // Fallback temporal si la RPC nueva aún no está creada en Supabase.
+      const foundResp = await db.rpc('client_login_by_phone_code', {
+        p_phone: phone,
+        p_access_code: code
+      });
+
+      if (foundResp.error) throw foundResp.error;
+
+      const found = Array.isArray(foundResp.data) ? foundResp.data[0] : foundResp.data;
+      if(!found?.id){
+        showLoading(false);
+        showError(uiText('wrongLogin'));
+        return;
+      }
+
+      const loginResp = await db.rpc('ab_client_login', {
+        p_client_id: found.id,
+        p_access_code: code,
+        p_user_agent: navigator.userAgent || 'cliente-html-rpc-04-fallback'
+      });
+      loginData = loginResp.data;
+      loginError = loginResp.error;
+    } else {
+      loginData = direct.data;
+      loginError = null;
+    }
 
     if(loginError) throw loginError;
 
@@ -6251,14 +6266,13 @@ async function loginClient() {
 
     storeClientSession(sessionRow);
 
-    try { Auth.loginAsClient(sessionRow.client_id || found.id); } catch(e) {}
-
     await loadClientDashboard(sessionRow.session_token);
 
   } catch(err) {
     console.error('Login error:', err);
     showLoading(false);
-    showError(uiText('loginConnectionError'));
+    const msg = err?.message ? ('Error de acceso: ' + err.message) : uiText('loginConnectionError');
+    showError(msg);
   }
 }
 
@@ -6449,6 +6463,15 @@ function hydrateTrainingFromRpcPlan(planJson) {
 
 async function loadClientDashboard(sessionToken) {
   showLoading(true);
+  hideError();
+  showInfo('Cargando tu plan...');
+
+  const rpcTimeout = (promise, label, ms = 15000) => {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Tiempo agotado cargando ' + label)), ms))
+    ]);
+  };
 
   try {
     const token = sessionToken || getClientSessionToken();
@@ -6462,20 +6485,33 @@ async function loadClientDashboard(sessionToken) {
       return;
     }
 
-    const [profileR, dashboardR, assignmentsR, planR] = await Promise.all([
+    // Carga principal SOLO por RPC seguras. No dependemos de tablas directas para entrar.
+    const profileR = await rpcTimeout(
       db.rpc('ab_client_validate_session', { p_session_token: token }).maybeSingle(),
-      db.rpc('ab_client_get_dashboard', { p_session_token: token }).maybeSingle(),
-      db.rpc('ab_client_get_assignments', { p_session_token: token }),
-      db.rpc('ab_client_get_active_training_plan', { p_session_token: token })
-    ]);
+      'perfil'
+    );
 
     if (profileR.error || !profileR.data) {
       throw profileR.error || new Error('Sesión cliente inválida.');
     }
 
+    const dashboardR = await rpcTimeout(
+      db.rpc('ab_client_get_dashboard', { p_session_token: token }).maybeSingle(),
+      'dashboard'
+    );
     if (dashboardR.error) throw dashboardR.error;
+
+    const assignmentsR = await rpcTimeout(
+      db.rpc('ab_client_get_assignments', { p_session_token: token }),
+      'asignaciones'
+    );
     if (assignmentsR.error) console.warn('Assignments RPC:', assignmentsR.error);
-    if (planR.error) console.warn('Plan RPC:', planR.error);
+
+    const planR = await rpcTimeout(
+      db.rpc('ab_client_get_active_training_plan', { p_session_token: token }),
+      'plan activo'
+    );
+    if (planR.error) throw planR.error;
 
     const profile = profileR.data || {};
     const dash = dashboardR.data || {};
@@ -6503,10 +6539,11 @@ async function loadClientDashboard(sessionToken) {
     };
 
     storeClientSession({ session_token: token, client_id: clientData.id });
-    applyClientView();
 
     AB_LANG = (['es','sr','en'].includes((clientData.preferred_lang||'').toLowerCase()) ? clientData.preferred_lang : 'es').toLowerCase();
     document.documentElement.lang = AB_LANG;
+
+    applyClientView();
 
     const assignmentRows = assignmentsR.data || [];
     clientProgramAssignmentsHistory = assignmentRows.map(a => ({
@@ -6536,64 +6573,27 @@ async function loadClientDashboard(sessionToken) {
       coach_id: dash.coach_id || clientData.coach_id
     } : null);
 
-    const planJson = planR.data || null;
+    let planJson = planR.data || null;
+    if (typeof planJson === 'string') {
+      try { planJson = JSON.parse(planJson); } catch(e) {}
+    }
+
     hydrateTrainingFromRpcPlan(planJson);
 
-    // Datos secundarios: se mantienen en modo compatible. Si RLS bloquea algo, la sección queda vacía sin romper el panel.
-    const clientId = clientData.id;
-    const [resR, payR, metR, halR, proR, assR, logsR, checkinR] = await Promise.all([
-      db.from('reservations').select('*').eq('client_id', clientId).order('date', { ascending: true }),
-      db.from('payments').select('*').eq('client_id', clientId).order('due_date', { ascending: false }),
-      db.from('metrics').select('*').eq('client_id', clientId).order('date', { ascending: false }),
-      db.from('health_alerts').select('*').eq('client_id', clientId).order('date', { ascending: false }),
-      db.from('programs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
-      db.from('client_assessments').select('*').eq('client_id', clientId).order('assessment_date', { ascending: false }),
-      db.from('client_session_logs').select('*').eq('client_id', clientId).order('training_date', { ascending: false }),
-      db.from('client_daily_checkins').select('*').eq('client_id', clientId).order('checkin_date', { ascending: false }).limit(30)
-    ]);
-
-    clientReservations = resR.data || [];
-    clientPayments = payR.data || [];
-    clientMetrics = metR.data || [];
-    clientAlerts = halR.data || [];
-    clientPrograms = proR.data || [];
-    clientSessionLogs = logsR.data || [];
-    clientDailyCheckins = checkinR.data || [];
+    // Inicializar secciones secundarias vacías: evita que RLS/tablas directas bloqueen el login.
+    clientReservations = [];
+    clientPayments = [];
+    clientMetrics = [];
+    clientAlerts = [];
+    clientPrograms = [];
+    clientAssessments = [];
+    clientInternalAssessments = [];
+    clientAssessmentResults = [];
+    clientSessionLogs = [];
+    clientDailyCheckins = [];
     clientActiveTrainingAdaptations = [];
     clientMobilityChain = [];
     clientMobilityDebug = { loaded: true, count: 0, error: null };
-    window.clientMobilityChain = clientMobilityChain;
-    window.clientMobilityDebug = clientMobilityDebug;
-
-    function isInternalAssessment(a) {
-      const name = String(a?.assessment_name || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
-
-      return (
-        name.includes('ab load profile') ||
-        name.includes('temporal para prescripcion') ||
-        name.includes('perfil de carga') ||
-        name.includes('prescripcion de cargas')
-      );
-    }
-
-    const allAssessments = assR.data || [];
-    clientAssessments = allAssessments.filter(a => !isInternalAssessment(a));
-    clientInternalAssessments = allAssessments.filter(isInternalAssessment);
-    clientAssessmentResults = [];
-
-    if (clientAssessments.length) {
-      const ids = clientAssessments.map(a => a.id);
-      const rr = await db
-        .from('client_assessment_results')
-        .select('*')
-        .in('assessment_id', ids)
-        .order('item_order', { ascending: true });
-      clientAssessmentResults = rr.data || [];
-    }
-
     clientAthleteProfile = null;
     clientCompetitionEvents = [];
     clientTrainingPhases = [];
@@ -6601,43 +6601,76 @@ async function loadClientDashboard(sessionToken) {
     clientInjuryHistory = [];
     clientCapacityEvaluations = [];
 
-    if (isAthlete) {
-      const [apR, ceR, tpR, slR, ihR, cvR] = await Promise.all([
-        db.from('athlete_profiles').select('*').eq('client_id', clientId).maybeSingle(),
-        db.from('competition_events').select('*').eq('client_id', clientId).order('event_date', { ascending: true }).limit(20),
-        db.from('training_phases').select('*').eq('client_id', clientId).order('start_date', { ascending: false }).limit(10),
-        db.from('session_load').select('*').eq('client_id', clientId).order('training_date', { ascending: false }).limit(30),
-        db.from('injury_history').select('*').eq('client_id', clientId).order('start_date', { ascending: false }).limit(20),
-        db.from('capacity_evaluations').select('*').eq('client_id', clientId).order('evaluation_date', { ascending: false }).limit(20)
-      ]);
+    window.clientMobilityChain = clientMobilityChain;
+    window.clientMobilityDebug = clientMobilityDebug;
 
-      clientAthleteProfile      = apR.data  || null;
-      clientCompetitionEvents   = ceR.data  || [];
-      clientTrainingPhases      = tpR.data  || [];
-      clientSessionLoadHistory  = slR.data  || [];
-      clientInjuryHistory       = ihR.data  || [];
-      clientCapacityEvaluations = cvR.data  || [];
-    }
-
-    await renderDashboard();
-
+    // Primero entrar al panel. Luego renderizar. Así nunca queda atrapado en login.
     document.getElementById('loginScreen')?.classList.add('hidden');
     document.getElementById('dashboardScreen')?.classList.remove('hidden');
-
     showLoading(false);
+
+    try {
+      await renderDashboard();
+    } catch (renderErr) {
+      console.error('Render dashboard error:', renderErr);
+      renderMinimalRpcDashboard(planJson, renderErr);
+    }
 
   } catch (err) {
     showLoading(false);
-
     console.error('Load error:', err);
-
     clearClientSession();
-
     document.getElementById('loginScreen')?.classList.remove('hidden');
     document.getElementById('dashboardScreen')?.classList.add('hidden');
-
-    showError(uiText('connectionError'));
+    const detail = err?.message ? ('Error técnico: ' + err.message) : uiText('connectionError');
+    showError(detail);
   }
+}
+
+function renderMinimalRpcDashboard(planJson, renderErr) {
+  const home = document.getElementById('sectionHome');
+  const training = document.getElementById('sectionTraining');
+  const programName = planJson?.program?.name || clientTrainingProgram?.name || clientData?.plan || 'Programa activo';
+  const weekNumber = planJson?.week?.week_number || clientTrainingWeeks?.[0]?.week_number || 1;
+  const sessionsCount = Array.isArray(planJson?.sessions) ? planJson.sessions.length : (clientTrainingSessions || []).length;
+
+  if (home) {
+    home.innerHTML = `
+      <div class="data-card">
+        <div class="dc-title">Hola, ${escHTML(clientData?.name || 'cliente')}</div>
+        <div class="dc-sub">Coach: ${escHTML(clientData?.coach_name || 'Abel')}</div>
+      </div>
+      <div class="data-card">
+        <div class="dc-label">Plan activo</div>
+        <div class="dc-title">${escHTML(programName)}</div>
+        <div class="dc-sub">Semana ${escHTML(String(weekNumber))} · ${escHTML(String(sessionsCount))} sesiones</div>
+      </div>
+    `;
+  }
+
+  if (training) {
+    const sessionHtml = (planJson?.sessions || []).map(s => `
+      <div class="data-card">
+        <div class="dc-label">${escHTML(s.session_code || '')}</div>
+        <div class="dc-title">${escHTML(s.name || s.title || 'Sesión')}</div>
+        <div class="dc-sub">${escHTML(s.focus || s.objective || '')}</div>
+      </div>
+    `).join('');
+
+    training.innerHTML = `
+      <div class="data-card">
+        <div class="dc-title">Entrenamiento cargado</div>
+        <div class="dc-sub">${escHTML(programName)}</div>
+      </div>
+      ${sessionHtml || '<div class="empty-state">No hay sesiones visibles.</div>'}
+      <div class="data-card" style="border-color:rgba(255,184,77,.35)">
+        <div class="dc-label">Modo seguro</div>
+        <div class="dc-sub">El plan entró por RPC, pero una parte visual antigua falló. Puedes seguir viendo el plan básico.</div>
+      </div>
+    `;
+  }
+
+  goClientSection('section-home');
 }
 
 /* ══ RENDER DASHBOARD ══ */
@@ -10242,7 +10275,7 @@ async function loadClientStrengthRef(exerciseCode, movementPattern){
     return clientStrengthRefCache[exerciseCode];
 
   try{
-    const { data, error } = await supabase.rpc('ab_get_exercise_load_reference', {
+    const { data, error } = await db.rpc('ab_get_exercise_load_reference', {
       p_client_id:        clientData.id,
       p_exercise_code:    exerciseCode,
       p_movement_pattern: movementPattern || null,
@@ -13627,12 +13660,12 @@ document.getElementById('btnLogout')?.addEventListener('click',()=>logoutClient(
 
   if (params.has('logout') || params.has('logged_out')) {
     clearClientSession();
-    try { if (window.Auth?.logoutLocal) Auth.logoutLocal(); } catch(e) {}
-    history.replaceState({}, '', location.pathname);
+    // Solo limpiar sesión propia del cliente. No llamar Auth antiguo para evitar recargas.
+    try { history.replaceState({}, '', location.pathname); } catch(e) {}
   }
 
   if (params.has('auth')) {
-    history.replaceState({}, '', location.pathname);
+    try { history.replaceState({}, '', location.pathname); } catch(e) {}
   }
 
   const token = getClientSessionToken();
@@ -13642,12 +13675,7 @@ document.getElementById('btnLogout')?.addEventListener('click',()=>logoutClient(
     return;
   }
 
-  if (Auth.isAdmin()) {
-    showLoading(false);
-    document.getElementById('loginScreen')?.classList.remove('hidden');
-    showInfo(uiText('adminLoginInfo'));
-    return;
-  }
+  // El área cliente no depende de Auth admin antiguo. Siempre mostrar login si no hay session_token cliente.
 
   showLoading(false);
   document.getElementById('loginScreen')?.classList.remove('hidden');
