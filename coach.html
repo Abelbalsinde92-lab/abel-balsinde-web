@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB · Panel</title>
-<!-- AB Panel v20260612b -->
+<title>AB SYSTEM · Coach Panel</title>
+<!-- AB SYSTEM Coach Panel · BUILD COACH CLEAN 02 -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="AB · Panel">
+<meta name="apple-mobile-web-app-title" content="AB Coach">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ════════════════════════════════════════════════════════
-   AB ADMIN FIELD · MOBILE-FIRST v1.1
+   AB COACH PANEL · MOBILE-FIRST
    Para uso en sala de gimnasio. Pulgar + sudor + cero margen.
 ══════════════════════════════════════════════════════════ */
 :root{
@@ -774,7 +774,7 @@ a{text-decoration:none;color:inherit}
 }
 
 /* ================================================================
-   AB SYSTEM — GUÍA ESTIRAMIENTOS — ADMIN FIELD MOBILE
+   AB SYSTEM — GUÍA ESTIRAMIENTOS — COACH PANEL MOBILE
    ================================================================ */
 
 #modal-stretching {
@@ -1126,7 +1126,7 @@ a{text-decoration:none;color:inherit}
   padding: 40px 0;
 }
 
-/* PATCH ESTIRAMIENTOS · Variables adaptadas a AB Field */
+/* PATCH ESTIRAMIENTOS · Variables adaptadas a AB Coach Panel */
 #modal-stretching {
   background: var(--bg) !important;
   color: var(--text);
@@ -1184,7 +1184,7 @@ a{text-decoration:none;color:inherit}
 }
 
 /* ================================================================
-   AB SYSTEM — EVALUACIÓN INICIAL — ADMIN FIELD
+   AB SYSTEM — EVALUACIÓN INICIAL — COACH PANEL
    ================================================================ */
 
 #modal-evaluacion {
@@ -2293,67 +2293,6 @@ a{text-decoration:none;color:inherit}
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
-
-/* ═══ ONBOARDING CARRUSEL ═══ */
-#onboarding{
-  position:fixed;inset:0;z-index:9000;
-  background:var(--bg);
-  display:flex;flex-direction:column;
-  overflow:hidden;
-}
-.ob-slides{
-  flex:1;display:flex;
-  transition:transform .35s cubic-bezier(.4,0,.2,1);
-  will-change:transform;
-}
-.ob-slide{
-  min-width:100vw;width:100vw;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:40px 28px;
-  text-align:center;
-  gap:20px;
-}
-.ob-icon{
-  width:72px;height:72px;
-  border-radius:20px;
-  display:flex;align-items:center;justify-content:center;
-  margin-bottom:4px;
-}
-.ob-icon svg{width:36px;height:36px;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;fill:none}
-.ob-eyebrow{
-  font-family:var(--font-m);font-size:.55rem;
-  letter-spacing:.2em;text-transform:uppercase;
-  color:var(--sport);margin-bottom:-8px;
-}
-.ob-title{
-  font-family:var(--font-d);font-size:2.2rem;
-  letter-spacing:.04em;line-height:1.05;color:var(--text);
-}
-.ob-body{
-  font-size:.92rem;color:var(--text-2);
-  line-height:1.7;max-width:320px;
-}
-.ob-bottom{
-  padding:0 28px calc(32px + var(--safe-b)) 28px;
-  display:flex;flex-direction:column;align-items:center;gap:20px;
-}
-.ob-dots{
-  display:flex;gap:8px;align-items:center;
-}
-.ob-dot{
-  width:6px;height:6px;border-radius:50%;
-  background:var(--divider);
-  transition:all .25s;
-}
-.ob-dot.on{
-  width:20px;border-radius:3px;
-  background:var(--sport);
-}
-.ob-nav{
-  display:flex;gap:10px;width:100%;
-}
-.ob-nav .btn{flex:1}
 </style>
 </head>
 <body>
@@ -2362,13 +2301,14 @@ a{text-decoration:none;color:inherit}
 
 <div id="login" class="hidden">
   <div class="login-card">
-    <div class="login-brand"><span class="lb-1">AB</span><span class="lb-2">Field · Admin</span></div>
-    <div class="login-title">ACCESO SALA</div>
-    <div class="login-sub">Panel móvil · Health &amp; Performance</div>
+    <div class="login-brand"><span class="lb-1">AB</span><span class="lb-2">Coach Panel</span></div>
+    <div class="login-title">ACCESO COACH</div>
+    <div class="login-sub">COACH PANEL · BUILD CLEAN 02</div>
+    <div style="font-size:10px;letter-spacing:.14em;color:#00E5FF;margin:-12px 0 18px;text-transform:uppercase;">ruta nueva /coach · sin admin-mobile</div>
     <div id="login-err" class="login-err hidden"></div>
     <div class="login-field">
       <label class="login-lbl" for="li-user">Usuario</label>
-      <input class="login-inp" id="li-user" type="text" placeholder="admin" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input class="login-inp" id="li-user" type="text" placeholder="coach_prep" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
     </div>
     <div class="login-field">
       <label class="login-lbl" for="li-pass">Contraseña</label>
@@ -2379,76 +2319,7 @@ a{text-decoration:none;color:inherit}
 </div>
 
 <div id="app" class="hidden">
-  <!-- ONBOARDING -->
-<div id="onboarding" class="hidden">
-  <div class="ob-slides" id="ob-slides">
-
-    <!-- Slide 1 -->
-    <div class="ob-slide">
-      <div class="ob-icon" style="background:rgba(0,200,232,.1)">
-        <svg viewBox="0 0 24 24" stroke="var(--sport)"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      </div>
-      <div class="ob-eyebrow">AB SYSTEM</div>
-      <div class="ob-title">Panel de sala</div>
-      <div class="ob-body">Tu espacio de trabajo como coach. Desde aquí gestionas todo lo que ocurre en el tapiz.</div>
-    </div>
-
-    <!-- Slide 2 -->
-    <div class="ob-slide">
-      <div class="ob-icon" style="background:rgba(0,230,118,.1)">
-        <svg viewBox="0 0 24 24" stroke="var(--streak)"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg>
-      </div>
-      <div class="ob-eyebrow">Clientes</div>
-      <div class="ob-title">Tu grupo de trabajo</div>
-      <div class="ob-body">Crea tus clientes, consulta su estado, revisa check-ins y gestiona su historial desde la pestaña Clientes.</div>
-    </div>
-
-    <!-- Slide 3 -->
-    <div class="ob-slide">
-      <div class="ob-icon" style="background:rgba(0,200,232,.1)">
-        <svg viewBox="0 0 24 24" stroke="var(--sport)"><path d="M6 4v16M18 4v16"/><path d="M4 6h4M16 6h4M4 18h4M16 18h4"/></svg>
-      </div>
-      <div class="ob-eyebrow">Entrenamientos</div>
-      <div class="ob-title">Ejecuta y registra</div>
-      <div class="ob-body">Abre una sesión desde el perfil del cliente. Sigue el plan bloque a bloque y registra lo que observas al terminar.</div>
-    </div>
-
-    <!-- Slide 4 -->
-    <div class="ob-slide">
-      <div class="ob-icon" style="background:rgba(255,179,64,.1)">
-        <svg viewBox="0 0 24 24" stroke="var(--warn)"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
-      </div>
-      <div class="ob-eyebrow">Métricas y evaluaciones</div>
-      <div class="ob-title">Datos del atleta</div>
-      <div class="ob-body">Desde el perfil de cada cliente puedes registrar evaluaciones iniciales, métricas de rendimiento y notas técnicas.</div>
-    </div>
-
-    <!-- Slide 5 -->
-    <div class="ob-slide">
-      <div class="ob-icon" style="background:rgba(0,200,232,.1)">
-        <svg viewBox="0 0 24 24" stroke="var(--sport)"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-      </div>
-      <div class="ob-eyebrow">Listo para empezar</div>
-      <div class="ob-title">¿Tienes dudas?</div>
-      <div class="ob-body">Contacta con el coach principal en cualquier momento. Cualquier ajuste de planes o configuración se gestiona desde la dirección.</div>
-      <a href="https://wa.me/381638112348" target="_blank" rel="noopener"
-        style="display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.35);color:#25D366;padding:12px 20px;border-radius:10px;font-family:var(--font-m);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700">
-        Contactar por WhatsApp
-      </a>
-    </div>
-
-  </div><!-- /.ob-slides -->
-
-  <div class="ob-bottom">
-    <div class="ob-dots" id="ob-dots"></div>
-    <div class="ob-nav">
-      <button class="btn btn-s" id="ob-prev" onclick="obPrev()">←</button>
-      <button class="btn btn-p" id="ob-next" onclick="obNext()">Siguiente</button>
-    </div>
-  </div>
-</div>
-
-<header class="top">
+  <header class="top">
     <div id="top-coach-avatar" onclick="showScr('ajustes')"
     style="width:44px;height:44px;border-radius:50%;cursor:pointer;overflow:hidden;flex-shrink:0;border:1.5px solid rgba(0,200,232,.4);background:rgba(0,200,232,.08);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:1.1rem;color:var(--sport)">
     AB
@@ -2687,11 +2558,11 @@ a{text-decoration:none;color:inherit}
 
 <div class="toast" id="toast">OK</div>
 
-<!-- auth.js retirado: AB Field usa login propio para evitar bloqueo por guard global -->
+<!-- auth.js retirado: AB Coach Panel usa login propio para evitar bloqueo por guard global -->
 
 <script>
 /* ════════════════════════════════════════════════════════
-   AB FIELD v1.1 — Core state + helpers
+   AB COACH PANEL — Core state + helpers
 ══════════════════════════════════════════════════════════ */
 const SUPA_URL = 'https://icjuuptbcnkpwgsoyiuj.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanV1cHRiY25rcHdnc295aXVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTIzMjQsImV4cCI6MjA5MzcyODMyNH0.L__PcG-5HUkV5hpnsujrWi8mkL1o1lCKRf-mrSeO5V8';
@@ -2709,11 +2580,11 @@ function showBootError(message){
     document.getElementById('login')?.classList.remove('hidden');
     const er = document.getElementById('login-err');
     if(er){
-      er.textContent = message || 'Error cargando AB Field.';
+      er.textContent = message || 'Error cargando Coach Panel.';
       er.classList.remove('hidden');
     }
   }catch(e){
-    console.error('AB FIELD BOOT ERROR UI:', e);
+    console.error('AB COACH BOOT ERROR UI:', e);
   }
 }
 
@@ -2724,8 +2595,8 @@ try{
   db = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 }catch(e){
   AB_BOOT_ERROR = e;
-  console.error('AB FIELD BOOT ERROR:', e);
-  showBootError('No se pudo iniciar AB Field: no cargó Supabase JS. Actualiza la página o revisa conexión/caché.');
+  console.error('AB COACH BOOT ERROR:', e);
+  showBootError('No se pudo iniciar Coach Panel: no cargó Supabase JS. Actualiza la página o revisa conexión/caché.');
 }
 
 const state = {
@@ -2780,7 +2651,7 @@ let abWakeLock = null;
 const abWakeReasons = new Set();
 
 /* ── FIELD MODE ── */
-const FIELD_MODE = 'coach'; // En field.html siempre es coach/admin
+const FIELD_MODE = 'coach'; // En coach.html siempre es coach/admin
 
 function canRenderFieldItem(item, mode = FIELD_MODE){
   if(!item) return false;
@@ -3679,9 +3550,7 @@ if(!isLogged){
     document.getElementById('loading')?.classList.add('hidden');
     document.getElementById('login')?.classList.add('hidden');
     document.getElementById('app')?.classList.remove('hidden');
-    
-   obInit();
-   
+
     document.getElementById('modal-ov')?.addEventListener('click', e => {
       if(e.target.id === 'modal-ov') closeModal();
     });
@@ -3710,7 +3579,7 @@ if ('serviceWorker' in navigator) {
 }
 
   }catch(err){
-    console.error('AB FIELD INIT ERROR:', err);
+    console.error('AB COACH INIT ERROR:', err);
 
     document.getElementById('loading')?.classList.add('hidden');
     document.getElementById('app')?.classList.add('hidden');
@@ -3718,7 +3587,7 @@ if ('serviceWorker' in navigator) {
 
     const er = document.getElementById('login-err');
     if(er){
-      er.textContent = 'Error cargando AB Field. Revisa Console: AB FIELD INIT ERROR.';
+      er.textContent = 'Error cargando Coach Panel. Revisa Console: AB COACH INIT ERROR.';
       er.classList.remove('hidden');
     }
 
@@ -7013,7 +6882,7 @@ async function ensureBlockExercisesLoaded(blockOrId){
 
   state.trainingExercises.push(...mapped);
 
-  console.log('AB FIELD · ejercicios cargados por bloque', {
+  console.log('AB COACH · ejercicios cargados por bloque', {
     blockId,
     total:mapped.length,
     countable:mapped.filter(isCountableWorkoutExercise).length,
@@ -7066,7 +6935,7 @@ async function ensureWorkoutSessionExercisesLoaded(plan){
 
   state.trainingExercises.push(...mapped);
 
-  console.log('AB FIELD · sesión hidratada con ejercicios reales', {
+  console.log('AB COACH · sesión hidratada con ejercicios reales', {
     blocks:blockIds.length,
     total:mapped.length,
     countable:mapped.filter(isCountableWorkoutExercise).length,
@@ -7361,7 +7230,7 @@ return {
 
 
 /* ─────────────────────────────────────────────
-   AB SYSTEM · CARGAS POR PORCENTAJE EN ADMIN FIELD
+   AB SYSTEM · CARGAS POR PORCENTAJE EN COACH PANEL
    Usa RPC: ab_get_session_with_load_prescription
 ────────────────────────────────────────────── */
 function getWorkoutLoadPercentage(){
@@ -7920,77 +7789,27 @@ function beep(freq=880,durMs=160,vol=0.35){
   }catch(e){}
 }
 function beepWork(){
-  beep(880,200);setTimeout(()=>beep(1100,200),220);setTimeout(()=>beep(880,150),440);
-  try{if(navigator.vibrate)navigator.vibrate([150,60,150,60,200])}catch(e){}
+  beep(880,200);setTimeout(()=>beep(880,150),260);
+  try{if(navigator.vibrate)navigator.vibrate([120,60,120])}catch(e){}
   flashPhase('work');
 }
 function beepRest(){
-  beep(520,400);setTimeout(()=>beep(440,300),420);
-  try{if(navigator.vibrate)navigator.vibrate([400])}catch(e){}
+  beep(440,350);
+  try{if(navigator.vibrate)navigator.vibrate([250])}catch(e){}
   flashPhase('rest');
 }
 function beepDone(){
-  beep(660,200);setTimeout(()=>beep(880,200),240);setTimeout(()=>beep(1100,600),480);
-  try{if(navigator.vibrate)navigator.vibrate([100,50,100,50,100,50,500])}catch(e){}
+  beep(660,200);setTimeout(()=>beep(880,200),260);setTimeout(()=>beep(1100,450),520);
+  try{if(navigator.vibrate)navigator.vibrate([100,50,100,50,300])}catch(e){}
   flashPhase('done');
 }
 function flashPhase(type){
-  // Flash pantalla completa
-  const colors = {
-    work:  { bg:'#00E676', text:'#000', label:'TRABAJO' },
-    rest:  { bg:'#FFB340', text:'#000', label:'DESCANSO' },
-    done:  { bg:'#00C8E8', text:'#000', label:'COMPLETADO' }
-  };
-  const cfg = colors[type] || colors.work;
-
-  // Crear overlay
-  const ov = document.createElement('div');
-  ov.id = 'phase-flash-ov';
-  ov.style.cssText = `
-    position:fixed;inset:0;z-index:9999;
-    background:${cfg.bg};
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:16px;pointer-events:none;
-    animation:phase-flash-in .08s ease;
-  `;
-  ov.innerHTML = `
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:5rem;color:${cfg.text};letter-spacing:.08em;line-height:1">${cfg.label}</div>
-    <div id="phase-flash-round" style="font-family:'DM Mono',monospace;font-size:1.1rem;color:${cfg.text};opacity:.75;letter-spacing:.1em"></div>
-  `;
-
-  // Añadir keyframe si no existe
-  if(!document.getElementById('phase-flash-style')){
-    const st = document.createElement('style');
-    st.id = 'phase-flash-style';
-    st.textContent = `@keyframes phase-flash-in{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:scale(1)}}`;
-    document.head.appendChild(st);
-  }
-
-  // Mostrar ronda si hay intervalo activo
-  const iv = state.workoutIntervals;
-  if(iv && iv.phase !== 'idle'){
-    const roundEl = ov.querySelector('#phase-flash-round');
-    if(roundEl) roundEl.textContent = type === 'done'
-      ? `${iv.totalRounds} RONDAS COMPLETADAS`
-      : `RONDA ${iv.currentRound} / ${iv.totalRounds}`;
-  }
-
-  document.body.appendChild(ov);
-
-  // Quitar tras 900ms
-  setTimeout(()=>{
-    ov.style.transition='opacity .3s';
-    ov.style.opacity='0';
-    setTimeout(()=>ov.remove(), 320);
-  }, 900);
-
-  // También animar el badge pequeño
-  const el = document.getElementById('wt-phase');
-  if(el){
-    el.style.transition='none';
-    el.style.transform='scale(1.15)';
-    setTimeout(()=>{el.style.transition='transform .3s';el.style.transform='scale(1)'},200);
-  }
+  const el=document.getElementById('wt-phase');
+  if(!el)return;
+  el.style.transition='none';
+  el.style.transform='scale(1.15)';
+  el.style.opacity='1';
+  setTimeout(()=>{el.style.transition='transform .3s,opacity .3s';el.style.transform='scale(1)'},200);
 }
 
 function setIntervalMode(enabled){state.workoutIntervals.enabled=!!enabled;pauseWorkoutTimer();resetIntervalState();renderWorkout()}
@@ -11788,7 +11607,7 @@ completed_at:now,
       notes.unshift({
         id:uid(),
         date:todayISO(),
-        text:`Sesión registrada desde AB Field.
+        text:`Sesión registrada desde Coach Panel.
 ${coachNote}`
       });
 
@@ -12945,7 +12764,7 @@ function assessStretchExerciseSafetyBase(exercise) {
 
 <!-- ================================================================
      AB SYSTEM — MODAL GUÍA DE ESTIRAMIENTOS
-     Admin Field Mobile
+     Coach Panel Mobile
      ================================================================ -->
 <div id="modal-evaluacion" style="display:none;flex-direction:column;">
   <div class="eval-modal-header">
@@ -12972,7 +12791,7 @@ function assessStretchExerciseSafetyBase(exercise) {
 
 <script>
 /* ================================================================
-   AB SYSTEM — EVALUACIÓN INICIAL — ADMIN FIELD (COACH MODE)
+   AB SYSTEM — EVALUACIÓN INICIAL — COACH PANEL (COACH MODE)
    ================================================================ */
 
 const escHTML = esc;
@@ -14914,7 +14733,7 @@ async function testPush() {
         'Authorization': 'Bearer ' + SUPA_KEY
       },
       body: JSON.stringify({
-        title: '🔔 Test AB Field',
+        title: '🔔 Test AB Coach',
         body: 'Push funcionando correctamente',
         data: { screen: 'hoy' }
       })
@@ -14923,81 +14742,6 @@ async function testPush() {
   const data = await res.json();
   console.log('Push test:', data);
   showToast(res.ok ? 'Push enviado ✓' : 'Error: ' + JSON.stringify(data), res.ok ? 'ok' : 'err');
-}
-
-/* ═══ ONBOARDING ═══ */
-const OB_KEY = 'ab_onboarding_done';
-const OB_TOTAL = 5;
-let obCurrent = 0;
-let obStartX = 0;
-
-function obInit(){
-  const done = localStorage.getItem(OB_KEY) === 'true';
-  if(done) return;
-
-  const el = document.getElementById('onboarding');
-  if(!el) return;
-  el.classList.remove('hidden');
-
-  // Dots
-  const dots = document.getElementById('ob-dots');
-  if(dots){
-    dots.innerHTML = Array(OB_TOTAL).fill(0).map((_,i)=>
-      `<div class="ob-dot ${i===0?'on':''}" id="ob-dot-${i}"></div>`
-    ).join('');
-  }
-
-  // Swipe
-  const slides = document.getElementById('ob-slides');
-  if(slides){
-    slides.addEventListener('touchstart', e=>{ obStartX = e.touches[0].clientX; }, {passive:true});
-    slides.addEventListener('touchend', e=>{
-      const diff = obStartX - e.changedTouches[0].clientX;
-      if(Math.abs(diff) > 50){ diff > 0 ? obNext() : obPrev(); }
-    }, {passive:true});
-  }
-
-  obRender();
-}
-
-function obRender(){
-  const slides = document.getElementById('ob-slides');
-  if(slides) slides.style.transform = `translateX(-${obCurrent * 100}vw)`;
-
-  for(let i=0; i<OB_TOTAL; i++){
-    document.getElementById(`ob-dot-${i}`)?.classList.toggle('on', i===obCurrent);
-  }
-
-  const prev = document.getElementById('ob-prev');
-  const next = document.getElementById('ob-next');
-  if(prev) prev.style.visibility = obCurrent === 0 ? 'hidden' : 'visible';
-  if(next) next.textContent = obCurrent === OB_TOTAL - 1 ? 'Entrar al panel' : 'Siguiente';
-}
-
-function obNext(){
-  if(obCurrent < OB_TOTAL - 1){
-    obCurrent++;
-    obRender();
-  } else {
-    obClose();
-  }
-}
-
-function obPrev(){
-  if(obCurrent > 0){
-    obCurrent--;
-    obRender();
-  }
-}
-
-function obClose(){
-  localStorage.setItem(OB_KEY, 'true');
-  const el = document.getElementById('onboarding');
-  if(el){
-    el.style.transition = 'opacity .3s';
-    el.style.opacity = '0';
-    setTimeout(()=>el.classList.add('hidden'), 320);
-  }
 }
 </script>
 </body>
