@@ -7788,27 +7788,77 @@ function beep(freq=880,durMs=160,vol=0.35){
   }catch(e){}
 }
 function beepWork(){
-  beep(880,200);setTimeout(()=>beep(880,150),260);
-  try{if(navigator.vibrate)navigator.vibrate([120,60,120])}catch(e){}
+  beep(880,200);setTimeout(()=>beep(1100,200),220);setTimeout(()=>beep(880,150),440);
+  try{if(navigator.vibrate)navigator.vibrate([150,60,150,60,200])}catch(e){}
   flashPhase('work');
 }
 function beepRest(){
-  beep(440,350);
-  try{if(navigator.vibrate)navigator.vibrate([250])}catch(e){}
+  beep(520,400);setTimeout(()=>beep(440,300),420);
+  try{if(navigator.vibrate)navigator.vibrate([400])}catch(e){}
   flashPhase('rest');
 }
 function beepDone(){
-  beep(660,200);setTimeout(()=>beep(880,200),260);setTimeout(()=>beep(1100,450),520);
-  try{if(navigator.vibrate)navigator.vibrate([100,50,100,50,300])}catch(e){}
+  beep(660,200);setTimeout(()=>beep(880,200),240);setTimeout(()=>beep(1100,600),480);
+  try{if(navigator.vibrate)navigator.vibrate([100,50,100,50,100,50,500])}catch(e){}
   flashPhase('done');
 }
 function flashPhase(type){
-  const el=document.getElementById('wt-phase');
-  if(!el)return;
-  el.style.transition='none';
-  el.style.transform='scale(1.15)';
-  el.style.opacity='1';
-  setTimeout(()=>{el.style.transition='transform .3s,opacity .3s';el.style.transform='scale(1)'},200);
+  // Flash pantalla completa
+  const colors = {
+    work:  { bg:'#00E676', text:'#000', label:'TRABAJO' },
+    rest:  { bg:'#FFB340', text:'#000', label:'DESCANSO' },
+    done:  { bg:'#00C8E8', text:'#000', label:'COMPLETADO' }
+  };
+  const cfg = colors[type] || colors.work;
+
+  // Crear overlay
+  const ov = document.createElement('div');
+  ov.id = 'phase-flash-ov';
+  ov.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    background:${cfg.bg};
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:16px;pointer-events:none;
+    animation:phase-flash-in .08s ease;
+  `;
+  ov.innerHTML = `
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:5rem;color:${cfg.text};letter-spacing:.08em;line-height:1">${cfg.label}</div>
+    <div id="phase-flash-round" style="font-family:'DM Mono',monospace;font-size:1.1rem;color:${cfg.text};opacity:.75;letter-spacing:.1em"></div>
+  `;
+
+  // Añadir keyframe si no existe
+  if(!document.getElementById('phase-flash-style')){
+    const st = document.createElement('style');
+    st.id = 'phase-flash-style';
+    st.textContent = `@keyframes phase-flash-in{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:scale(1)}}`;
+    document.head.appendChild(st);
+  }
+
+  // Mostrar ronda si hay intervalo activo
+  const iv = state.workoutIntervals;
+  if(iv && iv.phase !== 'idle'){
+    const roundEl = ov.querySelector('#phase-flash-round');
+    if(roundEl) roundEl.textContent = type === 'done'
+      ? `${iv.totalRounds} RONDAS COMPLETADAS`
+      : `RONDA ${iv.currentRound} / ${iv.totalRounds}`;
+  }
+
+  document.body.appendChild(ov);
+
+  // Quitar tras 900ms
+  setTimeout(()=>{
+    ov.style.transition='opacity .3s';
+    ov.style.opacity='0';
+    setTimeout(()=>ov.remove(), 320);
+  }, 900);
+
+  // También animar el badge pequeño
+  const el = document.getElementById('wt-phase');
+  if(el){
+    el.style.transition='none';
+    el.style.transform='scale(1.15)';
+    setTimeout(()=>{el.style.transition='transform .3s';el.style.transform='scale(1)'},200);
+  }
 }
 
 function setIntervalMode(enabled){state.workoutIntervals.enabled=!!enabled;pauseWorkoutTimer();resetIntervalState();renderWorkout()}
