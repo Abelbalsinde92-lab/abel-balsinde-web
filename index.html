@@ -2438,6 +2438,7 @@ footer {
 }
 
 </style>
+<!-- AB SYSTEM: index limpio coach access /admin-mobile?logout=1 v20260612-04 -->
 </head>
 <body>
 
@@ -2456,8 +2457,8 @@ footer {
     <a href="#how">Cómo funciona</a>
     <a href="#for-who">Para quién</a>
     <a href="#apply">Evaluación</a>
-    <a href="/cliente.html">Área cliente</a>
-    <a href="/admin-mobile.html?logout=1" class="coach-access-m" onclick="closeMenu()">Acceso coach</a>
+    <a href="/cliente">Área cliente</a>
+    <a href="/admin-mobile?logout=1&v=20260612-04" class="coach-access">Acceso coach</a>
   </nav>
 
   <div class="header-right">
@@ -2482,8 +2483,8 @@ footer {
   <a href="#how" onclick="closeMenu()">Cómo funciona</a>
   <a href="#for-who" onclick="closeMenu()">Para quién</a>
   <a href="#apply" onclick="closeMenu()">Evaluación</a>
-  <a href="/cliente.html" onclick="closeMenu()">Área cliente</a>
-  <a href="/admin-mobile.html?logout=1" class="coach-access-m" onclick="closeMenu()">Acceso coach</a>
+  <a href="/cliente" onclick="closeMenu()">Área cliente</a>
+  <a href="/admin-mobile?logout=1&v=20260612-04" class="coach-access-m" onclick="closeMenu()">Acceso coach</a>
   <a href="#apply" class="cta-m" onclick="closeMenu()">Evaluación inicial</a>
   <div class="mobile-lang">
     <a class="active" href="/">ES</a>
@@ -3076,8 +3077,8 @@ footer {
         <a href="#for-who" class="footer-link">Para quién</a>
         <a href="#apply" class="footer-link">Evaluación</a>
         <a href="#faq" class="footer-link">FAQ</a>
-        <a href="/cliente.html" class="footer-link c">Área cliente</a>
-        <a href="/admin-mobile.html?logout=1" class="footer-link c">Acceso coach</a>
+        <a href="/cliente" class="footer-link c">Área cliente</a>
+        <a href="/admin-mobile?logout=1&v=20260612-04" class="footer-link c">Acceso coach</a>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:.75rem;align-items:flex-end;">
@@ -3199,6 +3200,20 @@ function initABShowcase() {
 
 initABShowcase();
 
+
+// Normaliza cualquier enlace viejo de acceso coach que venga de una versión cacheada parcial
+(function normalizeCoachAccessLinks(){
+  var url = '/admin-mobile?logout=1&v=20260612-04';
+  document.querySelectorAll('a').forEach(function(a){
+    var txt = (a.textContent || '').trim().toLowerCase();
+    if (txt === 'acceso coach' || a.classList.contains('coach-access') || a.classList.contains('coach-access-m')) {
+      a.setAttribute('href', url);
+    }
+    if (a.getAttribute('href') === '/field') {
+      a.setAttribute('href', url);
+    }
+  });
+})();
 </script>
 </body>
 </html>
