@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ab-kill-cache-v21';
+const CACHE_NAME = 'ab-kill-cache-v22';
 
 self.addEventListener('install', event => {
  self.skipWaiting();
