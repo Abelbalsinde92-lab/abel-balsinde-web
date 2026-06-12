@@ -14244,9 +14244,43 @@ function beep(freq, durMs, vol) {
     console.warn('Beep error:', e);
   }
 }
-function beepWork() { beep(880,180); }
-function beepRest() { beep(440,220); }
-function beepDone() { beep(660,250); setTimeout(()=>beep(880,350),280); }
+function beepWork() {
+  beep(880,200); setTimeout(()=>beep(1100,200),220); setTimeout(()=>beep(880,150),440);
+  try{if(navigator.vibrate)navigator.vibrate([150,60,150,60,200])}catch(e){}
+  flashPhase('work');
+}
+function beepRest() {
+  beep(520,400); setTimeout(()=>beep(440,300),420);
+  try{if(navigator.vibrate)navigator.vibrate([400])}catch(e){}
+  flashPhase('rest');
+}
+function beepDone() {
+  beep(660,200); setTimeout(()=>beep(880,200),240); setTimeout(()=>beep(1100,600),480);
+  try{if(navigator.vibrate)navigator.vibrate([100,50,100,50,100,50,500])}catch(e){}
+  flashPhase('done');
+}
+function flashPhase(type){
+  const colors = {
+    work:  { bg:'#00E676', text:'#000', label:'TRABAJO' },
+    rest:  { bg:'#FFB340', text:'#000', label:'DESCANSO' },
+    done:  { bg:'#00C8E8', text:'#000', label:'COMPLETADO' }
+  };
+  const cfg = colors[type] || colors.work;
+  const ov = document.createElement('div');
+  ov.style.cssText = `position:fixed;inset:0;z-index:9999;background:${cfg.bg};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;pointer-events:none;`;
+  const iv = workoutIntervals;
+  const roundText = type === 'done'
+    ? `${iv.totalRounds} RONDAS COMPLETADAS`
+    : `RONDA ${iv.currentRound} / ${iv.totalRounds}`;
+  ov.innerHTML = `
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:5rem;color:${cfg.text};letter-spacing:.08em;line-height:1">${cfg.label}</div>
+    <div style="font-family:'DM Mono',monospace;font-size:1.1rem;color:${cfg.text};opacity:.75;letter-spacing:.1em">${iv.phase !== 'idle' ? roundText : ''}</div>
+  `;
+  document.body.appendChild(ov);
+  setTimeout(()=>{ ov.style.transition='opacity .3s'; ov.style.opacity='0'; setTimeout(()=>ov.remove(),320); }, 900);
+  const el = document.querySelector('.js-wt-phase');
+  if(el){ el.style.transition='none'; el.style.transform='scale(1.15)'; setTimeout(()=>{ el.style.transition='transform .3s'; el.style.transform='scale(1)'; },200); }
+}
 
 function setIntervalMode(enabled) {
   workoutIntervals.enabled = !!enabled;
