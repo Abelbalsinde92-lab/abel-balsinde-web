@@ -48,10 +48,10 @@ self.addEventListener('notificationclick', event => {
 
  const isClient = data.target === 'client';
  const APP_URL = isClient
-   ? 'https://absystem.app/cliente.html'
-   : 'https://absystem.app/field.html';
+  ? 'https://absystem.app/cliente.html'
+  : 'https://absystem.app/admin-mobile.html';
 
- const PAGE = isClient ? 'cliente.html' : 'field.html';
+const PAGE = isClient ? 'cliente.html' : 'admin-mobile.html';
 
  event.waitUntil(
    clients.matchAll({ type: 'window', includeUncontrolled: true })
