@@ -2438,7 +2438,8 @@ footer {
 }
 
 </style>
-<!-- AB SYSTEM: index limpio coach access /admin-mobile?logout=1 v20260612-04 -->
+<!-- AB SYSTEM: index limpio coach access /coach?logout=1 vcoach-clean-01 -->
+<!-- BUILD: INDEX COACH ROUTE CLEAN 01 -->
 </head>
 <body>
 
@@ -2458,7 +2459,7 @@ footer {
     <a href="#for-who">Para quién</a>
     <a href="#apply">Evaluación</a>
     <a href="/cliente">Área cliente</a>
-    <a href="/admin-mobile?logout=1&v=20260612-04" class="coach-access">Acceso coach</a>
+    <a href="/coach?logout=1&v=coach-clean-01" class="coach-access">Acceso coach</a>
   </nav>
 
   <div class="header-right">
@@ -2484,7 +2485,7 @@ footer {
   <a href="#for-who" onclick="closeMenu()">Para quién</a>
   <a href="#apply" onclick="closeMenu()">Evaluación</a>
   <a href="/cliente" onclick="closeMenu()">Área cliente</a>
-  <a href="/admin-mobile?logout=1&v=20260612-04" class="coach-access-m" onclick="closeMenu()">Acceso coach</a>
+  <a href="/coach?logout=1&v=coach-clean-01" class="coach-access-m" onclick="closeMenu()">Acceso coach</a>
   <a href="#apply" class="cta-m" onclick="closeMenu()">Evaluación inicial</a>
   <div class="mobile-lang">
     <a class="active" href="/">ES</a>
@@ -3078,7 +3079,7 @@ footer {
         <a href="#apply" class="footer-link">Evaluación</a>
         <a href="#faq" class="footer-link">FAQ</a>
         <a href="/cliente" class="footer-link c">Área cliente</a>
-        <a href="/admin-mobile?logout=1&v=20260612-04" class="footer-link c">Acceso coach</a>
+        <a href="/coach?logout=1&v=coach-clean-01" class="footer-link c">Acceso coach</a>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:.75rem;align-items:flex-end;">
@@ -3203,13 +3204,14 @@ initABShowcase();
 
 // Normaliza cualquier enlace viejo de acceso coach que venga de una versión cacheada parcial
 (function normalizeCoachAccessLinks(){
-  var url = '/admin-mobile?logout=1&v=20260612-04';
+  var url = '/coach?logout=1&v=coach-clean-01';
   document.querySelectorAll('a').forEach(function(a){
     var txt = (a.textContent || '').trim().toLowerCase();
     if (txt === 'acceso coach' || a.classList.contains('coach-access') || a.classList.contains('coach-access-m')) {
       a.setAttribute('href', url);
     }
-    if (a.getAttribute('href') === '/field') {
+    var href = a.getAttribute('href') || '';
+    if (href === '/field' || href.indexOf('/admin-mobile') === 0 || href.indexOf('/admin-mobile.html') === 0) {
       a.setAttribute('href', url);
     }
   });
