@@ -2293,6 +2293,67 @@ a{text-decoration:none;color:inherit}
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* ═══ ONBOARDING CARRUSEL ═══ */
+#onboarding{
+  position:fixed;inset:0;z-index:9000;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.ob-slides{
+  flex:1;display:flex;
+  transition:transform .35s cubic-bezier(.4,0,.2,1);
+  will-change:transform;
+}
+.ob-slide{
+  min-width:100vw;width:100vw;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 28px;
+  text-align:center;
+  gap:20px;
+}
+.ob-icon{
+  width:72px;height:72px;
+  border-radius:20px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:4px;
+}
+.ob-icon svg{width:36px;height:36px;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.ob-eyebrow{
+  font-family:var(--font-m);font-size:.55rem;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--sport);margin-bottom:-8px;
+}
+.ob-title{
+  font-family:var(--font-d);font-size:2.2rem;
+  letter-spacing:.04em;line-height:1.05;color:var(--text);
+}
+.ob-body{
+  font-size:.92rem;color:var(--text-2);
+  line-height:1.7;max-width:320px;
+}
+.ob-bottom{
+  padding:0 28px calc(32px + var(--safe-b)) 28px;
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+}
+.ob-dots{
+  display:flex;gap:8px;align-items:center;
+}
+.ob-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--divider);
+  transition:all .25s;
+}
+.ob-dot.on{
+  width:20px;border-radius:3px;
+  background:var(--sport);
+}
+.ob-nav{
+  display:flex;gap:10px;width:100%;
+}
+.ob-nav .btn{flex:1}
 </style>
 </head>
 <body>
@@ -2318,7 +2379,76 @@ a{text-decoration:none;color:inherit}
 </div>
 
 <div id="app" class="hidden">
-  <header class="top">
+  <!-- ONBOARDING -->
+<div id="onboarding" class="hidden">
+  <div class="ob-slides" id="ob-slides">
+
+    <!-- Slide 1 -->
+    <div class="ob-slide">
+      <div class="ob-icon" style="background:rgba(0,200,232,.1)">
+        <svg viewBox="0 0 24 24" stroke="var(--sport)"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="ob-eyebrow">AB SYSTEM</div>
+      <div class="ob-title">Panel de sala</div>
+      <div class="ob-body">Tu espacio de trabajo como coach. Desde aquí gestionas todo lo que ocurre en el tapiz.</div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="ob-slide">
+      <div class="ob-icon" style="background:rgba(0,230,118,.1)">
+        <svg viewBox="0 0 24 24" stroke="var(--streak)"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg>
+      </div>
+      <div class="ob-eyebrow">Clientes</div>
+      <div class="ob-title">Tu grupo de trabajo</div>
+      <div class="ob-body">Crea tus clientes, consulta su estado, revisa check-ins y gestiona su historial desde la pestaña Clientes.</div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="ob-slide">
+      <div class="ob-icon" style="background:rgba(0,200,232,.1)">
+        <svg viewBox="0 0 24 24" stroke="var(--sport)"><path d="M6 4v16M18 4v16"/><path d="M4 6h4M16 6h4M4 18h4M16 18h4"/></svg>
+      </div>
+      <div class="ob-eyebrow">Entrenamientos</div>
+      <div class="ob-title">Ejecuta y registra</div>
+      <div class="ob-body">Abre una sesión desde el perfil del cliente. Sigue el plan bloque a bloque y registra lo que observas al terminar.</div>
+    </div>
+
+    <!-- Slide 4 -->
+    <div class="ob-slide">
+      <div class="ob-icon" style="background:rgba(255,179,64,.1)">
+        <svg viewBox="0 0 24 24" stroke="var(--warn)"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+      </div>
+      <div class="ob-eyebrow">Métricas y evaluaciones</div>
+      <div class="ob-title">Datos del atleta</div>
+      <div class="ob-body">Desde el perfil de cada cliente puedes registrar evaluaciones iniciales, métricas de rendimiento y notas técnicas.</div>
+    </div>
+
+    <!-- Slide 5 -->
+    <div class="ob-slide">
+      <div class="ob-icon" style="background:rgba(0,200,232,.1)">
+        <svg viewBox="0 0 24 24" stroke="var(--sport)"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      </div>
+      <div class="ob-eyebrow">Listo para empezar</div>
+      <div class="ob-title">¿Tienes dudas?</div>
+      <div class="ob-body">Contacta con el coach principal en cualquier momento. Cualquier ajuste de planes o configuración se gestiona desde la dirección.</div>
+      <a href="https://wa.me/381638112348" target="_blank" rel="noopener"
+        style="display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.35);color:#25D366;padding:12px 20px;border-radius:10px;font-family:var(--font-m);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700">
+        Contactar por WhatsApp
+      </a>
+    </div>
+
+  </div><!-- /.ob-slides -->
+
+  <div class="ob-bottom">
+    <div class="ob-dots" id="ob-dots"></div>
+    <div class="ob-nav">
+      <button class="btn btn-s" id="ob-prev" onclick="obPrev()">←</button>
+      <button class="btn btn-p" id="ob-next" onclick="obNext()">Siguiente</button>
+    </div>
+  </div>
+</div>
+
+<header class="top">
     <div id="top-coach-avatar" onclick="showScr('ajustes')"
     style="width:44px;height:44px;border-radius:50%;cursor:pointer;overflow:hidden;flex-shrink:0;border:1.5px solid rgba(0,200,232,.4);background:rgba(0,200,232,.08);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:1.1rem;color:var(--sport)">
     AB
@@ -3549,7 +3679,9 @@ if(!isLogged){
     document.getElementById('loading')?.classList.add('hidden');
     document.getElementById('login')?.classList.add('hidden');
     document.getElementById('app')?.classList.remove('hidden');
-
+    
+   obInit();
+   
     document.getElementById('modal-ov')?.addEventListener('click', e => {
       if(e.target.id === 'modal-ov') closeModal();
     });
@@ -14791,6 +14923,81 @@ async function testPush() {
   const data = await res.json();
   console.log('Push test:', data);
   showToast(res.ok ? 'Push enviado ✓' : 'Error: ' + JSON.stringify(data), res.ok ? 'ok' : 'err');
+}
+
+/* ═══ ONBOARDING ═══ */
+const OB_KEY = 'ab_onboarding_done';
+const OB_TOTAL = 5;
+let obCurrent = 0;
+let obStartX = 0;
+
+function obInit(){
+  const done = localStorage.getItem(OB_KEY) === 'true';
+  if(done) return;
+
+  const el = document.getElementById('onboarding');
+  if(!el) return;
+  el.classList.remove('hidden');
+
+  // Dots
+  const dots = document.getElementById('ob-dots');
+  if(dots){
+    dots.innerHTML = Array(OB_TOTAL).fill(0).map((_,i)=>
+      `<div class="ob-dot ${i===0?'on':''}" id="ob-dot-${i}"></div>`
+    ).join('');
+  }
+
+  // Swipe
+  const slides = document.getElementById('ob-slides');
+  if(slides){
+    slides.addEventListener('touchstart', e=>{ obStartX = e.touches[0].clientX; }, {passive:true});
+    slides.addEventListener('touchend', e=>{
+      const diff = obStartX - e.changedTouches[0].clientX;
+      if(Math.abs(diff) > 50){ diff > 0 ? obNext() : obPrev(); }
+    }, {passive:true});
+  }
+
+  obRender();
+}
+
+function obRender(){
+  const slides = document.getElementById('ob-slides');
+  if(slides) slides.style.transform = `translateX(-${obCurrent * 100}vw)`;
+
+  for(let i=0; i<OB_TOTAL; i++){
+    document.getElementById(`ob-dot-${i}`)?.classList.toggle('on', i===obCurrent);
+  }
+
+  const prev = document.getElementById('ob-prev');
+  const next = document.getElementById('ob-next');
+  if(prev) prev.style.visibility = obCurrent === 0 ? 'hidden' : 'visible';
+  if(next) next.textContent = obCurrent === OB_TOTAL - 1 ? 'Entrar al panel' : 'Siguiente';
+}
+
+function obNext(){
+  if(obCurrent < OB_TOTAL - 1){
+    obCurrent++;
+    obRender();
+  } else {
+    obClose();
+  }
+}
+
+function obPrev(){
+  if(obCurrent > 0){
+    obCurrent--;
+    obRender();
+  }
+}
+
+function obClose(){
+  localStorage.setItem(OB_KEY, 'true');
+  const el = document.getElementById('onboarding');
+  if(el){
+    el.style.transition = 'opacity .3s';
+    el.style.opacity = '0';
+    setTimeout(()=>el.classList.add('hidden'), 320);
+  }
 }
 </script>
 </body>
