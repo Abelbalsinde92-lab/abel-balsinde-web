@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>AB SYSTEM · Coach Panel</title>
-<!-- AB SYSTEM Coach Panel · BUILD COACH CLEAN 02 -->
+<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 01 -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2303,8 +2303,8 @@ a{text-decoration:none;color:inherit}
   <div class="login-card">
     <div class="login-brand"><span class="lb-1">AB</span><span class="lb-2">Coach Panel</span></div>
     <div class="login-title">ACCESO COACH</div>
-    <div class="login-sub">COACH PANEL · BUILD CLEAN 02</div>
-    <div style="font-size:10px;letter-spacing:.14em;color:#00E5FF;margin:-12px 0 18px;text-transform:uppercase;">ruta nueva /coach · sin admin-mobile</div>
+    <div class="login-sub">COACH PANEL · BUILD RPC 01</div>
+    <div style="font-size:10px;letter-spacing:.14em;color:#00E5FF;margin:-12px 0 18px;text-transform:uppercase;">ruta /coach · backend RPC activo</div>
     <div id="login-err" class="login-err hidden"></div>
     <div class="login-field">
       <label class="login-lbl" for="li-user">Usuario</label>
@@ -2569,6 +2569,8 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const COACH_PHONE_DEFAULT = '381638112348';
 const ADMIN_USER_DEFAULT = 'abel_admin';
 const ADMIN_PASS_DEFAULT = 'ABcoach2024!';
+const APP_AREA = 'coach';
+const APP_BUILD_KEY = 'coach-rpc-01';
 
 let AB_BOOT_ERROR = null;
 let db = null;
@@ -2902,6 +2904,49 @@ function reservationById(id){
 function snakeToCamel(obj){if(!obj||typeof obj!=='object')return obj;const out={};for(const[k,v]of Object.entries(obj)){out[k.replace(/_([a-z])/g,(_,l)=>l.toUpperCase())]=v}return out}
 function camelToSnake(obj){if(!obj||typeof obj!=='object')return obj;const out={};for(const[k,v]of Object.entries(obj)){out[k.replace(/[A-Z]/g,l=>'_'+l.toLowerCase())]=v}return out}
 function mapArr(arr){return(arr||[]).map(snakeToCamel)}
+function normalizeRpcCoachClient(row){
+  const c = snakeToCamel(row || {});
+  if(c.clientId && !c.id) c.id = c.clientId;
+  if(c.coachId && !c.coach_id) c.coach_id = c.coachId;
+  if(c.accessCode && !c.access_code) c.access_code = c.accessCode;
+  return c;
+}
+function normalizeRpcCoachProgram(row){
+  const p = snakeToCamel(row || {});
+  if(p.programId && !p.id) p.id = p.programId;
+  if(p.ownerCoachId && !p.coachId) p.coachId = p.ownerCoachId;
+  if(p.ownerCoachId && !p.coach_id) p.coach_id = p.ownerCoachId;
+  return p;
+}
+function normalizeRpcAssignment(row){
+  const a = snakeToCamel(row || {});
+  if(a.assignmentId && !a.id) a.id = a.assignmentId;
+  return a;
+}
+async function logAppEvent(eventType, severity='info', message='', metadata={}){
+  if(!db) return null;
+  try{
+    const {data,error}=await db.rpc('ab_log_app_event',{
+      p_app_area: APP_AREA,
+      p_event_type: eventType,
+      p_severity: severity,
+      p_actor_type: state.coachRole === 'owner' ? 'owner' : (state.coachId ? 'coach' : 'anon'),
+      p_actor_id: state.coachId || null,
+      p_coach_id: state.coachId || null,
+      p_client_id: metadata?.client_id || metadata?.clientId || null,
+      p_route: location.pathname,
+      p_build_key: APP_BUILD_KEY,
+      p_message: message || null,
+      p_metadata: metadata || {},
+      p_user_agent: navigator.userAgent || null
+    });
+    if(error) console.warn('ab_log_app_event error:', error);
+    return data || null;
+  }catch(err){
+    console.warn('ab_log_app_event exception:', err);
+    return null;
+  }
+}
 
 /* ── WHATSAPP ── */
 function waUrl(phone,msg){const p=String(phone||state.settings.coachPhone||COACH_PHONE_DEFAULT).replace(/[\s+\-()]/g,'');return'https://wa.me/'+p+'?text='+encodeURIComponent(msg||'')}
@@ -3564,7 +3609,7 @@ if(!isLogged){
    
    // Registrar Service Worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
+  navigator.serviceWorker.register('/sw.js?v=coach-rpc-01', { updateViaCache: 'none' })
     .then(reg => {
       console.log('SW registrado ✓', reg.scope);
       // Escuchar mensajes del SW
@@ -3691,43 +3736,43 @@ function doLogout(){
 async function loadCurrentCoachProfile(){
   if(!state.coachId || !db) return null;
   try{
-    const {data:coach,error} = await db
-      .from('coaches')
-      .select('*')
-      .eq('id', state.coachId)
-      .maybeSingle();
-
+    const {data,error} = await db.rpc('ab_coach_get_profile', { p_coach_id: state.coachId });
     if(error){
-      console.warn('loadCurrentCoachProfile error:', error);
+      console.warn('ab_coach_get_profile error:', error);
+      await logAppEvent('load_coach_profile_error','error',error.message || 'Error cargando perfil coach',{code:error.code || null});
       return null;
     }
+
+    const coach = Array.isArray(data) ? data[0] : data;
     if(!coach) return null;
+    const c = snakeToCamel(coach);
 
-    state.coachName = coach.name || state.coachName;
-    state.coachRole = coach.role || state.coachRole;
-    state.coachEmail = coach.email || state.coachEmail || null;
-    state.coachPhotoUrl = coach.photo_url || coach.avatar_url || coach.profile_photo_url || state.coachPhotoUrl || null;
+    state.coachId = c.coachId || c.id || state.coachId;
+    state.coachName = c.name || state.coachName;
+    state.coachRole = c.role || state.coachRole;
+    state.coachEmail = c.email || state.coachEmail || null;
+    state.coachPhotoUrl = c.photoUrl || state.coachPhotoUrl || null;
 
-    // Evitar cruce visual: las pantallas antiguas que leían settings.coachName
-    // deben mostrar el coach logueado, no el owner por defecto.
-    if(state.coachRole !== 'owner'){
-      state.settings.coachName = state.coachName || 'Coach';
-      state.settings.coachPhotoUrl = state.coachPhotoUrl || '';
-      state.settings.coachPhone = coach.phone || state.settings.coachPhone || '';
-    }
+    // Evitar cruce visual: todas las pantallas muestran el coach logueado.
+    state.settings.coachName = state.coachName || 'Coach';
+    state.settings.coachPhotoUrl = state.coachPhotoUrl || '';
+    if(c.phone) state.settings.coachPhone = c.phone;
 
+    sessionStorage.setItem('ab_coach_id', state.coachId || '');
     sessionStorage.setItem('ab_coach_name', state.coachName || 'Coach');
     sessionStorage.setItem('ab_coach_role', state.coachRole || 'coach');
     sessionStorage.setItem('ab_coach_photo_url', state.coachPhotoUrl || '');
     sessionStorage.setItem('ab_coach_email', state.coachEmail || '');
+    localStorage.setItem('ab_coach_id', state.coachId || '');
     localStorage.setItem('ab_coach_name', state.coachName || 'Coach');
     localStorage.setItem('ab_coach_role', state.coachRole || 'coach');
     localStorage.setItem('ab_coach_photo_url', state.coachPhotoUrl || '');
     localStorage.setItem('ab_coach_email', state.coachEmail || '');
 
-    return coach;
+    return c;
   }catch(err){
     console.warn('loadCurrentCoachProfile exception:', err);
+    await logAppEvent('load_coach_profile_exception','error',err?.message || 'Excepción cargando perfil coach',{});
     return null;
   }
 }
@@ -3735,35 +3780,25 @@ async function loadCurrentCoachProfile(){
 
 async function loadVisibleTrainingPrograms(){
   try{
-    if(state.coachRole !== 'owner' && state.coachId){
-      const [ownRes, sharedRes] = await Promise.all([
-        db.from('training_programs').select('*').eq('coach_id', state.coachId).order('name'),
-        db.from('coach_program_access').select('program_id, access_level, training_programs(*)').eq('coach_id', state.coachId)
-      ]);
-
-      if(ownRes.error) console.warn('own training programs error:', ownRes.error);
-      if(sharedRes.error) console.warn('shared training programs error:', sharedRes.error);
-
-      const byId = new Map();
-      (ownRes.data || []).forEach(p => {
-        if(p && p.id) byId.set(String(p.id), {...p, is_own_program:true, is_shared_program:false});
-      });
-      (sharedRes.data || []).forEach(row => {
-        const p = row?.training_programs || row?.trainingPrograms || null;
-        if(p && p.id){
-          const current = byId.get(String(p.id)) || p;
-          byId.set(String(p.id), {...current, is_shared_program:true, access_level: row.access_level || 'use'});
-        }
-      });
-
-      return {data:[...byId.values()].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''))), error: ownRes.error || sharedRes.error || null};
+    if(state.coachId){
+      const {data,error}=await db.rpc('ab_coach_get_available_programs',{p_coach_id: state.coachId});
+      if(error){
+        console.warn('ab_coach_get_available_programs error:', error);
+        await logAppEvent('load_programs_error','error',error.message || 'Error cargando programas',{code:error.code || null});
+        return {data:[], error};
+      }
+      const rows=(data||[]).map(normalizeRpcCoachProgram)
+        .sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+      return {data:rows, error:null};
     }
     return await db.from('training_programs').select('*').order('name');
   }catch(e){
     console.warn('loadVisibleTrainingPrograms error:', e);
+    await logAppEvent('load_programs_exception','error',e?.message || 'Excepción cargando programas',{});
     return {data:[], error:e};
   }
 }
+
 
 function filterTrainingTreeToVisiblePrograms(){
   const visibleProgramIds = new Set((state.trainingPrograms || []).map(p => String(p.id)));
@@ -3825,9 +3860,9 @@ async function loadAllData(){
       {data:texercises},{data:videos},{data:assignments},{data:slogs},
       {data:templates},{data:assessments},{data:metrics},{data:conditions},{data:settings}
     ]=await Promise.all([
-      // ── Filtrado por coach_id si no es owner ──
-      (state.coachRole !== 'owner' && state.coachId
-        ? db.from('clients').select('*').eq('coach_id', state.coachId).order('name')
+      // ── Clientes visibles por RPC oficial ──
+      (state.coachId
+        ? db.rpc('ab_coach_get_clients', { p_coach_id: state.coachId })
         : db.from('clients').select('*').order('name')),
       (state.coachRole !== 'owner' && state.coachId
         ? db.from('reservations').select('*').eq('date',today).eq('coach_id', state.coachId).order('time')
@@ -3860,10 +3895,11 @@ async function loadAllData(){
 db.from('client_conditions').select('*').eq('status','active').order('start_date',{ascending:false}),
 db.from('settings').select('*').eq('id','main').maybeSingle()
     ]);
-    state.clients=mapArr(clients);state.todayRes=mapArr(todayRes);state.futureRes=mapArr(futureRes);state.pastRes=mapArr(pastRes);
+    state.clients=(clients||[]).map(normalizeRpcCoachClient).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+    state.todayRes=mapArr(todayRes);state.futureRes=mapArr(futureRes);state.pastRes=mapArr(pastRes);
     state.allRes=[...state.todayRes,...state.futureRes,...state.pastRes];
     state.payments=mapArr(payments);state.alertas=mapArr(alertas);state.todayCheckins=mapArr(todayCI);state.recentCheckins=mapArr(recentCI);
-    state.trainingPrograms=mapArr(tprograms);state.trainingWeeks=mapArr(tweeks);state.trainingSessions=mapArr(tsessions);
+    state.trainingPrograms=(tprograms||[]).map(normalizeRpcCoachProgram);state.trainingWeeks=mapArr(tweeks);state.trainingSessions=mapArr(tsessions);
     state.trainingBlocks=mapArr(tblocks);state.trainingExercises=mapArr(texercises);state.videoLibrary=mapArr(videos);
     state.assignments=mapArr(assignments);state.sessionLogs=mapArr(slogs);state.templates=mapArr(templates);
     state.assessments=mapArr(assessments);state.metrics=mapArr(metrics);
@@ -6199,41 +6235,94 @@ async function saveModal(e){
   }
 
   data.athlete_profile = clientType === 'athlete' ? 'athlete' : clientType;
-  data.enable_combat_metrics = clientType === 'combat';
+  data.enable_combat_metrics = clientType === 'combat' || clientType === 'athlete';
 
-  // Asignar coach_id del coach logueado al crear cliente nuevo
-  const clientPayload = { ...data, notes: id ? (clientById(id)?.notes || []) : [] };
-  if(!id && state.coachId) clientPayload.coach_id = state.coachId;
+  let saved;
 
-  const saved = await upsertItem(
-    'clients',
-    'clients',
-    clientPayload
-  );
+  if(!id && state.coachId){
+    const {data:rpcClient,error:clientErr}=await db.rpc('ab_coach_create_client',{
+      p_coach_id: state.coachId,
+      p_name: data.name || '',
+      p_phone: data.phone || null,
+      p_email: data.email || null,
+      p_city: data.city || null,
+      p_objective: data.objective || null,
+      p_preferred_lang: data.preferred_lang || data.preferredLang || 'es',
+      p_enable_combat_metrics: data.enable_combat_metrics,
+      p_athlete_profile: data.athlete_profile,
+      p_status: data.status || 'activo',
+      p_plan: data.plan || 'Inicio'
+    });
+    if(clientErr) throw clientErr;
+    saved = normalizeRpcCoachClient(Array.isArray(rpcClient) ? rpcClient[0] : rpcClient);
 
-  const { error: typeError } = await db.rpc('admin_set_client_type', {
-    p_client_id: saved.id,
-    p_client_type: clientType,
-    p_sport: athleteSport,
-    p_weight_class: athleteWeightClass,
-    p_competitive_level: athleteCompetitiveLevel
-  });
+    state.clients = state.clients.filter(c=>String(c.id)!==String(saved.id));
+    state.clients.push(saved);
+    state.clients.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
 
-  if(typeError) throw typeError;
+    if(clientType !== 'general'){
+      const {error:athErr}=await db.rpc('ab_coach_create_athlete_profile',{
+        p_coach_id: state.coachId,
+        p_client_id: saved.id,
+        p_sport: athleteSport,
+        p_weight_class: athleteWeightClass,
+        p_competitive_level: athleteCompetitiveLevel || 'amateur',
+        p_team: null,
+        p_nationality: null,
+        p_height_cm: null,
+        p_walk_around_weight_kg: null,
+        p_years_competing: null,
+        p_coach_notes: null
+      });
+      if(athErr) throw athErr;
+      saved.sport = athleteSport;
+      saved.weightClass = athleteWeightClass;
+      saved.competitiveLevel = athleteCompetitiveLevel || 'amateur';
+      saved.athleteProfile = clientType === 'athlete' ? 'athlete' : clientType;
+      saved.athlete_profile = saved.athleteProfile;
+      saved.enableCombatMetrics = true;
+      saved.enable_combat_metrics = true;
+    }
+  }else{
+    // Edición de clientes existentes: se mantiene directa hasta crear ab_coach_update_client.
+    const clientPayload = { ...data, notes: id ? (clientById(id)?.notes || []) : [] };
+    if(!id && state.coachId) clientPayload.coach_id = state.coachId;
+    saved = await upsertItem('clients','clients',clientPayload);
+
+    if(clientType !== 'general' && state.coachId){
+      const {error:athErr}=await db.rpc('ab_coach_create_athlete_profile',{
+        p_coach_id: state.coachId,
+        p_client_id: saved.id,
+        p_sport: athleteSport,
+        p_weight_class: athleteWeightClass,
+        p_competitive_level: athleteCompetitiveLevel || 'amateur',
+        p_team: null,
+        p_nationality: null,
+        p_height_cm: null,
+        p_walk_around_weight_kg: null,
+        p_years_competing: null,
+        p_coach_notes: null
+      });
+      if(athErr) throw athErr;
+    }
+  }
 
   const localClient = clientById(saved.id);
-
   if(localClient){
     localClient.athleteProfile = clientType === 'athlete' ? 'athlete' : clientType;
     localClient.athlete_profile = clientType === 'athlete' ? 'athlete' : clientType;
-    localClient.enableCombatMetrics = clientType === 'combat';
-    localClient.enable_combat_metrics = clientType === 'combat';
+    localClient.enableCombatMetrics = clientType !== 'general';
+    localClient.enable_combat_metrics = clientType !== 'general';
+    if(athleteSport) localClient.sport = athleteSport;
+    if(athleteWeightClass) localClient.weightClass = athleteWeightClass;
+    if(athleteCompetitiveLevel) localClient.competitiveLevel = athleteCompetitiveLevel;
   }
 
   if(!state.selectedClientId && !id){
     state.selectedClientId = saved.id;
   }
 
+  await logAppEvent(id ? 'update_client_frontend' : 'create_client_rpc','info',id ? 'Cliente actualizado desde panel' : 'Cliente creado por RPC',{client_id:saved.id, client_type:clientType});
   showToast(id ? 'Cliente actualizado ✓' : 'Cliente guardado ✓','ok');
 }
     else if(type==='reservation'){
@@ -6269,11 +6358,11 @@ async function saveModal(e){
     else if(type==='assignment'){
       const closeOld=data.closeOld==='yes';delete data.closeOld;
       data.status='activo';data.currentWeek=Number(data.currentWeek||1);
-      data.assignmentScope = data.assignmentScope || 'full';
+      data.assignmentScope = data.assignmentScope || 'week';
       data.currentWeek = Number(data.assignedWeek || data.currentWeek || 1);
       data.assignedWeek = data.currentWeek;
-      data.assignedMonth = Number(data.assignedMonth || 1);
-      data.assignedSessionNumber = Number(data.assignedSessionNumber || 1);
+      data.assignedMonth = data.assignedMonth ? Number(data.assignedMonth) : null;
+      data.assignedSessionNumber = data.assignedSessionNumber ? Number(data.assignedSessionNumber) : null;
       if(!data.clientId||!data.programId){showToast('Selecciona cliente y programa','err');return}
       const selectedClient = clientById(data.clientId);
       if(state.coachRole !== 'owner' && (!selectedClient || String(selectedClient.coachId || selectedClient.coach_id || '') !== String(state.coachId))){
@@ -6281,20 +6370,45 @@ async function saveModal(e){
         return;
       }
       data.coachId = (selectedClient?.coachId || selectedClient?.coach_id || state.coachId || data.coachId || data.coach_id || null);
-      if(closeOld&&!id){
-        let closeQ = db.from('client_program_assignments').update({status:'finalizado'}).eq('client_id',data.clientId).or('status.eq.activo,status.is.null');
-        if(data.coachId) closeQ = closeQ.eq('coach_id', data.coachId);
-        const{error:closeErr}=await closeQ;
-        if(closeErr)console.warn('No se pudieron cerrar asignaciones anteriores:',closeErr);
+
+      let saved;
+      if(!id && state.coachId){
+        const {data:rpcAssign,error:assignErr}=await db.rpc('ab_coach_assign_program',{
+          p_coach_id: state.coachId,
+          p_client_id: data.clientId,
+          p_program_id: data.programId,
+          p_assigned_level: data.assignedLevel || data.assigned_level || 'N1',
+          p_start_date: data.startDate || data.start_date || todayISO(),
+          p_assignment_scope: data.assignmentScope || 'week',
+          p_assigned_month: data.assignedMonth,
+          p_assigned_week: Number(data.assignedWeek || 1),
+          p_assigned_session_number: data.assignedSessionNumber,
+          p_commercial_label: data.commercialLabel || data.commercial_label || 'Semana',
+          p_coach_notes: data.coachNotes || data.coach_notes || null
+        });
+        if(assignErr) throw assignErr;
+        saved = normalizeRpcAssignment(Array.isArray(rpcAssign) ? rpcAssign[0] : rpcAssign);
+
         state.assignments.forEach(a=>{
           const sameClient=String(a.clientId||a.client_id)===String(data.clientId);
-          if(sameClient&&String(a.status||'activo').toLowerCase()==='activo')a.status='finalizado';
+          const sameCoach=!data.coachId || String(a.coachId||a.coach_id||'')===String(data.coachId);
+          if(sameClient && sameCoach && String(a.status||'activo').toLowerCase()==='activo') a.status='finalizado';
         });
+      }else{
+        // Edición de asignaciones existentes: se mantiene directa hasta crear ab_coach_update_assignment.
+        if(closeOld&&!id){
+          let closeQ = db.from('client_program_assignments').update({status:'finalizado'}).eq('client_id',data.clientId).or('status.eq.activo,status.is.null');
+          if(data.coachId) closeQ = closeQ.eq('coach_id', data.coachId);
+          const{error:closeErr}=await closeQ;
+          if(closeErr)console.warn('No se pudieron cerrar asignaciones anteriores:',closeErr);
+        }
+        saved=await upsertItem('assignments','client_program_assignments',data);
       }
-      const saved=await upsertItem('assignments','client_program_assignments',data);
+
       state.assignments=state.assignments.filter(a=>String(a.id)!==String(saved.id));
       state.assignments.push(saved);
       state.assignments.sort((a,b)=>String(b.startDate||b.start_date||'').localeCompare(String(a.startDate||a.start_date||'')));
+      await logAppEvent(id ? 'update_assignment_frontend' : 'assign_program_rpc','info',id ? 'Asignación actualizada desde panel' : 'Programa asignado por RPC',{client_id:data.clientId, program_id:data.programId, assignment_id:saved.id});
       showToast(id?'Asignación actualizada ✓':'Entrenamiento asignado ✓','ok');
     }
     else if(type==='metric'){
@@ -6319,21 +6433,37 @@ async function saveModal(e){
    else if(type==='athleteProfile'){
   const cid = data.client_id;
   if(!cid){ showToast('Sin cliente','err'); return; }
-  const {error:e1} = await db.rpc('admin_set_client_type',{
-    p_client_id:cid, p_client_type:'combat',
-    p_sport:data.sport||null, p_weight_class:data.weight_class||null,
-    p_competitive_level:data.competitive_level||null
+  if(!state.coachId){ showToast('Sesión de coach no válida','err'); return; }
+
+  const {error:athErr} = await db.rpc('ab_coach_create_athlete_profile',{
+    p_coach_id: state.coachId,
+    p_client_id: cid,
+    p_sport: data.sport || null,
+    p_weight_class: data.weight_class || null,
+    p_competitive_level: data.competitive_level || 'amateur',
+    p_team: data.team || null,
+    p_nationality: data.nationality || null,
+    p_height_cm: data.height_cm ? Number(data.height_cm) : null,
+    p_walk_around_weight_kg: data.walk_around_weight_kg ? Number(data.walk_around_weight_kg) : null,
+    p_years_competing: data.years_competing ? Number(data.years_competing) : null,
+    p_coach_notes: data.coach_notes || data.notes || null
   });
-  if(e1) throw e1;
-  const {error:e2} = await db.from('athlete_profiles').upsert({
-    client_id:cid,
-    wins:Number(data.wins||0), losses:Number(data.losses||0), draws:Number(data.draws||0),
-    height_cm:data.height_cm?Number(data.height_cm):null,
-    walk_around_weight_kg:data.walk_around_weight_kg?Number(data.walk_around_weight_kg):null,
-    team:data.team||null, updated_at:new Date().toISOString()
-  },{onConflict:'client_id'});
-  if(e2) throw e2;
+  if(athErr) throw athErr;
+
+  const localClient = clientById(cid);
+  if(localClient){
+    localClient.enableCombatMetrics = true;
+    localClient.enable_combat_metrics = true;
+    localClient.athleteProfile = 'combat';
+    localClient.athlete_profile = 'combat';
+    localClient.sport = data.sport || localClient.sport;
+    localClient.weightClass = data.weight_class || localClient.weightClass;
+    localClient.competitiveLevel = data.competitive_level || localClient.competitiveLevel;
+    localClient.team = data.team || localClient.team;
+  }
+
   await refreshAthletes();
+  await logAppEvent('create_athlete_profile_rpc','info','Perfil atleta guardado por RPC',{client_id:cid, sport:data.sport || null});
   showToast('Perfil atleta guardado ✓','ok');
 }
 
@@ -13619,7 +13749,7 @@ async function initPushNotifications() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
   try {
-    await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.register('/sw.js?v=coach-rpc-01', { updateViaCache: 'none' });
     const swReg = await navigator.serviceWorker.ready;
 
     const perm = await Notification.requestPermission();
