@@ -8740,11 +8740,16 @@ async function loadOrCreateTrainingLog(sessionId) {
   const token = getClientSessionToken();
   const sid = sessionId || getCurrentVisibleSessionId();
 
-  if (!token || !sid || !clientTrainingAssignment?.id) {
+  const assignmentId =
+  clientTrainingAssignment?.assignment_id ||
+  clientTrainingAssignment?.id ||
+  null;
+
+  if (!token || !sid || !assignmentId) {
     console.error('Faltan datos para abrir el registro de entrenamiento', {
       hasToken: Boolean(token),
       sessionId: sid,
-      assignmentId: clientTrainingAssignment?.id || null
+      assignmentId
     });
     return currentTrainingLog;
   }
@@ -8764,14 +8769,14 @@ async function loadOrCreateTrainingLog(sessionId) {
 
   try {
     const { data, error } = await db.rpc(
-      'ab_client_session_get_or_create_training_log',
-      {
-        p_session_token: token,
-        p_assignment_id: clientTrainingAssignment.id,
-        p_session_id: sid,
-        p_training_date: todayISO()
-      }
-    );
+  'ab_client_session_get_or_create_training_log',
+  {
+    p_session_token: token,
+    p_assignment_id: assignmentId,
+    p_session_id: sid,
+    p_training_date: todayISO()
+  }
+);
 
     if (error) {
       console.error('Training log RPC read/create error:', error);
