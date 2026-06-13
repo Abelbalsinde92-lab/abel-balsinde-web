@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AB SYSTEM — Área Cliente · RPC 06</title>
+  <title>AB SYSTEM — Área Cliente · RPC 07</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json?v=20260522-01">
 <link rel="icon" href="/favicon-32.png?v=20260522-01" type="image/png">
@@ -5330,7 +5330,7 @@ body {
   </main>
 </div>
 
-<!-- cliente-rpc-06: Auth antiguo desactivado para evitar bloqueos de login -->
+<!-- cliente-rpc-07: Auth antiguo desactivado para evitar bloqueos de login -->
 
 <script>
 /* ══════════════════════════════════════════════════════════
@@ -8732,150 +8732,235 @@ function getActiveTrainingWeek(){
          null;
 }
 
-async function loadOrCreateTrainingLog(sessionId){
-  if(!clientData || !clientTrainingAssignment || !clientTrainingProgram) return null;
-
-  const sid = sessionId || getCurrentVisibleSessionId();
-  if(!sid) return null;
-
-  const localProgress = loadTrainingProgressLocal(sid);
-
-  if(localProgress){
-    completedTrainingBlocks = new Set(localProgress.completed_block_ids || []);
-    currentTrainingLog = { ...(currentTrainingLog || {}), ...localProgress };
-  }
-
-  const session = clientTrainingSessions.find(s => String(s.id) === String(sid));
-  const week = session
-    ? clientTrainingWeeks.find(w => String(w.id) === String(session.week_id))
-    : getActiveTrainingWeek();
-
-  const payload = {
-    client_id: clientData.id,
-    assignment_id: clientTrainingAssignment.id,
-    program_id: clientTrainingProgram.id,
-    week_id: week ? week.id : null,
-    session_id: sid,
-    training_date: todayISO()
-  };
-
-  if (!payload.assignment_id || !payload.client_id || !payload.session_id || !payload.training_date) {
-    console.error('Missing required training log payload fields', payload);
+async function loadOrCreateTrainingLog(sessionId) {
+  if (!clientData || !clientTrainingAssignment || !clientTrainingProgram) {
     return null;
   }
 
-  try{
-    const existing = await db
-  .from('client_session_logs')
-  .select('*')
-  .eq('client_id', payload.client_id)
-  .eq('assignment_id', payload.assignment_id)
-  .eq('session_id', payload.session_id)
-  .eq('training_date', payload.training_date)
-  .order('updated_at', { ascending: false, nullsFirst: false })
-  .limit(1)
-  .maybeSingle();
+  const token = getClientSessionToken();
+  const sid = sessionId || getCurrentVisibleSessionId();
 
-    if(existing.error){
-      console.error('Log read error:', existing.error);
+  if (!token || !sid || !clientTrainingAssignment?.id) {
+    console.error('Faltan datos para abrir el registro de entrenamiento', {
+      hasToken: Boolean(token),
+      sessionId: sid,
+      assignmentId: clientTrainingAssignment?.id || null
+    });
+    return currentTrainingLog;
+  }
+
+  const localProgress = loadTrainingProgressLocal(sid);
+
+  if (localProgress) {
+    completedTrainingBlocks = new Set(
+      localProgress.completed_block_ids || []
+    );
+
+    currentTrainingLog = {
+      ...(currentTrainingLog || {}),
+      ...localProgress
+    };
+  }
+
+  try {
+    const { data, error } = await db.rpc(
+      'ab_client_session_get_or_create_training_log',
+      {
+        p_session_token: token,
+        p_assignment_id: clientTrainingAssignment.id,
+        p_session_id: sid,
+        p_training_date: todayISO()
+      }
+    );
+
+    if (error) {
+      console.error('Training log RPC read/create error:', error);
       return currentTrainingLog;
     }
 
-    if(existing.data){
-      completedTrainingBlocks = new Set([
-        ...(existing.data.completed_block_ids || []),
-        ...(localProgress?.completed_block_ids || [])
-      ]);
+    let remoteLog = data;
 
-      currentTrainingLog = {
-        ...existing.data,
-        completed_block_ids: Array.from(completedTrainingBlocks),
-        is_finished: existing.data.is_finished || localProgress?.is_finished || false,
-        client_note: existing.data.client_note || localProgress?.client_note || '',
-        client_feedback_tags: existing.data.client_feedback_tags || localProgress?.client_feedback_tags || [],
-        client_feedback_summary: existing.data.client_feedback_summary || localProgress?.client_feedback_summary || ''
-      };
+    if (typeof remoteLog === 'string') {
+      try {
+        remoteLog = JSON.parse(remoteLog);
+      } catch (parseError) {
+        console.error('No se pudo interpretar el training log:', parseError);
+        return currentTrainingLog;
+      }
+    }
 
-      saveTrainingProgressLocal(currentTrainingLog, sid);
+    if (!remoteLog?.id) {
+      console.error('La RPC no devolvió un training log válido:', remoteLog);
       return currentTrainingLog;
     }
 
-    const created = await db
-  .from('client_session_logs')
-  .upsert({
-    ...payload,
-    status: 'iniciada',
-    completed_at: null,
-    finished_at: null,
-    completed_block_ids: Array.from(completedTrainingBlocks),
-    is_finished: localProgress?.is_finished || false,
-    client_note: localProgress?.client_note || '',
-    client_feedback_tags: localProgress?.client_feedback_tags || [],
-    client_feedback_summary: localProgress?.client_feedback_summary || '',
-    started_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }, {
+    completedTrainingBlocks = new Set([
+      ...(Array.isArray(remoteLog.completed_block_ids)
+        ? remoteLog.completed_block_ids
+        : []),
 
-    onConflict: 'client_id,assignment_id,session_id,training_date'
-  })
-  .select()
-  .single();
+      ...(Array.isArray(localProgress?.completed_block_ids)
+        ? localProgress.completed_block_ids
+        : [])
+    ]);
 
-    if(created.error){
-      console.error('Log create error:', created.error);
-      return currentTrainingLog;
-    }
+    currentTrainingLog = {
+      ...remoteLog,
 
-    currentTrainingLog = created.data;
+      completed_block_ids: Array.from(completedTrainingBlocks),
+
+      is_finished:
+        remoteLog.is_finished === true ||
+        localProgress?.is_finished === true,
+
+      client_note:
+        remoteLog.client_note ||
+        localProgress?.client_note ||
+        '',
+
+      client_feedback_tags:
+        Array.isArray(remoteLog.client_feedback_tags)
+          ? remoteLog.client_feedback_tags
+          : (
+              Array.isArray(localProgress?.client_feedback_tags)
+                ? localProgress.client_feedback_tags
+                : []
+            ),
+
+      client_feedback_summary:
+        remoteLog.client_feedback_summary ||
+        localProgress?.client_feedback_summary ||
+        ''
+    };
+
     saveTrainingProgressLocal(currentTrainingLog, sid);
+
     return currentTrainingLog;
 
-  }catch(err){
-    console.error('Log error:', err);
+  } catch (err) {
+    console.error('Training log RPC error:', err);
     return currentTrainingLog;
   }
 }
 
-async function saveTrainingProgress(extra,sessionId){
+async function saveTrainingProgress(extra, sessionId) {
+  const token = getClientSessionToken();
   const sid = sessionId || getCurrentVisibleSessionId();
 
-  saveTrainingProgressLocal(extra, sid);
+  if (!token || !sid) {
+    console.warn('No se puede guardar el progreso: falta sesión segura.');
+    return null;
+  }
 
-  if(!currentTrainingLog?.id || String(currentTrainingLog.session_id) !== String(sid)){
+  saveTrainingProgressLocal(extra || {}, sid);
+
+  if (
+    !currentTrainingLog?.id ||
+    String(currentTrainingLog.session_id) !== String(sid)
+  ) {
     await loadOrCreateTrainingLog(sid);
   }
 
-  if(!currentTrainingLog?.id){
-    console.warn('No log ID');
-    return;
+  if (!currentTrainingLog?.id) {
+    console.warn('No existe training log para guardar el progreso.');
+    return null;
   }
 
   const local = loadTrainingProgressLocal(sid) || {};
 
-  try{
-    const saved = await db
-      .from('client_session_logs')
-      .update({
-        completed_block_ids: Array.from(completedTrainingBlocks),
-        is_finished: local.is_finished || false,
-        client_note: local.client_note || null,
-        client_feedback_tags: local.client_feedback_tags || extra?.client_feedback_tags || [],
-        client_feedback_summary: local.client_feedback_summary || extra?.client_feedback_summary || null,
-        updated_at: new Date().toISOString(),
-        ...(extra || {})
-      })
-      .eq('id', currentTrainingLog.id)
-      .select()
-      .single();
+  const completedBlockIds = Array.isArray(local.completed_block_ids)
+    ? local.completed_block_ids
+    : [];
 
-    if(!saved.error){
-      currentTrainingLog = saved.data;
-      saveTrainingProgressLocal(currentTrainingLog, sid);
-    } else {
-      console.error('Log save error:', saved.error);
+  const isFinished =
+    currentTrainingLog.is_finished === true ||
+    local.is_finished === true ||
+    extra?.is_finished === true;
+
+  const feedbackTags = Array.isArray(extra?.client_feedback_tags)
+    ? extra.client_feedback_tags
+    : (
+        Array.isArray(local.client_feedback_tags)
+          ? local.client_feedback_tags
+          : (
+              Array.isArray(currentTrainingLog.client_feedback_tags)
+                ? currentTrainingLog.client_feedback_tags
+                : []
+            )
+      );
+
+  const clientNote =
+    extra?.client_note !== undefined
+      ? extra.client_note
+      : (
+          local.client_note !== undefined
+            ? local.client_note
+            : currentTrainingLog.client_note
+        );
+
+  const feedbackSummary =
+    extra?.client_feedback_summary !== undefined
+      ? extra.client_feedback_summary
+      : (
+          local.client_feedback_summary !== undefined
+            ? local.client_feedback_summary
+            : currentTrainingLog.client_feedback_summary
+        );
+
+  try {
+    const { data, error } = await db.rpc(
+      'ab_client_session_save_training_progress',
+      {
+        p_session_token: token,
+        p_session_log_id: currentTrainingLog.id,
+        p_completed_block_ids: completedBlockIds,
+        p_is_finished: isFinished,
+        p_client_note: clientNote || null,
+        p_client_feedback_tags: feedbackTags,
+        p_client_feedback_summary: feedbackSummary || null,
+        p_status: isFinished ? 'finished' : 'iniciada'
+      }
+    );
+
+    if (error) {
+      console.error('Training progress RPC save error:', error);
+      return null;
     }
-  }catch(err){
-    console.error('Log save error:', err);
+
+    let savedLog = data;
+
+    if (typeof savedLog === 'string') {
+      try {
+        savedLog = JSON.parse(savedLog);
+      } catch (parseError) {
+        console.error(
+          'No se pudo interpretar el progreso guardado:',
+          parseError
+        );
+        return null;
+      }
+    }
+
+    if (!savedLog?.id) {
+      console.error(
+        'La RPC no devolvió un training log válido:',
+        savedLog
+      );
+      return null;
+    }
+
+    currentTrainingLog = savedLog;
+    completedTrainingBlocks = new Set(
+      savedLog.completed_block_ids || []
+    );
+
+    saveTrainingProgressLocal(currentTrainingLog, sid);
+
+    return currentTrainingLog;
+
+  } catch (err) {
+    console.error('Training progress RPC save error:', err);
+    return null;
   }
 }
 
