@@ -7772,7 +7772,9 @@ function uiText(key) {
   };
 
   const raw = dict[lang]?.[key] || dict.es[key] || key;
-  return coachText(raw, { name: key === 'contactAbel' || String(key || '').startsWith('wa') });
+  return coachText(raw, {
+  name: String(key || '').startsWith('wa')
+});
 }
 
 function applyStaticTranslations() {
