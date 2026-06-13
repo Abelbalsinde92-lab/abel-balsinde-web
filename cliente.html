@@ -6513,6 +6513,28 @@ async function loadClientDashboard(sessionToken) {
     );
     if (planR.error) throw planR.error;
 
+        // Check-ins del cliente mediante sesión segura.
+    // Un fallo aquí no debe bloquear la entrada al panel.
+    let checkinsR = { data: [], error: null };
+
+    try {
+      checkinsR = await rpcTimeout(
+        db.rpc('ab_client_session_get_checkins', {
+          p_session_token: token,
+          p_limit: 30
+        }),
+        'check-ins'
+      );
+
+      if (checkinsR.error) {
+        console.warn('Check-ins RPC:', checkinsR.error);
+        checkinsR = { data: [], error: checkinsR.error };
+      }
+    } catch (checkinsErr) {
+      console.warn('Check-ins RPC no disponible:', checkinsErr);
+      checkinsR = { data: [], error: checkinsErr };
+    }
+    
     const profile = profileR.data || {};
     const dash = dashboardR.data || {};
 
@@ -6590,7 +6612,11 @@ async function loadClientDashboard(sessionToken) {
     clientInternalAssessments = [];
     clientAssessmentResults = [];
     clientSessionLogs = [];
-    clientDailyCheckins = [];
+        
+    clientDailyCheckins = Array.isArray(checkinsR.data)
+      ? checkinsR.data
+      : [];
+    
     clientActiveTrainingAdaptations = [];
     clientMobilityChain = [];
     clientMobilityDebug = { loaded: true, count: 0, error: null };
@@ -13372,7 +13398,12 @@ function showClientNotice(message, type = 'success') {
 }
 
 async function saveDailyCheckin() {
-  if (!clientData?.id) return;
+  const token = getClientSessionToken();
+
+  if (!token) {
+    showClientNotice(uiText('wrongLogin'), 'error');
+    return;
+  }
 
   const btn = document.getElementById('btnSaveDailyCheckin');
 
@@ -13381,63 +13412,67 @@ async function saveDailyCheckin() {
     btn.textContent = uiText('saving');
   }
 
-  const payload = {
-    client_id: clientData.id,
-    checkin_date: todayISO(),
-    sleep_hours: checkinNumOrNull('checkinSleepHours'),
-    sleep_quality: checkinNumOrNull('checkinSleepQuality'),
-    energy_level: checkinNumOrNull('checkinEnergy'),
-    soreness_level: checkinNumOrNull('checkinSoreness'),
-    comment: document.getElementById('checkinComment')?.value?.trim() || null,
-    updated_at: new Date().toISOString()
+  const rpcPayload = {
+    p_session_token: token,
+    p_sleep_hours: checkinNumOrNull('checkinSleepHours'),
+    p_sleep_quality: checkinNumOrNull('checkinSleepQuality'),
+    p_energy_level: checkinNumOrNull('checkinEnergy'),
+    p_soreness_level: checkinNumOrNull('checkinSoreness'),
+    p_comment:
+      document.getElementById('checkinComment')?.value?.trim() || null,
+    p_checkin_date: todayISO()
   };
 
   try {
-    const { data, error } = await db
-      .from('client_daily_checkins')
-      .upsert(payload, {
-        onConflict: 'client_id,checkin_date'
-      })
-      .select()
-      .single();
+    const { data: rows, error } = await db.rpc(
+      'ab_client_session_submit_checkin',
+      rpcPayload
+    );
 
     if (error) throw error;
 
-    const idx = clientDailyCheckins.findIndex(c =>
-      String(c.checkin_date || '').slice(0, 10) === todayISO()
+    const savedCheckin = Array.isArray(rows)
+      ? rows[0]
+      : rows;
+
+    if (!savedCheckin) {
+      throw new Error('La RPC no devolvió el check-in guardado.');
+    }
+
+    const idx = clientDailyCheckins.findIndex(checkin =>
+      String(checkin.checkin_date || '').slice(0, 10) ===
+      String(savedCheckin.checkin_date || '').slice(0, 10)
     );
 
     if (idx >= 0) {
-      clientDailyCheckins[idx] = data;
+      clientDailyCheckins[idx] = savedCheckin;
     } else {
-      clientDailyCheckins.unshift(data);
+      clientDailyCheckins.unshift(savedCheckin);
     }
 
     showClientNotice(uiText('checkinSaved'), 'success');
-    
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = uiText('saveCheckin');
-    }
-    
+
     setTimeout(() => {
       const card = document.getElementById('dailyCheckinCard');
-      if (card) card.outerHTML = buildDailyCheckinHTML();
+
+      if (card) {
+        card.outerHTML = buildDailyCheckinHTML();
+      }
     }, 600);
 
+  } catch (err) {
+    console.error('Check-in RPC save error:', err);
 
-    } catch (err) {
-    console.error('Check-in save error:', err);
+    showClientNotice(
+      err?.message || uiText('checkinSaveError'),
+      'error'
+    );
 
+  } finally {
     if (btn) {
       btn.disabled = false;
       btn.textContent = uiText('saveCheckin');
     }
-
-    showClientNotice(
-      (err && err.message) ? err.message : uiText('checkinSaveError'),
-      'error'
-    );
   }
 }
 
