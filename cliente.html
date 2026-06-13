@@ -8814,9 +8814,13 @@ async function loadOrCreateTrainingLog(sessionId) {
 
       completed_block_ids: Array.from(completedTrainingBlocks),
 
-      is_finished:
-        remoteLog.is_finished === true ||
-        localProgress?.is_finished === true,
+      is_finished: remoteLog.is_finished === true,
+
+finished_at:
+  remoteLog.finished_at || null,
+
+completed_at:
+  remoteLog.completed_at || null,
 
       client_note:
         remoteLog.client_note ||
@@ -10668,16 +10672,18 @@ function renderTrainingCompletionBox(scroll){
   const localProgress = loadTrainingProgressLocal(currentSessionId);
 
   const dbLog = (clientSessionLogs || []).find(log =>
-    String(log.assignment_id) === String(clientTrainingAssignment?.id) &&
-    String(log.session_id) === String(currentSessionId) &&
-    (
-      log.is_finished === true ||
-      String(log.status || '').toLowerCase() === 'realizada' ||
-      String(log.status || '').toLowerCase() === 'completed' ||
-      Boolean(log.finished_at) ||
-      Boolean(log.completed_at)
-    )
-  );
+  String(log.assignment_id) ===
+    String(getCurrentTrainingAssignmentId()) &&
+  String(log.session_id) === String(currentSessionId) &&
+  (
+    log.is_finished === true ||
+    String(log.status || '').toLowerCase() === 'finished' ||
+    String(log.status || '').toLowerCase() === 'realizada' ||
+    String(log.status || '').toLowerCase() === 'completed' ||
+    Boolean(log.finished_at) ||
+    Boolean(log.completed_at)
+  )
+);
 
   const currentLogMatches =
     currentTrainingLog &&
@@ -10685,15 +10691,18 @@ function renderTrainingCompletionBox(scroll){
       ? currentTrainingLog
       : null;
 
-  const finishedSource =
-    localProgress?.is_finished === true
-      ? localProgress
-      : dbLog || currentLogMatches;
+  // Una sesión solo se considera terminada si la base lo confirma.
+const finishedSource =
+  currentLogMatches ||
+  dbLog ||
+  null;
 
   const alreadyFinished =
-    finishedSource?.is_finished === true ||
-    String(finishedSource?.status || '').toLowerCase() === 'finished' ||
-    Boolean(finishedSource?.finished_at);
+  finishedSource?.is_finished === true ||
+  String(finishedSource?.status || '').toLowerCase() ===
+    'finished' ||
+  Boolean(finishedSource?.finished_at) ||
+  Boolean(finishedSource?.completed_at);
 
   if(alreadyFinished){
     const finishedAt =
@@ -10770,7 +10779,7 @@ function renderTrainingCompletionBox(scroll){
         '</div>' +
 
         '<textarea class="training-notes-textarea" id="trainingFinishNote" placeholder="' + uiText('optionalCommentForAbel') + '"></textarea>' +
-        '<button class="training-complete-block-btn" onclick="finishTrainingSession()">' +
+        '<button type="button" class="training-complete-block-btn" onclick="void finishTrainingSession()">' +
           uiText('closeTraining') +
         '</button>' +
       '</div>' +
