@@ -5665,26 +5665,19 @@ function getTrainingStorageKey(sessionId) {
 }
 function isSessionFinished(sessionId) {
   if (!sessionId) return false;
+
   const sid = String(sessionId);
+  const assignmentId =
+    getCurrentTrainingAssignmentId();
 
-  const dbFinished = (clientSessionLogs || []).some(log =>
-    String(log.assignment_id) === String(clientTrainingAssignment?.id) &&
-    String(log.session_id) === sid &&
-    (
-      log.is_finished === true ||
-      String(log.status || '').toLowerCase() === 'finished' ||
-      Boolean(log.finished_at)
-    )
+  return (clientSessionLogs || []).some(log =>
+    String(log.assignment_id || '') ===
+      String(assignmentId || '') &&
+
+    String(log.session_id || '') === sid &&
+
+    isTrainingLogFinished(log)
   );
-
-  if (dbFinished) return true;
-
-  const key = getTrainingStorageKey(sid);
-  if (!key) return false;
-  try {
-    const r = localStorage.getItem(key);
-    return r ? JSON.parse(r)?.is_finished === true : false;
-  } catch { return false; }
 }
 
 function loadTrainingProgressLocal(sessionId) {
@@ -6032,15 +6025,11 @@ function getRelatedAssignmentIdsForActiveProgram() {
   );
 }
 
-function isFinishedTrainingLog(log) {
-  if (!log) return false;
-
+function getCurrentTrainingAssignmentId() {
   return (
-    log.is_finished === true ||
-    String(log.status || '').toLowerCase() === 'finished' ||
-    String(log.status || '').toLowerCase() === 'realizada' ||
-    String(log.status || '').toLowerCase() === 'completed' ||
-    Boolean(log.finished_at)
+    clientTrainingAssignment?.assignment_id ||
+    clientTrainingAssignment?.id ||
+    null
   );
 }
 
@@ -6054,11 +6043,15 @@ function isTrainingLogFinished(log) {
   return (
     log.is_finished === true ||
     status === 'finished' ||
-    status === 'realizada' ||
     status === 'completed' ||
     Boolean(log.finished_at) ||
     Boolean(log.completed_at)
   );
+}
+
+/* Compatibilidad con las funciones antiguas */
+function isFinishedTrainingLog(log) {
+  return isTrainingLogFinished(log);
 }
 
 function getTrainingLogComparableDate(log) {
@@ -6072,43 +6065,35 @@ function getTrainingLogComparableDate(log) {
 }
 
 /*
- * Historial general del cliente.
- * No depende del plan activo.
+ * Historial total del cliente.
+ * Incluye todos los planes y asignaciones.
  */
 function getFinishedTrainingLogsGeneral() {
-  return (clientSessionLogs || [])
-    .filter(log =>
-      log?.id &&
-      log?.program_id &&
-      log?.session_id &&
-      isTrainingLogFinished(log)
-    )
+  const uniqueLogs = new Map();
+
+  (clientSessionLogs || []).forEach(log => {
+    if (!log?.id || !isTrainingLogFinished(log)) return;
+
+    uniqueLogs.set(String(log.id), log);
+  });
+
+  return Array.from(uniqueLogs.values())
     .sort((a, b) =>
       String(getTrainingLogComparableDate(b))
-        .localeCompare(
-          String(getTrainingLogComparableDate(a))
-        )
+        .localeCompare(String(getTrainingLogComparableDate(a)))
     );
 }
 
 /*
- * Progreso exclusivo de la asignación actual.
+ * Solo la asignación actualmente activa.
  */
 function getFinishedTrainingLogsCurrentAssignment() {
-  const assignmentId =
-    typeof getCurrentTrainingAssignmentId === 'function'
-      ? getCurrentTrainingAssignmentId()
-      : (
-          clientTrainingAssignment?.assignment_id ||
-          clientTrainingAssignment?.id ||
-          null
-        );
+  const assignmentId = getCurrentTrainingAssignmentId();
 
   if (!assignmentId) return [];
 
   return getFinishedTrainingLogsGeneral().filter(log =>
-    String(log.assignment_id || '') ===
-    String(assignmentId)
+    String(log.assignment_id || '') === String(assignmentId)
   );
 }
 
@@ -6122,6 +6107,34 @@ function getLastFinishedTrainingDateGeneral() {
   return log
     ? getTrainingLogComparableDate(log)
     : null;
+}
+
+function logBelongsToActiveProgramHistory(log) {
+  if (!log) return false;
+
+  const programId = getActiveProgramId();
+  const relatedAssignmentIds =
+    getRelatedAssignmentIdsForActiveProgram();
+
+  const sameProgram =
+    programId &&
+    log.program_id &&
+    String(log.program_id) === String(programId);
+
+  const sameAssignment =
+    log.assignment_id &&
+    relatedAssignmentIds.has(String(log.assignment_id));
+
+  return sameProgram || sameAssignment;
+}
+
+/*
+ * Historial perteneciente al programa activo.
+ * Se mantiene para cálculos específicos del programa.
+ */
+function getFinishedTrainingLogsAllProgram() {
+  return getFinishedTrainingLogsGeneral()
+    .filter(log => logBelongsToActiveProgramHistory(log));
 }
 
 function logBelongsToActiveProgramHistory(log) {
@@ -6163,32 +6176,40 @@ function getFinishedTrainingLogsAllProgram() {
     });
 }
 
+/*
+ * Historial total del cliente.
+ * Incluye todos los programas y asignaciones.
+ * Elimina posibles registros duplicados por ID.
+ */
 function getFinishedTrainingLogsGeneral() {
-  return (clientSessionLogs || [])
-    .filter(log =>
-      isFinishedTrainingLog(log) &&
-      log?.program_id &&
-      log?.session_id
-    )
-    .sort((a, b) => {
-      const da = String(
-        a.finished_at ||
-        a.completed_at ||
-        a.training_date ||
-        a.updated_at ||
-        ''
-      );
+  const uniqueLogs = new Map();
 
-      const dbb = String(
-        b.finished_at ||
-        b.completed_at ||
-        b.training_date ||
-        b.updated_at ||
-        ''
-      );
+  (clientSessionLogs || []).forEach(log => {
+    if (!log?.id) return;
+    if (!log?.program_id) return;
+    if (!log?.session_id) return;
+    if (!isTrainingLogFinished(log)) return;
 
-      return dbb.localeCompare(da);
-    });
+    uniqueLogs.set(String(log.id), log);
+  });
+
+  return Array.from(uniqueLogs.values()).sort((a, b) =>
+    String(getTrainingLogComparableDate(b))
+      .localeCompare(String(getTrainingLogComparableDate(a)))
+  );
+}
+
+/*
+ * Historial perteneciente solamente a la asignación activa.
+ */
+function getFinishedTrainingLogsCurrentAssignment() {
+  const assignmentId = getCurrentTrainingAssignmentId();
+
+  if (!assignmentId) return [];
+
+  return getFinishedTrainingLogsGeneral().filter(log =>
+    String(log.assignment_id || '') === String(assignmentId)
+  );
 }
 
 function getLastFinishedTrainingLogGeneral() {
@@ -6199,14 +6220,49 @@ function getLastFinishedTrainingDateGeneral() {
   const log = getLastFinishedTrainingLogGeneral();
 
   return log
-    ? (
-        log.finished_at ||
-        log.completed_at ||
-        log.training_date ||
-        log.updated_at ||
-        null
-      )
+    ? getTrainingLogComparableDate(log)
     : null;
+}
+
+/*
+ * Determina si un registro pertenece al historial
+ * del programa que está activo actualmente.
+ */
+function logBelongsToActiveProgramHistory(log) {
+  if (!log) return false;
+
+  const programId = getActiveProgramId();
+  const relatedAssignmentIds =
+    getRelatedAssignmentIdsForActiveProgram();
+
+  const sameProgram =
+    programId &&
+    log.program_id &&
+    String(log.program_id) === String(programId);
+
+  const sameAssignment =
+    log.assignment_id &&
+    relatedAssignmentIds.has(String(log.assignment_id));
+
+  return Boolean(sameProgram || sameAssignment);
+}
+
+function getVisibleSessionIdSet() {
+  return new Set(
+    (clientTrainingSessions || [])
+      .map(session => String(session.id || ''))
+      .filter(Boolean)
+  );
+}
+
+/*
+ * Historial terminado que pertenece al programa activo,
+ * incluyendo sus asignaciones anteriores.
+ */
+function getFinishedTrainingLogsAllProgram() {
+  return getFinishedTrainingLogsGeneral().filter(log =>
+    logBelongsToActiveProgramHistory(log)
+  );
 }
 
 function getAssignmentScopeLabel() {
@@ -6835,7 +6891,7 @@ clientSessionLogs = Array.isArray(trainingLogsData)
 
 function renderMinimalRpcDashboard(planJson, renderErr) {
   const home = document.getElementById('sectionHome');
-  const training = document.getElementById('sectionTraining');
+  const training = document.getElementById('sectionTrainingClient');
   const programName = planJson?.program?.name || clientTrainingProgram?.name || clientData?.plan || 'Programa activo';
   const weekNumber = planJson?.week?.week_number || clientTrainingWeeks?.[0]?.week_number || 1;
   const sessionsCount = Array.isArray(planJson?.sessions) ? planJson.sessions.length : (clientTrainingSessions || []).length;
@@ -6893,8 +6949,6 @@ async function renderDashboard() {
   }
   
   injectAvatarInHeader();
-
-injectAvatarInHeader();
 
 // Logo en cada cabecera de sección
 document.querySelectorAll('.section-header').forEach(el => {
@@ -7783,49 +7837,29 @@ function buildMicroBars(data,color,w,h){const gap=3,n=data.length;const bw=(w-ga
 function buildMicroSpline(data,color,w,h){const min=Math.min(...data),max=Math.max(...data),range=max-min||1;const pad=4;const pts=data.map((v,i)=>({x:(i/(data.length-1))*w,y:pad+((max-v)/range)*(h-pad*2)}));let d=`M${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;for(let i=0;i<pts.length-1;i++){const cp=(pts[i].x+pts[i+1].x)/2;d+=` C${cp.toFixed(1)} ${pts[i].y.toFixed(1)} ${cp.toFixed(1)} ${pts[i+1].y.toFixed(1)} ${pts[i+1].x.toFixed(1)} ${pts[i+1].y.toFixed(1)}`;}const last=pts[pts.length-1];return`<path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/><circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3" fill="${color}"/>`;}
 function buildMicroDots(data,color,w,h){const cols=10,rows=Math.ceil(data.length/cols);const ds=Math.min((w-3*(cols-1))/cols,(h-3*(rows-1))/rows);return data.slice(0,cols*rows).map((on,idx)=>{const col=idx%cols,row=Math.floor(idx/cols);const cx=col*(ds+3)+ds/2,cy=row*(ds+3)+ds/2;return`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(ds/2).toFixed(1)}" fill="${on?color:'var(--divider)'}" opacity="${on?1:.5}"/>`;}).join('');}
 function clampPercent(n){return Math.max(0,Math.min(100,Math.round(Number(n||0))));}
-function getFinishedTrainingSessionIds(){
-  if(!clientData || !clientTrainingProgram) return new Set();
+function getFinishedTrainingSessionIds() {
+  if (!clientData || !clientTrainingProgram) {
+    return new Set();
+  }
 
   const finished = new Set();
-  const visibleSessionIds = getVisibleSessionIdSet();
+  const visibleSessionIds =
+    getVisibleSessionIdSet();
 
-  // 1) Progreso real guardado en Supabase.
-  // Cuenta solo las sesiones visibles de la semana actual,
-  // pero permite que el log venga de una asignación anterior del mismo programa.
   (clientSessionLogs || [])
     .filter(log =>
-      isFinishedTrainingLog(log) &&
+      isTrainingLogFinished(log) &&
       logBelongsToActiveProgramHistory(log) &&
       log.session_id &&
-      visibleSessionIds.has(String(log.session_id))
+      visibleSessionIds.has(
+        String(log.session_id)
+      )
     )
     .forEach(log => {
-      finished.add(String(log.session_id));
+      finished.add(
+        String(log.session_id)
+      );
     });
-
-  // 2) Respaldo local del navegador para la asignación activa.
-  const prefix = ['ab_tp', clientData.id, clientTrainingAssignment?.id].join('_');
-
-  try{
-    for(let i = 0; i < localStorage.length; i++){
-      const key = localStorage.key(i);
-
-      if(!key || !key.startsWith(prefix)) continue;
-
-      const raw = localStorage.getItem(key);
-      if(!raw) continue;
-
-      const d = JSON.parse(raw);
-
-      if(
-        d?.is_finished === true &&
-        d?.session_id &&
-        visibleSessionIds.has(String(d.session_id))
-      ){
-        finished.add(String(d.session_id));
-      }
-    }
-  }catch{}
 
   return finished;
 }
@@ -7926,9 +7960,10 @@ function buildHomeProgressRings(){
   const totalSessions = progressStats.totalSessions || 0;
   const planPct = progressStats.percent;
 
-  const historicalLogs = getFinishedTrainingLogsAllProgram();
-  const historicalFinishedCount = historicalLogs.length;
-  const lastFinishedDate = getLastFinishedTrainingDate();
+  const historicalLogs = getFinishedTrainingLogsGeneral();
+const historicalFinishedCount = historicalLogs.length;
+const lastFinishedDate =
+  getLastFinishedTrainingDateGeneral();
 
   const healthState = getHealthHomeState();
 
@@ -8186,50 +8221,7 @@ function daysBetweenISO(fromISO, toISO) {
 }
 
 function getLastFinishedTrainingDate() {
-  let dates = [];
-
-  // Historial real del programa, aunque venga de asignaciones anteriores.
-  getFinishedTrainingLogsAllProgram().forEach(log => {
-    const d =
-      log.training_date ||
-      String(log.finished_at || '').slice(0, 10) ||
-      String(log.completed_at || '').slice(0, 10) ||
-      String(log.updated_at || '').slice(0, 10);
-
-    if (d) dates.push(String(d).slice(0, 10));
-  });
-
-  // Respaldo local solo de la asignación activa.
-  if (clientData && clientTrainingAssignment) {
-    const prefix = ['ab_tp', clientData.id, clientTrainingAssignment.id].join('_');
-
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-
-        if (!key || !key.startsWith(prefix)) continue;
-
-        const raw = localStorage.getItem(key);
-        if (!raw) continue;
-
-        const data = JSON.parse(raw);
-
-        if (data?.is_finished === true) {
-          const d =
-            String(data.finished_at || '').slice(0, 10) ||
-            String(data.updated_at || '').slice(0, 10);
-
-          if (d) dates.push(d);
-        }
-      }
-    } catch {}
-  }
-
-  dates = dates
-    .filter(Boolean)
-    .sort((a, b) => String(b).localeCompare(String(a)));
-
-  return dates[0] || null;
+  return getLastFinishedTrainingDateGeneral();
 }
 
 function buildInactivityNoticeCard() {
@@ -9062,9 +9054,8 @@ async function saveTrainingProgress(extra, sessionId) {
     : [];
 
   const isFinished =
-    currentTrainingLog.is_finished === true ||
-    local.is_finished === true ||
-    extra?.is_finished === true;
+  isTrainingLogFinished(currentTrainingLog) ||
+  extra?.is_finished === true;
 
   const feedbackTags = Array.isArray(extra?.client_feedback_tags)
     ? extra.client_feedback_tags
@@ -10886,28 +10877,33 @@ function renderTrainingCompletionBox(scroll){
   const localProgress = loadTrainingProgressLocal(currentSessionId);
 
   const dbLog = (clientSessionLogs || []).find(log =>
-  String(log.assignment_id) ===
-    String(getCurrentTrainingAssignmentId()) &&
-  String(log.session_id) === String(currentSessionId) &&
-  (
-    log.is_finished === true ||
-    String(log.status || '').toLowerCase() === 'finished' ||
-    String(log.status || '').toLowerCase() === 'realizada' ||
-    String(log.status || '').toLowerCase() === 'completed' ||
-    Boolean(log.finished_at) ||
-    Boolean(log.completed_at)
-  )
-);
+  String(log.assignment_id || '') ===
+    String(getCurrentTrainingAssignmentId() || '') &&
 
-  const currentLogMatches =
-    currentTrainingLog &&
-    String(currentTrainingLog.session_id) === String(currentSessionId)
-      ? currentTrainingLog
-      : null;
+  String(log.session_id || '') ===
+    String(currentSessionId) &&
 
-  // Una sesión solo se considera terminada si la base lo confirma.
+  isTrainingLogFinished(log)
+) || null;
+
+const currentLogMatches =
+  currentTrainingLog &&
+  String(currentTrainingLog.session_id || '') ===
+    String(currentSessionId)
+    ? currentTrainingLog
+    : null;
+
+/*
+ * Solo utilizar registros cuya finalización haya sido
+ * confirmada realmente por Supabase.
+ */
 const finishedSource =
-  currentLogMatches ||
+  (
+    currentLogMatches &&
+    isTrainingLogFinished(currentLogMatches)
+      ? currentLogMatches
+      : null
+  ) ||
   dbLog ||
   null;
 
@@ -11057,24 +11053,28 @@ if(!currentSessionId){
     .map(t => feedbackText(t))
     .join(' · ');
 
-  saveTrainingProgressLocal({
-    is_finished: true,
-    finished_at: new Date().toISOString(),
-    
-    client_note: note,
-    client_feedback_tags: checkedTags,
-    client_feedback_summary: feedbackSummary
-  }, currentSessionId);
+  const savedLog = await saveTrainingProgress({
+  is_finished: true,
+  status: 'finished',
+  finished_at: new Date().toISOString(),
+  completed_at: null,
+  client_note: note || null,
+  client_feedback_tags: checkedTags,
+  client_feedback_summary:
+    feedbackSummary || null
+}, currentSessionId);
 
-  await saveTrainingProgress({
-    is_finished: true,
-    status: 'finished',
-    finished_at: new Date().toISOString(),
-    completed_at: null,
-    client_note: note || null,
-    client_feedback_tags: checkedTags,
-    client_feedback_summary: feedbackSummary || null
-  }, currentSessionId);
+if (
+  !savedLog ||
+  !isTrainingLogFinished(savedLog)
+) {
+  showClientNotice(
+    'No se pudo confirmar el cierre del entrenamiento.',
+    'error'
+  );
+
+  return;
+}
 
 
   const nextSessionId = getNextSessionId(currentSessionId);
@@ -11218,18 +11218,33 @@ function getWeekNameFromLog(log){
     : tClient('week');
 }
 
-function buildProgressTrainingSummary(){
-  const activeProgramFinishedLogs =
-  getFinishedTrainingLogsGeneral();
+function buildProgressTrainingSummary() {
+  const generalFinishedLogs =
+    getFinishedTrainingLogsGeneral();
 
-const generalFinishedLogs =
-  getFinishedTrainingLogsGeneral();
-  const progressStats = getTrainingProgressStats();
-  const totalSessions = progressStats.totalSessions;
-  const finishedCount = progressStats.finishedSessions;
-  const percent = progressStats.percent;
-  const historicalFinishedCount = finishedLogs.length;
-  const latestLog = finishedLogs[0] || null;
+  const progressStats =
+    getTrainingProgressStats();
+
+  const totalSessions =
+    progressStats.totalSessions;
+
+  const finishedCount =
+    progressStats.finishedSessions;
+
+  const percent =
+    progressStats.percent;
+
+  const historicalFinishedCount =
+    generalFinishedLogs.length;
+
+  const latestLog =
+    generalFinishedLogs[0] || null;
+
+  const latestLogDate =
+    latestLog
+      ? getTrainingLogComparableDate(latestLog)
+      : null;
+
   const lang = getLang();
 
   let html = '';
@@ -11277,9 +11292,9 @@ const generalFinishedLogs =
         '</span>' +
         (latestLog ? '<span class="badge badge-green">' + uiText('completed') + '</span>' : '') +
       '</div>' +
-      (latestLog?.training_date
+      (latestLogDate
         ? '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">' +
-            uiText('registered') + ': ' + formatDate(latestLog.training_date) +
+            uiText('registered') + ': ' + formatDate(String(latestLogDate).slice(0, 10)) +
           '</div>'
         : '<div class="dc-note">' + uiText('whenCloseSession') + '</div>') +
     '</div>';
@@ -11301,14 +11316,14 @@ const generalFinishedLogs =
     '</div>';
 
   // ── Actividad reciente ──
-  if (finishedLogs.length) {
+  if (generalFinishedLogs.length) {
     html +=
       '<div style="margin:16px 0 10px;font-family:var(--font-mono);font-size:10px;' +
       'letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
         uiText('recentActivity') +
       '</div>';
 
-    html += finishedLogs.slice(0, 5).map(log => (
+    html += generalFinishedLogs.slice(0, 5).map(log => (
       '<div class="data-card">' +
         '<div class="dc-row">' +
           '<span class="dc-title" style="font-size:14px;">' + getSessionNameFromLog(log) + '</span>' +
@@ -11316,7 +11331,9 @@ const generalFinishedLogs =
         '</div>' +
         '<div class="dc-row">' +
           '<span class="dc-sub">' + getWeekNameFromLog(log) + '</span>' +
-          '<span class="dc-sub">' + formatDate(log.training_date) + '</span>' +
+          '<span class="dc-sub">' + formatDate(
+  String(getTrainingLogComparableDate(log)).slice(0, 10)
+) + '</span>' +
         '</div>' +
         (log.client_feedback_summary
           ? '<div class="dc-note">' + log.client_feedback_summary + '</div>'
