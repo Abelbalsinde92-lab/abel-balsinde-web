@@ -6044,6 +6044,86 @@ function isFinishedTrainingLog(log) {
   );
 }
 
+function isTrainingLogFinished(log) {
+  if (!log) return false;
+
+  const status = String(log.status || '')
+    .trim()
+    .toLowerCase();
+
+  return (
+    log.is_finished === true ||
+    status === 'finished' ||
+    status === 'realizada' ||
+    status === 'completed' ||
+    Boolean(log.finished_at) ||
+    Boolean(log.completed_at)
+  );
+}
+
+function getTrainingLogComparableDate(log) {
+  return (
+    log?.finished_at ||
+    log?.completed_at ||
+    log?.training_date ||
+    log?.updated_at ||
+    ''
+  );
+}
+
+/*
+ * Historial general del cliente.
+ * No depende del plan activo.
+ */
+function getFinishedTrainingLogsGeneral() {
+  return (clientSessionLogs || [])
+    .filter(log =>
+      log?.id &&
+      log?.program_id &&
+      log?.session_id &&
+      isTrainingLogFinished(log)
+    )
+    .sort((a, b) =>
+      String(getTrainingLogComparableDate(b))
+        .localeCompare(
+          String(getTrainingLogComparableDate(a))
+        )
+    );
+}
+
+/*
+ * Progreso exclusivo de la asignación actual.
+ */
+function getFinishedTrainingLogsCurrentAssignment() {
+  const assignmentId =
+    typeof getCurrentTrainingAssignmentId === 'function'
+      ? getCurrentTrainingAssignmentId()
+      : (
+          clientTrainingAssignment?.assignment_id ||
+          clientTrainingAssignment?.id ||
+          null
+        );
+
+  if (!assignmentId) return [];
+
+  return getFinishedTrainingLogsGeneral().filter(log =>
+    String(log.assignment_id || '') ===
+    String(assignmentId)
+  );
+}
+
+function getLastFinishedTrainingLogGeneral() {
+  return getFinishedTrainingLogsGeneral()[0] || null;
+}
+
+function getLastFinishedTrainingDateGeneral() {
+  const log = getLastFinishedTrainingLogGeneral();
+
+  return log
+    ? getTrainingLogComparableDate(log)
+    : null;
+}
+
 function logBelongsToActiveProgramHistory(log) {
   if (!log) return false;
 
@@ -6081,6 +6161,52 @@ function getFinishedTrainingLogsAllProgram() {
       const dbb = String(b.training_date || b.finished_at || b.updated_at || '');
       return dbb.localeCompare(da);
     });
+}
+
+function getFinishedTrainingLogsGeneral() {
+  return (clientSessionLogs || [])
+    .filter(log =>
+      isFinishedTrainingLog(log) &&
+      log?.program_id &&
+      log?.session_id
+    )
+    .sort((a, b) => {
+      const da = String(
+        a.finished_at ||
+        a.completed_at ||
+        a.training_date ||
+        a.updated_at ||
+        ''
+      );
+
+      const dbb = String(
+        b.finished_at ||
+        b.completed_at ||
+        b.training_date ||
+        b.updated_at ||
+        ''
+      );
+
+      return dbb.localeCompare(da);
+    });
+}
+
+function getLastFinishedTrainingLogGeneral() {
+  return getFinishedTrainingLogsGeneral()[0] || null;
+}
+
+function getLastFinishedTrainingDateGeneral() {
+  const log = getLastFinishedTrainingLogGeneral();
+
+  return log
+    ? (
+        log.finished_at ||
+        log.completed_at ||
+        log.training_date ||
+        log.updated_at ||
+        null
+      )
+    : null;
 }
 
 function getAssignmentScopeLabel() {
@@ -11093,7 +11219,11 @@ function getWeekNameFromLog(log){
 }
 
 function buildProgressTrainingSummary(){
-  const finishedLogs = getFinishedTrainingLogsAllProgram();
+  const activeProgramFinishedLogs =
+  getFinishedTrainingLogsGeneral();
+
+const generalFinishedLogs =
+  getFinishedTrainingLogsGeneral();
   const progressStats = getTrainingProgressStats();
   const totalSessions = progressStats.totalSessions;
   const finishedCount = progressStats.finishedSessions;
