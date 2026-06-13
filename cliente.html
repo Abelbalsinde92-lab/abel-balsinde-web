@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AB SYSTEM — Área Cliente · RPC 07</title>
+  <title>AB SYSTEM — Área Cliente · RPC 08</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json?v=20260522-01">
 <link rel="icon" href="/favicon-32.png?v=20260522-01" type="image/png">
@@ -6225,7 +6225,7 @@ async function loginClient() {
     const direct = await db.rpc('ab_client_login_by_phone_code', {
       p_phone: phone,
       p_access_code: code,
-      p_user_agent: navigator.userAgent || 'cliente-html-rpc-04'
+      p_user_agent: navigator.userAgent || 'cliente-html-rpc-08'
     });
 
     if (direct.error) {
@@ -6247,7 +6247,7 @@ async function loginClient() {
       const loginResp = await db.rpc('ab_client_login', {
         p_client_id: found.id,
         p_access_code: code,
-        p_user_agent: navigator.userAgent || 'cliente-html-rpc-04-fallback'
+        p_user_agent: navigator.userAgent || 'cliente-html-rpc-08-fallback'
       });
       loginData = loginResp.data;
       loginError = loginResp.error;
@@ -6535,6 +6535,43 @@ async function loadClientDashboard(sessionToken) {
       checkinsR = { data: [], error: checkinsErr };
     }
     
+    // Historial de entrenamientos mediante sesión segura.
+// Se utiliza para progreso, constancia y sesiones ya completadas.
+let trainingLogsR = { data: [], error: null };
+
+try {
+  trainingLogsR = await rpcTimeout(
+    db.rpc('ab_client_session_get_training_logs', {
+      p_session_token: token,
+      p_limit: 200
+    }),
+    'historial de entrenamientos'
+  );
+
+  if (trainingLogsR.error) {
+    console.warn(
+      'Training logs RPC:',
+      trainingLogsR.error
+    );
+
+    trainingLogsR = {
+      data: [],
+      error: trainingLogsR.error
+    };
+  }
+
+} catch (trainingLogsErr) {
+  console.warn(
+    'Training logs RPC no disponible:',
+    trainingLogsErr
+  );
+
+  trainingLogsR = {
+    data: [],
+    error: trainingLogsErr
+  };
+}
+    
     const profile = profileR.data || {};
     const dash = dashboardR.data || {};
 
@@ -6611,7 +6648,24 @@ async function loadClientDashboard(sessionToken) {
     clientAssessments = [];
     clientInternalAssessments = [];
     clientAssessmentResults = [];
-    clientSessionLogs = [];
+    let trainingLogsData = trainingLogsR.data;
+
+if (typeof trainingLogsData === 'string') {
+  try {
+    trainingLogsData = JSON.parse(trainingLogsData);
+  } catch (parseError) {
+    console.error(
+      'No se pudo interpretar el historial de entrenamientos:',
+      parseError
+    );
+
+    trainingLogsData = [];
+  }
+}
+
+clientSessionLogs = Array.isArray(trainingLogsData)
+  ? trainingLogsData
+  : [];
         
     clientDailyCheckins = Array.isArray(checkinsR.data)
       ? checkinsR.data
@@ -8156,7 +8210,7 @@ function renderHome() {
   const badge = document.getElementById('homeBadge');
   if (!el || !clientData) return;
 
-  if (badge) badge.textContent = uiText('today') + ' · cliente-rpc-03';
+  if (badge) badge.textContent = uiText('today');
 
   const fallbackName = getLang()==='sr' ? 'klijent' : getLang()==='en' ? 'client' : 'cliente';
 const firstName = String(clientData.name || fallbackName).split(' ')[0] || fallbackName;
@@ -8959,9 +9013,43 @@ async function saveTrainingProgress(extra, sessionId) {
     }
 
     currentTrainingLog = savedLog;
-    completedTrainingBlocks = new Set(
-      savedLog.completed_block_ids || []
-    );
+
+completedTrainingBlocks = new Set(
+  savedLog.completed_block_ids || []
+);
+
+/*
+ * Mantener sincronizado el historial cargado en memoria.
+ * Así Progreso, Constancia y sesiones completadas pueden
+ * actualizarse sin tener que cerrar sesión o recargar.
+ */
+const savedLogIndex = clientSessionLogs.findIndex(log =>
+  String(log.id) === String(savedLog.id)
+);
+
+if (savedLogIndex >= 0) {
+  clientSessionLogs[savedLogIndex] = savedLog;
+} else {
+  clientSessionLogs.unshift(savedLog);
+}
+
+clientSessionLogs.sort((a, b) => {
+  const dateA = String(
+    a.training_date ||
+    a.finished_at ||
+    a.updated_at ||
+    ''
+  );
+
+  const dateB = String(
+    b.training_date ||
+    b.finished_at ||
+    b.updated_at ||
+    ''
+  );
+
+  return dateB.localeCompare(dateA);
+});
 
     saveTrainingProgressLocal(currentTrainingLog, sid);
 
