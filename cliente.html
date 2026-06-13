@@ -8724,14 +8724,27 @@ function tClient(key) {
 }
 
 /* ══ TRAINING ══ */
-function getSessionDayLabel(session,index){
-  const num = Number(session.session_number || index + 1);
+function getSessionDayLabel(session, index) {
+  const num = Number(
+    session.session_number ||
+    session.order_index ||
+    index + 1
+  );
 
-  if(num === 1) return tClient('dayA');
-  if(num === 2) return tClient('dayB');
-  if(num === 3) return tClient('dayC');
+  const letters = [
+    'A', 'B', 'C', 'D', 'E', 'F', 'G'
+  ];
 
-  return tClient('day') + ' ' + num;
+  const prefix =
+    getLang() === 'sr'
+      ? 'Dan'
+      : getLang() === 'en'
+        ? 'Day'
+        : 'Día';
+
+  const label = letters[num - 1] || String(num);
+
+  return prefix + ' ' + label;
 }
 
 function getSessionDisplayTitle(session,index){
