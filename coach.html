@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 14 ASSESSMENT ASYNC NAV</title>
+<title>AB SYSTEM — Coach Panel · RPC 15 ASSESSMENT RESULTS TABLE</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -1207,6 +1207,95 @@ a{text-decoration:none;color:inherit}
 #eval-content,
 #modal-eval-content {
   padding: 16px 20px 80px;
+}
+
+
+/* Tabla persistente de resultados de evaluación */
+.assessment-results-head {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 14px 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--border);
+}
+.assessment-results-stat {
+  min-width: 0;
+  padding: 12px 10px;
+  background: var(--bg-secondary);
+}
+.assessment-results-stat-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.assessment-results-stat-value {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.assessment-results-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+}
+.assessment-results-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+}
+.assessment-results-table th {
+  padding: 10px 11px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,.02);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.assessment-results-table td {
+  padding: 11px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-primary);
+  vertical-align: top;
+}
+.assessment-results-table tr:last-child td { border-bottom: 0; }
+.assessment-results-test-name { font-weight: 800; line-height: 1.3; }
+.assessment-results-test-code {
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-secondary);
+}
+.assessment-results-primary {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--sport);
+  white-space: nowrap;
+}
+.assessment-results-muted { color: var(--text-secondary); }
+.assessment-results-note {
+  margin-top: 5px;
+  max-width: 260px;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+@media (max-width: 420px) {
+  .assessment-results-head { grid-template-columns: repeat(2, minmax(0,1fr)); }
 }
 
 /* Header */
@@ -4899,6 +4988,322 @@ function buildClientMetricsCard(client){
     </div>`;
 }
 
+
+function getClientAssessmentsForResults(clientId){
+  return (Array.isArray(state.assessments) ? state.assessments : [])
+    .filter(row => String(row.clientId || row.client_id || '') === String(clientId || ''))
+    .sort((a,b) => {
+      const da = String(a.assessmentDate || a.assessment_date || a.updatedAt || a.updated_at || a.createdAt || a.created_at || '');
+      const dbb = String(b.assessmentDate || b.assessment_date || b.updatedAt || b.updated_at || b.createdAt || b.created_at || '');
+      return dbb.localeCompare(da);
+    });
+}
+
+function assessmentStatusView(statusRaw){
+  const key = String(statusRaw || 'en_progreso').toLowerCase().trim();
+
+  if(key === 'completado' || key === 'completed'){
+    return { label:'Completada', color:'var(--streak)', bg:'rgba(0,230,118,.10)' };
+  }
+
+  if(key === 'pendiente_resultados' || key === 'pending_results'){
+    return { label:'Pendiente resultados', color:'var(--warn)', bg:'rgba(255,179,64,.12)' };
+  }
+
+  if(key === 'en_progreso' || key === 'in_progress'){
+    return { label:'En progreso', color:'var(--sport)', bg:'rgba(0,200,232,.10)' };
+  }
+
+  return {
+    label:key.replace(/_/g,' ') || 'Sin estado',
+    color:'var(--text-2)',
+    bg:'rgba(255,255,255,.05)'
+  };
+}
+
+function assessmentResultReadableName(row){
+  const direct = String(
+    row?.itemName ||
+    row?.item_name ||
+    row?.exerciseName ||
+    row?.exercise_name ||
+    row?.itemCode ||
+    row?.item_code ||
+    'Prueba'
+  ).trim();
+
+  if(row?.itemName || row?.item_name) return direct;
+
+  return direct
+    .replace(/[_-]+/g,' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function assessmentResultCode(row){
+  return String(
+    row?.itemCode ||
+    row?.item_code ||
+    row?.exerciseName ||
+    row?.exercise_name ||
+    ''
+  ).trim();
+}
+
+function assessmentResultPrimaryValue(row){
+  const load = row?.loadKg ?? row?.load_kg;
+  const reps = row?.reps;
+  const seconds = row?.timeSeconds ?? row?.time_seconds;
+  const distance = row?.distanceMeters ?? row?.distance_meters;
+  const numeric = row?.valueNumeric ?? row?.value_numeric;
+  const textValue = row?.resultValue ?? row?.result_value ?? row?.valueText ?? row?.value_text;
+  const unit = String(row?.unit || '').trim();
+
+  if(load !== null && load !== undefined && load !== '' && reps !== null && reps !== undefined && reps !== ''){
+    return `${formatMetricNumber(load)} kg × ${formatMetricNumber(reps)} reps`;
+  }
+
+  if(load !== null && load !== undefined && load !== ''){
+    return `${formatMetricNumber(load)} kg`;
+  }
+
+  if(seconds !== null && seconds !== undefined && seconds !== ''){
+    return `${formatMetricNumber(seconds)} s`;
+  }
+
+  if(distance !== null && distance !== undefined && distance !== ''){
+    return `${formatMetricNumber(distance)} m`;
+  }
+
+  if(numeric !== null && numeric !== undefined && numeric !== ''){
+    return `${formatMetricNumber(numeric)}${unit ? ' ' + unit : ''}`;
+  }
+
+  return String(textValue || '—');
+}
+
+function assessmentResultNote(row){
+  return String(
+    row?.coachNotes ||
+    row?.coach_notes ||
+    row?.notes ||
+    row?.note ||
+    ''
+  ).trim();
+}
+
+function buildClientAssessmentsCard(client){
+  const rows = getClientAssessmentsForResults(client.id);
+  const visible = rows.slice(0,5);
+
+  return `
+    <div class="card" style="padding:0;margin-bottom:14px;overflow:hidden">
+      <div style="padding:13px 14px;border-bottom:1px solid var(--divider);display:flex;align-items:center;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;font-size:.92rem">Evaluaciones y resultados</div>
+          <div style="font-family:var(--font-m);font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin-top:2px">
+            ${rows.length ? `${rows.length} evaluación${rows.length===1?'':'es'}` : 'Sin evaluaciones'}
+          </div>
+        </div>
+        <button class="btn btn-p btn-sm" onclick="openEvalModal('${client.id}','${esc(client.name)}',null,null)">+ Nueva</button>
+      </div>
+
+      ${visible.length ? visible.map(row => {
+        const status = assessmentStatusView(row.status);
+        const date = row.assessmentDate || row.assessment_date;
+        const name = row.assessmentName || row.assessment_name || 'Evaluación';
+
+        return `
+          <button type="button"
+            onclick="openAssessmentResultsModal('${row.id}')"
+            style="width:100%;border:0;border-bottom:1px solid var(--divider);background:var(--card);padding:12px 14px;display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:750;font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(name)}</div>
+              <div style="font-size:.62rem;color:var(--text-2);margin-top:3px">${formatDate(date)}</div>
+            </div>
+            <span style="font-family:var(--font-m);font-size:.48rem;padding:4px 7px;border-radius:6px;background:${status.bg};color:${status.color};white-space:nowrap">${esc(status.label)}</span>
+            <span style="color:var(--sport);font-size:1rem">›</span>
+          </button>`;
+      }).join('') : `
+        <div style="padding:16px 14px;color:var(--text-2);font-size:.78rem">
+          Todavía no hay evaluaciones registradas para este cliente.
+        </div>`}
+
+      ${rows.length > visible.length ? `
+        <button type="button" class="btn btn-b btn-wide" style="border-radius:0;border-width:1px 0 0;margin:0" onclick="go('eval')">
+          Ver todas las evaluaciones
+        </button>` : ''}
+    </div>`;
+}
+
+function renderAssessmentResultsTable(assessment, results){
+  const el = document.getElementById('modal-eval-content');
+  if(!el) return;
+
+  const client = clientById(assessment?.clientId || assessment?.client_id);
+  const status = assessmentStatusView(assessment?.status);
+  const assessmentName = assessment?.assessmentName || assessment?.assessment_name || 'Evaluación';
+  const assessmentDate = assessment?.assessmentDate || assessment?.assessment_date;
+  const completed = results.filter(row => String(row.resultStatus || row.result_status || 'completed').toLowerCase() === 'completed').length;
+  const strengthRows = results.filter(row => {
+    const oneRm = row.estimated1rmKg ?? row.estimated_1rm_kg;
+    const tm = row.trainingMaxKg ?? row.training_max_kg;
+    return oneRm !== null && oneRm !== undefined || tm !== null && tm !== undefined;
+  }).length;
+
+  el.innerHTML = `
+    <div style="padding:4px 0 70px">
+      <div class="eval-header">
+        <div class="eval-client">${escHTML(client?.name || 'Cliente')}</div>
+        <div class="eval-subtitle">${escHTML(assessmentName)}</div>
+        <div class="eval-meta">${formatDate(assessmentDate)}</div>
+      </div>
+
+      <div class="assessment-results-head">
+        <div class="assessment-results-stat">
+          <div class="assessment-results-stat-label">Resultados</div>
+          <div class="assessment-results-stat-value">${results.length}</div>
+        </div>
+        <div class="assessment-results-stat">
+          <div class="assessment-results-stat-label">Completados</div>
+          <div class="assessment-results-stat-value">${completed}</div>
+        </div>
+        <div class="assessment-results-stat">
+          <div class="assessment-results-stat-label">Con cálculo 1RM</div>
+          <div class="assessment-results-stat-value">${strengthRows}</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px">
+        <span style="font-family:var(--font-m);font-size:.52rem;padding:5px 8px;border-radius:6px;background:${status.bg};color:${status.color}">${escHTML(status.label)}</span>
+        <span style="font-family:var(--font-m);font-size:.5rem;color:var(--text-secondary)">Desliza la tabla →</span>
+      </div>
+
+      ${results.length ? `
+        <div class="assessment-results-table-wrap">
+          <table class="assessment-results-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Prueba</th>
+                <th>Resultado</th>
+                <th>RPE</th>
+                <th>Dolor</th>
+                <th>Técnica</th>
+                <th>1RM est.</th>
+                <th>Training max</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${results.map((row,index) => {
+                const oneRm = row.estimated1rmKg ?? row.estimated_1rm_kg;
+                const tm = row.trainingMaxKg ?? row.training_max_kg;
+                const rpe = row.rpe;
+                const pain = row.painLevel ?? row.pain_level;
+                const technique = row.techniqueQuality ?? row.technique_quality;
+                const rowStatus = String(row.resultStatus || row.result_status || 'completed').replace(/_/g,' ');
+                const note = assessmentResultNote(row);
+                const code = assessmentResultCode(row);
+
+                return `
+                  <tr>
+                    <td class="assessment-results-muted">${index + 1}</td>
+                    <td>
+                      <div class="assessment-results-test-name">${escHTML(assessmentResultReadableName(row))}</div>
+                      ${code ? `<div class="assessment-results-test-code">${escHTML(code)}</div>` : ''}
+                      ${note ? `<div class="assessment-results-note">${escHTML(note)}</div>` : ''}
+                    </td>
+                    <td><span class="assessment-results-primary">${escHTML(assessmentResultPrimaryValue(row))}</span></td>
+                    <td>${rpe !== null && rpe !== undefined && rpe !== '' ? escHTML(String(rpe)) : '<span class="assessment-results-muted">—</span>'}</td>
+                    <td>${pain !== null && pain !== undefined && pain !== '' ? escHTML(String(pain)) : '<span class="assessment-results-muted">—</span>'}</td>
+                    <td>${technique ? escHTML(String(technique)) : '<span class="assessment-results-muted">—</span>'}</td>
+                    <td>${oneRm !== null && oneRm !== undefined ? `${escHTML(formatMetricNumber(oneRm))} kg` : '<span class="assessment-results-muted">—</span>'}</td>
+                    <td>${tm !== null && tm !== undefined ? `${escHTML(formatMetricNumber(tm))} kg` : '<span class="assessment-results-muted">—</span>'}</td>
+                    <td>${escHTML(rowStatus)}</td>
+                  </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>` : `
+        <div class="empty" style="margin-top:10px">
+          Esta evaluación todavía no tiene resultados guardados.
+        </div>`}
+
+      <div style="display:flex;gap:8px;margin-top:14px">
+        ${client ? `<button class="btn btn-b btn-wide" onclick="closeEvalModal();openProfile('${client.id}')">Volver al perfil</button>` : ''}
+        <button class="btn btn-p btn-wide" onclick="closeEvalModal()">Cerrar</button>
+      </div>
+    </div>`;
+}
+
+async function openAssessmentResultsModal(assessmentId){
+  const assessment = (Array.isArray(state.assessments) ? state.assessments : [])
+    .find(row => String(row.id) === String(assessmentId));
+
+  if(!assessment){
+    showToast('Evaluación no encontrada','err');
+    return;
+  }
+
+  stopEvalTimer();
+
+  const modal = document.getElementById('modal-evaluacion');
+  const title = modal?.querySelector('.eval-modal-title');
+  const el = document.getElementById('modal-eval-content');
+
+  if(title) title.textContent = 'Resultados de evaluación';
+  if(modal) modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  if(el){
+    el.innerHTML = '<div style="padding:20px"><div class="eval-loading">Cargando tabla de resultados...</div></div>';
+  }
+
+  const token = getCoachSessionTokenSafe();
+
+  if(!token){
+    showToast('Sesión del coach no válida','err');
+    if(el) el.innerHTML = '<div class="empty">La sesión del coach no es válida.</div>';
+    return;
+  }
+
+  try{
+    const {data,error} = await db.rpc(
+      'ab_coach_session_get_assessment_results',
+      {
+        p_session_token: token,
+        p_assessment_id: assessment.id,
+        p_limit: 500
+      }
+    );
+
+    if(error) throw error;
+
+    const rows = mapArr(Array.isArray(data) ? data : []);
+    renderAssessmentResultsTable(assessment, rows);
+
+  }catch(error){
+    console.error('ab_coach_session_get_assessment_results table error:', {
+      assessmentId,
+      message:error?.message,
+      details:error?.details,
+      hint:error?.hint,
+      code:error?.code,
+      raw:error
+    });
+
+    showToast('No se pudo cargar la tabla de resultados','err');
+
+    if(el){
+      el.innerHTML = `
+        <div style="padding:20px">
+          <div class="empty">No se pudo cargar la tabla de resultados.</div>
+          <button class="btn btn-b btn-wide" style="margin-top:12px" onclick="closeEvalModal()">Cerrar</button>
+        </div>`;
+    }
+  }
+}
+
 function renderPerfil(){
   const el=document.getElementById('perfil-content');
   const c=clientById(state.selectedClientId);
@@ -5051,7 +5456,10 @@ function renderPerfil(){
     <!-- ⑤ MÉTRICAS Y PROGRESO -->
     ${buildClientMetricsCard(c)}
 
-    <!-- ⑥ CONDICIÓN si existe -->
+    <!-- ⑥ EVALUACIONES Y TABLA DE RESULTADOS -->
+    ${buildClientAssessmentsCard(c)}
+
+    <!-- ⑦ CONDICIÓN si existe -->
     ${buildClientConditionCard(c)}
 
   `;
@@ -6436,10 +6844,11 @@ function buildAthleteDashboardHTML(a){
               <div style="margin-top:8px;padding:8px 10px;background:rgba(0,200,232,.05);border-left:2px solid var(--sport);border-radius:0 6px 6px 0;font-size:.78rem;color:var(--text-2);line-height:1.55">
                 ${esc(a.coachNotes||a.coach_notes)}
               </div>`:''}
-            ${c?`<div style="display:flex;gap:6px;margin-top:10px">
-              <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
-              <button class="btn btn-p btn-sm" onclick="openEvalModal('${c.id}','${esc(c.name)}',null,null)">Nueva evaluación</button>
-            </div>`:''}
+            <div style="display:grid;grid-template-columns:${c?'repeat(3,minmax(0,1fr))':'1fr'};gap:6px;margin-top:10px">
+              <button class="btn btn-p btn-sm" onclick="openAssessmentResultsModal('${a.id}')">Ver resultados</button>
+              ${c?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
+              <button class="btn btn-b btn-sm" onclick="openEvalModal('${c.id}','${esc(c.name)}',null,null)">Nueva</button>`:''}
+            </div>
           </div>
         </details>`;
     }).join('') : emptyState('Sin evaluaciones en este período','')}
@@ -13994,6 +14403,9 @@ async function openEvalModal(clientId, clientName, sexo, edad) {
     saveErrors: {}
   };
 
+  const evalTitle = document.querySelector('#modal-evaluacion .eval-modal-title');
+  if(evalTitle) evalTitle.textContent = 'Evaluación inicial';
+
   document.getElementById('modal-evaluacion').style.display = 'flex';
   document.body.style.overflow = 'hidden';
   renderEvalModal();
@@ -14002,6 +14414,8 @@ async function openEvalModal(clientId, clientName, sexo, edad) {
 function closeEvalModal() {
   stopEvalTimer();
   document.getElementById('modal-evaluacion').style.display = 'none';
+  const evalTitle = document.querySelector('#modal-evaluacion .eval-modal-title');
+  if(evalTitle) evalTitle.textContent = 'Evaluación inicial';
   document.body.style.overflow = '';
 }
 
@@ -15158,7 +15572,10 @@ async function renderEvalRecommendation() {
           </div>
         </div>
 
-        <div class="eval-confirm-btns">
+        <div class="eval-confirm-btns" style="display:grid;grid-template-columns:1fr;gap:8px">
+          <button class="btn btn-p btn-wide" onclick="openAssessmentResultsModal('${evalState.assessmentId}')">
+            Ver tabla completa
+          </button>
           <button class="btn btn-b btn-wide" onclick="closeEvalModal(); renderAll();">
             Cerrar evaluación
           </button>
