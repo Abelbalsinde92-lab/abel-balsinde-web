@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 09 METRICS SECURE</title>
+<title>AB SYSTEM — Coach Panel · RPC 10 METRICS UI</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -4681,6 +4681,188 @@ function thisWeekStart(){
   return`${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,'0')}-${String(m.getDate()).padStart(2,'0')}`;
 }
 
+function metricClientIdValue(metric){
+  return String(metric?.clientId || metric?.client_id || '');
+}
+
+function metricDateValue(metric){
+  return String(metric?.date || metric?.createdAt || metric?.created_at || '').slice(0,10);
+}
+
+function metricFieldValue(metric, camelKey, snakeKey){
+  const value = metric?.[camelKey] ?? metric?.[snakeKey];
+  return value === '' || value === undefined ? null : value;
+}
+
+function formatMetricNumber(value){
+  const n = Number(value);
+  if(!Number.isFinite(n)) return '—';
+  return Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/,'');
+}
+
+function getClientGeneralMetrics(clientId){
+  return (state.metrics || [])
+    .filter(metric => metricClientIdValue(metric) === String(clientId))
+    .sort((a,b) => {
+      const da = String(metricDateValue(a) || '');
+      const db = String(metricDateValue(b) || '');
+      if(db !== da) return db.localeCompare(da);
+      const ua = String(a.updatedAt || a.updated_at || a.createdAt || a.created_at || '');
+      const ub = String(b.updatedAt || b.updated_at || b.createdAt || b.created_at || '');
+      return ub.localeCompare(ua);
+    });
+}
+
+function getLatestMetricValue(rows, camelKey, snakeKey){
+  for(const row of rows){
+    const value = metricFieldValue(row, camelKey, snakeKey);
+    if(value !== null && value !== ''){
+      return {
+        value,
+        date: metricDateValue(row),
+        row
+      };
+    }
+  }
+  return null;
+}
+
+function metricRecordValues(metric){
+  const fields = [
+    ['weight','weight','Peso','kg'],
+    ['height','height','Altura','cm'],
+    ['waist','waist','Cintura','cm'],
+    ['hip','hip','Cadera','cm'],
+    ['chest','chest','Pecho','cm'],
+    ['arm','arm','Brazo','cm'],
+    ['thigh','thigh','Muslo','cm'],
+    ['restingHr','resting_hr','FC reposo','lpm']
+  ];
+
+  const values = fields
+    .map(([camelKey,snakeKey,label,unit]) => {
+      const value = metricFieldValue(metric, camelKey, snakeKey);
+      return value === null ? null : {
+        label,
+        value: formatMetricNumber(value),
+        unit
+      };
+    })
+    .filter(Boolean);
+
+  if(values.length) return values;
+
+  const genericValue = metricFieldValue(metric,'value','value');
+  if(genericValue === null) return [];
+
+  return [{
+    label: String(metric.type || 'Métrica'),
+    value: formatMetricNumber(genericValue),
+    unit: String(metric.unit || '')
+  }];
+}
+
+function buildClientMetricsCard(client){
+  const rows = getClientGeneralMetrics(client.id);
+  const latestFields = [
+    ['weight','weight','Peso','kg'],
+    ['waist','waist','Cintura','cm'],
+    ['hip','hip','Cadera','cm'],
+    ['chest','chest','Pecho','cm'],
+    ['arm','arm','Brazo','cm'],
+    ['thigh','thigh','Muslo','cm'],
+    ['restingHr','resting_hr','FC reposo','lpm'],
+    ['height','height','Altura','cm']
+  ]
+    .map(([camelKey,snakeKey,label,unit]) => {
+      const latest = getLatestMetricValue(rows, camelKey, snakeKey);
+      return latest ? {...latest,label,unit} : null;
+    })
+    .filter(Boolean);
+
+  const genericLatest = [];
+  const genericTypes = new Set();
+
+  rows.forEach(row => {
+    const type = String(row.type || '').trim();
+    const typeKey = cleanTxt(type);
+    const values = metricRecordValues(row);
+    const hasBodyField = [
+      'weight','height','waist','hip','chest','arm','thigh','restingHr','resting_hr'
+    ].some(key => row?.[key] !== null && row?.[key] !== undefined && row?.[key] !== '');
+
+    if(!type || typeKey === 'body metrics' || typeKey === 'body_metrics' || hasBodyField) return;
+    if(genericTypes.has(typeKey) || !values.length) return;
+
+    genericTypes.add(typeKey);
+    genericLatest.push({
+      label:type,
+      value:values[0].value,
+      unit:values[0].unit,
+      date:metricDateValue(row)
+    });
+  });
+
+  const visibleLatest = [...latestFields, ...genericLatest].slice(0,8);
+  const historyRows = rows.slice(0,8);
+
+  return `
+    <div class="card" style="padding:0;margin-bottom:14px;overflow:hidden">
+      <div style="padding:13px 14px;border-bottom:1px solid var(--divider);display:flex;align-items:center;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;font-size:.92rem">Métricas y progreso</div>
+          <div style="font-family:var(--font-m);font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin-top:2px">
+            ${rows.length ? `${rows.length} registro${rows.length===1?'':'s'}` : 'Sin registros'}
+          </div>
+        </div>
+        <button class="btn btn-p btn-sm" onclick="openModal('metric',null,{clientId:'${client.id}'})">+ Registrar</button>
+      </div>
+
+      ${visibleLatest.length ? `
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--divider)">
+          ${visibleLatest.map(item => `
+            <div style="background:var(--card);padding:12px 14px;min-width:0">
+              <div style="font-family:var(--font-m);font-size:.46rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(item.label)}</div>
+              <div style="font-weight:800;font-size:1rem;margin-top:3px;white-space:nowrap">${esc(formatMetricNumber(item.value))}${item.unit?` <span style="font-size:.62rem;color:var(--text-2);font-weight:600">${esc(item.unit)}</span>`:''}</div>
+              ${item.date?`<div style="font-size:.58rem;color:var(--text-2);margin-top:2px">${formatDate(item.date)}</div>`:''}
+            </div>`).join('')}
+        </div>
+      ` : `
+        <div style="padding:16px 14px;color:var(--text-2);font-size:.78rem">
+          Todavía no hay métricas registradas para este cliente.
+        </div>
+      `}
+
+      ${historyRows.length ? `
+        <details style="border-top:1px solid var(--divider)">
+          <summary style="padding:11px 14px;cursor:pointer;list-style:none;font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sport)">
+            Ver historial reciente
+          </summary>
+          <div style="padding:0 14px 10px">
+            ${historyRows.map(row => {
+              const values = metricRecordValues(row);
+              const type = String(row.type || 'Métrica');
+              const note = String(row.note || row.notes || '').trim();
+              return `
+                <div style="padding:10px 0;border-top:1px solid var(--divider)">
+                  <div style="display:flex;align-items:flex-start;gap:10px">
+                    <div style="flex:1;min-width:0">
+                      <div style="font-weight:700;font-size:.8rem">${esc(type === 'body_metrics' ? 'Medidas corporales' : type)}</div>
+                      <div style="font-size:.66rem;color:var(--text-2);margin-top:2px">${formatDate(metricDateValue(row))}</div>
+                    </div>
+                    <div style="font-family:var(--font-m);font-size:.62rem;color:var(--text);text-align:right;max-width:62%">
+                      ${values.length ? values.map(v => `${esc(v.label)} ${esc(v.value)}${v.unit?` ${esc(v.unit)}`:''}`).join(' · ') : 'Sin valor'}
+                    </div>
+                  </div>
+                  ${note?`<div style="font-size:.68rem;color:var(--text-2);margin-top:5px">${esc(note)}</div>`:''}
+                </div>`;
+            }).join('')}
+          </div>
+        </details>
+      ` : ''}
+    </div>`;
+}
+
 function renderPerfil(){
   const el=document.getElementById('perfil-content');
   const c=clientById(state.selectedClientId);
@@ -4830,7 +5012,10 @@ function renderPerfil(){
       </div>
     </div>
 
-    <!-- ⑤ CONDICIÓN si existe -->
+    <!-- ⑤ MÉTRICAS Y PROGRESO -->
+    ${buildClientMetricsCard(c)}
+
+    <!-- ⑥ CONDICIÓN si existe -->
     ${buildClientConditionCard(c)}
 
   `;
@@ -6497,8 +6682,19 @@ function openModal(type,id=null,prefill={}){
     form.innerHTML=`
       <div class="fld"><label class="fld-l">Cliente *</label><select name="clientId" class="fld-s" required>${clientOpts(m.clientId||P.clientId||state.selectedClientId)}</select></div>
       <div class="fld"><label class="fld-l">Tipo</label><select name="type" class="fld-s">
-        <option>Peso (kg)</option><option>Cintura (cm)</option><option>Fuerza (1-10)</option>
-        <option>Movilidad (1-10)</option><option>Resistencia (1-10)</option>
+        ${[
+          'Peso (kg)',
+          'Altura (cm)',
+          'Cintura (cm)',
+          'Cadera (cm)',
+          'Pecho (cm)',
+          'Brazo (cm)',
+          'Muslo (cm)',
+          'FC reposo (lpm)',
+          'Fuerza (1-10)',
+          'Movilidad (1-10)',
+          'Resistencia (1-10)'
+        ].map(option => `<option ${String(m.type||'')===option?'selected':''}>${option}</option>`).join('')}
       </select></div>
       <div class="fld"><label class="fld-l">Valor *</label><input name="value" class="fld-i fld-num" value="${esc(m.value||'')}" inputmode="decimal" placeholder="0" required></div>
       <div class="fld-2">
@@ -7045,14 +7241,38 @@ async function saveModal(e){
 
       let unit = null;
       let weight = null;
+      let height = null;
       let waist = null;
+      let hip = null;
+      let chest = null;
+      let arm = null;
+      let thigh = null;
+      let restingHr = null;
 
       if(metricTypeLower.includes('peso')){
         unit = 'kg';
         weight = value;
+      }else if(metricTypeLower.includes('altura')){
+        unit = 'cm';
+        height = value;
       }else if(metricTypeLower.includes('cintura')){
         unit = 'cm';
         waist = value;
+      }else if(metricTypeLower.includes('cadera')){
+        unit = 'cm';
+        hip = value;
+      }else if(metricTypeLower.includes('pecho')){
+        unit = 'cm';
+        chest = value;
+      }else if(metricTypeLower.includes('brazo')){
+        unit = 'cm';
+        arm = value;
+      }else if(metricTypeLower.includes('muslo')){
+        unit = 'cm';
+        thigh = value;
+      }else if(metricTypeLower.includes('fc reposo')){
+        unit = 'lpm';
+        restingHr = Math.round(value);
       }else if(
         metricTypeLower.includes('fuerza') ||
         metricTypeLower.includes('movilidad') ||
@@ -7073,13 +7293,13 @@ async function saveModal(e){
           p_date: data.date || todayISO(),
           p_note: data.note || null,
           p_weight: weight,
-          p_height: null,
+          p_height: height,
           p_waist: waist,
-          p_hip: null,
-          p_chest: null,
-          p_arm: null,
-          p_thigh: null,
-          p_resting_hr: null,
+          p_hip: hip,
+          p_chest: chest,
+          p_arm: arm,
+          p_thigh: thigh,
+          p_resting_hr: restingHr,
           p_notes: null
         }
       );
