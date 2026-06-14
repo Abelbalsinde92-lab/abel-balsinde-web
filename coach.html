@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM · Coach Panel</title>
-<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 02 -->
+<title>AB SYSTEM — Coach Panel · RPC 03</title>
+<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 03 -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
@@ -3881,6 +3881,47 @@ function filterCoachScopedState(){
   state.athletes = (state.athletes || []).filter(byClient);
 }
 
+async function loadCoachReservationsByScope(
+  scope,
+  referenceDate,
+  limit = 80
+) {
+  const token = state.coachSessionToken;
+
+  if (!token) {
+    throw new Error('SESION_COACH_INVALIDA');
+  }
+
+  const { data, error } = await db.rpc(
+    'ab_coach_session_get_reservations',
+    {
+      p_session_token: token,
+      p_scope: scope,
+      p_reference_date: referenceDate,
+      p_limit: limit
+    }
+  );
+
+  if (error) {
+    console.error(
+      'ab_coach_session_get_reservations error:',
+      {
+        scope,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      }
+    );
+
+    throw error;
+  }
+
+  return {
+    data: Array.isArray(data) ? data : []
+  };
+}
+
 async function loadAllData(){
   try{
     const today=todayISO();
@@ -3897,15 +3938,23 @@ async function loadAllData(){
         : (state.coachId
           ? db.rpc('ab_coach_get_clients', { p_coach_id: state.coachId })
           : db.from('clients').select('*').order('name'))),
-      (state.coachRole !== 'owner' && state.coachId
-        ? db.from('reservations').select('*').eq('date',today).eq('coach_id', state.coachId).order('time')
-        : db.from('reservations').select('*').eq('date',today).order('time')),
-      (state.coachRole !== 'owner' && state.coachId
-        ? db.from('reservations').select('*').gt('date',today).eq('coach_id', state.coachId).order('date').limit(80)
-        : db.from('reservations').select('*').gt('date',today).order('date').limit(80)),
-      (state.coachRole !== 'owner' && state.coachId
-        ? db.from('reservations').select('*').lt('date',today).eq('coach_id', state.coachId).order('date',{ascending:false}).limit(80)
-        : db.from('reservations').select('*').lt('date',today).order('date',{ascending:false}).limit(80)),
+      loadCoachReservationsByScope(
+  'today',
+  today,
+  80
+),
+
+loadCoachReservationsByScope(
+  'future',
+  today,
+  80
+),
+
+loadCoachReservationsByScope(
+  'past',
+  today,
+  80
+),
       (state.coachRole !== 'owner' && state.coachId
         ? db.from('payments').select('*').eq('coach_id', state.coachId).order('due_date',{ascending:false}).limit(300)
         : db.from('payments').select('*').order('due_date',{ascending:false}).limit(300)),
