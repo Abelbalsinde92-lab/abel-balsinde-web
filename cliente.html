@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AB SYSTEM — Área Cliente · RPC 11 METRICS COMPOSITE</title>
+  <title>AB SYSTEM — Área Cliente · RPC 12 ASSESSMENTS SECURE</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json?v=20260522-01">
 <link rel="icon" href="/favicon-32.png?v=20260522-01" type="image/png">
@@ -6740,6 +6740,50 @@ async function loadClientDashboard(sessionToken) {
       metricsR = { data: [], error: metricsErr };
     }
     
+
+    // Evaluaciones del cliente mediante sesión segura.
+    let assessmentsR = { data: [], error: null };
+
+    try {
+      assessmentsR = await rpcTimeout(
+        db.rpc('ab_client_session_get_assessments', {
+          p_session_token: token,
+          p_limit: 50
+        }),
+        'evaluaciones'
+      );
+
+      if (assessmentsR.error) {
+        console.warn('Assessments RPC:', assessmentsR.error);
+        assessmentsR = { data: [], error: assessmentsR.error };
+      }
+    } catch (assessmentsErr) {
+      console.warn('Assessments RPC no disponible:', assessmentsErr);
+      assessmentsR = { data: [], error: assessmentsErr };
+    }
+
+    // Resultados de evaluaciones del cliente mediante sesión segura.
+    let assessmentResultsR = { data: [], error: null };
+
+    try {
+      assessmentResultsR = await rpcTimeout(
+        db.rpc('ab_client_session_get_assessment_results', {
+          p_session_token: token,
+          p_assessment_id: null,
+          p_limit: 1000
+        }),
+        'resultados de evaluaciones'
+      );
+
+      if (assessmentResultsR.error) {
+        console.warn('Assessment results RPC:', assessmentResultsR.error);
+        assessmentResultsR = { data: [], error: assessmentResultsR.error };
+      }
+    } catch (assessmentResultsErr) {
+      console.warn('Assessment results RPC no disponible:', assessmentResultsErr);
+      assessmentResultsR = { data: [], error: assessmentResultsErr };
+    }
+
     // Historial de entrenamientos mediante sesión segura.
 // Se utiliza para progreso, constancia y sesiones ya completadas.
 let trainingLogsR = { data: [], error: null };
@@ -6852,9 +6896,13 @@ try {
       : [];
     clientAlerts = [];
     clientPrograms = [];
-    clientAssessments = [];
+    clientAssessments = Array.isArray(assessmentsR.data)
+      ? assessmentsR.data
+      : [];
     clientInternalAssessments = [];
-    clientAssessmentResults = [];
+    clientAssessmentResults = Array.isArray(assessmentResultsR.data)
+      ? assessmentResultsR.data
+      : [];
     let trainingLogsData = trainingLogsR.data;
 
 if (typeof trainingLogsData === 'string') {
