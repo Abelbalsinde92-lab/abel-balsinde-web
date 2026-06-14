@@ -4167,47 +4167,118 @@ function buildSessionCard(r){
   </div>`;
 }
 
-async function updateResStatus(id,status){
-  const current=reservationById(id);
+function getCoachSessionTokenSafe(){
+  return (
+    state.coachSessionToken ||
+    sessionStorage.getItem('ab_coach_session_token') ||
+    localStorage.getItem('ab_coach_session_token') ||
+    ''
+  );
+}
 
-  if(!current){
+function normalizeRpcReservation(data){
+  let row = data;
+
+  if(typeof row === 'string'){
+    try{
+      row = JSON.parse(row);
+    }catch(e){
+      console.error('No se pudo interpretar la reserva RPC:', e);
+      return null;
+    }
+  }
+
+  if(Array.isArray(row)){
+    row = row[0] || null;
+  }
+
+  return row ? snakeToCamel(row) : null;
+}
+
+async function updateResStatus(id,status){
+  const current = reservationById(id);
+  const token = getCoachSessionTokenSafe();
+
+  if(!current?.id){
     showToast('Reserva no encontrada','err');
     return;
   }
 
+  if(!token){
+    showToast('Sesión del coach no válida','err');
+    return;
+  }
+
   try{
-    const {error}=await db
-      .from('reservations')
-      .update({status})
-      .eq('id',id);
+    const {data,error} = await db.rpc(
+      'ab_coach_session_set_reservation_status',
+      {
+        p_session_token: token,
+        p_reservation_id: id,
+        p_status: status
+      }
+    );
 
-    if(error)throw error;
+    if(error) throw error;
 
-    patchReservationLocal(id,{status});
+    const saved = normalizeRpcReservation(data);
+
+    if(!saved?.id){
+      throw new Error('La RPC no devolvió una reserva válida.');
+    }
+
+    replaceReservationLocal(saved);
 
     renderAll();
 
-    const msg={
-      realizada:'✓ Marcada como realizada',
-      confirmada:'Sesión confirmada',
-      cancelada:'Sesión cancelada',
-      reservada:'Sesión reservada'
+    const msg = {
+      realizada: '✓ Marcada como realizada',
+      confirmada: 'Sesión confirmada',
+      cancelada: 'Sesión cancelada',
+      reservada: 'Sesión reservada'
     }[status] || 'Reserva actualizada';
 
     showToast(msg,'ok');
 
   }catch(err){
-    console.error('updateResStatus error:',{
-      id,
-      status,
-      message:err?.message,
-      details:err?.details,
-      hint:err?.hint,
-      code:err?.code,
-      raw:err
-    });
+    console.error(
+      'ab_coach_session_set_reservation_status error:',
+      {
+        id,
+        status,
+        message: err?.message,
+        details: err?.details,
+        hint: err?.hint,
+        code: err?.code,
+        raw: err
+      }
+    );
 
-    showToast('Error reserva: '+(err?.message||'no se pudo actualizar'),'err');
+    let message = 'No se pudo actualizar la reserva';
+
+    const rawMessage = String(err?.message || '');
+
+    if(rawMessage.includes('RESERVA_NO_AUTORIZADA')){
+      message = 'Esta reserva pertenece a otro coach';
+    }
+
+    else if(rawMessage.includes('RESERVA_NO_ENCONTRADA')){
+      message = 'Reserva no encontrada';
+    }
+
+    else if(rawMessage.includes('RESERVA_CANCELADA_NO_REACTIVABLE')){
+      message = 'La reserva cancelada no puede reactivarse';
+    }
+
+    else if(rawMessage.includes('RESERVA_REALIZADA_NO_MODIFICABLE')){
+      message = 'La reserva ya está marcada como realizada';
+    }
+
+    else if(rawMessage.includes('SESION_COACH_INVALIDA')){
+      message = 'La sesión del coach ha caducado';
+    }
+
+    showToast(message,'err');
   }
 }
 </script>
@@ -6407,28 +6478,102 @@ async function saveModal(e){
   await logAppEvent(id ? 'update_client_frontend' : 'create_client_rpc','info',id ? 'Cliente actualizado desde panel' : 'Cliente creado por RPC',{client_id:saved.id, client_type:clientType});
   showToast(id ? 'Cliente actualizado ✓' : 'Cliente guardado ✓','ok');
 }
-    else if(type==='reservation'){
-      let saved;
-      if(id){
-        const{data:sd,error}=await db.from('reservations').update(camelToSnake(data)).eq('id',id).select().single();
-        if(error)throw error;saved=snakeToCamel(sd);
-      }else{
-        const{data:sd,error}=await db.from('reservations').insert(camelToSnake({id:uid(),...data})).select().single();
-        if(error)throw error;saved=snakeToCamel(sd);
-      }
-      state.todayRes=state.todayRes.filter(r=>String(r.id)!==String(saved.id));
-      state.futureRes=state.futureRes.filter(r=>String(r.id)!==String(saved.id));
-      state.pastRes=state.pastRes.filter(r=>String(r.id)!==String(saved.id));
-      const today=todayISO();
-      if(saved.date===today)state.todayRes.push(saved);
-      else if(saved.date>today)state.futureRes.push(saved);
-      else state.pastRes.push(saved);
-      state.todayRes.sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
-      state.futureRes.sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare(String((b.date||'')+(b.time||''))));
-      state.pastRes.sort((a,b)=>String((b.date||'')+(b.time||'')).localeCompare(String((a.date||'')+(a.time||''))));
-      state.allRes=[...state.todayRes,...state.futureRes,...state.pastRes];
-      showToast(id?'Sesión actualizada ✓':'Sesión guardada ✓','ok');
-    }
+    else if(type === 'reservation'){
+  let saved;
+
+  if(id){
+    const { data: sd, error } = await db
+      .from('reservations')
+      .update(camelToSnake(data))
+      .eq('id', id)
+      .select()
+      .single();
+
+    if(error) throw error;
+
+    saved = snakeToCamel(sd);
+
+  }else{
+    const { data: sd, error } = await db
+      .from('reservations')
+      .insert(
+        camelToSnake({
+          id: uid(),
+          ...data
+        })
+      )
+      .select()
+      .single();
+
+    if(error) throw error;
+
+    saved = snakeToCamel(sd);
+  }
+
+  state.todayRes = state.todayRes.filter(
+    r => String(r.id) !== String(saved.id)
+  );
+
+  state.futureRes = state.futureRes.filter(
+    r => String(r.id) !== String(saved.id)
+  );
+
+  state.pastRes = state.pastRes.filter(
+    r => String(r.id) !== String(saved.id)
+  );
+
+  const today = todayISO();
+
+  if(saved.date === today){
+    state.todayRes.push(saved);
+  }else if(saved.date > today){
+    state.futureRes.push(saved);
+  }else{
+    state.pastRes.push(saved);
+  }
+
+  state.todayRes.sort(
+    (a,b) =>
+      String(a.time || '').localeCompare(
+        String(b.time || '')
+      )
+  );
+
+  state.futureRes.sort(
+    (a,b) =>
+      String(
+        (a.date || '') + (a.time || '')
+      ).localeCompare(
+        String(
+          (b.date || '') + (b.time || '')
+        )
+      )
+  );
+
+  state.pastRes.sort(
+    (a,b) =>
+      String(
+        (b.date || '') + (b.time || '')
+      ).localeCompare(
+        String(
+          (a.date || '') + (a.time || '')
+        )
+      )
+  );
+
+  state.allRes = [
+    ...state.todayRes,
+    ...state.futureRes,
+    ...state.pastRes
+  ];
+
+  showToast(
+    id
+      ? 'Sesión actualizada ✓'
+      : 'Sesión guardada ✓',
+    'ok'
+  );
+}
     else if(type==='payment'){
       const amount=normalizeNumberInput(data.amount);
       if(amount===null||amount<0){showToast('Importe no válido','err');return}
@@ -11849,21 +11994,55 @@ ${coachNote}`
   pauseWorkoutTimer();
 
   if(state.activeWorkoutReservationId){
-    try{
-      const {error}=await db
-        .from('reservations')
-        .update({status:'realizada'})
-        .eq('id',state.activeWorkoutReservationId);
+  try{
+    const token = getCoachSessionTokenSafe();
 
-      if(error)throw error;
-
-      patchReservationLocal(state.activeWorkoutReservationId,{status:'realizada'});
-
-    }catch(e){
-      console.warn('No se pudo marcar reserva realizada:',e);
-      showToast('Sesión guardada, pero no se actualizó la reserva','err');
+    if(!token){
+      throw new Error('SESION_COACH_INVALIDA');
     }
+
+    const {data,error} = await db.rpc(
+      'ab_coach_session_set_reservation_status',
+      {
+        p_session_token: token,
+        p_reservation_id: state.activeWorkoutReservationId,
+        p_status: 'realizada'
+      }
+    );
+
+    if(error) throw error;
+
+    const savedReservation =
+      normalizeRpcReservation(data);
+
+    if(!savedReservation?.id){
+      throw new Error(
+        'La RPC no devolvió una reserva válida.'
+      );
+    }
+
+    replaceReservationLocal(savedReservation);
+
+  }catch(e){
+    console.warn(
+      'No se pudo marcar reserva realizada:',
+      {
+        reservationId:
+          state.activeWorkoutReservationId,
+        message: e?.message,
+        details: e?.details,
+        hint: e?.hint,
+        code: e?.code,
+        raw: e
+      }
+    );
+
+    showToast(
+      'Sesión guardada, pero no se actualizó la reserva',
+      'err'
+    );
   }
+}
 
     try{
     const next = await advanceAssignmentAfterWorkout(
