@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 06 REQUESTS</title>
+<title>AB SYSTEM — Coach Panel · RPC 07 PAYMENTS SECURE</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -3928,6 +3928,42 @@ async function loadCoachReservationsByScope(
   };
 }
 
+
+async function loadCoachPayments(limit = 300){
+  const token = getCoachSessionTokenSafe();
+
+  if(!token){
+    throw new Error('SESION_COACH_INVALIDA');
+  }
+
+  const {data,error} = await db.rpc(
+    'ab_coach_session_get_payments',
+    {
+      p_session_token: token,
+      p_limit: limit
+    }
+  );
+
+  if(error){
+    console.error(
+      'ab_coach_session_get_payments error:',
+      {
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        raw: error
+      }
+    );
+
+    throw error;
+  }
+
+  return {
+    data: Array.isArray(data) ? data : []
+  };
+}
+
 async function loadAllData(){
   try{
     const today=todayISO();
@@ -3961,9 +3997,7 @@ loadCoachReservationsByScope(
   today,
   80
 ),
-      (state.coachRole !== 'owner' && state.coachId
-        ? db.from('payments').select('*').eq('coach_id', state.coachId).order('due_date',{ascending:false}).limit(300)
-        : db.from('payments').select('*').order('due_date',{ascending:false}).limit(300)),
+      loadCoachPayments(300),
       db.from('admin_alertas_detalle').select('*').order('created_at',{ascending:false}).limit(200),
       db.from('client_daily_checkins').select('*').eq('checkin_date',today),
       db.from('client_daily_checkins').select('*').order('checkin_date',{ascending:false}).limit(80),
@@ -5307,15 +5341,84 @@ function renderPagos(){
 }
 
 async function markPaid(id){
+  const token = getCoachSessionTokenSafe();
+
+  if(!token){
+    showToast('Sesión del coach no válida','err');
+    return;
+  }
+
   try{
-    const{data,error}=await db.from('payments').update({status:'pagado',method:'Registrado'}).eq('id',id).select().single();
-    if(error)throw error;
-    const saved=snakeToCamel(data);
-    const idx=state.payments.findIndex(p=>String(p.id)===String(saved.id));
-    if(idx>=0)state.payments[idx]=saved;else state.payments.push(saved);
-    state.payments.sort((a,b)=>String(b.dueDate||'').localeCompare(String(a.dueDate||'')));
-    renderAll();showToast('✓ Pago cobrado','ok');
-  }catch(err){console.error(err);showToast('Error marcando pago','err')}
+    const {data,error} = await db.rpc(
+      'ab_coach_session_set_payment_status',
+      {
+        p_session_token: token,
+        p_payment_id: id,
+        p_status: 'pagado',
+        p_method: 'Registrado'
+      }
+    );
+
+    if(error) throw error;
+
+    let savedRow = data;
+
+    if(typeof savedRow === 'string'){
+      try{
+        savedRow = JSON.parse(savedRow);
+      }catch(parseError){
+        console.error('No se pudo interpretar el pago RPC:',parseError);
+        savedRow = null;
+      }
+    }
+
+    if(Array.isArray(savedRow)){
+      savedRow = savedRow[0] || null;
+    }
+
+    const saved = savedRow ? snakeToCamel(savedRow) : null;
+
+    if(!saved?.id){
+      throw new Error('La RPC no devolvió un pago válido.');
+    }
+
+    state.payments = state.payments.filter(
+      payment => String(payment.id) !== String(saved.id)
+    );
+    state.payments.push(saved);
+    state.payments.sort(
+      (a,b) => String(b.dueDate||'').localeCompare(String(a.dueDate||''))
+    );
+
+    renderAll();
+    showToast('✓ Pago cobrado','ok');
+
+  }catch(err){
+    console.error(
+      'ab_coach_session_set_payment_status error:',
+      {
+        paymentId: id,
+        message: err?.message,
+        details: err?.details,
+        hint: err?.hint,
+        code: err?.code,
+        raw: err
+      }
+    );
+
+    const raw = String(err?.message || '');
+    let message = 'Error marcando pago';
+
+    if(raw.includes('PAGO_NO_AUTORIZADO')){
+      message = 'Este pago pertenece a otro coach';
+    }else if(raw.includes('PAGO_NO_ENCONTRADO')){
+      message = 'Pago no encontrado';
+    }else if(raw.includes('SESION_COACH_INVALIDA')){
+      message = 'La sesión del coach ha caducado';
+    }
+
+    showToast(message,'err');
+  }
 }
 
 function renderCheckins(){
@@ -6637,11 +6740,105 @@ async function saveModal(e){
       showToast(id?'Sesión actualizada ✓':'Sesión guardada ✓','ok');
     }
     else if(type==='payment'){
-      const amount=normalizeNumberInput(data.amount);
-      if(amount===null||amount<0){showToast('Importe no válido','err');return}
-      data.amount=amount;
-      await upsertItem('payments','payments',data);
-      state.payments.sort((a,b)=>String(b.dueDate||'').localeCompare(String(a.dueDate||'')));
+      const token = getCoachSessionTokenSafe();
+      const amount = normalizeNumberInput(data.amount);
+      const existingPayment = id
+        ? state.payments.find(payment => String(payment.id) === String(id)) || {}
+        : {};
+
+      if(!token){
+        throw new Error('SESION_COACH_INVALIDA');
+      }
+
+      if(!data.clientId){
+        showToast('Selecciona un cliente','err');
+        return;
+      }
+
+      if(!String(data.concept || '').trim()){
+        showToast('Indica el concepto del pago','err');
+        return;
+      }
+
+      if(amount===null || amount<0){
+        showToast('Importe no válido','err');
+        return;
+      }
+
+      const {data:rpcPayment,error:paymentError} = await db.rpc(
+        'ab_coach_session_save_payment',
+        {
+          p_session_token: token,
+          p_client_id: data.clientId,
+          p_concept: String(data.concept || '').trim(),
+          p_amount: amount,
+          p_payment_id: id || null,
+          p_currency: existingPayment.currency || 'EUR',
+          p_due_date: data.dueDate || null,
+          p_status: data.status || 'pendiente',
+          p_method: data.method || null,
+          p_note: existingPayment.note || null
+        }
+      );
+
+      if(paymentError){
+        console.error(
+          'ab_coach_session_save_payment error:',
+          {
+            paymentId: id || null,
+            clientId: data.clientId,
+            message: paymentError?.message,
+            details: paymentError?.details,
+            hint: paymentError?.hint,
+            code: paymentError?.code,
+            raw: paymentError
+          }
+        );
+
+        throw paymentError;
+      }
+
+      let savedRow = rpcPayment;
+
+      if(typeof savedRow === 'string'){
+        try{
+          savedRow = JSON.parse(savedRow);
+        }catch(parseError){
+          console.error('No se pudo interpretar el pago guardado:',parseError);
+          savedRow = null;
+        }
+      }
+
+      if(Array.isArray(savedRow)){
+        savedRow = savedRow[0] || null;
+      }
+
+      const saved = savedRow ? snakeToCamel(savedRow) : null;
+
+      if(!saved?.id){
+        throw new Error('La RPC no devolvió un pago válido.');
+      }
+
+      state.payments = state.payments.filter(
+        payment => String(payment.id) !== String(saved.id)
+      );
+      state.payments.push(saved);
+      state.payments.sort(
+        (a,b) => String(b.dueDate||'').localeCompare(String(a.dueDate||''))
+      );
+
+      await logAppEvent(
+        id ? 'update_payment_rpc' : 'create_payment_rpc',
+        'info',
+        id ? 'Pago actualizado mediante RPC' : 'Pago creado mediante RPC',
+        {
+          payment_id: saved.id,
+          client_id: saved.clientId || data.clientId,
+          amount: saved.amount ?? amount,
+          status: saved.status || data.status || 'pendiente'
+        }
+      );
+
       showToast(id?'Pago actualizado ✓':'Pago registrado ✓','ok');
     }
     else if(type==='assignment'){
