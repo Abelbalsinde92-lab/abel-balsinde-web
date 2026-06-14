@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 07 PAYMENTS SECURE</title>
+<title>AB SYSTEM — Coach Panel · RPC 08 CHECKINS SECURE</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -3964,6 +3964,84 @@ async function loadCoachPayments(limit = 300){
   };
 }
 
+async function loadCoachAlerts(limit = 200){
+  const token = getCoachSessionTokenSafe();
+
+  if(!token){
+    throw new Error('SESION_COACH_INVALIDA');
+  }
+
+  const {data,error} = await db.rpc(
+    'ab_coach_session_get_alerts',
+    {
+      p_session_token: token,
+      p_limit: limit
+    }
+  );
+
+  if(error){
+    console.error(
+      'ab_coach_session_get_alerts error:',
+      {
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        raw: error
+      }
+    );
+
+    throw error;
+  }
+
+  return {
+    data: Array.isArray(data) ? data : []
+  };
+}
+
+async function loadCoachCheckinsByScope(
+  scope,
+  referenceDate,
+  limit = 80
+){
+  const token = getCoachSessionTokenSafe();
+
+  if(!token){
+    throw new Error('SESION_COACH_INVALIDA');
+  }
+
+  const {data,error} = await db.rpc(
+    'ab_coach_session_get_checkins',
+    {
+      p_session_token: token,
+      p_scope: scope,
+      p_reference_date: referenceDate,
+      p_limit: limit
+    }
+  );
+
+  if(error){
+    console.error(
+      'ab_coach_session_get_checkins error:',
+      {
+        scope,
+        referenceDate,
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        raw: error
+      }
+    );
+
+    throw error;
+  }
+
+  return {
+    data: Array.isArray(data) ? data : []
+  };
+}
+
 async function loadAllData(){
   try{
     const today=todayISO();
@@ -3998,9 +4076,17 @@ loadCoachReservationsByScope(
   80
 ),
       loadCoachPayments(300),
-      db.from('admin_alertas_detalle').select('*').order('created_at',{ascending:false}).limit(200),
-      db.from('client_daily_checkins').select('*').eq('checkin_date',today),
-      db.from('client_daily_checkins').select('*').order('checkin_date',{ascending:false}).limit(80),
+      loadCoachAlerts(200),
+      loadCoachCheckinsByScope(
+        'today',
+        today,
+        80
+      ),
+      loadCoachCheckinsByScope(
+        'recent',
+        today,
+        80
+      ),
       loadVisibleTrainingPrograms(),
       db.from('training_weeks').select('*').order('week_number'),
       db.from('training_sessions').select('*').order('session_number'),
