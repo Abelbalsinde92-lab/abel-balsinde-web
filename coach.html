@@ -6086,27 +6086,115 @@ function openModal(type,id=null,prefill={}){
   setTimeout(toggleClientTypeFields,0);
 }
 
-  else if(type==='reservation'){
-    const r=id?reservationById(id):{};
-    title.textContent=id?'Editar sesión':'Nueva sesión';
-    /* v1.1 C3: hora automática */
-    const defaultTime=r.time||roundedTime();
-    form.innerHTML=`
-      <div class="fld"><label class="fld-l">Cliente *</label><select name="clientId" class="fld-s" required>${clientOpts(r.clientId||P.clientId)}</select></div>
-      <div class="fld-2">
-        <div class="fld"><label class="fld-l">Fecha *</label><input name="date" class="fld-i" type="date" value="${esc(r.date||todayISO())}" required></div>
-        <div class="fld"><label class="fld-l">Hora *</label><input name="time" class="fld-i" type="time" value="${esc(defaultTime)}" required></div>
-      </div>
-      <div class="fld"><label class="fld-l">Tipo</label><input name="type" class="fld-i" value="${esc(r.type||'Sesión personal')}"></div>
-      <div class="fld"><label class="fld-l">Lugar</label><input name="place" class="fld-i" value="${esc(r.place||'Belgrado')}"></div>
-      <div class="fld"><label class="fld-l">Estado</label><select name="status" class="fld-s">
-        <option value="reservada" ${(r.status||'reservada')==='reservada'?'selected':''}>Reservada</option>
-        <option value="confirmada" ${r.status==='confirmada'?'selected':''}>Confirmada</option>
-        <option value="realizada" ${r.status==='realizada'?'selected':''}>Realizada</option>
-        <option value="cancelada" ${r.status==='cancelada'?'selected':''}>Cancelada</option>
-      </select></div>
-      ${actions}`;
+ else if(type==='reservation'){
+  const token =
+    state.coachSessionToken ||
+    sessionStorage.getItem('ab_coach_session_token') ||
+    localStorage.getItem('ab_coach_session_token') ||
+    '';
+
+  if(!token){
+    throw new Error('SESION_COACH_INVALIDA');
   }
+
+  if(!data.clientId){
+    showToast('Selecciona un cliente','err');
+    return;
+  }
+
+  if(!data.date){
+    showToast('Selecciona una fecha','err');
+    return;
+  }
+
+  if(!data.time){
+    showToast('Selecciona una hora','err');
+    return;
+  }
+
+  const {data:rpcSaved,error} = await db.rpc(
+    'ab_coach_session_save_reservation',
+    {
+      p_session_token: token,
+      p_client_id: data.clientId,
+      p_date: data.date,
+      p_time: data.time,
+      p_reservation_id: id || null,
+      p_type: data.type || 'Sesión personal',
+      p_place: data.place || null,
+      p_status: data.status || 'reservada'
+    }
+  );
+
+  if(error){
+    console.error(
+      'ab_coach_session_save_reservation error:',
+      {
+        reservationId: id || null,
+        clientId: data.clientId,
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        raw: error
+      }
+    );
+
+    throw error;
+  }
+
+  let savedRow = rpcSaved;
+
+  if(typeof savedRow === 'string'){
+    try{
+      savedRow = JSON.parse(savedRow);
+    }catch(parseError){
+      console.error(
+        'No se pudo interpretar la reserva guardada:',
+        parseError
+      );
+
+      savedRow = null;
+    }
+  }
+
+  if(Array.isArray(savedRow)){
+    savedRow = savedRow[0] || null;
+  }
+
+  const saved = snakeToCamel(savedRow || {});
+
+  if(!saved?.id){
+    throw new Error(
+      'La RPC no devolvió una reserva válida.'
+    );
+  }
+
+  replaceReservationLocal(saved);
+
+  await logAppEvent(
+    id
+      ? 'update_reservation_rpc'
+      : 'create_reservation_rpc',
+    'info',
+    id
+      ? 'Reserva actualizada mediante RPC'
+      : 'Reserva creada mediante RPC',
+    {
+      reservation_id: saved.id,
+      client_id: saved.clientId || data.clientId,
+      date: saved.date || data.date,
+      time: saved.time || data.time
+    }
+  );
+
+  showToast(
+    id
+      ? 'Sesión actualizada ✓'
+      : 'Sesión guardada ✓',
+    'ok'
+  );
+}
 
   else if(type==='payment'){
     const p=get('payments');
