@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 18 HEALTH UI</title>
+<title>AB SYSTEM — Coach Panel · RPC 20 ADAPTATION FORCE APPLY</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -2538,7 +2538,7 @@ body.eval-modal-open {
   100% { background-position: -200% 0; }
 }
 </style>
-<!-- AB SYSTEM · RPC 18 HEALTH UI -->
+<!-- AB SYSTEM · RPC 19 ADAPTATION ENGINE FIX -->
 </head>
 <body>
 
@@ -11870,10 +11870,54 @@ function getLumbarFrontendFallback(r){
 function getKneeFrontendFallback(r){
   const name=cleanTxt(r.ejercicio_original||r.ejercicio_final||'');
   if(!name)return null;
-  if(name.includes('sentadilla'))return{final:'Sentadilla en caja con control',coach:'Limitar rango de rodilla con caja. Pie neutro, rodilla alineada. Sin colapso de rodilla.',cliente:'Usamos una variante que protege la rodilla y mantiene el trabajo de pierna.',riesgo:'medio'};
-  if(name.includes('zancada')||name.includes('lunge'))return{final:'Step lateral controlado',coach:'Plano frontal, sin impacto en rodilla. Controlar alineación de rodilla sobre pie.',cliente:'Sustituimos la zancada por un movimiento lateral más seguro.',riesgo:'bajo'};
-  if(name.includes('salto')||name.includes('jump')||name.includes('burpee'))return{final:'Marcha elevada controlada',coach:'Eliminar impacto. Trabajo cardiovascular sin carga articular en rodilla.',cliente:'Sin saltos hoy. Misma intensidad, sin impacto.',riesgo:'bajo'};
-  if(name.includes('peso muerto')||name.includes('deadlift'))return{final:'Puente de cadera bilateral',coach:'Cadena posterior sin carga axial sobre rodilla. Activar glúteo y controlar pelvis.',cliente:'Cambiamos a un ejercicio que trabaja la espalda sin sobrecargar la rodilla.',riesgo:'bajo'};
+
+  // Primero patrones unilaterales: evita que "split squat" caiga como sentadilla genérica.
+  if(
+    name.includes('zancada') ||
+    name.includes('lunge') ||
+    name.includes('split squat') ||
+    name.includes('bulgara') ||
+    name.includes('búlgara')
+  ){
+    return{
+      final:'Step lateral controlado',
+      coach:'Plano frontal, apoyo estable y rango sin dolor. Controlar la alineación de rodilla sobre el pie.',
+      cliente:'Sustituimos la zancada por un movimiento lateral más estable y seguro para la rodilla.',
+      riesgo:'bajo'
+    };
+  }
+
+  if(
+    name.includes('sentadilla') ||
+    name.includes('squat') ||
+    name.includes('goblet')
+  ){
+    return{
+      final:'Sentadilla en caja con control',
+      coach:'Limitar profundidad con caja. Pie neutro, rodilla alineada y tempo controlado. Mantener solo rango sin dolor.',
+      cliente:'Usamos una sentadilla con profundidad controlada para proteger la rodilla y mantener el trabajo de pierna.',
+      riesgo:'medio'
+    };
+  }
+
+  if(name.includes('salto')||name.includes('jump')||name.includes('burpee')){
+    return{
+      final:'Marcha elevada controlada',
+      coach:'Eliminar impacto. Trabajo cardiovascular sin carga articular brusca sobre la rodilla.',
+      cliente:'Sin saltos hoy. Mantenemos el trabajo cardiovascular sin impacto.',
+      riesgo:'bajo'
+    };
+  }
+
+  if(name.includes('peso muerto')||name.includes('deadlift')){
+    return{
+      final:'Puente de cadera bilateral',
+      coach:'Cadena posterior sin carga dominante sobre la rodilla. Activar glúteo y controlar pelvis.',
+      cliente:'Cambiamos a un ejercicio de cadena posterior que reduce la carga sobre la rodilla.',
+      riesgo:'bajo'
+    };
+  }
+
   return null;
 }
 
@@ -11916,6 +11960,127 @@ function getFatigueFrontendFallback(r){
   if(name.includes('peso muerto')||name.includes('sentadilla con barra'))
     return{final:name+' (carga −30%, series −1)',coach:'Alta fatiga. Reducir carga y eliminar una serie. Técnica sobre rendimiento.',cliente:'Ajustamos la carga de hoy para respetar tu recuperación.',riesgo:'bajo'};
   return{final:name+' (intensidad reducida)',coach:'Alta fatiga. Reducir volumen y carga. Observar signos de sobreentrenamiento.',cliente:'Trabajamos hoy con menor intensidad para recuperarnos bien.',riesgo:'bajo'};
+}
+
+function normalizeAdaptationPathologyForRpc(pathology){
+  const key=String(pathology||'').trim().toLowerCase();
+  const aliases={
+    rodilla:'dolor_rodilla',
+    hombro:'dolor_hombro',
+    cervical:'dolor_cervical',
+    cuello:'dolor_cervical',
+    tobillo:'dolor_tobillo',
+    lumbar:'dolor_lumbar',
+    espalda:'dolor_lumbar'
+  };
+  return aliases[key]||key;
+}
+
+function normalizeAdaptationPathologyForFrontend(pathology){
+  const key=String(pathology||'').trim().toLowerCase();
+  const aliases={
+    dolor_rodilla:'rodilla',
+    dolor_hombro:'hombro',
+    dolor_cervical:'cervical',
+    dolor_cuello:'cervical',
+    dolor_tobillo:'tobillo',
+    lumbar:'dolor_lumbar'
+  };
+  return aliases[key]||key;
+}
+
+function isMissingAdaptationRpcError(error){
+  const code=String(error?.code||'').toUpperCase();
+  const msg=String(error?.message||'').toLowerCase();
+  return code==='42883' || code==='PGRST202' ||
+    msg.includes('could not find the function') ||
+    msg.includes('does not exist');
+}
+
+async function callAdaptationEngineRpc(args){
+  const candidates=[
+    'get_training_session_adapted_v3',
+    'get_training_session_adapted_v2'
+  ];
+  let lastError=null;
+
+  for(const rpcName of candidates){
+    const result=await db.rpc(rpcName,args);
+    if(!result.error){
+      return{data:result.data||[],error:null,rpcName};
+    }
+
+    lastError=result.error;
+    if(!isMissingAdaptationRpcError(result.error)){
+      return{data:null,error:result.error,rpcName};
+    }
+  }
+
+  return{data:null,error:lastError,rpcName:null};
+}
+
+function normalizeAdaptationRowShape(row){
+  const r=row||{};
+  return{
+    ...r,
+    bloque:r.bloque??r.block_name??r.blockName??r.nombre_bloque??r.nombreBloque??'',
+    orden_bloque:r.orden_bloque??r.block_order??r.blockOrder??r.order_block??r.orderBlock??0,
+    orden_ejercicio:r.orden_ejercicio??r.exercise_order??r.exerciseOrder??r.order_index??r.orderIndex??0,
+    ejercicio_original:r.ejercicio_original??r.original_exercise??r.originalExercise??r.exercise_original??r.exerciseOriginal??r.nombre_original??r.name??'',
+    ejercicio_final:r.ejercicio_final??r.final_exercise??r.finalExercise??r.exercise_final??r.exerciseFinal??r.nombre_final??r.ejercicio_original??r.original_exercise??r.name??'',
+    estado_ejercicio:r.estado_ejercicio??r.exercise_status??r.exerciseStatus??r.estadoEjercicio??r.status??'mantener'
+  };
+}
+
+function applyFrontendAdaptationSafetyNet(rows,pathology){
+  const frontendPathology=normalizeAdaptationPathologyForFrontend(pathology);
+  const usedFinalNames=new Set();
+
+  return(rows||[]).map(rawRow=>{
+    const row=normalizeAdaptationRowShape(rawRow);
+    const status=String(row.estado_ejercicio||'mantener').trim().toLowerCase();
+    const originalName=String(row.ejercicio_original||row.ejercicio_final||'').trim();
+    const currentFinal=String(row.ejercicio_final||originalName).trim();
+    const originalClean=cleanTxt(originalName);
+    const finalClean=cleanTxt(currentFinal);
+    const actuallyChanged=!!(originalClean&&finalClean&&originalClean!==finalClean);
+
+    // Las filas informativas nunca se sustituyen.
+    if(status==='instruction_only') return row;
+
+    // Si el motor ya entregó un cambio real, conservarlo exactamente.
+    if(['sustituido','modificado'].includes(status)&&actuallyChanged){
+      return row;
+    }
+
+    // Si cambió el nombre pero el estado llegó mal, corregir únicamente el estado.
+    if(actuallyChanged&&(status==='mantener'||status==='normal'||status==='')){
+      return{...row,estado_ejercicio:'sustituido'};
+    }
+
+    const fb=getPathologyFrontendFallback(row,frontendPathology);
+    if(!fb) return row;
+
+    // Punto clave RPC20:
+    // aunque Supabase marque "modificado" o "sustituido", si el nombre final sigue
+    // siendo idéntico al original, la adaptación no se materializó. Forzamos aquí
+    // una variante ejecutable real para que el coach no vea el ejercicio de riesgo.
+    let finalName=fb.final;
+    if(usedFinalNames.has(cleanTxt(finalName))) finalName+=' · Variante';
+    usedFinalNames.add(cleanTxt(finalName));
+
+    return{
+      ...row,
+      estado_ejercicio:'sustituido',
+      ejercicio_original:originalName||currentFinal,
+      ejercicio_final:finalName,
+      coaching_notes:row.coaching_notes||fb.coach,
+      explicacion_breve_coach:row.explicacion_breve_coach||fb.coach,
+      explicacion_cliente:row.explicacion_cliente||fb.cliente,
+      nivel_riesgo:row.nivel_riesgo||fb.riesgo,
+      video_sustituto:row.video_sustituto||fb.video||''
+    };
+  });
 }
 
 function getPathologyFrontendFallback(r, pathology){
@@ -12062,99 +12227,104 @@ function applyLumbarFrontendFallback(rows, pathology){
 }
 
 async function getAdaptedRowsForClient(c){
-  const plan = getWorkoutPlanForClient(c);
-  const assignment = plan.assignment;
+  const plan=getWorkoutPlanForClient(c);
+  const assignment=plan.assignment;
 
   if(!assignment){
-    return { rows:null, pathology:null, plan:null };
+    return{rows:null,pathology:null,plan:null};
   }
 
-      const manualRaw = state.manualPathologyByClient?.[c.id];
-  const manualArr = Array.isArray(manualRaw) ? manualRaw : (manualRaw ? [manualRaw] : []);
+  const manualRaw=state.manualPathologyByClient?.[c.id];
+  const manualArr=Array.isArray(manualRaw)?manualRaw:(manualRaw?[manualRaw]:[]);
   if(manualArr.includes('normal')){
-    return { rows:null, pathology:null, plan };
+    return{rows:null,pathology:null,plan};
   }
 
-  const detectedAll = detectAllPathologiesForClient(c);
-  const pathology = detectedAll.physical || (detectedAll.hasFatiga ? 'fatiga_alta' : null);
+  const detectedAll=detectAllPathologiesForClient(c);
+  const pathology=detectedAll.physical||(detectedAll.hasFatiga?'fatiga_alta':null);
 
   if(!pathology){
-    return { rows:null, pathology:null, plan };
+    return{rows:null,pathology:null,plan};
   }
 
-  const semana = getAssignmentWeek(assignment);
-  const sesion = getAssignmentSessionNumber(assignment);
+  const semana=getAssignmentWeek(assignment);
+  const sesion=getAssignmentSessionNumber(assignment);
+  const rpcPathology=normalizeAdaptationPathologyForRpc(pathology);
+  const cacheKey=`${c.id}__${assignment.id}__v4force__${rpcPathology}__${detectedAll.all.slice().sort().join('+')}__${semana}__${sesion}`;
 
-  const cacheKey = `${c.id}__${assignment.id}__v2__${detectedAll.all.slice().sort().join('+')}__${semana}__${sesion}`;
-
-    if(!state.adaptedTrainingCache) state.adaptedTrainingCache = {};
+  if(!state.adaptedTrainingCache) state.adaptedTrainingCache={};
 
   if(state.adaptedTrainingCache[cacheKey]){
-    return {
-      rows: state.adaptedTrainingCache[cacheKey],
+    const safeCachedRows=applyFrontendAdaptationSafetyNet(
+      state.adaptedTrainingCache[cacheKey],
+      pathology
+    );
+    state.adaptedTrainingCache[cacheKey]=safeCachedRows;
+    return{
+      rows:safeCachedRows,
       pathology,
       plan
     };
   }
 
-  const rpcPathology = pathology;
+  const rpcArgs={
+    p_assignment_id:assignment.id,
+    p_patologia:rpcPathology,
+    p_semana:semana,
+    p_sesion:sesion
+  };
 
-  console.log('AB ADAPTATION V2 DEBUG', {
-    assignment_id: assignment.id,
+  console.log('AB ADAPTATION ENGINE DEBUG',{
+    assignment_id:assignment.id,
     pathology,
     rpcPathology,
     semana,
     sesion,
-    client: c.name
+    client:c.name
   });
 
-  const { data, error } = await db.rpc('get_training_session_adapted_v2', {
-    p_assignment_id: assignment.id,
-    p_patologia: rpcPathology,
-    p_semana: semana,
-    p_sesion: sesion
-  });
+  const{data,error,rpcName}=await callAdaptationEngineRpc(rpcArgs);
 
   if(error){
-    console.error('get_training_session_adapted_v2 error:', error);
+    console.error('AB adaptation engine error:',{
+      rpcName,
+      pathology,
+      rpcPathology,
+      error
+    });
 
-    alert(
-      'Error adaptación AB v2:\n\n' +
-      'Cliente: ' + c.name + '\n' +
-      'Assignment: ' + assignment.id + '\n' +
-      'Patología: ' + pathology + '\n' +
-      'Semana: ' + semana + '\n' +
-      'Sesión: ' + sesion + '\n\n' +
-      'Mensaje: ' + (error.message || '') + '\n' +
-      'Detalles: ' + (error.details || '') + '\n' +
-      'Hint: ' + (error.hint || '') + '\n' +
-      'Code: ' + (error.code || '')
-    );
-
-    showToast('Error cargando adaptación v2', 'err');
-
-    return { rows:null, pathology:null, plan };
+    showToast('Error cargando adaptación: '+(error.message||''),'err');
+    return{rows:null,pathology:null,plan};
   }
 
-      let rows = data || [];
+  let rows=Array.isArray(data)?data:[];
 
+  // Si el motor no devuelve filas, reconstruimos desde el plan visible.
   if(!rows.length){
-    rows = buildFrontendAdaptedRows(getWorkoutPlanForClient(c), pathology);
+    rows=buildFrontendAdaptedRows(getWorkoutPlanForClient(c),pathology);
   }
 
-  // Stacking: si hay lesión física + fatiga, reducir carga encima
-  if(detectedAll.hasFatiga && detectedAll.physical){
-    rows = applyFatigaModifierOnRows(rows);
+  // Red de seguridad: cualquier ejercicio de riesgo que el motor haya dejado en
+  // "mantener" se adapta sin sobrescribir sustituciones reales de Supabase.
+  rows=applyFrontendAdaptationSafetyNet(rows,pathology);
+
+  // Stacking: lesión física + fatiga = reducción adicional del volumen.
+  if(detectedAll.hasFatiga&&detectedAll.physical){
+    rows=applyFatigaModifierOnRows(rows);
   }
 
-  state.adaptedTrainingCache[cacheKey] = rows;
+  console.log('AB ADAPTATION RESULT',{
+    rpcName,
+    rpcPathology,
+    total:rows.length,
+    adapted:rows.filter(r=>!['mantener','normal','instruction_only'].includes(String(r.estado_ejercicio||'').toLowerCase())).length
+  });
 
-  return {
-    rows,
-    pathology,
-    plan
-  };
+  state.adaptedTrainingCache[cacheKey]=rows;
+
+  return{rows,pathology,plan};
 }
+
 
 function renderPathologyPills(c) {
   const raw = state.manualPathologyByClient?.[c.id];
@@ -12612,6 +12782,8 @@ function buildAdaptedBlockChecklistScreen(c, blockKey, list, pathology, plan){
 }
 
 function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
+  rows=applyFrontendAdaptationSafetyNet(rows,pathology);
+  state.currentAdaptedRows=rows;
   const executableRows = rows.filter(r => !isAdaptedInstruction(r));
   const substituted = executableRows.filter(r => r.estado_ejercicio === 'sustituido');
   const msg = getAdaptedClientMessage(rows);
@@ -12994,8 +13166,9 @@ async function renderWorkout(){
   const adapted = await getAdaptedRowsForClient(c);
 
   if(adapted.rows && adapted.rows.length){
-    state.currentAdaptedRows = adapted.rows;
-    box.innerHTML = buildAdaptedWorkoutHTML(c, adapted.rows, adapted.pathology, adapted.plan);
+    const safeRows=applyFrontendAdaptationSafetyNet(adapted.rows,adapted.pathology);
+    state.currentAdaptedRows=safeRows;
+    box.innerHTML=buildAdaptedWorkoutHTML(c,safeRows,adapted.pathology,adapted.plan);
     return;
   }
 
