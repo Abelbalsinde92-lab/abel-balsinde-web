@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 12 ASSESSMENTS SECURE</title>
+<title>AB SYSTEM — Coach Panel · RPC 13 ASSESSMENT NAV FIX</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -13960,7 +13960,8 @@ let evalState = {
   timerSecs: 0,
   timerRunning: false,
   counterVal: 0,
-  completionSummary: null
+  completionSummary: null,
+  saving: false
 };
 
 const EVAL_TEMPLATE_CODES = {
@@ -13985,7 +13986,8 @@ async function openEvalModal(clientId, clientName, sexo, edad) {
     timerSecs: 0,
     timerRunning: false,
     counterVal: 0,
-    completionSummary: null
+    completionSummary: null,
+    saving: false
   };
 
   document.getElementById('modal-evaluacion').style.display = 'flex';
@@ -14440,7 +14442,7 @@ function renderEvalTest() {
       <div class="eval-nav">
         <button class="btn btn-b ${idx === 0 ? 'btn-disabled' : ''}"
           onclick="evalBack()" ${idx === 0 ? 'disabled' : ''}>← Atrás</button>
-        <button class="btn btn-p" onclick="evalNext()">
+        <button id="eval-next-btn" type="button" class="btn btn-p" onclick="evalNext()">
           ${idx === total - 1 ? 'Ver resultado ✓' : 'Siguiente →'}
         </button>
       </div>
@@ -14633,7 +14635,217 @@ function selectEvalLevel(level) {
   if (input) input.value = level;
 }
 
+function setEvalNextSaving(isSaving){
+  evalState.saving = Boolean(isSaving);
+
+  const button = document.getElementById('eval-next-btn');
+  if(!button) return;
+
+  if(isSaving){
+    button.disabled = true;
+    button.dataset.originalText = button.textContent || 'Siguiente →';
+    button.textContent = 'Guardando...';
+  }else{
+    button.disabled = false;
+    button.textContent = button.dataset.originalText || (
+      evalState.currentIdx >= evalState.items.length - 1
+        ? 'Ver resultado ✓'
+        : 'Siguiente →'
+    );
+  }
+}
+
+function assessmentNumbersEqual(a, b){
+  if(a === null || a === undefined || b === null || b === undefined){
+    return a === b;
+  }
+
+  const na = Number(a);
+  const nb = Number(b);
+
+  return Number.isFinite(na) && Number.isFinite(nb)
+    ? Math.abs(na - nb) < 0.0001
+    : String(a) === String(b);
+}
+
+async function findSavedAssessmentResult(item, expectedValue, expectedReps){
+  const token = getCoachSessionTokenSafe();
+
+  if(!token || !evalState.assessmentId || !item?.id){
+    return null;
+  }
+
+  const expectedKey = assessmentItemKey(item);
+
+  for(let attempt = 0; attempt < 3; attempt++){
+    if(attempt > 0){
+      await new Promise(resolve => setTimeout(resolve, 900));
+    }
+
+    const {data,error} = await db.rpc(
+      'ab_coach_session_get_assessment_results',
+      {
+        p_session_token: token,
+        p_assessment_id: evalState.assessmentId,
+        p_limit: 300
+      }
+    );
+
+    if(error){
+      console.warn('No se pudo verificar el resultado guardado:', error);
+      continue;
+    }
+
+    const rows = Array.isArray(data) ? data : [];
+    const row = rows.find(result => {
+      const resultKey = String(
+        result?.item_code ||
+        result?.exercise_name ||
+        result?.item_id ||
+        ''
+      );
+
+      return (
+        String(result?.item_id || '') === String(item.id) ||
+        resultKey === expectedKey
+      );
+    });
+
+    if(!row) continue;
+
+    const storedValue = item.requires_load
+      ? row.load_kg
+      : item.requires_reps
+        ? row.reps
+        : item.requires_time
+          ? row.time_seconds
+          : item.requires_distance
+            ? row.distance_meters
+            : row.value_numeric;
+
+    const valueMatches = assessmentNumbersEqual(
+      storedValue,
+      expectedValue
+    );
+
+    const repsMatch = !item.requires_load || !item.requires_reps
+      ? true
+      : assessmentNumbersEqual(row.reps, expectedReps);
+
+    if(valueMatches && repsMatch){
+      return row;
+    }
+  }
+
+  return null;
+}
+
+async function saveAssessmentResultWithRecovery(item, val, reps){
+  const token = getCoachSessionTokenSafe();
+
+  if(!token || !evalState.assessmentId || !item?.id){
+    throw new Error('SESION_EVALUACION_NO_VALIDA');
+  }
+
+  const loadKg = item.requires_load ? val : null;
+  const resultReps = item.requires_reps
+    ? (item.requires_load ? reps : Math.round(val))
+    : null;
+  const timeSeconds = item.requires_time ? Math.round(val) : null;
+  const distanceMeters = item.requires_distance ? val : null;
+
+  const rpcPromise = db.rpc(
+    'ab_coach_session_save_assessment_result',
+    {
+      p_session_token: token,
+      p_assessment_id: evalState.assessmentId,
+      p_item_id: item.id,
+      p_value_numeric: val,
+      p_value_text: null,
+      p_unit: assessmentUnit(item),
+      p_direction: assessmentDirection(item),
+      p_load_kg: loadKg,
+      p_reps: resultReps,
+      p_time_seconds: timeSeconds,
+      p_distance_meters: distanceMeters,
+      p_rpe: null,
+      p_pain_level: null,
+      p_technique_quality: null,
+      p_coach_notes: null,
+      p_client_feedback: null,
+      p_result_status: 'completed',
+      p_unit_data: {
+        source: 'coach_panel',
+        client_sexo: evalState.clientSexo || null,
+        client_edad: evalState.clientEdad || null
+      }
+    }
+  );
+
+  let rpcResponse = null;
+  let rpcFailure = null;
+
+  try{
+    rpcResponse = await Promise.race([
+      rpcPromise,
+      new Promise((_, reject) => {
+        setTimeout(
+          () => reject(new Error('ASSESSMENT_SAVE_TIMEOUT')),
+          12000
+        );
+      })
+    ]);
+
+    if(rpcResponse?.error){
+      throw rpcResponse.error;
+    }
+
+    const saved = normalizeAssessmentRpcPayload(rpcResponse?.data);
+
+    if(saved?.id){
+      return saved;
+    }
+
+    rpcFailure = new Error(
+      'La RPC no devolvió un resultado válido.'
+    );
+  }catch(error){
+    rpcFailure = error;
+  }
+
+  /*
+   * En iPhone/Safari puede ocurrir que la escritura termine en Supabase
+   * pero la respuesta se corte o tarde demasiado. Antes de bloquear la
+   * navegación, comprobamos por la RPC de lectura si el resultado quedó
+   * realmente persistido.
+   */
+  const recovered = await findSavedAssessmentResult(
+    item,
+    val,
+    resultReps
+  );
+
+  if(recovered){
+    console.warn(
+      'Resultado recuperado después de una respuesta incompleta:',
+      {
+        itemId: item.id,
+        itemCode: assessmentItemKey(item),
+        originalError: rpcFailure
+      }
+    );
+
+    return recovered;
+  }
+
+  throw rpcFailure || new Error(
+    'No se pudo confirmar el guardado del resultado.'
+  );
+}
+
 async function evalNext() {
+  if(evalState.saving) return;
+
   const item = currentEvalItem();
   if(!item) return;
 
@@ -14642,8 +14854,9 @@ async function evalNext() {
   const val = raw !== '' ? Number(raw.replace(',', '.')) : null;
 
   const repsEl = document.getElementById('eval-reps');
-  const reps = repsEl && repsEl.value.trim() !== ''
-    ? parseInt(repsEl.value.trim(), 10)
+  const repsRaw = repsEl ? repsEl.value.trim() : '';
+  const reps = repsRaw !== ''
+    ? Number.parseInt(repsRaw, 10)
     : null;
 
   const key = assessmentItemKey(item);
@@ -14660,56 +14873,38 @@ async function evalNext() {
     return;
   }
 
-  if(val !== null){
-    const token = getCoachSessionTokenSafe();
+  if(item.requires_load && item.requires_reps){
+    const hasLoad = val !== null;
+    const hasReps = reps !== null;
 
-    if(!token || !evalState.assessmentId || !item.id){
-      showToast('Sesión de evaluación no válida', 'err');
+    if(hasLoad !== hasReps){
+      showToast(
+        'Introduce el peso y las repeticiones, o deja ambos vacíos para omitir.',
+        'err'
+      );
       return;
     }
 
-    const loadKg = item.requires_load ? val : null;
-    const resultReps = item.requires_reps
-      ? (item.requires_load ? reps : Math.round(val))
-      : null;
-    const timeSeconds = item.requires_time ? Math.round(val) : null;
-    const distanceMeters = item.requires_distance ? val : null;
+    if(hasReps && (reps < 1 || reps > 30)){
+      showToast('Las repeticiones deben estar entre 1 y 30', 'err');
+      return;
+    }
+  }
+
+  if(val !== null){
+    setEvalNextSaving(true);
 
     try{
-      const {data,error} = await db.rpc(
-        'ab_coach_session_save_assessment_result',
-        {
-          p_session_token: token,
-          p_assessment_id: evalState.assessmentId,
-          p_item_id: item.id,
-          p_value_numeric: val,
-          p_value_text: null,
-          p_unit: assessmentUnit(item),
-          p_direction: assessmentDirection(item),
-          p_load_kg: loadKg,
-          p_reps: resultReps,
-          p_time_seconds: timeSeconds,
-          p_distance_meters: distanceMeters,
-          p_rpe: null,
-          p_pain_level: null,
-          p_technique_quality: null,
-          p_coach_notes: null,
-          p_client_feedback: null,
-          p_result_status: 'completed',
-          p_unit_data: {
-            source: 'coach_panel',
-            client_sexo: evalState.clientSexo || null,
-            client_edad: evalState.clientEdad || null
-          }
-        }
+      const saved = await saveAssessmentResultWithRecovery(
+        item,
+        val,
+        reps
       );
 
-      if(error) throw error;
-
-      const saved = normalizeAssessmentRpcPayload(data);
-
       if(!saved?.id){
-        throw new Error('La RPC no devolvió un resultado válido.');
+        throw new Error(
+          'No se pudo confirmar el resultado guardado.'
+        );
       }
 
       evalState.results[key] = val;
@@ -14722,6 +14917,9 @@ async function evalNext() {
       console.error('ab_coach_session_save_assessment_result error:', {
         assessmentId: evalState.assessmentId,
         itemId: item.id,
+        itemCode: key,
+        value: val,
+        reps,
         message: error?.message,
         details: error?.details,
         hint: error?.hint,
@@ -14729,11 +14927,21 @@ async function evalNext() {
         raw: error
       });
 
-      showToast('No se pudo guardar este resultado', 'err');
+      setEvalNextSaving(false);
+
+      const message = String(error?.message || '');
+
+      showToast(
+        message.includes('ASSESSMENT_SAVE_TIMEOUT')
+          ? 'El guardado tardó demasiado. Inténtalo otra vez.'
+          : 'No se pudo guardar este resultado',
+        'err'
+      );
       return;
     }
   }
 
+  evalState.saving = false;
   evalState.currentIdx++;
   renderEvalModal();
 }
