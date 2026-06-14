@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 16 RESULTS RESPONSIVE</title>
+<title>AB SYSTEM — Coach Panel · RPC 17 HEALTH SECURE</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -1419,9 +1419,6 @@ body.eval-modal-open {
   min-width: 0;
   margin-top: 10px;
 }
-.eval-card-actions-single {
-  grid-template-columns: 1fr !important;
-}
 .eval-card-actions .btn {
   width: 100%;
   min-width: 0;
@@ -2541,6 +2538,7 @@ body.eval-modal-open {
   100% { background-position: -200% 0; }
 }
 </style>
+<!-- AB SYSTEM · RPC 17 HEALTH SECURE -->
 </head>
 <body>
 
@@ -4360,6 +4358,125 @@ async function loadCoachAssessments(limit = 100){
   };
 }
 
+
+async function loadCoachClientConditions({
+  clientId = null,
+  status = null,
+  limit = 300
+} = {}){
+  const token = getCoachSessionTokenSafe();
+
+  if(!token){
+    throw new Error('SESION_COACH_INVALIDA');
+  }
+
+  const {data,error} = await db.rpc(
+    'ab_coach_session_get_client_conditions',
+    {
+      p_session_token: token,
+      p_client_id: clientId || null,
+      p_status: status || null,
+      p_limit: limit
+    }
+  );
+
+  if(error){
+    console.error('ab_coach_session_get_client_conditions error:', {
+      clientId,
+      status,
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      code: error?.code,
+      raw: error
+    });
+    throw error;
+  }
+
+  return {data: Array.isArray(data) ? data : []};
+}
+
+async function loadCoachInjuryHistory(clientId = null, limit = 300){
+  const token = getCoachSessionTokenSafe();
+
+  if(!token){
+    throw new Error('SESION_COACH_INVALIDA');
+  }
+
+  const {data,error} = await db.rpc(
+    'ab_coach_session_get_injury_history',
+    {
+      p_session_token: token,
+      p_client_id: clientId || null,
+      p_limit: limit
+    }
+  );
+
+  if(error){
+    console.error('ab_coach_session_get_injury_history error:', {
+      clientId,
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      code: error?.code,
+      raw: error
+    });
+    throw error;
+  }
+
+  return {data: Array.isArray(data) ? data : []};
+}
+
+async function loadCoachConditionRules(activeOnly = true, limit = 1000){
+  const token = getCoachSessionTokenSafe();
+
+  if(!token){
+    throw new Error('SESION_COACH_INVALIDA');
+  }
+
+  const {data,error} = await db.rpc(
+    'ab_coach_session_get_condition_rules',
+    {
+      p_session_token: token,
+      p_active_only: activeOnly,
+      p_limit: limit
+    }
+  );
+
+  if(error){
+    console.error('ab_coach_session_get_condition_rules error:', {
+      activeOnly,
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      code: error?.code,
+      raw: error
+    });
+    throw error;
+  }
+
+  return {data: Array.isArray(data) ? data : []};
+}
+
+function normalizeRpcJsonRow(data){
+  let row = data;
+
+  if(typeof row === 'string'){
+    try{
+      row = JSON.parse(row);
+    }catch(error){
+      console.error('No se pudo interpretar la respuesta RPC:', error);
+      return null;
+    }
+  }
+
+  if(Array.isArray(row)){
+    row = row[0] || null;
+  }
+
+  return row ? snakeToCamel(row) : null;
+}
+
 async function loadAllData(){
   try{
     const today=todayISO();
@@ -4418,7 +4535,7 @@ loadCoachReservationsByScope(
       db.from('templates').select('*').order('name'),
       loadCoachAssessments(100),
       loadCoachMetrics(150),
-db.from('client_conditions').select('*').eq('status','active').order('start_date',{ascending:false}),
+loadCoachClientConditions({status:'active',limit:300}),
 db.from('settings').select('*').eq('id','main').maybeSingle()
     ]);
     state.clients=(clients||[]).map(normalizeRpcCoachClient).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
@@ -6814,10 +6931,7 @@ async function openAthleteSection(section, clientId){
     }
 
     else if(section === 'lesiones'){
-      const {data,error} = await db.from('injury_history')
-        .select('*').eq('client_id',clientId)
-        .order('start_date',{ascending:false});
-      if(error) throw error;
+      const {data} = await loadCoachInjuryHistory(clientId, 300);
       html = `
         <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
           <button class="btn btn-p btn-sm" onclick="openModal('injuryHistory',null,{clientId:'${clientId}'})">+ Lesión</button>
@@ -7018,7 +7132,7 @@ function buildAthleteDashboardHTML(a){
               <div style="margin-top:8px;padding:8px 10px;background:rgba(0,200,232,.05);border-left:2px solid var(--sport);border-radius:0 6px 6px 0;font-size:.78rem;color:var(--text-2);line-height:1.55">
                 ${esc(a.coachNotes||a.coach_notes)}
               </div>`:''}
-            <div class="eval-card-actions ${c?'':'eval-card-actions-single'}">
+            <div class="eval-card-actions" style="grid-template-columns:${c?'':'1fr'}">
               <button class="btn btn-p btn-sm eval-card-action-primary" onclick="openAssessmentResultsModal('${a.id}')">${resultsActionLabel}</button>
               ${c?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
               <button class="btn btn-b btn-sm" onclick="openEvalModal('${c.id}','${esc(c.name)}',null,null)">Nueva</button>`:''}
@@ -8101,18 +8215,43 @@ else if(type==='combatMetric'){
 else if(type==='injuryHistory'){
   const cid = data.client_id;
   if(!cid){ showToast('Sin cliente','err'); return; }
-  const payload = {
-    client_id:cid, body_part:data.body_part||null,
-    injury_type:data.injury_type||null, severity:data.severity||'leve',
-    training_impact:data.training_impact||'sin_impacto',
-    start_date:data.start_date||null, recovery_date:data.recovery_date||null,
-    notes:data.notes||null
-  };
-  const {error} = id
-    ? await db.from('injury_history').update(payload).eq('id',id)
-    : await db.from('injury_history').insert({...payload,id:uid()});
+
+  const token = getCoachSessionTokenSafe();
+  if(!token){ showToast('Sesión del coach no válida','err'); return; }
+
+  const recoveryDate = data.recovery_date || null;
+  const injuryStatus = recoveryDate ? 'recovered' : 'active';
+
+  const {data:savedRaw,error} = await db.rpc(
+    'ab_coach_session_save_injury_history',
+    {
+      p_session_token: token,
+      p_client_id: cid,
+      p_body_part: data.body_part || null,
+      p_start_date: data.start_date || null,
+      p_injury_id: id || null,
+      p_injury_type: data.injury_type || null,
+      p_severity: data.severity || 'leve',
+      p_recovery_date: recoveryDate,
+      p_status: injuryStatus,
+      p_training_impact: data.training_impact || 'sin_impacto',
+      p_days_lost: null,
+      p_mechanism: null,
+      p_treatment: null,
+      p_competition_id: null,
+      p_notes: data.notes || null,
+      p_coach_notes: null
+    }
+  );
+
   if(error) throw error;
-  showToast('Lesión registrada ✓','ok');
+
+  const savedInjury = normalizeRpcJsonRow(savedRaw);
+  if(!savedInjury?.id){
+    console.warn('La RPC guardó la lesión pero no devolvió una fila normalizada.', savedRaw);
+  }
+
+  showToast(id ? 'Lesión actualizada ✓' : 'Lesión registrada ✓','ok');
 }
    
    closeModal();renderAll();
@@ -11164,10 +11303,34 @@ function getActiveConditionForClient(c){
 
 async function resolveClientCondition(conditionId, clientId){
   if(!confirm('¿Cerrar la adaptación activa?')) return;
+
+  const token = getCoachSessionTokenSafe();
+  if(!token){
+    showToast('Sesión del coach no válida','err');
+    return;
+  }
+
   try{
     if(conditionId){
-      await db.from('client_conditions').update({status:'inactive'}).eq('id',conditionId);
+      const {data,error} = await db.rpc(
+        'ab_coach_session_set_condition_status',
+        {
+          p_session_token: token,
+          p_condition_id: conditionId,
+          p_status: 'inactive',
+          p_end_date: todayISO()
+        }
+      );
+
+      if(error) throw error;
+
+      const saved = normalizeRpcJsonRow(data);
+      if(saved?.id){
+        const index = state.clientConditions.findIndex(row => String(row.id) === String(saved.id));
+        if(index >= 0) state.clientConditions[index] = saved;
+      }
     }
+
     if(!state.manualPathologyByClient) state.manualPathologyByClient={};
     state.manualPathologyByClient[clientId]='normal';
     state.clientConditions=state.clientConditions.filter(c=>
@@ -11177,7 +11340,8 @@ async function resolveClientCondition(conditionId, clientId){
     renderPerfil();
     showToast('Adaptación cerrada ✓','ok');
   }catch(e){
-    console.error(e);showToast('Error cerrando adaptación','err');
+    console.error('ab_coach_session_set_condition_status error:', e);
+    showToast('Error cerrando adaptación: '+(e?.message||''),'err');
   }
 }
 
@@ -11250,9 +11414,6 @@ function buildClientConditionCard(c){
                   <div class="card-acts">
         <button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}')">
           Abrir entrenamiento adaptado
-        </button>
-        <button class="btn btn-r btn-sm" onclick="resolveClientCondition('${cond.id||''}','${c.id}')">
-          Cerrar adaptación
         </button>
         <button class="btn btn-r btn-sm" onclick="resolveClientCondition('${cond.id||''}','${c.id}')">
           Cerrar adaptación
@@ -14404,27 +14565,32 @@ async function loadStretchSafetyBase(clientId) {
 
   try {
     const [conditionsRes, injuriesRes, rulesRes] = await Promise.all([
-      db
-        .from('client_conditions')
-        .select('condition_key, area, severity, status')
-        .eq('client_id', clientId)
-        .in('status', ['activo', 'activa', 'active']),
-
-      db
-        .from('injury_history')
-        .select('body_part, severity, status, training_impact')
-        .eq('client_id', clientId)
-        .in('status', ['activo', 'activa', 'active']),
-
-      db
-        .from('condition_exercise_rules')
-        .select('*')
-        .eq('active', true)
+      loadCoachClientConditions({
+        clientId,
+        status: 'active',
+        limit: 100
+      }),
+      loadCoachInjuryHistory(clientId, 300),
+      loadCoachConditionRules(true, 1000)
     ]);
 
+    const activeStatuses = new Set(['activo', 'activa', 'active']);
+
     stretchSafety = {
-      conditions: conditionsRes.data || [],
-      injuries: injuriesRes.data || [],
+      conditions: (conditionsRes.data || []).map(row => ({
+        condition_key: row.condition_key,
+        area: row.area,
+        severity: row.severity,
+        status: row.status
+      })),
+      injuries: (injuriesRes.data || [])
+        .filter(row => activeStatuses.has(String(row.status || '').toLowerCase()))
+        .map(row => ({
+          body_part: row.body_part,
+          severity: row.severity,
+          status: row.status,
+          training_impact: row.training_impact
+        })),
       rules: rulesRes.data || []
     };
 
