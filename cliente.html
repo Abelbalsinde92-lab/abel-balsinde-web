@@ -5887,6 +5887,7 @@ function isPendingReservation(r) {
   return [
     'pendiente',
     'pending',
+    'pendiente_confirmacion',
     'por_confirmar',
     'por confirmar'
   ].includes(s);
@@ -12193,6 +12194,586 @@ function calCancelRequest() {
   if (area) area.innerHTML = '';
 }
 
+function calManagementText(es, sr, en) {
+  const lang = getLang();
+
+  if (lang === 'sr') return sr;
+  if (lang === 'en') return en;
+
+  return es;
+}
+
+function calIsGroupReservation(reservation) {
+  const sessionMode = String(
+    reservation?.session_mode || ''
+  ).toLowerCase().trim();
+
+  return Boolean(
+    reservation?.group_slot_id ||
+    sessionMode === 'group' ||
+    sessionMode === 'grupal'
+  );
+}
+
+function buildReservationManagementActions(reservation) {
+  if (!reservation?.id || !isPendingReservation(reservation)) {
+    return '';
+  }
+
+  const isGroup = calIsGroupReservation(reservation);
+
+  return (
+    '<div class="action-box" style="' +
+      'margin-top:12px;' +
+      'grid-template-columns:' +
+      (isGroup ? '1fr' : 'repeat(2,minmax(0,1fr))') +
+    ';">' +
+
+      (
+        !isGroup
+          ? '<button class="client-action-btn" ' +
+              'onclick="calOpenReservationEdit(\'' + reservation.id + '\')">' +
+                calManagementText(
+                  'Modificar',
+                  'Izmeni',
+                  'Modify'
+                ) +
+            '</button>'
+          : ''
+      ) +
+
+      '<button class="client-action-btn" ' +
+        'style="' +
+          'color:var(--medical);' +
+          'border-color:rgba(255,90,90,.35);' +
+          'background:rgba(255,90,90,.045);' +
+        '" ' +
+        'onclick="calCancelReservation(\'' + reservation.id + '\')">' +
+          calManagementText(
+            'Cancelar reserva',
+            'Otkaži rezervaciju',
+            'Cancel booking'
+          ) +
+      '</button>' +
+
+      (
+        isGroup
+          ? '<div style="' +
+              'grid-column:1/-1;' +
+              'font-family:var(--font-mono);' +
+              'font-size:10px;' +
+              'line-height:1.5;' +
+              'color:var(--text-secondary);' +
+            '">' +
+              calManagementText(
+                'Para cambiar de turno grupal, cancela esta reserva y selecciona otro horario.',
+                'Za promenu grupnog termina otkaži rezervaciju i izaberi drugi termin.',
+                'To change the group slot, cancel this booking and select another time.'
+              ) +
+            '</div>'
+          : ''
+      ) +
+
+    '</div>'
+  );
+}
+
+function buildReservationEditFormHTML(reservation) {
+  const currentDate = String(
+    reservation?.date || ''
+  ).slice(0, 10);
+
+  const currentTime = String(
+    reservation?.time || ''
+  ).slice(0, 5);
+
+  const typeText = String(
+    reservation?.type || ''
+  ).toLowerCase();
+
+  const currentType = typeText.includes('pareja')
+    ? 'pareja'
+    : 'personal';
+
+  const note = escHTML(
+    reservation?.client_message || ''
+  );
+
+  return (
+    '<div class="cal-request-form">' +
+
+      '<div class="cal-request-title">' +
+        calManagementText(
+          'Modificar reserva',
+          'Izmeni rezervaciju',
+          'Modify booking'
+        ) +
+      '</div>' +
+
+      '<div class="cal-summary-row">' +
+        '<span class="cal-summary-label">' +
+          calManagementText(
+            'Fecha',
+            'Datum',
+            'Date'
+          ) +
+        '</span>' +
+
+        '<input ' +
+          'id="calEditReservationDate" ' +
+          'type="date" ' +
+          'min="' + todayISO() + '" ' +
+          'value="' + currentDate + '" ' +
+          'style="' +
+            'background:var(--bg);' +
+            'border:1px solid var(--card-border);' +
+            'border-radius:6px;' +
+            'padding:8px 10px;' +
+            'color:var(--text-primary);' +
+            'font-family:var(--font-mono);' +
+            'font-size:12px;' +
+          '"' +
+        ' />' +
+      '</div>' +
+
+      '<div class="cal-summary-row">' +
+        '<span class="cal-summary-label">' +
+          calManagementText(
+            'Hora',
+            'Vreme',
+            'Time'
+          ) +
+        '</span>' +
+
+        '<input ' +
+          'id="calEditReservationTime" ' +
+          'type="time" ' +
+          'value="' + currentTime + '" ' +
+          'style="' +
+            'background:var(--bg);' +
+            'border:1px solid var(--card-border);' +
+            'border-radius:6px;' +
+            'padding:8px 10px;' +
+            'color:var(--text-primary);' +
+            'font-family:var(--font-mono);' +
+            'font-size:12px;' +
+          '"' +
+        ' />' +
+      '</div>' +
+
+      '<div class="cal-summary-row">' +
+        '<span class="cal-summary-label">' +
+          calManagementText(
+            'Tipo',
+            'Tip',
+            'Type'
+          ) +
+        '</span>' +
+
+        '<select ' +
+          'id="calEditReservationType" ' +
+          'style="' +
+            'background:var(--bg);' +
+            'border:1px solid var(--card-border);' +
+            'border-radius:6px;' +
+            'padding:8px 10px;' +
+            'color:var(--text-primary);' +
+            'font-family:var(--font-mono);' +
+            'font-size:12px;' +
+          '"' +
+        '>' +
+
+          '<option value="personal" ' +
+            (currentType === 'personal' ? 'selected' : '') +
+          '>' +
+            calManagementText(
+              'Personal',
+              'Individualni',
+              'Personal'
+            ) +
+          '</option>' +
+
+          '<option value="pareja" ' +
+            (currentType === 'pareja' ? 'selected' : '') +
+          '>' +
+            calManagementText(
+              'Pareja',
+              'U paru',
+              'Pair'
+            ) +
+          '</option>' +
+
+        '</select>' +
+      '</div>' +
+
+      '<div style="margin-top:14px;">' +
+        '<div class="summary-label" style="margin-bottom:6px;">' +
+          calManagementText(
+            'Mensaje para el coach',
+            'Poruka treneru',
+            'Message for the coach'
+          ) +
+        '</div>' +
+
+        '<textarea ' +
+          'id="calEditReservationNote" ' +
+          'class="training-notes-textarea" ' +
+          'style="min-height:74px;margin-bottom:0;"' +
+        '>' +
+          note +
+        '</textarea>' +
+      '</div>' +
+
+      '<div class="action-box" style="' +
+        'margin-top:14px;' +
+        'grid-template-columns:repeat(2,minmax(0,1fr));' +
+      '">' +
+
+        '<button ' +
+          'class="client-action-btn" ' +
+          'id="calSaveReservationBtn" ' +
+          'onclick="calSaveReservationEdit(\'' + reservation.id + '\')"' +
+        '>' +
+          calManagementText(
+            'Guardar cambios',
+            'Sačuvaj izmene',
+            'Save changes'
+          ) +
+        '</button>' +
+
+        '<button ' +
+          'class="client-action-btn wa" ' +
+          'onclick="calCloseReservationEditor()"' +
+        '>' +
+          calManagementText(
+            'Cerrar',
+            'Zatvori',
+            'Close'
+          ) +
+        '</button>' +
+
+      '</div>' +
+
+    '</div>'
+  );
+}
+
+function calFindReservation(reservationId) {
+  return (
+    calClientReservations.find(
+      reservation => String(reservation.id) === String(reservationId)
+    ) ||
+    clientReservations.find(
+      reservation => String(reservation.id) === String(reservationId)
+    ) ||
+    null
+  );
+}
+
+function calOpenReservationEdit(reservationId) {
+  const reservation = calFindReservation(reservationId);
+
+  if (!reservation) {
+    showClientNotice(
+      calManagementText(
+        'No se encontró la reserva.',
+        'Rezervacija nije pronađena.',
+        'Booking not found.'
+      ),
+      'error'
+    );
+
+    return;
+  }
+
+  if (!isPendingReservation(reservation)) {
+    showClientNotice(
+      calManagementText(
+        'Esta reserva ya no puede modificarse.',
+        'Ova rezervacija više ne može da se menja.',
+        'This booking can no longer be modified.'
+      ),
+      'error'
+    );
+
+    return;
+  }
+
+  if (calIsGroupReservation(reservation)) {
+    showClientNotice(
+      calManagementText(
+        'Para cambiar un turno grupal debes cancelarlo y elegir otro.',
+        'Za promenu grupnog termina otkaži rezervaciju i izaberi drugi termin.',
+        'To change a group slot, cancel it and select another one.'
+      ),
+      'error'
+    );
+
+    return;
+  }
+
+  calShowFullView = true;
+  calSelectedDate = String(reservation.date || '').slice(0, 10);
+
+  renderReservationsCalendar();
+
+  const area = document.getElementById('calRequestArea');
+
+  if (!area) return;
+
+  area.innerHTML = buildReservationEditFormHTML(reservation);
+
+  area.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
+}
+
+function calCloseReservationEditor() {
+  const area = document.getElementById('calRequestArea');
+
+  if (area) {
+    area.innerHTML = '';
+  }
+}
+
+function calUpdateReservationInState(updatedReservation) {
+  if (!updatedReservation?.id) return;
+
+  clientReservations = clientReservations.map(reservation =>
+    String(reservation.id) === String(updatedReservation.id)
+      ? updatedReservation
+      : reservation
+  );
+
+  calClientReservations = calClientReservations.map(reservation =>
+    String(reservation.id) === String(updatedReservation.id)
+      ? updatedReservation
+      : reservation
+  );
+}
+
+function calReservationErrorText(error) {
+  const message = String(
+    error?.message || error || ''
+  );
+
+  if (message.includes('RESERVA_NO_EDITABLE')) {
+    return calManagementText(
+      'La reserva ya fue procesada y no puede modificarse.',
+      'Rezervacija je već obrađena i ne može da se menja.',
+      'The booking has already been processed and cannot be modified.'
+    );
+  }
+
+  if (message.includes('RESERVA_NO_CANCELABLE_DIRECTAMENTE')) {
+    return calManagementText(
+      'Esta reserva ya fue confirmada. Contacta con tu coach para cancelarla.',
+      'Rezervacija je potvrđena. Kontaktiraj trenera radi otkazivanja.',
+      'This booking is already confirmed. Contact your coach to cancel it.'
+    );
+  }
+
+  if (message.includes('RESERVA_NO_ENCONTRADA')) {
+    return calManagementText(
+      'No se encontró la reserva.',
+      'Rezervacija nije pronađena.',
+      'Booking not found.'
+    );
+  }
+
+  if (
+    message.toLowerCase().includes('conflict') ||
+    message.toLowerCase().includes('conflicto') ||
+    message.toLowerCase().includes('ocupado')
+  ) {
+    return calManagementText(
+      'Ese horario ya no está disponible.',
+      'Taj termin više nije dostupan.',
+      'That time is no longer available.'
+    );
+  }
+
+  return calManagementText(
+    'No se pudo completar la operación.',
+    'Operacija nije mogla da se završi.',
+    'The operation could not be completed.'
+  );
+}
+
+async function calSaveReservationEdit(reservationId) {
+  const reservation = calFindReservation(reservationId);
+  const token = getClientSessionToken();
+
+  if (!reservation || !token) {
+    showClientNotice(
+      calManagementText(
+        'La sesión o la reserva no son válidas.',
+        'Sesija ili rezervacija nisu važeće.',
+        'The session or booking is invalid.'
+      ),
+      'error'
+    );
+
+    return;
+  }
+
+  const date =
+    document.getElementById('calEditReservationDate')?.value || '';
+
+  const time =
+    document.getElementById('calEditReservationTime')?.value || '';
+
+  const requestType =
+    document.getElementById('calEditReservationType')?.value || 'personal';
+
+  const clientMessage =
+    document.getElementById('calEditReservationNote')?.value?.trim() || null;
+
+  if (!date || !time) {
+    showClientNotice(
+      calManagementText(
+        'Indica la fecha y la hora.',
+        'Unesi datum i vreme.',
+        'Enter the date and time.'
+      ),
+      'error'
+    );
+
+    return;
+  }
+
+  const button = document.getElementById('calSaveReservationBtn');
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = calManagementText(
+      'Guardando...',
+      'Čuvanje...',
+      'Saving...'
+    );
+  }
+
+  try {
+    const { data, error } = await db.rpc(
+      'ab_client_session_update_reservation',
+      {
+        p_session_token: token,
+        p_reservation_id: reservation.id,
+        p_date: date,
+        p_time: time,
+        p_request_type: requestType,
+        p_client_message: clientMessage,
+        p_place: reservation.place || null
+      }
+    );
+
+    if (error) throw error;
+
+    const updatedReservation = Array.isArray(data)
+      ? data[0]
+      : data;
+
+    calUpdateReservationInState(updatedReservation);
+    calCloseReservationEditor();
+
+    await renderReservations();
+
+    showClientNotice(
+      calManagementText(
+        'Reserva actualizada correctamente.',
+        'Rezervacija je uspešno izmenjena.',
+        'Booking updated successfully.'
+      ),
+      'success'
+    );
+
+  } catch (error) {
+    console.error('Update reservation RPC:', error);
+
+    showClientNotice(
+      calReservationErrorText(error),
+      'error'
+    );
+
+    if (button) {
+      button.disabled = false;
+      button.textContent = calManagementText(
+        'Guardar cambios',
+        'Sačuvaj izmene',
+        'Save changes'
+      );
+    }
+  }
+}
+
+async function calCancelReservation(reservationId) {
+  const reservation = calFindReservation(reservationId);
+  const token = getClientSessionToken();
+
+  if (!reservation || !token) {
+    showClientNotice(
+      calManagementText(
+        'La sesión o la reserva no son válidas.',
+        'Sesija ili rezervacija nisu važeće.',
+        'The session or booking is invalid.'
+      ),
+      'error'
+    );
+
+    return;
+  }
+
+  const accepted = window.confirm(
+    calManagementText(
+      '¿Quieres cancelar esta reserva?',
+      'Da li želiš da otkažeš ovu rezervaciju?',
+      'Do you want to cancel this booking?'
+    )
+  );
+
+  if (!accepted) return;
+
+  try {
+    const { data, error } = await db.rpc(
+      'ab_client_session_cancel_reservation',
+      {
+        p_session_token: token,
+        p_reservation_id: reservation.id,
+        p_cancel_reason: null
+      }
+    );
+
+    if (error) throw error;
+
+    const cancelledReservation = Array.isArray(data)
+      ? data[0]
+      : data;
+
+    calUpdateReservationInState(cancelledReservation);
+    calCloseReservationEditor();
+
+    await renderReservations();
+
+    showClientNotice(
+      calManagementText(
+        'Reserva cancelada correctamente.',
+        'Rezervacija je uspešno otkazana.',
+        'Booking cancelled successfully.'
+      ),
+      'success'
+    );
+
+  } catch (error) {
+    console.error('Cancel reservation RPC:', error);
+
+    showClientNotice(
+      calReservationErrorText(error),
+      'error'
+    );
+  }
+}
+
 async function calSubmitRequest(groupSlotId) {
   const token = getClientSessionToken();
 
@@ -12549,10 +13130,13 @@ function buildSimpleReservationView() {
           '</span>' +
         '</div>' +
         (myNext.client_message
-          ? '<div class="dc-note">' + myNext.client_message + '</div>'
-          : ''
-        ) +
-      '</div>';
+  ? '<div class="dc-note">' + myNext.client_message + '</div>'
+  : ''
+) +
+
+buildReservationManagementActions(myNext) +
+
+'</div>';
   }
 
   // ── Próximas plazas grupales ──
@@ -12677,8 +13261,14 @@ const statusText = reservationClientStatusLabel(r);
               (r.place ? ' · ' + r.place : '') +
             '</span>' +
           '</div>' +
-          (r.client_message ? '<div class="dc-note">' + r.client_message + '</div>' : '') +
-        '</div>';
+          (r.client_message
+  ? '<div class="dc-note">' + r.client_message + '</div>'
+  : ''
+) +
+
+buildReservationManagementActions(r) +
+
+'</div>';
     });
   }
 
