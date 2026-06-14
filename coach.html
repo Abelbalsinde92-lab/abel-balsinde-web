@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 05 SECURE</title>
+<title>AB SYSTEM — Coach Panel · RPC 06 REQUESTS</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -2882,6 +2882,12 @@ function replaceReservationLocal(row){
 
   const today=todayISO();
   const date=String(row.date||'');
+  const status=String(row.status||'').toLowerCase().trim();
+
+  if(status==='cancelada' && date>=today){
+    sortReservationsLocal();
+    return;
+  }
 
   if(date===today)state.todayRes.push(row);
   else if(date>today)state.futureRes.push(row);
@@ -4053,8 +4059,79 @@ function _urgScore(r){
   return 4;
 }
 
+function reservationStatusKey(r){
+  return String(r?.status || 'reservada').toLowerCase().trim();
+}
+
+function isPendingReservationRequest(r){
+  return reservationStatusKey(r) === 'pendiente';
+}
+
+function getPendingReservationRequests(){
+  const today = todayISO();
+
+  return [
+    ...(state.todayRes || []),
+    ...(state.futureRes || [])
+  ]
+    .filter(r =>
+      String(r?.date || '') >= today &&
+      isPendingReservationRequest(r)
+    )
+    .sort((a,b) =>
+      String((a.date || '') + (a.time || '')).localeCompare(
+        String((b.date || '') + (b.time || ''))
+      )
+    );
+}
+
+function buildPendingReservationRequestCard(r){
+  const c = clientById(r.clientId || r.client_id);
+  const requestedByClient = Boolean(
+    r.requestedByClient ?? r.requested_by_client
+  );
+
+  return `
+    <div class="sc wrn" style="border-color:rgba(255,179,64,.38);background:rgba(255,179,64,.045)">
+      <div class="sc-top" style="padding:12px 14px;gap:10px">
+        ${getClientPhotoHTML(c,'sm')}
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+            <span class="b b-pendiente">Solicitud pendiente</span>
+            ${requestedByClient ? '<span class="b b-info">Enviada por cliente</span>' : ''}
+          </div>
+          <div style="font-weight:800;font-size:.94rem;margin-bottom:3px">${esc(c?.name || 'Cliente eliminado')}</div>
+          <div style="font-family:var(--font-m);font-size:.69rem;color:var(--sport);margin-bottom:4px">
+            ${formatDate(r.date)} · ${formatTime(r.time)}
+          </div>
+          <div style="font-size:.72rem;color:var(--text-2)">
+            ${esc(r.type || 'Sesión')} · ${esc(r.place || 'Lugar por confirmar')}
+          </div>
+          ${r.clientMessage || r.client_message ? `
+            <div style="margin-top:8px;padding:8px 10px;border-left:2px solid var(--warn);background:rgba(255,179,64,.06);border-radius:0 6px 6px 0;font-size:.76rem;line-height:1.45;color:var(--text-1)">
+              ${esc(r.clientMessage || r.client_message)}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+      <div class="sc-acts">
+        ${c?.id ? `<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>` : ''}
+        ${c?.phone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, he recibido tu solicitud para el ${formatDate(r.date)} a las ${formatTime(r.time)}.')">WA</button>` : ''}
+        <button class="btn btn-p btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>
+        <button class="btn btn-s btn-sm" onclick="openModal('reservation','${r.id}')">Revisar</button>
+        <button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>
+      </div>
+    </div>
+  `;
+}
+
 function renderHoy(){
-  let sessions=state.todayRes.slice();
+  const pendingRequests = getPendingReservationRequests();
+
+  let sessions = (state.todayRes || []).filter(r => {
+    const status = reservationStatusKey(r);
+    return status !== 'cancelada' && status !== 'pendiente';
+  });
 
   /* Ordenar: crítico → sin CI → revisar → deuda → OK, luego hora */
   sessions.sort((a,b)=>{
@@ -4073,36 +4150,47 @@ function renderHoy(){
   const activeCoachName = getActiveCoachDisplayName();
   document.getElementById('hoy-eye').textContent='Hola, '+firstName(activeCoachName || 'Coach');
   document.getElementById('hoy-title').textContent=`${dow} ${dnum} ${mon}`;
-   const coachAvatarBox = document.getElementById('hoy-coach-avatar');
-   if(coachAvatarBox){
-     coachAvatarBox.innerHTML = getCoachAvatarHTML();
-   }
+  const coachAvatarBox = document.getElementById('hoy-coach-avatar');
+  if(coachAvatarBox){
+    coachAvatarBox.innerHTML = getCoachAvatarHTML();
+  }
 
   document.getElementById('hoy-metrics').innerHTML=`
-  <div class="mc b"><span class="mc-n">${sessions.length}</span><span class="mc-l">Sesiones</span></div>
-  <div class="mc g"><span class="mc-n">${state.todayCheckins.length}</span><span class="mc-l">Check‑ins</span></div>
-  <div class="mc y"><span class="mc-n">${missing}</span><span class="mc-l">CI falt.</span></div>
-  <div class="mc r"><span class="mc-n">${pendingAlerts}</span><span class="mc-l">Alertas</span></div>
-`;
+    <div class="mc b"><span class="mc-n">${sessions.length}</span><span class="mc-l">Sesiones</span></div>
+    <div class="mc y"><span class="mc-n">${pendingRequests.length}</span><span class="mc-l">Solicitudes</span></div>
+    <div class="mc g"><span class="mc-n">${state.todayCheckins.length}</span><span class="mc-l">Check-ins</span></div>
+    <div class="mc r"><span class="mc-n">${pendingAlerts}</span><span class="mc-l">Alertas</span></div>
+  `;
+
+  const requestsHTML = pendingRequests.length ? `
+    <div style="margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px">
+        <div>
+          <div style="font-family:var(--font-m);font-size:.54rem;letter-spacing:.14em;text-transform:uppercase;color:var(--warn);margin-bottom:3px">Requieren respuesta</div>
+          <div style="font-family:var(--font-d);font-size:1.35rem;letter-spacing:.02em">Solicitudes de reserva</div>
+        </div>
+        <span class="b b-pendiente">${pendingRequests.length}</span>
+      </div>
+      ${pendingRequests.map(buildPendingReservationRequestCard).join('')}
+    </div>
+  ` : '';
+
+  const sessionsHTML = sessions.length
+    ? sessions.map(buildSessionCard).join('')
+    : emptyState('Sin sesiones confirmadas hoy','Las solicitudes pendientes aparecen arriba para que puedas responderlas.');
+
+  const addHTML = sessions.length < 3 ? `
+    <div style="margin-top:16px;padding:16px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">Añadir sesión</div>
+        <div style="font-size:.84rem;color:var(--text-2)">¿Falta alguien en el día?</div>
+      </div>
+      <button class="btn btn-p btn-sm" onclick="openModal('reservation')">+ Sesión</button>
+    </div>
+  ` : '';
 
   const body=document.getElementById('hoy-content');
-  if(!sessions.length){
-    body.innerHTML=emptyState('Sin sesiones hoy','Buen día para descansar.')+`
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-        <button class="btn btn-p btn-wide" onclick="openModal('reservation')">+ Programar sesión</button>
-      </div>`;
-    return;
-  }
-    body.innerHTML=sessions.map(buildSessionCard).join('')+`
-    ${sessions.length<3?`
-      <div style="margin-top:16px;padding:16px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">Añadir sesión</div>
-          <div style="font-size:.84rem;color:var(--text-2)">¿Falta alguien en el día?</div>
-        </div>
-        <button class="btn btn-p btn-sm" onclick="openModal('reservation')">+ Sesión</button>
-      </div>`:''
-    }`;
+  body.innerHTML = requestsHTML + sessionsHTML + addHTML;
 }
 
 /* v1.1: tarjeta compacta con foto + badges en línea */
@@ -4159,7 +4247,7 @@ function buildSessionCard(r){
         ${c?.id?`<button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}','${r.id}')">Entrenar</button>`:''}
         ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
         ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>`:''}
-        ${status==='reservada'?`<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>`:''}
+        ${['reservada','pendiente'].includes(String(status).toLowerCase())?`<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>`:''}
         <button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Hecha</button>
         <button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>
       `}
