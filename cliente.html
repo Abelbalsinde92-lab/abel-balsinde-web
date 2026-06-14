@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AB SYSTEM — Área Cliente · RPC 08</title>
+  <title>AB SYSTEM — Área Cliente · RPC 09 METRICS SECURE</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json?v=20260522-01">
 <link rel="icon" href="/favicon-32.png?v=20260522-01" type="image/png">
@@ -6717,6 +6717,28 @@ async function loadClientDashboard(sessionToken) {
       console.warn('Check-ins RPC no disponible:', checkinsErr);
       checkinsR = { data: [], error: checkinsErr };
     }
+
+    // Métricas corporales del cliente mediante sesión segura.
+    // Un fallo aquí no debe bloquear la entrada al panel.
+    let metricsR = { data: [], error: null };
+
+    try {
+      metricsR = await rpcTimeout(
+        db.rpc('ab_client_session_get_metrics', {
+          p_session_token: token,
+          p_limit: 150
+        }),
+        'métricas'
+      );
+
+      if (metricsR.error) {
+        console.warn('Metrics RPC:', metricsR.error);
+        metricsR = { data: [], error: metricsR.error };
+      }
+    } catch (metricsErr) {
+      console.warn('Metrics RPC no disponible:', metricsErr);
+      metricsR = { data: [], error: metricsErr };
+    }
     
     // Historial de entrenamientos mediante sesión segura.
 // Se utiliza para progreso, constancia y sesiones ya completadas.
@@ -6825,7 +6847,9 @@ try {
     // Inicializar secciones secundarias vacías: evita que RLS/tablas directas bloqueen el login.
     clientReservations = [];
     clientPayments = [];
-    clientMetrics = [];
+    clientMetrics = Array.isArray(metricsR.data)
+      ? metricsR.data
+      : [];
     clientAlerts = [];
     clientPrograms = [];
     clientAssessments = [];
@@ -14050,15 +14074,61 @@ async function saveMetricEditorValue() {
   payload[cfg.column] = numericValue;
 
   try {
-    const { data, error } = await db
-      .from('metrics')
-      .insert(payload)
-      .select()
-      .single();
+    const token = getClientSessionToken();
+
+    if (!token) {
+      throw new Error('SESION_CLIENTE_INVALIDA');
+    }
+
+    const { data, error } = await db.rpc(
+      'ab_client_session_submit_metric',
+      {
+        p_session_token: token,
+        p_date: todayISO(),
+        p_type: 'body_metrics',
+        p_value: numericValue,
+        p_unit: cfg.unit || null,
+        p_note: null,
+        p_weight: payload.weight ?? null,
+        p_height: payload.height ?? null,
+        p_waist: payload.waist ?? null,
+        p_hip: payload.hip ?? null,
+        p_chest: payload.chest ?? null,
+        p_arm: payload.arm ?? null,
+        p_thigh: payload.thigh ?? null,
+        p_resting_hr:
+          payload.resting_hr === null || payload.resting_hr === undefined
+            ? null
+            : Math.round(Number(payload.resting_hr)),
+        p_notes: payload.notes || null
+      }
+    );
 
     if (error) throw error;
 
-    clientMetrics.unshift(data);
+    let savedMetric = data;
+
+    if (typeof savedMetric === 'string') {
+      try {
+        savedMetric = JSON.parse(savedMetric);
+      } catch (parseError) {
+        console.error('No se pudo interpretar la métrica RPC:', parseError);
+        savedMetric = null;
+      }
+    }
+
+    if (Array.isArray(savedMetric)) {
+      savedMetric = savedMetric[0] || null;
+    }
+
+    if (!savedMetric?.id) {
+      throw new Error('La RPC no devolvió una métrica válida.');
+    }
+
+    clientMetrics = clientMetrics.filter(
+      metric => String(metric.id) !== String(savedMetric.id)
+    );
+    clientMetrics.unshift(savedMetric);
 
     closeMetricEditor();
 
@@ -14132,15 +14202,77 @@ const payload = {
 };
 
   try {
-    const { data, error } = await db
-      .from('metrics')
-      .insert(payload)
-      .select()
-      .single();
+    const token = getClientSessionToken();
+
+    if (!token) {
+      throw new Error('SESION_CLIENTE_INVALIDA');
+    }
+
+    const firstMetricValue = [
+      payload.weight,
+      payload.height,
+      payload.waist,
+      payload.hip,
+      payload.chest,
+      payload.arm,
+      payload.thigh,
+      payload.resting_hr
+    ].find(value => value !== null && value !== undefined);
+
+    if (firstMetricValue === undefined) {
+      showClientNotice('Introduce al menos una métrica.', 'error');
+      return;
+    }
+
+    const { data, error } = await db.rpc(
+      'ab_client_session_submit_metric',
+      {
+        p_session_token: token,
+        p_date: todayISO(),
+        p_type: 'body_metrics',
+        p_value: firstMetricValue,
+        p_unit: null,
+        p_note: null,
+        p_weight: payload.weight,
+        p_height: payload.height,
+        p_waist: payload.waist,
+        p_hip: payload.hip,
+        p_chest: payload.chest,
+        p_arm: payload.arm,
+        p_thigh: payload.thigh,
+        p_resting_hr:
+          payload.resting_hr === null || payload.resting_hr === undefined
+            ? null
+            : Math.round(Number(payload.resting_hr)),
+        p_notes: payload.notes
+      }
+    );
 
     if (error) throw error;
 
-    clientMetrics.unshift(data);
+    let savedMetric = data;
+
+    if (typeof savedMetric === 'string') {
+      try {
+        savedMetric = JSON.parse(savedMetric);
+      } catch (parseError) {
+        console.error('No se pudo interpretar la métrica RPC:', parseError);
+        savedMetric = null;
+      }
+    }
+
+    if (Array.isArray(savedMetric)) {
+      savedMetric = savedMetric[0] || null;
+    }
+
+    if (!savedMetric?.id) {
+      throw new Error('La RPC no devolvió una métrica válida.');
+    }
+
+    clientMetrics = clientMetrics.filter(
+      metric => String(metric.id) !== String(savedMetric.id)
+    );
+    clientMetrics.unshift(savedMetric);
 
     showClientNotice('Métricas guardadas.', 'success');
 
