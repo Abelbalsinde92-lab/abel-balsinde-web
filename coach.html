@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 10 METRICS UI</title>
+<title>AB SYSTEM — Coach Panel · RPC 12 ASSESSMENTS SECURE</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -4077,6 +4077,42 @@ async function loadCoachMetrics(limit = 150){
   };
 }
 
+
+async function loadCoachAssessments(limit = 100){
+  const token = getCoachSessionTokenSafe();
+
+  if(!token){
+    throw new Error('SESION_COACH_INVALIDA');
+  }
+
+  const {data,error} = await db.rpc(
+    'ab_coach_session_get_assessments',
+    {
+      p_session_token: token,
+      p_limit: limit
+    }
+  );
+
+  if(error){
+    console.error(
+      'ab_coach_session_get_assessments error:',
+      {
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        raw: error
+      }
+    );
+
+    throw error;
+  }
+
+  return {
+    data: Array.isArray(data) ? data : []
+  };
+}
+
 async function loadAllData(){
   try{
     const today=todayISO();
@@ -4133,7 +4169,7 @@ loadCoachReservationsByScope(
         : db.from('client_program_assignments').select('*')),
       db.from('client_session_logs').select('*').order('updated_at',{ascending:false}).limit(200),
       db.from('templates').select('*').order('name'),
-      db.from('client_assessments').select('*').order('assessment_date',{ascending:false}).limit(80),
+      loadCoachAssessments(100),
       loadCoachMetrics(150),
 db.from('client_conditions').select('*').eq('status','active').order('start_date',{ascending:false}),
 db.from('settings').select('*').eq('id','main').maybeSingle()
@@ -13909,12 +13945,22 @@ function assessStretchExerciseSafetyBase(exercise) {
 const escHTML = esc;
 
 let evalState = {
-  clientId: null, clientName: '', clientSexo: null, clientEdad: null,
+  clientId: null,
+  clientName: '',
+  clientSexo: null,
+  clientEdad: null,
   type: 'general',
-  assessmentId: null, evaluacionId: null,
-  items: [], results: {}, currentIdx: 0,
-  timerInt: null, timerSecs: 0, timerRunning: false,
+  assessmentId: null,
+  templateId: null,
+  templateCode: null,
+  items: [],
+  results: {},
+  currentIdx: 0,
+  timerInt: null,
+  timerSecs: 0,
+  timerRunning: false,
   counterVal: 0,
+  completionSummary: null
 };
 
 const EVAL_TEMPLATE_CODES = {
@@ -13924,12 +13970,24 @@ const EVAL_TEMPLATE_CODES = {
 
 async function openEvalModal(clientId, clientName, sexo, edad) {
   evalState = {
-    clientId, clientName: clientName || '',
-    clientSexo: sexo || null, clientEdad: edad || null,
-    type: 'general', assessmentId: null, evaluacionId: null,
-    items: [], results: {}, currentIdx: 0,
-    timerInt: null, timerSecs: 0, timerRunning: false, counterVal: 0,
+    clientId,
+    clientName: clientName || '',
+    clientSexo: sexo || null,
+    clientEdad: edad || null,
+    type: 'general',
+    assessmentId: null,
+    templateId: null,
+    templateCode: null,
+    items: [],
+    results: {},
+    currentIdx: 0,
+    timerInt: null,
+    timerSecs: 0,
+    timerRunning: false,
+    counterVal: 0,
+    completionSummary: null
   };
+
   document.getElementById('modal-evaluacion').style.display = 'flex';
   document.body.style.overflow = 'hidden';
   renderEvalModal();
@@ -14063,68 +14121,68 @@ function confirmEvalSetup() {
   startEvalFromForm('general');
 }
 
-async function startEval(type) {
-  evalState.type = type;
 
-  const el = document.getElementById('modal-eval-content');
-  if (el) el.innerHTML = '<div style="padding:20px"><div class="eval-loading">Cargando protocolo...</div></div>';
+function normalizeAssessmentRpcPayload(data){
+  let payload = data;
 
-  const EVAL_TEMPLATE_CODES = {
-  general: 'general_n1_initial',
-  atleta: 'combat_n1_initial',
-  combat: 'combat_n1_initial'
-};
+  if(typeof payload === 'string'){
+    try{
+      payload = JSON.parse(payload);
+    }catch(parseError){
+      console.error('No se pudo interpretar la respuesta de evaluación:', parseError);
+      return null;
+    }
+  }
 
-const templateCode = EVAL_TEMPLATE_CODES[type] || 'general_n1_initial';
+  if(Array.isArray(payload)){
+    payload = payload[0] || null;
+  }
 
-// ── Cargar template nuevo desde assessment_templates ──
-const { data: template, error: templateError } = await db
-  .from('assessment_templates')
-  .select('id, code, name, client_profile, level_code')
-  .eq('code', templateCode)
-  .eq('is_active', true)
-  .maybeSingle();
-
-if (templateError || !template) {
-  console.error('Error cargando plantilla:', templateError);
-  showToast('No se encontró plantilla activa: ' + templateCode, 'err');
-  evalState.items = getFallbackItems(type);
-  evalState.currentIdx = 0;
-  renderEvalTest();
-  return;
+  return payload && typeof payload === 'object'
+    ? payload
+    : null;
 }
 
-// ── Cargar items nuevos desde assessment_items ──
-const { data: rawItems, error: itemsError } = await db
-  .from('assessment_items')
-  .select('*')
-  .eq('template_id', template.id)
-  .order('order_index', { ascending: true });
+function assessmentItemKey(item){
+  return String(
+    item?.item_code ||
+    item?.code ||
+    item?.exercise_name ||
+    item?.id ||
+    ''
+  );
+}
 
-console.log('EVAL template/items:', {
-  type,
-  templateCode,
-  templateId: template.id,
-  count: rawItems?.length,
-  error: itemsError
-});
+function assessmentDirection(item){
+  const code = assessmentItemKey(item).toLowerCase();
 
-if (itemsError || !rawItems?.length) {
-  console.error('Error cargando items:', itemsError);
-  showToast('Sin protocolo en assessment_items: ' + templateCode, 'err');
-  evalState.items = getFallbackItems(type);
-} else {
-  evalState.items = rawItems.map(i => ({
+  if(/step_fc|recovery_fc|resting_hr|heart_rate|fc_post|fc_recuper/.test(code)){
+    return 'lower_better';
+  }
+
+  return 'higher_better';
+}
+
+function assessmentUnit(item){
+  if(item?.requires_load) return 'kg';
+  if(item?.requires_time) return 's';
+  if(item?.requires_distance) return 'm';
+  if(item?.requires_reps) return 'reps';
+  return item?.unit || null;
+}
+
+function normalizeProtocolItems(rawItems){
+  return (Array.isArray(rawItems) ? rawItems : []).map(i => ({
     id: i.id,
     item_id: i.id,
     template_item_id: i.id,
 
     code: i.code,
     item_code: i.code,
+    exercise_name: i.code,
 
     name: i.name,
     item_name: i.name,
-    exercise_name: i.name,
 
     order_index: i.order_index,
     item_order: i.order_index,
@@ -14134,58 +14192,159 @@ if (itemsError || !rawItems?.length) {
     metric_type: i.test_kind || 'test',
 
     movement_pattern: i.movement_pattern,
-    percentage_enabled: i.percentage_enabled,
+    percentage_enabled: Boolean(i.percentage_enabled),
 
-    requires_load: i.requires_load,
-    requires_reps: i.requires_reps,
-    requires_time: i.requires_time,
-    requires_distance: i.requires_distance,
-    is_optional: i.is_optional,
+    requires_load: Boolean(i.requires_load),
+    requires_reps: Boolean(i.requires_reps),
+    requires_time: Boolean(i.requires_time),
+    requires_distance: Boolean(i.requires_distance),
+    is_optional: Boolean(i.is_optional),
 
     protocol: i.protocol,
     coach_notes: i.coach_notes,
     client_explanation: i.client_explanation,
 
+    direction: assessmentDirection(i),
+    unit: assessmentUnit(i),
     target_note: i.client_explanation || i.protocol || ''
   }));
 }
 
-// ── Crear client_assessment con template nuevo ──
-const aid = uid();
-evalState.assessmentId = aid;
-evalState.templateId = template.id;
-evalState.templateCode = template.code;
+function upsertCoachAssessmentLocal(rawAssessment){
+  if(!rawAssessment?.id) return;
 
-db.from('client_assessments').insert({
-  id: aid,
-  client_id: evalState.clientId,
-  template_id: template.id,
-  assessment_name: `${template.name} — ${new Date().toLocaleDateString('es-ES')}`,
-  assessment_date: todayISO(),
-  status: 'en_progreso',
-}).then(({ error }) => {
-  if (error) console.warn('client_assessments insert error:', error);
-});
+  const normalized = snakeToCamel(rawAssessment);
+  const list = Array.isArray(state.assessments)
+    ? state.assessments
+    : [];
 
-    // ── Crear evaluacion ──
-  const eid = uid();
-  evalState.evaluacionId = eid;
+  const without = list.filter(
+    row => String(row.id) !== String(normalized.id)
+  );
 
-  const { error: evalInsertError } = await db.from('evaluaciones').insert({
-    id: eid,
-    cliente_id: evalState.clientId,
-    fecha: todayISO(),
-    sexo: evalState.clientSexo,
-    edad: evalState.clientEdad,
-    evaluation_type: type,
-    evaluation_mode: 'coach',
-    evaluation_status: 'draft',
-    assessment_id: aid,
+  state.assessments = [normalized, ...without].sort((a,b) => {
+    const da = String(a.assessmentDate || a.assessment_date || a.createdAt || a.created_at || '');
+    const dbb = String(b.assessmentDate || b.assessment_date || b.createdAt || b.created_at || '');
+    return dbb.localeCompare(da);
   });
-  if(evalInsertError) console.error('evaluaciones insert error:', evalInsertError);
+}
 
-  evalState.currentIdx = 0;
-  renderEvalTest();
+function hydrateAssessmentResults(rows){
+  evalState.results = {};
+
+  (Array.isArray(rows) ? rows : []).forEach(row => {
+    const key = String(row.item_code || row.exercise_name || row.item_id || '');
+    if(!key) return;
+
+    let value = row.value_numeric;
+
+    if(row.load_kg !== null && row.load_kg !== undefined){
+      value = row.load_kg;
+    }else if(row.reps !== null && row.reps !== undefined){
+      value = row.reps;
+    }else if(row.time_seconds !== null && row.time_seconds !== undefined){
+      value = row.time_seconds;
+    }else if(row.distance_meters !== null && row.distance_meters !== undefined){
+      value = row.distance_meters;
+    }
+
+    if(value !== null && value !== undefined && value !== ''){
+      evalState.results[key] = Number(value);
+    }
+
+    if(row.reps !== null && row.reps !== undefined && row.load_kg !== null && row.load_kg !== undefined){
+      evalState.results[key + '__reps'] = Number(row.reps);
+    }
+  });
+}
+
+async function startEval(type) {
+  evalState.type = type;
+  evalState.completionSummary = null;
+
+  const el = document.getElementById('modal-eval-content');
+  if(el){
+    el.innerHTML = '<div style="padding:20px"><div class="eval-loading">Cargando protocolo...</div></div>';
+  }
+
+  const token = getCoachSessionTokenSafe();
+  const templateCode = EVAL_TEMPLATE_CODES[type] || EVAL_TEMPLATE_CODES.general;
+
+  if(!token){
+    showToast('Sesión del coach no válida', 'err');
+    renderEvalStartScreen();
+    return;
+  }
+
+  try{
+    const {data,error} = await db.rpc(
+      'ab_coach_session_start_assessment',
+      {
+        p_session_token: token,
+        p_client_id: evalState.clientId,
+        p_template_code: templateCode,
+        p_assessment_date: todayISO()
+      }
+    );
+
+    if(error) throw error;
+
+    const payload = normalizeAssessmentRpcPayload(data);
+    const assessment = payload?.assessment || null;
+    const template = payload?.template || null;
+    const rawItems = payload?.items || [];
+
+    if(!assessment?.id || !template?.id || !Array.isArray(rawItems) || !rawItems.length){
+      throw new Error('La RPC no devolvió un protocolo de evaluación válido.');
+    }
+
+    evalState.assessmentId = assessment.id;
+    evalState.templateId = template.id;
+    evalState.templateCode = template.code || templateCode;
+    evalState.items = normalizeProtocolItems(rawItems);
+
+    upsertCoachAssessmentLocal(assessment);
+
+    const {data:existingRows,error:existingError} = await db.rpc(
+      'ab_coach_session_get_assessment_results',
+      {
+        p_session_token: token,
+        p_assessment_id: assessment.id,
+        p_limit: 300
+      }
+    );
+
+    if(existingError){
+      console.warn('No se pudieron recuperar resultados existentes:', existingError);
+      hydrateAssessmentResults([]);
+    }else{
+      hydrateAssessmentResults(existingRows);
+    }
+
+    const firstPending = evalState.items.findIndex(item => {
+      const key = assessmentItemKey(item);
+      return evalState.results[key] === undefined;
+    });
+
+    evalState.currentIdx = firstPending >= 0
+      ? firstPending
+      : evalState.items.length;
+
+    renderEvalModal();
+
+  }catch(error){
+    console.error('ab_coach_session_start_assessment error:', {
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      code: error?.code,
+      raw: error
+    });
+
+    showToast('No se pudo iniciar la evaluación', 'err');
+    evalState.items = [];
+    renderEvalStartScreen();
+  }
 }
 
 function getFallbackItems(type) {
@@ -14476,33 +14635,103 @@ function selectEvalLevel(level) {
 
 async function evalNext() {
   const item = currentEvalItem();
-  if (!item) return;
+  if(!item) return;
+
   const valEl = document.getElementById('eval-val');
   const raw = valEl ? valEl.value.trim() : '';
-  const val = raw !== '' ? parseFloat(raw) : null;
+  const val = raw !== '' ? Number(raw.replace(',', '.')) : null;
 
-  evalState.results[item.exercise_name] = val;
-
-  // Guardar reps secundarias si el test tiene carga + reps
   const repsEl = document.getElementById('eval-reps');
-  if (repsEl && repsEl.value.trim()) {
-    evalState.results[item.exercise_name + '__reps'] = parseInt(repsEl.value.trim(), 10);
-  }
+  const reps = repsEl && repsEl.value.trim() !== ''
+    ? parseInt(repsEl.value.trim(), 10)
+    : null;
+
+  const key = assessmentItemKey(item);
 
   stopEvalTimer();
 
-  if (val !== null) {
-    await db.from('client_assessment_results').upsert({
-      id: uid(), assessment_id: evalState.assessmentId,
-      client_id: evalState.clientId,
-      exercise_name: item.exercise_name,
-      metric_type: item.metric_type,
-      value_numeric: val,
-      unit: item.unit,
-      direction: item.direction,
-      template_item_id: item.id,
-      item_order: item.item_order,
-    }, { onConflict: 'assessment_id,exercise_name' });
+  if(val !== null && !Number.isFinite(val)){
+    showToast('Valor no válido', 'err');
+    return;
+  }
+
+  if(reps !== null && !Number.isFinite(reps)){
+    showToast('Repeticiones no válidas', 'err');
+    return;
+  }
+
+  if(val !== null){
+    const token = getCoachSessionTokenSafe();
+
+    if(!token || !evalState.assessmentId || !item.id){
+      showToast('Sesión de evaluación no válida', 'err');
+      return;
+    }
+
+    const loadKg = item.requires_load ? val : null;
+    const resultReps = item.requires_reps
+      ? (item.requires_load ? reps : Math.round(val))
+      : null;
+    const timeSeconds = item.requires_time ? Math.round(val) : null;
+    const distanceMeters = item.requires_distance ? val : null;
+
+    try{
+      const {data,error} = await db.rpc(
+        'ab_coach_session_save_assessment_result',
+        {
+          p_session_token: token,
+          p_assessment_id: evalState.assessmentId,
+          p_item_id: item.id,
+          p_value_numeric: val,
+          p_value_text: null,
+          p_unit: assessmentUnit(item),
+          p_direction: assessmentDirection(item),
+          p_load_kg: loadKg,
+          p_reps: resultReps,
+          p_time_seconds: timeSeconds,
+          p_distance_meters: distanceMeters,
+          p_rpe: null,
+          p_pain_level: null,
+          p_technique_quality: null,
+          p_coach_notes: null,
+          p_client_feedback: null,
+          p_result_status: 'completed',
+          p_unit_data: {
+            source: 'coach_panel',
+            client_sexo: evalState.clientSexo || null,
+            client_edad: evalState.clientEdad || null
+          }
+        }
+      );
+
+      if(error) throw error;
+
+      const saved = normalizeAssessmentRpcPayload(data);
+
+      if(!saved?.id){
+        throw new Error('La RPC no devolvió un resultado válido.');
+      }
+
+      evalState.results[key] = val;
+
+      if(reps !== null && item.requires_load){
+        evalState.results[key + '__reps'] = reps;
+      }
+
+    }catch(error){
+      console.error('ab_coach_session_save_assessment_result error:', {
+        assessmentId: evalState.assessmentId,
+        itemId: item.id,
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        raw: error
+      });
+
+      showToast('No se pudo guardar este resultado', 'err');
+      return;
+    }
   }
 
   evalState.currentIdx++;
@@ -14519,144 +14748,143 @@ function evalBack() {
 
 async function renderEvalRecommendation() {
   const el = document.getElementById('modal-eval-content');
-  if (!el) return;
-  el.innerHTML = '<div style="padding:20px"><div class="eval-loading">Calculando resultado...</div></div>';
+  if(!el) return;
 
-  // Marcar assessment como completado
-  if (evalState.assessmentId) {
-    await db.from('client_assessments')
-      .update({ status: 'completado' })
-      .eq('id', evalState.assessmentId);
+  el.innerHTML = '<div style="padding:20px"><div class="eval-loading">Cerrando evaluación...</div></div>';
+
+  const token = getCoachSessionTokenSafe();
+
+  if(!token || !evalState.assessmentId){
+    showToast('Sesión de evaluación no válida', 'err');
+    renderEvalStartScreen();
+    return;
   }
 
-  // Intentar calcular nivel con RPC (puede no existir si el flujo es nuevo)
-  let ev = null;
-  if (evalState.evaluacionId) {
-    const { error: fe } = await db.rpc('calcular_nivel_evaluacion', {
-      p_evaluacion_id: evalState.evaluacionId,
-      p_assessment_id: evalState.assessmentId,
-    }).catch(() => ({ error: { message: 'RPC no disponible' } }));
+  try{
+    if(!evalState.completionSummary){
+      const {data,error} = await db.rpc(
+        'ab_coach_session_complete_assessment',
+        {
+          p_session_token: token,
+          p_assessment_id: evalState.assessmentId,
+          p_coach_notes: null,
+          p_client_notes: null
+        }
+      );
 
-    if (!fe) {
-      const { data } = await db.from('evaluaciones')
-        .select('*, training_programs(name), mobility_chains(name, level)')
-        .eq('id', evalState.evaluacionId).single();
-      ev = data;
+      if(error) throw error;
+
+      evalState.completionSummary = normalizeAssessmentRpcPayload(data);
+
+      const savedAssessment = evalState.completionSummary?.assessment;
+      if(savedAssessment?.id){
+        upsertCoachAssessmentLocal(savedAssessment);
+      }
     }
-  }
 
-  // ── Construir resumen de resultados desde evalState.results ──
-  const resultItems = evalState.items
-    .filter(i => evalState.results[i.exercise_name] != null)
-    .map(i => {
-      const val = evalState.results[i.exercise_name];
-      const reps = evalState.results[i.exercise_name + '__reps'];
-      const unit = i.requires_load ? 'kg'
-                 : i.requires_time ? 's'
-                 : i.requires_distance ? 'm'
-                 : i.requires_reps ? 'reps'
-                 : (i.unit || '');
-      const displayVal = reps
-        ? `${val} kg × ${reps} reps`
-        : `${val}${unit ? ' ' + unit : ''}`;
-      return { name: i.item_name || i.name || i.exercise_name, val: displayVal, optional: i.is_optional };
+    const completion = evalState.completionSummary || {};
+    const finalStatus = completion.status || completion.assessment?.status || 'pendiente_resultados';
+
+    const resultItems = evalState.items
+      .filter(item => evalState.results[assessmentItemKey(item)] !== undefined)
+      .map(item => {
+        const key = assessmentItemKey(item);
+        const value = evalState.results[key];
+        const reps = evalState.results[key + '__reps'];
+        const unit = assessmentUnit(item) || '';
+        const displayValue = reps !== undefined
+          ? `${value} kg × ${reps} reps`
+          : `${value}${unit ? ' ' + unit : ''}`;
+
+        return {
+          name: item.item_name || item.name || key,
+          value: displayValue
+        };
+      });
+
+    const totalCount = evalState.items.length;
+    const filledCount = resultItems.length;
+    const completedRequired = Number(completion.completed_required_count || 0);
+    const requiredCount = Number(completion.required_count || 0);
+    const isComplete = String(finalStatus).toLowerCase() === 'completado';
+
+    el.innerHTML = `
+      <div style="padding:16px 20px 80px">
+        <div class="eval-result-hero">
+          <div class="eval-result-label">Evaluación guardada</div>
+          <div class="eval-result-client">${escHTML(evalState.clientName)}</div>
+          <div style="font-family:var(--font-m);font-size:.65rem;color:var(--text-secondary);margin-top:4px">
+            ${filledCount} / ${totalCount} tests registrados
+          </div>
+          <div style="margin-top:10px">
+            <span class="badge ${isComplete ? 'badge-green' : 'badge-yellow'}">
+              ${isComplete ? 'Completada' : 'Pendiente de resultados'}
+            </span>
+          </div>
+        </div>
+
+        <div class="eval-recommendation" style="margin-top:16px">
+          <div class="eval-rec-title">Control de protocolo</div>
+          <div class="eval-rec-item">
+            <span class="eval-rec-label">Pruebas obligatorias</span>
+            <span class="eval-rec-value">${completedRequired} / ${requiredCount}</span>
+          </div>
+          <div class="eval-rec-item">
+            <span class="eval-rec-label">Resultados guardados</span>
+            <span class="eval-rec-value">${Number(completion.total_results || filledCount)}</span>
+          </div>
+        </div>
+
+        <div class="eval-recommendation" style="margin-top:12px">
+          <div class="eval-rec-title">Resultados registrados</div>
+          ${resultItems.length
+            ? resultItems.map(row => `
+                <div class="eval-rec-item">
+                  <span class="eval-rec-label">${escHTML(row.name)}</span>
+                  <span class="eval-rec-value" style="color:var(--sport);font-weight:700">${escHTML(row.value)}</span>
+                </div>`).join('')
+            : '<div class="eval-rec-notes">No se registraron valores medidos.</div>'}
+        </div>
+
+        <div class="eval-recommendation" style="margin-top:12px">
+          <div class="eval-rec-title">Siguiente paso</div>
+          <div class="eval-rec-notes">
+            La evaluación y sus resultados quedaron guardados en el historial moderno de AB SYSTEM. La recomendación automática de plan se reconstruirá sobre este sistema sin depender de tablas antiguas.
+          </div>
+        </div>
+
+        <div class="eval-confirm-btns">
+          <button class="btn btn-b btn-wide" onclick="closeEvalModal(); renderAll();">
+            Cerrar evaluación
+          </button>
+        </div>
+      </div>`;
+
+  }catch(error){
+    console.error('ab_coach_session_complete_assessment error:', {
+      assessmentId: evalState.assessmentId,
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      code: error?.code,
+      raw: error
     });
 
-  const filledCount  = resultItems.length;
-  const totalCount   = evalState.items.length;
+    showToast('No se pudo cerrar la evaluación', 'err');
 
-  // ── Nivel calculado por RPC o estimado localmente ──
-  const nivel     = ev?.recommended_level || 0;
-  const planName  = ev?.training_programs?.name || null;
-  const chainName = ev?.mobility_chains?.name   || null;
-  const chainLevel= ev?.mobility_chains?.level  || '';
-
-  const stars = Array(4).fill(0).map((_,i) =>
-    `<span class="${i < nivel ? 'eval-star-on' : 'eval-star'}">★</span>`
-  ).join('');
-
-  el.innerHTML = `
-    <div style="padding:16px 20px 80px">
-
-      <div class="eval-result-hero">
-        <div class="eval-result-label">Evaluación completada</div>
-        <div class="eval-result-client">${escHTML(evalState.clientName)}</div>
-        <div style="font-family:var(--font-m);font-size:.65rem;color:var(--text-secondary);margin-top:4px">
-          ${filledCount} / ${totalCount} tests registrados
-        </div>
-        ${nivel > 0 ? `<div class="eval-stars">${stars}</div><div class="eval-result-level">Nivel ${nivel} / 4</div>` : ''}
-      </div>
-
-      ${ev ? `
-      <div class="eval-result-grid">
-        <div class="eval-result-card">
-          <div class="eval-rc-label">Fuerza</div>
-          <div class="eval-rc-val">${ev.nivel_fuerza || '—'}/4</div>
-        </div>
-        <div class="eval-result-card">
-          <div class="eval-rc-label">Movilidad</div>
-          <div class="eval-rc-val">${ev.nivel_movilidad || '—'}/4</div>
-        </div>
-        <div class="eval-result-card">
-          <div class="eval-rc-label">Resistencia</div>
-          <div class="eval-rc-val">${ev.nivel_resistencia || '—'}/4</div>
-        </div>
-      </div>` : ''}
-
-      <div class="eval-recommendation" style="margin-top:16px">
-        <div class="eval-rec-title">Resultados registrados</div>
-        ${resultItems.map(r => `
-          <div class="eval-rec-item">
-            <span class="eval-rec-label">${escHTML(r.name)}</span>
-            <span class="eval-rec-value" style="color:var(--sport);font-weight:700">${escHTML(r.val)}</span>
-          </div>`).join('')}
-      </div>
-
-      ${planName || chainName ? `
-      <div class="eval-recommendation" style="margin-top:12px">
-        <div class="eval-rec-title">Recomendación del sistema</div>
-        ${planName ? `<div class="eval-rec-item">
-          <span class="eval-rec-label">Plan</span>
-          <span class="eval-rec-value">${escHTML(planName)}</span>
-        </div>` : ''}
-        ${chainName ? `<div class="eval-rec-item">
-          <span class="eval-rec-label">Movilidad</span>
-          <span class="eval-rec-value">${escHTML(chainName)}${chainLevel ? ' ('+chainLevel+')' : ''}</span>
-        </div>` : ''}
-        ${ev?.recommendation_notes ? `<div class="eval-rec-notes">${escHTML(ev.recommendation_notes)}</div>` : ''}
-      </div>` : ''}
-
-      <div class="eval-confirm-btns">
-        ${ev?.recommended_plan_id ? `
-        <button class="btn btn-p btn-wide" onclick="confirmEvalAssignment()">
-          ✓ Confirmar y asignar plan
-        </button>` : ''}
-        <button class="btn btn-b btn-wide" style="margin-top:8px" onclick="closeEvalModal()">
-          Cerrar evaluación
-        </button>
-      </div>
-    </div>`;
+    el.innerHTML = `
+      <div style="padding:20px">
+        <div class="empty">No se pudo cerrar la evaluación. Los resultados ya guardados no se han perdido.</div>
+        <button class="btn btn-b btn-wide" style="margin-top:12px" onclick="evalBack()">Volver</button>
+      </div>`;
+  }
 }
 
 async function confirmEvalAssignment() {
-  const { data: ev } = await db.from('evaluaciones')
-    .select('recommended_plan_id, recommended_chain_id, recommended_level, cliente_id')
-    .eq('id', evalState.evaluacionId).single();
-
-  if (!ev) { showToast('Error al obtener recomendación', 'err'); return; }
-
-  if (ev.recommended_chain_id) {
-    await db.from('client_mobility_assignments').insert({
-      id: uid(), client_id: ev.cliente_id,
-      chain_id: ev.recommended_chain_id,
-      status: 'activo',
-      assigned_reason: `Evaluación inicial · nivel ${ev.recommended_level || '—'}`,
-      start_date: todayISO(),
-    });
-  }
-
-  showToast('Plan y movilidad asignados ✓', 'ok');
-  closeEvalModal();
+  showToast(
+    'La recomendación automática se reconstruirá sobre el nuevo sistema de evaluaciones.',
+    'ok'
+  );
 }
 </script>
 
