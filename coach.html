@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 13 ASSESSMENT NAV FIX</title>
+<title>AB SYSTEM — Coach Panel · RPC 14 ASSESSMENT ASYNC NAV</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -13961,7 +13961,9 @@ let evalState = {
   timerRunning: false,
   counterVal: 0,
   completionSummary: null,
-  saving: false
+  saving: false,
+  pendingSaves: [],
+  saveErrors: {}
 };
 
 const EVAL_TEMPLATE_CODES = {
@@ -13987,7 +13989,9 @@ async function openEvalModal(clientId, clientName, sexo, edad) {
     timerRunning: false,
     counterVal: 0,
     completionSummary: null,
-    saving: false
+    saving: false,
+    pendingSaves: [],
+    saveErrors: {}
   };
 
   document.getElementById('modal-evaluacion').style.display = 'flex';
@@ -14668,10 +14672,10 @@ function assessmentNumbersEqual(a, b){
     : String(a) === String(b);
 }
 
-async function findSavedAssessmentResult(item, expectedValue, expectedReps){
+async function findSavedAssessmentResult(item, expectedValue, expectedReps, assessmentId = evalState.assessmentId){
   const token = getCoachSessionTokenSafe();
 
-  if(!token || !evalState.assessmentId || !item?.id){
+  if(!token || !assessmentId || !item?.id){
     return null;
   }
 
@@ -14686,7 +14690,7 @@ async function findSavedAssessmentResult(item, expectedValue, expectedReps){
       'ab_coach_session_get_assessment_results',
       {
         p_session_token: token,
-        p_assessment_id: evalState.assessmentId,
+        p_assessment_id: assessmentId,
         p_limit: 300
       }
     );
@@ -14740,10 +14744,10 @@ async function findSavedAssessmentResult(item, expectedValue, expectedReps){
   return null;
 }
 
-async function saveAssessmentResultWithRecovery(item, val, reps){
+async function saveAssessmentResultWithRecovery(item, val, reps, assessmentId = evalState.assessmentId){
   const token = getCoachSessionTokenSafe();
 
-  if(!token || !evalState.assessmentId || !item?.id){
+  if(!token || !assessmentId || !item?.id){
     throw new Error('SESION_EVALUACION_NO_VALIDA');
   }
 
@@ -14758,7 +14762,7 @@ async function saveAssessmentResultWithRecovery(item, val, reps){
     'ab_coach_session_save_assessment_result',
     {
       p_session_token: token,
-      p_assessment_id: evalState.assessmentId,
+      p_assessment_id: assessmentId,
       p_item_id: item.id,
       p_value_numeric: val,
       p_value_text: null,
@@ -14822,7 +14826,8 @@ async function saveAssessmentResultWithRecovery(item, val, reps){
   const recovered = await findSavedAssessmentResult(
     item,
     val,
-    resultReps
+    resultReps,
+    assessmentId
   );
 
   if(recovered){
@@ -14841,6 +14846,120 @@ async function saveAssessmentResultWithRecovery(item, val, reps){
   throw rpcFailure || new Error(
     'No se pudo confirmar el guardado del resultado.'
   );
+}
+
+
+function queueAssessmentSave(item, val, reps, key){
+  const assessmentId = evalState.assessmentId;
+  const taskId = `${assessmentId}:${key}:${Date.now()}:${Math.random()}`;
+
+  const task = (async () => {
+    try{
+      const saved = await saveAssessmentResultWithRecovery(
+        item,
+        val,
+        reps,
+        assessmentId
+      );
+
+      if(!saved?.id){
+        throw new Error('No se pudo confirmar el resultado guardado.');
+      }
+
+      delete evalState.saveErrors[key];
+      return saved;
+
+    }catch(error){
+      evalState.saveErrors[key] = String(
+        error?.message || 'No se pudo guardar el resultado'
+      );
+
+      console.error('Guardado asíncrono de evaluación:', {
+        assessmentId,
+        itemId: item?.id,
+        itemCode: key,
+        value: val,
+        reps,
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        raw: error
+      });
+
+      showToast(
+        `No se pudo confirmar “${item?.item_name || item?.name || key}”. Puedes volver atrás y reintentar.`,
+        'err'
+      );
+
+      return null;
+
+    }finally{
+      evalState.pendingSaves = (evalState.pendingSaves || []).filter(
+        entry => entry.id !== taskId
+      );
+    }
+  })();
+
+  evalState.pendingSaves = Array.isArray(evalState.pendingSaves)
+    ? evalState.pendingSaves
+    : [];
+
+  evalState.pendingSaves.push({
+    id: taskId,
+    assessmentId,
+    key,
+    promise: task
+  });
+
+  return task;
+}
+
+async function waitForPendingAssessmentSaves(maxWaitMs = 5000){
+  const tasks = (evalState.pendingSaves || [])
+    .filter(entry => entry.assessmentId === evalState.assessmentId)
+    .map(entry => entry.promise);
+
+  if(!tasks.length) return;
+
+  await Promise.race([
+    Promise.allSettled(tasks),
+    new Promise(resolve => setTimeout(resolve, maxWaitMs))
+  ]);
+}
+
+async function refreshCurrentAssessmentResults(){
+  const token = getCoachSessionTokenSafe();
+
+  if(!token || !evalState.assessmentId) return [];
+
+  const request = db.rpc(
+    'ab_coach_session_get_assessment_results',
+    {
+      p_session_token: token,
+      p_assessment_id: evalState.assessmentId,
+      p_limit: 300
+    }
+  );
+
+  const response = await Promise.race([
+    request,
+    new Promise((_, reject) => {
+      setTimeout(
+        () => reject(new Error('ASSESSMENT_REFRESH_TIMEOUT')),
+        8000
+      );
+    })
+  ]);
+
+  if(response?.error) throw response.error;
+
+  const rows = Array.isArray(response?.data)
+    ? response.data
+    : [];
+
+  hydrateAssessmentResults(rows);
+  return rows;
 }
 
 async function evalNext() {
@@ -14891,58 +15010,26 @@ async function evalNext() {
     }
   }
 
+  /*
+   * La navegación no espera la respuesta HTTP de Supabase.
+   * En Safari la escritura estaba llegando a la base, pero la respuesta
+   * quedaba pendiente y congelaba el botón en “Guardando…”. Guardamos
+   * localmente, avanzamos de inmediato y confirmamos en segundo plano.
+   */
+  evalState.saving = true;
+
   if(val !== null){
-    setEvalNextSaving(true);
+    evalState.results[key] = val;
 
-    try{
-      const saved = await saveAssessmentResultWithRecovery(
-        item,
-        val,
-        reps
-      );
-
-      if(!saved?.id){
-        throw new Error(
-          'No se pudo confirmar el resultado guardado.'
-        );
-      }
-
-      evalState.results[key] = val;
-
-      if(reps !== null && item.requires_load){
-        evalState.results[key + '__reps'] = reps;
-      }
-
-    }catch(error){
-      console.error('ab_coach_session_save_assessment_result error:', {
-        assessmentId: evalState.assessmentId,
-        itemId: item.id,
-        itemCode: key,
-        value: val,
-        reps,
-        message: error?.message,
-        details: error?.details,
-        hint: error?.hint,
-        code: error?.code,
-        raw: error
-      });
-
-      setEvalNextSaving(false);
-
-      const message = String(error?.message || '');
-
-      showToast(
-        message.includes('ASSESSMENT_SAVE_TIMEOUT')
-          ? 'El guardado tardó demasiado. Inténtalo otra vez.'
-          : 'No se pudo guardar este resultado',
-        'err'
-      );
-      return;
+    if(reps !== null && item.requires_load){
+      evalState.results[key + '__reps'] = reps;
     }
+
+    queueAssessmentSave(item, val, reps, key);
   }
 
-  evalState.saving = false;
   evalState.currentIdx++;
+  evalState.saving = false;
   renderEvalModal();
 }
 
@@ -14969,6 +15056,16 @@ async function renderEvalRecommendation() {
   }
 
   try{
+    /* Dar tiempo a los guardados asíncronos y reconstruir el estado real
+       desde Supabase antes de cerrar la evaluación. */
+    await waitForPendingAssessmentSaves(5000);
+
+    try{
+      await refreshCurrentAssessmentResults();
+    }catch(refreshError){
+      console.warn('No se pudieron refrescar todos los resultados antes del cierre:', refreshError);
+    }
+
     if(!evalState.completionSummary){
       const {data,error} = await db.rpc(
         'ab_coach_session_complete_assessment',
