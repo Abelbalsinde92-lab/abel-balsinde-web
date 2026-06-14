@@ -6980,10 +6980,20 @@ document.querySelectorAll('.section-header').forEach(el => {
 
   renderHome();
 
-  if (typeof renderProgram==='function') renderProgram();
-  await renderClientTraining();
-  await renderReservations();
-  renderAssessments();
+if (typeof renderProgram === 'function') {
+  renderProgram();
+}
+
+await renderClientTraining();
+await renderReservations();
+
+/*
+ * Volver a renderizar Inicio porque las reservas
+ * ya llegaron desde la RPC del calendario.
+ */
+renderHome();
+
+renderAssessments();
   renderHealthAlerts();
      if(isAthlete) renderAtleta();
    renderNotes();
@@ -11781,29 +11791,113 @@ const pendingAssessment = !latestAssessment ? (clientAssessments[0] || null) : n
 }
 
 async function loadCalendarData() {
-  if (!clientData?.id) return;
+  const token = getClientSessionToken();
 
-  const today = todayISO();
-  const firstDay = calCurrentYear + '-' + String(calCurrentMonth + 1).padStart(2, '0') + '-01';
-  const lastDay = new Date(calCurrentYear, calCurrentMonth + 1, 0);
-  const lastDayStr = calCurrentYear + '-' + String(calCurrentMonth + 1).padStart(2, '0') + '-' + String(lastDay.getDate()).padStart(2, '0');
+  if (!token) {
+    calPublicSlots = [];
+    calClientReservations = [];
+    clientReservations = [];
+    return;
+  }
 
-  const [slotsR, myR] = await Promise.all([
-    db.from('public_slots')
-      .select('*')
-      .gte('date', firstDay)
-      .lte('date', lastDayStr)
-      .order('date', { ascending: true })
-      .order('time', { ascending: true }),
-    db.from('reservations')
-      .select('*')
-      .eq('client_id', clientData.id)
-      .gte('date', firstDay)
-      .lte('date', lastDayStr)
-  ]);
+  const firstDay =
+    calCurrentYear +
+    '-' +
+    String(calCurrentMonth + 1).padStart(2, '0') +
+    '-01';
 
-  calPublicSlots = slotsR.data || [];
-  calClientReservations = myR.data || [];
+  const lastDay = new Date(
+    calCurrentYear,
+    calCurrentMonth + 1,
+    0
+  );
+
+  const lastDayStr =
+    calCurrentYear +
+    '-' +
+    String(calCurrentMonth + 1).padStart(2, '0') +
+    '-' +
+    String(lastDay.getDate()).padStart(2, '0');
+
+  try {
+    const { data, error } = await db.rpc(
+      'ab_client_session_get_calendar',
+      {
+        p_session_token: token,
+        p_start_date: firstDay,
+        p_end_date: lastDayStr
+      }
+    );
+
+    if (error) throw error;
+
+    let calendarData = data;
+
+    if (typeof calendarData === 'string') {
+      try {
+        calendarData = JSON.parse(calendarData);
+      } catch (parseError) {
+        console.error(
+          'No se pudo interpretar el calendario:',
+          parseError
+        );
+
+        calendarData = {};
+      }
+    }
+
+    /*
+     * Compatibilidad por si la RPC devuelve
+     * una fila en forma de array.
+     */
+    if (Array.isArray(calendarData)) {
+      calendarData = calendarData[0] || {};
+    }
+
+    if (
+      !calendarData ||
+      typeof calendarData !== 'object'
+    ) {
+      calendarData = {};
+    }
+
+    calPublicSlots = Array.isArray(
+      calendarData.public_slots
+    )
+      ? calendarData.public_slots
+      : [];
+
+    calClientReservations = Array.isArray(
+      calendarData.reservations
+    )
+      ? calendarData.reservations
+      : [];
+
+    /*
+     * Fuente general utilizada por Inicio, Perfil,
+     * contador de reservas y vista simplificada.
+     */
+    clientReservations = [
+      ...calClientReservations
+    ];
+
+  } catch (err) {
+    console.error(
+      'Calendar RPC error:',
+      err
+    );
+
+    calPublicSlots = [];
+    calClientReservations = [];
+    clientReservations = [];
+
+    showClientNotice(
+      getLang() === 'sr'
+        ? 'Kalendar nije moguće učitati.'
+        : 'No se pudo cargar el calendario.',
+      'error'
+    );
+  }
 }
 
 function getDayStatus(dateStr) {
@@ -11817,7 +11911,7 @@ function getDayStatus(dateStr) {
   );
 
   const grupalOpen = publicDay.filter(s => s.can_join);
-  const grupalFull = publicDay.filter(s => !s.can_join && s.session_mode === 'grupal');
+  const grupalFull = publicDay.filter(s => !s.can_join && s.session_mode === 'group');
 
   if (myRes.length) return 'personal-own';
   if (grupalOpen.length) return 'grupal-open';
@@ -12020,8 +12114,14 @@ function buildRequestFormHTML(slot) {
       '<div class="cal-summary-row">' +
         '<span class="cal-summary-label">' + (getLang() === 'sr' ? 'Tipo' : 'Tipo') + '</span>' +
         '<span class="cal-summary-value" style="color:var(--streak)">' +
-          (getLang() === 'sr' ? 'Grupal' : 'Grupal') +
-        '</span>' +
+  (
+    getLang() === 'sr'
+      ? 'Grupni trening'
+      : getLang() === 'en'
+        ? 'Group training'
+        : 'Entrenamiento grupal'
+  ) +
+'</span>' +
       '</div>' +
       (slot.place
         ? '<div class="cal-summary-row">' +
@@ -12094,126 +12194,291 @@ function calCancelRequest() {
 }
 
 async function calSubmitRequest(groupSlotId) {
-  if (!calSelectedDate || !clientData?.id) {
-    showClientNotice(getLang() === 'sr' ? 'Izaberi datum' : 'Selecciona una fecha', 'error');
+  const token = getClientSessionToken();
+
+  if (!calSelectedDate || !token) {
+    showClientNotice(
+      getLang() === 'sr'
+        ? 'Izaberi datum'
+        : 'Selecciona una fecha',
+      'error'
+    );
     return;
   }
 
-  const btn = document.getElementById('calSubmitBtn');
+  const btn =
+    document.getElementById('calSubmitBtn');
 
   if (btn) {
     btn.disabled = true;
-    btn.textContent = getLang() === 'sr' ? 'Enviando...' : 'Enviando...';
+    btn.textContent =
+      getLang() === 'sr'
+        ? 'Šaljem...'
+        : 'Enviando...';
   }
 
-  const note = document.getElementById('calRequestNote')?.value?.trim() || null;
+  const note =
+    document
+      .getElementById('calRequestNote')
+      ?.value
+      ?.trim() || null;
 
   const time = groupSlotId
-    ? (calSelectedSlot?.time || null)
-    : (document.getElementById('calRequestTime')?.value || null);
+    ? calSelectedSlot?.time || null
+    : document
+        .getElementById('calRequestTime')
+        ?.value || null;
 
   const selectedType = groupSlotId
     ? 'group'
-    : (document.getElementById('calRequestType')?.value || 'personal');
-
-  const reservationType = groupSlotId
-    ? 'Entrenamiento grupal'
-    : selectedType === 'pareja'
-      ? 'Sesión en pareja'
-      : 'Sesión personal';
-
-  const sessionMode = groupSlotId
-    ? 'group'
-    : 'personal';
+    : document
+        .getElementById('calRequestType')
+        ?.value || 'personal';
 
   if (!groupSlotId && !time) {
-    showClientNotice(getLang() === 'sr' ? 'Unesite vreme' : 'Indica la hora', 'error');
+    showClientNotice(
+      getLang() === 'sr'
+        ? 'Unesite vreme'
+        : 'Indica la hora',
+      'error'
+    );
 
     if (btn) {
       btn.disabled = false;
-      btn.textContent = getLang() === 'sr' ? 'Confirmar solicitud' : 'Confirmar solicitud';
+      btn.textContent =
+        getLang() === 'sr'
+          ? 'Potvrdi zahtev'
+          : 'Confirmar solicitud';
     }
 
     return;
   }
 
-  try {
-    const payload = {
-      client_id: clientData.id,
-      date: calSelectedDate,
-      time: time,
-      type: reservationType,
-      session_mode: sessionMode,
-      status: 'pendiente',
-      requested_by_client: true,
-      client_message: note,
-      group_slot_id: groupSlotId || null,
-      place: calSelectedSlot?.place || 'Belgrado'
-    };
+  /*
+   * Conservamos estos datos porque calSelectedSlot
+   * se limpia después de guardar.
+   */
+  const submittedDate = calSelectedDate;
+  const submittedTime = time;
 
-    const { data, error } = await db
-      .from('reservations')
-      .insert(payload)
-      .select()
-      .single();
+  const slotSource = groupSlotId
+    ? calSelectedSlot?.slot_source ||
+      'group_slot'
+    : null;
+
+  const place =
+    calSelectedSlot?.place ||
+    'Belgrado';
+
+  try {
+    const { data, error } = await db.rpc(
+      'ab_client_session_submit_reservation',
+      {
+        p_session_token: token,
+
+        /*
+         * Para una solicitud personal se utilizan
+         * fecha y hora elegidas por el cliente.
+         *
+         * Para una grupal, la RPC toma los datos
+         * directamente del horario seleccionado.
+         */
+        p_date: groupSlotId
+          ? null
+          : submittedDate,
+
+        p_time: groupSlotId
+          ? null
+          : submittedTime,
+
+        p_request_type: selectedType,
+        p_client_message: note,
+        p_slot_id: groupSlotId || null,
+        p_slot_source: slotSource,
+        p_place: place
+      }
+    );
 
     if (error) throw error;
 
-    if (groupSlotId) {
-      const { error: slotError } = await db
-        .from('group_slots')
-        .update({
-          current_capacity: (calSelectedSlot?.current_capacity || 0) + 1
-        })
-        .eq('id', groupSlotId);
+let savedReservation = data;
 
-      if (slotError) throw slotError;
-    }
+if (typeof savedReservation === 'string') {
+  try {
+    savedReservation =
+      JSON.parse(savedReservation);
+  } catch (parseError) {
+    console.error(
+      'No se pudo interpretar la reserva:',
+      parseError
+    );
 
-    clientReservations = [...clientReservations, data];
-    calClientReservations = [...calClientReservations, data];
+    savedReservation = null;
+  }
+}
+
+if (Array.isArray(savedReservation)) {
+  savedReservation =
+    savedReservation[0] || null;
+}
+
+if (!savedReservation?.id) {
+  throw new Error(
+    'La RPC no devolvió una reserva válida.'
+  );
+}
+
+    /*
+     * Mantener sincronizadas las variables existentes
+     * mientras terminamos la migración completa.
+     */
+    if (Array.isArray(clientReservations)) {
+  clientReservations = [
+    ...clientReservations.filter(
+      reservation =>
+        String(reservation.id || '') !==
+        String(savedReservation.id)
+    ),
+    savedReservation
+  ];
+}
+
     calSelectedSlot = null;
+
+    /*
+     * Volver a cargar desde Supabase.
+     * Esto actualiza también el cupo del grupo.
+     */
+    await loadCalendarData();
 
     showClientNotice(
       getLang() === 'sr'
-        ? 'Solicitud enviada. Abel confirmará pronto.'
-        : 'Solicitud enviada. Abel confirmará en breve.',
+        ? 'Zahtev je poslat. Trener će ga uskoro potvrditi.'
+        : 'Solicitud enviada. El coach confirmará en breve.',
       'success'
     );
 
-    const area = document.getElementById('calRequestArea');
+    const area =
+      document.getElementById(
+        'calRequestArea'
+      );
 
     if (area) {
       area.innerHTML =
-        '<div class="data-card" style="border-color:rgba(0,230,118,.2);margin-top:0;">' +
+        '<div class="data-card" ' +
+          'style="border-color:rgba(0,230,118,.2);margin-top:0;">' +
+
           '<div class="dc-row">' +
+
             '<span class="dc-title">' +
-              (getLang() === 'sr' ? 'Solicitud enviada' : 'Solicitud enviada') +
+              (
+                getLang() === 'sr'
+                  ? 'Zahtev je poslat'
+                  : 'Solicitud enviada'
+              ) +
             '</span>' +
+
             '<span class="badge badge-green">' +
-              (getLang() === 'sr' ? 'Pendiente' : 'Pendiente') +
+              (
+                getLang() === 'sr'
+                  ? 'Na čekanju'
+                  : 'Pendiente'
+              ) +
             '</span>' +
+
           '</div>' +
+
           '<div class="dc-note">' +
-            formatDate(calSelectedDate) +
-            (time ? ' · ' + formatTime(time) : '') +
+
+            formatDate(submittedDate) +
+
+            (
+              submittedTime
+                ? ' · ' +
+                  formatTime(submittedTime)
+                : ''
+            ) +
+
           '</div>' +
+
         '</div>';
     }
 
     renderReservationsCalendar();
 
   } catch (err) {
-    console.error('Reservation error:', err);
+    console.error(
+      'Reservation RPC error:',
+      err
+    );
+
+    const errorMessage =
+      String(
+        err?.message ||
+        err?.details ||
+        ''
+      ).toUpperCase();
+
+    let notice =
+      getLang() === 'sr'
+        ? 'Greška pri slanju zahteva.'
+        : 'Error al enviar la solicitud.';
+
+    if (
+      errorMessage.includes(
+        'CUPO_GRUPAL_AGOTADO'
+      )
+    ) {
+      notice =
+        getLang() === 'sr'
+          ? 'Nema više slobodnih mesta.'
+          : 'Ya no quedan plazas disponibles.';
+    }
+
+    if (
+      errorMessage.includes(
+        'YA_TIENE_UNA_RESERVA'
+      )
+    ) {
+      notice =
+        getLang() === 'sr'
+          ? 'Već imate rezervaciju u ovom terminu.'
+          : 'Ya tienes una reserva en este horario.';
+    }
+
+    if (
+      errorMessage.includes(
+        'HORARIO_GRUPAL_NO_DISPONIBLE'
+      )
+    ) {
+      notice =
+        getLang() === 'sr'
+          ? 'Ovaj grupni termin više nije dostupan.'
+          : 'Este horario grupal ya no está disponible.';
+    }
+
+    if (
+      errorMessage.includes(
+        'NO_SE_PUEDE_RESERVAR_EN_EL_PASADO'
+      )
+    ) {
+      notice =
+        getLang() === 'sr'
+          ? 'Nije moguće rezervisati termin u prošlosti.'
+          : 'No se puede reservar una fecha pasada.';
+    }
 
     showClientNotice(
-      getLang() === 'sr' ? 'Error al enviar' : 'Error al enviar la solicitud',
+      notice,
       'error'
     );
 
     if (btn) {
       btn.disabled = false;
-      btn.textContent = getLang() === 'sr' ? 'Confirmar solicitud' : 'Confirmar solicitud';
+      btn.textContent =
+        getLang() === 'sr'
+          ? 'Potvrdi zahtev'
+          : 'Confirmar solicitud';
     }
   }
 }
@@ -12446,6 +12711,11 @@ async function renderReservations() {
     '</div>';
 
   await loadCalendarData();
+
+if (badge) {
+  badge.textContent =
+    getUpcomingReservations().length;
+}
 
   if (!isAthlete && !calShowFullView) {
     el.innerHTML = '<div class="section-body">' + buildSimpleReservationView() + '</div>';
