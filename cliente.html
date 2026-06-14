@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AB SYSTEM — Área Cliente · RPC 09 METRICS SECURE</title>
+  <title>AB SYSTEM — Área Cliente · RPC 11 METRICS COMPOSITE</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json?v=20260522-01">
 <link rel="icon" href="/favicon-32.png?v=20260522-01" type="image/png">
@@ -13771,11 +13771,62 @@ const timeLabel = totalMin > 0 ? '~' + Math.round(totalMin) + ' min' : null;
 function getLatestClientMetric() {
   if (!Array.isArray(clientMetrics) || !clientMetrics.length) return null;
 
-  return [...clientMetrics].sort((a, b) => {
-    const da = String(a.date || a.created_at || '');
-    const dbb = String(b.date || b.created_at || '');
-    return dbb.localeCompare(da);
-  })[0] || null;
+  const rows = [...clientMetrics].sort((a, b) => {
+    const dateA = String(a.date || a.created_at || '').slice(0, 10);
+    const dateB = String(b.date || b.created_at || '').slice(0, 10);
+
+    if (dateB !== dateA) {
+      return dateB.localeCompare(dateA);
+    }
+
+    const updatedA = String(a.updated_at || a.created_at || '');
+    const updatedB = String(b.updated_at || b.created_at || '');
+
+    return updatedB.localeCompare(updatedA);
+  });
+
+  const newest = rows[0] || {};
+  const snapshot = {
+    id: newest.id || null,
+    client_id: newest.client_id || newest.clientId || clientData?.id || null,
+    date: String(newest.date || newest.created_at || '').slice(0, 10),
+    created_at: newest.created_at || null,
+    updated_at: newest.updated_at || newest.created_at || null
+  };
+
+  const fields = {
+    weight: ['weight', 'peso', 'peso_kg', 'body_weight'],
+    height: ['height', 'altura', 'height_cm'],
+    waist: ['waist', 'cintura', 'waist_cm'],
+    hip: ['hip', 'cadera', 'hip_cm'],
+    chest: ['chest', 'pecho', 'chest_cm'],
+    arm: ['arm', 'brazo', 'arm_cm'],
+    thigh: ['thigh', 'leg', 'pierna', 'thigh_cm'],
+    resting_hr: ['resting_hr', 'restingHr', 'fc_reposo', 'resting_heart_rate']
+  };
+
+  Object.entries(fields).forEach(([targetKey, sourceKeys]) => {
+    for (const row of rows) {
+      const value = metricVal(row, sourceKeys);
+
+      if (value !== '') {
+        snapshot[targetKey] = value;
+        break;
+      }
+    }
+  });
+
+  for (const row of rows) {
+    const notes = metricVal(row, ['notes', 'note', 'observaciones']);
+
+    if (notes !== '') {
+      snapshot.notes = notes;
+      snapshot.note = notes;
+      break;
+    }
+  }
+
+  return snapshot;
 }
 
 function metricVal(row, keys) {
