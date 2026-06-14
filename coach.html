@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 15 ASSESSMENT RESULTS TABLE</title>
+<title>AB SYSTEM — Coach Panel · RPC 16 RESULTS RESPONSIVE</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -1188,32 +1188,84 @@ a{text-decoration:none;color:inherit}
    ================================================================ */
 
 #modal-evaluacion {
-  position: fixed; inset: 0; z-index: 1000;
-  display: none; flex-direction: column;
-  background: var(--bg-primary); overflow-y: auto;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  width: 100vw;
+  max-width: 100vw;
+  min-width: 0;
+  background: var(--bg-primary);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+body.eval-modal-open {
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: none;
 }
 .eval-modal-header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 16px 20px 12px;
   border-bottom: 1px solid var(--border);
-  position: sticky; top: 0;
-  background: var(--bg-primary); z-index: 10;
+  position: sticky;
+  top: 0;
+  flex: 0 0 auto;
+  background: var(--bg-primary);
+  z-index: 10;
 }
 .eval-modal-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: var(--font-mono);
-  font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
   color: var(--text-secondary);
+}
+.eval-modal-header .btn {
+  flex: 0 0 48px;
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  padding: 0;
 }
 #eval-content,
 #modal-eval-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
   padding: 16px 20px 80px;
 }
 
 
 /* Tabla persistente de resultados de evaluación */
+.assessment-results-screen {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  padding: 4px 0 calc(92px + env(safe-area-inset-bottom));
+}
 .assessment-results-head {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   gap: 1px;
   margin: 14px 0;
   overflow: hidden;
@@ -1229,9 +1281,11 @@ a{text-decoration:none;color:inherit}
 .assessment-results-stat-label {
   font-family: var(--font-mono);
   font-size: 9px;
+  line-height: 1.35;
   letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--text-secondary);
+  overflow-wrap: anywhere;
 }
 .assessment-results-stat-value {
   margin-top: 4px;
@@ -1239,18 +1293,43 @@ a{text-decoration:none;color:inherit}
   font-weight: 800;
   color: var(--text-primary);
 }
-.assessment-results-table-wrap {
+.assessment-results-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   width: 100%;
+  min-width: 0;
+  margin: 0 0 10px;
+}
+.assessment-results-scroll-hint {
+  margin-left: auto;
+  font-family: var(--font-m);
+  font-size: .5rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.assessment-results-table-wrap {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--bg-secondary);
 }
 .assessment-results-table {
-  width: 100%;
+  width: max-content;
   min-width: 860px;
+  max-width: none;
   border-collapse: collapse;
+  table-layout: auto;
 }
 .assessment-results-table th {
   padding: 10px 11px;
@@ -1271,13 +1350,25 @@ a{text-decoration:none;color:inherit}
   color: var(--text-primary);
   vertical-align: top;
 }
+.assessment-results-table th:nth-child(2),
+.assessment-results-table td:nth-child(2) {
+  min-width: 230px;
+  max-width: 280px;
+}
 .assessment-results-table tr:last-child td { border-bottom: 0; }
-.assessment-results-test-name { font-weight: 800; line-height: 1.3; }
+.assessment-results-test-name {
+  font-weight: 800;
+  font-size: .85rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
 .assessment-results-test-code {
   margin-top: 3px;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: .58rem;
+  line-height: 1.35;
   color: var(--text-secondary);
+  overflow-wrap: anywhere;
 }
 .assessment-results-primary {
   font-family: var(--font-mono);
@@ -1293,9 +1384,76 @@ a{text-decoration:none;color:inherit}
   font-size: 10px;
   line-height: 1.45;
   color: var(--text-secondary);
+  overflow-wrap: anywhere;
 }
-@media (max-width: 420px) {
-  .assessment-results-head { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.assessment-results-empty {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 10px;
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.assessment-results-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-top: 14px;
+}
+.assessment-results-actions .btn {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.eval-card-actions {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  margin-top: 10px;
+}
+.eval-card-actions-single {
+  grid-template-columns: 1fr !important;
+}
+.eval-card-actions .btn {
+  width: 100%;
+  min-width: 0;
+  padding-left: 8px;
+  padding-right: 8px;
+  font-size: .68rem;
+  line-height: 1.15;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 430px) {
+  .assessment-results-head {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+  .assessment-results-actions {
+    grid-template-columns: 1fr;
+  }
+  .eval-card-actions {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+  .eval-card-actions .eval-card-action-primary {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 360px) {
+  .assessment-results-head,
+  .eval-card-actions {
+    grid-template-columns: 1fr;
+  }
+  .eval-card-actions .eval-card-action-primary {
+    grid-column: auto;
+  }
 }
 
 /* Header */
@@ -5150,8 +5308,11 @@ function renderAssessmentResultsTable(assessment, results){
     return oneRm !== null && oneRm !== undefined || tm !== null && tm !== undefined;
   }).length;
 
+  const normalizedStatus = String(assessment?.status || '').toLowerCase();
+  const isInProgress = normalizedStatus.includes('progreso') || normalizedStatus.includes('pending');
+
   el.innerHTML = `
-    <div style="padding:4px 0 70px">
+    <div class="assessment-results-screen">
       <div class="eval-header">
         <div class="eval-client">${escHTML(client?.name || 'Cliente')}</div>
         <div class="eval-subtitle">${escHTML(assessmentName)}</div>
@@ -5173,9 +5334,9 @@ function renderAssessmentResultsTable(assessment, results){
         </div>
       </div>
 
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px">
+      <div class="assessment-results-toolbar">
         <span style="font-family:var(--font-m);font-size:.52rem;padding:5px 8px;border-radius:6px;background:${status.bg};color:${status.color}">${escHTML(status.label)}</span>
-        <span style="font-family:var(--font-m);font-size:.5rem;color:var(--text-secondary)">Desliza la tabla →</span>
+        ${results.length ? '<span class="assessment-results-scroll-hint">Desliza solo la tabla →</span>' : ''}
       </div>
 
       ${results.length ? `
@@ -5225,13 +5386,15 @@ function renderAssessmentResultsTable(assessment, results){
             </tbody>
           </table>
         </div>` : `
-        <div class="empty" style="margin-top:10px">
-          Esta evaluación todavía no tiene resultados guardados.
+        <div class="assessment-results-empty">
+          ${isInProgress
+            ? 'Esta evaluación continúa en progreso y todavía no tiene resultados guardados.'
+            : 'Esta evaluación todavía no tiene resultados guardados.'}
         </div>`}
 
-      <div style="display:flex;gap:8px;margin-top:14px">
-        ${client ? `<button class="btn btn-b btn-wide" onclick="closeEvalModal();openProfile('${client.id}')">Volver al perfil</button>` : ''}
-        <button class="btn btn-p btn-wide" onclick="closeEvalModal()">Cerrar</button>
+      <div class="assessment-results-actions">
+        ${client ? `<button class="btn btn-b" onclick="closeEvalModal();openProfile('${client.id}')">Volver al perfil</button>` : ''}
+        <button class="btn btn-p" onclick="closeEvalModal()">Cerrar</button>
       </div>
     </div>`;
 }
@@ -5252,8 +5415,18 @@ async function openAssessmentResultsModal(assessmentId){
   const el = document.getElementById('modal-eval-content');
 
   if(title) title.textContent = 'Resultados de evaluación';
-  if(modal) modal.style.display = 'flex';
+  if(modal){
+    modal.style.display = 'flex';
+    modal.scrollLeft = 0;
+  }
+  if(el) el.scrollLeft = 0;
+  document.body.classList.add('eval-modal-open');
   document.body.style.overflow = 'hidden';
+
+  requestAnimationFrame(() => {
+    if(modal) modal.scrollLeft = 0;
+    if(el) el.scrollLeft = 0;
+  });
 
   if(el){
     el.innerHTML = '<div style="padding:20px"><div class="eval-loading">Cargando tabla de resultados...</div></div>';
@@ -6822,6 +6995,7 @@ function buildAthleteDashboardHTML(a){
       const status=String(a.status||'realizada').toLowerCase().replace(/_/g,' ');
       const statusKind=status.includes('progreso')?'pendiente':status==='completado'?'pagado':'info';
       const testName=a.assessmentName||a.assessment_name||'Evaluación';
+      const resultsActionLabel=status.includes('progreso')?'Ver avance':'Ver resultados';
 
       return`
         <details class="card" style="margin-bottom:8px">
@@ -6844,8 +7018,8 @@ function buildAthleteDashboardHTML(a){
               <div style="margin-top:8px;padding:8px 10px;background:rgba(0,200,232,.05);border-left:2px solid var(--sport);border-radius:0 6px 6px 0;font-size:.78rem;color:var(--text-2);line-height:1.55">
                 ${esc(a.coachNotes||a.coach_notes)}
               </div>`:''}
-            <div style="display:grid;grid-template-columns:${c?'repeat(3,minmax(0,1fr))':'1fr'};gap:6px;margin-top:10px">
-              <button class="btn btn-p btn-sm" onclick="openAssessmentResultsModal('${a.id}')">Ver resultados</button>
+            <div class="eval-card-actions ${c?'':'eval-card-actions-single'}">
+              <button class="btn btn-p btn-sm eval-card-action-primary" onclick="openAssessmentResultsModal('${a.id}')">${resultsActionLabel}</button>
               ${c?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
               <button class="btn btn-b btn-sm" onclick="openEvalModal('${c.id}','${esc(c.name)}',null,null)">Nueva</button>`:''}
             </div>
@@ -14406,16 +14580,22 @@ async function openEvalModal(clientId, clientName, sexo, edad) {
   const evalTitle = document.querySelector('#modal-evaluacion .eval-modal-title');
   if(evalTitle) evalTitle.textContent = 'Evaluación inicial';
 
-  document.getElementById('modal-evaluacion').style.display = 'flex';
+  const modal = document.getElementById('modal-evaluacion');
+  modal.style.display = 'flex';
+  modal.scrollLeft = 0;
+  document.body.classList.add('eval-modal-open');
   document.body.style.overflow = 'hidden';
   renderEvalModal();
 }
 
 function closeEvalModal() {
   stopEvalTimer();
-  document.getElementById('modal-evaluacion').style.display = 'none';
+  const modal = document.getElementById('modal-evaluacion');
+  modal.style.display = 'none';
+  modal.scrollLeft = 0;
   const evalTitle = document.querySelector('#modal-evaluacion .eval-modal-title');
   if(evalTitle) evalTitle.textContent = 'Evaluación inicial';
+  document.body.classList.remove('eval-modal-open');
   document.body.style.overflow = '';
 }
 
