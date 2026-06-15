@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 23 HEALTH WORKFLOW</title>
+<title>AB SYSTEM — Coach Panel · RPC 23.1 ALERT SELECTOR FIX</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -2540,7 +2540,7 @@ body.eval-modal-open {
 
 
 /* ════════════════════════════════════════════════════════
-   RPC 23 · SALUD + SEGUIMIENTO + SINCRONIZACIÓN CLIENTE
+   RPC 23.1 · SELECTOR ÚNICO DE ALERTAS + SALUD
 ══════════════════════════════════════════════════════════ */
 .condition-inbox{
   margin:0 0 18px;
@@ -3651,7 +3651,7 @@ function buildConditionInboxHTML(rows,{title='Molestias reportadas',showFilters=
 function buildDashboardConditionInbox(){
   const rows=conditionSortRows(conditionAttentionRows()).slice(0,5);
   if(!rows.length)return'';
-  return `<div style="margin-bottom:18px">${buildConditionInboxHTML(rows,{title:'Salud por revisar',showFilters:false})}<button class="btn btn-b btn-wide" onclick="filterCondition='attention';showScr('alertas')">Abrir seguimiento completo</button></div>`;
+  return `<div style="margin-bottom:18px">${buildConditionInboxHTML(rows,{title:'Salud por revisar',showFilters:false})}<button class="btn btn-b btn-wide" onclick="openHealthAlerts()">Abrir seguimiento completo</button></div>`;
 }
 function buildClientHealthSummaryCard(c){
   const rows=conditionRowsForClient(c.id);
@@ -3734,7 +3734,7 @@ function renderClientHealth(){
     const attention=rows.filter(conditionNeedsCoachAttention);
     const current=rows.filter(r=>['reported','active'].includes(normalizeCoachConditionStatus(r.status)));
     const history=rows.filter(r=>normalizeCoachConditionStatus(r.status)==='resolved');
-    content.innerHTML=rows.length?`<div class="fr" style="margin-bottom:10px"><button class="fp on">${rows.length} registros</button>${attention.length?`<button class="fp" onclick="filterCondition='attention';showScr('alertas')">${attention.length} por revisar</button>`:''}</div>${current.length?`<div class="condition-inbox-kicker" style="margin:10px 0 7px">Seguimiento actual · ${current.length}</div>${current.map(row=>buildCoachConditionCard(row)).join('')}`:''}${history.length?`<div class="condition-inbox-kicker" style="margin:18px 0 7px">Historial · ${history.length}</div>${history.map(row=>buildCoachConditionCard(row)).join('')}`:''}`:emptyState('Sin molestias registradas','Los reportes enviados por el cliente aparecerán aquí.');
+    content.innerHTML=rows.length?`<div class="fr" style="margin-bottom:10px"><button class="fp on">${rows.length} registros</button>${attention.length?`<button class="fp" onclick="openHealthAlerts()">${attention.length} por revisar</button>`:''}</div>${current.length?`<div class="condition-inbox-kicker" style="margin:10px 0 7px">Seguimiento actual · ${current.length}</div>${current.map(row=>buildCoachConditionCard(row)).join('')}`:''}${history.length?`<div class="condition-inbox-kicker" style="margin:18px 0 7px">Historial · ${history.length}</div>${history.map(row=>buildCoachConditionCard(row)).join('')}`:''}`:emptyState('Sin molestias registradas','Los reportes enviados por el cliente aparecerán aquí.');
   }else if(activeHealthCoachTab==='checkins') content.innerHTML=buildHealthCheckins(c);
   else if(activeHealthCoachTab==='metrics') content.innerHTML=buildHealthMetrics(c);
   else content.innerHTML=buildHealthInjuries(c);
@@ -4414,7 +4414,7 @@ if(!isLogged){
    
    // Registrar Service Worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js?v=coach-rpc-02', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('/sw.js?v=coach-rpc-23-1', { updateViaCache: 'none' })
     .then(reg => {
       console.log('SW registrado ✓', reg.scope);
       // Escuchar mensajes del SW
@@ -6458,26 +6458,57 @@ function toggleAlertGroup(key){
   if(el) el.classList.toggle('open');
 }
 
+function conditionIsCriticalForAlerts(row){
+  const status=normalizeCoachConditionStatus(row?.status);
+  if(status==='resolved')return false;
+  const severity=String(row?.severity||'').toLowerCase();
+  return conditionHasRedFlags(row)||conditionPainMax(row)>=7||severity==='alta';
+}
+function conditionRowsForAlertFilter(mode){
+  const all=state.clientConditions||[];
+  if(mode==='pendientes')return conditionAttentionRows();
+  if(mode==='criticas')return all.filter(conditionIsCriticalForAlerts);
+  if(mode==='resueltas')return all.filter(r=>normalizeCoachConditionStatus(r?.status)==='resolved');
+  if(mode==='todas')return all;
+  return [];
+}
+function conditionTitleForAlertFilter(mode){
+  if(mode==='pendientes')return 'Salud por revisar';
+  if(mode==='criticas')return 'Molestias críticas';
+  if(mode==='resueltas')return 'Historial de salud';
+  return 'Molestias reportadas';
+}
+function setAlertMainFilter(mode){
+  filterAl=mode;
+  renderAlertas();
+}
+function openHealthAlerts(){
+  filterAl='pendientes';
+  filterCondition='attention';
+  showScr('alertas');
+}
+
 function renderAlertas(){
-  const conditionBox=document.getElementById('al-conditions');
-  if(conditionBox) conditionBox.innerHTML=buildConditionInboxHTML();
+  const effectiveRows=getStandaloneCoachAlerts().filter(a=>!isFalsePositiveAlert(a)||filterAl==='leidas'||filterAl==='todas');
+  const conditionRows=conditionSortRows(conditionRowsForAlertFilter(filterAl));
 
-  const effectiveRows = getStandaloneCoachAlerts().filter(a => !isFalsePositiveAlert(a) || filterAl === 'leidas' || filterAl === 'todas');
-
-  const pendientes = effectiveRows.filter(a => getEffectiveAlertStatus(a) === 'pendiente');
-  const criticas = effectiveRows.filter(a => {
-    const lvl = getEffectiveAlertLevel(a);
-    return lvl === 'critica' || lvl === 'alerta';
+  const pendingAlerts=effectiveRows.filter(a=>getEffectiveAlertStatus(a)==='pendiente');
+  const criticalAlerts=effectiveRows.filter(a=>{
+    const lvl=getEffectiveAlertLevel(a);
+    return getEffectiveAlertStatus(a)!=='resuelta'&&(lvl==='critica'||lvl==='alerta');
   });
-  const leidas = effectiveRows.filter(a => getEffectiveAlertStatus(a) === 'leida');
-  const resueltas = effectiveRows.filter(a => getEffectiveAlertStatus(a) === 'resuelta');
+  const readAlerts=effectiveRows.filter(a=>getEffectiveAlertStatus(a)==='leida');
+  const resolvedAlerts=effectiveRows.filter(a=>getEffectiveAlertStatus(a)==='resuelta');
 
-  document.getElementById('al-metrics').innerHTML=`
-    <div class="mc r"><span class="mc-n">${pendientes.length}</span><span class="mc-l">Pendientes</span></div>
-    <div class="mc y"><span class="mc-n">${criticas.length}</span><span class="mc-l">Críticas</span></div>
-    <div class="mc b"><span class="mc-n">${leidas.length}</span><span class="mc-l">Leídas</span></div>
-    <div class="mc g"><span class="mc-n">${resueltas.length}</span><span class="mc-l">Resueltas</span></div>
-  `;
+  const pendingConditions=conditionAttentionRows();
+  const criticalConditions=(state.clientConditions||[]).filter(conditionIsCriticalForAlerts);
+  const resolvedConditions=(state.clientConditions||[]).filter(r=>normalizeCoachConditionStatus(r?.status)==='resolved');
+
+  const metricsHTML=`
+    <div class="mc r"><span class="mc-n">${pendingAlerts.length+pendingConditions.length}</span><span class="mc-l">Pendientes</span></div>
+    <div class="mc y"><span class="mc-n">${criticalAlerts.length+criticalConditions.length}</span><span class="mc-l">Críticas</span></div>
+    <div class="mc b"><span class="mc-n">${readAlerts.length}</span><span class="mc-l">Leídas</span></div>
+    <div class="mc g"><span class="mc-n">${resolvedAlerts.length+resolvedConditions.length}</span><span class="mc-l">Resueltas</span></div>`;
 
   const filters=[
     ['pendientes','Pendientes'],
@@ -6486,28 +6517,37 @@ function renderAlertas(){
     ['resueltas','Resueltas'],
     ['todas','Todas']
   ];
-
-  document.getElementById('al-filters').innerHTML=filters.map(([k,l])=>`
-    <button class="fp ${filterAl===k?'on':''}" onclick="filterAl='${k}';renderAlertas()">${l}</button>
+  const filtersHTML=filters.map(([k,l])=>`
+    <button class="fp ${filterAl===k?'on':''}" onclick="setAlertMainFilter('${k}')">${l}</button>
   `).join('');
 
-  let rows=[...effectiveRows];
+  let alertRows=[...effectiveRows];
+  if(filterAl==='pendientes')alertRows=pendingAlerts;
+  else if(filterAl==='criticas')alertRows=criticalAlerts;
+  else if(filterAl==='leidas')alertRows=readAlerts;
+  else if(filterAl==='resueltas')alertRows=resolvedAlerts;
 
-  if(filterAl==='pendientes') rows=rows.filter(a => getEffectiveAlertStatus(a)==='pendiente');
-  else if(filterAl==='criticas') rows=rows.filter(a => {
-    const lvl = getEffectiveAlertLevel(a);
-    return lvl === 'critica' || lvl === 'alerta';
-  });
-  else if(filterAl==='leidas') rows=rows.filter(a => getEffectiveAlertStatus(a)==='leida');
-  else if(filterAl==='resueltas') rows=rows.filter(a => getEffectiveAlertStatus(a)==='resuelta');
+  alertRows.sort((a,b)=>String(alertCreatedAt(b)).localeCompare(String(alertCreatedAt(a))));
+  const groups=groupAlerts(alertRows);
+  const hasConditions=conditionRows.length>0;
 
-  rows.sort((a,b)=>String(alertCreatedAt(b)).localeCompare(String(alertCreatedAt(a))));
-
-  const groups = groupAlerts(rows);
-
-  document.getElementById('al-content').innerHTML = groups.length
+  const conditionHTML=hasConditions
+    ? buildConditionInboxHTML(conditionRows,{title:conditionTitleForAlertFilter(filterAl),showFilters:false})
+    : '';
+  const alertsHTML=groups.length
     ? groups.map(buildAlertGroupCard).join('')
-    : emptyState('Sin alertas','Todo bajo control.');
+    : hasConditions
+      ? ''
+      : emptyState('Sin alertas','Todo bajo control.');
+
+  const metricsEl=document.getElementById('al-metrics');
+  const filtersEl=document.getElementById('al-filters');
+  const conditionEl=document.getElementById('al-conditions');
+  const contentEl=document.getElementById('al-content');
+  if(metricsEl)metricsEl.innerHTML=metricsHTML;
+  if(filtersEl)filtersEl.innerHTML=filtersHTML;
+  if(conditionEl)conditionEl.innerHTML=conditionHTML;
+  if(contentEl)contentEl.innerHTML=alertsHTML;
 }
 
 function buildAlertGroupCard(g){
@@ -6758,7 +6798,7 @@ function renderMas(){
   const items=[
     {icon:ICONS.pay,  label:'Pagos',        badge:pendPay,      action:`showScr('pagos')`},
     {icon:ICONS.ci,   label:'Check-ins',    badge:todayCI,      action:`showScr('checkins')`},
-    {icon:ICONS.health,label:'Salud', badge:pendingConditions, action:`filterCondition='attention';showScr('alertas')`},
+    {icon:ICONS.health,label:'Salud', badge:pendingConditions, action:`openHealthAlerts()`},
     {icon:ICONS.wa,   label:'WhatsApp',     badge:0,            action:`showScr('whatsapp')`},
     {icon:ICONS.train,label:'Entrenos',     badge:activeAssign, action:`showScr('entreno')`},
     {icon:ICONS.ath,  label:'Atletas',      badge:athleteCount, action:`showScr('atletas')`},
@@ -16917,7 +16957,7 @@ async function initPushNotifications() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
   try {
-    await navigator.serviceWorker.register('/sw.js?v=coach-rpc-02', { updateViaCache: 'none' });
+    await navigator.serviceWorker.register('/sw.js?v=coach-rpc-23-1', { updateViaCache: 'none' });
     const swReg = await navigator.serviceWorker.ready;
 
     const perm = await Notification.requestPermission();
@@ -18084,7 +18124,7 @@ async function testPush() {
 }
 </script>
 
-<!-- AB SYSTEM · RPC 23
+<!-- AB SYSTEM · RPC 23.1
      La adaptación aprobada se publica mediante client_conditions +
      ab_client_session_get_current_adapted_training. -->
 </body>
