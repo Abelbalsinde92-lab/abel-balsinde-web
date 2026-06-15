@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AB SYSTEM — Área Cliente · RPC 22 PLAN + ADAPTATION SYNC</title>
+  <title>AB SYSTEM — Área Cliente · RPC 25 PERFORMANCE + SECURITY</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json?v=20260522-01">
 <link rel="icon" href="/favicon-32.png?v=20260522-01" type="image/png">
@@ -5590,9 +5590,48 @@ const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 const AB_CLIENT_SESSION_KEY = 'ab_client_session_token_v1';
 const AB_CLIENT_SESSION_CLIENT_KEY = 'ab_client_session_client_id_v1';
+const AB_CLIENT_SESSION_EXPIRES_KEY = 'ab_client_session_expires_at_v1';
+
+function normalizeClientSessionExpiry(value, expiresInSeconds = null) {
+  if (expiresInSeconds !== null && expiresInSeconds !== undefined && Number.isFinite(Number(expiresInSeconds))) {
+    return new Date(Date.now() + Number(expiresInSeconds) * 1000).toISOString();
+  }
+
+  if (value === null || value === undefined || value === '') return '';
+
+  if (typeof value === 'number' || /^\d+$/.test(String(value).trim())) {
+    const n = Number(value);
+    const millis = n < 10_000_000_000 ? n * 1000 : n;
+    const date = new Date(millis);
+    return Number.isNaN(date.getTime()) ? '' : date.toISOString();
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString();
+}
+
+function getClientSessionExpiry() {
+  try { return localStorage.getItem(AB_CLIENT_SESSION_EXPIRES_KEY) || ''; } catch { return ''; }
+}
+
+function isClientSessionLocallyExpired(skewMs = 30000) {
+  const raw = getClientSessionExpiry();
+  if (!raw) return false;
+  const expiresAt = new Date(raw).getTime();
+  if (!Number.isFinite(expiresAt)) return false;
+  return Date.now() + skewMs >= expiresAt;
+}
 
 function getClientSessionToken() {
-  try { return localStorage.getItem(AB_CLIENT_SESSION_KEY) || ''; } catch { return ''; }
+  try {
+    if (isClientSessionLocallyExpired()) {
+      clearClientSession();
+      return '';
+    }
+    return localStorage.getItem(AB_CLIENT_SESSION_KEY) || '';
+  } catch {
+    return '';
+  }
 }
 
 function storeClientSession(loginRow) {
@@ -5600,6 +5639,14 @@ function storeClientSession(loginRow) {
   try {
     localStorage.setItem(AB_CLIENT_SESSION_KEY, loginRow.session_token);
     localStorage.setItem(AB_CLIENT_SESSION_CLIENT_KEY, loginRow.client_id || '');
+
+    const expiry = normalizeClientSessionExpiry(
+      loginRow.session_expires_at || loginRow.expires_at || loginRow.expiresAt || loginRow.expiry || '',
+      loginRow.expires_in ?? loginRow.expiresIn ?? null
+    );
+
+    // Si esta llamada solo refresca client_id/token, conservar una expiración ya guardada.
+    if (expiry) localStorage.setItem(AB_CLIENT_SESSION_EXPIRES_KEY, expiry);
   } catch (e) {
     console.warn('No se pudo guardar sesión cliente:', e);
   }
@@ -5609,7 +5656,13 @@ function clearClientSession() {
   try {
     localStorage.removeItem(AB_CLIENT_SESSION_KEY);
     localStorage.removeItem(AB_CLIENT_SESSION_CLIENT_KEY);
+    localStorage.removeItem(AB_CLIENT_SESSION_EXPIRES_KEY);
   } catch {}
+
+  // Invalida respuestas asíncronas de una carga anterior.
+  if (typeof clientDashboardLoadGeneration !== 'undefined') {
+    clientDashboardLoadGeneration += 1;
+  }
 }
 
 async function logoutClient() {
@@ -5668,6 +5721,18 @@ let abRpc22LastServerSignature = '';
 let abRpc22AutoSyncInstalled = false;
 window.AB_RPC22_LAST_SYNC = null;
 window.AB_RPC22_LAST_ERROR = null;
+
+// RPC 25 · carga progresiva. La pantalla principal se muestra antes de los módulos secundarios.
+let clientDashboardLoadGeneration = 0;
+let clientTrainingSyncReady = false;
+let clientSecondaryDataReady = false;
+let clientConditionsReady = false;
+window.AB_CLIENT_LOAD_STATE = {
+  generation: 0,
+  primary: 'idle',
+  training_sync: 'idle',
+  secondary: 'idle'
+};
 
 let clientDailyCheckins      = [];
 let clientConditions          = [];
@@ -7376,53 +7441,272 @@ function abRpc22InstallAutoSync() {
   window.abClientRpc22Refresh = () => abRpc22SyncClientTraining({ force: true, notify: true });
 }
 
+function clientRpcTimeout(promise, label, ms = 15000) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Tiempo agotado cargando ' + label)), ms);
+    })
+  ]);
+}
+
+function isCurrentClientLoad(generation, token) {
+  return (
+    generation === clientDashboardLoadGeneration &&
+    token &&
+    token === getClientSessionToken()
+  );
+}
+
+function normalizeClientRpcResult(result, label) {
+  if (result.status === 'rejected') {
+    console.warn(label + ' no disponible:', result.reason);
+    return { data: [], error: result.reason };
+  }
+
+  const value = result.value || { data: [], error: null };
+  if (value.error) {
+    console.warn(label + ' RPC error:', value.error);
+    return { data: [], error: value.error };
+  }
+
+  return value;
+}
+
+function parseClientTrainingLogs(raw) {
+  let value = raw;
+  if (typeof value === 'string') {
+    try {
+      value = JSON.parse(value);
+    } catch (parseError) {
+      console.error('No se pudo interpretar el historial de entrenamientos:', parseError);
+      value = [];
+    }
+  }
+  return Array.isArray(value) ? value : [];
+}
+
+function resetDeferredClientState() {
+  clientReservations = [];
+  clientPayments = [];
+  clientMetrics = [];
+  clientAlerts = [];
+  clientPrograms = [];
+  clientAssessments = [];
+  clientInternalAssessments = [];
+  clientAssessmentResults = [];
+  clientSessionLogs = [];
+  clientDailyCheckins = [];
+  clientConditions = [];
+  clientActiveTrainingAdaptations = [];
+
+  clientTrainingSyncReady = false;
+  clientSecondaryDataReady = false;
+  clientConditionsReady = false;
+
+  clientMobilityChain = [];
+  clientMobilityDebug = { loaded: true, count: 0, error: null };
+  clientAthleteProfile = null;
+  clientCompetitionEvents = [];
+  clientTrainingPhases = [];
+  clientSessionLoadHistory = [];
+  clientInjuryHistory = [];
+  clientCapacityEvaluations = [];
+
+  window.clientMobilityChain = clientMobilityChain;
+  window.clientMobilityDebug = clientMobilityDebug;
+}
+
+async function refreshClientDeferredSections({ includeTraining = false } = {}) {
+  try {
+    renderHome();
+    renderAssessments();
+    renderHealthAlerts();
+    if (isAthlete && typeof renderAtleta === 'function') renderAtleta();
+    renderSummary();
+    renderClientData();
+
+    if (
+      includeTraining &&
+      !workoutTimer?.running &&
+      !currentTrainingLog
+    ) {
+      await renderClientTraining();
+    }
+  } catch (error) {
+    console.error('Render diferido cliente:', error);
+  }
+}
+
+async function loadClientTrainingSyncData(token, generation, planJson) {
+  window.AB_CLIENT_LOAD_STATE.training_sync = 'loading';
+
+  try {
+    const conditionsR = await clientRpcTimeout(
+      db.rpc('ab_client_session_get_conditions', {
+        p_session_token: token,
+        p_limit: 100
+      }),
+      'condiciones y molestias'
+    );
+
+    if (!isCurrentClientLoad(generation, token)) return;
+
+    if (conditionsR.error) {
+      console.warn('Condiciones RPC:', conditionsR.error);
+      clientConditions = [];
+    } else {
+      clientConditions = abRpc22AsArray(conditionsR.data);
+    }
+
+    clientConditionsReady = true;
+
+    // La adaptación se calcula después de conocer las condiciones activas.
+    await abRpc22LoadCurrentAdaptations(token);
+    if (!isCurrentClientLoad(generation, token)) return;
+
+    abRpc22LastServerSignature = abRpc22BuildServerSignature(
+      clientTrainingAssignment,
+      planJson,
+      clientConditions
+    );
+    abRpc22InstallAutoSync();
+
+    clientTrainingSyncReady = true;
+    window.AB_CLIENT_LOAD_STATE.training_sync = 'ready';
+    await refreshClientDeferredSections({ includeTraining: true });
+  } catch (error) {
+    if (!isCurrentClientLoad(generation, token)) return;
+
+    console.error('Carga de condiciones/adaptación:', error);
+    clientConditions = [];
+    clientActiveTrainingAdaptations = [];
+    clientConditionsReady = true;
+    clientTrainingSyncReady = true;
+    window.AB_CLIENT_LOAD_STATE.training_sync = 'error';
+
+    // Nunca dejar el entrenamiento bloqueado si el módulo de adaptación falla.
+    await refreshClientDeferredSections({ includeTraining: true });
+  }
+}
+
+async function loadClientSecondaryData(token, generation) {
+  window.AB_CLIENT_LOAD_STATE.secondary = 'loading';
+
+  const labels = [
+    'check-ins',
+    'métricas',
+    'evaluaciones',
+    'resultados de evaluaciones',
+    'historial de entrenamientos'
+  ];
+
+  const settled = await Promise.allSettled([
+    clientRpcTimeout(
+      db.rpc('ab_client_session_get_checkins', {
+        p_session_token: token,
+        p_limit: 30
+      }),
+      'check-ins'
+    ),
+    clientRpcTimeout(
+      db.rpc('ab_client_session_get_metrics', {
+        p_session_token: token,
+        p_limit: 150
+      }),
+      'métricas'
+    ),
+    clientRpcTimeout(
+      db.rpc('ab_client_session_get_assessments', {
+        p_session_token: token,
+        p_limit: 50
+      }),
+      'evaluaciones'
+    ),
+    clientRpcTimeout(
+      db.rpc('ab_client_session_get_assessment_results', {
+        p_session_token: token,
+        p_assessment_id: null,
+        p_limit: 1000
+      }),
+      'resultados de evaluaciones'
+    ),
+    clientRpcTimeout(
+      db.rpc('ab_client_session_get_training_logs', {
+        p_session_token: token,
+        p_limit: 200
+      }),
+      'historial de entrenamientos'
+    )
+  ]);
+
+  if (!isCurrentClientLoad(generation, token)) return;
+
+  const [checkinsR, metricsR, assessmentsR, assessmentResultsR, trainingLogsR] =
+    settled.map((result, index) => normalizeClientRpcResult(result, labels[index]));
+
+  clientDailyCheckins = Array.isArray(checkinsR.data) ? checkinsR.data : [];
+  clientMetrics = Array.isArray(metricsR.data) ? metricsR.data : [];
+  clientAssessments = Array.isArray(assessmentsR.data) ? assessmentsR.data : [];
+  clientAssessmentResults = Array.isArray(assessmentResultsR.data) ? assessmentResultsR.data : [];
+  clientSessionLogs = parseClientTrainingLogs(trainingLogsR.data);
+
+  clientSecondaryDataReady = true;
+  window.AB_CLIENT_LOAD_STATE.secondary = settled.some(
+    r => r.status === 'rejected' || (r.status === 'fulfilled' && r.value?.error)
+  ) ? 'partial' : 'ready';
+
+  await refreshClientDeferredSections({ includeTraining: false });
+}
+
 async function loadClientDashboard(sessionToken) {
+  const generation = ++clientDashboardLoadGeneration;
+  window.AB_CLIENT_LOAD_STATE = {
+    generation,
+    primary: 'loading',
+    training_sync: 'idle',
+    secondary: 'idle'
+  };
+
   showLoading(true);
   hideError();
   showInfo('Cargando tu plan...');
 
-  const rpcTimeout = (promise, label, ms = 15000) => {
-    return Promise.race([
-      promise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Tiempo agotado cargando ' + label)), ms))
-    ]);
-  };
-
   try {
+    const expiredLocally = isClientSessionLocallyExpired();
     const token = sessionToken || getClientSessionToken();
 
-    if (!token) {
+    if (!token || expiredLocally) {
       clearClientSession();
       showLoading(false);
       document.getElementById('loginScreen')?.classList.remove('hidden');
       document.getElementById('dashboardScreen')?.classList.add('hidden');
-      showError(uiText('wrongLogin'));
+      showError(expiredLocally ? 'Tu sesión ha caducado. Inicia sesión nuevamente.' : uiText('wrongLogin'));
       return;
     }
 
-    // ── TANDA 1: datos mínimos para mostrar el panel ──────────────────
-    // Corren en paralelo. validate_session va primero para confirmar token.
-    // Las demás solo necesitan el token, no dependen entre sí.
+    // TANDA 1: solo los datos imprescindibles para mostrar el panel.
     const [profileR, dashboardR, assignmentsR, planR] = await Promise.all([
-      rpcTimeout(
+      clientRpcTimeout(
         db.rpc('ab_client_validate_session', { p_session_token: token }).maybeSingle(),
         'perfil'
       ),
-      rpcTimeout(
+      clientRpcTimeout(
         db.rpc('ab_client_get_dashboard', { p_session_token: token }).maybeSingle(),
         'dashboard'
       ),
-      rpcTimeout(
+      clientRpcTimeout(
         db.rpc('ab_client_get_assignments', { p_session_token: token }),
         'asignaciones'
       ),
-      rpcTimeout(
+      clientRpcTimeout(
         db.rpc('ab_client_get_active_training_plan', { p_session_token: token }),
         'plan activo'
-      ),
+      )
     ]);
 
-    // validate_session es la única que bloquea el acceso
+    if (!isCurrentClientLoad(generation, token)) return;
+
     if (profileR.error || !profileR.data) {
       throw profileR.error || new Error('Sesión cliente inválida.');
     }
@@ -7430,59 +7714,6 @@ async function loadClientDashboard(sessionToken) {
     if (planR.error) throw planR.error;
     if (assignmentsR.error) console.warn('Assignments RPC:', assignmentsR.error);
 
-    // ── TANDA 2: datos secundarios en paralelo, sin bloquear entrada ──
-    // Si alguno falla, el panel ya está visible y muestra el dato vacío.
-    const [
-      checkinsR,
-      metricsR,
-      assessmentsR,
-      assessmentResultsR,
-      conditionsR,
-      trainingLogsR,
-    ] = await Promise.allSettled([
-      rpcTimeout(
-        db.rpc('ab_client_session_get_checkins', { p_session_token: token, p_limit: 30 }),
-        'check-ins'
-      ),
-      rpcTimeout(
-        db.rpc('ab_client_session_get_metrics', { p_session_token: token, p_limit: 150 }),
-        'métricas'
-      ),
-      rpcTimeout(
-        db.rpc('ab_client_session_get_assessments', { p_session_token: token, p_limit: 50 }),
-        'evaluaciones'
-      ),
-      rpcTimeout(
-        db.rpc('ab_client_session_get_assessment_results', {
-          p_session_token: token,
-          p_assessment_id: null,
-          p_limit: 1000
-        }),
-        'resultados de evaluaciones'
-      ),
-      rpcTimeout(
-        db.rpc('ab_client_session_get_conditions', { p_session_token: token, p_limit: 100 }),
-        'condiciones y molestias'
-      ),
-      rpcTimeout(
-        db.rpc('ab_client_session_get_training_logs', { p_session_token: token, p_limit: 200 }),
-        'historial de entrenamientos'
-      ),
-    ]).then(results => results.map((r, i) => {
-      if (r.status === 'rejected') {
-        const labels = ['check-ins','métricas','evaluaciones','resultados','condiciones','logs'];
-        console.warn(`${labels[i]} RPC no disponible:`, r.reason);
-        return { data: [], error: r.reason };
-      }
-      const val = r.value;
-      if (val?.error) {
-        const labels = ['check-ins','métricas','evaluaciones','resultados','condiciones','logs'];
-        console.warn(`${labels[i]} RPC error:`, val.error);
-        return { data: [], error: val.error };
-      }
-      return val;
-    }));
-    
     const profile = profileR.data || {};
     const dash = dashboardR.data || {};
 
@@ -7508,11 +7739,18 @@ async function loadClientDashboard(sessionToken) {
       coach_photo_url: profile.coach_photo_url || dash.coach_photo_url || ''
     };
 
-    storeClientSession({ session_token: token, client_id: clientData.id });
+    storeClientSession({
+      session_token: token,
+      client_id: clientData.id,
+      session_expires_at:
+        profile.session_expires_at || profile.expires_at ||
+        dash.session_expires_at || dash.expires_at || ''
+    });
 
-    AB_LANG = (['es','sr','en'].includes((clientData.preferred_lang||'').toLowerCase()) ? clientData.preferred_lang : 'es').toLowerCase();
+    AB_LANG = (['es','sr','en'].includes((clientData.preferred_lang || '').toLowerCase())
+      ? clientData.preferred_lang
+      : 'es').toLowerCase();
     document.documentElement.lang = AB_LANG;
-
     applyClientView();
 
     const assignmentRows = abRpc22AsArray(assignmentsR.data);
@@ -7521,7 +7759,10 @@ async function loadClientDashboard(sessionToken) {
     const activeAssignment = canonicalAssignment.active;
 
     if (canonicalAssignment.activeCount > 1) {
-      console.warn('RPC 22: existen varias asignaciones activas; se usará la más reciente hasta reparar el servidor.', canonicalAssignment.history);
+      console.warn(
+        'RPC 22: existen varias asignaciones activas; se usará la más reciente hasta reparar el servidor.',
+        canonicalAssignment.history
+      );
     }
 
     clientTrainingAssignment = activeAssignment ? {
@@ -7544,82 +7785,28 @@ async function loadClientDashboard(sessionToken) {
     } : null);
 
     const planJson = abRpc22AsObject(planR.data) || {};
-
     hydrateTrainingFromRpcPlan(planJson);
 
     const rpcPlanAssignmentId = abRpc22PlanAssignmentId(planJson);
     const selectedAssignmentId = clientTrainingAssignment?.assignment_id || clientTrainingAssignment?.id || null;
-    if (rpcPlanAssignmentId && selectedAssignmentId && String(rpcPlanAssignmentId) !== String(selectedAssignmentId)) {
-      console.warn('RPC 22: la RPC de plan devolvió otra asignación. Ejecuta el SQL de unicidad activa.', {
+    if (
+      rpcPlanAssignmentId &&
+      selectedAssignmentId &&
+      String(rpcPlanAssignmentId) !== String(selectedAssignmentId)
+    ) {
+      console.warn('RPC 22: la RPC de plan devolvió otra asignación.', {
         selected_assignment_id: selectedAssignmentId,
         plan_assignment_id: rpcPlanAssignmentId
       });
     }
 
-    // Inicializar secciones secundarias vacías: evita que RLS/tablas directas bloqueen el login.
-    clientReservations = [];
-    clientPayments = [];
-    clientMetrics = Array.isArray(metricsR.data)
-      ? metricsR.data
-      : [];
-    clientAlerts = [];
-    clientPrograms = [];
-    clientAssessments = Array.isArray(assessmentsR.data)
-      ? assessmentsR.data
-      : [];
-    clientInternalAssessments = [];
-    clientAssessmentResults = Array.isArray(assessmentResultsR.data)
-      ? assessmentResultsR.data
-      : [];
-    let trainingLogsData = trainingLogsR.data;
+    resetDeferredClientState();
 
-if (typeof trainingLogsData === 'string') {
-  try {
-    trainingLogsData = JSON.parse(trainingLogsData);
-  } catch (parseError) {
-    console.error(
-      'No se pudo interpretar el historial de entrenamientos:',
-      parseError
-    );
-
-    trainingLogsData = [];
-  }
-}
-
-clientSessionLogs = Array.isArray(trainingLogsData)
-  ? trainingLogsData
-  : [];
-        
-    clientDailyCheckins = Array.isArray(checkinsR.data)
-      ? checkinsR.data
-      : [];
-
-    clientConditions = abRpc22AsArray(conditionsR.data);
-    
-    await abRpc22LoadCurrentAdaptations(token);
-    abRpc22LastServerSignature = abRpc22BuildServerSignature(
-      clientTrainingAssignment,
-      planJson,
-      clientConditions
-    );
-    abRpc22InstallAutoSync();
-
-    clientMobilityChain = [];
-    clientMobilityDebug = { loaded: true, count: 0, error: null };
-    clientAthleteProfile = null;
-    clientCompetitionEvents = [];
-    clientTrainingPhases = [];
-    clientSessionLoadHistory = [];
-    clientInjuryHistory = [];
-    clientCapacityEvaluations = [];
-
-    window.clientMobilityChain = clientMobilityChain;
-    window.clientMobilityDebug = clientMobilityDebug;
-
-    // Primero entrar al panel. Luego renderizar. Así nunca queda atrapado en login.
+    // Mostrar el panel tan pronto como termina la tanda principal.
     document.getElementById('loginScreen')?.classList.add('hidden');
     document.getElementById('dashboardScreen')?.classList.remove('hidden');
     showLoading(false);
+    window.AB_CLIENT_LOAD_STATE.primary = 'ready';
 
     try {
       await renderDashboard();
@@ -7628,8 +7815,15 @@ clientSessionLogs = Array.isArray(trainingLogsData)
       renderMinimalRpcDashboard(planJson, renderErr);
     }
 
+    // TANDA 2: no bloquea el panel. Adaptación y datos secundarios avanzan en paralelo.
+    void loadClientTrainingSyncData(token, generation, planJson);
+    void loadClientSecondaryData(token, generation);
+
   } catch (err) {
+    if (generation !== clientDashboardLoadGeneration) return;
+
     showLoading(false);
+    window.AB_CLIENT_LOAD_STATE.primary = 'error';
     console.error('Load error:', err);
     clearClientSession();
     document.getElementById('loginScreen')?.classList.remove('hidden');
@@ -7735,13 +7929,11 @@ if (typeof renderProgram === 'function') {
 }
 
 await renderClientTraining();
-await renderReservations();
 
-/*
- * Volver a renderizar Inicio porque las reservas
- * ya llegaron desde la RPC del calendario.
- */
-renderHome();
+// El calendario se carga en segundo plano y actualiza Inicio al terminar.
+void renderReservations()
+  .then(() => renderHome())
+  .catch(error => console.error('Render calendario diferido:', error));
 
 renderAssessments();
   renderHealthAlerts();
@@ -8788,44 +8980,112 @@ const constanciaNote = historicalFinishedCount > 0
   return '<div class="home-rings-grid">' + card1 + card2 + card3 + '</div>';
 }
 
+async function resizeAvatarForUpload(file, maxDimension = 1024, quality = 0.82) {
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+      img.src = objectUrl;
+    });
+
+    const width = image.naturalWidth || image.width;
+    const height = image.naturalHeight || image.height;
+    const scale = Math.min(1, maxDimension / Math.max(width, height));
+    const targetWidth = Math.max(1, Math.round(width * scale));
+    const targetHeight = Math.max(1, Math.round(height * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    const ctx = canvas.getContext('2d', { alpha: false });
+    if (!ctx) throw new Error('No se pudo preparar la imagen.');
+    ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    const blob = await new Promise(resolve => {
+      canvas.toBlob(resolve, 'image/webp', quality);
+    });
+
+    if (!blob) throw new Error('No se pudo comprimir la imagen.');
+    return blob;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 async function uploadAvatar(file) {
   if (!file || !clientData?.id) return;
 
   const btn = document.getElementById('avatarUploadBtn');
-  if (btn) { btn.textContent = getLang() === 'sr' ? 'Čuvanje...' : 'Guardando...'; btn.disabled = true; }
+  const resetButton = () => {
+    if (!btn) return;
+    btn.textContent = getLang() === 'sr' ? 'Promeni foto' : 'Cambiar foto';
+    btn.disabled = false;
+  };
+
+  if (btn) {
+    btn.textContent = getLang() === 'sr' ? 'Čuvanje...' : 'Guardando...';
+    btn.disabled = true;
+  }
 
   try {
-    const ext = file.name.split('.').pop().toLowerCase();
-    const allowed = ['jpg', 'jpeg', 'png', 'webp'];
-    if (!allowed.includes(ext)) {
-      showClientNotice(getLang() === 'sr' ? 'Solo JPG, PNG o WEBP' : 'Solo JPG, PNG o WEBP', 'error');
-      if (btn) { btn.textContent = getLang() === 'sr' ? 'Promeni foto' : 'Cambiar foto'; btn.disabled = false; }
-      return;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('Solo se permiten imágenes JPG, PNG o WEBP.');
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error('La imagen supera el máximo de 10 MB.');
     }
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const base64 = e.target.result;
+    const token = getClientSessionToken();
+    if (!token) throw new Error('Tu sesión ha caducado.');
 
-      const { error } = await db
-        .from('clients')
-        .update({ avatar_url: base64 })
-        .eq('id', clientData.id);
+    const optimizedBlob = await resizeAvatarForUpload(file);
+    const path = `clients/${clientData.id}/avatar.webp`;
 
-      if (error) throw error;
+    const { error: uploadError } = await db.storage
+      .from('client-photos')
+      .upload(path, optimizedBlob, {
+        upsert: true,
+        contentType: 'image/webp',
+        cacheControl: '3600'
+      });
 
-      clientData.avatar_url = base64;
-      showClientNotice(getLang() === 'sr' ? 'Foto sačuvana' : 'Foto guardada', 'success');
-      refreshAvatarEverywhere();
+    if (uploadError) throw uploadError;
 
-      if (btn) { btn.textContent = getLang() === 'sr' ? 'Promeni foto' : 'Cambiar foto'; btn.disabled = false; }
-    };
-    reader.readAsDataURL(file);
+    const { data: publicData } = db.storage
+      .from('client-photos')
+      .getPublicUrl(path);
 
+    const publicUrl = publicData?.publicUrl;
+    if (!publicUrl) throw new Error('No se pudo obtener la URL de la foto.');
+
+    // El parámetro de versión evita que Safari conserve la imagen anterior en caché.
+    const versionedUrl = publicUrl + '?v=' + Date.now();
+    const { data: saveData, error: saveError } = await db.rpc(
+      'ab_client_session_update_avatar',
+      {
+        p_session_token: token,
+        p_avatar_url: versionedUrl
+      }
+    );
+
+    if (saveError) throw saveError;
+    const saveRow = Array.isArray(saveData) ? saveData[0] : saveData;
+    if (saveRow?.ok === false) throw new Error(saveRow.error || 'No se pudo guardar la foto.');
+
+    clientData.avatar_url = versionedUrl;
+    showClientNotice(getLang() === 'sr' ? 'Foto sačuvana' : 'Foto guardada', 'success');
+    refreshAvatarEverywhere();
   } catch (err) {
     console.error('Avatar upload error:', err);
-    showClientNotice(getLang() === 'sr' ? 'Error al guardar foto' : 'Error al guardar foto', 'error');
-    if (btn) { btn.textContent = getLang() === 'sr' ? 'Promeni foto' : 'Cambiar foto'; btn.disabled = false; }
+    showClientNotice(err?.message || 'Error al guardar foto', 'error');
+  } finally {
+    resetButton();
+    const input = document.getElementById('avatarFileInput');
+    if (input) input.value = '';
   }
 }
 
@@ -8859,20 +9119,37 @@ function injectAvatarInHeader() {
   slot.innerHTML = buildAvatarHTML('sm');
 }
 
+function safeClientImageUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^data:image\/(?:png|jpe?g|webp|gif);base64,/i.test(raw)) return raw; // compatibilidad temporal con fotos antiguas
+  if (raw.startsWith('blob:')) return raw;
+  if (raw.startsWith('/')) return raw;
+  try {
+    const url = new URL(raw, location.origin);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+  } catch {
+    return '';
+  }
+}
+
 function buildAvatarHTML(size) {
   const name = clientData?.name || '';
-  const url = clientData?.avatar_url || '';
+  const url = safeClientImageUrl(clientData?.avatar_url || '');
   const initials = name.trim().split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
+  const safeName = escHTML(name);
+  const safeUrl = escHTML(url);
+  const safeInitials = escHTML(initials);
 
   if (size === 'lg') {
     return url
-      ? '<img src="' + url + '" class="client-avatar-lg" alt="' + name + '">'
-      : '<div class="client-avatar-initials-lg">' + initials + '</div>';
+      ? '<img src="' + safeUrl + '" class="client-avatar-lg" alt="' + safeName + '">' 
+      : '<div class="client-avatar-initials-lg">' + safeInitials + '</div>';
   }
 
   return url
-    ? '<img src="' + url + '" class="client-avatar" alt="' + name + '">'
-    : '<div class="client-avatar-initials">' + initials + '</div>';
+    ? '<img src="' + safeUrl + '" class="client-avatar" alt="' + safeName + '">' 
+    : '<div class="client-avatar-initials">' + safeInitials + '</div>';
 }
 
 function buildNewClientOnboardingCard(context = 'home') {
@@ -8917,7 +9194,7 @@ function buildNewClientOnboardingCard(context = 'home') {
         (getLang() === 'sr' ? 'Novi klijent' : 'Cliente nuevo') +
       '</div>' +
 
-      '<div class="onboarding-title">' + title + '</div>' +
+      '<div class="onboarding-title">' + escHTML(title) + '</div>' +
 
       '<div class="onboarding-text">' + intro + '</div>' +
 
@@ -8960,7 +9237,7 @@ function buildNewClientOnboardingCard(context = 'home') {
         isProfile
           ? ''
           : '<div class="action-box" style="margin-top:16px;">' +
-              '<button class="client-action-btn wa" onclick="clientWA(\'' + waText + '\')">' +
+              '<button class="client-action-btn wa" onclick="clientWA(decodeURIComponent(\'' + encodeURIComponent(waText) + '\'))">' +
                 uiText('contactAbel') +
               '</button>' +
             '</div>'
@@ -9076,7 +9353,7 @@ function buildInactivityNoticeCard() {
           uiText('startTraining') +
         '</button>' +
 
-        '<button class="client-action-btn wa" onclick="clientWA(\'' + waText + '\')">' +
+        '<button class="client-action-btn wa" onclick="clientWA(decodeURIComponent(\'' + encodeURIComponent(waText) + '\'))">' +
           uiText('contactAbel') +
         '</button>' +
       '</div>' +
@@ -9159,7 +9436,7 @@ const reservationSub = nextReservation
   html +=
   '<div style="padding:4px 0 24px;">' +
     '<div style="font-family:var(--font-mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--sport);margin-bottom:4px;">' +
-      uiText('hello') + ', ' + firstName +
+      uiText('hello') + ', ' + escHTML(firstName) +
     '</div>' +
     '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
       '<div style="font-family:var(--font-display);font-size:2rem;letter-spacing:1.5px;color:var(--text-primary);line-height:1;">' +
@@ -9177,7 +9454,7 @@ const reservationSub = nextReservation
         '<div class="next-label">' + uiText('mainTraining') + '</div>' +
 
         '<div class="dc-row">' +
-          '<span class="dc-title">' + sessionLabel + '</span>' +
+          '<span class="dc-title">' + escHTML(sessionLabel) + '</span>' +
           (
             trainingFinished
               ? '<span class="badge badge-green">' + uiText('completed') + '</span>'
@@ -9186,7 +9463,7 @@ const reservationSub = nextReservation
         '</div>' +
 
         '<div class="dc-row">' +
-          '<span class="dc-sub">' + metaLine + '</span>' +
+          '<span class="dc-sub">' + escHTML(metaLine) + '</span>' +
         '</div>' +
 
         '<div class="action-box">' +
@@ -9208,10 +9485,10 @@ const reservationSub = nextReservation
       '<div class="summary-card full" onclick="goClientSection(\'section-reservations\')" style="cursor:pointer;">' +
 '<div class="summary-label">' + reservationTitleLabel + '</div>' +
         '<div class="summary-value" style="font-size:16px;font-weight:700;">' +
-          reservationMain +
+          escHTML(reservationMain) +
         '</div>' +
         '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;letter-spacing:0.3px;">' +
-          reservationSub +
+          escHTML(reservationSub) +
         '</div>' +
       '</div>' +
     '</div>';
@@ -9244,26 +9521,26 @@ function renderProgram(){
   html +=
     '<div class="plan-item">' +
       '<div class="pi-label">' + uiText('plan') + '</div>' +
-      '<div class="pi-value">' + (clientData?.plan || uiText('assignedPlan')) + '</div>' +
+      '<div class="pi-value">' + escHTML(clientData?.plan || uiText('assignedPlan')) + '</div>' +
     '</div>';
 
   html +=
     '<div class="plan-item">' +
       '<div class="pi-label">' + uiText('status') + '</div>' +
-      '<div class="pi-value">' + (clientData?.status || '—') + '</div>' +
+      '<div class="pi-value">' + escHTML(clientData?.status || '—') + '</div>' +
     '</div>';
 
   html +=
     '<div class="plan-item full">' +
       '<div class="pi-label">' + uiText('mainObjective') + '</div>' +
-      '<div class="pi-value">' + (clientData?.objective || uiText('noObjective')) + '</div>' +
+      '<div class="pi-value">' + escHTML(clientData?.objective || uiText('noObjective')) + '</div>' +
     '</div>';
 
   if(clientData?.nutrition_objective){
     html +=
       '<div class="plan-item full">' +
         '<div class="pi-label">' + uiText('nutritionObjective') + '</div>' +
-        '<div class="pi-value">' + clientData.nutrition_objective + '</div>' +
+        '<div class="pi-value">' + escHTML(clientData.nutrition_objective) + '</div>' +
       '</div>';
   }
 
@@ -9283,7 +9560,7 @@ function renderProgram(){
     html +=
       '<div class="plan-item">' +
         '<div class="pi-label">' + uiText('activeProgram') + '</div>' +
-        '<div class="pi-value">' + programName + '</div>' +
+        '<div class="pi-value">' + escHTML(programName) + '</div>' +
       '</div>';
 
     html +=
@@ -10673,6 +10950,21 @@ async function renderClientTraining(){
 
   if(!el) return;
 
+  if (!clientTrainingSyncReady) {
+    if (badge) badge.textContent = getLang() === 'sr' ? 'Sinhronizacija' : 'Sincronizando';
+    el.innerHTML =
+      '<div class="data-card">' +
+        '<div style="display:flex;align-items:center;gap:12px;">' +
+          '<div class="spinner" style="width:24px;height:24px;flex:0 0 auto;"></div>' +
+          '<div>' +
+            '<div class="dc-title">' + (getLang() === 'sr' ? 'Pripremamo trening' : 'Preparando tu entrenamiento') + '</div>' +
+            '<div class="dc-note">' + (getLang() === 'sr' ? 'Proveravamo aktivni plan i prilagođavanja trenera.' : 'Comprobamos el plan activo y las adaptaciones indicadas por tu coach.') + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    return;
+  }
+
   completedTrainingBlocks = new Set();
   activeTrainingBlockKey = null;
   currentTrainingLog = null;
@@ -10741,11 +11033,11 @@ currentTrainingLog = null;
 
   html +=
     '<div class="training-guide-summary">' +
-      '<div class="training-guide-title">' + programTitle + '</div>' +
-      '<div class="training-guide-meta">' + programMeta + '</div>' +
+      '<div class="training-guide-title">' + escHTML(programTitle) + '</div>' +
+      '<div class="training-guide-meta">' + escHTML(programMeta) + '</div>' +
       (
         clientTrainingProgram?.objective
-          ? '<div class="training-week-objective">' + clientTrainingProgram.objective + '</div>'
+          ? '<div class="training-week-objective">' + escHTML(clientTrainingProgram.objective) + '</div>'
           : ''
       ) +
     '</div>';
@@ -10762,7 +11054,7 @@ html += buildClientMobilityBlock(initialActiveSessionId);
 
     html +=
       '<button class="training-day-tab' + active + '" data-session-id="' + sid + '" onclick="showTrainingDay(\'' + sid + '\')">' +
-        getSessionDayLabel(session, index) +
+        escHTML(getSessionDayLabel(session, index)) +
       '</button>';
   });
 
@@ -10813,7 +11105,7 @@ function buildCompletedSessionCard(session,index){
       '<div class="training-session-completed-row">' +
         '<div style="flex:1;min-width:0">' +
           '<div class="training-session-completed-title">' + tClient('trainingCompleted') + '</div>' +
-          '<div class="training-session-completed-sub">' + title + ' · ' + weekLabel + '</div>' +
+          '<div class="training-session-completed-sub">' + escHTML(title + ' · ' + weekLabel) + '</div>' +
           '<div style="font-size:12px;color:var(--text-secondary);margin-top:8px;line-height:1.6;font-family:var(--font-mono);">' +
             tClient('sessionSaved') +
           '</div>' +
@@ -10863,7 +11155,7 @@ const metaP = [
   let html = '';
 
   if(step.sessionSeparator){
-    html += '<div class="training-session-separator">' + step.sessionSeparator + '</div>';
+    html += '<div class="training-session-separator">' + escHTML(step.sessionSeparator) + '</div>';
   }
 
   html +=
@@ -10871,10 +11163,10 @@ const metaP = [
       '<button class="training-step-header" onclick="toggleTrainingStep(\'' + blockId + '\')">' +
         '<div class="training-step-number">' + blockNum + '</div>' +
         '<div class="training-step-info">' +
-          '<div class="training-step-title">' + blockTitle + '</div>' +
+          '<div class="training-step-title">' + escHTML(blockTitle) + '</div>' +
           (
             metaP.length
-              ? '<div class="training-step-meta">' + metaP.join(' · ') + '</div>'
+              ? '<div class="training-step-meta">' + escHTML(metaP.join(' · ')) + '</div>'
               : ''
           ) +
         '</div>' +
@@ -10892,7 +11184,7 @@ const metaP = [
 '</div>' +
   (
     blockObj
-      ? '<div class="training-step-objective">' + blockObj + '</div>'
+      ? '<div class="training-step-objective">' + escHTML(blockObj) + '</div>'
       : ''
   );
 
@@ -11081,8 +11373,19 @@ function buildExerciseKnowledgeGuide(ex) {
   return html;
 }
 
+function safeClientExternalUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw, location.origin);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+  } catch {
+    return '';
+  }
+}
+
 function buildExerciseVideoGuide(ex) {
-  const videoUrl = ex.video_url || '';
+  const videoUrl = safeClientExternalUrl(ex.video_url || ex.videoUrl || '');
 
   if (!videoUrl) {
     return '';
@@ -11113,11 +11416,11 @@ function buildExerciseVideoGuide(ex) {
   if (embedUrl) {
     html +=
       '<div class="exercise-video-frame-wrap">' +
-        '<iframe src="' + embedUrl + '" allowfullscreen loading="lazy"></iframe>' +
+        '<iframe src="' + escHTML(embedUrl) + '" allowfullscreen loading="lazy"></iframe>' +
       '</div>';
   } else {
     html +=
-      '<a href="' + videoUrl + '" target="_blank" rel="noopener" class="exercise-video-external">' +
+      '<a href="' + escHTML(videoUrl) + '" target="_blank" rel="noopener noreferrer" class="exercise-video-external">' +
         tClient('openVideo') +
       '</a>';
   }
@@ -11495,10 +11798,10 @@ const variant = ex.client_variant || baseVariant;
       '<div class="training-exercise-title">' +
         (
           ex.exercise_order
-            ? '<span class="training-ex-num">' + ex.exercise_order + '.</span>'
+            ? '<span class="training-ex-num">' + escHTML(ex.exercise_order) + '.</span>'
             : ''
         ) +
-        exName +
+        escHTML(exName) +
       '</div>';
 
   if(stats.length){
@@ -11507,8 +11810,8 @@ const variant = ex.client_variant || baseVariant;
     stats.forEach(s => {
       html +=
         '<div class="training-mini-stat">' +
-          '<span class="training-mini-label">' + s.label + '</span>' +
-          '<div class="training-mini-value">' + s.value + '</div>' +
+          '<span class="training-mini-label">' + escHTML(s.label) + '</span>' +
+          '<div class="training-mini-value">' + escHTML(s.value) + '</div>' +
         '</div>';
     });
 
@@ -11520,7 +11823,7 @@ const variant = ex.client_variant || baseVariant;
 
   if (ex.client_exercise_status) {
   html +=
-    '<div class="training-client-status">[' + ex.client_exercise_status + ']</div>';
+    '<div class="training-client-status">[' + escHTML(ex.client_exercise_status) + ']</div>';
 }
 
   html += '<div class="training-level-tag">' + tClient('level') + ' ' + lvl + '</div>';
@@ -11529,7 +11832,7 @@ const variant = ex.client_variant || baseVariant;
     html +=
       '<div class="training-instruction">' +
         '<strong>' + tClient('indicatedWork') + '</strong>' +
-        variant +
+        escHTML(variant) +
       '</div>';
   }
 
@@ -11537,14 +11840,14 @@ const variant = ex.client_variant || baseVariant;
     html +=
       '<div class="training-instruction">' +
         '<strong>' + tClient('howTo') + '</strong>' +
-        exDesc +
+        escHTML(exDesc) +
       '</div>';
   }
 
   if(exNotes){
     html +=
       '<div class="training-coach-note">' +
-        tClient('coach') + ': ' + exNotes +
+        tClient('coach') + ': ' + escHTML(exNotes) +
       '</div>';
   }
   
@@ -11552,7 +11855,7 @@ const variant = ex.client_variant || baseVariant;
   html +=
     '<div class="training-client-note">' +
       '<strong>Indicación</strong>' +
-      ex.client_coaching_note +
+      escHTML(ex.client_coaching_note) +
     '</div>';
 }
 
@@ -12334,6 +12637,12 @@ function renderAssessments() {
 
   if (!el) return;
 
+  if (!clientSecondaryDataReady) {
+    if (badge) badge.textContent = '…';
+    el.innerHTML = '<div class="data-card"><div style="display:flex;align-items:center;gap:12px;"><div class="spinner" style="width:22px;height:22px;"></div><div class="dc-note">Cargando evaluaciones…</div></div></div>';
+    return;
+  }
+
   if (badge) badge.textContent = clientAssessments.length;
 
   const trainingProgressHTML = buildProgressTrainingSummary();
@@ -12771,8 +13080,8 @@ function buildSlotsForDay(dateStr) {
           '<div>' +
             '<div class="cal-slot-time">' + formatTime(r.time) + '</div>' +
             '<div class="cal-slot-meta">' +
-              (r.type || (getLang() === 'sr' ? 'Lična sesija' : 'Sesión personal')) +
-              (r.place ? ' · ' + r.place : '') +
+              escHTML((r.type || (getLang() === 'sr' ? 'Lična sesija' : 'Sesión personal')) +
+              (r.place ? ' · ' + r.place : '')) +
             '</div>' +
           '</div>' +
           '<span class="cal-slot-badge" style="color:' + badgeColor + '">' +
@@ -12790,13 +13099,13 @@ function buildSlotsForDay(dateStr) {
 
       html +=
         '<div class="cal-slot-card grupal' + (isSelected ? ' selected' : '') + (canJoin ? '' : ' grupal-full') + '" ' +
-          (canJoin ? 'onclick="calSelectSlot(\'' + s.id + '\',' + JSON.stringify(s).replace(/"/g, '&quot;') + ')"' : '') + '>' +
+          (canJoin ? 'onclick="calSelectSlotById(\'' + escHTML(String(s.id)) + '\')"' : '') + '>' +
           '<div>' +
             '<div class="cal-slot-time">' + formatTime(s.time) + '</div>' +
             '<div class="cal-slot-meta">' +
-              (getLang() === 'sr' ? 'Grupni trening' : 'Entrenamiento grupal') +
+              escHTML((getLang() === 'sr' ? 'Grupni trening' : 'Entrenamiento grupal') +
               (s.place ? ' · ' + s.place : '') +
-              (s.duration_minutes ? ' · ' + s.duration_minutes + 'min' : '') +
+              (s.duration_minutes ? ' · ' + s.duration_minutes + 'min' : '')) +
             '</div>' +
           '</div>' +
           '<span class="cal-slot-badge" style="color:' + (canJoin ? 'var(--streak)' : 'var(--text-secondary)') + '">' +
@@ -12876,7 +13185,7 @@ function buildRequestFormHTML(slot) {
       (slot.place
         ? '<div class="cal-summary-row">' +
             '<span class="cal-summary-label">' + (getLang() === 'sr' ? 'Lugar' : 'Lugar') + '</span>' +
-            '<span class="cal-summary-value">' + slot.place + '</span>' +
+            '<span class="cal-summary-value">' + escHTML(slot.place) + '</span>' +
           '</div>'
         : '');
   } else {
@@ -12925,9 +13234,24 @@ function calSelectDay(dateStr) {
   renderReservationsCalendar();
 }
 
-function calSelectSlot(slotId, slotData) {
+function calSelectSlotById(slotId) {
+  const slotData = (calPublicSlots || []).find(slot => String(slot.id) === String(slotId));
+  if (!slotData) {
+    showClientNotice('No se encontró este horario. Actualiza el calendario.', 'error');
+    return;
+  }
   calSelectedSlot = slotData;
   calOpenRequestForm(slotData);
+}
+
+function calSelectSlot(slotId, slotData) {
+  // Compatibilidad con versiones anteriores.
+  if (slotData) {
+    calSelectedSlot = slotData;
+    calOpenRequestForm(slotData);
+    return;
+  }
+  calSelectSlotById(slotId);
 }
 
 function calOpenRequestForm(slot) {
@@ -13874,12 +14198,11 @@ function buildSimpleReservationView() {
         '</div>' +
         '<div class="dc-row">' +
           '<span class="dc-sub">' +
-            (myNext.type || myNext.session_mode || 'Personal') +
-            (myNext.place ? ' · ' + myNext.place : '') +
+            escHTML((myNext.type || myNext.session_mode || 'Personal') + (myNext.place ? ' · ' + myNext.place : '')) +
           '</span>' +
         '</div>' +
         (myNext.client_message
-  ? '<div class="dc-note">' + myNext.client_message + '</div>'
+  ? '<div class="dc-note">' + escHTML(myNext.client_message) + '</div>'
   : ''
 ) +
 
@@ -14006,12 +14329,11 @@ const statusText = reservationClientStatusLabel(r);
           '</div>' +
           '<div class="dc-row">' +
             '<span class="dc-sub">' +
-              (r.type || r.session_mode || 'Personal') +
-              (r.place ? ' · ' + r.place : '') +
+              escHTML((r.type || r.session_mode || 'Personal') + (r.place ? ' · ' + r.place : '')) +
             '</span>' +
           '</div>' +
           (r.client_message
-  ? '<div class="dc-note">' + r.client_message + '</div>'
+  ? '<div class="dc-note">' + escHTML(r.client_message) + '</div>'
   : ''
 ) +
 
@@ -14083,7 +14405,7 @@ function renderPayments(){
       '<div class="data-card">' +
 
         '<div class="dc-row">' +
-          '<span class="dc-title">' + (p.concept || uiText('payment')) + '</span>' +
+          '<span class="dc-title">' + escHTML(p.concept || uiText('payment')) + '</span>' +
           paymentBadge(p.status) +
         '</div>' +
 
@@ -14162,7 +14484,7 @@ function renderNotes(){
   }
 
   el.innerHTML = notes
-    .map(n => '<div class="note-item">' + n + '</div>')
+    .map(n => '<div class="note-item">' + escHTML(n) + '</div>')
     .join('');
 }
 function renderSummary(){
@@ -14226,25 +14548,25 @@ function renderSummary(){
   html +=
     '<div class="summary-card full">' +
       '<div class="summary-label">' + uiText('client') + '</div>' +
-      '<div class="summary-value big">' + (clientData.name || '—') + '</div>' +
+      '<div class="summary-value big">' + escHTML(clientData.name || '—') + '</div>' +
     '</div>';
 
   html +=
     '<div class="summary-card">' +
       '<div class="summary-label">' + uiText('plan') + '</div>' +
-      '<div class="summary-value">' + (clientData.plan || '—') + '</div>' +
+      '<div class="summary-value">' + escHTML(clientData.plan || '—') + '</div>' +
     '</div>';
 
   html +=
     '<div class="summary-card">' +
       '<div class="summary-label">' + uiText('status') + '</div>' +
-      '<div class="summary-value">' + (clientData.status || '—') + '</div>' +
+      '<div class="summary-value">' + escHTML(clientData.status || '—') + '</div>' +
     '</div>';
 
   html +=
     '<div class="summary-card">' +
       '<div class="summary-label">' + uiText('activeProgramLabel') + '</div>' +
-      '<div class="summary-value">' + (clientTrainingProgram?.name || clientPrograms[0]?.name || '—') + '</div>' +
+      '<div class="summary-value">' + escHTML(clientTrainingProgram?.name || clientPrograms[0]?.name || '—') + '</div>' +
     '</div>';
 
   html +=
@@ -15135,7 +15457,7 @@ function renderClientData(){
   html +=
     '<div class="summary-card full" onclick="goClientSection(\'section-plan\')" style="cursor:pointer;">' +
       '<div class="summary-label">' + uiText('activePlan') + '</div>' +
-      '<div class="summary-value">' + programName + '</div>' +
+      '<div class="summary-value">' + escHTML(programName) + '</div>' +
       '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">' +
         uiText('viewPlanDetails') +
       '</div>' +
@@ -15193,8 +15515,8 @@ function renderClientData(){
       '<div style="display:flex;align-items:center;gap:16px;padding:16px 0 8px;">' +
         buildAvatarHTML('lg') +
         '<div>' +
-          '<div style="font-size:17px;font-weight:700;color:var(--text-primary);">' + (clientData.name || '—') + '</div>' +
-          '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:3px;">' + (clientData.email || '') + '</div>' +
+          '<div style="font-size:17px;font-weight:700;color:var(--text-primary);">' + escHTML(clientData.name || '—') + '</div>' +
+          '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:3px;">' + escHTML(clientData.email || '') + '</div>' +
           '<button id="avatarUploadBtn" class="avatar-upload-btn" onclick="document.getElementById(\'avatarFileInput\').click()">' +
             (getLang() === 'sr' ? 'Promeni foto' : 'Cambiar foto') +
           '</button>' +
@@ -15206,27 +15528,27 @@ function renderClientData(){
 
         '<div class="plan-item">' +
           '<div class="pi-label">' + uiText('name') + '</div>' +
-          '<div class="pi-value">' + (clientData.name || '—') + '</div>' +
+          '<div class="pi-value">' + escHTML(clientData.name || '—') + '</div>' +
         '</div>' +
 
         '<div class="plan-item">' +
           '<div class="pi-label">' + uiText('phone') + '</div>' +
-          '<div class="pi-value">' + (clientData.phone || '—') + '</div>' +
+          '<div class="pi-value">' + escHTML(clientData.phone || '—') + '</div>' +
         '</div>' +
 
         '<div class="plan-item">' +
           '<div class="pi-label">' + uiText('email') + '</div>' +
-          '<div class="pi-value">' + (clientData.email || '—') + '</div>' +
+          '<div class="pi-value">' + escHTML(clientData.email || '—') + '</div>' +
         '</div>' +
 
         '<div class="plan-item">' +
           '<div class="pi-label">' + uiText('city') + '</div>' +
-          '<div class="pi-value">' + (clientData.city || '—') + '</div>' +
+          '<div class="pi-value">' + escHTML(clientData.city || '—') + '</div>' +
         '</div>' +
 
         '<div class="plan-item">' +
           '<div class="pi-label">' + uiText('maxHeartRate') + '</div>' +
-          '<div class="pi-value">' + fcMaxText + '</div>' +
+          '<div class="pi-value">' + escHTML(fcMaxText) + '</div>' +
         '</div>' +
 
       '</div>' +
@@ -16102,6 +16424,12 @@ function renderHealthAlerts() {
   const badge = document.getElementById('alertsBadge');
   if (!el) return;
 
+  if (!clientConditionsReady && !clientSecondaryDataReady) {
+    if (badge) badge.textContent = '…';
+    el.innerHTML = '<div class="data-card"><div style="display:flex;align-items:center;gap:12px;"><div class="spinner" style="width:22px;height:22px;"></div><div class="dc-note">Sincronizando salud y check-in…</div></div></div>';
+    return;
+  }
+
   const showCombatMetrics = hasCombatMetricsEnabled();
   const relevantConditions = (clientConditions || []).filter(row =>
     ['reported','active'].includes(normalizeClientConditionStatus(row.status))
@@ -16233,7 +16561,16 @@ document.getElementById('btnLogout')?.addEventListener('click',()=>logoutClient(
     try { history.replaceState({}, '', location.pathname); } catch(e) {}
   }
 
+  const expiredLocally = isClientSessionLocallyExpired();
   const token = getClientSessionToken();
+
+  if (expiredLocally) {
+    clearClientSession();
+    showLoading(false);
+    document.getElementById('loginScreen')?.classList.remove('hidden');
+    showError('Tu sesión ha caducado. Inicia sesión nuevamente.');
+    return;
+  }
 
   if (token) {
     await loadClientDashboard(token);
@@ -16563,7 +16900,7 @@ async function restoreCompetition(competitionId) {
 
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js?v=20260615-02', {
+  navigator.serviceWorker.register('/sw.js?v=20260615-03', {
     scope: '/',
     updateViaCache: 'none'
   }).then(reg => {
