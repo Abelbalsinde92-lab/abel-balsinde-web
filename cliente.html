@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AB SYSTEM — Área Cliente · RPC 21 CONDITION REPORT</title>
+  <title>AB SYSTEM — Área Cliente · RPC 22 PLAN + ADAPTATION SYNC</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json?v=20260522-01">
 <link rel="icon" href="/favicon-32.png?v=20260522-01" type="image/png">
@@ -5660,6 +5660,15 @@ let workoutIntervals = {
 let currentTrainingLog       = null;
 let clientSessionLogs        = [];
 let clientActiveTrainingAdaptations = [];
+
+// RPC 22 · sincronización de asignación y adaptación coach → cliente.
+let abRpc22SyncBusy = false;
+let abRpc22SyncTimer = null;
+let abRpc22LastServerSignature = '';
+let abRpc22AutoSyncInstalled = false;
+window.AB_RPC22_LAST_SYNC = null;
+window.AB_RPC22_LAST_ERROR = null;
+
 let clientDailyCheckins      = [];
 let clientConditions          = [];
 let clientConditionEditor     = null;
@@ -6894,6 +6903,479 @@ function hydrateTrainingFromRpcPlan(planJson) {
   });
 }
 
+
+/* ══════════════════════════════════════════════════════════
+   RPC 22 · PLAN ACTIVO + ADAPTACIÓN SEGURA
+   - Selecciona siempre la asignación activa más reciente.
+   - Consume el motor adaptado mediante una RPC ligada a la sesión cliente.
+   - Sincroniza al volver a la app sin depender de acceso directo a tablas.
+══════════════════════════════════════════════════════════ */
+function abRpc22AsArray(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
+    }
+  }
+  return [];
+}
+
+function abRpc22AsObject(value) {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    try { return JSON.parse(value); } catch (_) { return null; }
+  }
+  if (Array.isArray(value)) return value[0] || null;
+  return typeof value === 'object' ? value : null;
+}
+
+function abRpc22Clean(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function abRpc22IsActiveAssignment(row) {
+  const status = String(row?.status ?? '').trim().toLowerCase();
+  return !status || status === 'activo' || status === 'active';
+}
+
+function abRpc22AssignmentTime(row) {
+  const candidates = [row?.start_date, row?.created_at, row?.updated_at];
+  for (const candidate of candidates) {
+    const ts = Date.parse(candidate || '');
+    if (Number.isFinite(ts)) return ts;
+  }
+  return 0;
+}
+
+function abRpc22ChooseCanonicalAssignment(rows) {
+  const normalized = abRpc22AsArray(rows).map(row => ({
+    ...row,
+    id: row.assignment_id || row.id,
+    assignment_id: row.assignment_id || row.id
+  }));
+
+  const byNewest = (a, b) => {
+    const diff = abRpc22AssignmentTime(b) - abRpc22AssignmentTime(a);
+    if (diff) return diff;
+    return String(b.assignment_id || b.id || '').localeCompare(String(a.assignment_id || a.id || ''));
+  };
+
+  const active = normalized.filter(abRpc22IsActiveAssignment).sort(byNewest);
+  normalized.sort(byNewest);
+
+  return {
+    history: normalized,
+    active: active[0] || normalized[0] || null,
+    activeCount: active.length
+  };
+}
+
+function abRpc22ConditionStatus(row) {
+  return String(row?.status || '').trim().toLowerCase();
+}
+
+function abRpc22GetActiveCondition() {
+  return (clientConditions || [])
+    .filter(row => abRpc22ConditionStatus(row) === 'active')
+    .sort((a, b) => {
+      const da = Date.parse(a.updated_at || a.created_at || '') || 0;
+      const dbb = Date.parse(b.updated_at || b.created_at || '') || 0;
+      return dbb - da;
+    })[0] || null;
+}
+
+function abRpc22GetSessionWeekNumber(session) {
+  const week = (clientTrainingWeeks || []).find(item =>
+    String(item.id || '') === String(session?.week_id || '')
+  );
+  return Math.max(1, Number(week?.week_number || clientTrainingAssignment?.assigned_week || 1));
+}
+
+function abRpc22GetBlockOrder(block) {
+  return Number(block?.block_order || block?.order_number || block?.order_index || 0);
+}
+
+function abRpc22GetExerciseOrder(exercise) {
+  return Number(exercise?.exercise_order || exercise?.order_number || exercise?.order_index || 0);
+}
+
+function abRpc22NormalizeAdaptedRow(raw) {
+  const row = raw || {};
+  return {
+    ...row,
+    blockOrder: Number(row.orden_bloque ?? row.block_order ?? row.order_block ?? 0),
+    exerciseOrder: Number(row.orden_ejercicio ?? row.exercise_order ?? row.order_exercise ?? row.order_index ?? 0),
+    originalName: String(row.ejercicio_original ?? row.original_exercise ?? row.exercise_original ?? '').trim(),
+    finalName: String(row.ejercicio_final ?? row.final_exercise ?? row.exercise_final ?? row.ejercicio_original ?? row.name ?? '').trim(),
+    status: String(row.estado_ejercicio ?? row.exercise_status ?? row.status ?? 'mantener').trim().toLowerCase(),
+    clientExplanation: String(row.explicacion_cliente ?? row.client_explanation ?? row.client_note ?? '').trim(),
+    coachExplanation: String(row.coaching_notes ?? row.explicacion_breve_coach ?? row.coach_note ?? '').trim()
+  };
+}
+
+function abRpc22AppendUniqueText(base, extra) {
+  const a = String(base || '').trim();
+  const b = String(extra || '').trim();
+  if (!b) return a;
+  if (!a) return b;
+  if (abRpc22Clean(a).includes(abRpc22Clean(b))) return a;
+  return `${a} ${b}`.trim();
+}
+
+function abRpc22ApplyAdaptedPayload(payload) {
+  const data = abRpc22AsObject(payload) || {};
+  const rows = abRpc22AsArray(data.rows).map(abRpc22NormalizeAdaptedRow);
+  const targetSessionNumber = Math.max(1, Number(data.session_number || 1));
+  const targetWeekNumber = Math.max(1, Number(data.week_number || 1));
+
+  const targetSession = (clientTrainingSessions || []).find(session =>
+    Number(session.session_number || session.order_index || 0) === targetSessionNumber &&
+    abRpc22GetSessionWeekNumber(session) === targetWeekNumber
+  ) || (clientTrainingSessions || []).find(session =>
+    Number(session.session_number || session.order_index || 0) === targetSessionNumber
+  ) || null;
+
+  if (!targetSession || !rows.length) return 0;
+
+  const targetBlocks = (clientTrainingBlocks || [])
+    .filter(block => String(block.session_id || '') === String(targetSession.id || ''))
+    .sort((a, b) => abRpc22GetBlockOrder(a) - abRpc22GetBlockOrder(b));
+
+  let applied = 0;
+
+  rows.forEach(raw => {
+    if (raw.status === 'instruction_only') return;
+
+    const block = targetBlocks.find(item => abRpc22GetBlockOrder(item) === raw.blockOrder)
+      || targetBlocks[Math.max(0, raw.blockOrder - 1)]
+      || null;
+    if (!block) return;
+
+    const exercises = (clientTrainingExercises || [])
+      .filter(item => String(item.block_id || '') === String(block.id || ''))
+      .sort((a, b) => abRpc22GetExerciseOrder(a) - abRpc22GetExerciseOrder(b));
+
+    const originalClean = abRpc22Clean(raw.originalName);
+    let exercise = exercises.find(item => abRpc22GetExerciseOrder(item) === raw.exerciseOrder)
+      || exercises[Math.max(0, raw.exerciseOrder - 1)]
+      || null;
+
+    if (originalClean) {
+      const byName = exercises.find(item =>
+        abRpc22Clean(item.original_name || item.name || item.title) === originalClean
+      );
+      if (byName) exercise = byName;
+    }
+
+    if (!exercise) return;
+
+    const originalName = exercise.original_name || exercise.name || exercise.title || raw.originalName;
+    const finalName = raw.finalName || originalName;
+    const changed = raw.status === 'sustituido' || raw.status === 'modificado' ||
+      (abRpc22Clean(finalName) && abRpc22Clean(finalName) !== abRpc22Clean(originalName));
+
+    exercise.original_name = originalName;
+    exercise.original_title = exercise.original_title || exercise.title || originalName;
+
+    if (changed && finalName) {
+      exercise.name = finalName;
+      exercise.title = finalName;
+      exercise.name_es = finalName;
+      exercise.title_es = finalName;
+      exercise.name_sr = finalName;
+      exercise.title_sr = finalName;
+      exercise.name_en = finalName;
+      exercise.title_en = finalName;
+      exercise.final_decision = finalName;
+    }
+
+    const assign = (key, ...values) => {
+      const value = values.find(item => item !== null && item !== undefined && item !== '');
+      if (value !== undefined) exercise[key] = value;
+    };
+
+    assign('sets', raw.sets, raw.series);
+    assign('reps', raw.reps, raw.repeticiones);
+    assign('duration', raw.duration, raw.duracion, raw.time);
+    assign('time', raw.time, raw.duration, raw.duracion);
+    assign('rest', raw.rest, raw.descanso);
+    assign('tempo', raw.tempo);
+    assign('video_url', raw.video_sustituto, raw.video_url);
+
+    if (changed) {
+      exercise.client_exercise_status = raw.status === 'sustituido' ? 'Sustituido' : 'Adaptado';
+      exercise.is_adapted = true;
+      exercise.adaptation_status = raw.status;
+    }
+
+    exercise.client_coaching_note = abRpc22AppendUniqueText(
+      exercise.client_coaching_note,
+      raw.clientExplanation || raw.coachExplanation
+    );
+
+    const displayRow = (clientTrainingDisplayRows || []).find(item =>
+      String(item.exercise_id || '') === String(exercise.id || '')
+    );
+    if (displayRow) {
+      displayRow.exercise_name = exercise.name || exercise.title || displayRow.exercise_name;
+      displayRow.exercise_description = exercise.description || displayRow.exercise_description;
+      displayRow.is_adapted = exercise.is_adapted === true;
+      displayRow.adaptation_status = exercise.adaptation_status || '';
+    }
+
+    applied += changed ? 1 : 0;
+  });
+
+  return applied;
+}
+
+function abRpc22SetActiveProcess(payload, condition, appliedRows) {
+  if (!condition) {
+    clientActiveTrainingAdaptations = [];
+    return;
+  }
+
+  const data = abRpc22AsObject(payload) || {};
+  const conditionName = condition.condition_name || condition.area || condition.condition_key || 'Molestia';
+
+  clientActiveTrainingAdaptations = [{
+    id: condition.id,
+    condition_id: condition.id,
+    assignment_id: data.assignment_id || clientTrainingAssignment?.assignment_id || clientTrainingAssignment?.id || null,
+    session_id: null,
+    status: 'active',
+    apply_to_following_sessions: true,
+    adaptation_summary: `Adaptación activa · ${conditionName}`,
+    technique_priority: condition.client_message || data.client_message || '',
+    reason_tags: [condition.condition_key].filter(Boolean),
+    adaptation_focus: [conditionName].filter(Boolean),
+    review_date: condition.review_date || data.review_date || null,
+    applied_rows: Number(appliedRows || 0)
+  }];
+}
+
+function abRpc22IsMissingRpc(error) {
+  const code = String(error?.code || '').toUpperCase();
+  const message = String(error?.message || '').toLowerCase();
+  return code === '42883' || code === 'PGRST202' ||
+    message.includes('could not find the function') ||
+    message.includes('does not exist');
+}
+
+async function abRpc22LoadCurrentAdaptations(sessionToken) {
+  const token = sessionToken || getClientSessionToken();
+  const condition = abRpc22GetActiveCondition();
+
+  if (!token || !condition || !clientTrainingAssignment) {
+    clientActiveTrainingAdaptations = [];
+    window.AB_RPC22_LAST_SYNC = {
+      at: new Date().toISOString(),
+      assignment_id: clientTrainingAssignment?.assignment_id || clientTrainingAssignment?.id || null,
+      condition_id: condition?.id || null,
+      has_adaptation: false,
+      applied_rows: 0,
+      reason: !condition ? 'SIN_CONDICION_ACTIVA' : 'SIN_ASIGNACION_ACTIVA'
+    };
+    return 0;
+  }
+
+  let appliedRows = 0;
+  let lastPayload = null;
+  let usedRpc = 'ab_client_session_get_adapted_training_session';
+
+  try {
+    const sessions = (clientTrainingSessions || []).length
+      ? clientTrainingSessions
+      : [{ session_number: Number(clientTrainingAssignment?.assigned_session_number || 1), week_id: null }];
+
+    const requests = sessions.map(session => db.rpc(
+      'ab_client_session_get_adapted_training_session',
+      {
+        p_session_token: token,
+        p_week_number: abRpc22GetSessionWeekNumber(session),
+        p_session_number: Math.max(1, Number(session.session_number || session.order_index || 1))
+      }
+    ));
+
+    const results = await Promise.all(requests);
+    const missingNewRpc = results.some(result => result.error && abRpc22IsMissingRpc(result.error));
+
+    if (missingNewRpc) {
+      usedRpc = 'ab_client_session_get_current_adapted_training';
+      const fallback = await db.rpc(usedRpc, { p_session_token: token });
+      if (fallback.error) throw fallback.error;
+      lastPayload = abRpc22AsObject(fallback.data) || {};
+      appliedRows += abRpc22ApplyAdaptedPayload(lastPayload);
+    } else {
+      for (const result of results) {
+        if (result.error) throw result.error;
+        const payload = abRpc22AsObject(result.data) || {};
+        lastPayload = payload;
+        appliedRows += abRpc22ApplyAdaptedPayload(payload);
+      }
+    }
+
+    abRpc22SetActiveProcess(lastPayload, condition, appliedRows);
+
+    window.AB_RPC22_LAST_SYNC = {
+      at: new Date().toISOString(),
+      rpc: usedRpc,
+      assignment_id: clientTrainingAssignment?.assignment_id || clientTrainingAssignment?.id || null,
+      condition_id: condition.id,
+      condition_key: condition.condition_key,
+      has_adaptation: true,
+      applied_rows: appliedRows,
+      sessions_checked: (clientTrainingSessions || []).length
+    };
+    window.AB_RPC22_LAST_ERROR = null;
+    return appliedRows;
+  } catch (error) {
+    // Una RPC de adaptación no disponible nunca debe cerrar la sesión del cliente.
+    console.error('RPC 22 · adaptación cliente:', error);
+    abRpc22SetActiveProcess(null, condition, 0);
+    window.AB_RPC22_LAST_ERROR = {
+      at: new Date().toISOString(),
+      message: error?.message || String(error)
+    };
+    window.AB_RPC22_LAST_SYNC = {
+      at: new Date().toISOString(),
+      rpc: usedRpc,
+      assignment_id: clientTrainingAssignment?.assignment_id || clientTrainingAssignment?.id || null,
+      condition_id: condition.id,
+      condition_key: condition.condition_key,
+      has_adaptation: true,
+      applied_rows: 0,
+      fallback_process_only: true
+    };
+    return 0;
+  }
+}
+
+function abRpc22PlanAssignmentId(planJson) {
+  const assignment = planJson?.assignment || {};
+  return assignment.assignment_id || assignment.id || null;
+}
+
+function abRpc22BuildServerSignature(assignment, planJson, conditions) {
+  const activeConditions = abRpc22AsArray(conditions)
+    .filter(row => ['active', 'reported'].includes(abRpc22ConditionStatus(row)))
+    .map(row => [row.id, row.status, row.updated_at || row.created_at || '', row.review_date || ''].join(':'))
+    .sort();
+
+  return JSON.stringify({
+    assignment: assignment?.assignment_id || assignment?.id || null,
+    assignment_updated: assignment?.updated_at || assignment?.created_at || assignment?.start_date || '',
+    plan_assignment: abRpc22PlanAssignmentId(planJson),
+    program: planJson?.program?.program_id || assignment?.program_id || null,
+    week: planJson?.week?.week_number || assignment?.assigned_week || null,
+    sessions: Array.isArray(planJson?.sessions) ? planJson.sessions.map(item => item.session_id || item.id) : [],
+    conditions: activeConditions
+  });
+}
+
+async function abRpc22SyncClientTraining({ force = false, notify = true } = {}) {
+  if (abRpc22SyncBusy) return false;
+  if (document.visibilityState === 'hidden') return false;
+  if (workoutTimer?.running || currentTrainingLog) return false;
+
+  const token = getClientSessionToken();
+  if (!token || !clientData?.id) return false;
+
+  abRpc22SyncBusy = true;
+  try {
+    const [assignmentsResult, planResult, conditionsResult] = await Promise.all([
+      db.rpc('ab_client_get_assignments', { p_session_token: token }),
+      db.rpc('ab_client_get_active_training_plan', { p_session_token: token }),
+      db.rpc('ab_client_session_get_conditions', { p_session_token: token, p_limit: 100 })
+    ]);
+
+    if (assignmentsResult.error) throw assignmentsResult.error;
+    if (planResult.error) throw planResult.error;
+    if (conditionsResult.error) throw conditionsResult.error;
+
+    const canonical = abRpc22ChooseCanonicalAssignment(assignmentsResult.data);
+    const planJson = abRpc22AsObject(planResult.data) || {};
+    const conditions = abRpc22AsArray(conditionsResult.data);
+    const signature = abRpc22BuildServerSignature(canonical.active, planJson, conditions);
+
+    if (!force && signature === abRpc22LastServerSignature) return false;
+
+    const oldAssignmentId = clientTrainingAssignment?.assignment_id || clientTrainingAssignment?.id || null;
+
+    clientProgramAssignmentsHistory = canonical.history;
+    clientTrainingAssignment = canonical.active ? {
+      ...canonical.active,
+      id: canonical.active.assignment_id || canonical.active.id,
+      assignment_id: canonical.active.assignment_id || canonical.active.id,
+      client_id: canonical.active.client_id || clientData.id
+    } : null;
+
+    hydrateTrainingFromRpcPlan(planJson);
+    clientConditions = conditions;
+    await abRpc22LoadCurrentAdaptations(token);
+    abRpc22LastServerSignature = signature;
+
+    await renderDashboard();
+
+    const newAssignmentId = clientTrainingAssignment?.assignment_id || clientTrainingAssignment?.id || null;
+    if (notify && oldAssignmentId && newAssignmentId && String(oldAssignmentId) !== String(newAssignmentId)) {
+      showClientNotice(
+        getLang() === 'sr'
+          ? 'Trener je ažurirao tvoj plan treninga.'
+          : getLang() === 'en'
+            ? 'Your coach updated your training plan.'
+            : 'Tu coach actualizó tu plan de entrenamiento.',
+        'success'
+      );
+    }
+
+    return true;
+  } catch (error) {
+    console.error('RPC 22 · sincronización cliente:', error);
+    window.AB_RPC22_LAST_ERROR = {
+      at: new Date().toISOString(),
+      message: error?.message || String(error)
+    };
+    return false;
+  } finally {
+    abRpc22SyncBusy = false;
+  }
+}
+
+function abRpc22InstallAutoSync() {
+  if (abRpc22AutoSyncInstalled) return;
+  abRpc22AutoSyncInstalled = true;
+
+  const schedule = delay => {
+    clearTimeout(abRpc22SyncTimer);
+    abRpc22SyncTimer = setTimeout(() => {
+      abRpc22SyncClientTraining({ force: false, notify: true });
+    }, delay);
+  };
+
+  window.addEventListener('focus', () => schedule(250));
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') schedule(250);
+  });
+
+  // La sesión personalizada del cliente no depende de Supabase Auth; por eso
+  // la comprobación periódica se hace mediante RPC segura y no mediante SELECT directo.
+  setInterval(() => {
+    if (document.visibilityState === 'visible') schedule(0);
+  }, 30000);
+
+  window.abClientRpc22Refresh = () => abRpc22SyncClientTraining({ force: true, notify: true });
+}
+
 async function loadClientDashboard(sessionToken) {
   showLoading(true);
   hideError();
@@ -7125,14 +7607,14 @@ try {
 
     applyClientView();
 
-    const assignmentRows = assignmentsR.data || [];
-    clientProgramAssignmentsHistory = assignmentRows.map(a => ({
-      ...a,
-      id: a.assignment_id || a.id,
-      assignment_id: a.assignment_id || a.id
-    }));
+    const assignmentRows = abRpc22AsArray(assignmentsR.data);
+    const canonicalAssignment = abRpc22ChooseCanonicalAssignment(assignmentRows);
+    clientProgramAssignmentsHistory = canonicalAssignment.history;
+    const activeAssignment = canonicalAssignment.active;
 
-    const activeAssignment = assignmentRows.find(a => String(a.status || '').toLowerCase() === 'activo') || assignmentRows[0] || null;
+    if (canonicalAssignment.activeCount > 1) {
+      console.warn('RPC 22: existen varias asignaciones activas; se usará la más reciente hasta reparar el servidor.', canonicalAssignment.history);
+    }
 
     clientTrainingAssignment = activeAssignment ? {
       ...activeAssignment,
@@ -7153,12 +7635,18 @@ try {
       coach_id: dash.coach_id || clientData.coach_id
     } : null);
 
-    let planJson = planR.data || null;
-    if (typeof planJson === 'string') {
-      try { planJson = JSON.parse(planJson); } catch(e) {}
-    }
+    const planJson = abRpc22AsObject(planR.data) || {};
 
     hydrateTrainingFromRpcPlan(planJson);
+
+    const rpcPlanAssignmentId = abRpc22PlanAssignmentId(planJson);
+    const selectedAssignmentId = clientTrainingAssignment?.assignment_id || clientTrainingAssignment?.id || null;
+    if (rpcPlanAssignmentId && selectedAssignmentId && String(rpcPlanAssignmentId) !== String(selectedAssignmentId)) {
+      console.warn('RPC 22: la RPC de plan devolvió otra asignación. Ejecuta el SQL de unicidad activa.', {
+        selected_assignment_id: selectedAssignmentId,
+        plan_assignment_id: rpcPlanAssignmentId
+      });
+    }
 
     // Inicializar secciones secundarias vacías: evita que RLS/tablas directas bloqueen el login.
     clientReservations = [];
@@ -7198,11 +7686,16 @@ clientSessionLogs = Array.isArray(trainingLogsData)
       ? checkinsR.data
       : [];
 
-    clientConditions = Array.isArray(conditionsR.data)
-      ? conditionsR.data
-      : [];
+    clientConditions = abRpc22AsArray(conditionsR.data);
     
-    clientActiveTrainingAdaptations = [];
+    await abRpc22LoadCurrentAdaptations(token);
+    abRpc22LastServerSignature = abRpc22BuildServerSignature(
+      clientTrainingAssignment,
+      planJson,
+      clientConditions
+    );
+    abRpc22InstallAutoSync();
+
     clientMobilityChain = [];
     clientMobilityDebug = { loaded: true, count: 0, error: null };
     clientAthleteProfile = null;
@@ -16162,7 +16655,7 @@ async function restoreCompetition(competitionId) {
 
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js?v=20260601-01', {
+  navigator.serviceWorker.register('/sw.js?v=20260615-02', {
     scope: '/',
     updateViaCache: 'none'
   }).then(reg => {
