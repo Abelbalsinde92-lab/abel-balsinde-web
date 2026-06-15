@@ -12450,12 +12450,17 @@ function normalizeAssessmentStatusClient(s) {
 }
 
 function hasAssessmentResultValue(r) {
-  return (
-    r &&
-    r.result_value !== null &&
-    r.result_value !== undefined &&
-    String(r.result_value).trim() !== ''
-  );
+  if (!r) return false;
+  // Campos del sistema nuevo (RPC 25)
+  if (r.value_numeric !== null && r.value_numeric !== undefined) return true;
+  if (r.load_kg !== null && r.load_kg !== undefined) return true;
+  if (r.reps !== null && r.reps !== undefined) return true;
+  if (r.time_seconds !== null && r.time_seconds !== undefined) return true;
+  if (r.distance_meters !== null && r.distance_meters !== undefined) return true;
+  // Campo legacy
+  if (r.result_value !== null && r.result_value !== undefined &&
+      String(r.result_value).trim() !== '') return true;
+  return false;
 }
 
 function getMeasuredResultsForAssessmentClient(assessmentId) {
