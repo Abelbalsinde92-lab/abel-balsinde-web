@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 22 SYNC ADAPTATION</title>
+<title>AB SYSTEM — Coach Panel · RPC 23 HEALTH WORKFLOW</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -2540,7 +2540,7 @@ body.eval-modal-open {
 
 
 /* ════════════════════════════════════════════════════════
-   RPC 22 · BANDEJA + SINCRONIZACIÓN CLIENTE
+   RPC 23 · SALUD + SEGUIMIENTO + SINCRONIZACIÓN CLIENTE
 ══════════════════════════════════════════════════════════ */
 .condition-inbox{
   margin:0 0 18px;
@@ -2602,6 +2602,14 @@ body.eval-modal-open {
 .condition-review-preview{padding:10px 12px;background:rgba(255,179,64,.055);border-left:2px solid var(--warn);border-radius:0 7px 7px 0;margin-bottom:12px}
 .condition-review-preview strong{display:block;font-size:.85rem}
 .condition-review-preview span{display:block;font-size:.72rem;color:var(--text-2);margin-top:3px;line-height:1.5}
+.condition-followup-strip{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px;padding:8px 10px;border-radius:7px;border:1px solid rgba(255,179,64,.22);background:rgba(255,179,64,.065)}
+.condition-followup-strip.overdue{border-color:rgba(255,90,90,.3);background:rgba(255,90,90,.075)}
+.condition-followup-strip.progress{border-color:rgba(0,200,232,.28);background:rgba(0,200,232,.075)}
+.condition-followup-copy{font-family:var(--font-m);font-size:.52rem;letter-spacing:.045em;color:var(--text-2);line-height:1.4}
+.condition-followup-copy strong{color:var(--text);font-size:.58rem}
+.condition-resolution-tag{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:5px 8px;border:1px solid var(--divider);border-radius:999px;font-family:var(--font-m);font-size:.48rem;letter-spacing:.065em;text-transform:uppercase;color:var(--text-2)}
+.condition-resolution-tag.discard{color:var(--warn);border-color:rgba(255,179,64,.22);background:rgba(255,179,64,.05)}
+.condition-resolution-tag.resolve{color:var(--streak);border-color:rgba(0,230,118,.2);background:rgba(0,230,118,.045)}
 @media(max-width:390px){
   .condition-pain-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .condition-report-actions .btn{min-width:calc(50% - 3px)}
@@ -2973,7 +2981,7 @@ const state = {
 let currentScr='hoy';
 let filterCli='todos';
 let filterAl='pendientes';
-let filterCondition='reported';
+let filterCondition='attention';
 let activeHealthCoachTab='conditions';
 let filterPag='todos';
 let activeModal=null;
@@ -3500,6 +3508,54 @@ function conditionSortRows(rows){
   });
 }
 function conditionHasRedFlags(row){return conditionRedFlags(row).length>0}
+function conditionReviewAction(row){
+  return String(row?.reviewAction||row?.review_action||row?.resolutionType||row?.resolution_type||'').toLowerCase().trim();
+}
+function conditionReviewedAt(row){
+  return row?.reviewedAt||row?.reviewed_at||row?.coachReviewedAt||row?.coach_reviewed_at||'';
+}
+function conditionUpdatedAt(row){
+  return row?.updatedAt||row?.updated_at||conditionDate(row)||'';
+}
+function conditionReviewDate(row){
+  return row?.reviewDate||row?.review_date||'';
+}
+function conditionReviewState(row){
+  if(normalizeCoachConditionStatus(row?.status)!=='active') return {key:'none',label:'',days:null};
+  const raw=conditionReviewDate(row);
+  if(!raw) return {key:'missing',label:'Sin fecha de revisión',days:null};
+  const today=new Date(todayISO()+'T00:00:00');
+  const due=new Date(String(raw).slice(0,10)+'T00:00:00');
+  const days=Math.round((due-today)/86400000);
+  if(days<0) return {key:'overdue',label:`Revisión vencida · ${Math.abs(days)} d`,days};
+  if(days===0) return {key:'today',label:'Revisión prevista hoy',days};
+  if(days<=2) return {key:'soon',label:`Revisión en ${days} d`,days};
+  return {key:'scheduled',label:`Revisión ${formatDate(String(raw).slice(0,10))}`,days};
+}
+function conditionHasNewProgress(row){
+  if(normalizeCoachConditionStatus(row?.status)!=='active') return false;
+  const hasProgress=!!(conditionEvolution(row)||conditionProgressComment(row)||conditionNumberValue(row,['progressPainNow','progress_pain_now'])!==null);
+  if(!hasProgress) return false;
+  const updated=Date.parse(conditionUpdatedAt(row)||'');
+  const reviewed=Date.parse(conditionReviewedAt(row)||'');
+  return Number.isFinite(updated)&&(!Number.isFinite(reviewed)||updated>reviewed+1000);
+}
+function conditionNeedsCoachAttention(row){
+  const status=normalizeCoachConditionStatus(row?.status);
+  if(status==='reported') return true;
+  if(status!=='active') return false;
+  const follow=conditionReviewState(row);
+  return conditionHasNewProgress(row)||['missing','overdue','today'].includes(follow.key);
+}
+function conditionAttentionRows(){
+  return (state.clientConditions||[]).filter(conditionNeedsCoachAttention);
+}
+function conditionResolutionLabel(row){
+  const action=conditionReviewAction(row);
+  if(action==='discard') return 'Descartado por el coach';
+  if(action==='resolve') return 'Proceso recuperado / cerrado';
+  return 'Proceso cerrado';
+}
 function defaultConditionClientMessage(row){
   const zone=getPathologyLabel(conditionKey(row)).toLowerCase();
   return `Vamos a adaptar el trabajo sobre ${zone} durante los próximos días y revisaremos tu evolución en la fecha indicada.`;
@@ -3509,7 +3565,6 @@ function datePlusDays(days){
 }
 function buildCoachConditionCard(row,{compact=false}={}){
   const status=normalizeCoachConditionStatus(row?.status);
-  const c=conditionClient(row);
   const cid=conditionClientId(row);
   const flags=conditionRedFlags(row);
   const painNow=conditionPainNow(row);
@@ -3520,11 +3575,14 @@ function buildCoachConditionCard(row,{compact=false}={}){
   const trigger=conditionTrigger(row);
   const evolution=conditionEvolution(row);
   const progressComment=conditionProgressComment(row);
+  const progressPain=conditionNumberValue(row,['progressPainNow','progress_pain_now']);
   const created=String(conditionDate(row)||'').slice(0,10);
   const severity=row?.severity||'—';
-  const review=row?.reviewDate||row?.review_date||'';
+  const review=conditionReviewDate(row);
   const clientMessage=row?.clientMessage||row?.client_message||'';
   const coachNotes=row?.coachNotes||row?.coach_notes||'';
+  const follow=conditionReviewState(row);
+  const newProgress=conditionHasNewProgress(row);
   const klass=status+(flags.length?' red-flag':'');
   let actions='';
   if(status==='reported'){
@@ -3534,12 +3592,17 @@ function buildCoachConditionCard(row,{compact=false}={}){
       ${cid?`<button class="btn btn-b btn-sm" onclick="openClientHealth('${cid}','conditions')">Salud</button>`:''}`;
   }else if(status==='active'){
     actions=`
-      ${cid?`<button class="btn btn-p btn-sm" onclick="useActiveConditionAdaptation('${cid}','${row.id}')">Usar adaptación activa</button>`:''}
+      <button class="btn ${newProgress||['overdue','today','missing'].includes(follow.key)?'btn-p':'btn-b'} btn-sm" onclick="openConditionReviewModal('${row.id}','followup')">${newProgress?'Revisar evolución':'Actualizar seguimiento'}</button>
+      ${cid?`<button class="btn btn-p btn-sm" onclick="useActiveConditionAdaptation('${cid}','${row.id}')">Usar adaptación</button>`:''}
       <button class="btn btn-b btn-sm" onclick="openConditionReviewModal('${row.id}','resolve')">Resolver</button>
       ${cid?`<button class="btn btn-s btn-sm" onclick="openClientHealth('${cid}','conditions')">Salud</button>`:''}`;
   }else{
     actions=`${cid?`<button class="btn btn-b btn-sm" onclick="openClientHealth('${cid}','conditions')">Ver historial</button>`:''}`;
   }
+  const followClass=newProgress?'progress':follow.key==='overdue'?'overdue':'';
+  const followText=newProgress
+    ? `Nueva evolución${progressPain!==null?' · dolor '+progressPain+'/10':''}`
+    : follow.label;
   return `
     <div class="condition-report-card ${klass}">
       <div class="condition-report-main">
@@ -3558,34 +3621,37 @@ function buildCoachConditionCard(row,{compact=false}={}){
         </div>
         ${trigger?`<div class="condition-report-text"><strong>Se activa con:</strong> ${esc(trigger)}</div>`:''}
         ${comment?`<div class="condition-report-text"><strong>Cliente:</strong> ${esc(comment)}</div>`:''}
-        ${evolution?`<div class="condition-report-text"><strong>Evolución:</strong> ${esc(evolution)}${progressComment?' · '+esc(progressComment):''}</div>`:''}
+        ${evolution?`<div class="condition-report-text"><strong>Evolución:</strong> ${esc(evolution)}${progressPain!==null?' · dolor '+progressPain+'/10':''}${progressComment?' · '+esc(progressComment):''}</div>`:''}
         ${flags.length?`<div class="condition-red-flags"><strong>Señales importantes:</strong> ${flags.map(esc).join(' · ')}</div>`:''}
-        ${status==='active'&&(severity!=='—'||review||clientMessage||coachNotes)?`
-          <div class="condition-report-text"><strong>Control coach:</strong> Severidad ${esc(severity)}${review?' · revisión '+formatDate(review):''}${clientMessage?'<br>'+esc(clientMessage):''}${coachNotes?'<br><span style="color:var(--text-2)">'+esc(coachNotes)+'</span>':''}</div>`:''}
+        ${status==='active'&&followText?`<div class="condition-followup-strip ${followClass}"><div class="condition-followup-copy"><strong>${esc(followText)}</strong>${review?`<br>Fecha prevista: ${formatDate(String(review).slice(0,10))}`:''}</div>${newProgress?badge('NUEVO','info'):''}</div>`:''}
+        ${status==='active'&&(severity!=='—'||clientMessage||coachNotes)?`
+          <div class="condition-report-text"><strong>Control coach:</strong> Severidad ${esc(severity)}${clientMessage?'<br>'+esc(clientMessage):''}${coachNotes?'<br><span style="color:var(--text-2)">'+esc(coachNotes)+'</span>':''}</div>`:''}
+        ${status==='resolved'?`<div class="condition-resolution-tag ${conditionReviewAction(row)==='discard'?'discard':'resolve'}">${esc(conditionResolutionLabel(row))}</div>${coachNotes?`<div class="condition-report-text"><strong>Nota de cierre:</strong> ${esc(coachNotes)}</div>`:''}`:''}
       </div>
       <div class="condition-report-actions">${actions}</div>
     </div>`;
 }
 function buildConditionInboxHTML(rows,{title='Molestias reportadas',showFilters=true}={}){
   const counts={
+    attention:conditionAttentionRows().length,
     reported:conditionRowsByStatus('reported').length,
     active:conditionRowsByStatus('active').length,
     resolved:conditionRowsByStatus('resolved').length
   };
-  let visible=rows||conditionRowsByStatus(filterCondition);
+  let visible=rows||(filterCondition==='attention'?conditionAttentionRows():conditionRowsByStatus(filterCondition));
   visible=conditionSortRows(visible);
   return `<section class="condition-inbox">
-    <div class="condition-inbox-head"><div><div class="condition-inbox-kicker">Seguimiento de salud</div><div class="condition-inbox-title">${esc(title)}</div><div class="condition-inbox-sub">Revisa lo enviado por el cliente antes de aplicar cambios al entrenamiento.</div></div>${badge(String(visible.length),visible.some(r=>conditionHasRedFlags(r))?'alerta':'revisar')}</div>
+    <div class="condition-inbox-head"><div><div class="condition-inbox-kicker">Seguimiento de salud</div><div class="condition-inbox-title">${esc(title)}</div><div class="condition-inbox-sub">Reportes nuevos, evoluciones y revisiones que requieren decisión del coach.</div></div>${badge(String(visible.length),visible.some(r=>conditionHasRedFlags(r))?'alerta':'revisar')}</div>
     ${showFilters?`<div class="condition-filter-row">${[
-      ['reported',`En revisión ${counts.reported}`],['active',`Activas ${counts.active}`],['resolved',`Resueltas ${counts.resolved}`],['all','Todas']
+      ['attention',`Por revisar ${counts.attention}`],['reported',`Nuevas ${counts.reported}`],['active',`Activas ${counts.active}`],['resolved',`Historial ${counts.resolved}`],['all','Todas']
     ].map(([k,l])=>`<button class="fp ${filterCondition===k?'on':''}" onclick="filterCondition='${k}';renderAlertas()">${l}</button>`).join('')}</div>`:''}
-    ${visible.length?visible.map(row=>buildCoachConditionCard(row,{compact:true})).join(''):emptyState('Sin molestias en este estado','Los reportes nuevos aparecerán aquí automáticamente.')}
+    ${visible.length?visible.map(row=>buildCoachConditionCard(row,{compact:true})).join(''):emptyState('Sin seguimiento pendiente','No hay reportes, evoluciones ni revisiones vencidas.')}
   </section>`;
 }
 function buildDashboardConditionInbox(){
-  const rows=conditionSortRows(conditionRowsByStatus('reported')).slice(0,4);
+  const rows=conditionSortRows(conditionAttentionRows()).slice(0,5);
   if(!rows.length)return'';
-  return `<div style="margin-bottom:18px">${buildConditionInboxHTML(rows,{title:'Molestias por revisar',showFilters:false})}<button class="btn btn-b btn-wide" onclick="filterCondition='reported';showScr('alertas')">Abrir bandeja completa</button></div>`;
+  return `<div style="margin-bottom:18px">${buildConditionInboxHTML(rows,{title:'Salud por revisar',showFilters:false})}<button class="btn btn-b btn-wide" onclick="filterCondition='attention';showScr('alertas')">Abrir seguimiento completo</button></div>`;
 }
 function buildClientHealthSummaryCard(c){
   const rows=conditionRowsForClient(c.id);
@@ -3665,7 +3731,10 @@ function renderClientHealth(){
   const defs=[['conditions','Molestias'],['checkins','Check-ins'],['metrics','Métricas'],['injuries','Lesiones']];
   tabs.innerHTML=defs.map(([k,l])=>`<button class="health-coach-tab ${activeHealthCoachTab===k?'on':''}" onclick="setClientHealthTab('${k}')">${l}${k==='conditions'&&reported?' · '+reported:''}</button>`).join('');
   if(activeHealthCoachTab==='conditions'){
-    content.innerHTML=rows.length?`<div class="fr" style="margin-bottom:10px"><button class="fp on">${rows.length} registros</button>${reported?`<button class="fp" onclick="filterCondition='reported';showScr('alertas')">${reported} por revisar</button>`:''}</div>${rows.map(row=>buildCoachConditionCard(row)).join('')}`:emptyState('Sin molestias registradas','Los reportes enviados por el cliente aparecerán aquí.');
+    const attention=rows.filter(conditionNeedsCoachAttention);
+    const current=rows.filter(r=>['reported','active'].includes(normalizeCoachConditionStatus(r.status)));
+    const history=rows.filter(r=>normalizeCoachConditionStatus(r.status)==='resolved');
+    content.innerHTML=rows.length?`<div class="fr" style="margin-bottom:10px"><button class="fp on">${rows.length} registros</button>${attention.length?`<button class="fp" onclick="filterCondition='attention';showScr('alertas')">${attention.length} por revisar</button>`:''}</div>${current.length?`<div class="condition-inbox-kicker" style="margin:10px 0 7px">Seguimiento actual · ${current.length}</div>${current.map(row=>buildCoachConditionCard(row)).join('')}`:''}${history.length?`<div class="condition-inbox-kicker" style="margin:18px 0 7px">Historial · ${history.length}</div>${history.map(row=>buildCoachConditionCard(row)).join('')}`:''}`:emptyState('Sin molestias registradas','Los reportes enviados por el cliente aparecerán aquí.');
   }else if(activeHealthCoachTab==='checkins') content.innerHTML=buildHealthCheckins(c);
   else if(activeHealthCoachTab==='metrics') content.innerHTML=buildHealthMetrics(c);
   else content.innerHTML=buildHealthInjuries(c);
@@ -3678,19 +3747,49 @@ function openConditionReviewModal(conditionId,action='approve'){
   const form=document.getElementById('modal-form');
   const isApprove=action==='approve';
   const isDiscard=action==='discard';
-  title.textContent=isApprove?'Aprobar adaptación':isDiscard?'Descartar reporte':'Resolver condición';
+  const isFollowup=action==='followup';
+  title.textContent=isApprove?'Aprobar adaptación':isDiscard?'Descartar reporte':isFollowup?'Revisar evolución':'Resolver condición';
   const defaultMessage=row.clientMessage||row.client_message||defaultConditionClientMessage(row);
+  const currentSeverity=row.severity||'media';
+  const currentReview=conditionReviewDate(row)||datePlusDays(7);
   form.onsubmit=saveConditionReview;
   form.innerHTML=`
-    <div class="condition-review-preview"><strong>${esc(conditionClientName(row))} · ${esc(conditionZoneLabel(row))}</strong><span>Dolor actual ${conditionPainNow(row)??'—'}/10 · actividad ${conditionPainDuring(row)??'—'}/10 · limita: ${conditionLimitsTraining(row)?'sí':'no'}</span></div>
-    ${isApprove?`<div class="fld"><label class="fld-l">Gravedad</label><select class="fld-s" name="severity"><option value="leve">Leve</option><option value="media" selected>Media</option><option value="alta">Alta</option></select></div><div class="fld"><label class="fld-l">Fecha de revisión</label><input class="fld-i" type="date" name="reviewDate" value="${datePlusDays(7)}"></div><div class="fld"><label class="fld-l">Mensaje para el cliente</label><textarea class="fld-t" name="clientMessage" rows="4">${esc(defaultMessage)}</textarea></div>`:''}
+    <div class="condition-review-preview"><strong>${esc(conditionClientName(row))} · ${esc(conditionZoneLabel(row))}</strong><span>Dolor actual ${conditionPainNow(row)??'—'}/10 · actividad ${conditionPainDuring(row)??'—'}/10 · limita: ${conditionLimitsTraining(row)?'sí':'no'}${conditionEvolution(row)?'<br>Evolución: '+esc(conditionEvolution(row)):''}</span></div>
+    ${(isApprove||isFollowup)?`<div class="fld"><label class="fld-l">Gravedad</label><select class="fld-s" name="severity"><option value="leve" ${currentSeverity==='leve'?'selected':''}>Leve</option><option value="media" ${currentSeverity==='media'?'selected':''}>Media</option><option value="alta" ${currentSeverity==='alta'?'selected':''}>Alta</option></select></div><div class="fld"><label class="fld-l">Próxima revisión</label><input class="fld-i" type="date" name="reviewDate" value="${currentReview}"></div><div class="fld"><label class="fld-l">Mensaje para el cliente</label><textarea class="fld-t" name="clientMessage" rows="4">${esc(defaultMessage)}</textarea></div>`:''}
     <div class="fld"><label class="fld-l">Nota interna del coach</label><textarea class="fld-t" name="coachNotes" rows="4" placeholder="Criterio, observaciones y seguimiento...">${esc(row.coachNotes||row.coach_notes||'')}</textarea></div>
-    <div class="fld-acts"><button type="button" class="btn btn-s" onclick="closeModal()">Cancelar</button><button type="submit" class="btn ${isDiscard?'btn-r':'btn-p'}">${isApprove?'Activar adaptación':isDiscard?'Descartar reporte':'Marcar resuelta'}</button></div>`;
+    <div class="fld-acts"><button type="button" class="btn btn-s" onclick="closeModal()">Cancelar</button><button type="submit" class="btn ${isDiscard?'btn-r':'btn-p'}">${isApprove?'Activar adaptación':isDiscard?'Descartar reporte':isFollowup?'Guardar seguimiento':'Marcar recuperada'}</button></div>`;
   document.getElementById('modal-ov')?.classList.add('on');
 }
 function isMissingConditionReviewRpc(error){
   const code=String(error?.code||'').toUpperCase();const msg=String(error?.message||'').toLowerCase();
   return code==='42883'||code==='PGRST202'||msg.includes('could not find the function')||msg.includes('does not exist');
+}
+function isConditionWorkflowAlert(a){
+  const type=cleanTxt(a?.tipoAlerta||a?.tipo_alerta||a?.type||'');
+  const txt=cleanTxt([getAlertTitle(a),getAlertMessage(a)].join(' '));
+  return !!(a?.conditionId||a?.condition_id||type.includes('condition')||type.includes('molestia')||type.includes('patologia')||txt.includes('molestia reportada')||txt.includes('nueva molestia'));
+}
+function alertMatchesCondition(a,row){
+  const alertCondition=String(a?.conditionId||a?.condition_id||'');
+  if(alertCondition&&alertCondition===String(row?.id||''))return true;
+  if(!isConditionWorkflowAlert(a))return false;
+  const aid=getAlertClientId(a);const cid=conditionClientId(row);
+  if(aid&&cid&&String(aid)!==String(cid))return false;
+  if(!aid&&cleanTxt(getAlertClientNameSmart(a))!==cleanTxt(conditionClientName(row)))return false;
+  const alertDay=String(alertCreatedAt(a)||'').slice(0,10);
+  const conditionDay=String(conditionDate(row)||'').slice(0,10);
+  return !alertDay||!conditionDay||alertDay===conditionDay;
+}
+async function resolveLinkedConditionAlerts(row,action){
+  const matches=(state.alertas||[]).filter(a=>getAlertStatus(a)!=='resuelta'&&alertMatchesCondition(a,row));
+  if(!matches.length)return;
+  const note=action==='discard'?'Reporte de molestia descartado desde Salud':action==='resolve'?'Condición cerrada desde Salud':'Reporte revisado desde Salud';
+  const results=await Promise.allSettled(matches.map(a=>db.rpc('admin_resolver_alerta',{p_alerta_id:a.id,p_nota_admin:note})));
+  matches.forEach((a,index)=>{
+    if(results[index]?.status==='fulfilled'&&!results[index].value?.error){
+      a.estado='resuelta';a.resueltaAt=new Date().toISOString();a.notaAdmin=note;
+    }
+  });
 }
 async function saveConditionReview(event){
   event.preventDefault();
@@ -3700,7 +3799,7 @@ async function saveConditionReview(event){
   if(!row){showToast('Reporte no encontrado','err');return}
   const values=formData(event.currentTarget);
   const action=cfg.action;
-  const desiredStatus=action==='approve'?'active':'resolved';
+  const desiredStatus=['approve','followup'].includes(action)?'active':'resolved';
   const token=getCoachSessionTokenSafe();
   if(!token){showToast('Sesión del coach no válida','err');return}
   const submit=event.currentTarget.querySelector('[type="submit"]');if(submit){submit.disabled=true;submit.textContent='Guardando...'}
@@ -3712,7 +3811,7 @@ async function saveConditionReview(event){
       p_client_message:values.clientMessage||null,p_coach_notes:values.coachNotes||null
     });
     if(reviewResult.error){
-      if(!isMissingConditionReviewRpc(reviewResult.error))throw reviewResult.error;
+      if(!isMissingConditionReviewRpc(reviewResult.error)||action==='followup')throw reviewResult.error;
       const fallbackStatus=desiredStatus==='resolved'?'inactive':'active';
       const fallback=await db.rpc('ab_coach_session_set_condition_status',{
         p_session_token:token,p_condition_id:cfg.id,p_status:fallbackStatus,
@@ -3720,16 +3819,18 @@ async function saveConditionReview(event){
       });
       if(fallback.error)throw fallback.error;
       saved=normalizeRpcJsonRow(fallback.data);
-      showToast('Estado guardado · aplica el SQL adjunto para guardar todos los campos','ok');
+      showToast('Estado guardado · instala RPC 23 para el seguimiento completo','ok');
     }else saved=normalizeRpcJsonRow(reviewResult.data);
+    const now=new Date().toISOString();
     const index=state.clientConditions.findIndex(r=>String(r.id)===String(cfg.id));
-    const merged={...row,...(saved||{}),status:desiredStatus,severity:values.severity||row.severity||null,reviewDate:values.reviewDate||row.reviewDate||null,review_date:values.reviewDate||row.review_date||null,clientMessage:values.clientMessage||row.clientMessage||'',client_message:values.clientMessage||row.client_message||'',coachNotes:values.coachNotes||row.coachNotes||'',coach_notes:values.coachNotes||row.coach_notes||'',endDate:desiredStatus==='resolved'?todayISO():row.endDate,end_date:desiredStatus==='resolved'?todayISO():row.end_date};
+    const merged={...row,...(saved||{}),status:desiredStatus,severity:values.severity||row.severity||null,reviewDate:values.reviewDate||row.reviewDate||null,review_date:values.reviewDate||row.review_date||null,clientMessage:values.clientMessage||row.clientMessage||'',client_message:values.clientMessage||row.client_message||'',coachNotes:values.coachNotes||row.coachNotes||'',coach_notes:values.coachNotes||row.coach_notes||'',reviewAction:action,review_action:action,reviewedAt:now,reviewed_at:now,endDate:desiredStatus==='resolved'?todayISO():null,end_date:desiredStatus==='resolved'?todayISO():null,resolvedAt:desiredStatus==='resolved'?now:null,resolved_at:desiredStatus==='resolved'?now:null};
     if(index>=0)state.clientConditions[index]=merged;else state.clientConditions.unshift(merged);
+    await resolveLinkedConditionAlerts(merged,action);
     const cid=conditionClientId(merged);
     if(state.adaptedTrainingCache)Object.keys(state.adaptedTrainingCache).forEach(k=>{if(k.startsWith(cid+'__'))delete state.adaptedTrainingCache[k]});
     closeModal();renderBadges();
     if(currentScr==='alertas')renderAlertas();else if(currentScr==='salud')renderClientHealth();else renderScr(currentScr);
-    showToast(action==='approve'?'Adaptación activa · cliente sincronizable ✓':action==='discard'?'Reporte descartado':'Condición resuelta ✓','ok');
+    showToast(action==='approve'?'Adaptación activa · cliente sincronizado ✓':action==='followup'?'Seguimiento actualizado ✓':action==='discard'?'Reporte descartado':'Condición recuperada y cerrada ✓','ok');
   }catch(error){
     console.error('saveConditionReview error:',error);showToast('No se pudo guardar: '+(error?.message||''),'err');
     if(submit){submit.disabled=false;submit.textContent='Guardar'}
@@ -4041,7 +4142,7 @@ function getClientPendingPayments(clientId){return state.payments.filter(p=>Stri
 function getClientPendingAlerts(clientId){
   const c = clientById(clientId) || { id:clientId };
 
-  return state.alertas.filter(a =>
+  return getStandaloneCoachAlerts().filter(a =>
     isPendingAlert(a) &&
     alertBelongsToClient(a,c)
   );
@@ -4111,8 +4212,8 @@ function renderAll(){renderBadges();renderTopAvatar();renderScr(currentScr)}
 
 /* ── v1.1 C5: Badges mejorados (alertas + pagos vencidos) ── */
 function renderBadges(){
-  const pendingAlerts=state.alertas.filter(a => getEffectiveAlertStatus(a)==='pendiente').length;
-  const pendingConditions=conditionRowsByStatus('reported').length;
+  const pendingAlerts=getStandaloneCoachAlerts().filter(a => getEffectiveAlertStatus(a)==='pendiente').length;
+  const pendingConditions=conditionAttentionRows().length;
   const pending=pendingAlerts+pendingConditions;
   const el=document.getElementById('badge-al');
   if(el){el.textContent=pending||'';el.classList.toggle('on',pending>0)}
@@ -5146,8 +5247,8 @@ function renderHoy(){
 
   const clientsToday=new Set(sessions.map(r=>r.clientId||r.client_id));
   const missing=[...clientsToday].filter(cid=>!state.todayCheckins.some(ci=>String(ci.clientId||ci.client_id)===String(cid))).length;
-  const pendingAlerts=state.alertas.filter(isPendingAlert).length;
-  const pendingConditions=conditionRowsByStatus('reported').length;
+  const pendingAlerts=getStandaloneCoachAlerts().filter(isPendingAlert).length;
+  const pendingConditions=conditionAttentionRows().length;
 
   const dow=new Date().toLocaleDateString('es-ES',{weekday:'long'}).toUpperCase();
   const dnum=new Date().getDate();
@@ -6266,6 +6367,9 @@ function getEffectiveAlertLevel(a){
   if(isFalsePositiveAlert(a)) return 'info';
   return String(a.nivel || a.level || 'info').toLowerCase();
 }
+function getStandaloneCoachAlerts(){
+  return (state.alertas||[]).filter(a=>!isConditionWorkflowAlert(a));
+}
 
 function getEffectiveAlertStatus(a){
   if(isFalsePositiveAlert(a)) return 'leida';
@@ -6358,7 +6462,7 @@ function renderAlertas(){
   const conditionBox=document.getElementById('al-conditions');
   if(conditionBox) conditionBox.innerHTML=buildConditionInboxHTML();
 
-  const effectiveRows = state.alertas.filter(a => !isFalsePositiveAlert(a) || filterAl === 'leidas' || filterAl === 'todas');
+  const effectiveRows = getStandaloneCoachAlerts().filter(a => !isFalsePositiveAlert(a) || filterAl === 'leidas' || filterAl === 'todas');
 
   const pendientes = effectiveRows.filter(a => getEffectiveAlertStatus(a) === 'pendiente');
   const criticas = effectiveRows.filter(a => {
@@ -6630,7 +6734,7 @@ function isOwnerCoach(){
 function renderMas(){
   const pendPay=state.payments.filter(p=>p.status!=='pagado').length;
   const todayCI=state.todayCheckins.length;
-  const pendingConditions=conditionRowsByStatus('reported').length;
+  const pendingConditions=conditionAttentionRows().length;
   const activeAssign=state.assignments.filter(a=>String(a.status||'activo')==='activo').length;
   const athleteCount=state.athletes.length;
   const totalClients=state.clients.filter(c=>c.status==='activo').length;
@@ -6654,7 +6758,7 @@ function renderMas(){
   const items=[
     {icon:ICONS.pay,  label:'Pagos',        badge:pendPay,      action:`showScr('pagos')`},
     {icon:ICONS.ci,   label:'Check-ins',    badge:todayCI,      action:`showScr('checkins')`},
-    {icon:ICONS.health,label:'Molestias', badge:pendingConditions, action:`filterCondition='reported';showScr('alertas')`},
+    {icon:ICONS.health,label:'Salud', badge:pendingConditions, action:`filterCondition='attention';showScr('alertas')`},
     {icon:ICONS.wa,   label:'WhatsApp',     badge:0,            action:`showScr('whatsapp')`},
     {icon:ICONS.train,label:'Entrenos',     badge:activeAssign, action:`showScr('entreno')`},
     {icon:ICONS.ath,  label:'Atletas',      badge:athleteCount, action:`showScr('atletas')`},
@@ -7859,13 +7963,9 @@ function openModal(type,id=null,prefill={}){
       <div class="fld"><label class="fld-l">Etiqueta comercial</label>
         <input name="commercialLabel" class="fld-i" value="${esc(a.commercialLabel||a.commercial_label||'')}" placeholder="Ej: Semana de prueba, Mes 1…">
       </div>
-      <input type="hidden" name="closeOld" value="yes">
-      <div class="fld">
-        <label class="fld-l">Publicación del plan</label>
-        <div class="fld-i" style="height:auto;min-height:44px;display:flex;align-items:center;color:var(--ok);background:rgba(46,204,113,.06)">
-          El plan anterior se cerrará automáticamente para que el cliente reciba solo esta asignación.
-        </div>
-      </div>
+      <div class="fld"><label class="fld-l">Cerrar plan activo anterior</label><select name="closeOld" class="fld-s">
+        <option value="yes" selected>Sí, cerrar anterior</option><option value="no">No, mantener anterior</option>
+      </select></div>
             <div class="fld"><label class="fld-l">Nota interna</label><textarea name="coachNotes" class="fld-t" rows="3">${esc(a.coachNotes||'')}</textarea></div>
       ${actions}`;
     updateAssignmentScopeFields(a.assignmentScope||a.assignment_scope||'full');
@@ -16970,6 +17070,9 @@ function setupRealtimeNotifications() {
       state.alertas.unshift(a);
       renderBadges();
 
+      // Las molestias se muestran en la bandeja canónica de Salud. Evita una segunda tarjeta/notificación.
+      if(isConditionWorkflowAlert(a))return;
+
       showAbNotif({
         title, body, type: 'alerta',
         data: { id: a.id, clientId: c?.id, screen: 'alertas', tag: 'alerta-' + a.id },
@@ -17030,21 +17133,29 @@ function setupRealtimeNotifications() {
       const raw=eventType==='DELETE'?payload.old:payload.new;
       const row=snakeToCamel(raw||{});
       if(!row?.id)return;
+      const index=state.clientConditions.findIndex(r=>String(r.id)===String(row.id));
+      const previousRow=index>=0?{...state.clientConditions[index]}:snakeToCamel(payload.old||{});
       if(eventType==='DELETE'){
         state.clientConditions=state.clientConditions.filter(r=>String(r.id)!==String(row.id));
       }else{
-        const index=state.clientConditions.findIndex(r=>String(r.id)===String(row.id));
         if(index>=0)state.clientConditions[index]={...state.clientConditions[index],...row};
         else state.clientConditions.unshift(row);
       }
       renderBadges();
       if(['alertas','hoy','perfil','salud','workout'].includes(currentScr))renderScr(currentScr);
-      if(eventType==='INSERT'&&normalizeCoachConditionStatus(row.status)==='reported'){
+      const oldRow=previousRow;
+      const statusNow=normalizeCoachConditionStatus(row.status);
+      const statusBefore=normalizeCoachConditionStatus(oldRow.status);
+      const clientUpdate=eventType==='UPDATE'&&statusNow===statusBefore;
+      const progressChanged=clientUpdate&&['evolution','progressEvolution','progress_evolution','progressPainNow','progress_pain_now','progressComment','progress_comment'].some(k=>String(row?.[k]??'')!==String(oldRow?.[k]??''));
+      const reportChanged=clientUpdate&&statusNow==='reported'&&['painNow','pain_now','painDuring','pain_during','triggerText','trigger_text','limitsTraining','limits_training','clientComment','client_comment','redFlags','red_flags'].some(k=>JSON.stringify(row?.[k]??null)!==JSON.stringify(oldRow?.[k]??null));
+      if((eventType==='INSERT'&&statusNow==='reported')||reportChanged||progressChanged){
         const c=conditionClient(row);
-        const title=`Nueva molestia reportada · ${conditionClientName(row)}`;
-        const body=`${conditionZoneLabel(row)} · Dolor ${conditionPainMax(row)??'—'}/10`;
-        showAbNotif({title,body,type:conditionHasRedFlags(row)?'alerta':'revisar',data:{clientId:c?.id,screen:'alertas',tag:'condition-'+row.id},actions:[{label:'Revisar',action:'view_alerts'},{label:'Perfil',action:'view_profile'}]});
-        nativeNotif(title,body,{clientId:c?.id,screen:'alertas',tag:'condition-'+row.id});
+        const title=progressChanged?`Nueva evolución · ${conditionClientName(row)}`:reportChanged?`Molestia actualizada · ${conditionClientName(row)}`:`Nueva molestia reportada · ${conditionClientName(row)}`;
+        const body=`${conditionZoneLabel(row)} · Dolor ${progressChanged?(conditionNumberValue(row,['progressPainNow','progress_pain_now'])??conditionPainMax(row)??'—'):(conditionPainMax(row)??'—')}/10`;
+        const tag=`condition-${row.id}-${progressChanged?'progress':reportChanged?'update':'new'}-${String(conditionUpdatedAt(row)).slice(0,16)}`;
+        showAbNotif({title,body,type:conditionHasRedFlags(row)?'alerta':'revisar',data:{clientId:c?.id,screen:'alertas',tag},actions:[{label:'Revisar',action:'view_alerts'},{label:'Perfil',action:'view_profile'}]});
+        nativeNotif(title,body,{clientId:c?.id,screen:'alertas',tag});
       }
     })
     .subscribe();
@@ -17973,7 +18084,7 @@ async function testPush() {
 }
 </script>
 
-<!-- AB SYSTEM · RPC 22
+<!-- AB SYSTEM · RPC 23
      La adaptación aprobada se publica mediante client_conditions +
      ab_client_session_get_current_adapted_training. -->
 </body>
