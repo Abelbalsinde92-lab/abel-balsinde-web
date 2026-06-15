@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AB SYSTEM — Área Cliente · RPC 12 ASSESSMENTS SECURE</title>
+  <title>AB SYSTEM — Área Cliente · RPC 21 CONDITION REPORT</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json?v=20260522-01">
 <link rel="icon" href="/favicon-32.png?v=20260522-01" type="image/png">
@@ -5174,6 +5174,252 @@ body {
   }
 }
 </style>
+
+<style id="ab-client-condition-report-styles">
+/* AB SYSTEM · RPC 21 · Reporte de molestias del cliente */
+.health-tabs{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:8px !important;
+  width:100%;
+  max-width:100%;
+}
+.health-tab{
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.condition-intro-card{
+  border-color:rgba(0,200,232,.22) !important;
+  background:linear-gradient(145deg,rgba(0,200,232,.08),rgba(255,255,255,.015)) !important;
+}
+.condition-section-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin:16px 0 10px;
+}
+.condition-section-title{
+  font-family:var(--font-ui);
+  font-size:13px;
+  font-weight:800;
+  color:var(--text-primary);
+}
+.condition-section-sub{
+  margin-top:3px;
+  font-size:11px;
+  line-height:1.5;
+  color:var(--text-secondary);
+}
+.condition-count{
+  flex:0 0 auto;
+  min-width:28px;
+  height:28px;
+  padding:0 8px;
+  border:1px solid var(--card-border);
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--sport);
+  background:rgba(255,255,255,.025);
+}
+.condition-card{
+  position:relative;
+  overflow:hidden;
+}
+.condition-card.reported{border-color:rgba(255,184,77,.32) !important;}
+.condition-card.active{border-color:rgba(0,200,232,.35) !important;}
+.condition-card.resolved{border-color:rgba(0,230,118,.20) !important;}
+.condition-card-bar{
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:3px;
+  background:var(--card-border);
+}
+.condition-card.reported .condition-card-bar{background:var(--warn);}
+.condition-card.active .condition-card-bar{background:var(--sport);}
+.condition-card.resolved .condition-card-bar{background:var(--ok,#00e676);}
+.condition-card-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.condition-card-name{
+  font-size:15px;
+  font-weight:800;
+  line-height:1.25;
+  color:var(--text-primary);
+}
+.condition-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:10px;
+}
+.condition-meta-chip{
+  border:1px solid var(--card-border);
+  border-radius:8px;
+  padding:6px 8px;
+  font-family:var(--font-mono);
+  font-size:9px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text-secondary);
+  background:rgba(255,255,255,.02);
+}
+.condition-message{
+  margin-top:11px;
+  padding:11px 12px;
+  border-radius:10px;
+  background:rgba(255,255,255,.025);
+  border:1px solid var(--card-border);
+  color:var(--text-secondary);
+  font-size:12px;
+  line-height:1.65;
+}
+.condition-actions{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-top:12px;
+}
+.condition-actions .client-action-btn{
+  width:100%;
+  min-width:0;
+  margin:0;
+  padding-left:10px;
+  padding-right:10px;
+}
+.condition-editor{
+  margin-top:12px;
+  border-color:rgba(0,200,232,.38) !important;
+}
+.condition-zone-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-top:8px;
+}
+.condition-zone-btn{
+  width:100%;
+  min-width:0;
+  min-height:58px;
+  border:1px solid var(--card-border);
+  border-radius:11px;
+  background:rgba(255,255,255,.02);
+  color:var(--text-primary);
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:10px;
+  text-align:left;
+}
+.condition-zone-btn.active{
+  border-color:var(--sport);
+  background:rgba(0,200,232,.10);
+}
+.condition-zone-code{
+  width:32px;
+  height:32px;
+  flex:0 0 32px;
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,200,232,.10);
+  color:var(--sport);
+  font-family:var(--font-mono);
+  font-size:9px;
+  font-weight:800;
+}
+.condition-zone-name{
+  min-width:0;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.25;
+}
+.condition-pain-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.condition-check-list{
+  display:grid;
+  gap:8px;
+  margin-top:8px;
+}
+.condition-check{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  padding:10px 11px;
+  border:1px solid var(--card-border);
+  border-radius:10px;
+  background:rgba(255,255,255,.018);
+  color:var(--text-secondary);
+  font-size:11px;
+  line-height:1.45;
+}
+.condition-check input{
+  width:18px;
+  height:18px;
+  flex:0 0 18px;
+  accent-color:var(--sport);
+}
+.condition-editor-actions{
+  display:grid;
+  grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);
+  gap:8px;
+  margin-top:14px;
+}
+.condition-editor-actions button{width:100%;min-width:0;margin:0;}
+.condition-progress-options{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-top:10px;
+}
+.condition-progress-btn{
+  min-width:0;
+  border:1px solid var(--card-border);
+  border-radius:10px;
+  padding:11px 6px;
+  background:rgba(255,255,255,.02);
+  color:var(--text-secondary);
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.condition-progress-btn.active{
+  color:var(--sport);
+  border-color:var(--sport);
+  background:rgba(0,200,232,.10);
+}
+.condition-safety-note{
+  margin-top:12px;
+  padding:11px 12px;
+  border-left:2px solid var(--warn);
+  border-radius:0 8px 8px 0;
+  background:rgba(255,184,77,.07);
+  color:var(--text-secondary);
+  font-size:11px;
+  line-height:1.55;
+}
+@media(max-width:390px){
+  .health-tab{font-size:8px !important;letter-spacing:.08em !important;padding-left:5px !important;padding-right:5px !important;}
+  .condition-actions,.condition-editor-actions{grid-template-columns:1fr;}
+}
+</style>
+
 </head>
 <body>
 
@@ -5415,6 +5661,10 @@ let currentTrainingLog       = null;
 let clientSessionLogs        = [];
 let clientActiveTrainingAdaptations = [];
 let clientDailyCheckins      = [];
+let clientConditions          = [];
+let clientConditionEditor     = null;
+let clientConditionProgressEditor = null;
+let activeHealthTab           = 'checkin';
 let clientMobilityChain      = [];
 let clientAthleteProfile     = null;
 let clientCompetitionEvents  = [];
@@ -6784,6 +7034,28 @@ async function loadClientDashboard(sessionToken) {
       assessmentResultsR = { data: [], error: assessmentResultsErr };
     }
 
+    // Condiciones y molestias del cliente mediante sesión segura.
+    // Un fallo aquí no debe bloquear el acceso al panel.
+    let conditionsR = { data: [], error: null };
+
+    try {
+      conditionsR = await rpcTimeout(
+        db.rpc('ab_client_session_get_conditions', {
+          p_session_token: token,
+          p_limit: 100
+        }),
+        'condiciones y molestias'
+      );
+
+      if (conditionsR.error) {
+        console.warn('Conditions RPC:', conditionsR.error);
+        conditionsR = { data: [], error: conditionsR.error };
+      }
+    } catch (conditionsErr) {
+      console.warn('Conditions RPC no disponible:', conditionsErr);
+      conditionsR = { data: [], error: conditionsErr };
+    }
+
     // Historial de entrenamientos mediante sesión segura.
 // Se utiliza para progreso, constancia y sesiones ya completadas.
 let trainingLogsR = { data: [], error: null };
@@ -6924,6 +7196,10 @@ clientSessionLogs = Array.isArray(trainingLogsData)
         
     clientDailyCheckins = Array.isArray(checkinsR.data)
       ? checkinsR.data
+      : [];
+
+    clientConditions = Array.isArray(conditionsR.data)
+      ? conditionsR.data
       : [];
     
     clientActiveTrainingAdaptations = [];
@@ -14983,43 +15259,478 @@ function buildGeneralHealthHTML() {
   return objetivoHTML + progresoHTML + infoHTML;
 }
 
+
+function conditionUiText(key) {
+  const sr = getLang() === 'sr';
+  const dict = {
+    discomforts: sr ? 'TEGOBE' : 'MOLESTIAS',
+    reportTitle: sr ? 'Prijavi tegobu ili povredu' : 'Reportar molestia o lesión',
+    reportIntro: sr
+      ? 'Označi zonu i opiši šta osećaš. Trener će pregledati prijavu pre promene treninga.'
+      : 'Selecciona la zona y explica lo que sientes. Tu coach revisará el reporte antes de modificar el entrenamiento.',
+    reportButton: sr ? 'PRIJAVI TEGOBU' : 'REPORTAR MOLESTIA',
+    pendingTitle: sr ? 'Na pregledu' : 'En revisión',
+    activeTitle: sr ? 'Aktivna adaptacija' : 'Adaptación activa',
+    historyTitle: sr ? 'Istorija' : 'Historial',
+    noReports: sr ? 'Nema prijavljenih tegoba.' : 'No tienes molestias reportadas.',
+    pendingMessage: sr
+      ? 'Trener će pregledati informacije pre nego što aktivira promene.'
+      : 'Tu coach revisará la información antes de activar cambios en el entrenamiento.',
+    activeMessage: sr
+      ? 'Trening je prilagođen i ostaje pod praćenjem trenera.'
+      : 'Tu entrenamiento está adaptado y permanece bajo seguimiento del coach.',
+    updateReport: sr ? 'AŽURIRAJ PRIJAVU' : 'ACTUALIZAR REPORTE',
+    reportProgress: sr ? 'PRIJAVI NAPREDAK' : 'INFORMAR EVOLUCIÓN',
+    cancel: sr ? 'OTKAŽI' : 'CANCELAR',
+    send: sr ? 'POŠALJI TRENERU' : 'ENVIAR AL COACH',
+    saveProgress: sr ? 'SAČUVAJ NAPREDAK' : 'GUARDAR EVOLUCIÓN',
+    zone: sr ? 'Zona' : 'Zona afectada',
+    startDate: sr ? 'Datum početka' : 'Cuándo comenzó',
+    painNow: sr ? 'Bol sada · 0-10' : 'Dolor actual · 0-10',
+    painDuring: sr ? 'Bol tokom pokreta · 0-10' : 'Dolor durante el movimiento · 0-10',
+    trigger: sr ? 'Kada se pojavljuje?' : '¿Cuándo aparece o qué movimiento la provoca?',
+    triggerPlaceholder: sr ? 'Primer: pri čučnju ili silasku niz stepenice...' : 'Ej.: al hacer sentadillas o al bajar escaleras...',
+    limits: sr ? 'Ograničava mi normalan trening' : 'Me limita para entrenar con normalidad',
+    comment: sr ? 'Dodatni komentar' : 'Comentario adicional',
+    commentPlaceholder: sr ? 'Opiši kako je počelo ili šta se desilo...' : 'Explica cómo comenzó o qué ocurrió...',
+    importantSignals: sr ? 'Važni znaci' : 'Señales importantes',
+    safety: sr
+      ? 'Ovaj obrazac ne postavlja dijagnozu. Ako je bol jak, došlo je do ozbiljne traume ili gubitka snage/oseta, prekini aktivnost i potraži stručnu procenu.'
+      : 'Este formulario no establece un diagnóstico. Si el dolor es intenso, hubo un traumatismo importante o aparece pérdida de fuerza o sensibilidad, detén la actividad y busca valoración profesional.',
+    better: sr ? 'Bolje' : 'Mejor',
+    same: sr ? 'Isto' : 'Igual',
+    worse: sr ? 'Gore' : 'Peor',
+    progressQuestion: sr ? 'Kako se tegoba razvija?' : '¿Cómo ha evolucionado la molestia?',
+    progressComment: sr ? 'Komentar o promena koju primećuješ' : 'Comentario o cambio que notas',
+    progressPain: sr ? 'Bol sada · 0-10' : 'Dolor actual · 0-10',
+    selectZone: sr ? 'Izaberi zonu.' : 'Selecciona la zona afectada.',
+    selectEvolution: sr ? 'Izaberi kako se razvija.' : 'Selecciona cómo ha evolucionado.',
+    sending: sr ? 'ČUVANJE...' : 'GUARDANDO...'
+  };
+  return dict[key] || key;
+}
+
+function normalizeClientConditionStatus(value) {
+  const status = String(value || '').toLowerCase().trim();
+  if (['reported','pendiente','pending','en_revision','review'].includes(status)) return 'reported';
+  if (['active','activo'].includes(status)) return 'active';
+  if (['resolved','closed','inactive','recuperado','cerrado','descartado','rejected'].includes(status)) return 'resolved';
+  return status || 'reported';
+}
+
+function clientConditionStatusLabel(status) {
+  const sr = getLang() === 'sr';
+  const key = normalizeClientConditionStatus(status);
+  if (key === 'active') return sr ? 'Aktivno' : 'Adaptación activa';
+  if (key === 'resolved') return sr ? 'Zatvoreno' : 'Cerrada';
+  return sr ? 'Na pregledu' : 'En revisión';
+}
+
+function clientConditionStatusBadge(status) {
+  const key = normalizeClientConditionStatus(status);
+  if (key === 'active') return 'badge-blue';
+  if (key === 'resolved') return 'badge-green';
+  return 'badge-yellow';
+}
+
+function clientConditionZoneOptions() {
+  return [
+    { key:'dolor_lumbar', code:'LUM', name:getLang()==='sr'?'Donja leđa':'Lumbar' },
+    { key:'dolor_rodilla', code:'ROD', name:getLang()==='sr'?'Koleno':'Rodilla' },
+    { key:'dolor_hombro', code:'HOM', name:getLang()==='sr'?'Rame':'Hombro' },
+    { key:'dolor_cervical', code:'CER', name:getLang()==='sr'?'Vrat':'Cervical / cuello' },
+    { key:'dolor_tobillo', code:'TOB', name:getLang()==='sr'?'Skočni zglob':'Tobillo' },
+    { key:'dolor_cadera', code:'CAD', name:getLang()==='sr'?'Kuk':'Cadera' },
+    { key:'otro', code:'OTR', name:getLang()==='sr'?'Drugo':'Otra zona' }
+  ];
+}
+
+function clientConditionAreaFromKey(key) {
+  return ({
+    dolor_lumbar:'lumbar',
+    dolor_rodilla:'rodilla',
+    dolor_hombro:'hombro',
+    dolor_cervical:'cervical',
+    dolor_tobillo:'tobillo',
+    dolor_cadera:'cadera',
+    otro:'otro'
+  })[key] || 'otro';
+}
+
+function clientConditionById(id) {
+  return (clientConditions || []).find(row => String(row.id) === String(id)) || null;
+}
+
+function clientConditionPainValue(row) {
+  const values = [row?.pain_before, row?.pain_during, row?.pain_after]
+    .map(v => Number(v))
+    .filter(Number.isFinite);
+  return values.length ? Math.max(...values) : null;
+}
+
+function formatConditionDate(value) {
+  if (!value) return '—';
+  try { return formatDate(value); } catch { return String(value).slice(0,10); }
+}
+
+function buildConditionCard(row) {
+  const status = normalizeClientConditionStatus(row.status);
+  const pain = clientConditionPainValue(row);
+  const name = row.condition_name || row.area || row.condition_key || 'Molestia';
+  const defaultMessage = status === 'active'
+    ? conditionUiText('activeMessage')
+    : status === 'reported'
+      ? conditionUiText('pendingMessage')
+      : (getLang()==='sr' ? 'Proces je zatvoren.' : 'El proceso está cerrado.');
+  const message = row.client_message || defaultMessage;
+
+  let actions = '';
+  if (status === 'reported') {
+    actions = '<div class="condition-actions">' +
+      '<button type="button" class="client-action-btn" onclick="openClientConditionReport(\'' + row.id + '\')">' + conditionUiText('updateReport') + '</button>' +
+      '<button type="button" class="client-action-btn wa" onclick="clientWA(\'' + (getLang()==='sr' ? 'Želim da dodam informaciju o prijavljenoj tegobi.' : 'Quiero añadir información sobre la molestia reportada.') + '\')">WHATSAPP</button>' +
+    '</div>';
+  } else if (status === 'active') {
+    actions = '<div class="condition-actions">' +
+      '<button type="button" class="client-action-btn" onclick="openClientConditionProgress(\'' + row.id + '\')">' + conditionUiText('reportProgress') + '</button>' +
+      '<button type="button" class="client-action-btn wa" onclick="clientWA(\'' + (getLang()==='sr' ? 'Imam pitanje o aktivnoj adaptaciji treninga.' : 'Tengo una pregunta sobre mi adaptación activa.') + '\')">WHATSAPP</button>' +
+    '</div>';
+  }
+
+  return '<div class="data-card condition-card ' + status + '">' +
+    '<span class="condition-card-bar"></span>' +
+    '<div class="condition-card-top">' +
+      '<div style="min-width:0">' +
+        '<div class="condition-card-name">' + escHTML(name) + '</div>' +
+        '<div class="dc-sub" style="margin-top:4px">' + escHTML(formatConditionDate(row.start_date || row.created_at)) + '</div>' +
+      '</div>' +
+      '<span class="badge ' + clientConditionStatusBadge(status) + '">' + escHTML(clientConditionStatusLabel(status)) + '</span>' +
+    '</div>' +
+    '<div class="condition-meta">' +
+      (row.area ? '<span class="condition-meta-chip">' + escHTML(row.area) + '</span>' : '') +
+      (pain !== null ? '<span class="condition-meta-chip">Dolor ' + pain + '/10</span>' : '') +
+      (row.review_date ? '<span class="condition-meta-chip">Revisión ' + escHTML(formatConditionDate(row.review_date)) + '</span>' : '') +
+    '</div>' +
+    '<div class="condition-message">' + escHTML(message) + '</div>' +
+    actions +
+  '</div>';
+}
+
+function buildConditionReportEditor() {
+  const editor = clientConditionEditor;
+  if (!editor) return '';
+
+  const existing = editor.id ? clientConditionById(editor.id) : null;
+  const selectedKey = editor.key || existing?.condition_key || '';
+  const startDate = existing?.start_date ? String(existing.start_date).slice(0,10) : todayISO();
+  const painNow = existing?.pain_before ?? '';
+  const painDuring = existing?.pain_during ?? '';
+
+  return '<div class="data-card condition-editor" id="clientConditionEditorCard">' +
+    '<div class="next-label">' + (existing ? conditionUiText('updateReport') : conditionUiText('reportTitle')) + '</div>' +
+    '<div class="dc-note">' + conditionUiText('reportIntro') + '</div>' +
+    '<input type="hidden" id="clientConditionId" value="' + escHTML(existing?.id || '') + '">' +
+    '<input type="hidden" id="clientConditionKey" value="' + escHTML(selectedKey) + '">' +
+    '<div class="field-group" style="margin-top:14px;margin-bottom:0"><label>' + conditionUiText('zone') + '</label>' +
+      '<div class="condition-zone-grid">' + clientConditionZoneOptions().map(zone =>
+        '<button type="button" class="condition-zone-btn' + (selectedKey === zone.key ? ' active' : '') + '" onclick="selectClientConditionZone(\'' + zone.key + '\',this)">' +
+          '<span class="condition-zone-code">' + zone.code + '</span>' +
+          '<span class="condition-zone-name">' + escHTML(zone.name) + '</span>' +
+        '</button>'
+      ).join('') + '</div>' +
+    '</div>' +
+    '<div class="field-group" style="margin-top:13px;margin-bottom:0"><label for="clientConditionStartDate">' + conditionUiText('startDate') + '</label><input id="clientConditionStartDate" type="date" value="' + escHTML(startDate) + '"' + (existing ? ' disabled' : '') + '></div>' +
+    '<div class="condition-pain-grid" style="margin-top:12px">' +
+      '<div class="field-group" style="margin-bottom:0"><label for="clientConditionPainNow">' + conditionUiText('painNow') + '</label><input id="clientConditionPainNow" type="number" min="0" max="10" step="1" inputmode="numeric" value="' + escHTML(painNow) + '" placeholder="0-10"></div>' +
+      '<div class="field-group" style="margin-bottom:0"><label for="clientConditionPainDuring">' + conditionUiText('painDuring') + '</label><input id="clientConditionPainDuring" type="number" min="0" max="10" step="1" inputmode="numeric" value="' + escHTML(painDuring) + '" placeholder="0-10"></div>' +
+    '</div>' +
+    '<div class="field-group" style="margin-top:12px;margin-bottom:0"><label for="clientConditionTrigger">' + conditionUiText('trigger') + '</label><textarea id="clientConditionTrigger" class="training-notes-textarea" style="min-height:82px;margin-bottom:0" placeholder="' + escHTML(conditionUiText('triggerPlaceholder')) + '"></textarea></div>' +
+    '<label class="condition-check" style="margin-top:10px"><input id="clientConditionLimitsTraining" type="checkbox"><span>' + conditionUiText('limits') + '</span></label>' +
+    '<div class="field-group" style="margin-top:12px;margin-bottom:0"><label for="clientConditionComment">' + conditionUiText('comment') + '</label><textarea id="clientConditionComment" class="training-notes-textarea" style="min-height:76px;margin-bottom:0" placeholder="' + escHTML(conditionUiText('commentPlaceholder')) + '"></textarea></div>' +
+    '<div class="field-group" style="margin-top:13px;margin-bottom:0"><label>' + conditionUiText('importantSignals') + '</label>' +
+      '<div class="condition-check-list">' +
+        '<label class="condition-check"><input id="conditionFlagSwelling" type="checkbox"><span>' + (getLang()==='sr'?'Jako oticanje ili značajna trauma':'Hinchazón importante o traumatismo relevante') + '</span></label>' +
+        '<label class="condition-check"><input id="conditionFlagNumbness" type="checkbox"><span>' + (getLang()==='sr'?'Trnjenje, gubitak osećaja ili snage':'Hormigueo, pérdida de sensibilidad o de fuerza') + '</span></label>' +
+        '<label class="condition-check"><input id="conditionFlagFunction" type="checkbox"><span>' + (getLang()==='sr'?'Bol sprečava oslonac ili normalan pokret':'El dolor impide apoyar o mover con normalidad') + '</span></label>' +
+      '</div>' +
+    '</div>' +
+    '<div class="condition-safety-note">' + conditionUiText('safety') + '</div>' +
+    '<div class="condition-editor-actions">' +
+      '<button type="button" class="client-action-btn" style="background:transparent;border:1px solid var(--card-border);color:var(--text-secondary)" onclick="cancelClientConditionEditor()">' + conditionUiText('cancel') + '</button>' +
+      '<button type="button" class="client-action-btn" id="saveClientConditionBtn" onclick="saveClientConditionReport()">' + conditionUiText('send') + '</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function buildConditionProgressEditor() {
+  const id = clientConditionProgressEditor;
+  if (!id) return '';
+  const row = clientConditionById(id);
+  if (!row) return '';
+
+  return '<div class="data-card condition-editor" id="clientConditionProgressCard">' +
+    '<div class="next-label">' + conditionUiText('reportProgress') + '</div>' +
+    '<div class="dc-title">' + escHTML(row.condition_name || row.area || 'Molestia') + '</div>' +
+    '<div class="dc-note">' + conditionUiText('progressQuestion') + '</div>' +
+    '<input type="hidden" id="clientConditionProgressId" value="' + escHTML(id) + '">' +
+    '<input type="hidden" id="clientConditionEvolution" value="">' +
+    '<div class="condition-progress-options">' +
+      '<button type="button" class="condition-progress-btn" onclick="selectConditionEvolution(\'mejor\',this)">' + conditionUiText('better') + '</button>' +
+      '<button type="button" class="condition-progress-btn" onclick="selectConditionEvolution(\'igual\',this)">' + conditionUiText('same') + '</button>' +
+      '<button type="button" class="condition-progress-btn" onclick="selectConditionEvolution(\'peor\',this)">' + conditionUiText('worse') + '</button>' +
+    '</div>' +
+    '<div class="field-group" style="margin-top:12px;margin-bottom:0"><label for="clientConditionProgressPain">' + conditionUiText('progressPain') + '</label><input id="clientConditionProgressPain" type="number" min="0" max="10" step="1" inputmode="numeric" placeholder="0-10"></div>' +
+    '<div class="field-group" style="margin-top:12px;margin-bottom:0"><label for="clientConditionProgressComment">' + conditionUiText('progressComment') + '</label><textarea id="clientConditionProgressComment" class="training-notes-textarea" style="min-height:76px;margin-bottom:0"></textarea></div>' +
+    '<div class="condition-editor-actions">' +
+      '<button type="button" class="client-action-btn" style="background:transparent;border:1px solid var(--card-border);color:var(--text-secondary)" onclick="cancelClientConditionProgress()">' + conditionUiText('cancel') + '</button>' +
+      '<button type="button" class="client-action-btn" id="saveConditionProgressBtn" onclick="saveClientConditionProgress()">' + conditionUiText('saveProgress') + '</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function buildClientConditionsHTML() {
+  const rows = Array.isArray(clientConditions) ? clientConditions : [];
+  const current = rows.filter(row => ['reported','active'].includes(normalizeClientConditionStatus(row.status)));
+  const history = rows.filter(row => normalizeClientConditionStatus(row.status) === 'resolved');
+
+  let html = '<div class="data-card condition-intro-card">' +
+    '<div class="next-label">' + conditionUiText('discomforts') + '</div>' +
+    '<div class="dc-title">' + conditionUiText('reportTitle') + '</div>' +
+    '<div class="dc-note">' + conditionUiText('reportIntro') + '</div>' +
+    (!clientConditionEditor
+      ? '<button type="button" class="client-action-btn" style="margin-top:14px" onclick="openClientConditionReport()">' + conditionUiText('reportButton') + '</button>'
+      : '') +
+  '</div>';
+
+  html += buildConditionReportEditor();
+  html += buildConditionProgressEditor();
+
+  if (current.length) {
+    html += '<div class="condition-section-head"><div><div class="condition-section-title">' +
+      (getLang()==='sr'?'Aktivno praćenje':'Seguimiento actual') +
+      '</div><div class="condition-section-sub">' +
+      (getLang()==='sr'?'Prijave na pregledu i aktivne adaptacije.':'Reportes en revisión y adaptaciones activas.') +
+      '</div></div><span class="condition-count">' + current.length + '</span></div>';
+    html += current.map(buildConditionCard).join('');
+  } else if (!clientConditionEditor) {
+    html += '<div class="data-card"><div class="dc-row"><span class="dc-title">' + conditionUiText('noReports') + '</span><span class="badge badge-green">OK</span></div><div class="dc-note">' +
+      (getLang()==='sr'?'Ako se pojavi tegoba, možeš je prijaviti ovde.':'Cuando aparezca una molestia, puedes comunicarla directamente desde aquí.') +
+    '</div></div>';
+  }
+
+  if (history.length) {
+    html += '<div class="condition-section-head"><div><div class="condition-section-title">' + conditionUiText('historyTitle') + '</div><div class="condition-section-sub">' +
+      (getLang()==='sr'?'Zatvoreni ili oporavljeni procesi.':'Procesos cerrados o recuperados.') +
+      '</div></div><span class="condition-count">' + history.length + '</span></div>';
+    html += history.slice(0,8).map(buildConditionCard).join('');
+  }
+
+  return html;
+}
+
+function openClientConditionReport(conditionId = null) {
+  const existing = conditionId ? clientConditionById(conditionId) : null;
+  clientConditionProgressEditor = null;
+  clientConditionEditor = {
+    id: existing?.id || null,
+    key: existing?.condition_key || ''
+  };
+  activeHealthTab = 'molestias';
+  renderHealthAlerts();
+  setTimeout(() => document.getElementById('clientConditionEditorCard')?.scrollIntoView({behavior:'smooth',block:'start'}), 40);
+}
+
+function cancelClientConditionEditor() {
+  clientConditionEditor = null;
+  renderHealthAlerts();
+  showHealthTab('molestias');
+}
+
+function selectClientConditionZone(key, button) {
+  const input = document.getElementById('clientConditionKey');
+  if (input) input.value = key;
+  document.querySelectorAll('.condition-zone-btn').forEach(btn => btn.classList.remove('active'));
+  button?.classList.add('active');
+  if (clientConditionEditor) clientConditionEditor.key = key;
+}
+
+function clientConditionNumber(id) {
+  const value = document.getElementById(id)?.value;
+  if (value === '' || value == null) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function clientConditionErrorMessage(err) {
+  const raw = String(err?.message || err || '');
+  if (raw.includes('CONDICION_YA_ACTIVA')) return getLang()==='sr'?'Ova adaptacija je već aktivna. Pošalji napredak ili kontaktiraj trenera.':'Esta adaptación ya está activa. Informa su evolución o contacta con tu coach.';
+  if (raw.includes('TIPO_MOLESTIA_NO_VALIDO')) return conditionUiText('selectZone');
+  if (raw.includes('REPORTE_YA_REVISADO')) return getLang()==='sr'?'Trener je već pregledao prijavu.':'Tu coach ya revisó este reporte.';
+  if (raw.includes('DOLOR_')) return getLang()==='sr'?'Vrednost bola mora biti između 0 i 10.':'El dolor debe estar entre 0 y 10.';
+  return raw || (getLang()==='sr'?'Nije moguće sačuvati prijavu.':'No se pudo guardar el reporte.');
+}
+
+async function refreshClientConditions() {
+  const token = getClientSessionToken();
+  if (!token) return;
+  const { data, error } = await db.rpc('ab_client_session_get_conditions', {
+    p_session_token: token,
+    p_limit: 100
+  });
+  if (error) throw error;
+  clientConditions = Array.isArray(data) ? data : [];
+}
+
+async function saveClientConditionReport() {
+  const btn = document.getElementById('saveClientConditionBtn');
+  const conditionId = document.getElementById('clientConditionId')?.value || '';
+  const key = document.getElementById('clientConditionKey')?.value || '';
+  if (!key) {
+    showClientNotice(conditionUiText('selectZone'), 'error');
+    return;
+  }
+
+  const painNow = clientConditionNumber('clientConditionPainNow');
+  const painDuring = clientConditionNumber('clientConditionPainDuring');
+  if ((painNow !== null && (painNow < 0 || painNow > 10)) || (painDuring !== null && (painDuring < 0 || painDuring > 10))) {
+    showClientNotice(getLang()==='sr'?'Bol mora biti između 0 i 10.':'El dolor debe estar entre 0 y 10.', 'error');
+    return;
+  }
+
+  const flags = {
+    sudden_swelling_or_trauma: !!document.getElementById('conditionFlagSwelling')?.checked,
+    numbness_or_weakness: !!document.getElementById('conditionFlagNumbness')?.checked,
+    severe_function_loss: !!document.getElementById('conditionFlagFunction')?.checked
+  };
+
+  const common = {
+    p_session_token: getClientSessionToken(),
+    p_pain_now: painNow,
+    p_pain_during: painDuring,
+    p_trigger_text: document.getElementById('clientConditionTrigger')?.value?.trim() || null,
+    p_limits_training: !!document.getElementById('clientConditionLimitsTraining')?.checked,
+    p_client_comment: document.getElementById('clientConditionComment')?.value?.trim() || null,
+    p_red_flags: flags
+  };
+
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = conditionUiText('sending'); }
+    const rpcName = conditionId
+      ? 'ab_client_session_update_condition_report'
+      : 'ab_client_session_report_condition';
+    const payload = conditionId
+      ? { ...common, p_condition_id: conditionId }
+      : {
+          ...common,
+          p_condition_key: key,
+          p_area: clientConditionAreaFromKey(key),
+          p_start_date: document.getElementById('clientConditionStartDate')?.value || todayISO()
+        };
+    const { error } = await db.rpc(rpcName, payload);
+    if (error) throw error;
+    await refreshClientConditions();
+    clientConditionEditor = null;
+    activeHealthTab = 'molestias';
+    renderHealthAlerts();
+    showClientNotice(getLang()==='sr'?'Prijava je poslata treneru.':'Reporte enviado a tu coach.', 'success');
+  } catch (err) {
+    console.error('Save client condition report:', err);
+    showClientNotice(clientConditionErrorMessage(err), 'error');
+    if (btn) { btn.disabled = false; btn.textContent = conditionUiText('send'); }
+  }
+}
+
+function openClientConditionProgress(conditionId) {
+  clientConditionEditor = null;
+  clientConditionProgressEditor = conditionId;
+  activeHealthTab = 'molestias';
+  renderHealthAlerts();
+  setTimeout(() => document.getElementById('clientConditionProgressCard')?.scrollIntoView({behavior:'smooth',block:'start'}), 40);
+}
+
+function cancelClientConditionProgress() {
+  clientConditionProgressEditor = null;
+  renderHealthAlerts();
+  showHealthTab('molestias');
+}
+
+function selectConditionEvolution(value, button) {
+  const input = document.getElementById('clientConditionEvolution');
+  if (input) input.value = value;
+  document.querySelectorAll('.condition-progress-btn').forEach(btn => btn.classList.remove('active'));
+  button?.classList.add('active');
+}
+
+async function saveClientConditionProgress() {
+  const id = document.getElementById('clientConditionProgressId')?.value || '';
+  const evolution = document.getElementById('clientConditionEvolution')?.value || '';
+  const btn = document.getElementById('saveConditionProgressBtn');
+  if (!evolution) {
+    showClientNotice(conditionUiText('selectEvolution'), 'error');
+    return;
+  }
+  const painNow = clientConditionNumber('clientConditionProgressPain');
+  if (painNow !== null && (painNow < 0 || painNow > 10)) {
+    showClientNotice(getLang()==='sr'?'Bol mora biti između 0 i 10.':'El dolor debe estar entre 0 y 10.', 'error');
+    return;
+  }
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = conditionUiText('sending'); }
+    const { error } = await db.rpc('ab_client_session_report_condition_progress', {
+      p_session_token: getClientSessionToken(),
+      p_condition_id: id,
+      p_evolution: evolution,
+      p_pain_now: painNow,
+      p_comment: document.getElementById('clientConditionProgressComment')?.value?.trim() || null
+    });
+    if (error) throw error;
+    await refreshClientConditions();
+    clientConditionProgressEditor = null;
+    activeHealthTab = 'molestias';
+    renderHealthAlerts();
+    showClientNotice(getLang()==='sr'?'Napredak je poslat treneru.':'Evolución enviada a tu coach.', 'success');
+  } catch (err) {
+    console.error('Save condition progress:', err);
+    showClientNotice(clientConditionErrorMessage(err), 'error');
+    if (btn) { btn.disabled = false; btn.textContent = conditionUiText('saveProgress'); }
+  }
+}
+
 function renderHealthAlerts() {
   const el = document.getElementById('sectionHealth');
   const badge = document.getElementById('alertsBadge');
   if (!el) return;
 
   const showCombatMetrics = hasCombatMetricsEnabled();
-  if (badge) badge.textContent = clientAlerts.length;
+  const relevantConditions = (clientConditions || []).filter(row =>
+    ['reported','active'].includes(normalizeClientConditionStatus(row.status))
+  );
+  const healthCount = Number(clientAlerts.length || 0) + relevantConditions.length;
+  if (badge) badge.textContent = healthCount;
 
   const lang = getLang();
   const label1 = lang === 'sr' ? 'STANJE' : 'CHECK-IN';
   const label2 = lang === 'sr' ? 'METRIKE' : 'MÉTRICAS';
+  const label3 = conditionUiText('discomforts');
+  const conditionHasAttention = relevantConditions.length > 0;
 
-  // ── Sub-tabs ──
   let html =
     '<div class="health-tabs">' +
-      '<button class="health-tab active" id="healthTab1" onclick="showHealthTab(\'checkin\')">' +
-        label1 +
-        (clientAlerts.length > 0
-          ? '<span class="health-tab-dot"></span>'
-          : '') +
+      '<button class="health-tab" id="healthTabCheckin" onclick="showHealthTab(\'checkin\')">' +
+        label1 + (clientAlerts.length > 0 ? '<span class="health-tab-dot"></span>' : '') +
       '</button>' +
-      '<button class="health-tab" id="healthTab2" onclick="showHealthTab(\'metricas\')">' +
-        label2 +
+      '<button class="health-tab" id="healthTabMetricas" onclick="showHealthTab(\'metricas\')">' + label2 + '</button>' +
+      '<button class="health-tab" id="healthTabMolestias" onclick="showHealthTab(\'molestias\')">' +
+        label3 + (conditionHasAttention ? '<span class="health-tab-dot"></span>' : '') +
       '</button>' +
     '</div>';
 
-  // ── Panel 1: Check-in + Indicaciones ──
-  html += '<div class="health-panel active" id="health-panel-checkin">';
+  html += '<div class="health-panel" id="health-panel-checkin">';
   html += buildDailyCheckinHTML();
 
   if (clientAlerts.length) {
-    html +=
-      '<div style="margin:18px 0 10px;font-family:var(--font-mono);font-size:10px;' +
-      'letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
-        uiText('healthIndications') + ' · ' + clientAlerts.length +
-      '</div>';
-
+    html += '<div style="margin:18px 0 10px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-secondary);">' +
+      uiText('healthIndications') + ' · ' + clientAlerts.length + '</div>';
     html += clientAlerts.map(a => {
       const s = String(a.status || '').toLowerCase();
       let cls = 'badge-gray';
@@ -15027,57 +15738,35 @@ function renderHealthAlerts() {
       if (['pendiente','pending'].includes(s)) { cls = 'badge-yellow'; lbl = lang === 'sr' ? 'Na čekanju' : 'Pendiente'; }
       if (['alerta','critica','crítica','vencido'].includes(s)) { cls = 'badge-red'; lbl = lang === 'sr' ? 'Upozorenje' : 'Alerta'; }
       if (['revisado','ok','apto','resuelto'].includes(s)) { cls = 'badge-green'; lbl = lang === 'sr' ? 'Rešeno' : 'Resuelto'; }
-      return (
-        '<div class="data-card">' +
-          '<div class="dc-row">' +
-            '<span class="badge ' + cls + '">' + lbl + '</span>' +
-            '<span class="dc-sub">' + formatDate(a.date) + '</span>' +
-          '</div>' +
-          (a.detail
-            ? '<div style="margin-top:10px;font-size:14px;color:var(--text-primary);line-height:1.7;">' + a.detail + '</div>'
-            : '<div class="dc-note">' + (lang === 'sr' ? 'Nema registrovanog detalja.' : 'Sin detalle registrado.') + '</div>'
-          ) +
-        '</div>'
-      );
+      return '<div class="data-card"><div class="dc-row"><span class="badge ' + cls + '">' + escHTML(lbl) + '</span><span class="dc-sub">' + escHTML(formatDate(a.date)) + '</span></div>' +
+        (a.detail ? '<div style="margin-top:10px;font-size:14px;color:var(--text-primary);line-height:1.7;">' + escHTML(a.detail) + '</div>' : '<div class="dc-note">' + (lang === 'sr' ? 'Nema registrovanog detalja.' : 'Sin detalle registrado.') + '</div>') +
+      '</div>';
     }).join('');
   } else {
-    html +=
-      '<div class="data-card" style="margin-top:12px;">' +
-        '<div class="dc-row">' +
-          '<span class="dc-title">' + uiText('noActiveHealthNotes') + '</span>' +
-          '<span class="badge badge-green">OK</span>' +
-        '</div>' +
-        '<div class="dc-note">' + uiText('noHealthAlerts') + '</div>' +
-      '</div>';
+    html += '<div class="data-card" style="margin-top:12px"><div class="dc-row"><span class="dc-title">' + uiText('noActiveHealthNotes') + '</span><span class="badge badge-green">OK</span></div><div class="dc-note">' + uiText('noHealthAlerts') + '</div></div>';
   }
+  html += '</div>';
 
-  html += '</div>'; // /health-panel-checkin
-
-  // ── Panel 2: Métricas ──
   html += '<div class="health-panel" id="health-panel-metricas">';
+  html += showCombatMetrics ? buildCombatMetricsHTML() : buildGeneralHealthHTML();
+  html += '</div>';
 
-  if (showCombatMetrics) {
-    html += buildCombatMetricsHTML();
-  } else {
-    html += buildGeneralHealthHTML();
-  }
-
-  html += '</div>'; // /health-panel-metricas
+  html += '<div class="health-panel" id="health-panel-molestias">' + buildClientConditionsHTML() + '</div>';
 
   el.innerHTML = html;
-
+  showHealthTab(activeHealthTab || 'checkin', false);
   if (showCombatMetrics) cargarMetricasCombate();
 }
 
-function showHealthTab(tab) {
+function showHealthTab(tab, remember = true) {
+  const valid = ['checkin','metricas','molestias'];
+  const selected = valid.includes(tab) ? tab : 'checkin';
+  if (remember) activeHealthTab = selected;
   document.querySelectorAll('.health-tab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.health-panel').forEach(p => p.classList.remove('active'));
-
-  const panelId = 'health-panel-' + tab;
-  const tabIndex = tab === 'checkin' ? 0 : 1;
-
-  document.querySelectorAll('.health-tab')[tabIndex]?.classList.add('active');
-  document.getElementById(panelId)?.classList.add('active');
+  const tabId = selected === 'checkin' ? 'healthTabCheckin' : selected === 'metricas' ? 'healthTabMetricas' : 'healthTabMolestias';
+  document.getElementById(tabId)?.classList.add('active');
+  document.getElementById('health-panel-' + selected)?.classList.add('active');
 }
 
 /* ══ NAVIGATION ══ */
