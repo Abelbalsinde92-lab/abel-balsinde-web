@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>AB SYSTEM — Coach Panel · RPC 24 UNIFIED HEALTH</title>
-<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
+<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 24.1 CLIENT PROFILE HUB -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2642,6 +2642,37 @@ body.eval-modal-open {
   .condition-report-actions .btn{min-width:calc(50% - 3px)}
 }
 
+
+
+/* ═══ RPC 24.1 · CLIENT PROFILE HUB ═════════════════════ */
+.profile-hub-section{margin:0 0 16px}
+.profile-hub-kicker{font-family:var(--font-m);font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);margin:0 0 9px}
+.profile-hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.profile-hub-card{position:relative;width:100%;min-width:0;min-height:132px;padding:15px;border:1px solid var(--divider);border-radius:16px;background:var(--card);color:var(--text);text-align:left;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:8px;-webkit-tap-highlight-color:transparent}
+.profile-hub-card:active{transform:scale(.985)}
+.profile-hub-card.primary{border-color:rgba(0,200,232,.24);background:linear-gradient(145deg,rgba(0,200,232,.075),var(--card) 56%)}
+.profile-hub-card.health.attention{border-color:rgba(255,179,64,.45);background:linear-gradient(145deg,rgba(255,179,64,.09),var(--card) 56%)}
+.profile-hub-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(0,200,232,.09);border:1px solid rgba(0,200,232,.18)}
+.profile-hub-icon svg{width:23px;height:23px}
+.profile-hub-title{font-weight:800;font-size:.88rem;line-height:1.05}
+.profile-hub-value{font-family:var(--font-d);font-size:1.45rem;line-height:1;color:var(--text);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.profile-hub-value.text{font-family:var(--font);font-size:.78rem;font-weight:700;line-height:1.25;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.profile-hub-meta{font-size:.63rem;line-height:1.35;color:var(--text-2);margin-top:auto;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.profile-hub-arrow{position:absolute;right:13px;top:13px;color:var(--sport);font-size:1.05rem}
+.profile-hub-badge{position:absolute;right:11px;bottom:11px;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:rgba(255,179,64,.14);border:1px solid rgba(255,179,64,.25);color:var(--warn);font-family:var(--font-m);font-size:.52rem;display:flex;align-items:center;justify-content:center;font-weight:700}
+.profile-hub-manage{width:100%;min-width:0;min-height:84px;padding:13px;border:1px solid var(--divider);border-radius:14px;background:var(--card);color:var(--text);display:flex;align-items:center;gap:11px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.profile-hub-manage:active{transform:scale(.985)}
+.profile-hub-manage .profile-hub-icon{width:34px;height:34px;flex:0 0 34px}
+.profile-hub-manage-copy{flex:1;min-width:0}
+.profile-hub-manage-title{font-weight:750;font-size:.78rem;line-height:1.1}
+.profile-hub-manage-meta{font-size:.59rem;color:var(--text-2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-hub-chevron{color:var(--sport);font-size:1rem;flex:0 0 auto}
+.client-module-head{display:flex;align-items:center;gap:11px;padding:12px 13px;margin-bottom:12px;border:1px solid var(--divider);border-radius:14px;background:var(--card)}
+.client-module-head-copy{flex:1;min-width:0}
+.client-module-name{font-weight:800;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.client-module-sub{font-family:var(--font-m);font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin-top:3px}
+@media(max-width:360px){.profile-hub-grid{gap:8px}.profile-hub-card{padding:13px;min-height:124px}.profile-hub-value{font-size:1.28rem}.profile-hub-manage{padding:11px}}
+
 </style>
 <!-- AB SYSTEM · RPC 19 ADAPTATION ENGINE FIX -->
 </head>
@@ -2653,7 +2684,7 @@ body.eval-modal-open {
   <div class="login-card">
     <div class="login-brand"><span class="lb-1">AB</span><span class="lb-2">Coach Panel</span></div>
     <div class="login-title">ACCESO COACH</div>
-    <div class="login-sub">COACH PANEL · BUILD RPC 05</div>
+    <div class="login-sub">COACH PANEL · BUILD RPC 24.1</div>
     <div style="font-size:10px;letter-spacing:.14em;color:#00E5FF;margin:-12px 0 18px;text-transform:uppercase;">ruta /coach · backend RPC activo</div>
     <div id="login-err" class="login-err hidden"></div>
     <div class="login-field">
@@ -2755,6 +2786,18 @@ body.eval-modal-open {
       <div id="health-client-head"></div>
       <div class="health-coach-tabs" id="health-coach-tabs"></div>
       <div id="health-coach-content"></div>
+    </div>
+
+
+
+    <div class="scr" id="s-clientmodule">
+      <a class="scr-back" onclick="showScr('perfil')">← Perfil</a>
+      <div class="scr-h">
+        <div class="scr-eye" id="client-module-eye">Seguimiento</div>
+        <div class="scr-t" id="client-module-title">Cliente</div>
+      </div>
+      <div id="client-module-head"></div>
+      <div id="client-module-content"></div>
     </div>
 
     <div class="scr" id="s-workout">
@@ -2932,7 +2975,7 @@ const COACH_PHONE_DEFAULT = '381638112348';
 const ADMIN_USER_DEFAULT = 'abel_admin';
 const ADMIN_PASS_DEFAULT = 'ABcoach2024!';
 const APP_AREA = 'coach';
-const APP_BUILD_KEY = 'coach-rpc-05-secure-reservations';
+const APP_BUILD_KEY = 'coach-rpc-24-1-client-profile-hub';
 
 let AB_BOOT_ERROR = null;
 let db = null;
@@ -3011,6 +3054,7 @@ let filterAl='pendientes';
 let filterCondition='attention';
 let activeHealthCoachTab='summary';
 let activeHealthConditionFilter='current';
+let activeClientProfileModule='metrics';
 let filterPag='todos';
 let activeModal=null;
 let realtimeInitialized = false;
@@ -4306,7 +4350,7 @@ function showScr(id){
   if(tabMap[id]){
     document.getElementById(tabMap[id])?.classList.add('on');
   }else{
-    if(['perfil','workout','salud'].includes(id)){
+    if(['perfil','workout','salud','clientmodule'].includes(id)){
       document.getElementById('tab-clientes')?.classList.add('on');
     }else{
       document.getElementById('tab-mas')?.classList.add('on');
@@ -4327,7 +4371,7 @@ function renderScr(id){
   switch(id){
     case'hoy':renderHoy();break;case'clientes':renderClientes();break;
     case'alertas':renderAlertas();break;case'mas':renderMas();break;
-    case'perfil':renderPerfil();break;case'salud':renderClientHealth();break;case'workout':renderWorkout();break;
+    case'perfil':renderPerfil();break;case'salud':renderClientHealth();break;case'clientmodule':renderClientProfileModule();break;case'workout':renderWorkout();break;
     case'pagos':renderPagos();break;case'checkins':renderCheckins();break;
     case'whatsapp':renderWhatsapp();break;case'ajustes':renderAjustes();break;
     case'entreno':renderEntreno();break;
@@ -4542,7 +4586,7 @@ if(!isLogged){
    
    // Registrar Service Worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js?v=coach-rpc-24', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('/sw.js?v=coach-rpc-24-1', { updateViaCache: 'none' })
     .then(reg => {
       console.log('SW registrado ✓', reg.scope);
       // Escuchar mensajes del SW
@@ -6273,6 +6317,48 @@ async function openAssessmentResultsModal(assessmentId){
   }
 }
 
+function openClientProfileModule(clientId,module){
+  state.selectedClientId=clientId;
+  activeClientProfileModule=module||'metrics';
+  showScr('clientmodule');
+}
+
+function renderClientProfileModule(){
+  const c=clientById(state.selectedClientId);
+  const head=document.getElementById('client-module-head');
+  const content=document.getElementById('client-module-content');
+  const title=document.getElementById('client-module-title');
+  const eye=document.getElementById('client-module-eye');
+  if(!head||!content)return;
+  if(!c){
+    head.innerHTML='';
+    content.innerHTML=emptyState('Sin cliente','Vuelve al perfil del cliente.');
+    return;
+  }
+
+  const module=activeClientProfileModule||'metrics';
+  const config={
+    metrics:{title:'Métricas',eye:'Progreso del cliente',sub:'Medidas y evolución registradas'},
+    assessments:{title:'Evaluaciones',eye:'Resultados y pruebas',sub:'Tests, resultados e historial'}
+  }[module]||{title:'Seguimiento',eye:'Perfil del cliente',sub:'Información del cliente'};
+
+  if(title)title.textContent=config.title;
+  if(eye)eye.textContent=config.eye;
+  head.innerHTML=`<div class="client-module-head">
+    ${getClientPhotoHTML(c,'')}
+    <div class="client-module-head-copy">
+      <div class="client-module-name">${esc(c.name)}</div>
+      <div class="client-module-sub">${esc(config.sub)}</div>
+    </div>
+  </div>`;
+
+  if(module==='assessments'){
+    content.innerHTML=buildClientAssessmentsCard(c);
+    return;
+  }
+  content.innerHTML=buildClientMetricsCard(c);
+}
+
 function renderPerfil(){
   const el=document.getElementById('perfil-content');
   const c=clientById(state.selectedClientId);
@@ -6284,17 +6370,13 @@ function renderPerfil(){
   const program=getAssignmentProgram(assign);
   const pendPay=getClientPendingPayments(c.id);
   const nextSession = state.allRes
-  .filter(r =>
-    String(r.clientId || r.client_id) === String(c.id) &&
-    String(r.date || '') >= todayISO() &&
-    !['cancelada'].includes(String(r.status || '').toLowerCase())
-  )
-  .sort((a,b)=>
-    String((a.date || '') + (a.time || ''))
-      .localeCompare(String((b.date || '') + (b.time || '')))
-  )[0] || null;
+    .filter(r =>
+      String(r.clientId || r.client_id) === String(c.id) &&
+      String(r.date || '') >= todayISO() &&
+      !['cancelada'].includes(String(r.status || '').toLowerCase())
+    )
+    .sort((a,b)=>String((a.date || '') + (a.time || '')).localeCompare(String((b.date || '') + (b.time || ''))))[0] || null;
 
-  /* ── Stats ── */
   const clientLogs=state.sessionLogs.filter(l=>{
     const cid=String(l.clientId||l.client_id||'');
     const done=l.status==='realizada'||l.isFinished||l.is_finished||l.finishedAt||l.finished_at;
@@ -6311,105 +6393,85 @@ function renderPerfil(){
   const d14=new Date();d14.setDate(d14.getDate()-14);
   const last14=clientLogs.filter(l=>String(l.trainingDate||l.training_date||l.completedAt||l.completed_at||'').slice(0,10)>=d14.toISOString().slice(0,10)).length;
   const trend=last14-(last28-last14);
-  // weekTarget = sesiones por semana del plan actual (no total visible)
   const _weekSessions = assign ? (() => {
     const pos = getVisibleSessionPositions(assign);
     const currentWeek = getAssignmentWeek(assign);
     return pos.filter(p => Number(p.weekNumber) === Number(currentWeek)).length || 0;
   })() : 0;
-  const weekTarget = Math.min(Math.max(_weekSessions || (assign ? 3 : 3), 1), 7);
+  const weekTarget = Math.min(Math.max(_weekSessions || 3, 1), 7);
   const dotsHTML=Array(weekTarget).fill(0).map((_,i)=>`<span style="flex:1;height:3px;border-radius:2px;background:${i<thisWeekCount?'var(--sport)':'var(--divider)'}"></span>`).join('');
 
-  /* ── Condition badges ── */
-  const activeCondition=getActiveConditionForClient(c);
-  const condBadges=[];
-  if(activeCondition){
-    const key=activeCondition.conditionKey||activeCondition.condition_key||'';
-    condBadges.push(`<span style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,179,64,.4);color:var(--warn);font-weight:700;white-space:nowrap">${esc(getPathologyLabel(key))}</span>`);
-  }
-
-  /* ── Icons ── */
   const ico=d=>`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--sport)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
   const ICONS={
-    eval:   ico('<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>'),
-    metric: ico('<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'),
-    notes:  ico('<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'),
+    training:ico('<path d="M6 5v14M18 5v14M3 8v8M21 8v8M6 12h12"/>'),
+    eval:ico('<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>'),
+    metric:ico('<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'),
+    notes:ico('<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'),
     stretch:ico('<circle cx="12" cy="5" r="2"/><path d="M12 7v5l-3 5M12 12l3 5M9 11l-3-1M15 11l3-1"/>'),
-    mobil:  ico('<path d="M12 2a5 5 0 100 10A5 5 0 0012 2z"/><path d="M2 20c0-4 4.5-7 10-7s10 3 10 7"/>'),
-    pay:    ico('<circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>'),
-    plan:   ico('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'),
-    injury: ico('<path d="M8 3v5l-3 3 3 3v7"/><path d="M16 3v5l3 3-3 3v7"/><path d="M8 8h8M8 14h8"/>')
+    pay:ico('<circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>'),
+    plan:ico('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'),
+    health:ico('<path d="M8 3v5l-3 3 3 3v7"/><path d="M16 3v5l3 3-3 3v7"/><path d="M8 8h8M8 14h8"/>')
   };
 
-  const quickActions=[
-    {icon:ICONS.eval,   label:'Evaluación',   action:`openEvalModal('${c.id}','${esc(c.name)}',null,null)`},
-    {icon:ICONS.metric, label:'Métrica',       action:`openModal('metric',null,{clientId:'${c.id}'})`},
-    {icon:ICONS.notes,  label:'Notas',         action:`openModal('note',null,{clientId:'${c.id}'})`},
-    {icon:ICONS.stretch,label:'Asistidos',     action:`openStretchingAssisted('${c.id}','${esc(c.name)}')`},
-    {icon:ICONS.pay,    label:'Pago',          action:`openModal('payment',null,{clientId:'${c.id}'})`},
-    {icon:ICONS.plan,   label:'Plan',          action:`openModal('assignment',null,{clientId:'${c.id}'})`},
-    {icon:ICONS.injury, label:'Salud',         action:`openClientHealth('${c.id}','conditions')`},
-  ];
+  const metricRows=getClientGeneralMetrics(c.id);
+  const latestWeight=getLatestMetricValue(metricRows,'weight','weight');
+  const latestMetric=metricRows[0]||null;
+  const latestMetricValues=latestMetric?metricRecordValues(latestMetric):[];
+  const metricValue=latestWeight
+    ? `${formatMetricNumber(latestWeight.value)} kg`
+    : latestMetricValues.length
+      ? `${latestMetricValues[0].value}${latestMetricValues[0].unit?' '+latestMetricValues[0].unit:''}`
+      : 'Sin datos';
+  const metricDate=(latestWeight?.date||metricDateValue(latestMetric||{}));
 
-      el.innerHTML=`
+  const assessmentRows=getClientAssessmentsForResults(c.id);
+  const activeAssessments=assessmentRows.filter(row=>!['completado','completed'].includes(String(row.status||'').toLowerCase())).length;
+  const latestAssessment=assessmentRows[0]||null;
+  const latestAssessmentName=String(latestAssessment?.assessmentName||latestAssessment?.assessment_name||'Sin evaluaciones');
+  const latestAssessmentDate=latestAssessment?.assessmentDate||latestAssessment?.assessment_date||'';
 
-    <!-- ① CABECERA CLIENTE CERRADA -->
-<div class="card" style="padding:14px;margin-bottom:10px">
-  <div style="display:flex;align-items:center;gap:12px">
-    ${getClientPhotoHTML(c,'')}
+  const conditionRows=conditionSortRows(conditionRowsForClient(c.id));
+  const healthAttention=conditionRows.filter(conditionNeedsCoachAttention).length;
+  const healthActive=conditionRows.filter(row=>normalizeCoachConditionStatus(row.status)==='active').length;
+  const healthResolved=conditionRows.filter(row=>normalizeCoachConditionStatus(row.status)==='resolved').length;
+  const latestCondition=conditionRows[0]||null;
 
-    <div style="flex:1;min-width:0">
-      <div style="font-weight:800;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-        ${esc(c.name)}
-      </div>
+  const programName=String(program?.name||program?.title||program?.programName||program?.program_name||assign?.commercialLabel||assign?.commercial_label||'Sin plan asignado');
+  const currentWeek=assign?getAssignmentWeek(assign):null;
+  const planMeta=assign
+    ? `${currentWeek?'Semana '+currentWeek+' · ':''}${getAssignmentVisibleSessions(assign).length} sesiones visibles`
+    : 'Asigna un plan para comenzar';
 
-      <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);letter-spacing:.06em;margin-top:2px">
-        Próx. sesión
-      </div>
-
-      <div style="font-weight:700;font-size:.82rem;color:var(--text);margin-top:1px">
-        ${nextSession ? `${formatDate(nextSession.date)} ${formatTime(nextSession.time)}` : 'Sin sesión programada'}
+  el.innerHTML=`
+    <div class="card" style="padding:14px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:12px">
+        ${getClientPhotoHTML(c,'')}
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</div>
+          <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);letter-spacing:.06em;margin-top:2px">Próx. sesión</div>
+          <div style="font-weight:700;font-size:.82rem;color:var(--text);margin-top:1px">${nextSession ? `${formatDate(nextSession.date)} ${formatTime(nextSession.time)}` : 'Sin sesión programada'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+          ${badge(c.status || 'prospecto', c.status || 'prospecto')}
+          ${todayCI ? badge(ciStatus || 'normal', ciStatus || 'normal') : `<span class="b" style="background:rgba(255,179,64,.12);color:var(--warn);border:1px solid rgba(255,179,64,.3)">Sin CI</span>`}
+        </div>
       </div>
     </div>
 
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
-      ${badge(c.status || 'prospecto', c.status || 'prospecto')}
-      ${todayCI ? badge(ciStatus || 'normal', ciStatus || 'normal') : `<span class="b" style="background:rgba(255,179,64,.12);color:var(--warn);border:1px solid rgba(255,179,64,.3)">Sin CI</span>`}
-    </div>
-  </div>
-</div>
-
-<!-- ② CTA + ACCIONES SECUNDARIAS fuera de la tarjeta -->
     <button class="btn btn-cyan btn-wide" style="margin-bottom:8px;height:50px;border-radius:12px;font-size:.7rem;letter-spacing:.12em;gap:8px" onclick="openWorkout('${c.id}')">
-  INICIAR SESIÓN DE HOY <span style="font-size:1rem">→</span>
-</button>
+      INICIAR SESIÓN DE HOY <span style="font-size:1rem">→</span>
+    </button>
     <div style="display:flex;gap:6px;margin-bottom:14px">
       <button class="btn btn-s btn-sm" style="flex:1" onclick="openModal('client','${c.id}')">Editar</button>
       ${c.phone?`<button class="btn btn-s btn-sm" style="flex:1" onclick="copyClientLink('${c.id}')">Copiar acceso</button>`:''}
       ${c.phone?`<button class="btn btn-wa btn-sm" style="flex:1" onclick="sendClientAccessWA('${c.id}')">Enviar acceso</button>`:''}
     </div>
 
-    <!-- ③ ACCESOS RÁPIDOS -->
-    <div style="margin-bottom:12px">
-      <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);margin-bottom:10px">Accesos rápidos</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-        ${quickActions.map(a=>`
-          <button class="card" style="padding:16px 8px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:86px;margin-bottom:0" onclick="${a.action}">
-            ${a.icon}
-            <span style="font-size:.76rem;font-weight:600;color:var(--text);text-align:center">${a.label}</span>
-          </button>`).join('')}
-      </div>
-    </div>
-
-    <!-- ④ STATS -->
-    <div class="card" style="padding:0;margin-bottom:14px;overflow:hidden">
+    <div class="card" style="padding:0;margin-bottom:16px;overflow:hidden">
       <div style="display:grid;grid-template-columns:repeat(3,1fr)">
         <div style="padding:12px 10px;border-right:1px solid var(--divider)">
           <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">Última sesión</div>
-          ${lastDateStr
-            ?`<div style="font-weight:700;font-size:.82rem;line-height:1.2">${formatDate(lastDateStr)}</div>
-              <div style="font-size:.6rem;color:var(--text-2);margin-top:2px">${daysAgo(lastDateStr)||''}</div>`
-            :`<div style="font-size:.8rem;color:var(--text-2)">—</div>`}
+          ${lastDateStr?`<div style="font-weight:700;font-size:.82rem;line-height:1.2">${formatDate(lastDateStr)}</div><div style="font-size:.6rem;color:var(--text-2);margin-top:2px">${daysAgo(lastDateStr)||''}</div>`:`<div style="font-size:.8rem;color:var(--text-2)">—</div>`}
         </div>
         <div style="padding:12px 10px;border-right:1px solid var(--divider)">
           <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">Esta semana</div>
@@ -6424,28 +6486,54 @@ function renderPerfil(){
       </div>
     </div>
 
-    <!-- ⑤ MÉTRICAS Y PROGRESO -->
-    ${buildClientMetricsCard(c)}
+    <section class="profile-hub-section">
+      <div class="profile-hub-kicker">Accesos principales</div>
+      <div class="profile-hub-grid">
+        <button class="profile-hub-card primary" onclick="openWorkout('${c.id}')">
+          <span class="profile-hub-arrow">›</span><span class="profile-hub-icon">${ICONS.training}</span>
+          <span class="profile-hub-title">Entrenamiento</span>
+          <span class="profile-hub-value text">${esc(programName)}</span>
+          <span class="profile-hub-meta">${esc(planMeta)}</span>
+        </button>
+        <button class="profile-hub-card health ${healthAttention?'attention':''}" onclick="openClientHealth('${c.id}','summary')">
+          <span class="profile-hub-arrow">›</span><span class="profile-hub-icon">${ICONS.health}</span>
+          <span class="profile-hub-title">Salud</span>
+          <span class="profile-hub-value">${healthActive}</span>
+          <span class="profile-hub-meta">${healthAttention?healthAttention+' por revisar':healthResolved?healthResolved+' en historial':'Sin condiciones activas'}</span>
+          ${healthAttention?`<span class="profile-hub-badge">${healthAttention}</span>`:''}
+        </button>
+        <button class="profile-hub-card primary" onclick="openClientProfileModule('${c.id}','assessments')">
+          <span class="profile-hub-arrow">›</span><span class="profile-hub-icon">${ICONS.eval}</span>
+          <span class="profile-hub-title">Evaluaciones</span>
+          <span class="profile-hub-value">${assessmentRows.length}</span>
+          <span class="profile-hub-meta">${activeAssessments?activeAssessments+' en progreso':latestAssessment?esc(latestAssessmentName)+(latestAssessmentDate?' · '+formatDate(latestAssessmentDate):''):'Crear primera evaluación'}</span>
+          ${activeAssessments?`<span class="profile-hub-badge">${activeAssessments}</span>`:''}
+        </button>
+        <button class="profile-hub-card primary" onclick="openClientProfileModule('${c.id}','metrics')">
+          <span class="profile-hub-arrow">›</span><span class="profile-hub-icon">${ICONS.metric}</span>
+          <span class="profile-hub-title">Métricas</span>
+          <span class="profile-hub-value ${metricRows.length?'':'text'}">${esc(metricValue)}</span>
+          <span class="profile-hub-meta">${metricRows.length?metricRows.length+' registros'+(metricDate?' · '+formatDate(metricDate):''):'Registrar primera medición'}</span>
+        </button>
+      </div>
+    </section>
 
-    <!-- ⑥ EVALUACIONES Y TABLA DE RESULTADOS -->
-    ${buildClientAssessmentsCard(c)}
-
-    <!-- ⑦ SALUD UNIFICADA -->
-    ${buildClientHealthSummaryCard(c)}
-
+    <section class="profile-hub-section">
+      <div class="profile-hub-kicker">Gestión</div>
+      <div class="profile-hub-grid">
+        <button class="profile-hub-manage" onclick="openModal('note',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.notes}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Notas</span><span class="profile-hub-manage-meta">Registrar observación</span></span><span class="profile-hub-chevron">›</span></button>
+        <button class="profile-hub-manage" onclick="openStretchingAssisted('${c.id}','${esc(c.name)}')"><span class="profile-hub-icon">${ICONS.stretch}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Asistidos</span><span class="profile-hub-manage-meta">Movilidad y trabajo guiado</span></span><span class="profile-hub-chevron">›</span></button>
+        <button class="profile-hub-manage" onclick="openModal('payment',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.pay}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Pagos</span><span class="profile-hub-manage-meta">${pendPay.length?pendPay.length+' pendiente'+(pendPay.length===1?'':'s'):'Sin pagos pendientes'}</span></span><span class="profile-hub-chevron">›</span></button>
+        <button class="profile-hub-manage" onclick="openModal('assignment',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.plan}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Plan</span><span class="profile-hub-manage-meta">${esc(programName)}</span></span><span class="profile-hub-chevron">›</span></button>
+      </div>
+    </section>
   `;
 
-  const intelPanel = document.getElementById('intel-panel');
-  if (intelPanel) {
-    const isAthlete = c.athleteProfile && c.athleteProfile !== 'general';
-    if (isAthlete) {
-      intelPanel.style.display = '';
-      intelPanel.innerHTML = '<div class="intel-skeleton"></div>';
-      loadAthleteSemaforo(c.id);
-    } else {
-      intelPanel.style.display = 'none';
-      intelPanel.innerHTML = '';
-    }
+  const intelPanel=document.getElementById('intel-panel');
+  if(intelPanel){
+    const isAthlete=c.athleteProfile&&c.athleteProfile!=='general';
+    if(isAthlete){intelPanel.style.display='';intelPanel.innerHTML='<div class="intel-skeleton"></div>';loadAthleteSemaforo(c.id)}
+    else{intelPanel.style.display='none';intelPanel.innerHTML=''}
   }
 }
 
@@ -17085,7 +17173,7 @@ async function initPushNotifications() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
   try {
-    await navigator.serviceWorker.register('/sw.js?v=coach-rpc-24', { updateViaCache: 'none' });
+    await navigator.serviceWorker.register('/sw.js?v=coach-rpc-24-1', { updateViaCache: 'none' });
     const swReg = await navigator.serviceWorker.ready;
 
     const perm = await Notification.requestPermission();
