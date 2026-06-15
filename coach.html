@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 25 PERFORMANCE + SECURITY</title>
-<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 25 PERFORMANCE + SECURITY -->
+<title>AB SYSTEM — Coach Panel · RPC 26 FIELD VISUAL POLISH</title>
+<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 26 FIELD VISUAL POLISH -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2710,6 +2710,85 @@ body.eval-modal-open {
   .profile-hub-manage{min-height:66px}
 }
 
+
+
+/* ================================================================
+   AB SYSTEM · RPC 26 FIELD VISUAL POLISH
+   Compactación de campo sin alterar lógica funcional
+   ================================================================ */
+.session-card-actions{display:grid;grid-template-columns:minmax(92px,1.45fr) minmax(58px,.8fr) minmax(46px,.58fr) minmax(72px,.92fr) 42px;gap:7px;padding:11px 13px;border-top:1px solid var(--divider);align-items:stretch}
+.session-card-actions .btn{width:100%;min-width:0;padding:0 8px;overflow:hidden;text-overflow:ellipsis}
+.session-more{position:relative;min-width:0}
+.session-more>summary{list-style:none;width:42px;height:40px;border:1px solid var(--card-border);border-radius:8px;background:var(--bg);color:var(--text-2);display:flex;align-items:center;justify-content:center;font-family:var(--font-m);font-size:.8rem;letter-spacing:.1em;cursor:pointer}
+.session-more>summary::-webkit-details-marker{display:none}
+.session-more[open]>summary{border-color:rgba(0,200,232,.35);color:var(--sport)}
+.session-more-pop{position:absolute;right:0;bottom:48px;z-index:30;width:176px;padding:7px;background:#17171a;border:1px solid var(--card-border);border-radius:10px;box-shadow:0 16px 38px rgba(0,0,0,.55);display:grid;gap:6px}
+.session-more-pop .btn{justify-content:flex-start;width:100%}
+.session-meta-line{font-size:.69rem;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.session-plan-line{font-size:.7rem;color:var(--sport);line-height:1.35;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.condition-history-compact{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px 14px;margin-bottom:8px;background:var(--card);border:1px solid var(--card-border);border-left:3px solid var(--streak);border-radius:12px;text-align:left}
+.condition-history-compact:active{transform:scale(.99)}
+.condition-history-client{font-weight:800;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.condition-history-title{font-family:var(--font-d);font-size:1.05rem;letter-spacing:.03em;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.condition-history-meta{font-family:var(--font-m);font-size:.5rem;letter-spacing:.05em;color:var(--text-2);margin-top:4px}
+.condition-history-side{display:flex;align-items:center;gap:8px;color:var(--sport)}
+
+.ac-compact-head{padding:12px 13px}
+.ac-compact-msg{-webkit-line-clamp:1;margin-top:4px}
+.ac-compact-right{gap:4px}
+.ac-compact-chevron{color:var(--text-2);font-size:1.05rem;transition:transform .16s ease}
+.ac-compact.open .ac-compact-chevron{transform:rotate(90deg);color:var(--sport)}
+.ac-compact-body{padding:0 13px 11px}
+
+.profile-hub-feature{min-height:94px}
+.profile-hub-feature-value{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.16}
+.profile-hub-feature-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.workout-config{margin:0 0 10px;background:var(--card);border:1px solid var(--card-border);border-radius:13px;overflow:hidden}
+.workout-config>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+.workout-config>summary::-webkit-details-marker{display:none}
+.workout-config-cell{padding:10px 11px;border-right:1px solid var(--divider);min-width:0}
+.workout-config-cell:last-child{border-right:none}
+.workout-config-label{display:block;font-family:var(--font-m);font-size:.42rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:3px}
+.workout-config-value{display:block;font-weight:800;font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.workout-config>summary::after{content:'AJUSTAR';position:absolute;right:12px;margin-top:31px;font-family:var(--font-m);font-size:.39rem;letter-spacing:.08em;color:var(--sport)}
+.workout-config>summary{position:relative;padding-right:0}
+.workout-config-body{padding:12px;border-top:1px solid var(--divider);background:#0d0d0f}
+.workout-config-section{margin-bottom:12px}
+.workout-config-section:last-child{margin-bottom:0}
+.workout-config-section-title{font-family:var(--font-m);font-size:.45rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-2);margin-bottom:7px}
+.workout-config-body .fr{margin-bottom:0!important}
+
+.more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.more-card{position:relative;min-height:104px;padding:18px 15px;display:flex;align-items:center;gap:13px;text-align:left;margin:0;background:var(--card);border:1px solid var(--card-border);border-radius:var(--r)}
+.more-card:active{transform:scale(.985)}
+.more-card-label{font-size:.8rem;font-weight:750;line-height:1.25}
+.more-badge{position:absolute;top:9px;right:9px;min-width:20px;height:20px;border-radius:999px;padding:0 6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-m);font-size:.5rem;font-weight:700;border:1px solid transparent}
+.more-badge.info{background:rgba(0,200,232,.12);border-color:rgba(0,200,232,.25);color:var(--sport)}
+.more-badge.warn{background:rgba(255,179,64,.13);border-color:rgba(255,179,64,.28);color:var(--warn)}
+.more-badge.danger{background:rgba(255,90,90,.13);border-color:rgba(255,90,90,.28);color:var(--medical)}
+.more-profile-card{width:100%;min-height:78px;padding:12px 14px;display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:center;gap:12px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);text-align:left}
+.more-profile-copy{min-width:0}
+.more-profile-name{font-weight:800;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.more-profile-sub{font-family:var(--font-m);font-size:.47rem;letter-spacing:.09em;text-transform:uppercase;color:var(--sport);margin-top:4px}
+.more-profile-chevron{font-size:1.2rem;color:var(--sport)}
+.more-profile-card .hoy-coach-avatar{width:46px;height:46px}
+
+.stretch-ex-item{padding:0}
+.stretch-ex-row{min-height:68px;padding:11px 12px;gap:10px}
+.stretch-ex-name{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25}
+.stretch-ex-icon .ab-line-icon{width:26px;height:26px}
+.stretch-modal-header .btn{min-width:42px;padding:0 12px}
+
+.client-payment-label{font-family:var(--font-m);font-size:.48rem;padding:2px 6px;border-radius:4px;font-weight:700;flex-shrink:0;background:rgba(255,179,64,.10);border:1px solid rgba(255,179,64,.24);color:var(--warn)}
+
+@media(max-width:370px){
+  .session-card-actions{grid-template-columns:minmax(82px,1.35fr) minmax(50px,.72fr) minmax(42px,.52fr) minmax(62px,.84fr) 40px;gap:5px;padding-left:10px;padding-right:10px}
+  .session-card-actions .btn{font-size:.54rem;padding:0 5px}
+  .workout-config-cell{padding:10px 8px}
+  .workout-config-value{font-size:.66rem}
+}
 </style>
 <!-- AB SYSTEM · RPC 19 ADAPTATION ENGINE FIX -->
 </head>
@@ -2721,7 +2800,7 @@ body.eval-modal-open {
   <div class="login-card">
     <div class="login-brand"><span class="lb-1">AB</span><span class="lb-2">Coach Panel</span></div>
     <div class="login-title">ACCESO COACH</div>
-    <div class="login-sub">COACH PANEL · BUILD RPC 25</div>
+    <div class="login-sub">COACH PANEL · BUILD RPC 26</div>
     <div style="font-size:10px;letter-spacing:.14em;color:#00E5FF;margin:-12px 0 18px;text-transform:uppercase;">ruta /coach · backend RPC activo</div>
     <div id="login-err" class="login-err hidden"></div>
     <div class="login-field">
@@ -2785,7 +2864,7 @@ body.eval-modal-open {
       <div class="scr-h">
                 <div class="scr-eye">Notificaciones</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%">
-  <div class="scr-t" id="hoy-title">Alertas</div>
+  <div class="scr-t" id="alertas-title">Alertas</div>
   <img src="/icon-192.png" alt="AB" style="height:48px;width:auto;object-fit:contain;flex-shrink:0">
 </div>
       </div>
@@ -2800,7 +2879,7 @@ body.eval-modal-open {
                <div>
           <div class="scr-eye">Navegación</div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%">
-  <div class="scr-t" id="hoy-title">Más</div>
+  <div class="scr-t" id="mas-title">Más</div>
 </div>
         </div>
         <button class="btn btn-r btn-sm" style="flex-shrink:0;margin-bottom:6px" onclick="doLogout()">⏻ Salir</button>
@@ -3012,7 +3091,7 @@ const COACH_PHONE_DEFAULT = '381638112348';
 const ADMIN_USER_DEFAULT = 'abel_admin';
 const ADMIN_PASS_DEFAULT = 'ABcoach2024!';
 const APP_AREA = 'coach';
-const APP_BUILD_KEY = 'coach-rpc-25-performance-security';
+const APP_BUILD_KEY = 'coach-rpc-26-field-visual-polish';
 
 let AB_BOOT_ERROR = null;
 let db = null;
@@ -3316,6 +3395,7 @@ function todayISO(){const d=new Date();return`${d.getFullYear()}-${String(d.getM
 function formatDate(s){if(!s)return'—';const[y,m,d]=String(s).split('-');return y&&m&&d?`${d}/${m}/${y}`:s}
 function formatTime(s){return s?String(s).slice(0,5):'—'}
 function initials(name){return(name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'?'}
+function compactPlanLabel(name){const raw=String(name||'').trim();if(!raw)return'';const first=raw.split(/\s+[—–-]\s+/)[0].trim();return first||raw}
 function firstName(name){return String(name||'').split(/\s+/)[0]||''}
 function clientById(id){return state.clients.find(c=>String(c.id)===String(id))}
 
@@ -3716,6 +3796,17 @@ function buildCoachConditionCard(row,{compact=false}={}){
   const follow=conditionReviewState(row);
   const newProgress=conditionHasNewProgress(row);
   const klass=status+(flags.length?' red-flag':'');
+  if(compact&&status==='resolved'){
+    const detailAction=cid?`openClientHealth('${cid}','conditions')`:'';
+    return `<button class="condition-history-compact" ${detailAction?`onclick="${detailAction}"`:''}>
+      <span style="min-width:0">
+        <span class="condition-history-client">${esc(conditionClientName(row))}</span>
+        <span class="condition-history-title">${esc(conditionZoneLabel(row))}</span>
+        <span class="condition-history-meta">${created?formatDate(created):'Sin fecha'} · ${esc(conditionResolutionLabel(row))}</span>
+      </span>
+      <span class="condition-history-side">${badge('Resuelta','resuelta')}<span>›</span></span>
+    </button>`;
+  }
   let actions='';
   if(status==='reported'){
     actions=`
@@ -3772,8 +3863,12 @@ function buildConditionInboxHTML(rows,{title='Molestias reportadas',showFilters=
   };
   let visible=rows||(filterCondition==='attention'?conditionAttentionRows():conditionRowsByStatus(filterCondition));
   visible=conditionSortRows(visible);
+  const historyMode=/historial/i.test(String(title))||(visible.length>0&&visible.every(r=>normalizeCoachConditionStatus(r?.status)==='resolved'));
+  const inboxSub=historyMode
+    ? 'Condiciones y reportes cerrados por el coach.'
+    : 'Reportes nuevos, evoluciones y revisiones que requieren decisión del coach.';
   return `<section class="condition-inbox">
-    <div class="condition-inbox-head"><div><div class="condition-inbox-kicker">Seguimiento de salud</div><div class="condition-inbox-title">${esc(title)}</div><div class="condition-inbox-sub">Reportes nuevos, evoluciones y revisiones que requieren decisión del coach.</div></div>${badge(String(visible.length),visible.some(r=>conditionHasRedFlags(r))?'alerta':'revisar')}</div>
+    <div class="condition-inbox-head"><div><div class="condition-inbox-kicker">Seguimiento de salud</div><div class="condition-inbox-title">${esc(title)}</div><div class="condition-inbox-sub">${esc(inboxSub)}</div></div>${badge(String(visible.length),historyMode?'normal':visible.some(r=>conditionHasRedFlags(r))?'alerta':'revisar')}</div>
     ${showFilters?`<div class="condition-filter-row">${[
       ['attention',`Por revisar ${counts.attention}`],['reported',`Nuevas ${counts.reported}`],['active',`Activas ${counts.active}`],['resolved',`Historial ${counts.resolved}`],['all','Todas']
     ].map(([k,l])=>`<button class="fp ${filterCondition===k?'on':''}" onclick="filterCondition='${k}';renderAlertas()">${l}</button>`).join('')}</div>`:''}
@@ -4423,6 +4518,7 @@ function showScr(id){
 
   window.scrollTo(0,0);
 
+  renderTopAvatar();
   renderScr(id);
 }
 
@@ -4620,7 +4716,7 @@ async function registerCoachServiceWorker(){
   if(!('serviceWorker' in navigator))return null;
   bindCoachServiceWorkerMessageListener();
   try{
-    return await navigator.serviceWorker.register('/sw.js?v=coach-rpc-25-01',{updateViaCache:'none'});
+    return await navigator.serviceWorker.register('/sw.js?v=coach-rpc-26-01',{updateViaCache:'none'});
   }catch(err){
     console.warn('SW error:',err);
     return null;
@@ -5640,22 +5736,26 @@ function buildSessionCard(r){
   const assignment=c?getClientActiveAssignment(c.id):null;
   const program=getAssignmentProgram(assignment);
   const status=r.status||'reservada';
+  const normalizedStatus=String(status).toLowerCase();
 
   const urgency=critical||ciStatus==='alerta'?'urg':(ciStatus==='revisar'||pendPay.length||!ci)?'wrn':'ok';
 
   const ciBadge=!ci?`<span class="b" style="background:rgba(255,179,64,.12);color:var(--warn);border:1px solid rgba(255,179,64,.35)">Sin CI</span>`
-    :ciStatus==='alerta'?`<span class="b b-alerta">⚠ CI</span>`
-    :ciStatus==='revisar'?`<span class="b b-revisar">CI?</span>`
-    :`<span class="b b-normal">CI ✓</span>`;
+    :ciStatus==='alerta'?`<span class="b b-alerta">CI alerta</span>`
+    :ciStatus==='revisar'?`<span class="b b-revisar">CI revisar</span>`
+    :`<span class="b b-normal">CI normal</span>`;
 
   const alertBadge=alerts.length
-    ?`<span class="b ${critical?'b-alerta':'b-revisar'}">${alerts.length}${critical?' ⚠':'!'}</span>`:'';
+    ?`<span class="b ${critical?'b-alerta':'b-revisar'}">${alerts.length} alerta${alerts.length===1?'':'s'}</span>`:'';
 
   const payBadge=pendPay.length
-    ?`<span class="b b-pendiente">${money(pendPay.reduce((s,p)=>s+Number(p.amount||0),0))}</span>`:'';
+    ?`<span class="b b-pendiente">${money(pendPay.reduce((sum,p)=>sum+Number(p.amount||0),0))} pendiente</span>`:'';
 
   const ciNote=ci?.comment
     ?`<div style="margin:0 14px 8px;padding:6px 10px;font-size:.76rem;color:var(--warn);line-height:1.45;border-left:2px solid var(--warn);background:rgba(255,179,64,.05);border-radius:0 6px 6px 0">${esc(ci.comment)}</div>`:'';
+
+  const completed=['cancelada','realizada'].includes(normalizedStatus);
+  const canConfirm=['reservada','pendiente'].includes(normalizedStatus);
 
   return`
   <div class="sc ${urgency}">
@@ -5667,29 +5767,37 @@ function buildSessionCard(r){
           <span style="font-weight:700;font-size:.92rem">${esc(c?.name||'Cliente eliminado')}</span>
           ${badge(status,status)}
         </div>
-        <div style="font-size:.72rem;color:var(--text-2);margin-bottom:4px">
-          ${esc(r.type||'Sesión')} · ${esc(r.place||'—')}${program?` · <span style="color:var(--sport)">${esc(program.name||program.nameEs||'')}</span>`:''}
-        </div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap">${ciBadge}${alertBadge?` ${alertBadge}`:''}${payBadge?` ${payBadge}`:''}</div>
+        <div class="session-meta-line">${esc(r.type||'Sesión')} · ${esc(r.place||'—')}</div>
+        ${program?`<div class="session-plan-line">${esc(program.name||program.nameEs||'')}</div>`:''}
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">${ciBadge}${alertBadge?` ${alertBadge}`:''}${payBadge?` ${payBadge}`:''}</div>
       </div>
     </div>
     ${ciNote}
-        <div class="sc-acts">
-      ${status==='cancelada'||status==='realizada' ? `
+    ${completed?`
+      <div class="session-card-actions" style="grid-template-columns:repeat(3,minmax(0,1fr))">
         ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
         ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(c.phone)}','Hola ${jsArg(firstName(c.name))}.')">WA</button>`:''}
         <button class="btn btn-s btn-sm" onclick="openModal('reservation','${r.id}')">Editar</button>
-      ` : `
+      </div>
+    `:`
+      <div class="session-card-actions">
         ${c?.id?`<button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}','${r.id}')">Entrenar</button>`:''}
         ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
         ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(c.phone)}','Hola ${jsArg(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>`:''}
-        ${['reservada','pendiente'].includes(String(status).toLowerCase())?`<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>`:''}
-        <button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Hecha</button>
-        <button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>
-      `}
-    </div>
+        <button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">Hecha</button>
+        <details class="session-more">
+          <summary aria-label="Más acciones">•••</summary>
+          <div class="session-more-pop">
+            ${canConfirm?`<button class="btn btn-b btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>`:''}
+            <button class="btn btn-s btn-sm" onclick="openModal('reservation','${r.id}')">Editar reserva</button>
+            <button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar sesión</button>
+          </div>
+        </details>
+      </div>
+    `}
   </div>`;
 }
+
 
 function getCoachSessionTokenSafe(){
   return (
@@ -5924,7 +6032,7 @@ function buildClientCard(c){
               :`<span style="font-family:var(--font-m);font-size:.5rem;padding:2px 6px;border-radius:4px;font-weight:700;flex-shrink:0;background:rgba(255,179,64,.1);color:var(--warn);border:1px solid rgba(255,179,64,.3)">Sin CI</span>`
             }
             ${program?`<span style="font-family:var(--font-m);font-size:.52rem;color:var(--sport);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${esc(program.name||program.nameEs||'')}</span>`:''}
-            ${pendPay.length?`<span style="font-family:var(--font-m);font-size:.5rem;padding:2px 6px;border-radius:4px;font-weight:700;flex-shrink:0;background:rgba(255,179,64,.1);color:var(--warn)">€</span>`:''}
+            ${pendPay.length?`<span class="client-payment-label">Pago pendiente</span>`:''}
           </div>
           <div style="font-size:.68rem;color:var(--text-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
             ${next?`${formatDate(next.date)} ${formatTime(next.time)}`:'Sin próxima sesión'}
@@ -6599,6 +6707,10 @@ function renderPerfil(){
   const planMeta=assign
     ? `${currentWeek?'Semana '+currentWeek+' · ':''}${getAssignmentVisibleSessions(assign).length} sesiones visibles`
     : 'Asigna un plan para comenzar';
+  const sessionActionLabel=nextSession?'INICIAR SESIÓN PROGRAMADA':'INICIAR SESIÓN MANUAL';
+  const sessionActionCall=nextSession
+    ? `openWorkout('${c.id}','${nextSession.id}')`
+    : `openWorkout('${c.id}')`;
 
   el.innerHTML=`
     <div class="card" style="padding:14px;margin-bottom:10px">
@@ -6616,8 +6728,8 @@ function renderPerfil(){
       </div>
     </div>
 
-    <button class="btn btn-cyan btn-wide" style="margin-bottom:8px;height:50px;border-radius:12px;font-size:.7rem;letter-spacing:.12em;gap:8px" onclick="openWorkout('${c.id}')">
-      INICIAR SESIÓN DE HOY <span style="font-size:1rem">→</span>
+    <button class="btn btn-cyan btn-wide" style="margin-bottom:8px;height:50px;border-radius:12px;font-size:.7rem;letter-spacing:.12em;gap:8px" onclick="${sessionActionCall}">
+      ${sessionActionLabel} <span style="font-size:1rem">→</span>
     </button>
     <div style="display:flex;gap:6px;margin-bottom:14px">
       <button class="btn btn-s btn-sm" style="flex:1" onclick="openModal('client','${c.id}')">Editar</button>
@@ -6688,7 +6800,7 @@ function renderPerfil(){
       <div class="profile-hub-kicker">Gestión</div>
       <div class="profile-hub-grid">
         <button class="profile-hub-manage" onclick="openModal('note',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.notes}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Notas</span><span class="profile-hub-manage-meta">Observaciones</span></span><span class="profile-hub-chevron">›</span></button>
-        <button class="profile-hub-manage" onclick="openStretchingAssisted('${c.id}','${jsArg(c.name)}')"><span class="profile-hub-icon">${ICONS.stretch}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Asistidos</span><span class="profile-hub-manage-meta">Movilidad guiada</span></span><span class="profile-hub-chevron">›</span></button>
+        <button class="profile-hub-manage" onclick="openStretchingAssisted('${c.id}','${jsArg(c.name)}')"><span class="profile-hub-icon">${ICONS.stretch}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Asistidos</span><span class="profile-hub-manage-meta">16 técnicas disponibles</span></span><span class="profile-hub-chevron">›</span></button>
         <button class="profile-hub-manage" onclick="openModal('payment',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.pay}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Pagos</span><span class="profile-hub-manage-meta">${pendPay.length?pendPay.length+' pendiente'+(pendPay.length===1?'':'s'):'Al día'}</span></span><span class="profile-hub-chevron">›</span></button>
         <button class="profile-hub-manage" onclick="openModal('assignment',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.plan}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Plan</span><span class="profile-hub-manage-meta">Asignar o cambiar</span></span><span class="profile-hub-chevron">›</span></button>
       </div>
@@ -6933,17 +7045,16 @@ function renderAlertas(){
 }
 
 function buildAlertGroupCard(g){
-  const a = g.latest;
-  const level = g.level;
-  const status = g.status;
-  const isUrg = level === 'critica' || level === 'alerta';
-  const isWrn = level === 'precaucion' || level === 'revisar';
-  const klass = isUrg ? 'urg' : isWrn ? 'wrn' : 'ok';
-
-  const c = g.client;
-  const phone = a.clientPhone || a.client_phone || c?.phone || state.settings.coachPhone;
-  const created = String(alertCreatedAt(a)).slice(0,10);
-  const msg = getAlertMessage(a);
+  const a=g.latest;
+  const level=g.level;
+  const status=g.status;
+  const isUrg=level==='critica'||level==='alerta';
+  const isWrn=level==='precaucion'||level==='revisar';
+  const klass=isUrg?'urg':isWrn?'wrn':'ok';
+  const c=g.client;
+  const phone=a.clientPhone||a.client_phone||c?.phone||state.settings.coachPhone;
+  const created=String(alertCreatedAt(a)).slice(0,10);
+  const statusKind=status==='pendiente'?'pendiente':status==='resuelta'?'resuelta':'leida';
 
   return `
     <div class="ac-compact ${klass}" id="ag-${esc(g.key)}">
@@ -6951,37 +7062,30 @@ function buildAlertGroupCard(g){
         <div style="min-width:0;flex:1">
           <div class="ac-compact-title">${esc(g.clientName)}</div>
           <div class="ac-compact-meta">${esc(g.type)} · ${formatDate(created)}</div>
-          <div class="ac-compact-msg">${esc(g.title)} · ${esc(msg)}</div>
+          <div class="ac-compact-msg">${esc(g.title)}</div>
         </div>
-
         <div class="ac-compact-right">
-          ${badge(level,isUrg?'alerta':isWrn?'pendiente':'info')}
-          ${badge(status,status==='pendiente'?'pendiente':status==='resuelta'?'resuelta':'leida')}
-          ${g.items.length > 1 ? `<span class="ac-compact-count">${g.items.length} alertas</span>` : ''}
+          ${badge(status,statusKind)}
+          ${g.items.length>1?`<span class="ac-compact-count">${g.items.length} alertas</span>`:''}
+          <span class="ac-compact-chevron">›</span>
         </div>
       </button>
-
       <div class="ac-compact-body">
-        ${g.items.map(item => `
+        ${g.items.map(item=>`
           <div class="ac-item-mini">
             <div class="ac-item-date">${formatDate(String(alertCreatedAt(item)).slice(0,10))}</div>
-            <div class="ac-item-text">
-              <strong style="color:var(--text)">${esc(getAlertTitle(item))}</strong><br>
-              ${esc(getAlertMessage(item))}
-            </div>
-          </div>
-        `).join('')}
-
+            <div class="ac-item-text"><strong style="color:var(--text)">${esc(getAlertTitle(item))}</strong><br>${esc(getAlertMessage(item))}</div>
+          </div>`).join('')}
         <div class="ac-acts" style="padding:10px 0 0;border-top:1px solid var(--divider)">
-          ${status!=='resuelta'?`<button class="btn btn-b btn-sm" onclick="resolverAlerta('${a.id}')">✓ Resolver</button>`:''}
+          ${status!=='resuelta'?`<button class="btn btn-b btn-sm" onclick="resolverAlerta('${a.id}')">Resolver</button>`:''}
           ${status==='pendiente'?`<button class="btn btn-s btn-sm" onclick="marcarLeida('${a.id}')">Leída</button>`:''}
           ${phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(phone)}','${jsArg(buildAlertWAMsg(a))}')">WA</button>`:''}
           ${c?.id?`<button class="btn btn-s btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
         </div>
       </div>
-    </div>
-  `;
+    </div>`;
 }
+
 
 /* Compatibilidad por si otra parte llama buildAlertCard */
 function buildAlertCard(a){
@@ -7154,75 +7258,63 @@ function isOwnerCoach(){
   return state.coachRole === 'owner';
 }
 function renderMas(){
-  const pendPay=state.payments.filter(p=>p.status!=='pagado').length;
+  const pendingPayments=state.payments.filter(p=>p.status!=='pagado').length;
+  const overduePayments=state.payments.filter(p=>p.status==='vencido').length;
   const todayCI=state.todayCheckins.length;
   const pendingConditions=conditionAttentionRows().length;
   const activeAssign=state.assignments.filter(a=>String(a.status||'activo')==='activo').length;
   const athleteCount=state.athletes.length;
-  const totalClients=state.clients.filter(c=>c.status==='activo').length;
-  const activeCoachName = getActiveCoachDisplayName();
-  const coachCardLabel = firstName(activeCoachName || 'Coach');
-  const coachCardSub = isOwnerCoach() ? 'AJUSTES' : 'MI CUENTA';
-  const coachCardAction = isOwnerCoach() ? "showScr('ajustes')" : "openCoachAccountModal()";
+  const activeCoachName=getActiveCoachDisplayName();
+  const coachCardLabel=firstName(activeCoachName||'Coach');
+  const coachCardSub=isOwnerCoach()?'Perfil y ajustes':'Mi cuenta';
+  const coachCardAction=isOwnerCoach()?"showScr('ajustes')":"openCoachAccountModal()";
 
   const ico=d=>`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--sport)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
   const ICONS={
-    pay:    ico('<circle cx="12" cy="12" r="9"/><path d="M12 7v1m0 8v1M9.5 9.5a3 3 0 015 2.5c0 2-2 3-2 3H12"/>'),
-    ci:     ico('<path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>'),
-    wa:     ico('<path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>'),
-    train:  ico('<path d="M6 4v16M18 4v16"/><path d="M4 6h4M16 6h4M4 18h4M16 18h4"/>'),
-    ath:    ico('<circle cx="12" cy="5" r="2"/><path d="M12 7v5l-3 5M12 12l3 5M9 11l-3-1M15 11l3-1"/>'),
-    eval:   ico('<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>'),
-    new:    ico('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>'),
-    health: ico('<path d="M12 21s-7-4.35-9.5-8.4C.8 9.8 2.2 5.5 6.1 4.6 8.4 4 10.2 5.2 12 7c1.8-1.8 3.6-3 5.9-2.4 3.9.9 5.3 5.2 3.6 8C19 16.65 12 21 12 21z"/><path d="M8 12h2l1-3 2 6 1-3h2"/>'),
+    pay:ico('<circle cx="12" cy="12" r="9"/><path d="M12 7v1m0 8v1M9.5 9.5a3 3 0 015 2.5c0 2-2 3-2 3H12"/>'),
+    ci:ico('<path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>'),
+    wa:ico('<path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>'),
+    train:ico('<path d="M6 4v16M18 4v16"/><path d="M4 6h4M16 6h4M4 18h4M16 18h4"/>'),
+    ath:ico('<circle cx="12" cy="5" r="2"/><path d="M12 7v5l-3 5M12 12l3 5M9 11l-3-1M15 11l3-1"/>'),
+    eval:ico('<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>'),
+    new:ico('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>'),
+    health:ico('<path d="M12 21s-7-4.35-9.5-8.4C.8 9.8 2.2 5.5 6.1 4.6 8.4 4 10.2 5.2 12 7c1.8-1.8 3.6-3 5.9-2.4 3.9.9 5.3 5.2 3.6 8C19 16.65 12 21 12 21z"/><path d="M8 12h2l1-3 2 6 1-3h2"/>')
   };
 
   const items=[
-    {icon:ICONS.pay,  label:'Pagos',        badge:pendPay,      action:`showScr('pagos')`},
-    {icon:ICONS.ci,   label:'Check-ins',    badge:todayCI,      action:`showScr('checkins')`},
-    {icon:ICONS.health,label:'Salud', badge:pendingConditions, action:`openHealthAlerts()`},
-    {icon:ICONS.wa,   label:'WhatsApp',     badge:0,            action:`showScr('whatsapp')`},
-    {icon:ICONS.train,label:'Entrenos',     badge:activeAssign, action:`showScr('entreno')`},
-    {icon:ICONS.ath,  label:'Atletas',      badge:athleteCount, action:`showScr('atletas')`},
-    {icon:ICONS.eval, label:'Evaluaciones', badge:0,            action:`showScr('eval')`},
-    {icon:ICONS.new,  label:'Nuevo cliente',badge:0,            action:`openModal('client')`},
+    {icon:ICONS.pay,label:'Pagos',badge:pendingPayments,badgeKind:overduePayments?'danger':'warn',action:`showScr('pagos')`},
+    {icon:ICONS.ci,label:'Check-ins',badge:todayCI,badgeKind:'info',action:`showScr('checkins')`},
+    {icon:ICONS.health,label:'Salud',badge:pendingConditions,badgeKind:'warn',action:`openHealthAlerts()`},
+    {icon:ICONS.wa,label:'WhatsApp',badge:0,badgeKind:'info',action:`showScr('whatsapp')`},
+    {icon:ICONS.train,label:'Entrenos',badge:activeAssign,badgeKind:'info',action:`showScr('entreno')`},
+    {icon:ICONS.ath,label:'Atletas',badge:athleteCount,badgeKind:'info',action:`showScr('atletas')`},
+    {icon:ICONS.eval,label:'Evaluaciones',badge:0,badgeKind:'info',action:`showScr('eval')`},
+    {icon:ICONS.new,label:'Nuevo cliente',badge:0,badgeKind:'info',action:`openModal('client')`}
   ];
-
-  const coachPhotoButton = `
-        <span onclick="event.stopPropagation();document.getElementById('coach-photo-input').click()"
-          style="position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;background:var(--sport);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        </span>
-        <input type="file" id="coach-photo-input" accept="image/*" style="display:none" onchange="uploadCoachPhoto(this)">
-  `;
-
-  const coachCard=`
-    <button class="card" style="padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:90px;margin-bottom:0;position:relative" onclick="${coachCardAction}">
-      <div style="position:relative">
-        ${getCoachAvatarHTML()}
-        ${coachPhotoButton}
-      </div>
-      <span style="font-size:.7rem;font-weight:700;color:var(--text);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${esc(coachCardLabel)}</span>
-      <span style="font-family:var(--font-m);font-size:.46rem;color:var(--sport);letter-spacing:.08em">${coachCardSub}</span>
-    </button>`;
 
   const masEl=document.getElementById('mas-grid');
   masEl.style.display='block';
   masEl.style.gridTemplateColumns='unset';
   masEl.style.gap='0';
-
   masEl.innerHTML=`
-     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px">
-            ${items.map(item=>`
-                <button class="card" style="padding:22px 16px;display:flex;align-items:center;gap:14px;margin-bottom:0;position:relative;text-align:left" onclick="${item.action}">
-          ${item.badge?`<span style="position:absolute;top:8px;right:8px;min-width:18px;height:18px;background:var(--medical);color:#000;border-radius:9px;font-family:var(--font-m);font-size:.52rem;display:flex;align-items:center;justify-content:center;padding:0 5px;font-weight:700">${item.badge}</span>`:''}
-          <div style="flex-shrink:0">${item.icon}</div>
-          <span style="font-size:.82rem;font-weight:700;color:var(--text);line-height:1.3">${item.label}</span>
+    <div class="more-grid">
+      ${items.map(item=>`
+        <button class="more-card" onclick="${item.action}">
+          ${item.badge?`<span class="more-badge ${item.badgeKind}">${item.badge}</span>`:''}
+          <span style="flex-shrink:0">${item.icon}</span>
+          <span class="more-card-label">${item.label}</span>
         </button>`).join('')}
-            ${coachCard}
     </div>
-  `;
+    <button class="more-profile-card" onclick="${coachCardAction}">
+      <span>${getCoachAvatarHTML()}</span>
+      <span class="more-profile-copy">
+        <span class="more-profile-name">${esc(coachCardLabel)}</span>
+        <span class="more-profile-sub">${esc(coachCardSub)}</span>
+      </span>
+      <span class="more-profile-chevron">›</span>
+    </button>`;
 }
+
 
 function openCoachAccountModal(){
   const title=document.getElementById('modal-title');
@@ -9391,37 +9483,40 @@ function setManualPathology(clientId, pathology){
   renderWorkout();
 }
 
-function buildWorkoutSessionControls(plan, c){
-  if(!plan || !c) return '';
+function buildWorkoutSessionControls(plan,c){
+  if(!plan||!c)return'';
 
-  const weekSessions = plan.weekSessions || plan.sessions || [];
-  const activeN = Number(state.activeWorkoutSessionNumber || 1);
+  const weekSessions=plan.weekSessions||plan.sessions||[];
+  const activeN=Number(state.activeWorkoutSessionNumber||1);
+  const sessionButtons=weekSessions.length
+    ?weekSessions.map((session,index)=>{
+      const n=getSessionNumberFromRow(session)||index+1;
+      return `<button class="fp ${activeN===n?'on':''}" onclick="setWorkoutSessionNumber(${n})">Día ${String.fromCharCode(64+n)}</button>`;
+    }).join('')
+    :[1,2,3].map(n=>`<button class="fp ${activeN===n?'on':''}" onclick="setWorkoutSessionNumber(${n})">Día ${String.fromCharCode(64+n)}</button>`).join('');
 
-  const sessionButtons = weekSessions.length
-    ? weekSessions.map((s, index) => {
-        const n = getSessionNumberFromRow(s) || index + 1;
-        return `<button class="fp ${activeN === n ? 'on' : ''}" onclick="setWorkoutSessionNumber(${n})">Día ${String.fromCharCode(64+n)}</button>`;
-      }).join('')
-    : `
-      <button class="fp ${activeN===1?'on':''}" onclick="setWorkoutSessionNumber(1)">Día A</button>
-      <button class="fp ${activeN===2?'on':''}" onclick="setWorkoutSessionNumber(2)">Día B</button>
-      <button class="fp ${activeN===3?'on':''}" onclick="setWorkoutSessionNumber(3)">Día C</button>
-    `;
+  const detected=detectAllPathologiesForClient(c);
+  const adaptationLabel=detected.physical
+    ?getPathologyLabel(detected.physical)
+    :detected.hasFatiga?'Fatiga alta':'Normal';
+  const loadValue=getWorkoutLoadPercentage();
 
   return `
-    <div class="fr" style="margin-bottom:10px">
-      ${sessionButtons}
-    </div>
-
     ${buildActiveConditionQuickUse(c)}
-
-            <div class="fr" style="margin-bottom:12px">
-      ${renderPathologyPills(c)}
-    </div>
-
-    ${buildWorkoutLoadPercentagePills(plan)}
-  `;
+    <details class="workout-config">
+      <summary>
+        <span class="workout-config-cell"><span class="workout-config-label">Sesión</span><span class="workout-config-value">Día ${String.fromCharCode(64+activeN)}</span></span>
+        <span class="workout-config-cell"><span class="workout-config-label">Adaptación</span><span class="workout-config-value">${esc(adaptationLabel)}</span></span>
+        <span class="workout-config-cell"><span class="workout-config-label">Carga</span><span class="workout-config-value">${loadValue}%</span></span>
+      </summary>
+      <div class="workout-config-body">
+        <div class="workout-config-section"><div class="workout-config-section-title">Día de trabajo</div><div class="fr">${sessionButtons}</div></div>
+        <div class="workout-config-section"><div class="workout-config-section-title">Adaptación</div><div class="fr">${renderPathologyPills(c)}</div></div>
+        <div class="workout-config-section"><div class="workout-config-section-title">Carga de referencia</div>${buildWorkoutLoadPercentagePills(plan)}</div>
+      </div>
+    </details>`;
 }
+
 
 async function openWorkout(clientId,reservationId=null){
   const previousKey=`${state.activeTrainingClientId||''}__${state.activeWorkoutReservationId||'manual'}`;
@@ -9567,8 +9662,6 @@ function renderTopAvatar(){
 
   el.onclick = () => isOwnerCoach() ? showScr('ajustes') : openCoachAccountModal();
 
-  // Usar siempre la identidad del coach logueado.
-  // Solo el owner puede usar el fallback antiguo de cliente/foto de settings.
   const activeCoachName = getActiveCoachDisplayName();
   let coachClient = null;
 
@@ -9581,14 +9674,28 @@ function renderTopAvatar(){
     });
   }
 
-  const url = safeMediaUrl(state.coachPhotoUrl || (isOwnerCoach() ? (coachClient?.photoUrl || coachClient?.photo_url || coachClient?.avatarUrl || coachClient?.avatar_url || state.settings.coachPhotoUrl || '') : ''),{allowBlob:true,allowDataImage:true});
+  const fallback = initials(activeCoachName || 'AB');
+  const url = safeMediaUrl(
+    state.coachPhotoUrl ||
+    (isOwnerCoach() ? (
+      coachClient?.photoUrl || coachClient?.photo_url || coachClient?.avatarUrl || coachClient?.avatar_url || state.settings.coachPhotoUrl || ''
+    ) : ''),
+    {allowBlob:true,allowDataImage:true}
+  );
+
+  el.innerHTML = `<span style="font-family:var(--font-d);font-size:1.1rem;color:var(--sport);position:absolute">${esc(fallback)}</span>`;
+  el.style.position='relative';
 
   if(url){
-    el.innerHTML = `<img src="${esc(url)}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.textContent='${esc(initials(activeCoachName || 'AB'))}'">`;
-  } else {
-    el.textContent = initials(state.coachName || state.settings.coachName || 'AB');
+    const img=document.createElement('img');
+    img.src=url;
+    img.alt=activeCoachName || 'Coach';
+    img.style.cssText='position:relative;width:100%;height:100%;object-fit:cover;display:block;z-index:1';
+    img.addEventListener('error',()=>img.remove(),{once:true});
+    el.appendChild(img);
   }
 }
+
 
 function getCoachAvatarHTML(){
   const activeCoachName = getActiveCoachDisplayName();
@@ -10650,27 +10757,12 @@ function beepDone(){
   flashPhase('done');
 }
 function flashPhase(type){
-  const colors={
-    work: {bg:'#00E676',text:'#000',label:'TRABAJO'},
-    rest: {bg:'#FFB340',text:'#000',label:'DESCANSO'},
-    done: {bg:'#00C8E8',text:'#000',label:'COMPLETADO'}
-  };
-  const cfg=colors[type]||colors.work;
-  const iv=state.workoutIntervals;
-  const roundText=type==='done'
-    ?`${iv.totalRounds} RONDAS COMPLETADAS`
-    :`RONDA ${iv.currentRound} / ${iv.totalRounds}`;
-  const ov=document.createElement('div');
-  ov.style.cssText=`position:fixed;inset:0;z-index:9999;background:${cfg.bg};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;pointer-events:none;`;
-  ov.innerHTML=`
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:5rem;color:${cfg.text};letter-spacing:.08em;line-height:1">${cfg.label}</div>
-    <div style="font-family:'DM Mono',monospace;font-size:1.1rem;color:${cfg.text};opacity:.75;letter-spacing:.1em">${roundText}</div>
-  `;
-  document.body.appendChild(ov);
-  setTimeout(()=>{ov.style.transition='opacity .3s';ov.style.opacity='0';setTimeout(()=>ov.remove(),320);},900);
-  // Badge pequeño también escala
   const el=document.getElementById('wt-phase');
-  if(el){el.style.transition='none';el.style.transform='scale(1.15)';setTimeout(()=>{el.style.transition='transform .3s';el.style.transform='scale(1)'},200);}
+  if(!el)return;
+  el.style.transition='none';
+  el.style.transform='scale(1.15)';
+  el.style.opacity='1';
+  setTimeout(()=>{el.style.transition='transform .3s,opacity .3s';el.style.transform='scale(1)'},200);
 }
 
 function setIntervalMode(enabled){state.workoutIntervals.enabled=!!enabled;pauseWorkoutTimer();resetIntervalState();renderWorkout()}
@@ -11029,7 +11121,7 @@ function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,not
         ${getClientPhotoHTML(c,'sm')}
         <div style="flex:1;min-width:0">
           <div class="wt-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.98rem">${esc(c.name)}</div>
-          ${(()=>{ const da=detectAllPathologiesForClient(c); const pl=da.physical?getPathologyLabel(da.physical):da.hasFatiga?'Fatiga alta':''; return pl ? `<div class="wt-program" style="color:var(--warn);font-size:.58rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(pl)} · adaptación activa</div>` : `<div class="wt-program" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.6rem">${esc(plan.program.name||plan.program.nameEs||'Programa activo')}</div>`; })()}
+          ${(()=>{ const da=detectAllPathologiesForClient(c); const pl=da.physical?getPathologyLabel(da.physical):da.hasFatiga?'Fatiga alta':''; return pl ? `<div class="wt-program" style="color:var(--warn);font-size:.58rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(pl)} · adaptación activa</div>` : `<div class="wt-program" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.6rem">${esc(compactPlanLabel(plan.program.name||plan.program.nameEs||'Programa activo'))}</div>`; })()}
           <div class="wt-meta" style="font-size:.7rem;margin-top:1px">${esc(workoutStepLabel(getAssignmentWeek(plan.assignment),getAssignmentSessionNumber(plan.assignment)))} · ${doneCount}/${totalCount||0} ej.</div>
         </div>
         ${badge(c.status||'activo',c.status||'activo')}
@@ -15078,18 +15170,16 @@ async function renderStretchAssistedList() {
     ${items.map(({ ex, i }) => `
       <div class="stretch-ex-item" onclick="openStretchExerciseBasic(${i})" style="border-color:rgba(0,200,232,.25)">
         <div class="stretch-ex-row">
-          <span class="stretch-ex-icon">🤝</span>
+          <span class="stretch-ex-icon">${abIcon('assist')}</span>
           <div class="stretch-ex-info">
             <div class="stretch-ex-name">${stretchEscHTML(ex.name)}</div>
-            ${ex.duration ? `<div class="stretch-ex-meta">${stretchEscHTML(ex.duration)}</div>` : ''}
-            ${ex.reps     ? `<div class="stretch-ex-meta">${stretchEscHTML(ex.reps)}</div>` : ''}
+            <div class="stretch-ex-meta">${[ex.duration,ex.reps].filter(Boolean).map(stretchEscHTML).join(' · ')||'Técnica asistida'}</div>
           </div>
           ${ex.video_url
-            ? `<button class="btn btn-b btn-sm" style="min-height:34px;padding:0 10px;font-size:.55rem"
+            ? `<button class="btn btn-b btn-sm" style="min-height:36px;padding:0 11px;font-size:.55rem"
                 onclick="event.stopPropagation();openVideoUrl('${jsArg(ex.name)}','${jsArg(ex.video_url)}')">Vídeo</button>`
-            : `<span style="font-family:var(--font-m);font-size:.5rem;color:var(--text-2);letter-spacing:.08em">SIN VÍDEO</span>`
+            : `<span style="font-family:var(--font-m);font-size:.48rem;color:var(--text-2);letter-spacing:.08em">SIN VÍDEO</span>`
           }
-          <span class="stretch-chevron">›</span>
         </div>
       </div>`).join('')}
   `).join('');
@@ -15887,9 +15977,7 @@ function assessStretchExerciseSafetyBase(exercise) {
   <div class="stretch-modal-header">
     <span class="stretch-modal-title">Guía de estiramientos</span>
 
-    <button class="btn btn-b btn-sm" onclick="closeStretching()">
-      Cerrar
-    </button>
+    <button class="btn btn-b btn-sm" onclick="closeStretching()" aria-label="Cerrar guía">✕</button>
   </div>
 
   <div id="stretch-content"></div>
@@ -18398,7 +18486,7 @@ async function testPush() {
 }
 </script>
 
-<!-- AB SYSTEM · RPC 25 PERFORMANCE + SECURITY
+<!-- AB SYSTEM · RPC 26 FIELD VISUAL POLISH
      Mantiene adaptación aprobada mediante client_conditions +
      ab_client_session_get_current_adapted_training. -->
 
