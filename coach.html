@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 24 UNIFIED HEALTH</title>
-<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 24.1 CLIENT PROFILE HUB -->
+<title>AB SYSTEM — Coach Panel · RPC 24.1.1 PROFILE LAYOUT FIX</title>
+<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 24.1.1 PROFILE LAYOUT FIX -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2648,30 +2648,30 @@ body.eval-modal-open {
 .profile-hub-section{margin:0 0 16px}
 .profile-hub-kicker{font-family:var(--font-m);font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);margin:0 0 9px}
 .profile-hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.profile-hub-card{position:relative;width:100%;min-width:0;min-height:132px;padding:15px;border:1px solid var(--divider);border-radius:16px;background:var(--card);color:var(--text);text-align:left;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:8px;-webkit-tap-highlight-color:transparent}
+.profile-hub-card{position:relative;width:100%;min-width:0;min-height:132px;padding:14px 32px 14px 14px;border:1px solid var(--divider);border-radius:16px;background:var(--card);color:var(--text);text-align:left;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:7px;-webkit-tap-highlight-color:transparent}
 .profile-hub-card:active{transform:scale(.985)}
 .profile-hub-card.primary{border-color:rgba(0,200,232,.24);background:linear-gradient(145deg,rgba(0,200,232,.075),var(--card) 56%)}
 .profile-hub-card.health.attention{border-color:rgba(255,179,64,.45);background:linear-gradient(145deg,rgba(255,179,64,.09),var(--card) 56%)}
-.profile-hub-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(0,200,232,.09);border:1px solid rgba(0,200,232,.18)}
+.profile-hub-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(0,200,232,.09);border:1px solid rgba(0,200,232,.18);flex:0 0 auto}
 .profile-hub-icon svg{width:23px;height:23px}
-.profile-hub-title{font-weight:800;font-size:.88rem;line-height:1.05}
-.profile-hub-value{font-family:var(--font-d);font-size:1.45rem;line-height:1;color:var(--text);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.profile-hub-value.text{font-family:var(--font);font-size:.78rem;font-weight:700;line-height:1.25;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.profile-hub-meta{font-size:.63rem;line-height:1.35;color:var(--text-2);margin-top:auto;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.profile-hub-arrow{position:absolute;right:13px;top:13px;color:var(--sport);font-size:1.05rem}
-.profile-hub-badge{position:absolute;right:11px;bottom:11px;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:rgba(255,179,64,.14);border:1px solid rgba(255,179,64,.25);color:var(--warn);font-family:var(--font-m);font-size:.52rem;display:flex;align-items:center;justify-content:center;font-weight:700}
-.profile-hub-manage{width:100%;min-width:0;min-height:84px;padding:13px;border:1px solid var(--divider);border-radius:14px;background:var(--card);color:var(--text);display:flex;align-items:center;gap:11px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.profile-hub-title{display:block;width:100%;min-width:0;font-weight:800;font-size:.76rem;line-height:1.1;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-hub-value{display:block;width:100%;min-width:0;font-family:var(--font-d);font-size:1.38rem;line-height:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-hub-value.text{font-family:var(--font);font-size:.72rem;font-weight:700;line-height:1.25;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.profile-hub-meta{display:-webkit-box;width:100%;min-width:0;font-size:.59rem;line-height:1.35;color:var(--text-2);margin-top:auto;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.profile-hub-arrow{position:absolute;right:12px;top:12px;color:var(--sport);font-size:1.05rem}
+.profile-hub-badge{position:absolute;right:10px;bottom:10px;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:rgba(255,179,64,.14);border:1px solid rgba(255,179,64,.25);color:var(--warn);font-family:var(--font-m);font-size:.52rem;display:flex;align-items:center;justify-content:center;font-weight:700}
+.profile-hub-manage{position:relative;width:100%;min-width:0;min-height:88px;padding:13px 12px;border:1px solid var(--divider);border-radius:14px;background:var(--card);color:var(--text);display:grid;grid-template-columns:34px minmax(0,1fr) 12px;align-items:center;column-gap:10px;text-align:left;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent}
 .profile-hub-manage:active{transform:scale(.985)}
-.profile-hub-manage .profile-hub-icon{width:34px;height:34px;flex:0 0 34px}
-.profile-hub-manage-copy{flex:1;min-width:0}
-.profile-hub-manage-title{font-weight:750;font-size:.78rem;line-height:1.1}
-.profile-hub-manage-meta{font-size:.59rem;color:var(--text-2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.profile-hub-chevron{color:var(--sport);font-size:1rem;flex:0 0 auto}
+.profile-hub-manage .profile-hub-icon{width:34px;height:34px;min-width:34px}
+.profile-hub-manage-copy{display:flex;flex-direction:column;justify-content:center;width:100%;min-width:0;overflow:hidden}
+.profile-hub-manage-title{display:block;width:100%;min-width:0;font-weight:750;font-size:.72rem;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-hub-manage-meta{display:block;width:100%;min-width:0;font-size:.52rem;line-height:1.3;color:var(--text-2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-hub-chevron{display:block;color:var(--sport);font-size:.95rem;line-height:1;text-align:right}
 .client-module-head{display:flex;align-items:center;gap:11px;padding:12px 13px;margin-bottom:12px;border:1px solid var(--divider);border-radius:14px;background:var(--card)}
 .client-module-head-copy{flex:1;min-width:0}
 .client-module-name{font-weight:800;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .client-module-sub{font-family:var(--font-m);font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin-top:3px}
-@media(max-width:360px){.profile-hub-grid{gap:8px}.profile-hub-card{padding:13px;min-height:124px}.profile-hub-value{font-size:1.28rem}.profile-hub-manage{padding:11px}}
+@media(max-width:360px){.profile-hub-grid{gap:8px}.profile-hub-card{padding:12px 28px 12px 12px;min-height:124px}.profile-hub-title{font-size:.71rem}.profile-hub-value{font-size:1.25rem}.profile-hub-value.text{font-size:.68rem}.profile-hub-manage{padding:11px 10px;grid-template-columns:32px minmax(0,1fr) 10px;column-gap:8px}.profile-hub-manage .profile-hub-icon{width:32px;height:32px;min-width:32px}.profile-hub-manage-title{font-size:.68rem}.profile-hub-manage-meta{font-size:.48rem}}
 
 </style>
 <!-- AB SYSTEM · RPC 19 ADAPTATION ENGINE FIX -->
@@ -2975,7 +2975,7 @@ const COACH_PHONE_DEFAULT = '381638112348';
 const ADMIN_USER_DEFAULT = 'abel_admin';
 const ADMIN_PASS_DEFAULT = 'ABcoach2024!';
 const APP_AREA = 'coach';
-const APP_BUILD_KEY = 'coach-rpc-24-1-client-profile-hub';
+const APP_BUILD_KEY = 'coach-rpc-24-1-1-profile-layout-fix';
 
 let AB_BOOT_ERROR = null;
 let db = null;
