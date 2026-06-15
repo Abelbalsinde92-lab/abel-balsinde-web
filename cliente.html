@@ -431,12 +431,12 @@ input, textarea { outline: none; font-family: var(--font-body); }
 .badge-red    { color: var(--medical); }
 .badge-blue   { color: var(--sport); }
 .badge-gray   { color: var(--text-secondary); }
-.badge-green::before,  .badge-green::after  { content: '['; }
-.badge-green::after,   .badge-yellow::after { content: ']'; }
-.badge-yellow::before, .badge-red::before   { content: '['; }
-.badge-red::after,     .badge-blue::after   { content: ']'; }
-.badge-blue::before,   .badge-gray::before  { content: '['; }
-.badge-gray::after     { content: ']'; }
+badge-green::before,  .badge-green::after  { content: ''; }
+.badge-green::after,   .badge-yellow::after { content: ''; }
+.badge-yellow::before, .badge-red::before   { content: ''; }
+.badge-red::after,     .badge-blue::after   { content: ''; }
+.badge-blue::before,   .badge-gray::before  { content: ''; }
+.badge-gray::after     { content: ''; }
 
 /* ═══ MÉTRICAS COMBATE — ESTADOS VISUALES ═══════════════
    Sistema de alertas fisiológicas para luchadores
@@ -770,8 +770,8 @@ input, textarea { outline: none; font-family: var(--font-body); }
   font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase;
   color: var(--text-secondary); white-space: nowrap;
 }
-.training-step-status::before { content: '['; }
-.training-step-status::after  { content: ']'; }
+.training-step-status::before { content: ''; }
+.training-step-status::after  { content: ''; }
 .training-step-status.done { color: var(--streak); }
 .training-step-body { display: none; border-top: 1px solid var(--divider); padding: 0 16px 16px; }
 .training-step-card.open .training-step-body { display: block; }
@@ -820,8 +820,8 @@ input, textarea { outline: none; font-family: var(--font-body); }
   text-align: center; color: var(--streak); font-family: var(--font-mono);
   font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; padding: 12px; margin-top: 16px;
 }
-.training-step-done-msg::before { content: '['; }
-.training-step-done-msg::after  { content: ']'; }
+.training-step-done-msg::before { content: ''; }
+.training-step-done-msg::after  { content: ''; }
 .training-finish-card, .training-session-completed-card {
   background: var(--card); border: 1px solid rgba(0,230,118,.2);
   border-radius: 12px; padding: 20px; margin-top: 16px;
