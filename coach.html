@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 24.1.1 PROFILE LAYOUT FIX</title>
-<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 24.1.1 PROFILE LAYOUT FIX -->
+<title>AB SYSTEM — Coach Panel · RPC 24.2 COMPACT HUB + CHECK-IN 5</title>
+<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 24.2 COMPACT HUB + CHECK-IN 5 -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2673,6 +2673,43 @@ body.eval-modal-open {
 .client-module-sub{font-family:var(--font-m);font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin-top:3px}
 @media(max-width:360px){.profile-hub-grid{gap:8px}.profile-hub-card{padding:12px 28px 12px 12px;min-height:124px}.profile-hub-title{font-size:.71rem}.profile-hub-value{font-size:1.25rem}.profile-hub-value.text{font-size:.68rem}.profile-hub-manage{padding:11px 10px;grid-template-columns:32px minmax(0,1fr) 10px;column-gap:8px}.profile-hub-manage .profile-hub-icon{width:32px;height:32px;min-width:32px}.profile-hub-manage-title{font-size:.68rem}.profile-hub-manage-meta{font-size:.48rem}}
 
+
+/* ═══ RPC 24.2 · COMPACT CLIENT HUB ═════════════════════ */
+.profile-hub-stack{display:grid;gap:8px}
+.profile-hub-feature{position:relative;width:100%;min-width:0;min-height:86px;padding:13px 38px 13px 13px;border:1px solid var(--divider);border-radius:15px;background:var(--card);color:var(--text);display:grid;grid-template-columns:42px minmax(0,1fr);align-items:center;column-gap:12px;text-align:left;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.profile-hub-feature:active{transform:scale(.99)}
+.profile-hub-feature.training{border-color:rgba(0,200,232,.34);background:linear-gradient(110deg,rgba(0,200,232,.10),rgba(18,18,20,.98) 55%)}
+.profile-hub-feature.health.attention{border-color:rgba(255,179,64,.48);background:linear-gradient(110deg,rgba(255,179,64,.10),rgba(18,18,20,.98) 55%)}
+.profile-hub-feature .profile-hub-icon{width:42px;height:42px;border-radius:12px}
+.profile-hub-feature-copy{display:flex;flex-direction:column;min-width:0;gap:2px}
+.profile-hub-feature-title{font-family:var(--font-m);font-size:.50rem;letter-spacing:.13em;text-transform:uppercase;color:var(--text-2)}
+.profile-hub-feature-value{font-weight:800;font-size:.82rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-hub-feature-meta{font-size:.57rem;line-height:1.35;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-hub-feature-chevron{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--sport);font-size:1.2rem;line-height:1}
+.profile-hub-feature-badge{position:absolute;right:34px;top:13px;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:rgba(255,179,64,.14);border:1px solid rgba(255,179,64,.28);color:var(--warn);font-family:var(--font-m);font-size:.50rem;display:flex;align-items:center;justify-content:center;font-weight:700}
+.profile-hub-tracking-grid{margin-top:8px}
+.profile-hub-card.tracking{min-height:106px;padding:12px 28px 12px 12px;gap:5px;border-color:var(--divider);background:var(--card)}
+.profile-hub-card.tracking .profile-hub-icon{width:33px;height:33px;border-radius:10px}
+.profile-hub-card.tracking .profile-hub-icon svg{width:21px;height:21px}
+.profile-hub-card.tracking .profile-hub-title{font-size:.67rem}
+.profile-hub-card.tracking .profile-hub-value{font-size:1.12rem}
+.profile-hub-card.tracking .profile-hub-meta{font-size:.52rem;-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis}
+.profile-hub-card.tracking .profile-hub-arrow{right:10px;top:10px}
+.profile-hub-card.tracking .profile-hub-badge{right:9px;bottom:9px}
+.profile-hub-manage{min-height:70px;padding:10px 10px;grid-template-columns:32px minmax(0,1fr) 10px;column-gap:8px;border-radius:13px}
+.profile-hub-manage .profile-hub-icon{width:32px;height:32px;min-width:32px;border-radius:10px}
+.profile-hub-manage .profile-hub-icon svg{width:20px;height:20px}
+.profile-hub-manage-title{font-size:.66rem}
+.profile-hub-manage-meta{font-size:.47rem;margin-top:2px}
+@media(max-width:360px){
+  .profile-hub-feature{min-height:82px;padding:11px 34px 11px 11px;grid-template-columns:38px minmax(0,1fr);column-gap:10px}
+  .profile-hub-feature .profile-hub-icon{width:38px;height:38px}
+  .profile-hub-feature-value{font-size:.76rem}
+  .profile-hub-feature-meta{font-size:.52rem}
+  .profile-hub-card.tracking{min-height:102px}
+  .profile-hub-manage{min-height:66px}
+}
+
 </style>
 <!-- AB SYSTEM · RPC 19 ADAPTATION ENGINE FIX -->
 </head>
@@ -2684,7 +2721,7 @@ body.eval-modal-open {
   <div class="login-card">
     <div class="login-brand"><span class="lb-1">AB</span><span class="lb-2">Coach Panel</span></div>
     <div class="login-title">ACCESO COACH</div>
-    <div class="login-sub">COACH PANEL · BUILD RPC 24.1</div>
+    <div class="login-sub">COACH PANEL · BUILD RPC 24.2</div>
     <div style="font-size:10px;letter-spacing:.14em;color:#00E5FF;margin:-12px 0 18px;text-transform:uppercase;">ruta /coach · backend RPC activo</div>
     <div id="login-err" class="login-err hidden"></div>
     <div class="login-field">
@@ -3464,14 +3501,17 @@ function alertCreatedAt(a){
 }
 /* ── CHECK-IN STATUS ── */
 function getCheckinStatus(ci){
-  const sleep=Number(ci.sleepQuality||ci.sleep_quality||10);
-  const energy=Number(ci.energyLevel||ci.energy_level||10);
-  const sore=Number(ci.sorenessLevel||ci.soreness_level||ci.painLevel||ci.pain_level||0);
+  const sleepRaw=ci.sleepQuality??ci.sleep_quality??null;
+  const energyRaw=ci.energyLevel??ci.energy_level??null;
+  const soreRaw=ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??null;
+  const sleep=sleepRaw===null||sleepRaw===''?null:Number(sleepRaw);
+  const energy=energyRaw===null||energyRaw===''?null:Number(energyRaw);
+  const sore=soreRaw===null||soreRaw===''?null:Number(soreRaw);
   let txt=String(ci.comment||'').toLowerCase().replaceAll('á','a').replaceAll('é','e').replaceAll('í','i').replaceAll('ó','o').replaceAll('ú','u');
   const noDolor=['sin dolor','sin molestia','todo bien','no tengo dolor','listo para entrenar'].some(p=>txt.includes(p));
   const hayDolor=!noDolor&&['dolor','molestia','lesion','pare','rodilla','hombro','espalda','mareo'].some(p=>txt.includes(p));
-  if(sleep<=2||energy<=2||sore>=4||hayDolor)return'alerta';
-  if(sleep<=3||energy<=3||sore>=3)return'revisar';
+  if((sleep!==null&&sleep<=2)||(energy!==null&&energy<=2)||(sore!==null&&sore>=4)||hayDolor)return'alerta';
+  if((sleep!==null&&sleep<=3)||(energy!==null&&energy<=3)||(sore!==null&&sore>=3))return'revisar';
   return'normal';
 }
 function getClientTodayCheckin(clientId){return state.todayCheckins.find(ci=>String(ci.clientId||ci.client_id)===String(clientId))}
@@ -3832,7 +3872,7 @@ function buildHealthSummary(c){
     </div>
     <div class="health-overview-section">
       <div class="health-overview-section-head"><div class="health-overview-section-title">Último check-in</div>${lastCheckin?badge(healthCheckinLabel(lastCheckin),healthCheckinKind(lastCheckin)):badge('Sin datos','info')}</div>
-      ${lastCheckin?`<div class="health-overview-primary">${formatDate(healthCheckinDate(lastCheckin))}</div><div class="health-overview-secondary">Sueño ${esc(lastCheckin.sleepQuality??lastCheckin.sleep_quality??'—')}/10 · energía ${esc(lastCheckin.energyLevel??lastCheckin.energy_level??'—')}/10 · molestias ${esc(lastCheckin.sorenessLevel??lastCheckin.soreness_level??lastCheckin.painLevel??lastCheckin.pain_level??'—')}</div>${(lastCheckin.comment||lastCheckin.notes)?`<div class="condition-report-text">${esc(lastCheckin.comment||lastCheckin.notes)}</div>`:''}`:`<div class="health-overview-primary">Sin check-ins registrados</div><div class="health-overview-secondary">El primer registro del cliente aparecerá aquí.</div>`}
+      ${lastCheckin?`<div class="health-overview-primary">${formatDate(healthCheckinDate(lastCheckin))}</div><div class="health-overview-secondary">Sueño ${esc(lastCheckin.sleepQuality??lastCheckin.sleep_quality??'—')}/5 · energía ${esc(lastCheckin.energyLevel??lastCheckin.energy_level??'—')}/5 · molestias ${esc(lastCheckin.sorenessLevel??lastCheckin.soreness_level??lastCheckin.painLevel??lastCheckin.pain_level??'—')}/5</div>${(lastCheckin.comment||lastCheckin.notes)?`<div class="condition-report-text">${esc(lastCheckin.comment||lastCheckin.notes)}</div>`:''}`:`<div class="health-overview-primary">Sin check-ins registrados</div><div class="health-overview-secondary">El primer registro del cliente aparecerá aquí.</div>`}
       <div class="health-overview-actions"><button class="btn btn-b btn-sm" onclick="setClientHealthTab('checkins')">Abrir check-ins</button></div>
     </div>
     <div class="health-overview-section">
@@ -3850,7 +3890,7 @@ function buildHealthCheckins(c){
   const rows=healthCheckinRows(c).slice(0,40);
   const alerts=rows.filter(ci=>getCheckinStatus(ci)==='alerta').length;
   const review=rows.filter(ci=>getCheckinStatus(ci)==='revisar').length;
-  return `<div class="health-record-summary"><div class="mc"><span class="mc-n">${rows.length}</span><span class="mc-l">Registros</span></div><div class="mc r"><span class="mc-n">${alerts}</span><span class="mc-l">Alertas</span></div><div class="mc y"><span class="mc-n">${review}</span><span class="mc-l">Revisar</span></div></div>${rows.length?rows.map(ci=>`<div class="card"><div class="card-body"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="card-title">${formatDate(healthCheckinDate(ci))}</div>${badge(healthCheckinLabel(ci),healthCheckinKind(ci))}</div><div class="dr"><span class="dk">Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div><div class="dr"><span class="dk">Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div><div class="dr"><span class="dk">Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}</span></div>${(ci.comment||ci.notes)?`<div class="condition-report-text">${esc(ci.comment||ci.notes)}</div>`:''}</div></div>`).join(''):emptyState('Sin check-ins','Todavía no hay registros para este cliente.')}`;
+  return `<div class="health-record-summary"><div class="mc"><span class="mc-n">${rows.length}</span><span class="mc-l">Registros</span></div><div class="mc r"><span class="mc-n">${alerts}</span><span class="mc-l">Alertas</span></div><div class="mc y"><span class="mc-n">${review}</span><span class="mc-l">Revisar</span></div></div>${rows.length?rows.map(ci=>`<div class="card"><div class="card-body"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="card-title">${formatDate(healthCheckinDate(ci))}</div>${badge(healthCheckinLabel(ci),healthCheckinKind(ci))}</div><div class="dr"><span class="dk">Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/5</span></div><div class="dr"><span class="dk">Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/5</span></div><div class="dr"><span class="dk">Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>${(ci.comment||ci.notes)?`<div class="condition-report-text">${esc(ci.comment||ci.notes)}</div>`:''}</div></div>`).join(''):emptyState('Sin check-ins','Todavía no hay registros para este cliente.')}`;
 }
 function buildHealthMetrics(c){
   const rows=healthMetricRows(c).slice(0,50);
@@ -6488,32 +6528,40 @@ function renderPerfil(){
 
     <section class="profile-hub-section">
       <div class="profile-hub-kicker">Accesos principales</div>
-      <div class="profile-hub-grid">
-        <button class="profile-hub-card primary" onclick="openWorkout('${c.id}')">
-          <span class="profile-hub-arrow">›</span><span class="profile-hub-icon">${ICONS.training}</span>
-          <span class="profile-hub-title">Entrenamiento</span>
-          <span class="profile-hub-value text">${esc(programName)}</span>
-          <span class="profile-hub-meta">${esc(planMeta)}</span>
+      <div class="profile-hub-stack">
+        <button class="profile-hub-feature training" onclick="openWorkout('${c.id}')">
+          <span class="profile-hub-icon">${ICONS.training}</span>
+          <span class="profile-hub-feature-copy">
+            <span class="profile-hub-feature-title">Entrenamiento</span>
+            <span class="profile-hub-feature-value">${esc(programName)}</span>
+            <span class="profile-hub-feature-meta">${esc(planMeta)}</span>
+          </span>
+          <span class="profile-hub-feature-chevron">›</span>
         </button>
-        <button class="profile-hub-card health ${healthAttention?'attention':''}" onclick="openClientHealth('${c.id}','summary')">
-          <span class="profile-hub-arrow">›</span><span class="profile-hub-icon">${ICONS.health}</span>
-          <span class="profile-hub-title">Salud</span>
-          <span class="profile-hub-value">${healthActive}</span>
-          <span class="profile-hub-meta">${healthAttention?healthAttention+' por revisar':healthResolved?healthResolved+' en historial':'Sin condiciones activas'}</span>
-          ${healthAttention?`<span class="profile-hub-badge">${healthAttention}</span>`:''}
+        <button class="profile-hub-feature health ${healthAttention?'attention':''}" onclick="openClientHealth('${c.id}','summary')">
+          <span class="profile-hub-icon">${ICONS.health}</span>
+          <span class="profile-hub-feature-copy">
+            <span class="profile-hub-feature-title">Salud</span>
+            <span class="profile-hub-feature-value">${healthAttention?healthAttention+' por revisar':healthActive?healthActive+' activa'+(healthActive===1?'':'s'):'Sin condiciones activas'}</span>
+            <span class="profile-hub-feature-meta">${healthResolved?healthResolved+' registro'+(healthResolved===1?'':'s')+' en historial':'Check-ins, molestias y lesiones'}</span>
+          </span>
+          ${healthAttention?`<span class="profile-hub-feature-badge">${healthAttention}</span>`:''}
+          <span class="profile-hub-feature-chevron">›</span>
         </button>
-        <button class="profile-hub-card primary" onclick="openClientProfileModule('${c.id}','assessments')">
+      </div>
+      <div class="profile-hub-grid profile-hub-tracking-grid">
+        <button class="profile-hub-card tracking" onclick="openClientProfileModule('${c.id}','assessments')">
           <span class="profile-hub-arrow">›</span><span class="profile-hub-icon">${ICONS.eval}</span>
           <span class="profile-hub-title">Evaluaciones</span>
           <span class="profile-hub-value">${assessmentRows.length}</span>
-          <span class="profile-hub-meta">${activeAssessments?activeAssessments+' en progreso':latestAssessment?esc(latestAssessmentName)+(latestAssessmentDate?' · '+formatDate(latestAssessmentDate):''):'Crear primera evaluación'}</span>
+          <span class="profile-hub-meta">${activeAssessments?activeAssessments+' en progreso':latestAssessment?'Última · '+formatDate(latestAssessmentDate):'Crear primera'}</span>
           ${activeAssessments?`<span class="profile-hub-badge">${activeAssessments}</span>`:''}
         </button>
-        <button class="profile-hub-card primary" onclick="openClientProfileModule('${c.id}','metrics')">
+        <button class="profile-hub-card tracking" onclick="openClientProfileModule('${c.id}','metrics')">
           <span class="profile-hub-arrow">›</span><span class="profile-hub-icon">${ICONS.metric}</span>
           <span class="profile-hub-title">Métricas</span>
           <span class="profile-hub-value ${metricRows.length?'':'text'}">${esc(metricValue)}</span>
-          <span class="profile-hub-meta">${metricRows.length?metricRows.length+' registros'+(metricDate?' · '+formatDate(metricDate):''):'Registrar primera medición'}</span>
+          <span class="profile-hub-meta">${metricRows.length?metricRows.length+' registros'+(metricDate?' · '+formatDate(metricDate):''):'Registrar primera'}</span>
         </button>
       </div>
     </section>
@@ -6521,10 +6569,10 @@ function renderPerfil(){
     <section class="profile-hub-section">
       <div class="profile-hub-kicker">Gestión</div>
       <div class="profile-hub-grid">
-        <button class="profile-hub-manage" onclick="openModal('note',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.notes}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Notas</span><span class="profile-hub-manage-meta">Registrar observación</span></span><span class="profile-hub-chevron">›</span></button>
-        <button class="profile-hub-manage" onclick="openStretchingAssisted('${c.id}','${esc(c.name)}')"><span class="profile-hub-icon">${ICONS.stretch}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Asistidos</span><span class="profile-hub-manage-meta">Movilidad y trabajo guiado</span></span><span class="profile-hub-chevron">›</span></button>
-        <button class="profile-hub-manage" onclick="openModal('payment',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.pay}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Pagos</span><span class="profile-hub-manage-meta">${pendPay.length?pendPay.length+' pendiente'+(pendPay.length===1?'':'s'):'Sin pagos pendientes'}</span></span><span class="profile-hub-chevron">›</span></button>
-        <button class="profile-hub-manage" onclick="openModal('assignment',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.plan}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Plan</span><span class="profile-hub-manage-meta">${esc(programName)}</span></span><span class="profile-hub-chevron">›</span></button>
+        <button class="profile-hub-manage" onclick="openModal('note',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.notes}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Notas</span><span class="profile-hub-manage-meta">Observaciones</span></span><span class="profile-hub-chevron">›</span></button>
+        <button class="profile-hub-manage" onclick="openStretchingAssisted('${c.id}','${esc(c.name)}')"><span class="profile-hub-icon">${ICONS.stretch}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Asistidos</span><span class="profile-hub-manage-meta">Movilidad guiada</span></span><span class="profile-hub-chevron">›</span></button>
+        <button class="profile-hub-manage" onclick="openModal('payment',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.pay}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Pagos</span><span class="profile-hub-manage-meta">${pendPay.length?pendPay.length+' pendiente'+(pendPay.length===1?'':'s'):'Al día'}</span></span><span class="profile-hub-chevron">›</span></button>
+        <button class="profile-hub-manage" onclick="openModal('assignment',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.plan}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Plan</span><span class="profile-hub-manage-meta">Asignar o cambiar</span></span><span class="profile-hub-chevron">›</span></button>
       </div>
     </section>
   `;
@@ -7339,8 +7387,8 @@ function renderCheckins(){
           </summary>
 
           <div style="padding:0 14px 12px;border-top:1px solid var(--divider)">
-            <div class="dr" style="padding:5px 0"><span class="dk">ZZZ Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div>
-            <div class="dr" style="padding:5px 0"><span class="dk">NRG Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div>
+            <div class="dr" style="padding:5px 0"><span class="dk">ZZZ Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/5</span></div>
+            <div class="dr" style="padding:5px 0"><span class="dk">NRG Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/5</span></div>
             <div class="dr" style="padding:5px 0"><span class="dk">DOL Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}/5</span></div>
             ${ci.comment?`<div style="margin-top:8px;padding:8px 10px;background:rgba(255,179,64,.06);border-left:2px solid var(--warn);border-radius:0 6px 6px 0;font-size:.78rem;color:var(--warn);line-height:1.5">${esc(ci.comment)}</div>`:''}
             ${c?`<div style="display:flex;gap:6px;margin-top:10px">
@@ -10902,7 +10950,7 @@ function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,not
   ${ci ? `
     <div class="wt-ci-row">
       <span class="dk">Energía</span>
-      <span class="dv">${esc(ci.energyLevel ?? ci.energy_level ?? '—')}/10</span>
+      <span class="dv">${esc(ci.energyLevel ?? ci.energy_level ?? '—')}/5</span>
     </div>
 
     <div class="wt-ci-row">
@@ -13663,7 +13711,7 @@ function buildAdaptedWorkoutHTML(c, rows, pathology, plan){
       </div>
       <div class="wt-ci-row">
         <span class="dk">Energía</span>
-        <span class="dv">${esc(ci.energyLevel ?? ci.energy_level ?? '—')}/10</span>
+        <span class="dv">${esc(ci.energyLevel ?? ci.energy_level ?? '—')}/5</span>
       </div>
       ${ci.comment ? `<div class="wt-ci-row"><span class="dk">Nota</span><span style="font-size:.78rem;color:var(--warn);font-weight:500">${esc(ci.comment)}</span></div>` : ''}
     </div>` : ''}
