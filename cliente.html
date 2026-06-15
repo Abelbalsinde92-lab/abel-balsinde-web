@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AB SYSTEM — Área Cliente · RPC 25 PERFORMANCE + SECURITY</title>
+  <title>AB SYSTEM — Área Cliente · RPC 26 UI COHERENCE</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json?v=20260522-01">
 <link rel="icon" href="/favicon-32.png?v=20260522-01" type="image/png">
@@ -4577,7 +4577,7 @@ body {
   letter-spacing: .5px;
 }
 
-/* Estado [pendiente] más pequeño */
+/* Estado de bloque compacto */
 .training-step-status {
   font-size: 8px;
   letter-spacing: .8px;
@@ -5173,6 +5173,232 @@ body {
     font-size: 22px !important;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   AB SYSTEM CLIENT — RPC 26 UI COHERENCE
+   Estados limpios · progreso consistente · perfil compacto
+═══════════════════════════════════════════════════════ */
+
+/* Un único lenguaje visual para todos los estados. */
+.badge {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  min-height: 24px;
+  padding: 5px 9px !important;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: transparent;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: .94;
+}
+.badge::before {
+  content: '' !important;
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .9;
+}
+.badge-blue   { background: rgba(0,229,255,.055); border-color: rgba(0,229,255,.32); }
+.badge-green  { background: rgba(0,230,118,.055); border-color: rgba(0,230,118,.30); }
+.badge-yellow { background: rgba(255,179,64,.055); border-color: rgba(255,179,64,.32); }
+.badge-red    { background: rgba(255,90,90,.055); border-color: rgba(255,90,90,.32); }
+.badge-gray   { background: rgba(255,255,255,.025); border-color: rgba(255,255,255,.14); }
+
+/* Las llamadas a otra pantalla son acciones, no estados. */
+.inline-action-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--sport);
+}
+
+/* Entrenamiento: día activo inequívoco y cuerpo abierto unificado. */
+.training-day-tab.active {
+  color: #001014 !important;
+  background: var(--sport) !important;
+  border-color: var(--sport) !important;
+  box-shadow: 0 8px 22px rgba(0,229,255,.16) !important;
+}
+.training-step-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 22px;
+  padding: 4px 7px !important;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 7px;
+  background: rgba(255,255,255,.025);
+  line-height: 1;
+}
+.training-step-status::before {
+  content: '' !important;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .8;
+}
+.training-step-status.done {
+  border-color: rgba(0,230,118,.30);
+  background: rgba(0,230,118,.055);
+}
+.training-step-card.open .training-step-header,
+.training-step-card.open .training-step-body {
+  background: #101012 !important;
+}
+.training-step-card.open .training-step-body {
+  border-top-color: rgba(0,229,255,.12) !important;
+}
+
+/* Reservas: aprovechar el espacio del calendario cuando no hay selección. */
+.reservation-guidance-card {
+  margin-top: 14px;
+  border-left: 3px solid var(--sport);
+}
+.reservation-guidance-card .reservation-guidance-date {
+  margin-top: 6px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Perfil: accesos con jerarquía y sin repetir instrucciones. */
+#section-client-data > .summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+#section-client-data > .summary-grid .summary-card {
+  position: relative;
+  min-height: 112px;
+  padding: 17px 34px 17px 16px;
+  border-color: rgba(255,255,255,.10);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.028), rgba(255,255,255,.008)),
+    var(--card);
+}
+#section-client-data > .summary-grid .summary-card::after {
+  content: '›';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255,255,255,.32);
+  font-size: 22px;
+  font-weight: 400;
+}
+#section-client-data > .summary-grid .summary-card.full {
+  grid-column: 1 / -1;
+  min-height: 100px;
+  border-left: 3px solid var(--sport);
+}
+#section-client-data > .summary-grid .summary-card:nth-child(2) { border-left: 3px solid var(--streak); }
+#section-client-data > .summary-grid .summary-card:nth-child(3) { border-left: 3px solid var(--warn); }
+#section-client-data > .summary-grid .summary-card:nth-child(4) { border-left: 3px solid rgba(255,255,255,.28); }
+.profile-edit-section-btn {
+  width: 100%;
+  min-height: 44px;
+  margin: 2px 0 14px;
+  border: 1px solid rgba(0,229,255,.30);
+  border-radius: 10px;
+  background: rgba(0,229,255,.06);
+  color: var(--sport);
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+.metric-readonly-card { cursor: default !important; }
+.metric-edit-hint { display: none !important; }
+
+/* Editor único de la sección de métricas. */
+.body-metrics-editor-sheet {
+  max-height: min(88dvh, 760px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.body-metrics-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+}
+.body-metric-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.body-metric-field input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: #000;
+  color: var(--text-primary);
+  padding: 11px 12px;
+  font-size: 16px;
+  outline: none;
+}
+.body-metric-field input:focus { border-color: var(--sport); }
+
+/* Atleta: estado vacío informativo en lugar de pantalla muerta. */
+.athlete-empty-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 8px;
+  margin: 14px 0;
+}
+.athlete-empty-item {
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 11px;
+  background: rgba(255,255,255,.018);
+}
+.athlete-empty-label {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.athlete-empty-value {
+  margin-top: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Progreso: el pendiente no compite con la última evaluación medida. */
+.progress-pending-card {
+  margin-bottom: 12px;
+  border-left: 3px solid var(--warn);
+}
+
+@media (max-width: 420px) {
+  #section-client-data > .summary-grid,
+  .body-metrics-editor-grid,
+  .athlete-empty-grid { grid-template-columns: 1fr 1fr; }
+  #section-client-data > .summary-grid .summary-card { min-height: 106px; }
+}
+
 </style>
 
 <style id="ab-client-condition-report-styles">
@@ -9633,7 +9859,7 @@ function buildHomeCombatSummary(){
       '<div class="next-label">' + uiText('performanceStatus') + '</div>' +
       '<div class="dc-row">' +
         '<span class="dc-title">' + uiText('combatMetricsActive') + '</span>' +
-        '<span class="badge badge-blue">' + uiText('viewHealth') + '</span>' +
+        '<span class="inline-action-chip">' + uiText('viewHealth') + ' →</span>' +
       '</div>' +
       '<div class="dc-note">' +
         uiText('combatSummaryText') +
@@ -12648,20 +12874,19 @@ function renderAssessments() {
     return;
   }
 
-  if (badge) badge.textContent = clientAssessments.length;
-
   const trainingProgressHTML = buildProgressTrainingSummary();
-
   const useful = getUsefulAssessmentsForClient();
-  const totalTests = clientAssessments.length;
-  const totalResults = (clientAssessmentResults || [])
-  .filter(hasAssessmentResultValue)
-  .length;
+  const measuredAssessments = useful.filter(item => item.hasResults);
+  const pendingAssessments = useful.filter(item => item.isInProgress && !item.hasResults);
+  const latestMeasured = measuredAssessments[0] || null;
+  const latestPending = pendingAssessments[0] || null;
 
-  const latestUseful = useful[0] || null;
-const latestAssessment = latestUseful?.assessment || null;
-const latestResults = latestUseful?.results || [];
-const pendingAssessment = !latestAssessment ? (clientAssessments[0] || null) : null;
+  const totalTests = measuredAssessments.length;
+  const totalResults = (clientAssessmentResults || [])
+    .filter(hasAssessmentResultValue)
+    .length;
+
+  if (badge) badge.textContent = useful.length;
 
   let html = trainingProgressHTML;
 
@@ -12670,102 +12895,96 @@ const pendingAssessment = !latestAssessment ? (clientAssessments[0] || null) : n
       uiText('evaluationsAndTests') +
     '</div>';
 
-  if (!latestAssessment) {
-  if (pendingAssessment) {
+  if (latestPending) {
+    const p = latestPending.assessment;
     html +=
-      '<div class="progress-clean-hero">' +
-        '<div class="progress-clean-kicker">' + uiText('lastEvaluation') + '</div>' +
-
-        '<div class="progress-clean-title">' +
-          escHTML(pendingAssessment.assessment_name || uiText('functionalTest')) +
-        '</div>' +
-
-        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">' +
+      '<div class="data-card progress-pending-card">' +
+        '<div class="dc-row">' +
+          '<span class="dc-title" style="font-size:15px;">' +
+            escHTML(p.assessment_name || uiText('functionalTest')) +
+          '</span>' +
           '<span class="badge badge-yellow">' +
-            (getLang() === 'sr' ? 'Čeka rezultate' : 'Pendiente de resultados') +
+            (getLang() === 'sr' ? 'Čeka rezultate' : getLang() === 'en' ? 'Awaiting results' : 'Pendiente de resultados') +
           '</span>' +
-          '<span class="progress-clean-sub">' +
-            (pendingAssessment.assessment_date ? formatDate(pendingAssessment.assessment_date) : '—') +
-          '</span>' +
-          '<span class="progress-clean-sub">0 ' + uiText('results') + '</span>' +
         '</div>' +
-
-        '<div class="progress-clean-sub">' +
+        '<div class="dc-row">' +
+          '<span class="dc-sub">' +
+            (p.assessment_date ? formatDate(p.assessment_date) : '—') +
+          '</span>' +
+        '</div>' +
+        '<div class="dc-note">' +
           (getLang() === 'sr'
-            ? 'Test je kreiran, ali Abel još nije uneo rezultate.'
-            : 'El test está creado, pero Abel todavía no ha guardado resultados reales.') +
+            ? 'Test je otvoren. Rezultati će se prikazati kada ih trener sačuva.'
+            : getLang() === 'en'
+              ? 'The test is open. Results will appear after your coach saves them.'
+              : 'El test está abierto. Los resultados aparecerán cuando el coach los guarde.') +
         '</div>' +
-      '</div>';
-  } else {
-    html +=
-      '<div class="progress-empty-clean">' +
-        uiText('whenAbelTests') +
       '</div>';
   }
 
-  el.innerHTML = html;
-  return;
-}
+  if (!latestMeasured) {
+    if (!latestPending) {
+      html +=
+        '<div class="progress-empty-clean">' +
+          uiText('whenAbelTests') +
+        '</div>';
+    }
 
+    el.innerHTML = html;
+    return;
+  }
+
+  const latestAssessment = latestMeasured.assessment;
+  const latestResults = latestMeasured.results || [];
   const latestDate = latestAssessment.assessment_date
     ? formatDate(latestAssessment.assessment_date)
     : '—';
 
-  const latestStatus = latestAssessment.status || uiText('pending');
-  const latestStatusClean = normalizeAssessmentStatusClient(latestStatus);
+  const rawStatus = latestAssessment.status || uiText('completed');
+  const statusClean = normalizeAssessmentStatusClient(rawStatus);
+  const statusLooksComplete =
+    statusClean.includes('complet') ||
+    statusClean.includes('realiz') ||
+    statusClean.includes('finaliz');
 
-  const badgeClass =
-    latestStatusClean.includes('complet') ||
-    latestStatusClean.includes('realiz') ||
-    latestResults.length > 0
-      ? 'badge-green'
-      : latestStatusClean.includes('progreso') || latestStatusClean.includes('pend')
-        ? 'badge-yellow'
-        : 'badge-gray';
+  const visibleStatus = statusLooksComplete
+    ? rawStatus
+    : (getLang() === 'sr' ? 'Sa rezultatima' : getLang() === 'en' ? 'Results saved' : 'Con resultados');
 
   html +=
     '<div class="progress-clean-hero">' +
       '<div class="progress-clean-kicker">' + uiText('lastEvaluation') + '</div>' +
-
       '<div class="progress-clean-title">' +
         escHTML(latestAssessment.assessment_name || uiText('functionalTest')) +
       '</div>' +
-
       '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">' +
-        '<span class="badge ' + badgeClass + '">' + escHTML(latestStatus) + '</span>' +
+        '<span class="badge badge-green">' + escHTML(visibleStatus) + '</span>' +
         '<span class="progress-clean-sub">' + latestDate + '</span>' +
         '<span class="progress-clean-sub">' + latestResults.length + ' ' + uiText('results') + '</span>' +
       '</div>' +
-
       (
         latestAssessment.coach_notes
           ? '<div class="progress-clean-sub" style="font-style:italic;">' +
               escHTML(latestAssessment.coach_notes) +
             '</div>'
-          : '<div class="progress-clean-sub">' +
-              uiText('reviewMainResults') +
-            '</div>'
+          : '<div class="progress-clean-sub">' + uiText('reviewMainResults') + '</div>'
       ) +
     '</div>';
 
   html +=
     '<div class="progress-kpi-row">' +
-
       '<div class="progress-kpi-card">' +
         '<div class="progress-kpi-label">' + uiText('testsDone') + '</div>' +
         '<div class="progress-kpi-value">' + totalTests + '</div>' +
       '</div>' +
-
       '<div class="progress-kpi-card">' +
         '<div class="progress-kpi-label">' + uiText('savedResults') + '</div>' +
         '<div class="progress-kpi-value">' + totalResults + '</div>' +
       '</div>' +
-
       '<div class="progress-kpi-card">' +
         '<div class="progress-kpi-label">' + uiText('lastTest') + '</div>' +
         '<div class="progress-kpi-value" style="font-size:17px;">' + latestDate + '</div>' +
       '</div>' +
-
     '</div>';
 
   html +=
@@ -12773,48 +12992,36 @@ const pendingAssessment = !latestAssessment ? (clientAssessments[0] || null) : n
       uiText('mainProgress') +
     '</div>';
 
-  if (latestResults.length) {
-    html += latestResults.slice(0, 6).map(renderProgressResultWithChart).join('');
-  } else {
-    html +=
-      '<div class="progress-empty-clean">' +
-        uiText('thisTestNoResults') +
-      '</div>';
-  }
+  html += latestResults.slice(0, 6).map(renderProgressResultWithChart).join('');
 
-  const archiveItems = useful.slice(1, 9);
+  const archiveItems = measuredAssessments.slice(1, 9);
 
   html +=
     '<div class="progress-archive" id="progressArchiveBox">' +
-
       '<button class="progress-archive-toggle" onclick="toggleProgressArchive()">' +
         '<div>' +
           '<div class="progress-archive-title">' + uiText('progressHistory') + '</div>' +
           '<div class="progress-archive-sub">' +
-            archiveItems.length + ' tests relevantes · historial completo guardado por Abel' +
+            archiveItems.length + ' tests con resultados · historial guardado por Abel' +
           '</div>' +
         '</div>' +
         '<div class="progress-archive-symbol">+</div>' +
       '</button>' +
-
       '<div class="progress-archive-body">';
 
   if (archiveItems.length) {
     archiveItems.forEach(item => {
       const a = item.assessment;
       const results = item.results || [];
-
-      const status = a.status || uiText('completed');
-      const statusClean = normalizeAssessmentStatusClient(status);
-
-      const cls =
-        statusClean.includes('complet') ||
-        statusClean.includes('realiz') ||
-        results.length > 0
-          ? 'badge-green'
-          : statusClean.includes('progreso') || statusClean.includes('pend')
-            ? 'badge-yellow'
-            : 'badge-gray';
+      const rawArchiveStatus = a.status || uiText('completed');
+      const cleanArchiveStatus = normalizeAssessmentStatusClient(rawArchiveStatus);
+      const archiveStatus = (
+        cleanArchiveStatus.includes('complet') ||
+        cleanArchiveStatus.includes('realiz') ||
+        cleanArchiveStatus.includes('finaliz')
+      )
+        ? rawArchiveStatus
+        : (getLang() === 'sr' ? 'Sa rezultatima' : getLang() === 'en' ? 'Results saved' : 'Con resultados');
 
       html +=
         '<div class="progress-history-clean-card">' +
@@ -12824,13 +13031,11 @@ const pendingAssessment = !latestAssessment ? (clientAssessments[0] || null) : n
                 escHTML(a.assessment_name || uiText('functionalTest')) +
               '</div>' +
               '<div class="progress-history-meta">' +
-                formatDate(a.assessment_date) + ' · ' +
-                results.length + ' ' + uiText('results') +
+                formatDate(a.assessment_date) + ' · ' + results.length + ' ' + uiText('results') +
               '</div>' +
             '</div>' +
-            '<span class="badge ' + cls + '">' + escHTML(status) + '</span>' +
+            '<span class="badge badge-green">' + escHTML(archiveStatus) + '</span>' +
           '</div>' +
-
           (
             a.coach_notes
               ? '<div class="progress-history-meta" style="margin-top:8px;font-style:italic;">' +
@@ -12843,14 +13048,15 @@ const pendingAssessment = !latestAssessment ? (clientAssessments[0] || null) : n
   } else {
     html +=
       '<div class="progress-empty-clean" style="margin-top:12px;">' +
-        'Todavía no hay historial adicional relevante para mostrar.' +
+        (getLang() === 'sr'
+          ? 'Još nema dodatnih testova sa rezultatima.'
+          : getLang() === 'en'
+            ? 'There are no additional tests with results yet.'
+            : 'Todavía no hay otros tests con resultados.') +
       '</div>';
   }
 
-  html +=
-      '</div>' +
-    '</div>';
-
+  html += '</div></div>';
   el.innerHTML = html;
 }
 
@@ -14283,6 +14489,71 @@ buildReservationManagementActions(myNext) +
   return html;
 }
 
+function buildReservationCalendarGuidance() {
+  if (calSelectedDate || getUpcomingReservations().length) return '';
+
+  const today = todayISO();
+  const nextAvailable = [...(calPublicSlots || [])]
+    .filter(slot => String(slot.date || '').slice(0, 10) >= today && slot.can_join)
+    .sort((a, b) => {
+      const aKey = String(a.date || '') + ' ' + String(a.time || '');
+      const bKey = String(b.date || '') + ' ' + String(b.time || '');
+      return aKey.localeCompare(bKey);
+    })[0] || null;
+
+  if (nextAvailable) {
+    const spots = Math.max(
+      0,
+      Number(nextAvailable.max_capacity || 0) - Number(nextAvailable.current_capacity || 0)
+    );
+    const dateStr = String(nextAvailable.date || '').slice(0, 10);
+
+    return (
+      '<div class="data-card reservation-guidance-card">' +
+        '<div class="next-label">' +
+          (getLang() === 'sr' ? 'Sledeća prilika' : getLang() === 'en' ? 'Next available slot' : 'Próxima oportunidad') +
+        '</div>' +
+        '<div class="dc-row">' +
+          '<span class="dc-title" style="font-size:15px;">' +
+            formatDate(dateStr) + (nextAvailable.time ? ' · ' + formatTime(nextAvailable.time) : '') +
+          '</span>' +
+          '<span class="badge badge-green">' +
+            spots + ' ' + (getLang() === 'en' ? 'spots' : 'plazas') +
+          '</span>' +
+        '</div>' +
+        '<div class="reservation-guidance-date">' +
+          escHTML((nextAvailable.place || '') + (nextAvailable.duration_minutes ? ' · ' + nextAvailable.duration_minutes + ' min' : '')) +
+        '</div>' +
+        '<div class="action-box" style="margin-top:12px;">' +
+          '<button class="client-action-btn" onclick="calSelectDay(\'' + dateStr + '\')">' +
+            (getLang() === 'sr' ? 'Pogledaj termin' : getLang() === 'en' ? 'View slot' : 'Ver horario') +
+          '</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  return (
+    '<div class="data-card reservation-guidance-card">' +
+      '<div class="dc-title" style="font-size:15px;">' +
+        (getLang() === 'sr' ? 'Nema objavljenih termina' : getLang() === 'en' ? 'No published slots' : 'Sin horarios publicados') +
+      '</div>' +
+      '<div class="dc-note">' +
+        (getLang() === 'sr'
+          ? 'Možeš izabrati slobodan datum ili kontaktirati trenera.'
+          : getLang() === 'en'
+            ? 'Choose a free date or contact your coach to request a session.'
+            : 'Selecciona una fecha libre o contacta con tu coach para solicitar una sesión.') +
+      '</div>' +
+      '<div class="action-box" style="margin-top:12px;">' +
+        '<button class="client-action-btn wa" onclick="clientWA(\'' + uiText('requestNewTrainingReservation') + '\')">' +
+          uiText('contactAbel') +
+        '</button>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
 function renderReservationsCalendar() {
   const el = document.getElementById('sectionReservations');
   if (!el) return;
@@ -14299,6 +14570,10 @@ function renderReservationsCalendar() {
   }
 
   html += buildCalendarHTML();
+
+  if (!calSelectedDate) {
+    html += buildReservationCalendarGuidance();
+  }
 
   if (calSelectedDate) {
     html +=
@@ -14903,20 +15178,11 @@ function metricText(row, keys, unit) {
   return v + (unit ? ' ' + unit : '');
 }
 
-function buildMetricBox(label, value, inputId = '') {
-  const clickable = Boolean(inputId);
-
+function buildMetricBox(label, value) {
   return (
-    '<div class="summary-card ' + (clickable ? 'metric-edit-card' : '') + '"' +
-      (clickable ? ' onclick="toggleClientBodyMetricsForm(\'' + inputId + '\')"' : '') +
-    '>' +
-      '<div class="summary-label">' + label + '</div>' +
-      '<div class="summary-value">' + value + '</div>' +
-      (
-        clickable
-          ? '<div class="metric-edit-hint">Tocar para editar</div>'
-          : ''
-      ) +
+    '<div class="summary-card metric-readonly-card">' +
+      '<div class="summary-label">' + escHTML(label) + '</div>' +
+      '<div class="summary-value">' + escHTML(value) + '</div>' +
     '</div>'
   );
 }
@@ -14928,53 +15194,118 @@ function buildClientBodyMetricsCard() {
     ? formatDate(m.date || String(m.created_at || '').slice(0, 10))
     : '—';
 
-  return (
-        '<div class="accordion-block" style="margin-top:12px;">' +
+  const note = m ? metricVal(m, ['notes', 'note', 'observaciones']) : '';
 
+  return (
+    '<div class="accordion-block" style="margin-top:12px;">' +
       '<button class="accordion-title" onclick="toggleAccordion(this)">' +
-        '<span>' + (getLang() === 'sr' ? 'Telesne metrike' : 'Métricas físicas') + '</span>' +
+        '<span>' + (getLang() === 'sr' ? 'Telesne metrike' : getLang() === 'en' ? 'Body metrics' : 'Métricas físicas') + '</span>' +
         '<span class="accordion-symbol">+</span>' +
       '</button>' +
-
       '<div class="accordion-content">' +
-
         '<div class="dc-note" style="margin:12px 0 14px;">' +
-          (
-            getLang() === 'sr'
-              ? 'Registra peso y medidas básicas para que Abel pueda seguir tu evolución.'
-              : 'Registra peso y medidas básicas para que Abel pueda seguir tu evolución.'
-          ) +
+          (getLang() === 'sr'
+            ? 'Registruj težinu i osnovne mere da bi trener pratio napredak.'
+            : getLang() === 'en'
+              ? 'Record weight and basic measurements so your coach can track progress.'
+              : 'Registra peso y medidas básicas para que tu coach pueda seguir tu evolución.') +
         '</div>' +
-
+        '<button class="profile-edit-section-btn" onclick="openBodyMetricsEditor()">' +
+          (getLang() === 'sr' ? 'Uredi metrike' : getLang() === 'en' ? 'Edit metrics' : 'Editar métricas') +
+        '</button>' +
         '<div class="summary-grid">' +
-
-          buildMetricBox('Peso', metricText(m, ['weight', 'peso', 'peso_kg', 'body_weight'], 'kg'), 'bodyMetricWeight') +
-          buildMetricBox('Altura', metricText(m, ['height', 'altura', 'height_cm'], 'cm'), 'bodyMetricHeight') +
-          buildMetricBox('Cintura', metricText(m, ['waist', 'cintura', 'waist_cm'], 'cm'), 'bodyMetricWaist') +
-          buildMetricBox('Cadera', metricText(m, ['hip', 'cadera', 'hip_cm'], 'cm'), 'bodyMetricHip') +
-          buildMetricBox('Pecho', metricText(m, ['chest', 'pecho', 'chest_cm'], 'cm'), 'bodyMetricChest') +
-          buildMetricBox('Brazo', metricText(m, ['arm', 'brazo', 'arm_cm'], 'cm'), 'bodyMetricArm') +
-          buildMetricBox('Pierna', metricText(m, ['thigh', 'leg', 'pierna', 'thigh_cm'], 'cm'), 'bodyMetricThigh') +
-          buildMetricBox('FC reposo', metricText(m, ['resting_hr', 'fc_reposo', 'resting_heart_rate'], 'ppm'), 'bodyMetricRestingHR') +
-
-          '<div class="summary-card full">' +
+          buildMetricBox('Peso', metricText(m, ['weight', 'peso', 'peso_kg', 'body_weight'], 'kg')) +
+          buildMetricBox('Altura', metricText(m, ['height', 'altura', 'height_cm'], 'cm')) +
+          buildMetricBox('Cintura', metricText(m, ['waist', 'cintura', 'waist_cm'], 'cm')) +
+          buildMetricBox('Cadera', metricText(m, ['hip', 'cadera', 'hip_cm'], 'cm')) +
+          buildMetricBox('Pecho', metricText(m, ['chest', 'pecho', 'chest_cm'], 'cm')) +
+          buildMetricBox('Brazo', metricText(m, ['arm', 'brazo', 'arm_cm'], 'cm')) +
+          buildMetricBox('Pierna', metricText(m, ['thigh', 'leg', 'pierna', 'thigh_cm'], 'cm')) +
+          buildMetricBox('FC reposo', metricText(m, ['resting_hr', 'fc_reposo', 'resting_heart_rate'], 'ppm')) +
+          '<div class="summary-card full metric-readonly-card">' +
             '<div class="summary-label">Última actualización</div>' +
-            '<div class="summary-value">' + date + '</div>' +
+            '<div class="summary-value">' + escHTML(date) + '</div>' +
           '</div>' +
-
         '</div>' +
-
-        (
-          m && metricVal(m, ['notes', 'note', 'observaciones'])
-            ? '<div class="note-item" style="margin-top:10px;">' +
-                metricVal(m, ['notes', 'note', 'observaciones']) +
-              '</div>'
-            : ''
-        ) +
-
+        (note
+          ? '<div class="note-item" style="margin-top:10px;">' + escHTML(note) + '</div>'
+          : '') +
       '</div>' +
     '</div>'
   );
+}
+
+function ensureBodyMetricsEditor() {
+  let overlay = document.getElementById('bodyMetricsEditorOverlay');
+  if (overlay) return overlay;
+
+  overlay = document.createElement('div');
+  overlay.id = 'bodyMetricsEditorOverlay';
+  overlay.className = 'metric-editor-overlay hidden';
+  overlay.innerHTML =
+    '<div class="metric-editor-sheet body-metrics-editor-sheet">' +
+      '<div class="metric-editor-kicker">' +
+        (getLang() === 'sr' ? 'Telesne metrike' : getLang() === 'en' ? 'Body metrics' : 'Métricas físicas') +
+      '</div>' +
+      '<div class="metric-editor-title">' +
+        (getLang() === 'sr' ? 'Ažuriraj mere' : getLang() === 'en' ? 'Update measurements' : 'Actualizar medidas') +
+      '</div>' +
+      '<div class="body-metrics-editor-grid">' +
+        buildBodyMetricEditorField('bodyMetricWeight', 'Peso', 'kg', '0.1') +
+        buildBodyMetricEditorField('bodyMetricHeight', 'Altura', 'cm', '0.1') +
+        buildBodyMetricEditorField('bodyMetricWaist', 'Cintura', 'cm', '0.1') +
+        buildBodyMetricEditorField('bodyMetricHip', 'Cadera', 'cm', '0.1') +
+        buildBodyMetricEditorField('bodyMetricChest', 'Pecho', 'cm', '0.1') +
+        buildBodyMetricEditorField('bodyMetricArm', 'Brazo', 'cm', '0.1') +
+        buildBodyMetricEditorField('bodyMetricThigh', 'Pierna', 'cm', '0.1') +
+        buildBodyMetricEditorField('bodyMetricRestingHR', 'FC reposo', 'ppm', '1') +
+      '</div>' +
+      '<div class="field-group" style="margin-top:14px;margin-bottom:0;">' +
+        '<label>Observación opcional</label>' +
+        '<textarea id="bodyMetricNotes" class="training-notes-textarea" style="min-height:74px;margin-bottom:0;" placeholder="Ej: peso en ayunas, sensación general..."></textarea>' +
+      '</div>' +
+      '<div class="metric-editor-actions">' +
+        '<button class="client-action-btn" id="btnSaveBodyMetrics" onclick="saveClientBodyMetrics()">Guardar métricas</button>' +
+        '<button class="client-action-btn metric-editor-cancel" onclick="closeBodyMetricsEditor()">Cancelar</button>' +
+      '</div>' +
+    '</div>';
+
+  overlay.addEventListener('click', function(event) {
+    if (event.target === overlay) closeBodyMetricsEditor();
+  });
+
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function buildBodyMetricEditorField(id, label, unit, step) {
+  return (
+    '<div class="body-metric-field">' +
+      '<label for="' + id + '">' + escHTML(label) + ' · ' + escHTML(unit) + '</label>' +
+      '<input id="' + id + '" type="number" inputmode="decimal" step="' + escHTML(step) + '">' +
+    '</div>'
+  );
+}
+
+function openBodyMetricsEditor() {
+  const overlay = ensureBodyMetricsEditor();
+  const latest = getLatestClientMetric() || {};
+
+  Object.entries(BODY_METRIC_CONFIG).forEach(([id, cfg]) => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    const current = metricVal(latest, cfg.keys);
+    input.value = current !== '' ? current : '';
+  });
+
+  const notes = document.getElementById('bodyMetricNotes');
+  if (notes) notes.value = metricVal(latest, ['notes', 'note', 'observaciones']) || '';
+
+  overlay.classList.remove('hidden');
+}
+
+function closeBodyMetricsEditor() {
+  document.getElementById('bodyMetricsEditorOverlay')?.classList.add('hidden');
 }
 
 const BODY_METRIC_CONFIG = {
@@ -15377,6 +15708,7 @@ const payload = {
     );
     clientMetrics.unshift(savedMetric);
 
+    closeBodyMetricsEditor();
     showClientNotice('Métricas guardadas.', 'success');
 
     renderClientData();
@@ -16241,7 +16573,7 @@ function buildClientConditionsHTML() {
       '</div></div><span class="condition-count">' + current.length + '</span></div>';
     html += current.map(buildConditionCard).join('');
   } else if (!clientConditionEditor) {
-    html += '<div class="data-card"><div class="dc-row"><span class="dc-title">' + conditionUiText('noReports') + '</span><span class="badge badge-green">OK</span></div><div class="dc-note">' +
+    html += '<div class="data-card"><div class="dc-row"><span class="dc-title">' + conditionUiText('noReports') + '</span></div><div class="dc-note">' +
       (getLang()==='sr'?'Ako se pojavi tegoba, možeš je prijaviti ovde.':'Cuando aparezca una molestia, puedes comunicarla directamente desde aquí.') +
     '</div></div>';
   }
@@ -16477,7 +16809,7 @@ function renderHealthAlerts() {
       '</div>';
     }).join('');
   } else {
-    html += '<div class="data-card" style="margin-top:12px"><div class="dc-row"><span class="dc-title">' + uiText('noActiveHealthNotes') + '</span><span class="badge badge-green">OK</span></div><div class="dc-note">' + uiText('noHealthAlerts') + '</div></div>';
+    html += '<div class="data-card" style="margin-top:12px"><div class="dc-row"><span class="dc-title">' + uiText('noActiveHealthNotes') + '</span></div><div class="dc-note">' + uiText('noHealthAlerts') + '</div></div>';
   }
   html += '</div>';
 
@@ -16905,7 +17237,7 @@ async function restoreCompetition(competitionId) {
 
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js?v=20260615-03', {
+  navigator.serviceWorker.register('/sw.js?v=20260615-04', {
     scope: '/',
     updateViaCache: 'none'
   }).then(reg => {
@@ -17297,11 +17629,22 @@ function renderAtleta(){
   }
 
   if(!ap.sport&&!nextComp&&!activePhase&&!recentLoads.length){
-    resumenHTML+=
-      '<div class="data-card">'+
-        '<div class="dc-row"><span class="dc-title">Perfil atleta pendiente</span>'+
-        '<span class="badge badge-yellow">Por completar</span></div>'+
-        '<div class="dc-note">Contacta con Abel para completar tu perfil deportivo.</div>'+
+    resumenHTML +=
+      '<div class="data-card" style="border-left:3px solid var(--warn);">' +
+        '<div class="dc-row">' +
+          '<span class="dc-title">Perfil deportivo por completar</span>' +
+          '<span class="badge badge-yellow">Pendiente</span>' +
+        '</div>' +
+        '<div class="dc-note">Completar estos datos permitirá mostrar calendario competitivo, categoría y carga específica.</div>' +
+        '<div class="athlete-empty-grid">' +
+          '<div class="athlete-empty-item"><div class="athlete-empty-label">Deporte</div><div class="athlete-empty-value">Sin registrar</div></div>' +
+          '<div class="athlete-empty-item"><div class="athlete-empty-label">Categoría / peso</div><div class="athlete-empty-value">Sin registrar</div></div>' +
+          '<div class="athlete-empty-item"><div class="athlete-empty-label">Fase actual</div><div class="athlete-empty-value">Sin registrar</div></div>' +
+          '<div class="athlete-empty-item"><div class="athlete-empty-label">Próxima competición</div><div class="athlete-empty-value">Sin registrar</div></div>' +
+        '</div>' +
+        '<div class="action-box" style="margin-top:12px;">' +
+          '<button class="client-action-btn wa" onclick="clientWA(\'Quiero completar mi perfil deportivo de atleta.\')">Solicitar actualización</button>' +
+        '</div>' +
       '</div>';
   }
 
