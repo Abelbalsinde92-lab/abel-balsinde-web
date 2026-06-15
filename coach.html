@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 20 ADAPTATION FORCE APPLY</title>
+<title>AB SYSTEM — Coach Panel · RPC 21 CONDITION INBOX</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -2537,6 +2537,76 @@ body.eval-modal-open {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+
+/* ════════════════════════════════════════════════════════
+   RPC 21 · BANDEJA DE MOLESTIAS + SALUD UNIFICADA
+══════════════════════════════════════════════════════════ */
+.condition-inbox{
+  margin:0 0 18px;
+  padding:14px;
+  background:linear-gradient(180deg,rgba(255,179,64,.055),rgba(255,255,255,.012));
+  border:1px solid rgba(255,179,64,.22);
+  border-radius:var(--r);
+}
+.condition-inbox-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;
+}
+.condition-inbox-kicker{
+  font-family:var(--font-m);font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--warn);margin-bottom:3px;
+}
+.condition-inbox-title{font-family:var(--font-d);font-size:1.25rem;letter-spacing:.025em;line-height:1.05}
+.condition-inbox-sub{font-size:.72rem;color:var(--text-2);line-height:1.5;margin-top:4px}
+.condition-filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:10px;scrollbar-width:none}
+.condition-filter-row::-webkit-scrollbar{display:none}
+.condition-report-card{
+  background:var(--card);border:1px solid var(--card-border);border-left:3px solid var(--warn);
+  border-radius:10px;margin-bottom:8px;overflow:hidden;
+}
+.condition-report-card.active{border-left-color:var(--sport)}
+.condition-report-card.resolved{border-left-color:var(--streak);opacity:.92}
+.condition-report-card.red-flag{border-left-color:var(--medical);box-shadow:inset 0 0 0 1px rgba(255,90,90,.16)}
+.condition-report-main{padding:12px 13px}
+.condition-report-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.condition-report-client{font-weight:800;font-size:.9rem;line-height:1.25}
+.condition-report-zone{font-family:var(--font-d);font-size:1.25rem;letter-spacing:.025em;color:var(--text);margin-top:2px}
+.condition-report-meta{font-family:var(--font-m);font-size:.52rem;color:var(--text-2);letter-spacing:.045em;margin-top:3px}
+.condition-pain-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
+.condition-pain-cell{padding:8px;background:var(--bg);border:1px solid var(--divider);border-radius:7px;min-width:0}
+.condition-pain-label{font-family:var(--font-m);font-size:.43rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.condition-pain-value{font-family:var(--font-d);font-size:1.15rem;line-height:1.05;margin-top:3px}
+.condition-report-text{margin-top:9px;padding:8px 10px;background:rgba(255,255,255,.025);border-left:2px solid var(--divider);border-radius:0 6px 6px 0;font-size:.76rem;color:var(--text-2);line-height:1.55}
+.condition-report-text strong{color:var(--text);font-weight:700}
+.condition-red-flags{margin-top:8px;padding:8px 10px;background:rgba(255,90,90,.07);border:1px solid rgba(255,90,90,.2);border-radius:7px;font-size:.7rem;color:var(--medical);line-height:1.45}
+.condition-report-actions{display:flex;gap:6px;flex-wrap:wrap;padding:9px 12px;border-top:1px solid var(--divider);background:rgba(0,0,0,.13)}
+.condition-report-actions .btn{flex:1;min-width:105px}
+.health-client-hero{display:flex;align-items:center;gap:12px;padding:14px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);margin-bottom:10px}
+.health-client-name{font-weight:800;font-size:1rem}
+.health-client-meta{font-family:var(--font-m);font-size:.53rem;color:var(--text-2);margin-top:2px}
+.health-coach-tabs{display:flex;gap:0;overflow-x:auto;border-bottom:1px solid var(--divider);margin-bottom:12px;scrollbar-width:none}
+.health-coach-tabs::-webkit-scrollbar{display:none}
+.health-coach-tab{flex:0 0 auto;padding:10px 13px 8px;border-bottom:2px solid transparent;color:var(--text-2);font-family:var(--font-m);font-size:.5rem;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap}
+.health-coach-tab.on{color:var(--text);border-bottom-color:var(--sport)}
+.health-summary-card{border-left:3px solid var(--sport)}
+.health-summary-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
+.health-summary-count{background:var(--bg);border:1px solid var(--divider);border-radius:7px;padding:8px;text-align:center}
+.health-summary-count strong{display:block;font-family:var(--font-d);font-size:1.25rem;line-height:1}
+.health-summary-count span{display:block;font-family:var(--font-m);font-size:.42rem;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-top:4px}
+.active-condition-quick{
+  margin:0 0 10px;padding:11px 12px;border:1px solid rgba(0,200,232,.28);border-left:3px solid var(--sport);
+  background:rgba(0,200,232,.055);border-radius:8px;display:flex;align-items:center;gap:10px;
+}
+.active-condition-quick-copy{flex:1;min-width:0}
+.active-condition-quick-label{font-family:var(--font-m);font-size:.46rem;color:var(--sport);letter-spacing:.1em;text-transform:uppercase}
+.active-condition-quick-name{font-weight:800;font-size:.84rem;margin-top:2px}
+.condition-review-preview{padding:10px 12px;background:rgba(255,179,64,.055);border-left:2px solid var(--warn);border-radius:0 7px 7px 0;margin-bottom:12px}
+.condition-review-preview strong{display:block;font-size:.85rem}
+.condition-review-preview span{display:block;font-size:.72rem;color:var(--text-2);margin-top:3px;line-height:1.5}
+@media(max-width:390px){
+  .condition-pain-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .condition-report-actions .btn{min-width:calc(50% - 3px)}
+}
+
 </style>
 <!-- AB SYSTEM · RPC 19 ADAPTATION ENGINE FIX -->
 </head>
@@ -2618,6 +2688,7 @@ body.eval-modal-open {
       </div>
       <div class="mr" id="al-metrics"></div>
       <div class="fr" id="al-filters"></div>
+      <div id="al-conditions"></div>
       <div id="al-content"></div>
     </div>
 
@@ -2639,6 +2710,17 @@ body.eval-modal-open {
   <div id="intel-panel" style="display:none"></div>
   <div id="perfil-content"></div>
 </div>
+
+    <div class="scr" id="s-salud">
+      <a class="scr-back" onclick="showScr('perfil')">← Perfil</a>
+      <div class="scr-h">
+        <div class="scr-eye">Seguimiento unificado</div>
+        <div class="scr-t">Salud</div>
+      </div>
+      <div id="health-client-head"></div>
+      <div class="health-coach-tabs" id="health-coach-tabs"></div>
+      <div id="health-coach-content"></div>
+    </div>
 
     <div class="scr" id="s-workout">
       <a class="scr-back" onclick="showScr('perfil')">← Perfil</a>
@@ -2848,7 +2930,7 @@ try{
 
 const state = {
   clients:[],todayRes:[],futureRes:[],pastRes:[],allRes:[],
-  payments:[],alertas:[],todayCheckins:[],recentCheckins:[],clientConditions:[],clientInjuryCache:{},
+  payments:[],alertas:[],todayCheckins:[],recentCheckins:[],clientConditions:[],clientInjuryCache:{},healthInjuryLoading:{},
   programs:[],templates:[],trainingPrograms:[],trainingWeeks:[],
   trainingSessions:[],trainingBlocks:[],trainingExercises:[],
   videoLibrary:[],assignments:[],sessionLogs:[],
@@ -2891,6 +2973,8 @@ const state = {
 let currentScr='hoy';
 let filterCli='todos';
 let filterAl='pendientes';
+let filterCondition='reported';
+let activeHealthCoachTab='conditions';
 let filterPag='todos';
 let activeModal=null;
 let realtimeInitialized = false;
@@ -3312,6 +3396,361 @@ function getCheckinStatus(ci){
 }
 function getClientTodayCheckin(clientId){return state.todayCheckins.find(ci=>String(ci.clientId||ci.client_id)===String(clientId))}
 
+
+/* ── RPC 21 · CONDICIONES / MOLESTIAS ── */
+function normalizeCoachConditionStatus(value){
+  const status=String(value||'').toLowerCase().trim();
+  if(['reported','pendiente','pending','en_revision','review'].includes(status)) return 'reported';
+  if(['active','activo','activa'].includes(status)) return 'active';
+  if(['resolved','closed','inactive','inactivo','recuperado','cerrado','descartado','rejected'].includes(status)) return 'resolved';
+  return status||'reported';
+}
+function conditionStatusLabel(status){
+  const key=normalizeCoachConditionStatus(status);
+  if(key==='active') return 'Activa';
+  if(key==='resolved') return 'Resuelta';
+  return 'En revisión';
+}
+function conditionStatusKind(status){
+  const key=normalizeCoachConditionStatus(status);
+  if(key==='active') return 'info';
+  if(key==='resolved') return 'normal';
+  return 'revisar';
+}
+function conditionClientId(row){
+  return String(row?.clientId||row?.client_id||row?.clienteId||row?.cliente_id||'').trim();
+}
+function conditionClient(row){
+  const id=conditionClientId(row);
+  return clientById(id)||null;
+}
+function conditionClientName(row){
+  return conditionClient(row)?.name||row?.clientName||row?.client_name||row?.name||'Cliente';
+}
+function conditionKey(row){
+  return row?.conditionKey||row?.condition_key||row?.pathologyKey||row?.pathology_key||'';
+}
+function conditionZoneLabel(row){
+  return row?.conditionName||row?.condition_name||getPathologyLabel(conditionKey(row))||row?.area||'Molestia';
+}
+function conditionDate(row){
+  return row?.reportedAt||row?.reported_at||row?.createdAt||row?.created_at||row?.startDate||row?.start_date||row?.updatedAt||row?.updated_at||'';
+}
+function conditionNumberValue(row, keys){
+  for(const key of keys){
+    const value=row?.[key];
+    if(value!==''&&value!==null&&value!==undefined&&Number.isFinite(Number(value))) return Number(value);
+  }
+  return null;
+}
+function conditionPainNow(row){
+  return conditionNumberValue(row,['painNow','pain_now','painBefore','pain_before','currentPain','current_pain','progressPainNow','progress_pain_now']);
+}
+function conditionPainDuring(row){
+  return conditionNumberValue(row,['painDuring','pain_during','painActivity','pain_activity','activityPain','activity_pain']);
+}
+function conditionPainMax(row){
+  const vals=[conditionPainNow(row),conditionPainDuring(row),conditionNumberValue(row,['painAfter','pain_after'])].filter(v=>v!==null);
+  return vals.length?Math.max(...vals):null;
+}
+function conditionLimitsTraining(row){
+  const value=row?.limitsTraining??row?.limits_training??row?.limitsNormalTraining??row?.limits_normal_training;
+  if(typeof value==='string') return ['true','1','yes','si','sí'].includes(value.toLowerCase());
+  return value===true||value===1;
+}
+function conditionComment(row){
+  return row?.clientComment||row?.client_comment||row?.comment||row?.reportComment||row?.report_comment||'';
+}
+function conditionTrigger(row){
+  return row?.triggerText||row?.trigger_text||row?.trigger||'';
+}
+function conditionEvolution(row){
+  return row?.evolution||row?.lastEvolution||row?.last_evolution||row?.progressEvolution||row?.progress_evolution||'';
+}
+function conditionProgressComment(row){
+  return row?.progressComment||row?.progress_comment||row?.lastProgressComment||row?.last_progress_comment||'';
+}
+function conditionRedFlags(row){
+  let raw=row?.redFlags??row?.red_flags??{};
+  if(typeof raw==='string'){
+    try{raw=JSON.parse(raw)}catch(_){raw={raw}}
+  }
+  if(!raw||typeof raw!=='object') return [];
+  const labels={
+    sudden_swelling_or_trauma:'Traumatismo o inflamación súbita',
+    numbness_or_weakness:'Pérdida de fuerza o sensibilidad',
+    severe_function_loss:'Pérdida importante de función'
+  };
+  return Object.entries(raw).filter(([,v])=>v===true||v===1||String(v).toLowerCase()==='true').map(([k])=>labels[k]||k.replace(/_/g,' '));
+}
+function conditionRowsForClient(clientId){
+  return (state.clientConditions||[]).filter(row=>String(conditionClientId(row))===String(clientId));
+}
+function conditionRowsByStatus(status=null){
+  const rows=(state.clientConditions||[]).slice();
+  return status&&status!=='all'?rows.filter(row=>normalizeCoachConditionStatus(row.status)===status):rows;
+}
+function conditionSortRows(rows){
+  const priority={reported:0,active:1,resolved:2};
+  return (rows||[]).slice().sort((a,b)=>{
+    const sa=priority[normalizeCoachConditionStatus(a.status)]??9;
+    const sb=priority[normalizeCoachConditionStatus(b.status)]??9;
+    if(sa!==sb)return sa-sb;
+    return String(conditionDate(b)).localeCompare(String(conditionDate(a)));
+  });
+}
+function conditionHasRedFlags(row){return conditionRedFlags(row).length>0}
+function defaultConditionClientMessage(row){
+  const zone=getPathologyLabel(conditionKey(row)).toLowerCase();
+  return `Vamos a adaptar el trabajo sobre ${zone} durante los próximos días y revisaremos tu evolución en la fecha indicada.`;
+}
+function datePlusDays(days){
+  const d=new Date();d.setDate(d.getDate()+Number(days||0));return d.toISOString().slice(0,10);
+}
+function buildCoachConditionCard(row,{compact=false}={}){
+  const status=normalizeCoachConditionStatus(row?.status);
+  const c=conditionClient(row);
+  const cid=conditionClientId(row);
+  const flags=conditionRedFlags(row);
+  const painNow=conditionPainNow(row);
+  const painDuring=conditionPainDuring(row);
+  const maxPain=conditionPainMax(row);
+  const limits=conditionLimitsTraining(row);
+  const comment=conditionComment(row);
+  const trigger=conditionTrigger(row);
+  const evolution=conditionEvolution(row);
+  const progressComment=conditionProgressComment(row);
+  const created=String(conditionDate(row)||'').slice(0,10);
+  const severity=row?.severity||'—';
+  const review=row?.reviewDate||row?.review_date||'';
+  const clientMessage=row?.clientMessage||row?.client_message||'';
+  const coachNotes=row?.coachNotes||row?.coach_notes||'';
+  const klass=status+(flags.length?' red-flag':'');
+  let actions='';
+  if(status==='reported'){
+    actions=`
+      <button class="btn btn-p btn-sm" onclick="openConditionReviewModal('${row.id}','approve')">Aprobar adaptación</button>
+      <button class="btn btn-r btn-sm" onclick="openConditionReviewModal('${row.id}','discard')">Descartar</button>
+      ${cid?`<button class="btn btn-b btn-sm" onclick="openClientHealth('${cid}','conditions')">Salud</button>`:''}`;
+  }else if(status==='active'){
+    actions=`
+      ${cid?`<button class="btn btn-p btn-sm" onclick="useActiveConditionAdaptation('${cid}','${row.id}')">Usar adaptación activa</button>`:''}
+      <button class="btn btn-b btn-sm" onclick="openConditionReviewModal('${row.id}','resolve')">Resolver</button>
+      ${cid?`<button class="btn btn-s btn-sm" onclick="openClientHealth('${cid}','conditions')">Salud</button>`:''}`;
+  }else{
+    actions=`${cid?`<button class="btn btn-b btn-sm" onclick="openClientHealth('${cid}','conditions')">Ver historial</button>`:''}`;
+  }
+  return `
+    <div class="condition-report-card ${klass}">
+      <div class="condition-report-main">
+        <div class="condition-report-top">
+          <div style="min-width:0;flex:1">
+            <div class="condition-report-client">${esc(conditionClientName(row))}</div>
+            <div class="condition-report-zone">${esc(conditionZoneLabel(row))}</div>
+            <div class="condition-report-meta">${created?formatDate(created):'Sin fecha'}${row?.area?' · '+esc(row.area):''}</div>
+          </div>
+          ${badge(conditionStatusLabel(status),conditionStatusKind(status))}
+        </div>
+        <div class="condition-pain-grid">
+          <div class="condition-pain-cell"><div class="condition-pain-label">Dolor actual</div><div class="condition-pain-value" style="color:${maxPain>=7?'var(--medical)':maxPain>=4?'var(--warn)':'var(--text)'}">${painNow??'—'}<span style="font-size:.65rem;color:var(--text-2)">/10</span></div></div>
+          <div class="condition-pain-cell"><div class="condition-pain-label">En actividad</div><div class="condition-pain-value">${painDuring??'—'}<span style="font-size:.65rem;color:var(--text-2)">/10</span></div></div>
+          <div class="condition-pain-cell"><div class="condition-pain-label">Limita entreno</div><div class="condition-pain-value" style="font-size:1rem;color:${limits?'var(--medical)':'var(--streak)'}">${limits?'Sí':'No'}</div></div>
+        </div>
+        ${trigger?`<div class="condition-report-text"><strong>Se activa con:</strong> ${esc(trigger)}</div>`:''}
+        ${comment?`<div class="condition-report-text"><strong>Cliente:</strong> ${esc(comment)}</div>`:''}
+        ${evolution?`<div class="condition-report-text"><strong>Evolución:</strong> ${esc(evolution)}${progressComment?' · '+esc(progressComment):''}</div>`:''}
+        ${flags.length?`<div class="condition-red-flags"><strong>Señales importantes:</strong> ${flags.map(esc).join(' · ')}</div>`:''}
+        ${status==='active'&&(severity!=='—'||review||clientMessage||coachNotes)?`
+          <div class="condition-report-text"><strong>Control coach:</strong> Severidad ${esc(severity)}${review?' · revisión '+formatDate(review):''}${clientMessage?'<br>'+esc(clientMessage):''}${coachNotes?'<br><span style="color:var(--text-2)">'+esc(coachNotes)+'</span>':''}</div>`:''}
+      </div>
+      <div class="condition-report-actions">${actions}</div>
+    </div>`;
+}
+function buildConditionInboxHTML(rows,{title='Molestias reportadas',showFilters=true}={}){
+  const counts={
+    reported:conditionRowsByStatus('reported').length,
+    active:conditionRowsByStatus('active').length,
+    resolved:conditionRowsByStatus('resolved').length
+  };
+  let visible=rows||conditionRowsByStatus(filterCondition);
+  visible=conditionSortRows(visible);
+  return `<section class="condition-inbox">
+    <div class="condition-inbox-head"><div><div class="condition-inbox-kicker">Seguimiento de salud</div><div class="condition-inbox-title">${esc(title)}</div><div class="condition-inbox-sub">Revisa lo enviado por el cliente antes de aplicar cambios al entrenamiento.</div></div>${badge(String(visible.length),visible.some(r=>conditionHasRedFlags(r))?'alerta':'revisar')}</div>
+    ${showFilters?`<div class="condition-filter-row">${[
+      ['reported',`En revisión ${counts.reported}`],['active',`Activas ${counts.active}`],['resolved',`Resueltas ${counts.resolved}`],['all','Todas']
+    ].map(([k,l])=>`<button class="fp ${filterCondition===k?'on':''}" onclick="filterCondition='${k}';renderAlertas()">${l}</button>`).join('')}</div>`:''}
+    ${visible.length?visible.map(row=>buildCoachConditionCard(row,{compact:true})).join(''):emptyState('Sin molestias en este estado','Los reportes nuevos aparecerán aquí automáticamente.')}
+  </section>`;
+}
+function buildDashboardConditionInbox(){
+  const rows=conditionSortRows(conditionRowsByStatus('reported')).slice(0,4);
+  if(!rows.length)return'';
+  return `<div style="margin-bottom:18px">${buildConditionInboxHTML(rows,{title:'Molestias por revisar',showFilters:false})}<button class="btn btn-b btn-wide" onclick="filterCondition='reported';showScr('alertas')">Abrir bandeja completa</button></div>`;
+}
+function buildClientHealthSummaryCard(c){
+  const rows=conditionRowsForClient(c.id);
+  const reported=rows.filter(r=>normalizeCoachConditionStatus(r.status)==='reported').length;
+  const active=rows.filter(r=>normalizeCoachConditionStatus(r.status)==='active').length;
+  const resolved=rows.filter(r=>normalizeCoachConditionStatus(r.status)==='resolved').length;
+  const recent=conditionSortRows(rows)[0];
+  return `<div class="card health-summary-card" style="margin-top:12px">
+    <div class="card-body">
+      <div class="card-title" style="color:var(--sport)">Salud</div>
+      <div style="font-size:.76rem;color:var(--text-2);line-height:1.55">Check-ins, métricas, condiciones activas e historial de lesiones en una sola vista.</div>
+      <div class="health-summary-counts">
+        <div class="health-summary-count"><strong style="color:${reported?'var(--warn)':'var(--text)'}">${reported}</strong><span>En revisión</span></div>
+        <div class="health-summary-count"><strong style="color:${active?'var(--sport)':'var(--text)'}">${active}</strong><span>Activas</span></div>
+        <div class="health-summary-count"><strong>${resolved}</strong><span>Historial</span></div>
+      </div>
+      ${recent?`<div class="condition-report-text"><strong>Último registro:</strong> ${esc(conditionZoneLabel(recent))} · ${conditionStatusLabel(recent.status)}</div>`:''}
+    </div>
+    <div class="card-acts"><button class="btn btn-p btn-sm" onclick="openClientHealth('${c.id}','conditions')">Abrir SALUD</button><button class="btn btn-b btn-sm" onclick="openModal('injuryHistory',null,{clientId:'${c.id}'})">+ Lesión</button></div>
+  </div>`;
+}
+function openClientHealth(clientId,tab='conditions'){
+  state.selectedClientId=clientId;
+  activeHealthCoachTab=tab;
+  showScr('salud');
+}
+function setClientHealthTab(tab){
+  activeHealthCoachTab=tab;
+  renderClientHealth();
+}
+function buildHealthCheckins(c){
+  const seen=new Set();
+  const rows=[...(state.todayCheckins||[]),...(state.recentCheckins||[])].filter(ci=>String(ci.clientId||ci.client_id)===String(c.id)).filter(ci=>{
+    const key=String(ci.id||ci.createdAt||ci.created_at||Math.random());if(seen.has(key))return false;seen.add(key);return true;
+  }).sort((a,b)=>String(b.createdAt||b.created_at||b.date||'').localeCompare(String(a.createdAt||a.created_at||a.date||''))).slice(0,20);
+  return rows.length?rows.map(ci=>`<div class="card"><div class="card-body"><div class="card-title">${formatDate(String(ci.date||ci.createdAt||ci.created_at||'').slice(0,10))}</div><div class="dr"><span class="dk">Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div><div class="dr"><span class="dk">Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div><div class="dr"><span class="dk">Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}</span></div>${ci.comment?`<div class="condition-report-text">${esc(ci.comment)}</div>`:''}</div></div>`).join(''):emptyState('Sin check-ins','Todavía no hay registros para este cliente.');
+}
+function buildHealthMetrics(c){
+  const rows=(state.metrics||[]).filter(m=>String(m.clientId||m.client_id)===String(c.id)).sort((a,b)=>String(b.date||b.createdAt||b.created_at||'').localeCompare(String(a.date||a.createdAt||a.created_at||''))).slice(0,30);
+  return rows.length?rows.map(m=>`<div class="card"><div class="card-body"><div class="dr"><span class="dk">${esc(m.type||m.metricType||m.metric_type||'Métrica')}</span><span class="dv">${esc(m.value??m.metricValue??m.metric_value??'—')} ${esc(m.unit||'')}</span></div><div style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2);margin-top:4px">${formatDate(String(m.date||m.createdAt||m.created_at||'').slice(0,10))}</div>${m.notes?`<div class="condition-report-text">${esc(m.notes)}</div>`:''}</div></div>`).join(''):emptyState('Sin métricas','Todavía no hay métricas registradas.');
+}
+function buildHealthInjuries(c){
+  const rows=state.clientInjuryCache?.[c.id];
+  if(!rows){
+    if(!state.healthInjuryLoading?.[c.id]) loadHealthInjuriesForScreen(c.id);
+    return '<div class="eval-loading">Cargando historial de lesiones...</div>';
+  }
+  if(!rows.length)return emptyState('Sin lesiones registradas','Puedes añadir una lesión desde esta pantalla.')+`<button class="btn btn-p btn-wide" style="margin-top:10px" onclick="openModal('injuryHistory',null,{clientId:'${c.id}'})">+ Registrar lesión</button>`;
+  return `<button class="btn btn-p btn-wide" style="margin-bottom:10px" onclick="openModal('injuryHistory',null,{clientId:'${c.id}'})">+ Registrar lesión</button>`+rows.map(row=>`<div class="card"><div class="card-body"><div class="card-title">${esc(row.bodyPart||row.body_part||'Zona')} · ${esc(row.injuryType||row.injury_type||'Lesión')}</div><div class="dr"><span class="dk">Estado</span><span>${badge(injuryStatusLabel(row.status),injuryStatusKind(row.status))}</span></div><div class="dr"><span class="dk">Inicio</span><span class="dv">${formatDate(row.startDate||row.start_date||'')}</span></div>${row.notes?`<div class="condition-report-text">${esc(row.notes)}</div>`:''}</div></div>`).join('');
+}
+async function loadHealthInjuriesForScreen(clientId){
+  if(!state.healthInjuryLoading)state.healthInjuryLoading={};
+  state.healthInjuryLoading[clientId]=true;
+  try{
+    const {data}=await loadCoachInjuryHistory(clientId,300);
+    state.clientInjuryCache[clientId]=mapArr(data||[]);
+  }catch(error){
+    console.error('loadHealthInjuriesForScreen error:',error);
+    state.clientInjuryCache[clientId]=[];
+    showToast('No se pudo cargar lesiones','err');
+  }finally{
+    state.healthInjuryLoading[clientId]=false;
+    if(currentScr==='salud'&&String(state.selectedClientId)===String(clientId))renderClientHealth();
+  }
+}
+function renderClientHealth(){
+  const c=clientById(state.selectedClientId);
+  const head=document.getElementById('health-client-head');
+  const tabs=document.getElementById('health-coach-tabs');
+  const content=document.getElementById('health-coach-content');
+  if(!head||!tabs||!content)return;
+  if(!c){head.innerHTML='';tabs.innerHTML='';content.innerHTML=emptyState('Sin cliente','Vuelve a la lista de clientes.');return}
+  const rows=conditionSortRows(conditionRowsForClient(c.id));
+  const reported=rows.filter(r=>normalizeCoachConditionStatus(r.status)==='reported').length;
+  const active=rows.filter(r=>normalizeCoachConditionStatus(r.status)==='active').length;
+  head.innerHTML=`<div class="health-client-hero">${getClientPhotoHTML(c,'sm')}<div style="flex:1;min-width:0"><div class="health-client-name">${esc(c.name)}</div><div class="health-client-meta">${reported} en revisión · ${active} activas · ${rows.length} condiciones registradas</div></div>${reported?badge(String(reported),'revisar'):badge('OK','normal')}</div>`;
+  const defs=[['conditions','Molestias'],['checkins','Check-ins'],['metrics','Métricas'],['injuries','Lesiones']];
+  tabs.innerHTML=defs.map(([k,l])=>`<button class="health-coach-tab ${activeHealthCoachTab===k?'on':''}" onclick="setClientHealthTab('${k}')">${l}${k==='conditions'&&reported?' · '+reported:''}</button>`).join('');
+  if(activeHealthCoachTab==='conditions'){
+    content.innerHTML=rows.length?`<div class="fr" style="margin-bottom:10px"><button class="fp on">${rows.length} registros</button>${reported?`<button class="fp" onclick="filterCondition='reported';showScr('alertas')">${reported} por revisar</button>`:''}</div>${rows.map(row=>buildCoachConditionCard(row)).join('')}`:emptyState('Sin molestias registradas','Los reportes enviados por el cliente aparecerán aquí.');
+  }else if(activeHealthCoachTab==='checkins') content.innerHTML=buildHealthCheckins(c);
+  else if(activeHealthCoachTab==='metrics') content.innerHTML=buildHealthMetrics(c);
+  else content.innerHTML=buildHealthInjuries(c);
+}
+function openConditionReviewModal(conditionId,action='approve'){
+  const row=(state.clientConditions||[]).find(r=>String(r.id)===String(conditionId));
+  if(!row){showToast('Reporte no encontrado','err');return}
+  activeModal={type:'conditionReview',id:conditionId,action};
+  const title=document.getElementById('modal-title');
+  const form=document.getElementById('modal-form');
+  const isApprove=action==='approve';
+  const isDiscard=action==='discard';
+  title.textContent=isApprove?'Aprobar adaptación':isDiscard?'Descartar reporte':'Resolver condición';
+  const defaultMessage=row.clientMessage||row.client_message||defaultConditionClientMessage(row);
+  form.onsubmit=saveConditionReview;
+  form.innerHTML=`
+    <div class="condition-review-preview"><strong>${esc(conditionClientName(row))} · ${esc(conditionZoneLabel(row))}</strong><span>Dolor actual ${conditionPainNow(row)??'—'}/10 · actividad ${conditionPainDuring(row)??'—'}/10 · limita: ${conditionLimitsTraining(row)?'sí':'no'}</span></div>
+    ${isApprove?`<div class="fld"><label class="fld-l">Gravedad</label><select class="fld-s" name="severity"><option value="leve">Leve</option><option value="media" selected>Media</option><option value="alta">Alta</option></select></div><div class="fld"><label class="fld-l">Fecha de revisión</label><input class="fld-i" type="date" name="reviewDate" value="${datePlusDays(7)}"></div><div class="fld"><label class="fld-l">Mensaje para el cliente</label><textarea class="fld-t" name="clientMessage" rows="4">${esc(defaultMessage)}</textarea></div>`:''}
+    <div class="fld"><label class="fld-l">Nota interna del coach</label><textarea class="fld-t" name="coachNotes" rows="4" placeholder="Criterio, observaciones y seguimiento...">${esc(row.coachNotes||row.coach_notes||'')}</textarea></div>
+    <div class="fld-acts"><button type="button" class="btn btn-s" onclick="closeModal()">Cancelar</button><button type="submit" class="btn ${isDiscard?'btn-r':'btn-p'}">${isApprove?'Activar adaptación':isDiscard?'Descartar reporte':'Marcar resuelta'}</button></div>`;
+  document.getElementById('modal-ov')?.classList.add('on');
+}
+function isMissingConditionReviewRpc(error){
+  const code=String(error?.code||'').toUpperCase();const msg=String(error?.message||'').toLowerCase();
+  return code==='42883'||code==='PGRST202'||msg.includes('could not find the function')||msg.includes('does not exist');
+}
+async function saveConditionReview(event){
+  event.preventDefault();
+  const cfg=activeModal;
+  if(!cfg||cfg.type!=='conditionReview')return;
+  const row=(state.clientConditions||[]).find(r=>String(r.id)===String(cfg.id));
+  if(!row){showToast('Reporte no encontrado','err');return}
+  const values=formData(event.currentTarget);
+  const action=cfg.action;
+  const desiredStatus=action==='approve'?'active':'resolved';
+  const token=getCoachSessionTokenSafe();
+  if(!token){showToast('Sesión del coach no válida','err');return}
+  const submit=event.currentTarget.querySelector('[type="submit"]');if(submit){submit.disabled=true;submit.textContent='Guardando...'}
+  try{
+    let saved=null;
+    const reviewResult=await db.rpc('ab_coach_session_review_condition',{
+      p_session_token:token,p_condition_id:cfg.id,p_action:action,
+      p_severity:values.severity||null,p_review_date:values.reviewDate||null,
+      p_client_message:values.clientMessage||null,p_coach_notes:values.coachNotes||null
+    });
+    if(reviewResult.error){
+      if(!isMissingConditionReviewRpc(reviewResult.error))throw reviewResult.error;
+      const fallbackStatus=desiredStatus==='resolved'?'inactive':'active';
+      const fallback=await db.rpc('ab_coach_session_set_condition_status',{
+        p_session_token:token,p_condition_id:cfg.id,p_status:fallbackStatus,
+        p_end_date:desiredStatus==='resolved'?todayISO():null
+      });
+      if(fallback.error)throw fallback.error;
+      saved=normalizeRpcJsonRow(fallback.data);
+      showToast('Estado guardado · aplica el SQL adjunto para guardar todos los campos','ok');
+    }else saved=normalizeRpcJsonRow(reviewResult.data);
+    const index=state.clientConditions.findIndex(r=>String(r.id)===String(cfg.id));
+    const merged={...row,...(saved||{}),status:desiredStatus,severity:values.severity||row.severity||null,reviewDate:values.reviewDate||row.reviewDate||null,review_date:values.reviewDate||row.review_date||null,clientMessage:values.clientMessage||row.clientMessage||'',client_message:values.clientMessage||row.client_message||'',coachNotes:values.coachNotes||row.coachNotes||'',coach_notes:values.coachNotes||row.coach_notes||'',endDate:desiredStatus==='resolved'?todayISO():row.endDate,end_date:desiredStatus==='resolved'?todayISO():row.end_date};
+    if(index>=0)state.clientConditions[index]=merged;else state.clientConditions.unshift(merged);
+    const cid=conditionClientId(merged);
+    if(state.adaptedTrainingCache)Object.keys(state.adaptedTrainingCache).forEach(k=>{if(k.startsWith(cid+'__'))delete state.adaptedTrainingCache[k]});
+    closeModal();renderBadges();
+    if(currentScr==='alertas')renderAlertas();else if(currentScr==='salud')renderClientHealth();else renderScr(currentScr);
+    showToast(action==='approve'?'Adaptación activa ✓':action==='discard'?'Reporte descartado':'Condición resuelta ✓','ok');
+  }catch(error){
+    console.error('saveConditionReview error:',error);showToast('No se pudo guardar: '+(error?.message||''),'err');
+    if(submit){submit.disabled=false;submit.textContent='Guardar'}
+  }
+}
+function useActiveConditionAdaptation(clientId,conditionId){
+  const row=(state.clientConditions||[]).find(r=>String(r.id)===String(conditionId));
+  if(!row){showToast('Condición activa no encontrada','err');return}
+  const key=normalizeAdaptationPathologyForFrontend(conditionKey(row));
+  if(!state.manualPathologyByClient)state.manualPathologyByClient={};
+  state.manualPathologyByClient[clientId]=[key];
+  if(state.adaptedTrainingCache)Object.keys(state.adaptedTrainingCache).forEach(k=>{if(k.startsWith(clientId+'__'))delete state.adaptedTrainingCache[k]});
+  showToast('Adaptación '+getPathologyLabel(key)+' aplicada','ok');
+  openWorkout(clientId);
+}
+function buildActiveConditionQuickUse(c){
+  const cond=getActiveConditionForClient(c);if(!cond)return'';
+  const key=normalizeAdaptationPathologyForFrontend(conditionKey(cond));
+  return `<div class="active-condition-quick"><div class="active-condition-quick-copy"><div class="active-condition-quick-label">Adaptación activa detectada</div><div class="active-condition-quick-name">${esc(getPathologyLabel(key))}</div></div><button class="btn btn-p btn-sm" onclick="useActiveConditionAdaptation('${c.id}','${cond.id}')">Usar adaptación activa</button></div>`;
+}
+
 /* ── PROGRAM/ASSIGNMENT ── */
 function getClientActiveAssignment(clientId){
   const rows=state.assignments.filter(a=>String(a.clientId||a.client_id)===String(clientId)).filter(a=>String(a.status||'activo').toLowerCase()==='activo');
@@ -3336,29 +3775,37 @@ function getAssignmentScopeLabel(scope){
 }
 
 function getPathologyLabel(p){
+  const key=String(p||'').toLowerCase();
   return {
-    normal:'Normal', dolor_lumbar:'Dolor lumbar',
-    rodilla:'Rodilla', hombro:'Hombro',
-    cervical:'Cervical', tobillo:'Tobillo', fatiga_alta:'Fatiga alta'
-  }[String(p||'')] || String(p||'').replace(/_/g,' ');
+    normal:'Normal', dolor_lumbar:'Lumbar', lumbar:'Lumbar',
+    rodilla:'Rodilla', dolor_rodilla:'Rodilla',
+    hombro:'Hombro', dolor_hombro:'Hombro',
+    cervical:'Cervical / cuello', dolor_cervical:'Cervical / cuello', dolor_cuello:'Cervical / cuello',
+    tobillo:'Tobillo', dolor_tobillo:'Tobillo',
+    cadera:'Cadera', dolor_cadera:'Cadera',
+    otro:'Otra zona', fatiga_alta:'Fatiga alta'
+  }[key] || key.replace(/_/g,' ');
 }
 
 function getPathologyColor(p){
-  if(p==='fatiga_alta') return 'var(--sport)';
-  if(['dolor_lumbar','rodilla','hombro','cervical','tobillo'].includes(String(p||'')))
+  const key=normalizeAdaptationPathologyForFrontend(p);
+  if(key==='fatiga_alta') return 'var(--sport)';
+  if(['dolor_lumbar','rodilla','hombro','cervical','tobillo','cadera'].includes(key))
     return 'var(--warn)';
   return 'var(--medical)';
 }
 
 function getPathologyAdaptationText(p){
+  const key=normalizeAdaptationPathologyForFrontend(p);
   return {
     dolor_lumbar: 'Molestia lumbar activa. Se trabaja con enfoque técnico, controlado y seguro durante el proceso de adaptación.',
     rodilla:      'Adaptación por rodilla. Se evita el impacto, se limita el rango y se sustituyen ejercicios de alto riesgo articular.',
     hombro:       'Adaptación por hombro. Sin movimientos overhead ni empujes en posición de riesgo. Rango libre de dolor.',
     cervical:     'Adaptación cervical. Cuello neutro en todo momento. Sin jalones detrás de la nuca ni extensión cervical.',
     tobillo:      'Adaptación por tobillo. Sin impacto ni dorsiflexión forzada bajo carga. Trabajo en descarga donde aplica.',
+    cadera:       'Adaptación por cadera. Se controla el rango, la carga y los patrones que provoquen dolor.',
     fatiga_alta:  'Fatiga alta detectada. Volumen e intensidad reducidos para respetar la recuperación del cliente.'
-  }[String(p||'')] || `Adaptación activa por ${getPathologyLabel(p)}. Los ejercicios de riesgo están modificados o sustituidos.`;
+  }[key] || `Adaptación activa por ${getPathologyLabel(key)}. Los ejercicios de riesgo están modificados o sustituidos.`;
 }
 
 function getAssignmentScope(a){
@@ -3630,7 +4077,7 @@ function showScr(id){
   if(tabMap[id]){
     document.getElementById(tabMap[id])?.classList.add('on');
   }else{
-    if(['perfil','workout'].includes(id)){
+    if(['perfil','workout','salud'].includes(id)){
       document.getElementById('tab-clientes')?.classList.add('on');
     }else{
       document.getElementById('tab-mas')?.classList.add('on');
@@ -3651,7 +4098,7 @@ function renderScr(id){
   switch(id){
     case'hoy':renderHoy();break;case'clientes':renderClientes();break;
     case'alertas':renderAlertas();break;case'mas':renderMas();break;
-    case'perfil':renderPerfil();break;case'workout':renderWorkout();break;
+    case'perfil':renderPerfil();break;case'salud':renderClientHealth();break;case'workout':renderWorkout();break;
     case'pagos':renderPagos();break;case'checkins':renderCheckins();break;
     case'whatsapp':renderWhatsapp();break;case'ajustes':renderAjustes();break;
     case'entreno':renderEntreno();break;
@@ -3664,7 +4111,9 @@ function renderAll(){renderBadges();renderTopAvatar();renderScr(currentScr)}
 
 /* ── v1.1 C5: Badges mejorados (alertas + pagos vencidos) ── */
 function renderBadges(){
-  const pending=state.alertas.filter(a => getEffectiveAlertStatus(a)==='pendiente').length;
+  const pendingAlerts=state.alertas.filter(a => getEffectiveAlertStatus(a)==='pendiente').length;
+  const pendingConditions=conditionRowsByStatus('reported').length;
+  const pending=pendingAlerts+pendingConditions;
   const el=document.getElementById('badge-al');
   if(el){el.textContent=pending||'';el.classList.toggle('on',pending>0)}
 
@@ -4535,7 +4984,7 @@ loadCoachReservationsByScope(
       db.from('templates').select('*').order('name'),
       loadCoachAssessments(100),
       loadCoachMetrics(150),
-loadCoachClientConditions({status:'active',limit:300}),
+loadCoachClientConditions({status:null,limit:300}),
 db.from('settings').select('*').eq('id','main').maybeSingle()
     ]);
     state.clients=(clients||[]).map(normalizeRpcCoachClient).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
@@ -4698,6 +5147,7 @@ function renderHoy(){
   const clientsToday=new Set(sessions.map(r=>r.clientId||r.client_id));
   const missing=[...clientsToday].filter(cid=>!state.todayCheckins.some(ci=>String(ci.clientId||ci.client_id)===String(cid))).length;
   const pendingAlerts=state.alertas.filter(isPendingAlert).length;
+  const pendingConditions=conditionRowsByStatus('reported').length;
 
   const dow=new Date().toLocaleDateString('es-ES',{weekday:'long'}).toUpperCase();
   const dnum=new Date().getDate();
@@ -4714,7 +5164,7 @@ function renderHoy(){
     <div class="mc b"><span class="mc-n">${sessions.length}</span><span class="mc-l">Sesiones</span></div>
     <div class="mc y"><span class="mc-n">${pendingRequests.length}</span><span class="mc-l">Solicitudes</span></div>
     <div class="mc g"><span class="mc-n">${state.todayCheckins.length}</span><span class="mc-l">Check-ins</span></div>
-    <div class="mc r"><span class="mc-n">${pendingAlerts}</span><span class="mc-l">Alertas</span></div>
+    <div class="mc r"><span class="mc-n">${pendingAlerts+pendingConditions}</span><span class="mc-l">Alertas / salud</span></div>
   `;
 
   const requestsHTML = pendingRequests.length ? `
@@ -4745,7 +5195,7 @@ function renderHoy(){
   ` : '';
 
   const body=document.getElementById('hoy-content');
-  body.innerHTML = requestsHTML + sessionsHTML + addHTML;
+  body.innerHTML = buildDashboardConditionInbox() + requestsHTML + sessionsHTML + addHTML;
 }
 
 /* v1.1: tarjeta compacta con foto + badges en línea */
@@ -5669,7 +6119,7 @@ function renderPerfil(){
     {icon:ICONS.stretch,label:'Asistidos',     action:`openStretchingAssisted('${c.id}','${esc(c.name)}')`},
     {icon:ICONS.pay,    label:'Pago',          action:`openModal('payment',null,{clientId:'${c.id}'})`},
     {icon:ICONS.plan,   label:'Plan',          action:`openModal('assignment',null,{clientId:'${c.id}'})`},
-    {icon:ICONS.injury, label:'Lesiones',      action:`openClientInjuries('${c.id}')`},
+    {icon:ICONS.injury, label:'Salud',         action:`openClientHealth('${c.id}','conditions')`},
   ];
 
       el.innerHTML=`
@@ -5751,11 +6201,8 @@ function renderPerfil(){
     <!-- ⑥ EVALUACIONES Y TABLA DE RESULTADOS -->
     ${buildClientAssessmentsCard(c)}
 
-    <!-- ⑦ CONDICIÓN si existe -->
-    ${buildClientConditionCard(c)}
-
-    <!-- ⑧ HISTORIAL DE LESIONES -->
-    ${buildClientInjuryAccessCard(c)}
+    <!-- ⑦ SALUD UNIFICADA -->
+    ${buildClientHealthSummaryCard(c)}
 
   `;
 
@@ -5908,6 +6355,9 @@ function toggleAlertGroup(key){
 }
 
 function renderAlertas(){
+  const conditionBox=document.getElementById('al-conditions');
+  if(conditionBox) conditionBox.innerHTML=buildConditionInboxHTML();
+
   const effectiveRows = state.alertas.filter(a => !isFalsePositiveAlert(a) || filterAl === 'leidas' || filterAl === 'todas');
 
   const pendientes = effectiveRows.filter(a => getEffectiveAlertStatus(a) === 'pendiente');
@@ -6180,6 +6630,7 @@ function isOwnerCoach(){
 function renderMas(){
   const pendPay=state.payments.filter(p=>p.status!=='pagado').length;
   const todayCI=state.todayCheckins.length;
+  const pendingConditions=conditionRowsByStatus('reported').length;
   const activeAssign=state.assignments.filter(a=>String(a.status||'activo')==='activo').length;
   const athleteCount=state.athletes.length;
   const totalClients=state.clients.filter(c=>c.status==='activo').length;
@@ -6197,11 +6648,13 @@ function renderMas(){
     ath:    ico('<circle cx="12" cy="5" r="2"/><path d="M12 7v5l-3 5M12 12l3 5M9 11l-3-1M15 11l3-1"/>'),
     eval:   ico('<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>'),
     new:    ico('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>'),
+    health: ico('<path d="M12 21s-7-4.35-9.5-8.4C.8 9.8 2.2 5.5 6.1 4.6 8.4 4 10.2 5.2 12 7c1.8-1.8 3.6-3 5.9-2.4 3.9.9 5.3 5.2 3.6 8C19 16.65 12 21 12 21z"/><path d="M8 12h2l1-3 2 6 1-3h2"/>'),
   };
 
   const items=[
     {icon:ICONS.pay,  label:'Pagos',        badge:pendPay,      action:`showScr('pagos')`},
     {icon:ICONS.ci,   label:'Check-ins',    badge:todayCI,      action:`showScr('checkins')`},
+    {icon:ICONS.health,label:'Molestias', badge:pendingConditions, action:`filterCondition='reported';showScr('alertas')`},
     {icon:ICONS.wa,   label:'WhatsApp',     badge:0,            action:`showScr('whatsapp')`},
     {icon:ICONS.train,label:'Entrenos',     badge:activeAssign, action:`showScr('entreno')`},
     {icon:ICONS.ath,  label:'Atletas',      badge:athleteCount, action:`showScr('atletas')`},
@@ -8395,6 +8848,8 @@ function buildWorkoutSessionControls(plan, c){
     <div class="fr" style="margin-bottom:10px">
       ${sessionButtons}
     </div>
+
+    ${buildActiveConditionQuickUse(c)}
 
             <div class="fr" style="margin-bottom:12px">
       ${renderPathologyPills(c)}
@@ -11317,48 +11772,8 @@ function getActiveConditionForClient(c){
   }) || null;
 }
 
-async function resolveClientCondition(conditionId, clientId){
-  if(!confirm('¿Cerrar la adaptación activa?')) return;
-
-  const token = getCoachSessionTokenSafe();
-  if(!token){
-    showToast('Sesión del coach no válida','err');
-    return;
-  }
-
-  try{
-    if(conditionId){
-      const {data,error} = await db.rpc(
-        'ab_coach_session_set_condition_status',
-        {
-          p_session_token: token,
-          p_condition_id: conditionId,
-          p_status: 'inactive',
-          p_end_date: todayISO()
-        }
-      );
-
-      if(error) throw error;
-
-      const saved = normalizeRpcJsonRow(data);
-      if(saved?.id){
-        const index = state.clientConditions.findIndex(row => String(row.id) === String(saved.id));
-        if(index >= 0) state.clientConditions[index] = saved;
-      }
-    }
-
-    if(!state.manualPathologyByClient) state.manualPathologyByClient={};
-    state.manualPathologyByClient[clientId]='normal';
-    state.clientConditions=state.clientConditions.filter(c=>
-      String(c.id)!==String(conditionId)
-    );
-    delete state.adaptedTrainingCache[clientId];
-    renderPerfil();
-    showToast('Adaptación cerrada ✓','ok');
-  }catch(e){
-    console.error('ab_coach_session_set_condition_status error:', e);
-    showToast('Error cerrando adaptación: '+(e?.message||''),'err');
-  }
+function resolveClientCondition(conditionId, clientId){
+  openConditionReviewModal(conditionId,'resolve');
 }
 
 function buildClientConditionCard(c){
@@ -11653,7 +12068,7 @@ function detectAllPathologiesForClient(c) {
     return String(id) === String(c.id) &&
       ['active','activo','activa'].includes(String(cc.status || 'active').toLowerCase());
   }).forEach(cc => {
-    const key = cc.conditionKey || cc.condition_key || '';
+    const key = normalizeAdaptationPathologyForFrontend(cc.conditionKey || cc.condition_key || '');
     if (!key || result.all.includes(key)) return;
     if (key === 'fatiga_alta') result.hasFatiga = true;
     else if (!result.physical) result.physical = key;
@@ -11971,7 +12386,8 @@ function normalizeAdaptationPathologyForRpc(pathology){
     cuello:'dolor_cervical',
     tobillo:'dolor_tobillo',
     lumbar:'dolor_lumbar',
-    espalda:'dolor_lumbar'
+    espalda:'dolor_lumbar',
+    cadera:'dolor_cadera'
   };
   return aliases[key]||key;
 }
@@ -11984,7 +12400,8 @@ function normalizeAdaptationPathologyForFrontend(pathology){
     dolor_cervical:'cervical',
     dolor_cuello:'cervical',
     dolor_tobillo:'tobillo',
-    lumbar:'dolor_lumbar'
+    lumbar:'dolor_lumbar',
+    dolor_cadera:'cadera'
   };
   return aliases[key]||key;
 }
@@ -16557,6 +16974,36 @@ function setupRealtimeNotifications() {
       });
 
       nativeNotif(title, body, { clientId: c.id });
+    })
+    .subscribe();
+
+
+
+  // Nuevos reportes y cambios de condiciones
+  db.channel('ab-condiciones-rt')
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'client_conditions'
+    }, payload => {
+      const eventType=payload.eventType;
+      const raw=eventType==='DELETE'?payload.old:payload.new;
+      const row=snakeToCamel(raw||{});
+      if(!row?.id)return;
+      if(eventType==='DELETE'){
+        state.clientConditions=state.clientConditions.filter(r=>String(r.id)!==String(row.id));
+      }else{
+        const index=state.clientConditions.findIndex(r=>String(r.id)===String(row.id));
+        if(index>=0)state.clientConditions[index]={...state.clientConditions[index],...row};
+        else state.clientConditions.unshift(row);
+      }
+      renderBadges();
+      if(['alertas','hoy','perfil','salud','workout'].includes(currentScr))renderScr(currentScr);
+      if(eventType==='INSERT'&&normalizeCoachConditionStatus(row.status)==='reported'){
+        const c=conditionClient(row);
+        const title=`Nueva molestia reportada · ${conditionClientName(row)}`;
+        const body=`${conditionZoneLabel(row)} · Dolor ${conditionPainMax(row)??'—'}/10`;
+        showAbNotif({title,body,type:conditionHasRedFlags(row)?'alerta':'revisar',data:{clientId:c?.id,screen:'alertas',tag:'condition-'+row.id},actions:[{label:'Revisar',action:'view_alerts'},{label:'Perfil',action:'view_profile'}]});
+        nativeNotif(title,body,{clientId:c?.id,screen:'alertas',tag:'condition-'+row.id});
+      }
     })
     .subscribe();
 
