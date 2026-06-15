@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 24.2 COMPACT HUB + CHECK-IN 5</title>
-<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 24.2 COMPACT HUB + CHECK-IN 5 -->
+<title>AB SYSTEM — Coach Panel · RPC 25 PERFORMANCE + SECURITY</title>
+<!-- AB SYSTEM Coach Panel · BUILD COACH RPC 25 PERFORMANCE + SECURITY -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2721,7 +2721,7 @@ body.eval-modal-open {
   <div class="login-card">
     <div class="login-brand"><span class="lb-1">AB</span><span class="lb-2">Coach Panel</span></div>
     <div class="login-title">ACCESO COACH</div>
-    <div class="login-sub">COACH PANEL · BUILD RPC 24.2</div>
+    <div class="login-sub">COACH PANEL · BUILD RPC 25</div>
     <div style="font-size:10px;letter-spacing:.14em;color:#00E5FF;margin:-12px 0 18px;text-transform:uppercase;">ruta /coach · backend RPC activo</div>
     <div id="login-err" class="login-err hidden"></div>
     <div class="login-field">
@@ -3012,7 +3012,7 @@ const COACH_PHONE_DEFAULT = '381638112348';
 const ADMIN_USER_DEFAULT = 'abel_admin';
 const ADMIN_PASS_DEFAULT = 'ABcoach2024!';
 const APP_AREA = 'coach';
-const APP_BUILD_KEY = 'coach-rpc-24-1-1-profile-layout-fix';
+const APP_BUILD_KEY = 'coach-rpc-25-performance-security';
 
 let AB_BOOT_ERROR = null;
 let db = null;
@@ -3082,7 +3082,9 @@ const state = {
   activeWorkoutLoadPercentage:70,
   activeExerciseDetailId: null,
   timerExpanded: false,
-  strengthRefCache: {}   // { clientId__exerciseCode: {...} }
+  strengthRefCache: {},   // { clientId__exerciseCode: {...} }
+  exerciseBlockCache: {},  // { blockId: loadedAtMs } · ejercicios bajo demanda
+  dataLoadGeneration: 0
 };
 
 let currentScr='hoy';
@@ -3291,6 +3293,23 @@ window.addEventListener('pagehide', () => {
 /* ── HELPERS ── */
 function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function safeMediaUrl(value,{allowBlob=true,allowDataImage=false,allowDataVideo=false}={}){
+  const raw=String(value??'').trim();
+  if(!raw)return'';
+  if(allowBlob&&raw.startsWith('blob:'))return raw;
+  if(allowDataImage&&/^data:image\/(?:png|jpe?g|webp|gif|avif);base64,/i.test(raw))return raw;
+  if(allowDataVideo&&/^data:video\/(?:mp4|webm|ogg);base64,/i.test(raw))return raw;
+  if(raw.startsWith('/')&&!raw.startsWith('//'))return raw;
+  try{
+    const u=new URL(raw,location.origin);
+    return ['http:','https:'].includes(u.protocol)?u.href:'';
+  }catch(_e){return''}
+}
+function renderAfterStateChange(screens=[]){
+  renderBadges();
+  const allowed=Array.isArray(screens)?screens:[];
+  if(!allowed.length||allowed.includes(currentScr))renderScr(currentScr);
+}
 function normalizeNumberInput(v){if(v===null||v===undefined)return null;const clean=String(v).trim().replace(/\s/g,'').replace(',','.');if(clean==='')return null;const n=Number(clean);return Number.isFinite(n)?n:null}
 function money(n){const value=Number(n||0);if(!Number.isFinite(value))return'0€';return`${value.toLocaleString('es-ES')}€`}
 function todayISO(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
@@ -4554,6 +4573,60 @@ function clearABFieldSession(){
   }catch(_e){}
 }
 
+
+let abGlobalUiListenersBound=false;
+let abServiceWorkerMessageBound=false;
+let abLoginListenersBound=false;
+
+function parseCoachExpiryMs(value){
+  if(value===null||value===undefined||value==='')return null;
+  const raw=String(value).trim();
+  if(!raw)return null;
+  if(/^\d+$/.test(raw)){
+    const n=Number(raw);
+    return n<1e12?n*1000:n;
+  }
+  const ms=Date.parse(raw);
+  return Number.isFinite(ms)?ms:null;
+}
+function isCoachSessionExpired(value,skewMs=15000){
+  const expiry=parseCoachExpiryMs(value);
+  return expiry!==null&&Date.now()>=expiry-skewMs;
+}
+function handleCoachServiceWorkerMessage(event){
+  const {action,data}=event?.data||{};
+  if(action==='resolve'&&data?.alertId)resolverAlerta(data.alertId);
+  else if((action==='view'||action==='view_profile')&&data?.clientId)openProfile(data.clientId);
+  else if(data?.clientId)openProfile(data.clientId);
+  else if(data?.screen)showScr(data.screen);
+}
+function bindCoachServiceWorkerMessageListener(){
+  if(abServiceWorkerMessageBound||!('serviceWorker' in navigator))return;
+  navigator.serviceWorker.addEventListener('message',handleCoachServiceWorkerMessage);
+  abServiceWorkerMessageBound=true;
+}
+function bindCoachGlobalUiListeners(){
+  if(abGlobalUiListenersBound)return;
+  const modal=document.getElementById('modal-ov');
+  const video=document.getElementById('video-ov');
+  if(modal)modal.addEventListener('click',handleCoachModalOverlayClick);
+  if(video)video.addEventListener('click',handleCoachVideoOverlayClick);
+  bindCoachServiceWorkerMessageListener();
+  abGlobalUiListenersBound=true;
+}
+function handleCoachModalOverlayClick(event){if(event.target?.id==='modal-ov')closeModal()}
+function handleCoachVideoOverlayClick(event){if(event.target?.id==='video-ov')closeVideoModal()}
+async function registerCoachServiceWorker(){
+  if(!('serviceWorker' in navigator))return null;
+  bindCoachServiceWorkerMessageListener();
+  try{
+    return await navigator.serviceWorker.register('/sw.js?v=coach-rpc-25-01',{updateViaCache:'none'});
+  }catch(err){
+    console.warn('SW error:',err);
+    return null;
+  }
+}
+
 (async function pageInit(){
   try{
     if(AB_BOOT_ERROR) throw AB_BOOT_ERROR;
@@ -4577,12 +4650,18 @@ function clearABFieldSession(){
     }
 
     const storedSessionToken = sessionStorage.getItem('ab_coach_session_token') || localStorage.getItem('ab_coach_session_token') || '';
+    const storedSessionExpires = sessionStorage.getItem('ab_coach_session_expires_at') || localStorage.getItem('ab_coach_session_expires_at') || '';
     const legacyLogged =
       sessionStorage.getItem('ab_admin_ok') === 'true' ||
       localStorage.getItem('ab_admin_ok') === 'true' ||
       (window.Auth && typeof Auth.isAdmin === 'function' && Auth.isAdmin());
 
-    const isLogged = !!storedSessionToken || legacyLogged;
+    let isLogged = !!storedSessionToken || legacyLogged;
+    if(storedSessionToken && isCoachSessionExpired(storedSessionExpires)){
+      console.info('AB COACH · sesión local caducada; se evita cargar el panel.');
+      clearABFieldSession();
+      isLogged=false;
+    }
 
     // Restaurar identidad del coach logueado. En RPC 02 la sesión real es el token.
     if(isLogged){
@@ -4591,7 +4670,7 @@ function clearABFieldSession(){
       const storedCoachName = sessionStorage.getItem('ab_coach_name') || localStorage.getItem('ab_coach_name') || 'Coach';
       const storedCoachPhoto = sessionStorage.getItem('ab_coach_photo_url') || localStorage.getItem('ab_coach_photo_url') || '';
       const storedCoachEmail = sessionStorage.getItem('ab_coach_email') || localStorage.getItem('ab_coach_email') || '';
-      const storedExpires = sessionStorage.getItem('ab_coach_session_expires_at') || localStorage.getItem('ab_coach_session_expires_at') || '';
+      const storedExpires = storedSessionExpires;
       state.coachSessionToken = storedSessionToken || null;
       state.coachSessionExpiresAt = storedExpires || null;
       state.coachId   = storedCoachId   || null;
@@ -4613,32 +4692,13 @@ if(!isLogged){
     document.getElementById('login')?.classList.add('hidden');
     document.getElementById('app')?.classList.remove('hidden');
 
-    document.getElementById('modal-ov')?.addEventListener('click', e => {
-      if(e.target.id === 'modal-ov') closeModal();
-    });
-
-    document.getElementById('video-ov')?.addEventListener('click', e => {
-      if(e.target.id === 'video-ov') closeVideoModal();
-    });
+    bindCoachGlobalUiListeners();
 
     await loadCurrentCoachProfile();
     await loadAllData();
-   
-   // Registrar Service Worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js?v=coach-rpc-24-1', { updateViaCache: 'none' })
-    .then(reg => {
-      console.log('SW registrado ✓', reg.scope);
-      // Escuchar mensajes del SW
-      navigator.serviceWorker.addEventListener('message', e => {
-        const { action, data } = e.data || {};
-        if (action === 'resolve' && data?.alertId) resolverAlerta(data.alertId);
-        else if (data?.clientId) openProfile(data.clientId);
-        else if (data?.screen) showScr(data.screen);
-      });
-    })
-    .catch(err => console.warn('SW error:', err));
-}
+    void registerCoachServiceWorker().then(reg=>{
+      if(reg)console.log('SW registrado ✓',reg.scope);
+    });
 
   }catch(err){
     console.error('AB COACH INIT ERROR:', err);
@@ -4657,9 +4717,18 @@ if ('serviceWorker' in navigator) {
   }
 })();
 
+function handleCoachLoginKeydown(event){
+  if(event.key==='Enter'){
+    event.preventDefault();
+    attemptLogin();
+  }
+}
 function setupLogin(){
-  document.getElementById('li-btn').addEventListener('click',attemptLogin);
-  ['li-user','li-pass'].forEach(id=>{document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();attemptLogin()}})});
+  if(abLoginListenersBound)return;
+  const button=document.getElementById('li-btn');
+  if(button)button.addEventListener('click',attemptLogin);
+  ['li-user','li-pass'].forEach(id=>document.getElementById(id)?.addEventListener('keydown',handleCoachLoginKeydown));
+  abLoginListenersBound=true;
 }
 async function attemptLogin(){
   const user=document.getElementById('li-user').value.trim();
@@ -4851,6 +4920,7 @@ function filterTrainingTreeToVisiblePrograms(){
     state.trainingSessions = [];
     state.trainingBlocks = [];
     state.trainingExercises = [];
+    state.exerciseBlockCache = {};
     return;
   }
 
@@ -4864,6 +4934,7 @@ function filterTrainingTreeToVisiblePrograms(){
   const visibleBlockIds = new Set(state.trainingBlocks.map(b => String(b.id)));
 
   state.trainingExercises = (state.trainingExercises || []).filter(e => visibleBlockIds.has(String(e.blockId || e.block_id || '')));
+  Object.keys(state.exerciseBlockCache||{}).forEach(blockId=>{if(!visibleBlockIds.has(String(blockId)))delete state.exerciseBlockCache[blockId]});
 }
 
 function filterCoachScopedState(){
@@ -5239,119 +5310,166 @@ function normalizeRpcJsonRow(data){
   return row ? snakeToCamel(row) : null;
 }
 
-async function loadAllData(){
+let coachSecondaryLoadPromise=Promise.resolve();
+window.AB_COACH_LOAD_STATE={primary:'idle',secondary:'idle',generation:0,startedAt:null,primaryReadyAt:null,secondaryReadyAt:null};
+
+function coachResultData(result,label,fallback=[]){
+  if(!result)return fallback;
+  if(result.error){
+    console.warn(`AB COACH · ${label} no disponible:`,result.error);
+    return fallback;
+  }
+  return result.data??fallback;
+}
+function settledCoachResult(settled,label,fallback=[]){
+  if(!settled||settled.status==='rejected'){
+    console.warn(`AB COACH · ${label} rechazado:`,settled?.reason);
+    return {data:fallback,error:settled?.reason||new Error(label)};
+  }
+  const result=settled.value||{};
+  if(result.error)console.warn(`AB COACH · ${label} con error:`,result.error);
+  return {data:result.error?fallback:(result.data??fallback),error:result.error||null};
+}
+function invalidateExerciseCache(){
+  state.exerciseBlockCache={};
+  state.trainingExercises=[];
+}
+
+async function loadCoachSecondaryData(generation){
+  window.AB_COACH_LOAD_STATE.secondary='loading';
+  const today=todayISO();
+  const settled=await Promise.allSettled([
+    loadCoachCheckinsByScope('recent',today,80),
+    db.from('exercise_video_library').select('*').order('priority'),
+    db.from('client_session_logs').select('*').order('updated_at',{ascending:false}).limit(200),
+    db.from('templates').select('*').order('name'),
+    loadCoachAssessments(100),
+    loadCoachMetrics(150),
+    db.rpc('get_admin_athlete_list')
+  ]);
+
+  if(generation!==state.dataLoadGeneration)return;
+
+  const labels=['check-ins recientes','biblioteca de vídeos','historial de sesiones','plantillas','evaluaciones','métricas','atletas'];
+  const normalized=settled.map((row,index)=>settledCoachResult(row,labels[index],[]));
+  const [recentCI,videos,slogs,templates,assessments,metrics,athletes]=normalized;
+
+  state.recentCheckins=mapArr(recentCI.data);
+  state.videoLibrary=mapArr(videos.data);
+  state.sessionLogs=mapArr(slogs.data);
+  state.templates=mapArr(templates.data);
+  state.assessments=mapArr(assessments.data);
+  state.metrics=mapArr(metrics.data);
+  state.athletes=mapArr(athletes.data);
+  filterCoachScopedState();
+
+  const partial=normalized.some(row=>row.error);
+  window.AB_COACH_LOAD_STATE.secondary=partial?'partial':'ready';
+  window.AB_COACH_LOAD_STATE.secondaryReadyAt=new Date().toISOString();
+
+  renderBadges();
+  renderTopAvatar();
+  if(currentScr!=='workout')renderScr(currentScr);
+}
+
+async function loadAllData({waitForSecondary=false,forceExerciseRefresh=false}={}){
+  const generation=++state.dataLoadGeneration;
+  const loadState=window.AB_COACH_LOAD_STATE;
+  loadState.primary='loading';
+  loadState.secondary='idle';
+  loadState.generation=generation;
+  loadState.startedAt=new Date().toISOString();
+  loadState.primaryReadyAt=null;
+  loadState.secondaryReadyAt=null;
+
   try{
     const today=todayISO();
-    const[
-      {data:clients},{data:todayRes},{data:futureRes},{data:pastRes},
-      {data:payments},{data:alertas},{data:todayCI},{data:recentCI},
-      {data:tprograms},{data:tweeks},{data:tsessions},{data:tblocks},
-      {data:texercises},{data:videos},{data:assignments},{data:slogs},
-      {data:templates},{data:assessments},{data:metrics},{data:conditions},{data:settings}
-    ]=await Promise.all([
-      // ── Clientes visibles por RPC oficial ──
+    const results=await Promise.all([
       (state.coachSessionToken
-        ? db.rpc('ab_coach_session_get_clients', { p_session_token: state.coachSessionToken })
+        ? db.rpc('ab_coach_session_get_clients',{p_session_token:state.coachSessionToken})
         : (state.coachId
-          ? db.rpc('ab_coach_get_clients', { p_coach_id: state.coachId })
+          ? db.rpc('ab_coach_get_clients',{p_coach_id:state.coachId})
           : db.from('clients').select('*').order('name'))),
-      loadCoachReservationsByScope(
-  'today',
-  today,
-  80
-),
-
-loadCoachReservationsByScope(
-  'future',
-  today,
-  80
-),
-
-loadCoachReservationsByScope(
-  'past',
-  today,
-  80
-),
+      loadCoachReservationsByScope('today',today,80),
+      loadCoachReservationsByScope('future',today,80),
+      loadCoachReservationsByScope('past',today,80),
       loadCoachPayments(300),
       loadCoachAlerts(200),
-      loadCoachCheckinsByScope(
-        'today',
-        today,
-        80
-      ),
-      loadCoachCheckinsByScope(
-        'recent',
-        today,
-        80
-      ),
+      loadCoachCheckinsByScope('today',today,80),
       loadVisibleTrainingPrograms(),
       db.from('training_weeks').select('*').order('week_number'),
       db.from('training_sessions').select('*').order('session_number'),
       db.from('training_blocks').select('*').order('block_order'),
-      db.from('training_exercises').select('*').not('block_id','is',null).order('exercise_order').limit(3000),
-      db.from('exercise_video_library').select('*').order('priority'),
-      (state.coachRole !== 'owner' && state.coachId
-        ? db.from('client_program_assignments').select('*').eq('coach_id', state.coachId)
+      (state.coachRole!=='owner'&&state.coachId
+        ? db.from('client_program_assignments').select('*').eq('coach_id',state.coachId)
         : db.from('client_program_assignments').select('*')),
-      db.from('client_session_logs').select('*').order('updated_at',{ascending:false}).limit(200),
-      db.from('templates').select('*').order('name'),
-      loadCoachAssessments(100),
-      loadCoachMetrics(150),
-loadCoachClientConditions({status:null,limit:300}),
-db.from('settings').select('*').eq('id','main').maybeSingle()
+      loadCoachClientConditions({status:null,limit:300}),
+      db.from('settings').select('*').eq('id','main').maybeSingle()
     ]);
-    state.clients=(clients||[]).map(normalizeRpcCoachClient).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
-    state.todayRes=mapArr(todayRes);state.futureRes=mapArr(futureRes);state.pastRes=mapArr(pastRes);
+
+    if(generation!==state.dataLoadGeneration)return;
+
+    const [clientsR,todayResR,futureResR,pastResR,paymentsR,alertsR,todayCIR,tprogramsR,tweeksR,tsessionsR,tblocksR,assignmentsR,conditionsR,settingsR]=results;
+
+    state.clients=(coachResultData(clientsR,'clientes',[])||[])
+      .map(normalizeRpcCoachClient)
+      .sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+    state.todayRes=mapArr(coachResultData(todayResR,'reservas de hoy',[]));
+    state.futureRes=mapArr(coachResultData(futureResR,'reservas futuras',[]));
+    state.pastRes=mapArr(coachResultData(pastResR,'reservas pasadas',[]));
     state.allRes=[...state.todayRes,...state.futureRes,...state.pastRes];
-    state.payments=mapArr(payments);state.alertas=mapArr(alertas);state.todayCheckins=mapArr(todayCI);state.recentCheckins=mapArr(recentCI);
-    state.trainingPrograms=(tprograms||[]).map(normalizeRpcCoachProgram);state.trainingWeeks=mapArr(tweeks);state.trainingSessions=mapArr(tsessions);
-    state.trainingBlocks=mapArr(tblocks);state.trainingExercises=mapArr(texercises);state.videoLibrary=mapArr(videos);
-    state.assignments=mapArr(assignments);state.sessionLogs=mapArr(slogs);state.templates=mapArr(templates);
-    state.assessments=mapArr(assessments);state.metrics=mapArr(metrics);
-   state.clientConditions=Array.isArray(conditions) ? mapArr(conditions) : [];
+    state.payments=mapArr(coachResultData(paymentsR,'pagos',[]));
+    state.alertas=mapArr(coachResultData(alertsR,'alertas',[]));
+    state.todayCheckins=mapArr(coachResultData(todayCIR,'check-ins de hoy',[]));
+    state.trainingPrograms=(coachResultData(tprogramsR,'programas',[])||[]).map(normalizeRpcCoachProgram);
+    state.trainingWeeks=mapArr(coachResultData(tweeksR,'semanas',[]));
+    state.trainingSessions=mapArr(coachResultData(tsessionsR,'sesiones',[]));
+    state.trainingBlocks=mapArr(coachResultData(tblocksR,'bloques',[]));
+    state.assignments=mapArr(coachResultData(assignmentsR,'asignaciones',[]));
+    state.clientConditions=mapArr(coachResultData(conditionsR,'condiciones',[]));
+    const settings=coachResultData(settingsR,'ajustes',null);
     if(settings)state.settings={...state.settings,...snakeToCamel(settings)};
 
+    if(forceExerciseRefresh)invalidateExerciseCache();
     filterTrainingTreeToVisiblePrograms();
     filterCoachScopedState();
 
-try{
-  const {data:athletes,error:athErr}=await db.rpc('get_admin_athlete_list');
+    loadState.primary='ready';
+    loadState.primaryReadyAt=new Date().toISOString();
+    renderAll();
 
-  if(athErr){
-    console.warn('get_admin_athlete_list error:',athErr);
-    state.athletes=[];
-  }else{
-    state.athletes=mapArr(athletes||[]);
-    filterCoachScopedState();
+    if(!realtimeInitialized){
+      setupRealtimeNotifications();
+      realtimeInitialized=true;
+    }
+    if('Notification' in window){
+      if(Notification.permission==='default')setTimeout(()=>initPushNotifications(),3000);
+      else if(Notification.permission==='granted')void initPushNotifications();
+    }
+
+    coachSecondaryLoadPromise=loadCoachSecondaryData(generation).catch(err=>{
+      if(generation!==state.dataLoadGeneration)return;
+      console.error('AB COACH secondary load error:',err);
+      loadState.secondary='partial';
+    });
+    if(waitForSecondary)await coachSecondaryLoadPromise;
+    showToast(waitForSecondary?'Datos actualizados ✓':'Panel listo ✓','ok');
+  }catch(err){
+    console.error('loadAllData error:',err);
+    loadState.primary='error';
+    showToast('Error cargando datos','err');
+    throw err;
   }
-}catch(e){
-  console.warn('No se pudo cargar lista de atletas:',e);
-  state.athletes=[];
-}
-
-renderAll();
-showToast('Datos cargados ✓', 'ok');
-
-// Activar notificaciones realtime
-if(!realtimeInitialized){
-  setupRealtimeNotifications();
-  realtimeInitialized = true;
-}
-
-// Activar push (pide permiso si no lo tiene). Guardado para navegadores donde Notification no existe.
-if ('Notification' in window) {
-  if (Notification.permission === 'default') {
-    setTimeout(() => initPushNotifications(), 3000);
-  } else if (Notification.permission === 'granted') {
-    initPushNotifications();
-  }
-}
-  }catch(err){console.error('loadAllData error:',err);showToast('Error cargando datos','err')}
 }
 
 async function refresh(){
-  try{showToast('Actualizando…','ok');await loadAllData();showToast('Datos actualizados ✓','ok')}
-  catch(err){console.error(err);showToast('Error actualizando','err')}
+  try{
+    showToast('Actualizando…','ok');
+    await loadAllData({waitForSecondary:true,forceExerciseRefresh:currentScr!=='workout'});
+  }catch(err){
+    console.error(err);
+    showToast('Error actualizando','err');
+  }
 }
 </script>
 
@@ -5433,7 +5551,7 @@ function buildPendingReservationRequestCard(r){
       </div>
       <div class="sc-acts">
         ${c?.id ? `<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>` : ''}
-        ${c?.phone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, he recibido tu solicitud para el ${formatDate(r.date)} a las ${formatTime(r.time)}.')">WA</button>` : ''}
+        ${c?.phone ? `<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(c.phone)}','Hola ${jsArg(firstName(c.name))}, he recibido tu solicitud para el ${formatDate(r.date)} a las ${formatTime(r.time)}.')">WA</button>` : ''}
         <button class="btn btn-p btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>
         <button class="btn btn-s btn-sm" onclick="openModal('reservation','${r.id}')">Revisar</button>
         <button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>
@@ -5559,12 +5677,12 @@ function buildSessionCard(r){
         <div class="sc-acts">
       ${status==='cancelada'||status==='realizada' ? `
         ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
-        ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}.')">WA</button>`:''}
+        ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(c.phone)}','Hola ${jsArg(firstName(c.name))}.')">WA</button>`:''}
         <button class="btn btn-s btn-sm" onclick="openModal('reservation','${r.id}')">Editar</button>
       ` : `
         ${c?.id?`<button class="btn btn-p btn-sm" onclick="openWorkout('${c.id}','${r.id}')">Entrenar</button>`:''}
         ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
-        ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>`:''}
+        ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(c.phone)}','Hola ${jsArg(firstName(c.name))}, te escribo por la sesión de hoy a las ${formatTime(r.time)}.')">WA</button>`:''}
         ${['reservada','pendiente'].includes(String(status).toLowerCase())?`<button class="btn btn-s btn-sm" onclick="updateResStatus('${r.id}','confirmada')">Confirmar</button>`:''}
         <button class="btn btn-g btn-sm" onclick="updateResStatus('${r.id}','realizada')">✓ Hecha</button>
         <button class="btn btn-r btn-sm" onclick="updateResStatus('${r.id}','cancelada')">Cancelar</button>
@@ -5635,7 +5753,7 @@ async function updateResStatus(id,status){
 
     replaceReservationLocal(saved);
 
-    renderAll();
+    renderAfterStateChange(['hoy','clientes','perfil']);
 
     const msg = {
       realizada: '✓ Marcada como realizada',
@@ -6142,7 +6260,7 @@ function buildClientAssessmentsCard(client){
             ${rows.length ? `${rows.length} evaluación${rows.length===1?'':'es'}` : 'Sin evaluaciones'}
           </div>
         </div>
-        <button class="btn btn-p btn-sm" onclick="openEvalModal('${client.id}','${esc(client.name)}',null,null)">+ Nueva</button>
+        <button class="btn btn-p btn-sm" onclick="openEvalModal('${client.id}','${jsArg(client.name)}',null,null)">+ Nueva</button>
       </div>
 
       ${visible.length ? visible.map(row => {
@@ -6570,7 +6688,7 @@ function renderPerfil(){
       <div class="profile-hub-kicker">Gestión</div>
       <div class="profile-hub-grid">
         <button class="profile-hub-manage" onclick="openModal('note',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.notes}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Notas</span><span class="profile-hub-manage-meta">Observaciones</span></span><span class="profile-hub-chevron">›</span></button>
-        <button class="profile-hub-manage" onclick="openStretchingAssisted('${c.id}','${esc(c.name)}')"><span class="profile-hub-icon">${ICONS.stretch}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Asistidos</span><span class="profile-hub-manage-meta">Movilidad guiada</span></span><span class="profile-hub-chevron">›</span></button>
+        <button class="profile-hub-manage" onclick="openStretchingAssisted('${c.id}','${jsArg(c.name)}')"><span class="profile-hub-icon">${ICONS.stretch}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Asistidos</span><span class="profile-hub-manage-meta">Movilidad guiada</span></span><span class="profile-hub-chevron">›</span></button>
         <button class="profile-hub-manage" onclick="openModal('payment',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.pay}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Pagos</span><span class="profile-hub-manage-meta">${pendPay.length?pendPay.length+' pendiente'+(pendPay.length===1?'':'s'):'Al día'}</span></span><span class="profile-hub-chevron">›</span></button>
         <button class="profile-hub-manage" onclick="openModal('assignment',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.plan}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Plan</span><span class="profile-hub-manage-meta">Asignar o cambiar</span></span><span class="profile-hub-chevron">›</span></button>
       </div>
@@ -6857,7 +6975,7 @@ function buildAlertGroupCard(g){
         <div class="ac-acts" style="padding:10px 0 0;border-top:1px solid var(--divider)">
           ${status!=='resuelta'?`<button class="btn btn-b btn-sm" onclick="resolverAlerta('${a.id}')">✓ Resolver</button>`:''}
           ${status==='pendiente'?`<button class="btn btn-s btn-sm" onclick="marcarLeida('${a.id}')">Leída</button>`:''}
-          ${phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(phone)}','${esc(buildAlertWAMsg(a))}')">WA</button>`:''}
+          ${phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(phone)}','${jsArg(buildAlertWAMsg(a))}')">WA</button>`:''}
           ${c?.id?`<button class="btn btn-s btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
         </div>
       </div>
@@ -6889,7 +7007,7 @@ async function marcarLeida(id){
     const upd=Array.isArray(data)?data[0]:null;
     const idx=state.alertas.findIndex(a=>a.id===id);
     if(idx>=0){state.alertas[idx].estado=upd?.estado||'leida';state.alertas[idx].leidaAt=upd?.leida_at||new Date().toISOString()}
-    renderAll();showToast('Alerta leída','ok');
+    renderAfterStateChange(['alertas','hoy','perfil','salud']);showToast('Alerta leída','ok');
   }catch(err){console.error(err);showToast('Error marcando alerta','err')}
 }
 
@@ -6907,7 +7025,7 @@ async function resolverAlerta(id){
       state.alertas[idx].resueltaAt=upd?.resuelta_at||new Date().toISOString();
       state.alertas[idx].notaAdmin=upd?.nota_admin||nota;
     }
-    renderAll();showToast('✓ Alerta resuelta','ok');
+    renderAfterStateChange(['alertas','hoy','perfil','salud']);showToast('✓ Alerta resuelta','ok');
   }catch(err){console.error(err);showToast('Error resolviendo','err')}
 }
 
@@ -7237,7 +7355,7 @@ function renderPagos(){
         <div style="display:flex;gap:6px;margin-top:10px">
           ${!isPaid?`<button class="btn btn-g btn-sm" style="flex:1" onclick="markPaid('${p.id}')">✓ Pagado</button>`:''}
           <button class="btn btn-s btn-sm" onclick="openModal('payment','${p.id}')">Editar</button>
-          ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, te recuerdo el pago de ${esc(p.concept||'tu plan')}.')">WA cobro</button>`:''}
+          ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(c.phone)}','Hola ${jsArg(firstName(c.name))}, te recuerdo el pago de ${jsArg(p.concept||'tu plan')}.')">WA cobro</button>`:''}
           ${c?.id?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
         </div>
       </div>
@@ -7296,7 +7414,7 @@ async function markPaid(id){
       (a,b) => String(b.dueDate||'').localeCompare(String(a.dueDate||''))
     );
 
-    renderAll();
+    renderAfterStateChange(['pagos','hoy','clientes','perfil','mas']);
     showToast('✓ Pago cobrado','ok');
 
   }catch(err){
@@ -7393,7 +7511,7 @@ function renderCheckins(){
             ${ci.comment?`<div style="margin-top:8px;padding:8px 10px;background:rgba(255,179,64,.06);border-left:2px solid var(--warn);border-radius:0 6px 6px 0;font-size:.78rem;color:var(--warn);line-height:1.5">${esc(ci.comment)}</div>`:''}
             ${c?`<div style="display:flex;gap:6px;margin-top:10px">
               <button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
-              ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c.name))}, vi tu check-in. ¿Cómo estás?')">WA</button>`:''}
+              ${c.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(c.phone)}','Hola ${jsArg(firstName(c.name))}, vi tu check-in. ¿Cómo estás?')">WA</button>`:''}
             </div>`:''}
           </div>
         </details>`;
@@ -7443,7 +7561,7 @@ function renderWhatsapp(){
           </select>
           <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);margin-top:1px">${esc(selClient?.phone||'Sin teléfono')}</div>
         </div>
-        ${selClient?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(selClient.phone)}','Hola ${esc(firstName(selClient.name))}.')">WA directo</button>`:''}
+        ${selClient?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(selClient.phone)}','Hola ${jsArg(firstName(selClient.name))}.')">WA directo</button>`:''}
       </div>
     </div>
 
@@ -7547,7 +7665,7 @@ function renderEntreno(){
               ${c?.id?`<button class="btn btn-p btn-sm" style="flex:1" onclick="openWorkout('${c.id}')">Entrenar</button>`:''}
               ${c?.id?`<button class="btn btn-s btn-sm" onclick="openProfile('${c.id}')">Perfil</button>`:''}
               ${c?.id?`<button class="btn btn-s btn-sm" onclick="openModal('assignment',null,{clientId:'${c.id}'})">Reasignar</button>`:''}
-              ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(c.phone)}','Hola ${esc(firstName(c?.name))}, ¿cómo va el plan?')">WA</button>`:''}
+              ${c?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(c.phone)}','Hola ${jsArg(firstName(c?.name))}, ¿cómo va el plan?')">WA</button>`:''}
             </div>
           </div>
         </details>`;
@@ -7657,7 +7775,7 @@ function buildAthleteCard(a){
         <div style="display:flex;gap:6px;margin-top:10px">
           <button class="btn btn-p btn-sm" style="flex:1" onclick="openAthleteDashboard('${a.clientId}')">Dashboard</button>
           <button class="btn btn-b btn-sm" onclick="openProfile('${a.clientId}')">Perfil</button>
-          ${a.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(a.phone)}','Hola ${esc(firstName(a.clientName))}.')">WA</button>`:''}
+          ${a.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(a.phone)}','Hola ${jsArg(firstName(a.clientName))}.')">WA</button>`:''}
         </div>
       </div>
     </details>`;
@@ -7868,7 +7986,7 @@ function buildAthleteDashboardHTML(a){
         <div class="dr" style="padding:7px 0"><span class="dk">Peso habitual</span><span class="dv">${a.walkAroundWeightKg?a.walkAroundWeightKg+' kg':'—'}</span></div>
         <div style="margin-top:10px;display:flex;gap:6px">
           <button class="btn btn-b btn-sm" onclick="openProfile('${a.clientId}')">Perfil cliente</button>
-          ${a.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${esc(a.phone)}','Hola ${esc(firstName(a.clientName))}.')">WA</button>`:''}
+          ${a.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(a.phone)}','Hola ${jsArg(firstName(a.clientName))}.')">WA</button>`:''}
         </div>
       </div>
     </details>`;
@@ -7890,7 +8008,7 @@ function buildAthleteDashboardHTML(a){
           ${s.label}
         </button>`).join('')}
       <button class="fp ${activeSection==='eval'?'on':''}"
-        onclick="openEvalModal('${a.clientId}','${esc(a.clientName)}',null,null)">
+        onclick="openEvalModal('${a.clientId}','${jsArg(a.clientName)}',null,null)">
         Evaluación
       </button>
     </div>`;
@@ -8001,7 +8119,7 @@ function buildAthleteDashboardHTML(a){
             <div class="eval-card-actions" style="grid-template-columns:${c?'':'1fr'}">
               <button class="btn btn-p btn-sm eval-card-action-primary" onclick="openAssessmentResultsModal('${a.id}')">${resultsActionLabel}</button>
               ${c?`<button class="btn btn-b btn-sm" onclick="openProfile('${c.id}')">Perfil</button>
-              <button class="btn btn-b btn-sm" onclick="openEvalModal('${c.id}','${esc(c.name)}',null,null)">Nueva</button>`:''}
+              <button class="btn btn-b btn-sm" onclick="openEvalModal('${c.id}','${jsArg(c.name)}',null,null)">Nueva</button>`:''}
             </div>
           </div>
         </details>`;
@@ -9377,66 +9495,25 @@ function closeWorkoutAndAssign(clientId){
 }
 
 function getClientAvatarCandidates(c){
-  if(!c) return [];
-
-  const keys = [
-    'photoUrl','photo_url',
-    'avatarUrl','avatar_url',
-    'profilePhoto','profile_photo',
-    'profilePhotoUrl','profile_photo_url',
-    'imageUrl','image_url',
-    'pictureUrl','picture_url',
-    'foto','fotoUrl','foto_url',
-    'photo','avatar','image'
-  ];
-
-  const rawValues = [];
-
-  keys.forEach(k=>{
-    const v = c[k];
-    if(v !== null && v !== undefined && String(v).trim() !== ''){
-      rawValues.push(String(v).trim());
-    }
+  if(!c)return[];
+  const keys=['photoUrl','photo_url','avatarUrl','avatar_url','profilePhoto','profile_photo','profilePhotoUrl','profile_photo_url','imageUrl','image_url','pictureUrl','picture_url','foto','fotoUrl','foto_url','photo','avatar','image'];
+  const out=[];
+  keys.forEach(key=>{
+    const raw=String(c[key]??'').trim();
+    if(!raw)return;
+    const direct=safeMediaUrl(raw,{allowBlob:true,allowDataImage:true});
+    if(direct){out.push(direct);return}
+    const clean=raw.replace(/^\/+/, '');
+    const buckets=['client-photos','client_photos','avatars','client-avatars','profile-photos'];
+    const first=clean.split('/')[0];
+    const candidates=buckets.includes(first)
+      ? [`${SUPA_URL}/storage/v1/object/public/${clean}`]
+      : buckets.map(bucket=>`${SUPA_URL}/storage/v1/object/public/${bucket}/${clean}`);
+    candidates.forEach(url=>{
+      const safe=safeMediaUrl(url,{allowBlob:false,allowDataImage:false});
+      if(safe)out.push(safe);
+    });
   });
-
-  const out = [];
-
-  rawValues.forEach(raw=>{
-    const v = String(raw).trim();
-    if(!v) return;
-
-    if(
-      v.startsWith('http://') ||
-      v.startsWith('https://') ||
-      v.startsWith('data:') ||
-      v.startsWith('blob:') ||
-      v.startsWith('/')
-    ){
-      out.push(v);
-      return;
-    }
-
-    const clean = v.replace(/^\/+/, '');
-
-    const knownBuckets = [
-      'client-photos',
-      'client_photos',
-      'avatars',
-      'client-avatars',
-      'profile-photos'
-    ];
-
-    const firstPart = clean.split('/')[0];
-
-    if(knownBuckets.includes(firstPart)){
-      out.push(`${SUPA_URL}/storage/v1/object/public/${clean}`);
-    }else{
-      knownBuckets.forEach(bucket=>{
-        out.push(`${SUPA_URL}/storage/v1/object/public/${bucket}/${clean}`);
-      });
-    }
-  });
-
   return [...new Set(out)];
 }
 
@@ -9504,7 +9581,7 @@ function renderTopAvatar(){
     });
   }
 
-  const url = state.coachPhotoUrl || (isOwnerCoach() ? (coachClient?.photoUrl || coachClient?.photo_url || coachClient?.avatarUrl || coachClient?.avatar_url || state.settings.coachPhotoUrl || '') : '');
+  const url = safeMediaUrl(state.coachPhotoUrl || (isOwnerCoach() ? (coachClient?.photoUrl || coachClient?.photo_url || coachClient?.avatarUrl || coachClient?.avatar_url || state.settings.coachPhotoUrl || '') : ''),{allowBlob:true,allowDataImage:true});
 
   if(url){
     el.innerHTML = `<img src="${esc(url)}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.textContent='${esc(initials(activeCoachName || 'AB'))}'">`;
@@ -9530,7 +9607,7 @@ function getCoachAvatarHTML(){
     });
   }
 
-  const url =
+  const url = safeMediaUrl(
     state.coachPhotoUrl ||
     (isOwnerCoach() ? (
       coachClient?.photoUrl ||
@@ -9543,7 +9620,9 @@ function getCoachAvatarHTML(){
       coachClient?.image_url ||
       state.settings.coachPhotoUrl ||
       ''
-    ) : '');
+    ) : ''),
+    {allowBlob:true,allowDataImage:true}
+  );
 
   if(url){
     return `
@@ -9595,7 +9674,22 @@ function getRealBlockId(blockOrId){
   ).trim();
 }
 
-async function ensureBlockExercisesLoaded(blockOrId){
+const EXERCISE_CACHE_TTL_MS=5*60*1000;
+function isExerciseBlockCacheFresh(blockId){
+  const loadedAt=Number(state.exerciseBlockCache?.[String(blockId)]||0);
+  return loadedAt>0&&(Date.now()-loadedAt)<EXERCISE_CACHE_TTL_MS;
+}
+function markExerciseBlocksLoaded(blockIds){
+  const now=Date.now();
+  if(!state.exerciseBlockCache)state.exerciseBlockCache={};
+  (blockIds||[]).forEach(id=>{if(id)state.exerciseBlockCache[String(id)]=now});
+}
+function cachedExercisesForBlocks(blockIds){
+  const ids=new Set((blockIds||[]).map(String));
+  return state.trainingExercises.filter(row=>ids.has(String(getExerciseBlockId(row))));
+}
+
+async function ensureBlockExercisesLoaded(blockOrId,{force=false}={}){
   const blockId = getRealBlockId(blockOrId);
 
   if(!blockId){
@@ -9603,14 +9697,12 @@ async function ensureBlockExercisesLoaded(blockOrId){
     return [];
   }
 
-  /*
-    AB FIX 20260604 · No confiar en el cache global.
-    loadAllData() carga training_exercises con limit(3000), por eso algunos bloques
-    pueden quedar parcialmente cargados. Si aquí devolvemos "alreadyLoaded" cuando
-    hay 1-2 ejercicios, la pantalla muestra bloques recortados.
-    Solución: cuando se abre un bloque, se consulta SIEMPRE su lista real por block_id
-    y se reemplaza el cache de ese bloque.
-  */
+  if(!force&&isExerciseBlockCacheFresh(blockId)){
+    return sortByOrder(cachedExercisesForBlocks([blockId]));
+  }
+
+  /* Los ejercicios ya no se cargan de forma masiva al arrancar. Cada bloque se
+     hidrata bajo demanda y queda en caché durante unos minutos. */
   const { data, error } = await db
     .from('training_exercises')
     .select('*')
@@ -9634,6 +9726,7 @@ async function ensureBlockExercisesLoaded(blockOrId){
   );
 
   state.trainingExercises.push(...mapped);
+  markExerciseBlocksLoaded([blockId]);
 
   console.log('AB COACH · ejercicios cargados por bloque', {
     blockId,
@@ -9646,7 +9739,7 @@ async function ensureBlockExercisesLoaded(blockOrId){
   return mapped;
 }
 
-async function ensureWorkoutSessionExercisesLoaded(plan){
+async function ensureWorkoutSessionExercisesLoaded(plan,{force=false}={}){
   if(!plan || !db) return [];
 
   const blockIds = [...new Set(
@@ -9656,13 +9749,12 @@ async function ensureWorkoutSessionExercisesLoaded(plan){
   )];
 
   if(!blockIds.length) return [];
+  if(!force&&blockIds.every(isExerciseBlockCacheFresh)){
+    return sortByOrder(cachedExercisesForBlocks(blockIds));
+  }
 
-  /*
-    AB FIX 20260604 · Hidratar ejercicios de la sesión activa.
-    La lista global puede venir truncada por limit(3000). Antes de calcular contadores,
-    cargas o renderizar bloques, traemos todos los ejercicios reales de los bloques
-    visibles de esta sesión.
-  */
+  /* Hidratar solo los ejercicios de la sesión activa. El panel inicial no transfiere
+     toda la biblioteca de training_exercises. */
   const { data, error } = await db
     .from('training_exercises')
     .select('*')
@@ -9687,6 +9779,7 @@ async function ensureWorkoutSessionExercisesLoaded(plan){
   );
 
   state.trainingExercises.push(...mapped);
+  markExerciseBlocksLoaded(blockIds);
 
   console.log('AB COACH · sesión hidratada con ejercicios reales', {
     blocks:blockIds.length,
@@ -10636,18 +10729,6 @@ function advanceIntervalPhase(){
   }
 }
 
-function pauseWorkoutTimer(){
-  state.workoutTimer.running = false;
-
-  if(state.workoutTimer.interval){
-    clearInterval(state.workoutTimer.interval);
-    state.workoutTimer.interval = null;
-  }
-
-  releaseScreenWake('workout-timer');
-
-  updateTimerControlsUI();
-}
 
 function resetWorkoutTimerOnly(){
   state.workoutTimer.running = false;
@@ -10791,11 +10872,12 @@ function youtubeEmbedUrl(url){
 }
 
 function buildVideoHTML(url){
-  const clean=String(url||'').trim();const yt=youtubeEmbedUrl(clean);
-  if(!clean)return`<div class="wt-empty">No hay URL de vídeo registrada para este ejercicio.</div>`;
-  if(yt)return`<div class="video-box"><iframe src="${esc(yt)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen playsinline></iframe></div><a class="video-link" href="${esc(clean)}" target="_blank" rel="noopener">Abrir vídeo externo</a>`;
-  if(/\.(mp4|webm|ogg|mov)(\?|#|$)/i.test(clean))return`<div class="video-box"><video controls playsinline preload="metadata" src="${esc(clean)}"></video></div><a class="video-link" href="${esc(clean)}" target="_blank" rel="noopener">Abrir vídeo externo</a>`;
-  return`<div class="wt-empty">Este enlace no se puede incrustar.</div><a class="video-link" href="${esc(clean)}" target="_blank" rel="noopener">Abrir vídeo externo</a>`;
+  const clean=safeMediaUrl(url,{allowBlob:true,allowDataVideo:true});
+  if(!clean)return`<div class="wt-empty">URL de vídeo no válida o no disponible.</div>`;
+  const yt=youtubeEmbedUrl(clean);
+  if(yt)return`<div class="video-box"><iframe src="${esc(yt)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen playsinline></iframe></div><a class="video-link" href="${esc(clean)}" target="_blank" rel="noopener noreferrer">Abrir vídeo externo</a>`;
+  if(/\.(mp4|webm|ogg|mov)(\?|#|$)/i.test(clean)||clean.startsWith('blob:')||clean.startsWith('data:video/'))return`<div class="video-box"><video controls playsinline preload="metadata" src="${esc(clean)}"></video></div><a class="video-link" href="${esc(clean)}" target="_blank" rel="noopener noreferrer">Abrir vídeo externo</a>`;
+  return`<div class="wt-empty">Este enlace no se puede incrustar.</div><a class="video-link" href="${esc(clean)}" target="_blank" rel="noopener noreferrer">Abrir vídeo externo</a>`;
 }
 
 function openExerciseVideo(exId){
@@ -12197,7 +12279,13 @@ function jsArg(v){
     .replace(/\\/g,'\\\\')
     .replace(/'/g,"\\'")
     .replace(/\n/g,'\\n')
-    .replace(/\r/g,'');
+    .replace(/\r/g,'')
+    .replace(/</g,'\\x3C')
+    .replace(/>/g,'\\x3E')
+    .replace(/&/g,'\\x26')
+    .replace(/"/g,'&quot;')
+    .replace(/\u2028/g,'\\u2028')
+    .replace(/\u2029/g,'\\u2029');
 }
 
 function getActiveConditionForClient(c){
@@ -12297,7 +12385,7 @@ function buildClientConditionCard(c){
         </button>
         ${msg && c.phone ? `
           <button class="btn btn-wa btn-sm"
-            onclick="openWA('${esc(c.phone)}','${esc(msg)}')">
+            onclick="openWA('${jsArg(c.phone)}','${jsArg(msg)}')">
             WA cliente
           </button>` : ''}
       </div>
@@ -12629,14 +12717,6 @@ function getVisibleSessionPositions(assignment){
     );
 }
 
-function getAssignmentSessionNumber(a){
-  return Number(
-    state.activeWorkoutSessionNumber ||
-    a?.assignedSessionNumber ||
-    a?.assigned_session_number ||
-    1
-  );
-}
 
 function getStoredAssignmentSessionNumber(a){
   return Number(
@@ -14008,7 +14088,9 @@ function switchExTab(tabId,el){
   document.getElementById(tabId)?.classList.add('on');
 }
 
+let workoutRenderGeneration=0;
 async function renderWorkout(){
+  const renderGeneration=++workoutRenderGeneration;
   const box=document.getElementById('workout-content');
   const c=clientById(state.activeTrainingClientId||state.selectedClientId);
   if(!c){box.innerHTML=emptyState('Sin cliente','Vuelve a clientes y abre un perfil.');return}
@@ -14017,16 +14099,19 @@ async function renderWorkout(){
   /*
     AB FIX 20260604 · Hidratar la sesión antes de contar/renderizar.
     Si no hacemos esto, el plan puede quedar con ejercicios parciales por el cache
-    inicial de loadAllData() y la pantalla muestra bloques recortados.
+    local de ejercicios y la pantalla podría mostrar bloques sin hidratar.
   */
   const basePlan = getWorkoutPlanForClient(c);
   await ensureWorkoutSessionExercisesLoaded(basePlan);
+  if(renderGeneration!==workoutRenderGeneration||currentScr!=='workout'||String(state.activeTrainingClientId||state.selectedClientId)!==String(c.id))return;
 
   const hydratedPlan = getWorkoutPlanForClient(c);
   await loadPersistedWorkoutProgress(c, hydratedPlan);
   await ensureSessionLoadPrescriptionLoaded(c, hydratedPlan);
+  if(renderGeneration!==workoutRenderGeneration||currentScr!=='workout')return;
 
   const adapted = await getAdaptedRowsForClient(c);
+  if(renderGeneration!==workoutRenderGeneration||currentScr!=='workout')return;
 
   if(adapted.rows && adapted.rows.length){
     const safeRows=applyFrontendAdaptationSafetyNet(adapted.rows,adapted.pathology);
@@ -15073,17 +15158,6 @@ function closeStretching() {
   document.body.style.overflow = '';
 }
 
-// ── TIMER BASE, SOLO PARA LIMPIAR ESTADO ─────────────────────────
-function stopStretchTimerBase() {
-  stretchTimerActive = false;
-
-  if (stretchTimerInt) {
-    clearInterval(stretchTimerInt);
-  }
-
-  stretchTimerInt = null;
-  stretchTimerSecs = 0;
-}
 
 // ── VOLVER A ZONAS ──────────────────────────────────────────────
 function backToStretchZones() {
@@ -15094,15 +15168,6 @@ function backToStretchZones() {
   renderStretchZoneSelector();
 }
 
-// ── SELECCIÓN DE ZONA, POR AHORA SIN SUPABASE ───────────────────
-function selectStretchZone(zoneKey) {
-  stretchZone = zoneKey;
-  stretchExercises = [];
-  stretchIndex = 0;
-  stopStretchTimerBase();
-
-  renderStretchZonePlaceholder();
-}
 
 // ── RENDER: SELECTOR DE ZONA ────────────────────────────────────
 function renderStretchZoneSelector() {
@@ -15408,70 +15473,6 @@ function renderStretchList() {
 
     <div class="stretch-ex-list">
       ${itemsHTML}
-    </div>
-  `;
-}
-
-// ── ABRIR EJERCICIO BÁSICO ──────────────────────────────────────
-// Temporal: en el paso siguiente añadimos timer, respiración y navegación.
-function openStretchExerciseBasic(index) {
-  stretchIndex = index;
-
-  const el = document.getElementById('stretch-content');
-  if (!el) return;
-
-  const exercise = stretchExercises[stretchIndex];
-
-  el.innerHTML = `
-    <div class="stretch-back">
-      <button class="btn btn-sm" onclick="renderStretchList()">← Lista</button>
-      <span class="stretch-progress">${stretchIndex + 1} / ${stretchExercises.length}</span>
-    </div>
-
-    <div class="stretch-exec-card">
-      <div class="stretch-exec-name">
-        ${stretchEscHTML(exercise.name || 'Ejercicio sin nombre')}
-      </div>
-
-      ${
-        exercise.duration
-          ? `<div class="stretch-exec-reps">${stretchEscHTML(exercise.duration)}</div>`
-          : ''
-      }
-
-      ${
-        exercise.reps
-          ? `<div class="stretch-exec-reps">${stretchEscHTML(exercise.reps)}</div>`
-          : ''
-      }
-
-      ${
-        exercise.description
-          ? `<div class="stretch-exec-desc">${stretchEscHTML(exercise.description)}</div>`
-          : ''
-      }
-
-      ${
-        exercise.breathing_cue
-          ? `
-            <div class="stretch-cue">
-              <span class="stretch-cue-label">Respiración</span>
-              <span>${stretchEscHTML(exercise.breathing_cue)}</span>
-            </div>
-          `
-          : ''
-      }
-
-      ${
-        exercise.coaching_notes
-          ? `
-            <div class="stretch-cue">
-              <span class="stretch-cue-label">Coach</span>
-              <span>${stretchEscHTML(exercise.coaching_notes)}</span>
-            </div>
-          `
-          : ''
-      }
     </div>
   `;
 }
@@ -17221,18 +17222,12 @@ async function initPushNotifications() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
   try {
-    await navigator.serviceWorker.register('/sw.js?v=coach-rpc-24-1', { updateViaCache: 'none' });
-    const swReg = await navigator.serviceWorker.ready;
+    const registration=await registerCoachServiceWorker();
+    if(!registration)return;
+    const swReg=await navigator.serviceWorker.ready;
 
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') return;
-
-    navigator.serviceWorker.addEventListener('message', e => {
-      const { action, data } = e.data || {};
-      if (action === 'resolve' && data?.alertId) resolverAlerta(data.alertId);
-      else if (action === 'view' && data?.clientId) openProfile(data.clientId);
-      else if (data?.screen) showScr(data.screen);
-    });
 
     if (VAPID_PUBLIC_KEY !== 'TU_CLAVE_VAPID_PUBLICA_AQUI') {
       const existingSub = await swReg.pushManager.getSubscription();
@@ -18388,8 +18383,17 @@ async function testPush() {
 }
 </script>
 
-<!-- AB SYSTEM · RPC 24
-     La adaptación aprobada se publica mediante client_conditions +
+<!-- AB SYSTEM · RPC 25 PERFORMANCE + SECURITY
+     Mantiene adaptación aprobada mediante client_conditions +
      ab_client_session_get_current_adapted_training. -->
+
+<script>
+window.AB_COACH_PERF_INFO={
+  build:'coach-rpc-25-performance-security',
+  get load(){return window.AB_COACH_LOAD_STATE},
+  get loadedExerciseBlocks(){return Object.keys(state.exerciseBlockCache||{}).length},
+  get cachedExercises(){return (state.trainingExercises||[]).length}
+};
+</script>
 </body>
 </html>
