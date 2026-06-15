@@ -7400,180 +7400,88 @@ async function loadClientDashboard(sessionToken) {
       return;
     }
 
-    // Carga principal SOLO por RPC seguras. No dependemos de tablas directas para entrar.
-    const profileR = await rpcTimeout(
-      db.rpc('ab_client_validate_session', { p_session_token: token }).maybeSingle(),
-      'perfil'
-    );
+    // ── TANDA 1: datos mínimos para mostrar el panel ──────────────────
+    // Corren en paralelo. validate_session va primero para confirmar token.
+    // Las demás solo necesitan el token, no dependen entre sí.
+    const [profileR, dashboardR, assignmentsR, planR] = await Promise.all([
+      rpcTimeout(
+        db.rpc('ab_client_validate_session', { p_session_token: token }).maybeSingle(),
+        'perfil'
+      ),
+      rpcTimeout(
+        db.rpc('ab_client_get_dashboard', { p_session_token: token }).maybeSingle(),
+        'dashboard'
+      ),
+      rpcTimeout(
+        db.rpc('ab_client_get_assignments', { p_session_token: token }),
+        'asignaciones'
+      ),
+      rpcTimeout(
+        db.rpc('ab_client_get_active_training_plan', { p_session_token: token }),
+        'plan activo'
+      ),
+    ]);
 
+    // validate_session es la única que bloquea el acceso
     if (profileR.error || !profileR.data) {
       throw profileR.error || new Error('Sesión cliente inválida.');
     }
-
-    const dashboardR = await rpcTimeout(
-      db.rpc('ab_client_get_dashboard', { p_session_token: token }).maybeSingle(),
-      'dashboard'
-    );
     if (dashboardR.error) throw dashboardR.error;
-
-    const assignmentsR = await rpcTimeout(
-      db.rpc('ab_client_get_assignments', { p_session_token: token }),
-      'asignaciones'
-    );
+    if (planR.error) throw planR.error;
     if (assignmentsR.error) console.warn('Assignments RPC:', assignmentsR.error);
 
-    const planR = await rpcTimeout(
-      db.rpc('ab_client_get_active_training_plan', { p_session_token: token }),
-      'plan activo'
-    );
-    if (planR.error) throw planR.error;
-
-        // Check-ins del cliente mediante sesión segura.
-    // Un fallo aquí no debe bloquear la entrada al panel.
-    let checkinsR = { data: [], error: null };
-
-    try {
-      checkinsR = await rpcTimeout(
-        db.rpc('ab_client_session_get_checkins', {
-          p_session_token: token,
-          p_limit: 30
-        }),
+    // ── TANDA 2: datos secundarios en paralelo, sin bloquear entrada ──
+    // Si alguno falla, el panel ya está visible y muestra el dato vacío.
+    const [
+      checkinsR,
+      metricsR,
+      assessmentsR,
+      assessmentResultsR,
+      conditionsR,
+      trainingLogsR,
+    ] = await Promise.allSettled([
+      rpcTimeout(
+        db.rpc('ab_client_session_get_checkins', { p_session_token: token, p_limit: 30 }),
         'check-ins'
-      );
-
-      if (checkinsR.error) {
-        console.warn('Check-ins RPC:', checkinsR.error);
-        checkinsR = { data: [], error: checkinsR.error };
-      }
-    } catch (checkinsErr) {
-      console.warn('Check-ins RPC no disponible:', checkinsErr);
-      checkinsR = { data: [], error: checkinsErr };
-    }
-
-    // Métricas corporales del cliente mediante sesión segura.
-    // Un fallo aquí no debe bloquear la entrada al panel.
-    let metricsR = { data: [], error: null };
-
-    try {
-      metricsR = await rpcTimeout(
-        db.rpc('ab_client_session_get_metrics', {
-          p_session_token: token,
-          p_limit: 150
-        }),
+      ),
+      rpcTimeout(
+        db.rpc('ab_client_session_get_metrics', { p_session_token: token, p_limit: 150 }),
         'métricas'
-      );
-
-      if (metricsR.error) {
-        console.warn('Metrics RPC:', metricsR.error);
-        metricsR = { data: [], error: metricsR.error };
-      }
-    } catch (metricsErr) {
-      console.warn('Metrics RPC no disponible:', metricsErr);
-      metricsR = { data: [], error: metricsErr };
-    }
-    
-
-    // Evaluaciones del cliente mediante sesión segura.
-    let assessmentsR = { data: [], error: null };
-
-    try {
-      assessmentsR = await rpcTimeout(
-        db.rpc('ab_client_session_get_assessments', {
-          p_session_token: token,
-          p_limit: 50
-        }),
+      ),
+      rpcTimeout(
+        db.rpc('ab_client_session_get_assessments', { p_session_token: token, p_limit: 50 }),
         'evaluaciones'
-      );
-
-      if (assessmentsR.error) {
-        console.warn('Assessments RPC:', assessmentsR.error);
-        assessmentsR = { data: [], error: assessmentsR.error };
-      }
-    } catch (assessmentsErr) {
-      console.warn('Assessments RPC no disponible:', assessmentsErr);
-      assessmentsR = { data: [], error: assessmentsErr };
-    }
-
-    // Resultados de evaluaciones del cliente mediante sesión segura.
-    let assessmentResultsR = { data: [], error: null };
-
-    try {
-      assessmentResultsR = await rpcTimeout(
+      ),
+      rpcTimeout(
         db.rpc('ab_client_session_get_assessment_results', {
           p_session_token: token,
           p_assessment_id: null,
           p_limit: 1000
         }),
         'resultados de evaluaciones'
-      );
-
-      if (assessmentResultsR.error) {
-        console.warn('Assessment results RPC:', assessmentResultsR.error);
-        assessmentResultsR = { data: [], error: assessmentResultsR.error };
-      }
-    } catch (assessmentResultsErr) {
-      console.warn('Assessment results RPC no disponible:', assessmentResultsErr);
-      assessmentResultsR = { data: [], error: assessmentResultsErr };
-    }
-
-    // Condiciones y molestias del cliente mediante sesión segura.
-    // Un fallo aquí no debe bloquear el acceso al panel.
-    let conditionsR = { data: [], error: null };
-
-    try {
-      conditionsR = await rpcTimeout(
-        db.rpc('ab_client_session_get_conditions', {
-          p_session_token: token,
-          p_limit: 100
-        }),
+      ),
+      rpcTimeout(
+        db.rpc('ab_client_session_get_conditions', { p_session_token: token, p_limit: 100 }),
         'condiciones y molestias'
-      );
-
-      if (conditionsR.error) {
-        console.warn('Conditions RPC:', conditionsR.error);
-        conditionsR = { data: [], error: conditionsR.error };
+      ),
+      rpcTimeout(
+        db.rpc('ab_client_session_get_training_logs', { p_session_token: token, p_limit: 200 }),
+        'historial de entrenamientos'
+      ),
+    ]).then(results => results.map((r, i) => {
+      if (r.status === 'rejected') {
+        const labels = ['check-ins','métricas','evaluaciones','resultados','condiciones','logs'];
+        console.warn(`${labels[i]} RPC no disponible:`, r.reason);
+        return { data: [], error: r.reason };
       }
-    } catch (conditionsErr) {
-      console.warn('Conditions RPC no disponible:', conditionsErr);
-      conditionsR = { data: [], error: conditionsErr };
-    }
-
-    // Historial de entrenamientos mediante sesión segura.
-// Se utiliza para progreso, constancia y sesiones ya completadas.
-let trainingLogsR = { data: [], error: null };
-
-try {
-  trainingLogsR = await rpcTimeout(
-    db.rpc('ab_client_session_get_training_logs', {
-      p_session_token: token,
-      p_limit: 200
-    }),
-    'historial de entrenamientos'
-  );
-
-  if (trainingLogsR.error) {
-    console.warn(
-      'Training logs RPC:',
-      trainingLogsR.error
-    );
-
-    trainingLogsR = {
-      data: [],
-      error: trainingLogsR.error
-    };
-  }
-
-} catch (trainingLogsErr) {
-  console.warn(
-    'Training logs RPC no disponible:',
-    trainingLogsErr
-  );
-
-  trainingLogsR = {
-    data: [],
-    error: trainingLogsErr
-  };
-}
+      const val = r.value;
+      if (val?.error) {
+        const labels = ['check-ins','métricas','evaluaciones','resultados','condiciones','logs'];
+        console.warn(`${labels[i]} RPC error:`, val.error);
+        return { data: [], error: val.error };
+      }
+      return val;
+    }));
     
     const profile = profileR.data || {};
     const dash = dashboardR.data || {};
