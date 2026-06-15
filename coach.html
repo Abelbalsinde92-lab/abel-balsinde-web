@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 21 CONDITION INBOX</title>
+<title>AB SYSTEM — Coach Panel · RPC 22 SYNC ADAPTATION</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -2540,7 +2540,7 @@ body.eval-modal-open {
 
 
 /* ════════════════════════════════════════════════════════
-   RPC 21 · BANDEJA DE MOLESTIAS + SALUD UNIFICADA
+   RPC 22 · BANDEJA + SINCRONIZACIÓN CLIENTE
 ══════════════════════════════════════════════════════════ */
 .condition-inbox{
   margin:0 0 18px;
@@ -3729,7 +3729,7 @@ async function saveConditionReview(event){
     if(state.adaptedTrainingCache)Object.keys(state.adaptedTrainingCache).forEach(k=>{if(k.startsWith(cid+'__'))delete state.adaptedTrainingCache[k]});
     closeModal();renderBadges();
     if(currentScr==='alertas')renderAlertas();else if(currentScr==='salud')renderClientHealth();else renderScr(currentScr);
-    showToast(action==='approve'?'Adaptación activa ✓':action==='discard'?'Reporte descartado':'Condición resuelta ✓','ok');
+    showToast(action==='approve'?'Adaptación activa · cliente sincronizable ✓':action==='discard'?'Reporte descartado':'Condición resuelta ✓','ok');
   }catch(error){
     console.error('saveConditionReview error:',error);showToast('No se pudo guardar: '+(error?.message||''),'err');
     if(submit){submit.disabled=false;submit.textContent='Guardar'}
@@ -7859,9 +7859,13 @@ function openModal(type,id=null,prefill={}){
       <div class="fld"><label class="fld-l">Etiqueta comercial</label>
         <input name="commercialLabel" class="fld-i" value="${esc(a.commercialLabel||a.commercial_label||'')}" placeholder="Ej: Semana de prueba, Mes 1…">
       </div>
-      <div class="fld"><label class="fld-l">Cerrar plan activo anterior</label><select name="closeOld" class="fld-s">
-        <option value="yes" selected>Sí, cerrar anterior</option><option value="no">No, mantener anterior</option>
-      </select></div>
+      <input type="hidden" name="closeOld" value="yes">
+      <div class="fld">
+        <label class="fld-l">Publicación del plan</label>
+        <div class="fld-i" style="height:auto;min-height:44px;display:flex;align-items:center;color:var(--ok);background:rgba(46,204,113,.06)">
+          El plan anterior se cerrará automáticamente para que el cliente reciba solo esta asignación.
+        </div>
+      </div>
             <div class="fld"><label class="fld-l">Nota interna</label><textarea name="coachNotes" class="fld-t" rows="3">${esc(a.coachNotes||'')}</textarea></div>
       ${actions}`;
     updateAssignmentScopeFields(a.assignmentScope||a.assignment_scope||'full');
@@ -8387,11 +8391,8 @@ async function saveModal(e){
         if(assignErr) throw assignErr;
         saved = normalizeRpcAssignment(Array.isArray(rpcAssign) ? rpcAssign[0] : rpcAssign);
 
-        state.assignments.forEach(a=>{
-          const sameClient=String(a.clientId||a.client_id)===String(data.clientId);
-          const sameCoach=!data.coachId || String(a.coachId||a.coach_id||'')===String(data.coachId);
-          if(sameClient && sameCoach && String(a.status||'activo').toLowerCase()==='activo') a.status='finalizado';
-        });
+        // El cierre real de asignaciones anteriores se ejecuta abajo mediante
+        // ab_coach_session_close_other_assignments. No basta con cambiar state local.
       }else{
         // Edición de asignaciones existentes: se mantiene directa hasta crear ab_coach_update_assignment.
         if(closeOld&&!id){
@@ -8403,11 +8404,52 @@ async function saveModal(e){
         saved=await upsertItem('assignments','client_program_assignments',data);
       }
 
+      // RPC 22: publicar la asignación canónica en servidor y cerrar las anteriores.
+      // Esto evita que coach y cliente elijan planes activos diferentes.
+      if(closeOld && saved?.id && state.coachSessionToken){
+        const {data:syncAssignmentData,error:syncAssignmentError}=await db.rpc(
+          'ab_coach_session_close_other_assignments',
+          {
+            p_session_token: state.coachSessionToken,
+            p_assignment_id: saved.id
+          }
+        );
+
+        if(syncAssignmentError) throw syncAssignmentError;
+
+        let syncPayload=normalizeRpcJsonRow(syncAssignmentData) || syncAssignmentData || {};
+        if(typeof syncPayload==='string'){
+          try{syncPayload=JSON.parse(syncPayload)}catch(_e){}
+        }
+        const syncedRow=syncPayload?.assignment || syncPayload;
+        const syncedAssignment=normalizeRpcAssignment(syncedRow);
+        if(syncedAssignment?.id) saved=syncedAssignment;
+
+        state.assignments.forEach(a=>{
+          const sameClient=String(a.clientId||a.client_id)===String(data.clientId);
+          if(sameClient && String(a.id)!==String(saved.id)){
+            const status=String(a.status||'activo').toLowerCase();
+            if(status==='activo'||status==='active') a.status='finalizado';
+          }
+        });
+      }
+
+      // La nueva asignación cambia el contexto de sesión y de adaptación.
+      state.activeWorkoutSessionNumber=Number(
+        saved?.assignedSessionNumber || saved?.assigned_session_number || 1
+      );
+      if(state.adaptedTrainingCache){
+        Object.keys(state.adaptedTrainingCache).forEach(k=>{
+          if(k.startsWith(String(data.clientId)+'__')) delete state.adaptedTrainingCache[k];
+        });
+      }
+      state.currentAdaptedRows=[];
+
       state.assignments=state.assignments.filter(a=>String(a.id)!==String(saved.id));
       state.assignments.push(saved);
       state.assignments.sort((a,b)=>String(b.startDate||b.start_date||'').localeCompare(String(a.startDate||a.start_date||'')));
       await logAppEvent(id ? 'update_assignment_frontend' : 'assign_program_rpc','info',id ? 'Asignación actualizada desde panel' : 'Programa asignado por RPC',{client_id:data.clientId, program_id:data.programId, assignment_id:saved.id});
-      showToast(id?'Asignación actualizada ✓':'Entrenamiento asignado ✓','ok');
+      showToast(id?'Asignación actualizada y publicada ✓':'Entrenamiento asignado y publicado ✓','ok');
     }
     else if(type==='metric'){
       const token = getCoachSessionTokenSafe();
@@ -17930,5 +17972,9 @@ async function testPush() {
   showToast(res.ok ? 'Push enviado ✓' : 'Error: ' + JSON.stringify(data), res.ok ? 'ok' : 'err');
 }
 </script>
+
+<!-- AB SYSTEM · RPC 22
+     La adaptación aprobada se publica mediante client_conditions +
+     ab_client_session_get_current_adapted_training. -->
 </body>
 </html>
