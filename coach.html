@@ -2789,6 +2789,65 @@ body.eval-modal-open {
   .workout-config-cell{padding:10px 8px}
   .workout-config-value{font-size:.66rem}
 }
+
+/* AB FIX · Tarjetas Más sin desbordamiento */
+#mas-grid,
+#mas-grid .more-grid{
+  width:100%;
+  min-width:0;
+}
+
+#mas-grid .more-grid{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:10px !important;
+}
+
+#mas-grid .more-card{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  display:grid !important;
+  grid-template-columns:42px minmax(0,1fr) !important;
+  gap:12px !important;
+  padding:18px 14px !important;
+}
+
+#mas-grid .more-card-icon{
+  width:42px !important;
+  min-width:42px !important;
+}
+
+#mas-grid .more-card-label{
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:normal !important;
+  overflow-wrap:anywhere !important;
+  font-size:clamp(.78rem,3.2vw,1rem) !important;
+  line-height:1.08 !important;
+}
+
+@media(max-width:390px){
+  #mas-grid .more-card{
+    grid-template-columns:36px minmax(0,1fr) !important;
+    gap:9px !important;
+    padding:15px 11px !important;
+  }
+
+  #mas-grid .more-card-icon{
+    width:36px !important;
+    min-width:36px !important;
+  }
+
+  #mas-grid .more-card-label{
+    font-size:.76rem !important;
+  }
+}
 </style>
 <!-- AB SYSTEM · RPC 19 ADAPTATION ENGINE FIX -->
 </head>
@@ -7288,7 +7347,7 @@ function renderMas(){
     {icon:ICONS.wa,label:'WhatsApp',badge:0,badgeKind:'info',action:`showScr('whatsapp')`},
     {icon:ICONS.train,label:'Entrenos',badge:activeAssign,badgeKind:'info',action:`showScr('entreno')`},
     {icon:ICONS.ath,label:'Atletas',badge:athleteCount,badgeKind:'info',action:`showScr('atletas')`},
-    {icon:ICONS.eval,label:'Evaluaciones',badge:0,badgeKind:'info',action:`showScr('eval')`},
+    {icon:ICONS.eval,label:'Pruebas',badge:0,badgeKind:'info',action:`showScr('eval')`},
     {icon:ICONS.new,label:'Nuevo cliente',badge:0,badgeKind:'info',action:`openModal('client')`}
   ];
 
