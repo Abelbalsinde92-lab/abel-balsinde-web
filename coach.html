@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 23.1 ALERT SELECTOR FIX</title>
+<title>AB SYSTEM — Coach Panel · RPC 24 UNIFIED HEALTH</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 05 SECURE -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -2540,7 +2540,7 @@ body.eval-modal-open {
 
 
 /* ════════════════════════════════════════════════════════
-   RPC 23.1 · SELECTOR ÚNICO DE ALERTAS + SALUD
+   RPC 24 · SALUD UNIFICADA + HISTORIAL NORMALIZADO
 ══════════════════════════════════════════════════════════ */
 .condition-inbox{
   margin:0 0 18px;
@@ -2592,6 +2592,33 @@ body.eval-modal-open {
 .health-summary-count{background:var(--bg);border:1px solid var(--divider);border-radius:7px;padding:8px;text-align:center}
 .health-summary-count strong{display:block;font-family:var(--font-d);font-size:1.25rem;line-height:1}
 .health-summary-count span{display:block;font-family:var(--font-m);font-size:.42rem;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-top:4px}
+.health-overview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.health-overview-stat{padding:11px 12px;background:var(--card);border:1px solid var(--card-border);border-radius:9px;min-width:0}
+.health-overview-stat strong{display:block;font-family:var(--font-d);font-size:1.45rem;line-height:1;color:var(--text)}
+.health-overview-stat span{display:block;margin-top:5px;font-family:var(--font-m);font-size:.43rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2)}
+.health-overview-stat.warn{border-color:rgba(255,179,64,.24);background:rgba(255,179,64,.045)}
+.health-overview-stat.warn strong{color:var(--warn)}
+.health-overview-stat.info{border-color:rgba(0,200,232,.23);background:rgba(0,200,232,.04)}
+.health-overview-stat.info strong{color:var(--sport)}
+.health-overview-stat.danger{border-color:rgba(255,90,90,.23);background:rgba(255,90,90,.04)}
+.health-overview-stat.danger strong{color:var(--medical)}
+.health-overview-section{margin-bottom:10px;padding:12px 13px;background:var(--card);border:1px solid var(--card-border);border-radius:9px}
+.health-overview-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.health-overview-section-title{font-family:var(--font-m);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)}
+.health-overview-primary{font-weight:800;font-size:.9rem;line-height:1.25}
+.health-overview-secondary{margin-top:4px;font-size:.72rem;color:var(--text-2);line-height:1.5}
+.health-overview-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.health-overview-actions .btn{flex:1;min-width:110px}
+.health-local-filters{display:flex;gap:7px;overflow-x:auto;padding:1px 0 10px;scrollbar-width:none}
+.health-local-filters::-webkit-scrollbar{display:none}
+.health-local-filters .fp{flex:0 0 auto}
+.health-record-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px}
+.health-record-summary .mc{min-height:64px}
+.health-metric-list{display:grid;gap:7px}
+.health-metric-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:9px 10px;background:var(--bg);border:1px solid var(--divider);border-radius:7px}
+.health-metric-row strong{display:block;font-size:.75rem}
+.health-metric-row span{display:block;margin-top:3px;font-family:var(--font-m);font-size:.45rem;color:var(--text-2)}
+.health-metric-value{font-family:var(--font-d);font-size:1rem;white-space:nowrap;text-align:right}
 .active-condition-quick{
   margin:0 0 10px;padding:11px 12px;border:1px solid rgba(0,200,232,.28);border-left:3px solid var(--sport);
   background:rgba(0,200,232,.055);border-radius:8px;display:flex;align-items:center;gap:10px;
@@ -2982,7 +3009,8 @@ let currentScr='hoy';
 let filterCli='todos';
 let filterAl='pendientes';
 let filterCondition='attention';
-let activeHealthCoachTab='conditions';
+let activeHealthCoachTab='summary';
+let activeHealthConditionFilter='current';
 let filterPag='todos';
 let activeModal=null;
 let realtimeInitialized = false;
@@ -3554,6 +3582,7 @@ function conditionResolutionLabel(row){
   const action=conditionReviewAction(row);
   if(action==='discard') return 'Descartado por el coach';
   if(action==='resolve') return 'Proceso recuperado / cerrado';
+  if(action==='legacy') return 'Histórico normalizado';
   return 'Proceso cerrado';
 }
 function defaultConditionClientMessage(row){
@@ -3670,37 +3699,132 @@ function buildClientHealthSummaryCard(c){
       </div>
       ${recent?`<div class="condition-report-text"><strong>Último registro:</strong> ${esc(conditionZoneLabel(recent))} · ${conditionStatusLabel(recent.status)}</div>`:''}
     </div>
-    <div class="card-acts"><button class="btn btn-p btn-sm" onclick="openClientHealth('${c.id}','conditions')">Abrir SALUD</button><button class="btn btn-b btn-sm" onclick="openModal('injuryHistory',null,{clientId:'${c.id}'})">+ Lesión</button></div>
+    <div class="card-acts"><button class="btn btn-p btn-sm" onclick="openClientHealth('${c.id}','summary')">Abrir SALUD</button><button class="btn btn-b btn-sm" onclick="openModal('injuryHistory',null,{clientId:'${c.id}'})">+ Lesión</button></div>
   </div>`;
 }
-function openClientHealth(clientId,tab='conditions'){
+function openClientHealth(clientId,tab='summary'){
   state.selectedClientId=clientId;
   activeHealthCoachTab=tab;
+  if(tab==='conditions'&&!activeHealthConditionFilter) activeHealthConditionFilter='current';
   showScr('salud');
 }
 function setClientHealthTab(tab){
   activeHealthCoachTab=tab;
   renderClientHealth();
 }
-function buildHealthCheckins(c){
+function setHealthConditionFilter(filter){
+  activeHealthConditionFilter=filter;
+  renderClientHealth();
+}
+function healthCheckinRows(c){
   const seen=new Set();
-  const rows=[...(state.todayCheckins||[]),...(state.recentCheckins||[])].filter(ci=>String(ci.clientId||ci.client_id)===String(c.id)).filter(ci=>{
-    const key=String(ci.id||ci.createdAt||ci.created_at||Math.random());if(seen.has(key))return false;seen.add(key);return true;
-  }).sort((a,b)=>String(b.createdAt||b.created_at||b.date||'').localeCompare(String(a.createdAt||a.created_at||a.date||''))).slice(0,20);
-  return rows.length?rows.map(ci=>`<div class="card"><div class="card-body"><div class="card-title">${formatDate(String(ci.date||ci.createdAt||ci.created_at||'').slice(0,10))}</div><div class="dr"><span class="dk">Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div><div class="dr"><span class="dk">Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div><div class="dr"><span class="dk">Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}</span></div>${ci.comment?`<div class="condition-report-text">${esc(ci.comment)}</div>`:''}</div></div>`).join(''):emptyState('Sin check-ins','Todavía no hay registros para este cliente.');
+  return [...(state.todayCheckins||[]),...(state.recentCheckins||[])]
+    .filter(ci=>String(ci.clientId||ci.client_id)===String(c.id))
+    .filter(ci=>{
+      const date=String(ci.checkinDate||ci.checkin_date||ci.date||ci.createdAt||ci.created_at||'');
+      const key=String(ci.id||`${c.id}|${date}|${ci.sleepQuality??ci.sleep_quality??''}|${ci.energyLevel??ci.energy_level??''}`);
+      if(seen.has(key))return false;seen.add(key);return true;
+    })
+    .sort((a,b)=>String(b.checkinDate||b.checkin_date||b.createdAt||b.created_at||b.date||'').localeCompare(String(a.checkinDate||a.checkin_date||a.createdAt||a.created_at||a.date||'')));
+}
+function healthMetricRows(c){
+  return (state.metrics||[])
+    .filter(m=>String(m.clientId||m.client_id)===String(c.id))
+    .sort((a,b)=>String(b.date||b.metricDate||b.metric_date||b.createdAt||b.created_at||'').localeCompare(String(a.date||a.metricDate||a.metric_date||a.createdAt||a.created_at||'')));
+}
+function healthInjuryRows(c){return state.clientInjuryCache?.[c.id]||null}
+function healthCheckinLabel(ci){
+  const key=getCheckinStatus(ci);
+  return key==='alerta'?'Requiere atención':key==='revisar'?'Revisar':'Normal';
+}
+function healthCheckinKind(ci){
+  const key=getCheckinStatus(ci);
+  return key==='alerta'?'alerta':key==='revisar'?'revisar':'normal';
+}
+function healthCheckinDate(ci){return String(ci?.checkinDate||ci?.checkin_date||ci?.date||ci?.createdAt||ci?.created_at||'').slice(0,10)}
+function healthMetricType(m){return m?.type||m?.metricType||m?.metric_type||m?.name||'Métrica'}
+function healthMetricValue(m){
+  const value=m?.value??m?.metricValue??m?.metric_value??m?.result??'—';
+  return `${value}${m?.unit?' '+m.unit:''}`;
+}
+function healthMetricDate(m){return String(m?.date||m?.metricDate||m?.metric_date||m?.createdAt||m?.created_at||'').slice(0,10)}
+function healthLatestMetricTypes(rows,limit=3){
+  const seen=new Set(),out=[];
+  for(const row of rows||[]){
+    const key=cleanTxt(healthMetricType(row));
+    if(seen.has(key))continue;
+    seen.add(key);out.push(row);
+    if(out.length>=limit)break;
+  }
+  return out;
+}
+function buildHealthSummary(c){
+  const conditions=conditionSortRows(conditionRowsForClient(c.id));
+  const attention=conditions.filter(conditionNeedsCoachAttention);
+  const reported=conditions.filter(r=>normalizeCoachConditionStatus(r.status)==='reported');
+  const active=conditions.filter(r=>normalizeCoachConditionStatus(r.status)==='active');
+  const resolved=conditions.filter(r=>normalizeCoachConditionStatus(r.status)==='resolved');
+  const checkins=healthCheckinRows(c);
+  const lastCheckin=checkins[0]||null;
+  const metrics=healthMetricRows(c);
+  const latestMetrics=healthLatestMetricTypes(metrics,3);
+  const injuries=healthInjuryRows(c);
+  if(!injuries&&!state.healthInjuryLoading?.[c.id]) loadHealthInjuriesForScreen(c.id);
+  const injuryRows=injuries||[];
+  const activeInjuries=injuryRows.filter(row=>injuryStatusKind(row.status)==='alerta');
+  const priority=attention[0]||active[0]||reported[0]||null;
+  const priorityStatus=priority?normalizeCoachConditionStatus(priority.status):'';
+  return `
+    <div class="health-overview-grid">
+      <div class="health-overview-stat ${attention.length?'warn':''}"><strong>${attention.length}</strong><span>Por revisar</span></div>
+      <div class="health-overview-stat ${active.length?'info':''}"><strong>${active.length}</strong><span>Condiciones activas</span></div>
+      <div class="health-overview-stat ${lastCheckin&&getCheckinStatus(lastCheckin)==='alerta'?'danger':''}"><strong>${checkins.length}</strong><span>Check-ins</span></div>
+      <div class="health-overview-stat ${activeInjuries.length?'danger':''}"><strong>${activeInjuries.length}</strong><span>Lesiones activas</span></div>
+    </div>
+    <div class="health-overview-section">
+      <div class="health-overview-section-head"><div class="health-overview-section-title">Prioridad actual</div>${priority?badge(conditionStatusLabel(priorityStatus),conditionStatusKind(priorityStatus)):badge('Sin alertas','normal')}</div>
+      ${priority?`<div class="health-overview-primary">${esc(conditionZoneLabel(priority))}</div><div class="health-overview-secondary">${esc(conditionClientName(priority))} · dolor ${conditionPainNow(priority)??'—'}/10 · actividad ${conditionPainDuring(priority)??'—'}/10${conditionReviewState(priority).label?' · '+esc(conditionReviewState(priority).label):''}</div>`:`<div class="health-overview-primary">Sin seguimiento urgente</div><div class="health-overview-secondary">No hay reportes nuevos, evoluciones pendientes ni revisiones vencidas.</div>`}
+      <div class="health-overview-actions"><button class="btn btn-p btn-sm" onclick="setClientHealthTab('conditions')">Ver molestias</button>${priority&&priorityStatus==='active'?`<button class="btn btn-b btn-sm" onclick="useActiveConditionAdaptation('${c.id}','${priority.id}')">Usar adaptación</button>`:''}</div>
+    </div>
+    <div class="health-overview-section">
+      <div class="health-overview-section-head"><div class="health-overview-section-title">Último check-in</div>${lastCheckin?badge(healthCheckinLabel(lastCheckin),healthCheckinKind(lastCheckin)):badge('Sin datos','info')}</div>
+      ${lastCheckin?`<div class="health-overview-primary">${formatDate(healthCheckinDate(lastCheckin))}</div><div class="health-overview-secondary">Sueño ${esc(lastCheckin.sleepQuality??lastCheckin.sleep_quality??'—')}/10 · energía ${esc(lastCheckin.energyLevel??lastCheckin.energy_level??'—')}/10 · molestias ${esc(lastCheckin.sorenessLevel??lastCheckin.soreness_level??lastCheckin.painLevel??lastCheckin.pain_level??'—')}</div>${(lastCheckin.comment||lastCheckin.notes)?`<div class="condition-report-text">${esc(lastCheckin.comment||lastCheckin.notes)}</div>`:''}`:`<div class="health-overview-primary">Sin check-ins registrados</div><div class="health-overview-secondary">El primer registro del cliente aparecerá aquí.</div>`}
+      <div class="health-overview-actions"><button class="btn btn-b btn-sm" onclick="setClientHealthTab('checkins')">Abrir check-ins</button></div>
+    </div>
+    <div class="health-overview-section">
+      <div class="health-overview-section-head"><div class="health-overview-section-title">Últimas métricas</div>${badge(String(metrics.length),'info')}</div>
+      ${latestMetrics.length?`<div class="health-metric-list">${latestMetrics.map(m=>`<div class="health-metric-row"><div><strong>${esc(healthMetricType(m))}</strong><span>${healthMetricDate(m)?formatDate(healthMetricDate(m)):'Sin fecha'}</span></div><div class="health-metric-value">${esc(healthMetricValue(m))}</div></div>`).join('')}</div>`:`<div class="health-overview-secondary">Todavía no hay métricas registradas.</div>`}
+      <div class="health-overview-actions"><button class="btn btn-b btn-sm" onclick="setClientHealthTab('metrics')">Ver métricas</button></div>
+    </div>
+    <div class="health-overview-section">
+      <div class="health-overview-section-head"><div class="health-overview-section-title">Historial</div>${injuries?badge(String(resolved.length+Math.max(injuryRows.length-activeInjuries.length,0)),'normal'):badge('Cargando','info')}</div>
+      <div class="health-overview-secondary">${resolved.length} condiciones cerradas · ${activeInjuries.length} lesiones activas · ${Math.max(injuryRows.length-activeInjuries.length,0)} lesiones recuperadas.</div>
+      <div class="health-overview-actions"><button class="btn btn-b btn-sm" onclick="activeHealthConditionFilter='history';setClientHealthTab('conditions')">Condiciones cerradas</button><button class="btn btn-b btn-sm" onclick="setClientHealthTab('injuries')">Ver lesiones</button></div>
+    </div>`;
+}
+function buildHealthCheckins(c){
+  const rows=healthCheckinRows(c).slice(0,40);
+  const alerts=rows.filter(ci=>getCheckinStatus(ci)==='alerta').length;
+  const review=rows.filter(ci=>getCheckinStatus(ci)==='revisar').length;
+  return `<div class="health-record-summary"><div class="mc"><span class="mc-n">${rows.length}</span><span class="mc-l">Registros</span></div><div class="mc r"><span class="mc-n">${alerts}</span><span class="mc-l">Alertas</span></div><div class="mc y"><span class="mc-n">${review}</span><span class="mc-l">Revisar</span></div></div>${rows.length?rows.map(ci=>`<div class="card"><div class="card-body"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="card-title">${formatDate(healthCheckinDate(ci))}</div>${badge(healthCheckinLabel(ci),healthCheckinKind(ci))}</div><div class="dr"><span class="dk">Sueño</span><span class="dv">${esc(ci.sleepQuality??ci.sleep_quality??'—')}/10</span></div><div class="dr"><span class="dk">Energía</span><span class="dv">${esc(ci.energyLevel??ci.energy_level??'—')}/10</span></div><div class="dr"><span class="dk">Molestias</span><span class="dv">${esc(ci.sorenessLevel??ci.soreness_level??ci.painLevel??ci.pain_level??'—')}</span></div>${(ci.comment||ci.notes)?`<div class="condition-report-text">${esc(ci.comment||ci.notes)}</div>`:''}</div></div>`).join(''):emptyState('Sin check-ins','Todavía no hay registros para este cliente.')}`;
 }
 function buildHealthMetrics(c){
-  const rows=(state.metrics||[]).filter(m=>String(m.clientId||m.client_id)===String(c.id)).sort((a,b)=>String(b.date||b.createdAt||b.created_at||'').localeCompare(String(a.date||a.createdAt||a.created_at||''))).slice(0,30);
-  return rows.length?rows.map(m=>`<div class="card"><div class="card-body"><div class="dr"><span class="dk">${esc(m.type||m.metricType||m.metric_type||'Métrica')}</span><span class="dv">${esc(m.value??m.metricValue??m.metric_value??'—')} ${esc(m.unit||'')}</span></div><div style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2);margin-top:4px">${formatDate(String(m.date||m.createdAt||m.created_at||'').slice(0,10))}</div>${m.notes?`<div class="condition-report-text">${esc(m.notes)}</div>`:''}</div></div>`).join(''):emptyState('Sin métricas','Todavía no hay métricas registradas.');
+  const rows=healthMetricRows(c).slice(0,50);
+  const latest=healthLatestMetricTypes(rows,3);
+  return `${latest.length?`<div class="health-record-summary">${latest.map(m=>`<div class="mc"><span class="mc-n" style="font-size:1rem">${esc(healthMetricValue(m))}</span><span class="mc-l">${esc(healthMetricType(m))}</span></div>`).join('')}</div>`:''}${rows.length?rows.map(m=>`<div class="card"><div class="card-body"><div class="dr"><span class="dk">${esc(healthMetricType(m))}</span><span class="dv">${esc(healthMetricValue(m))}</span></div><div style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2);margin-top:4px">${healthMetricDate(m)?formatDate(healthMetricDate(m)):'Sin fecha'}</div>${m.notes?`<div class="condition-report-text">${esc(m.notes)}</div>`:''}</div></div>`).join(''):emptyState('Sin métricas','Todavía no hay métricas registradas.')}`;
 }
 function buildHealthInjuries(c){
-  const rows=state.clientInjuryCache?.[c.id];
+  const rows=healthInjuryRows(c);
   if(!rows){
     if(!state.healthInjuryLoading?.[c.id]) loadHealthInjuriesForScreen(c.id);
     return '<div class="eval-loading">Cargando historial de lesiones...</div>';
   }
-  if(!rows.length)return emptyState('Sin lesiones registradas','Puedes añadir una lesión desde esta pantalla.')+`<button class="btn btn-p btn-wide" style="margin-top:10px" onclick="openModal('injuryHistory',null,{clientId:'${c.id}'})">+ Registrar lesión</button>`;
-  return `<button class="btn btn-p btn-wide" style="margin-bottom:10px" onclick="openModal('injuryHistory',null,{clientId:'${c.id}'})">+ Registrar lesión</button>`+rows.map(row=>`<div class="card"><div class="card-body"><div class="card-title">${esc(row.bodyPart||row.body_part||'Zona')} · ${esc(row.injuryType||row.injury_type||'Lesión')}</div><div class="dr"><span class="dk">Estado</span><span>${badge(injuryStatusLabel(row.status),injuryStatusKind(row.status))}</span></div><div class="dr"><span class="dk">Inicio</span><span class="dv">${formatDate(row.startDate||row.start_date||'')}</span></div>${row.notes?`<div class="condition-report-text">${esc(row.notes)}</div>`:''}</div></div>`).join('');
+  const sorted=rows.slice().sort((a,b)=>String(b.startDate||b.start_date||'').localeCompare(String(a.startDate||a.start_date||'')));
+  const active=sorted.filter(row=>injuryStatusKind(row.status)==='alerta').length;
+  const recovered=Math.max(sorted.length-active,0);
+  const summary=`<div class="health-record-summary"><div class="mc"><span class="mc-n">${sorted.length}</span><span class="mc-l">Total</span></div><div class="mc r"><span class="mc-n">${active}</span><span class="mc-l">Activas</span></div><div class="mc g"><span class="mc-n">${recovered}</span><span class="mc-l">Recuperadas</span></div></div>`;
+  if(!sorted.length)return summary+emptyState('Sin lesiones registradas','Puedes añadir una lesión desde esta pantalla.')+`<button class="btn btn-p btn-wide" style="margin-top:10px" onclick="openModal('injuryHistory',null,{clientId:'${c.id}'})">+ Registrar lesión</button>`;
+  return summary+`<button class="btn btn-p btn-wide" style="margin-bottom:10px" onclick="openModal('injuryHistory',null,{clientId:'${c.id}'})">+ Registrar lesión</button>`+sorted.map(row=>`<div class="card" style="border-left:3px solid ${injuryStatusKind(row.status)==='alerta'?'var(--medical)':'var(--streak)'}"><div class="card-body"><div class="card-title">${esc(row.bodyPart||row.body_part||'Zona')} · ${esc(row.injuryType||row.injury_type||'Lesión')}</div><div class="dr"><span class="dk">Estado</span><span>${badge(injuryStatusLabel(row.status),injuryStatusKind(row.status))}</span></div><div class="dr"><span class="dk">Inicio</span><span class="dv">${formatDate(row.startDate||row.start_date||'')}</span></div>${(row.recoveryDate||row.recovery_date)?`<div class="dr"><span class="dk">Recuperación</span><span class="dv">${formatDate(row.recoveryDate||row.recovery_date)}</span></div>`:''}${(row.trainingImpact||row.training_impact)?`<div class="condition-report-text"><strong>Impacto:</strong> ${esc(row.trainingImpact||row.training_impact)}</div>`:''}${row.notes?`<div class="condition-report-text">${esc(row.notes)}</div>`:''}</div></div>`).join('');
 }
 async function loadHealthInjuriesForScreen(clientId){
   if(!state.healthInjuryLoading)state.healthInjuryLoading={};
@@ -3727,14 +3851,18 @@ function renderClientHealth(){
   const rows=conditionSortRows(conditionRowsForClient(c.id));
   const reported=rows.filter(r=>normalizeCoachConditionStatus(r.status)==='reported').length;
   const active=rows.filter(r=>normalizeCoachConditionStatus(r.status)==='active').length;
-  head.innerHTML=`<div class="health-client-hero">${getClientPhotoHTML(c,'sm')}<div style="flex:1;min-width:0"><div class="health-client-name">${esc(c.name)}</div><div class="health-client-meta">${reported} en revisión · ${active} activas · ${rows.length} condiciones registradas</div></div>${reported?badge(String(reported),'revisar'):badge('OK','normal')}</div>`;
-  const defs=[['conditions','Molestias'],['checkins','Check-ins'],['metrics','Métricas'],['injuries','Lesiones']];
+  const attention=rows.filter(conditionNeedsCoachAttention).length;
+  head.innerHTML=`<div class="health-client-hero">${getClientPhotoHTML(c,'sm')}<div style="flex:1;min-width:0"><div class="health-client-name">${esc(c.name)}</div><div class="health-client-meta">${attention} por revisar · ${active} activas · ${rows.length} condiciones registradas</div></div>${attention?badge(String(attention),'revisar'):active?badge(String(active),'info'):badge('OK','normal')}</div>`;
+  const defs=[['summary','Resumen'],['conditions','Molestias'],['checkins','Check-ins'],['metrics','Métricas'],['injuries','Lesiones']];
   tabs.innerHTML=defs.map(([k,l])=>`<button class="health-coach-tab ${activeHealthCoachTab===k?'on':''}" onclick="setClientHealthTab('${k}')">${l}${k==='conditions'&&reported?' · '+reported:''}</button>`).join('');
-  if(activeHealthCoachTab==='conditions'){
-    const attention=rows.filter(conditionNeedsCoachAttention);
+  if(activeHealthCoachTab==='summary') content.innerHTML=buildHealthSummary(c);
+  else if(activeHealthCoachTab==='conditions'){
     const current=rows.filter(r=>['reported','active'].includes(normalizeCoachConditionStatus(r.status)));
     const history=rows.filter(r=>normalizeCoachConditionStatus(r.status)==='resolved');
-    content.innerHTML=rows.length?`<div class="fr" style="margin-bottom:10px"><button class="fp on">${rows.length} registros</button>${attention.length?`<button class="fp" onclick="openHealthAlerts()">${attention.length} por revisar</button>`:''}</div>${current.length?`<div class="condition-inbox-kicker" style="margin:10px 0 7px">Seguimiento actual · ${current.length}</div>${current.map(row=>buildCoachConditionCard(row)).join('')}`:''}${history.length?`<div class="condition-inbox-kicker" style="margin:18px 0 7px">Historial · ${history.length}</div>${history.map(row=>buildCoachConditionCard(row)).join('')}`:''}`:emptyState('Sin molestias registradas','Los reportes enviados por el cliente aparecerán aquí.');
+    const attentionRows=rows.filter(conditionNeedsCoachAttention);
+    let visible=activeHealthConditionFilter==='history'?history:activeHealthConditionFilter==='attention'?attentionRows:activeHealthConditionFilter==='all'?rows:current;
+    const filters=[['current',`Seguimiento ${current.length}`],['attention',`Por revisar ${attentionRows.length}`],['history',`Historial ${history.length}`],['all',`Todas ${rows.length}`]];
+    content.innerHTML=`<div class="health-local-filters">${filters.map(([k,l])=>`<button class="fp ${activeHealthConditionFilter===k?'on':''}" onclick="setHealthConditionFilter('${k}')">${l}</button>`).join('')}</div>${visible.length?conditionSortRows(visible).map(row=>buildCoachConditionCard(row)).join(''):emptyState(activeHealthConditionFilter==='history'?'Sin historial':'Sin seguimiento','No hay registros en este filtro.')}`;
   }else if(activeHealthCoachTab==='checkins') content.innerHTML=buildHealthCheckins(c);
   else if(activeHealthCoachTab==='metrics') content.innerHTML=buildHealthMetrics(c);
   else content.innerHTML=buildHealthInjuries(c);
@@ -4414,7 +4542,7 @@ if(!isLogged){
    
    // Registrar Service Worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js?v=coach-rpc-23-1', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('/sw.js?v=coach-rpc-24', { updateViaCache: 'none' })
     .then(reg => {
       console.log('SW registrado ✓', reg.scope);
       // Escuchar mensajes del SW
@@ -16957,7 +17085,7 @@ async function initPushNotifications() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
   try {
-    await navigator.serviceWorker.register('/sw.js?v=coach-rpc-23-1', { updateViaCache: 'none' });
+    await navigator.serviceWorker.register('/sw.js?v=coach-rpc-24', { updateViaCache: 'none' });
     const swReg = await navigator.serviceWorker.ready;
 
     const perm = await Notification.requestPermission();
@@ -18124,7 +18252,7 @@ async function testPush() {
 }
 </script>
 
-<!-- AB SYSTEM · RPC 23.1
+<!-- AB SYSTEM · RPC 24
      La adaptación aprobada se publica mediante client_conditions +
      ab_client_session_get_current_adapted_training. -->
 </body>
