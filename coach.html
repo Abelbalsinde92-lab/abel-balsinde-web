@@ -2763,7 +2763,7 @@ body.eval-modal-open {
 .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
 .more-card{position:relative;min-height:104px;padding:18px 15px;display:flex;align-items:center;gap:13px;text-align:left;margin:0;background:var(--card);border:1px solid var(--card-border);border-radius:var(--r)}
 .more-card:active{transform:scale(.985)}
-.more-card-label{font-size:.8rem;font-weight:750;line-height:1.25}
+.more-card-label{font-size:.8rem;font-weight:750;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .more-badge{position:absolute;top:9px;right:9px;min-width:20px;height:20px;border-radius:999px;padding:0 6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-m);font-size:.5rem;font-weight:700;border:1px solid transparent}
 .more-badge.info{background:rgba(0,200,232,.12);border-color:rgba(0,200,232,.25);color:var(--sport)}
 .more-badge.warn{background:rgba(255,179,64,.13);border-color:rgba(255,179,64,.28);color:var(--warn)}
@@ -2788,65 +2788,6 @@ body.eval-modal-open {
   .session-card-actions .btn{font-size:.54rem;padding:0 5px}
   .workout-config-cell{padding:10px 8px}
   .workout-config-value{font-size:.66rem}
-}
-
-/* AB FIX · Tarjetas Más sin desbordamiento */
-#mas-grid,
-#mas-grid .more-grid{
-  width:100%;
-  min-width:0;
-}
-
-#mas-grid .more-grid{
-  display:grid !important;
-  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-  gap:10px !important;
-}
-
-#mas-grid .more-card{
-  width:100% !important;
-  min-width:0 !important;
-  max-width:100% !important;
-  overflow:hidden !important;
-  display:grid !important;
-  grid-template-columns:42px minmax(0,1fr) !important;
-  gap:12px !important;
-  padding:18px 14px !important;
-}
-
-#mas-grid .more-card-icon{
-  width:42px !important;
-  min-width:42px !important;
-}
-
-#mas-grid .more-card-label{
-  display:block !important;
-  width:100% !important;
-  min-width:0 !important;
-  max-width:100% !important;
-  overflow:hidden !important;
-  text-overflow:ellipsis !important;
-  white-space:normal !important;
-  overflow-wrap:anywhere !important;
-  font-size:clamp(.78rem,3.2vw,1rem) !important;
-  line-height:1.08 !important;
-}
-
-@media(max-width:390px){
-  #mas-grid .more-card{
-    grid-template-columns:36px minmax(0,1fr) !important;
-    gap:9px !important;
-    padding:15px 11px !important;
-  }
-
-  #mas-grid .more-card-icon{
-    width:36px !important;
-    min-width:36px !important;
-  }
-
-  #mas-grid .more-card-label{
-    font-size:.76rem !important;
-  }
 }
 </style>
 <!-- AB SYSTEM · RPC 19 ADAPTATION ENGINE FIX -->
@@ -2895,7 +2836,7 @@ body.eval-modal-open {
       <div class="scr-eye" id="hoy-eye">Operación de sala</div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%">
         <div class="scr-t" id="hoy-title">Hoy</div>
-        <img src="/icon-192.png" alt="AB" style="height:48px;width:auto;object-fit:contain;flex-shrink:0">
+        <img src="/icon-192.png" alt="" style="height:48px;width:auto;object-fit:contain;flex-shrink:0">
       </div>
     </div>
   </div>
@@ -2908,7 +2849,7 @@ body.eval-modal-open {
                 <div class="scr-eye">Base de datos</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%">
   <div class="scr-t">Clientes</div>
-  <img src="/icon-192.png" alt="AB" style="height:48px;width:auto">
+  <img src="/icon-192.png" alt="" style="height:48px;width:auto">
 </div>
       </div>
       <div class="search">
@@ -2924,7 +2865,7 @@ body.eval-modal-open {
                 <div class="scr-eye">Notificaciones</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%">
   <div class="scr-t" id="alertas-title">Alertas</div>
-  <img src="/icon-192.png" alt="AB" style="height:48px;width:auto;object-fit:contain;flex-shrink:0">
+  <img src="/icon-192.png" alt="" style="height:48px;width:auto;object-fit:contain;flex-shrink:0">
 </div>
       </div>
       <div class="mr" id="al-metrics"></div>
@@ -3999,7 +3940,32 @@ function healthCheckinKind(ci){
   return key==='alerta'?'alerta':key==='revisar'?'revisar':'normal';
 }
 function healthCheckinDate(ci){return String(ci?.checkinDate||ci?.checkin_date||ci?.date||ci?.createdAt||ci?.created_at||'').slice(0,10)}
-function healthMetricType(m){return m?.type||m?.metricType||m?.metric_type||m?.name||'Métrica'}
+function healthMetricType(m){
+  const raw = m?.type || m?.metricType || m?.metric_type || m?.name || '';
+  const key = String(raw).toLowerCase().trim();
+  const labels = {
+    'body_metrics': 'Métricas físicas',
+    'body metrics': 'Métricas físicas',
+    'peso': 'Peso',
+    'weight': 'Peso',
+    'altura': 'Altura',
+    'height': 'Altura',
+    'cintura': 'Cintura',
+    'waist': 'Cintura',
+    'cadera': 'Cadera',
+    'hip': 'Cadera',
+    'pecho': 'Pecho',
+    'chest': 'Pecho',
+    'brazo': 'Brazo',
+    'arm': 'Brazo',
+    'muslo': 'Muslo',
+    'thigh': 'Muslo',
+    'fc reposo': 'FC reposo',
+    'resting_hr': 'FC reposo',
+    'restinghr': 'FC reposo'
+  };
+  return labels[key] || raw || 'Métrica';
+}
 function healthMetricValue(m){
   const value=m?.value??m?.metricValue??m?.metric_value??m?.result??'—';
   return `${value}${m?.unit?' '+m.unit:''}`;
@@ -7347,7 +7313,7 @@ function renderMas(){
     {icon:ICONS.wa,label:'WhatsApp',badge:0,badgeKind:'info',action:`showScr('whatsapp')`},
     {icon:ICONS.train,label:'Entrenos',badge:activeAssign,badgeKind:'info',action:`showScr('entreno')`},
     {icon:ICONS.ath,label:'Atletas',badge:athleteCount,badgeKind:'info',action:`showScr('atletas')`},
-    {icon:ICONS.eval,label:'Pruebas',badge:0,badgeKind:'info',action:`showScr('eval')`},
+    {icon:ICONS.eval,label:'Evaluaciones',badge:0,badgeKind:'info',action:`showScr('eval')`},
     {icon:ICONS.new,label:'Nuevo cliente',badge:0,badgeKind:'info',action:`openModal('client')`}
   ];
 
@@ -9674,7 +9640,6 @@ function getClientAvatarCandidates(c){
 function abAvatarFallback(img){
   try{
     const list = JSON.parse(img.dataset.altSrcs || '[]');
-
     if(list.length){
       const next = list.shift();
       img.dataset.altSrcs = JSON.stringify(list);
@@ -9683,11 +9648,19 @@ function abAvatarFallback(img){
     }
   }catch(e){}
 
+  // Siempre mostrar iniciales si la imagen falla
   const initialsText = img.dataset.initials || '?';
   const parent = img.parentElement;
-
   if(parent){
-    parent.innerHTML = initialsText;
+    // Preservar clases del contenedor y mostrar iniciales centradas
+    img.style.display = 'none';
+    if(!parent.querySelector('.ab-avatar-initials')){
+      const span = document.createElement('span');
+      span.className = 'ab-avatar-initials';
+      span.textContent = initialsText;
+      span.style.cssText = 'display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-family:var(--font-d);font-size:1.05rem;color:var(--sport);letter-spacing:.04em;';
+      parent.appendChild(span);
+    }
   }
 }
 
