@@ -2990,7 +2990,7 @@ body.eval-modal-open {
     <div class="card-body">
       <div class="set-sec">Notas</div>
       <p style="font-size:.82rem;color:var(--text-2);line-height:1.6">
-        Gestión técnica de programas y evaluaciones desde el admin de escritorio
+        Gestión técnica de programas y pruebas desde el admin de escritorio
         (<span class="mono">/admin</span>).
       </p>
     </div>
@@ -5447,7 +5447,7 @@ async function loadCoachSecondaryData(generation){
 
   if(generation!==state.dataLoadGeneration)return;
 
-  const labels=['check-ins recientes','biblioteca de vídeos','historial de sesiones','plantillas','evaluaciones','métricas','atletas'];
+  const labels=['check-ins recientes','biblioteca de vídeos','historial de sesiones','plantillas','pruebas','métricas','atletas'];
   const normalized=settled.map((row,index)=>settledCoachResult(row,labels[index],[]));
   const [recentCI,videos,slogs,templates,assessments,metrics,athletes]=normalized;
 
@@ -6364,9 +6364,9 @@ function buildClientAssessmentsCard(client){
     <div class="card" style="padding:0;margin-bottom:14px;overflow:hidden">
       <div style="padding:13px 14px;border-bottom:1px solid var(--divider);display:flex;align-items:center;gap:10px">
         <div style="flex:1;min-width:0">
-          <div style="font-weight:800;font-size:.92rem">Evaluaciones y resultados</div>
+          <div style="font-weight:800;font-size:.92rem">Pruebas y resultados</div>
           <div style="font-family:var(--font-m);font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin-top:2px">
-            ${rows.length ? `${rows.length} evaluación${rows.length===1?'':'es'}` : 'Sin evaluaciones'}
+            ${rows.length ? `${rows.length} evaluación${rows.length===1?'':'es'}` : 'Sin pruebas'}
           </div>
         </div>
         <button class="btn btn-p btn-sm" onclick="openEvalModal('${client.id}','${jsArg(client.name)}',null,null)">+ Nueva</button>
@@ -6390,12 +6390,12 @@ function buildClientAssessmentsCard(client){
           </button>`;
       }).join('') : `
         <div style="padding:16px 14px;color:var(--text-2);font-size:.78rem">
-          Todavía no hay evaluaciones registradas para este cliente.
+          Todavía no hay pruebas registradas para este cliente.
         </div>`}
 
       ${rows.length > visible.length ? `
         <button type="button" class="btn btn-b btn-wide" style="border-radius:0;border-width:1px 0 0;margin:0" onclick="go('eval')">
-          Ver todas las evaluaciones
+          Ver todas las pruebas
         </button>` : ''}
     </div>`;
 }
@@ -6694,7 +6694,7 @@ function renderPerfil(){
   const assessmentRows=getClientAssessmentsForResults(c.id);
   const activeAssessments=assessmentRows.filter(row=>!['completado','completed'].includes(String(row.status||'').toLowerCase())).length;
   const latestAssessment=assessmentRows[0]||null;
-  const latestAssessmentName=String(latestAssessment?.assessmentName||latestAssessment?.assessment_name||'Sin evaluaciones');
+  const latestAssessmentName=String(latestAssessment?.assessmentName||latestAssessment?.assessment_name||'Sin pruebas');
   const latestAssessmentDate=latestAssessment?.assessmentDate||latestAssessment?.assessment_date||'';
 
   const conditionRows=conditionSortRows(conditionRowsForClient(c.id));
@@ -8315,7 +8315,7 @@ function buildAthleteDashboardHTML(a){
             </div>
           </div>
         </details>`;
-    }).join('') : emptyState('Sin evaluaciones en este período','')}
+    }).join('') : emptyState('Sin pruebas en este período','')}
   `;
 }
 </script>
@@ -17348,7 +17348,7 @@ async function renderEvalRecommendation() {
 
 async function confirmEvalAssignment() {
   showToast(
-    'La recomendación automática se reconstruirá sobre el nuevo sistema de evaluaciones.',
+    'La recomendación automática se reconstruirá sobre el nuevo sistema de pruebas.',
     'ok'
   );
 }
