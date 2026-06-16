@@ -14460,17 +14460,22 @@ buildReservationManagementActions(myNext) +
     });
   } else if (!myNext) {
     html +=
-      '<div class="data-card">' +
-        '<div class="dc-row">' +
-          '<span class="dc-title">' +
-            (getLang() === 'sr' ? 'Sin plazas próximas' : 'Sin plazas próximas') +
-          '</span>' +
-          '<span class="badge badge-gray">—</span>' +
+      '<div class="data-card" style="border-left:3px solid var(--sport);margin-bottom:12px;">' +
+        '<div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--sport);margin-bottom:6px;">' +
+          (getLang() === 'sr' ? 'Nema termina' : 'Sin sesiones programadas') +
         '</div>' +
-        '<div class="dc-note">' +
+        '<div class="dc-title" style="font-size:16px;margin-bottom:6px;">' +
+          (getLang() === 'sr' ? 'Rezerviši novi termin' : 'Reserva tu próxima sesión') +
+        '</div>' +
+        '<div class="dc-note" style="margin-bottom:14px;">' +
           (getLang() === 'sr'
-            ? 'No hay plazas grupales disponibles en los próximos días.'
-            : 'No hay plazas grupales disponibles en los próximos días.') +
+            ? 'Nema grupnih termina u narednim danima. Kontaktiraj trenera za individualni termin.'
+            : 'No hay plazas grupales en los próximos días. Contacta con Abel para reservar una sesión individual.') +
+        '</div>' +
+        '<div class="action-box">' +
+          '<button class="client-action-btn wa" onclick="clientWA(uiText(\'requestNewTrainingReservation\'))">' +
+            uiText('contactAbel') +
+          '</button>' +
         '</div>' +
       '</div>';
   }
@@ -17630,20 +17635,18 @@ function renderAtleta(){
 
   if(!ap.sport&&!nextComp&&!activePhase&&!recentLoads.length){
     resumenHTML +=
-      '<div class="data-card" style="border-left:3px solid var(--warn);">' +
-        '<div class="dc-row">' +
-          '<span class="dc-title">Perfil deportivo por completar</span>' +
-          '<span class="badge badge-yellow">Pendiente</span>' +
+      '<div class="data-card" style="border-left:3px solid var(--sport);">' +
+        '<div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--sport);margin-bottom:8px;">Perfil atleta</div>' +
+        '<div class="dc-title" style="font-size:18px;margin-bottom:6px;">Completa tu perfil deportivo</div>' +
+        '<div class="dc-note" style="margin-bottom:14px;">Cuando Abel registre tu deporte, categoría y competiciones, aquí verás tu calendario, fase de entrenamiento y carga específica.</div>' +
+        '<div class="athlete-empty-grid" style="margin-bottom:14px;">' +
+          '<div class="athlete-empty-item"><div class="athlete-empty-label">Deporte</div><div class="athlete-empty-value" style="color:var(--text-secondary)">Pendiente</div></div>' +
+          '<div class="athlete-empty-item"><div class="athlete-empty-label">Categoría</div><div class="athlete-empty-value" style="color:var(--text-secondary)">Pendiente</div></div>' +
+          '<div class="athlete-empty-item"><div class="athlete-empty-label">Fase</div><div class="athlete-empty-value" style="color:var(--text-secondary)">Pendiente</div></div>' +
+          '<div class="athlete-empty-item"><div class="athlete-empty-label">Próx. competición</div><div class="athlete-empty-value" style="color:var(--text-secondary)">Pendiente</div></div>' +
         '</div>' +
-        '<div class="dc-note">Completar estos datos permitirá mostrar calendario competitivo, categoría y carga específica.</div>' +
-        '<div class="athlete-empty-grid">' +
-          '<div class="athlete-empty-item"><div class="athlete-empty-label">Deporte</div><div class="athlete-empty-value">Sin registrar</div></div>' +
-          '<div class="athlete-empty-item"><div class="athlete-empty-label">Categoría / peso</div><div class="athlete-empty-value">Sin registrar</div></div>' +
-          '<div class="athlete-empty-item"><div class="athlete-empty-label">Fase actual</div><div class="athlete-empty-value">Sin registrar</div></div>' +
-          '<div class="athlete-empty-item"><div class="athlete-empty-label">Próxima competición</div><div class="athlete-empty-value">Sin registrar</div></div>' +
-        '</div>' +
-        '<div class="action-box" style="margin-top:12px;">' +
-          '<button class="client-action-btn wa" onclick="clientWA(\'Quiero completar mi perfil deportivo de atleta.\')">Solicitar actualización</button>' +
+        '<div class="action-box">' +
+          '<button class="client-action-btn wa" onclick="clientWA(\'Hola Abel, quiero completar mi perfil de atleta. ¿Puedes actualizarlo?\')">Pedir a Abel que lo complete</button>' +
         '</div>' +
       '</div>';
   }
