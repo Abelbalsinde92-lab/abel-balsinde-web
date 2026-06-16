@@ -5768,35 +5768,8 @@ function renderHoy(){
     </div>
   ` : '';
 
-  // Resumen rápido de estado del día
-  const totalClients = state.clients.filter(c => String(c.status||'').toLowerCase() === 'activo').length;
-  const ciOk = state.todayCheckins.filter(ci => getCheckinStatus(ci) === 'normal').length;
-  const ciAlerta = state.todayCheckins.filter(ci => ['alerta','revisar'].includes(getCheckinStatus(ci))).length;
-  const sinCI = totalClients - state.todayCheckins.length;
-
-  const quickSummaryHTML = totalClients > 0 ? `
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px">
-      <div style="background:var(--card);border:1px solid var(--divider);border-radius:10px;padding:10px 8px;text-align:center">
-        <div style="font-family:var(--font-d);font-size:1.5rem;color:var(--text)">${sessions.length}</div>
-        <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-top:2px">Sesiones</div>
-      </div>
-      <div style="background:var(--card);border:1px solid rgba(0,230,118,.2);border-radius:10px;padding:10px 8px;text-align:center">
-        <div style="font-family:var(--font-d);font-size:1.5rem;color:var(--streak)">${ciOk}</div>
-        <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-top:2px">CI OK</div>
-      </div>
-      <div style="background:var(--card);border:1px solid rgba(255,179,64,.2);border-radius:10px;padding:10px 8px;text-align:center">
-        <div style="font-family:var(--font-d);font-size:1.5rem;color:var(--warn)">${sinCI}</div>
-        <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-top:2px">Sin CI</div>
-      </div>
-      <div style="background:var(--card);border:1px solid rgba(255,59,48,.2);border-radius:10px;padding:10px 8px;text-align:center">
-        <div style="font-family:var(--font-d);font-size:1.5rem;color:var(--medical)">${ciAlerta}</div>
-        <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-top:2px">Alerta</div>
-      </div>
-    </div>
-  ` : '';
-
   const body=document.getElementById('hoy-content');
-  body.innerHTML = quickSummaryHTML + buildDashboardConditionInbox() + requestsHTML + sessionsHTML + addHTML;
+  body.innerHTML = buildDashboardConditionInbox() + requestsHTML + sessionsHTML + addHTML;
 }
 
 /* v1.1: tarjeta compacta con foto + badges en línea */
