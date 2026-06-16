@@ -9147,9 +9147,33 @@ const lastFinishedDate =
 
   const healthState = getHealthHomeState();
 
-  const barData = [
-    40, 65, 55, 80, 70, 90, 60, 75, 85, 95, 50, clampPercent(planPct)
-  ];
+  // Sesiones objetivo por semana del plan activo
+  const _activeAssignId = clientAssignments?.find?.(a => a.status === 'activo')?.id || null;
+  const _weekSessions = (() => {
+    if (!_activeAssignId) return 3;
+    const assign = clientAssignments.find(a => a.id === _activeAssignId);
+    if (!assign) return 3;
+    const pos = typeof getVisibleSessionPositions === 'function' ? getVisibleSessionPositions(assign) : [];
+    const cw = typeof getAssignmentWeek === 'function' ? getAssignmentWeek(assign) : 1;
+    return Math.max(1, pos.filter(p => Number(p.weekNumber) === Number(cw)).length || 3);
+  })();
+
+  // Adherencia real últimas 12 semanas (cada punto = sesiones esa semana / objetivo)
+  const allLogs = getFinishedTrainingLogsGeneral();
+  const weeklyTarget = Math.max(1, _weekSessions || 3);
+  const barData = Array.from({length: 12}, (_, i) => {
+    const wStart = new Date();
+    wStart.setDate(wStart.getDate() - (11 - i) * 7 - wStart.getDay() + 1);
+    const wEnd = new Date(wStart);
+    wEnd.setDate(wStart.getDate() + 6);
+    const wStartStr = wStart.toISOString().slice(0,10);
+    const wEndStr = wEnd.toISOString().slice(0,10);
+    const count = allLogs.filter(l => {
+      const d = String(getTrainingLogComparableDate(l) || '').slice(0,10);
+      return d >= wStartStr && d <= wEndStr;
+    }).length;
+    return clampPercent(Math.round((count / weeklyTarget) * 100));
+  });
 
   const splineData = clientAlerts.length > 0
     ? [72, 78, 74, 80, 76, 82, 79, 85, 88, 83, 77, 81]
@@ -12279,6 +12303,12 @@ const finishedSource =
           uiText('helpAbelAdjust') +
         '</div>' +
 
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 4px;">' +
+          '<button type="button" class="training-rpe-btn" onclick="selectRPE(this,\'facil\')" style="background:rgba(0,230,118,.1);border:1.5px solid rgba(0,230,118,.25);color:var(--streak);border-radius:10px;padding:10px 4px;font-family:var(--font-d);font-size:1rem;cursor:pointer;transition:all .2s">😌<br><span style="font-size:.6rem;font-family:var(--font-m);letter-spacing:.08em">FÁCIL</span></button>' +
+          '<button type="button" class="training-rpe-btn" onclick="selectRPE(this,\'justo\')" style="background:rgba(255,179,64,.1);border:1.5px solid rgba(255,179,64,.25);color:var(--warn);border-radius:10px;padding:10px 4px;font-family:var(--font-d);font-size:1rem;cursor:pointer;transition:all .2s">💪<br><span style="font-size:.6rem;font-family:var(--font-m);letter-spacing:.08em">JUSTO</span></button>' +
+          '<button type="button" class="training-rpe-btn" onclick="selectRPE(this,\'duro\')" style="background:rgba(255,59,48,.1);border:1.5px solid rgba(255,59,48,.25);color:var(--medical);border-radius:10px;padding:10px 4px;font-family:var(--font-d);font-size:1rem;cursor:pointer;transition:all .2s">🔥<br><span style="font-size:.6rem;font-family:var(--font-m);letter-spacing:.08em">DURO</span></button>' +
+        '</div>' +
+        '<input type="hidden" id="trainingRPE" value="">' +
         '<div id="trainingFeedbackTags" style="display:grid;gap:8px;margin:12px 0;">' +
           buildFeedbackTag('ok', feedbackText('ok')) +
           buildFeedbackTag('molestias', feedbackText('molestias')) +
@@ -12304,11 +12334,25 @@ const finishedSource =
   }
 }
 
+function selectRPE(btn, value) {
+  document.querySelectorAll('.training-rpe-btn').forEach(b => {
+    b.style.opacity = '0.45';
+    b.style.transform = 'scale(1)';
+  });
+  btn.style.opacity = '1';
+  btn.style.transform = 'scale(1.06)';
+  const inp = document.getElementById('trainingRPE');
+  if (inp) inp.value = value;
+}
+
 function feedbackText(key) {
   const lang = getLang();
 
   const dict = {
     es: {
+      rpe_facil: 'Intensidad: Fácil',
+      rpe_justo: 'Intensidad: Justa',
+      rpe_duro: 'Intensidad: Dura',
       ok: 'Todo bien, sin molestias',
       molestias: 'Tuve molestias',
       dolor_pare: 'Sentí dolor y paré',
@@ -12321,6 +12365,9 @@ function feedbackText(key) {
       revisar: 'Necesito que Abel revise este entrenamiento'
     },
     sr: {
+      rpe_facil: 'Intenzitet: Lako',
+      rpe_justo: 'Intenzitet: Umereno',
+      rpe_duro: 'Intenzitet: Teško',
       ok: 'Sve je bilo u redu, bez nelagodnosti',
       molestias: 'Imao/la sam nelagodnost',
       dolor_pare: 'Osetio/la sam bol i stao/la',
@@ -12349,6 +12396,9 @@ if(!currentSessionId){
   const checkedTags = Array.from(
     document.querySelectorAll('.training-feedback-check:checked')
   ).map(i => i.value);
+
+  const rpeVal = document.getElementById('trainingRPE')?.value || '';
+  if (rpeVal) checkedTags.unshift('rpe_' + rpeVal);
 
   const noteEl = document.getElementById('trainingFinishNote');
   const note = noteEl ? noteEl.value.trim() : '';
@@ -17242,13 +17292,35 @@ async function restoreCompetition(competitionId) {
 
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js?v=20260615-04', {
+  navigator.serviceWorker.register('/sw.js?v=20260616-01', {
     scope: '/',
     updateViaCache: 'none'
   }).then(reg => {
     reg.update();
   }).catch(err => {
     console.log('SW error:', err);
+  });
+
+  // Manejar navegación desde notificación push
+  navigator.serviceWorker.addEventListener('message', e => {
+    const target = e?.data?.target || e?.data?.url || '';
+    if (!target) return;
+    const sectionMap = {
+      'checkin': 'section-health',
+      'checkin_reminder': 'section-health',
+      'plan_assigned': 'section-training',
+      'reservation': 'section-reservations',
+      'reservation_confirmada': 'section-reservations',
+      'reservation_cancelada': 'section-reservations',
+      'coach_note': 'section-profile',
+      'coach_message': 'section-health',
+      'competition_reminder': 'section-athlete',
+      'coach_broadcast': 'section-health'
+    };
+    const section = sectionMap[target] || null;
+    if (section && typeof goClientSection === 'function') {
+      setTimeout(() => goClientSection(section), 500);
+    }
   });
 }
 </script>
