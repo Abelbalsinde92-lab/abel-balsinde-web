@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AB SYSTEM — Área Cliente · RPC 26 UI COHERENCE</title>
+  <title>AB SYSTEM — Área Cliente · RPC 27 MODULE CLEANUP</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json?v=20260522-01">
 <link rel="icon" href="/favicon-32.png?v=20260522-01" type="image/png">
@@ -3813,8 +3813,6 @@ body {
 #section-health > .section-header,
 #section-atleta > .section-header,
 #section-payments > .section-header,
-#section-notes > .section-header,
-#section-summary > .section-header,
 #section-plan > .section-header {
   display: none !important;
 }
@@ -5775,22 +5773,10 @@ body {
       <div class="section-body" id="sectionAtleta"></div>
     </div>
 
-    <!-- NOTAS -->
-    <div class="section section-hidden" id="section-notes">
-      <div class="section-header"><h2>NOTAS DEL COACH</h2></div>
-      <div class="section-body" id="sectionNotes"></div>
-    </div>
-
     <!-- PAGOS -->
     <div class="section section-hidden" id="section-payments">
       <div class="section-header"><h2>PAGOS</h2><span class="sec-badge" id="paymentsBadge">0</span></div>
       <div class="section-body" id="sectionPayments"></div>
-    </div>
-
-    <!-- RESUMEN -->
-    <div class="section section-hidden" id="section-summary">
-      <div class="section-header"><h2>RESUMEN</h2><span class="sec-badge" id="summaryBadge">Perfil</span></div>
-      <div class="section-body" id="sectionSummary"></div>
     </div>
 
     <!-- MIS DATOS -->
@@ -7749,7 +7735,7 @@ async function refreshClientDeferredSections({ includeTraining = false } = {}) {
     renderAssessments();
     renderHealthAlerts();
     if (isAthlete && typeof renderAtleta === 'function') renderAtleta();
-    renderSummary();
+
     renderClientData();
 
     if (
@@ -8164,9 +8150,9 @@ void renderReservations()
 renderAssessments();
   renderHealthAlerts();
      if(isAthlete) renderAtleta();
-   renderNotes();
+
   renderPayments();
-  renderSummary();
+
   renderClientData();
   const name=clientData.name||'cliente';
   const wa=document.getElementById('btnHeaderWA');
@@ -8993,7 +8979,7 @@ if(loginHelpBtn){
   document.querySelector('#section-client-data .section-header h2')?.replaceChildren(document.createTextNode(uiText('profileTitle').toUpperCase()));
   document.querySelector('#section-plan .section-header h2')?.replaceChildren(document.createTextNode(uiText('plan').toUpperCase()));
   document.querySelector('#section-reservations .section-header h2')?.replaceChildren(document.createTextNode(uiText('reservations').toUpperCase()));
-  document.querySelector('#section-notes .section-header h2')?.replaceChildren(document.createTextNode(uiText('coachNotesTitle').toUpperCase()));
+
   document.querySelector('#section-payments .section-header h2')?.replaceChildren(document.createTextNode(uiText('payments').toUpperCase()));
 }
 
@@ -14774,204 +14760,6 @@ function renderPayments(){
     );
   }).join('');
 }
-function renderNotes(){
-  const el = document.getElementById('sectionNotes');
-
-  if(!el) return;
-
-  const raw = clientData.notes;
-
-  if(!raw || raw === '' || raw === '[]' || raw === 'null'){
-    el.innerHTML =
-      '<p class="empty-state">' + uiText('noCoachNotesRegistered') + '</p>';
-    return;
-  }
-
-  let notes = [];
-
-  if(Array.isArray(raw)){
-    notes = raw;
-  } else if(typeof raw === 'string'){
-    try{
-      const parsed = JSON.parse(raw);
-      notes = Array.isArray(parsed) ? parsed : [raw];
-    }catch{
-      notes = [raw];
-    }
-  }
-
-  notes = notes
-    .map(n => {
-      if(typeof n === 'string') return n.trim();
-
-      if(typeof n === 'object' && n){
-        return String(n.text || n.note || n.message || '').trim();
-      }
-
-      return '';
-    })
-    .filter(Boolean);
-
-  if(!notes.length){
-    el.innerHTML =
-      '<p class="empty-state">' + uiText('noCoachNotesRegistered') + '</p>';
-    return;
-  }
-
-  el.innerHTML = notes
-    .map(n => '<div class="note-item">' + escHTML(n) + '</div>')
-    .join('');
-}
-function renderSummary(){
-  const el = document.getElementById('sectionSummary');
-
-  if(!el) return;
-
-  const today = todayISO();
-
-  const nextRes = getUpcomingReservations()[0] || null;
-
-  const lastAss = clientAssessments[0] || null;
-
-  const hasPending = clientPayments.some(p =>
-    ['pendiente','vencido','pending','overdue'].includes(String(p.status || '').toLowerCase())
-  );
-
-  const hasOverdue = clientPayments.some(p =>
-    ['vencido','overdue'].includes(String(p.status || '').toLowerCase())
-  );
-
-  const payStatus = hasOverdue
-    ? (getLang()==='sr' ? 'Kasni' : getLang()==='en' ? 'Overdue' : 'Vencido')
-    : hasPending
-      ? (getLang()==='sr' ? 'Na čekanju' : getLang()==='en' ? 'Pending' : 'Pendiente')
-      : uiText('upToDate');
-
-  const payClass = hasOverdue
-    ? 'badge-red'
-    : hasPending
-      ? 'badge-yellow'
-      : 'badge-green';
-
-  let rawNotes = clientData.notes;
-  let lastNote = '';
-
-  if(rawNotes && rawNotes !== '[]' && rawNotes !== 'null'){
-    if(Array.isArray(rawNotes) && rawNotes.length){
-      lastNote = typeof rawNotes[0] === 'string'
-        ? rawNotes[0]
-        : (rawNotes[0].text || rawNotes[0].note || '');
-    } else if(typeof rawNotes === 'string'){
-      try{
-        const parsed = JSON.parse(rawNotes);
-
-        if(Array.isArray(parsed) && parsed.length){
-          lastNote = typeof parsed[0] === 'string'
-            ? parsed[0]
-            : (parsed[0].text || parsed[0].note || '');
-        }
-      }catch{
-        lastNote = rawNotes;
-      }
-    }
-  }
-
-  let html =
-    '<div style="background:var(--card);border:1px solid var(--card-border);border-radius:12px;overflow:hidden;">' +
-      '<div class="summary-grid" style="padding:18px;">';
-
-  html +=
-    '<div class="summary-card full">' +
-      '<div class="summary-label">' + uiText('client') + '</div>' +
-      '<div class="summary-value big">' + escHTML(clientData.name || '—') + '</div>' +
-    '</div>';
-
-  html +=
-    '<div class="summary-card">' +
-      '<div class="summary-label">' + uiText('plan') + '</div>' +
-      '<div class="summary-value">' + escHTML(clientData.plan || '—') + '</div>' +
-    '</div>';
-
-  html +=
-    '<div class="summary-card">' +
-      '<div class="summary-label">' + uiText('status') + '</div>' +
-      '<div class="summary-value">' + escHTML(clientData.status || '—') + '</div>' +
-    '</div>';
-
-  html +=
-    '<div class="summary-card">' +
-      '<div class="summary-label">' + uiText('activeProgramLabel') + '</div>' +
-      '<div class="summary-value">' + escHTML(clientTrainingProgram?.name || clientPrograms[0]?.name || '—') + '</div>' +
-    '</div>';
-
-  html +=
-    '<div class="summary-card">' +
-      '<div class="summary-label">' + uiText('scope') + '</div>' +
-      '<div class="summary-value">' + (clientTrainingAssignment ? getAssignmentScopeLabel() : '—') + '</div>' +
-    '</div>';
-
-  html +=
-    '<div class="summary-card">' +
-      '<div class="summary-label">' + uiText('nextSession') + '</div>' +
-      '<div class="summary-value">' +
-        (
-          nextRes
-            ? formatDate(nextRes.date) + (nextRes.time ? ' · ' + formatTime(nextRes.time) : '')
-            : uiText('noReservations')
-        ) +
-      '</div>' +
-    '</div>';
-
-  html +=
-    '<div class="summary-card">' +
-      '<div class="summary-label">' + uiText('payments') + '</div>' +
-      '<div class="summary-value"><span class="badge ' + payClass + '">' + payStatus + '</span></div>' +
-    '</div>';
-
-  html +=
-    '<div class="summary-card">' +
-      '<div class="summary-label">' + uiText('testsDone') + '</div>' +
-      '<div class="summary-value">' + clientAssessments.length + '</div>' +
-    '</div>';
-
-  html +=
-    '<div class="summary-card">' +
-      '<div class="summary-label">' + uiText('metrics') + '</div>' +
-      '<div class="summary-value">' + clientMetrics.length + '</div>' +
-    '</div>';
-
-  if(lastAss){
-    html +=
-      '<div class="summary-card full">' +
-        '<div class="summary-label">' + uiText('lastEvaluation') + '</div>' +
-        '<div class="summary-value">' +
-          (lastAss.assessment_name || uiText('functionalTest')) + ' · ' + formatDate(lastAss.assessment_date) +
-        '</div>' +
-      '</div>';
-  }
-
-  if(lastNote){
-    html +=
-      '<div class="summary-card full">' +
-        '<div class="summary-label">' + uiText('lastCoachNote') + '</div>' +
-        '<div class="summary-value" style="font-style:italic;color:var(--text-secondary);">' +
-          lastNote +
-        '</div>' +
-      '</div>';
-  }
-
-  html +=
-      '</div>' +
-    '</div>' +
-
-    '<div class="action-box">' +
-      '<button class="copy-summary-btn" onclick="copySummaryToClipboard()">' +
-        uiText('copySummary') +
-      '</button>' +
-    '</div>';
-
-  el.innerHTML = html;
-}
 function copySummaryToClipboard(){
   const today = todayISO();
 
@@ -14996,29 +14784,6 @@ function copySummaryToClipboard(){
       ? (getLang()==='sr' ? 'Na čekanju' : getLang()==='en' ? 'Pending' : 'Pendiente')
       : uiText('upToDate');
 
-  let rawNotes = clientData.notes;
-  let lastNote = '';
-
-  if(rawNotes && rawNotes !== '[]'){
-    if(Array.isArray(rawNotes) && rawNotes.length){
-      lastNote = typeof rawNotes[0] === 'string'
-        ? rawNotes[0]
-        : (rawNotes[0].text || rawNotes[0].note || '');
-    } else if(typeof rawNotes === 'string'){
-      try{
-        const parsed = JSON.parse(rawNotes);
-
-        if(Array.isArray(parsed) && parsed.length){
-          lastNote = typeof parsed[0] === 'string'
-            ? parsed[0]
-            : (parsed[0].text || parsed[0].note || '');
-        }
-      }catch{
-        lastNote = rawNotes;
-      }
-    }
-  }
-
   const nextSessionText = nextRes
     ? formatDate(nextRes.date) + (nextRes.time ? ' ' + uiText('at') + ' ' + formatTime(nextRes.time) : '')
     : uiText('noReservations');
@@ -15037,7 +14802,6 @@ function copySummaryToClipboard(){
         : '—'
     ),
     uiText('payments') + ': ' + payStatus,
-    lastNote ? uiText('notes') + ': ' + lastNote : ''
   ]
     .filter(Boolean)
     .join('\n');
@@ -15624,7 +15388,6 @@ async function saveMetricEditorValue() {
     showClientNotice('Métrica guardada.', 'success');
 
     renderClientData();
-    renderSummary();
 
   } catch (err) {
     console.error('Metric editor save error:', err);
@@ -15767,7 +15530,6 @@ const payload = {
     showClientNotice('Métricas guardadas.', 'success');
 
     renderClientData();
-    renderSummary();
 
   } catch (err) {
     console.error('Body metrics save error:', err);
@@ -15885,14 +15647,7 @@ function renderClientData(){
       '</div>' +
     '</div>';
 
-  html +=
-    '<div class="summary-card" onclick="goClientSection(\'section-notes\')" style="cursor:pointer;">' +
-      '<div class="summary-label">' + uiText('notes') + '</div>' +
-      '<div class="summary-value">' + notesCount + '</div>' +
-      '<div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:6px;">' +
-        uiText('coachNotesShort') +
-      '</div>' +
-    '</div>';
+
 
   html += '</div>';
 
@@ -15951,6 +15706,9 @@ function renderClientData(){
 
   html +=
     '<div class="action-box" style="margin-top:12px;">' +
+      '<button class="copy-summary-btn" onclick="copySummaryToClipboard()">' +
+        uiText('copySummary') +
+      '</button>' +
       '<button class="client-action-btn wa" onclick="clientWA(\'' + uiText('needHelpProfile') + '\')">' +
         uiText('contactAbel') +
       '</button>' +
@@ -16911,9 +16669,9 @@ function goClientSection(sectionId) {
     'section-atleta':      'navAtleta',
     // Secciones secundarias → tab padre
     'section-plan':        'navProfile',
-    'section-notes':       'navProfile',
+
     'section-payments':    'navProfile',
-    'section-summary':     'navProfile',
+
   };
 
   document.querySelectorAll('.client-nav button').forEach(b =>
