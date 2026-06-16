@@ -9148,14 +9148,14 @@ const lastFinishedDate =
   const healthState = getHealthHomeState();
 
   // Sesiones objetivo por semana del plan activo
-  const _activeAssignId = clientAssignments?.find?.(a => a.status === 'activo')?.id || null;
   const _weekSessions = (() => {
-    if (!_activeAssignId) return 3;
-    const assign = clientAssignments.find(a => a.id === _activeAssignId);
+    const assign = clientTrainingAssignment || null;
     if (!assign) return 3;
-    const pos = typeof getVisibleSessionPositions === 'function' ? getVisibleSessionPositions(assign) : [];
-    const cw = typeof getAssignmentWeek === 'function' ? getAssignmentWeek(assign) : 1;
-    return Math.max(1, pos.filter(p => Number(p.weekNumber) === Number(cw)).length || 3);
+    try {
+      const pos = typeof getVisibleSessionPositions === 'function' ? getVisibleSessionPositions(assign) : [];
+      const cw = typeof getAssignmentWeek === 'function' ? getAssignmentWeek(assign) : 1;
+      return Math.max(1, pos.filter(p => Number(p.weekNumber) === Number(cw)).length || 3);
+    } catch(e) { return 3; }
   })();
 
   // Adherencia real últimas 12 semanas (cada punto = sesiones esa semana / objetivo)
