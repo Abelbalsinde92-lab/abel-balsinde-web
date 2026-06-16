@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>AB SYSTEM — Coach Panel · RPC 26 FIELD VISUAL POLISH</title>
+<title>AB SYSTEM — Coach Panel · RPC 27 MODULE CLEANUP</title>
 <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 26 FIELD VISUAL POLISH -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000000">
@@ -2789,6 +2789,60 @@ body.eval-modal-open {
   .workout-config-cell{padding:10px 8px}
   .workout-config-value{font-size:.66rem}
 }
+
+/* AB RPC 27 · Más: tarjetas compactas sin desbordamiento */
+#mas-grid,
+#mas-grid .more-grid{
+  width:100%;
+  min-width:0;
+}
+#mas-grid .more-grid{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:10px !important;
+}
+#mas-grid .more-card{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  display:grid !important;
+  grid-template-columns:40px minmax(0,1fr) !important;
+  align-items:center !important;
+  gap:10px !important;
+  padding:16px 12px !important;
+}
+#mas-grid .more-card > span{
+  min-width:0;
+}
+#mas-grid .more-card-label{
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:normal !important;
+  overflow-wrap:anywhere !important;
+  word-break:normal !important;
+  font-size:clamp(.76rem,3.2vw,.96rem) !important;
+  line-height:1.08 !important;
+}
+@media(max-width:390px){
+  #mas-grid .more-card{
+    grid-template-columns:34px minmax(0,1fr) !important;
+    gap:8px !important;
+    padding:14px 10px !important;
+  }
+  #mas-grid .more-card svg{
+    width:24px !important;
+    height:24px !important;
+  }
+  #mas-grid .more-card-label{
+    font-size:.74rem !important;
+  }
+}
+
 </style>
 <!-- AB SYSTEM · RPC 19 ADAPTATION ENGINE FIX -->
 </head>
@@ -2935,12 +2989,6 @@ body.eval-modal-open {
       <div class="scr-h"><div class="scr-eye">Seguimiento diario</div><div class="scr-t">Check-ins</div></div>
       <div class="mr" id="ci-metrics"></div>
       <div id="ci-content"></div>
-    </div>
-
-    <div class="scr" id="s-whatsapp">
-      <a class="scr-back" onclick="showScr('mas')">← Más</a>
-      <div class="scr-h"><div class="scr-eye">Comunicación</div><div class="scr-t">WhatsApp</div></div>
-      <div id="wa-content"></div>
     </div>
 
     <div class="scr" id="s-ajustes">
@@ -3126,7 +3174,7 @@ try{
 const state = {
   clients:[],todayRes:[],futureRes:[],pastRes:[],allRes:[],
   payments:[],alertas:[],todayCheckins:[],recentCheckins:[],clientConditions:[],clientInjuryCache:{},healthInjuryLoading:{},
-  programs:[],templates:[],trainingPrograms:[],trainingWeeks:[],
+  programs:[],trainingPrograms:[],trainingWeeks:[],
   trainingSessions:[],trainingBlocks:[],trainingExercises:[],
   videoLibrary:[],assignments:[],sessionLogs:[],
   activeTrainingClientId:null,activeWorkoutReservationId:null,
@@ -4529,7 +4577,7 @@ function renderScr(id){
     case'alertas':renderAlertas();break;case'mas':renderMas();break;
     case'perfil':renderPerfil();break;case'salud':renderClientHealth();break;case'clientmodule':renderClientProfileModule();break;case'workout':renderWorkout();break;
     case'pagos':renderPagos();break;case'checkins':renderCheckins();break;
-    case'whatsapp':renderWhatsapp();break;case'ajustes':renderAjustes();break;
+    case'ajustes':renderAjustes();break;
     case'entreno':renderEntreno();break;
    case'eval':renderEval();break;
    case'atletas':renderAtletas();break;
@@ -4717,7 +4765,7 @@ async function registerCoachServiceWorker(){
   if(!('serviceWorker' in navigator))return null;
   bindCoachServiceWorkerMessageListener();
   try{
-    return await navigator.serviceWorker.register('/sw.js?v=coach-rpc-26-01',{updateViaCache:'none'});
+    return await navigator.serviceWorker.register('/sw.js?v=coach-rpc-27-01',{updateViaCache:'none'});
   }catch(err){
     console.warn('SW error:',err);
     return null;
@@ -5439,7 +5487,6 @@ async function loadCoachSecondaryData(generation){
     loadCoachCheckinsByScope('recent',today,80),
     db.from('exercise_video_library').select('*').order('priority'),
     db.from('client_session_logs').select('*').order('updated_at',{ascending:false}).limit(200),
-    db.from('templates').select('*').order('name'),
     loadCoachAssessments(100),
     loadCoachMetrics(150),
     db.rpc('get_admin_athlete_list')
@@ -5447,14 +5494,13 @@ async function loadCoachSecondaryData(generation){
 
   if(generation!==state.dataLoadGeneration)return;
 
-  const labels=['check-ins recientes','biblioteca de vídeos','historial de sesiones','plantillas','evaluaciones','métricas','atletas'];
+  const labels=['check-ins recientes','biblioteca de vídeos','historial de sesiones','evaluaciones','métricas','atletas'];
   const normalized=settled.map((row,index)=>settledCoachResult(row,labels[index],[]));
-  const [recentCI,videos,slogs,templates,assessments,metrics,athletes]=normalized;
+  const [recentCI,videos,slogs,assessments,metrics,athletes]=normalized;
 
   state.recentCheckins=mapArr(recentCI.data);
   state.videoLibrary=mapArr(videos.data);
   state.sessionLogs=mapArr(slogs.data);
-  state.templates=mapArr(templates.data);
   state.assessments=mapArr(assessments.data);
   state.metrics=mapArr(metrics.data);
   state.athletes=mapArr(athletes.data);
@@ -7485,7 +7531,7 @@ function renderMas(){
   const ICONS={
     pay:ico('<circle cx="12" cy="12" r="9"/><path d="M12 7v1m0 8v1M9.5 9.5a3 3 0 015 2.5c0 2-2 3-2 3H12"/>'),
     ci:ico('<path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>'),
-    wa:ico('<path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>'),
+
     train:ico('<path d="M6 4v16M18 4v16"/><path d="M4 6h4M16 6h4M4 18h4M16 18h4"/>'),
     ath:ico('<circle cx="12" cy="5" r="2"/><path d="M12 7v5l-3 5M12 12l3 5M9 11l-3-1M15 11l3-1"/>'),
     eval:ico('<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>'),
@@ -7497,10 +7543,10 @@ function renderMas(){
     {icon:ICONS.pay,label:'Pagos',badge:pendingPayments,badgeKind:overduePayments?'danger':'warn',action:`showScr('pagos')`},
     {icon:ICONS.ci,label:'Check-ins',badge:todayCI,badgeKind:'info',action:`showScr('checkins')`},
     {icon:ICONS.health,label:'Salud',badge:pendingConditions,badgeKind:'warn',action:`openHealthAlerts()`},
-    {icon:ICONS.wa,label:'WhatsApp',badge:0,badgeKind:'info',action:`showScr('whatsapp')`},
+
     {icon:ICONS.train,label:'Entrenos',badge:activeAssign,badgeKind:'info',action:`showScr('entreno')`},
     {icon:ICONS.ath,label:'Atletas',badge:athleteCount,badgeKind:'info',action:`showScr('atletas')`},
-    {icon:ICONS.eval,label:'Evaluaciones',badge:0,badgeKind:'info',action:`showScr('eval')`},
+    {icon:ICONS.eval,label:'Pruebas',badge:0,badgeKind:'info',action:`showScr('eval')`},
     {icon:ICONS.new,label:'Nuevo cliente',badge:0,badgeKind:'info',action:`openModal('client')`}
   ];
 
@@ -7821,66 +7867,6 @@ function renderCheckins(){
         </details>`;
     }).join('') : emptyState('Sin check-ins en este período','')}
   `;
-}
-
-function renderWhatsapp(){
-  const box=document.getElementById('wa-content');
-  if(!state.clients.length){
-    box.innerHTML=emptyState('Sin clientes','Crea un cliente para enviar WhatsApp')+
-      `<button class="btn btn-wa btn-wide" onclick="openCoachWA()">☏ Abrir mi WhatsApp</button>`;
-    return;
-  }
-
-  const selId=document.getElementById('wa-cli')?.value||state.clients[0]?.id||'';
-  const selClient=clientById(selId)||state.clients[0];
-  const opts=state.clients.map(c=>`<option value="${c.id}" ${String(c.id)===String(selId)?'selected':''}>${esc(c.name)}</option>`).join('');
-
-  const tpls=state.templates.length?state.templates.map(t=>{
-    const msg=(t.msg||t.msgEs||'').replaceAll('[nombre]',firstName(selClient?.name||'')).replaceAll('[concepto]','').replaceAll('[hora]','');
-    return`
-      <details class="card" style="margin-bottom:8px">
-        <summary style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none">
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:700;font-size:.88rem">${esc(t.name||t.nameEs||'Plantilla')}</div>
-            <div style="font-size:.72rem;color:var(--text-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(msg.slice(0,60))}…</div>
-          </div>
-          <div style="display:flex;gap:6px;flex-shrink:0">
-            <button class="btn btn-wa btn-sm" onclick="event.stopPropagation();sendTemplate('${t.id}')">Enviar</button>
-            <button class="btn btn-s btn-sm" onclick="event.stopPropagation();copyTemplate('${t.id}')">Copiar</button>
-          </div>
-        </summary>
-        <div style="padding:0 14px 12px;border-top:1px solid var(--divider)">
-          <div id="tpl-${t.id}" style="font-size:.82rem;color:var(--text-2);line-height:1.6;background:var(--bg);border-left:2px solid rgba(0,200,232,.3);padding:10px 12px;border-radius:0 6px 6px 0;margin-top:8px">${esc(msg)}</div>
-        </div>
-      </details>`;
-  }).join(''):emptyState('Sin plantillas','Créalas en el admin de escritorio');
-
-  box.innerHTML=`
-    <div class="card" style="padding:12px 14px;margin-bottom:12px">
-      <div style="display:flex;align-items:center;gap:10px">
-        ${getClientPhotoHTML(selClient,'sm')}
-        <div style="flex:1;min-width:0">
-          <select id="wa-cli" class="fld-s" style="background:transparent;border:none;padding:0;font-size:.88rem;font-weight:700;color:var(--text);min-height:unset" onchange="renderWhatsapp()">
-            ${opts}
-          </select>
-          <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);margin-top:1px">${esc(selClient?.phone||'Sin teléfono')}</div>
-        </div>
-        ${selClient?.phone?`<button class="btn btn-wa btn-sm" onclick="openWA('${jsArg(selClient.phone)}','Hola ${jsArg(firstName(selClient.name))}.')">WA directo</button>`:''}
-      </div>
-    </div>
-
-    ${tpls}
-  `;
-}
-
-function sendTemplate(id){
-  const tpl=state.templates.find(t=>t.id===id);const cid=document.getElementById('wa-cli')?.value;const c=clientById(cid);
-  const msg=(tpl?.msg||tpl?.msgEs||'').replaceAll('[nombre]',firstName(c?.name||'')).replaceAll('[hora]','').replaceAll('[concepto]','');
-  openWA(c?.phone||state.settings.coachPhone,msg);
-}
-function copyTemplate(id){
-  const el=document.getElementById('tpl-'+id);if(!el)return;
-  navigator.clipboard.writeText(el.textContent).then(()=>showToast('Copiado','ok')).catch(()=>showToast('No se pudo copiar','err'));
 }
 
 function renderAjustes(){
