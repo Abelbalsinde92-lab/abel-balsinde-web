@@ -8110,9 +8110,13 @@ async function openAthleteSection(section, clientId){
     }
 
     else if(section === 'competiciones'){
-      const {data,error} = await db.from('competition_events')
-        .select('*').eq('client_id',clientId)
-        .order('event_date',{ascending:false});
+      const token = getCoachSessionTokenSafe();
+      if(!token) throw new Error('Sesión del coach no válida');
+      const {data,error} = await db.rpc('ab_coach_session_get_competition_events',{
+        p_session_token: token,
+        p_client_id: clientId,
+        p_limit: 100
+      });
       if(error) throw error;
       html = `
         <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
@@ -8132,9 +8136,13 @@ async function openAthleteSection(section, clientId){
     }
 
     else if(section === 'fases'){
-      const {data,error} = await db.from('training_phases')
-        .select('*').eq('client_id',clientId)
-        .order('start_date',{ascending:false});
+      const token = getCoachSessionTokenSafe();
+      if(!token) throw new Error('Sesión del coach no válida');
+      const {data,error} = await db.rpc('ab_coach_session_get_training_phases',{
+        p_session_token: token,
+        p_client_id: clientId,
+        p_limit: 100
+      });
       if(error) throw error;
       html = `
         <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
@@ -9440,36 +9448,48 @@ async function saveModal(e){
 else if(type==='competitionEvent'){
   const cid = data.client_id;
   if(!cid){ showToast('Sin cliente','err'); return; }
-  const payload = {
-    client_id:cid, event_name:data.event_name||null,
-    event_date:data.event_date||null, result:data.result||null,
-    method:data.method||null,
-    weight_at_weigh_in:data.weight_at_weigh_in?Number(data.weight_at_weigh_in):null,
-    opponent:data.opponent||null, location:data.location||null,
-    notes:data.notes||null
-  };
-  const {error} = id
-    ? await db.from('competition_events').update(payload).eq('id',id)
-    : await db.from('competition_events').insert({...payload,id:uid()});
+  const token = getCoachSessionTokenSafe();
+  if(!token){ showToast('Sesión del coach no válida','err'); return; }
+
+  const {error} = await db.rpc('ab_coach_session_save_competition_event',{
+    p_session_token: token,
+    p_client_id: cid,
+    p_event_name: data.event_name || null,
+    p_event_date: data.event_date || null,
+    p_result: data.result || null,
+    p_method: data.method || null,
+    p_weight_at_weigh_in: data.weight_at_weigh_in ? Number(data.weight_at_weigh_in) : null,
+    p_opponent: data.opponent || null,
+    p_location: data.location || null,
+    p_notes: data.notes || null,
+    p_event_id: id || null
+  });
   if(error) throw error;
-  showToast('Competición guardada ✓','ok');
+  showToast(id ? 'Competición actualizada ✓' : 'Competición guardada ✓','ok');
+  setTimeout(()=>openAthleteSection('competiciones',cid),90);
 }
 
 else if(type==='trainingPhase'){
   const cid = data.client_id;
   if(!cid){ showToast('Sin cliente','err'); return; }
-  const payload = {
-    client_id:cid, phase_name:data.phase_name||null,
-    phase_type:data.phase_type||'base',
-    intensity_target:data.intensity_target?Number(data.intensity_target):null,
-    start_date:data.start_date||null, end_date:data.end_date||null,
-    priority_capacity:data.priority_capacity||null, notes:data.notes||null
-  };
-  const {error} = id
-    ? await db.from('training_phases').update(payload).eq('id',id)
-    : await db.from('training_phases').insert({...payload,id:uid()});
+  const token = getCoachSessionTokenSafe();
+  if(!token){ showToast('Sesión del coach no válida','err'); return; }
+
+  const {error} = await db.rpc('ab_coach_session_save_training_phase',{
+    p_session_token: token,
+    p_client_id: cid,
+    p_phase_name: data.phase_name || null,
+    p_phase_type: data.phase_type || 'base',
+    p_intensity_target: data.intensity_target ? Number(data.intensity_target) : null,
+    p_start_date: data.start_date || null,
+    p_end_date: data.end_date || null,
+    p_priority_capacity: data.priority_capacity || null,
+    p_notes: data.notes || null,
+    p_phase_id: id || null
+  });
   if(error) throw error;
-  showToast('Fase guardada ✓','ok');
+  showToast(id ? 'Fase actualizada ✓' : 'Fase guardada ✓','ok');
+  setTimeout(()=>openAthleteSection('fases',cid),90);
 }
 
 else if(type==='combatMetric'){
