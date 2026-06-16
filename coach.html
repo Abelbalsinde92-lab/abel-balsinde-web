@@ -2990,7 +2990,7 @@ body.eval-modal-open {
     <div class="card-body">
       <div class="set-sec">Notas</div>
       <p style="font-size:.82rem;color:var(--text-2);line-height:1.6">
-        Gestión técnica de programas y pruebas desde el admin de escritorio
+        Gestión técnica de programas y evaluaciones desde el admin de escritorio
         (<span class="mono">/admin</span>).
       </p>
     </div>
@@ -3010,7 +3010,7 @@ body.eval-modal-open {
   <a class="scr-back" onclick="showScr('mas')">← Más</a>
   <div class="scr-h">
     <div class="scr-eye">Lectura rápida</div>
-    <div class="scr-t">Pruebas</div>
+    <div class="scr-t">Evaluaciones</div>
   </div>
   <div id="eval-content"></div>
 </div>
@@ -5447,7 +5447,7 @@ async function loadCoachSecondaryData(generation){
 
   if(generation!==state.dataLoadGeneration)return;
 
-  const labels=['check-ins recientes','biblioteca de vídeos','historial de sesiones','plantillas','pruebas','métricas','atletas'];
+  const labels=['check-ins recientes','biblioteca de vídeos','historial de sesiones','plantillas','evaluaciones','métricas','atletas'];
   const normalized=settled.map((row,index)=>settledCoachResult(row,labels[index],[]));
   const [recentCI,videos,slogs,templates,assessments,metrics,athletes]=normalized;
 
@@ -5722,8 +5722,35 @@ function renderHoy(){
     </div>
   ` : '';
 
+  // Resumen rápido de estado del día
+  const totalClients = state.clients.filter(c => String(c.status||'').toLowerCase() === 'activo').length;
+  const ciOk = state.todayCheckins.filter(ci => getCheckinStatus(ci) === 'normal').length;
+  const ciAlerta = state.todayCheckins.filter(ci => ['alerta','revisar'].includes(getCheckinStatus(ci))).length;
+  const sinCI = totalClients - state.todayCheckins.length;
+
+  const quickSummaryHTML = totalClients > 0 ? `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px">
+      <div style="background:var(--card);border:1px solid var(--divider);border-radius:10px;padding:10px 8px;text-align:center">
+        <div style="font-family:var(--font-d);font-size:1.5rem;color:var(--text)">${sessions.length}</div>
+        <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-top:2px">Sesiones</div>
+      </div>
+      <div style="background:var(--card);border:1px solid rgba(0,230,118,.2);border-radius:10px;padding:10px 8px;text-align:center">
+        <div style="font-family:var(--font-d);font-size:1.5rem;color:var(--streak)">${ciOk}</div>
+        <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-top:2px">CI OK</div>
+      </div>
+      <div style="background:var(--card);border:1px solid rgba(255,179,64,.2);border-radius:10px;padding:10px 8px;text-align:center">
+        <div style="font-family:var(--font-d);font-size:1.5rem;color:var(--warn)">${sinCI}</div>
+        <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-top:2px">Sin CI</div>
+      </div>
+      <div style="background:var(--card);border:1px solid rgba(255,59,48,.2);border-radius:10px;padding:10px 8px;text-align:center">
+        <div style="font-family:var(--font-d);font-size:1.5rem;color:var(--medical)">${ciAlerta}</div>
+        <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-top:2px">Alerta</div>
+      </div>
+    </div>
+  ` : '';
+
   const body=document.getElementById('hoy-content');
-  body.innerHTML = buildDashboardConditionInbox() + requestsHTML + sessionsHTML + addHTML;
+  body.innerHTML = quickSummaryHTML + buildDashboardConditionInbox() + requestsHTML + sessionsHTML + addHTML;
 }
 
 /* v1.1: tarjeta compacta con foto + badges en línea */
@@ -6364,9 +6391,9 @@ function buildClientAssessmentsCard(client){
     <div class="card" style="padding:0;margin-bottom:14px;overflow:hidden">
       <div style="padding:13px 14px;border-bottom:1px solid var(--divider);display:flex;align-items:center;gap:10px">
         <div style="flex:1;min-width:0">
-          <div style="font-weight:800;font-size:.92rem">Pruebas y resultados</div>
+          <div style="font-weight:800;font-size:.92rem">Evaluaciones y resultados</div>
           <div style="font-family:var(--font-m);font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);margin-top:2px">
-            ${rows.length ? `${rows.length} evaluación${rows.length===1?'':'es'}` : 'Sin pruebas'}
+            ${rows.length ? `${rows.length} evaluación${rows.length===1?'':'es'}` : 'Sin evaluaciones'}
           </div>
         </div>
         <button class="btn btn-p btn-sm" onclick="openEvalModal('${client.id}','${jsArg(client.name)}',null,null)">+ Nueva</button>
@@ -6390,12 +6417,12 @@ function buildClientAssessmentsCard(client){
           </button>`;
       }).join('') : `
         <div style="padding:16px 14px;color:var(--text-2);font-size:.78rem">
-          Todavía no hay pruebas registradas para este cliente.
+          Todavía no hay evaluaciones registradas para este cliente.
         </div>`}
 
       ${rows.length > visible.length ? `
         <button type="button" class="btn btn-b btn-wide" style="border-radius:0;border-width:1px 0 0;margin:0" onclick="go('eval')">
-          Ver todas las pruebas
+          Ver todas las evaluaciones
         </button>` : ''}
     </div>`;
 }
@@ -6694,7 +6721,7 @@ function renderPerfil(){
   const assessmentRows=getClientAssessmentsForResults(c.id);
   const activeAssessments=assessmentRows.filter(row=>!['completado','completed'].includes(String(row.status||'').toLowerCase())).length;
   const latestAssessment=assessmentRows[0]||null;
-  const latestAssessmentName=String(latestAssessment?.assessmentName||latestAssessment?.assessment_name||'Sin pruebas');
+  const latestAssessmentName=String(latestAssessment?.assessmentName||latestAssessment?.assessment_name||'Sin evaluaciones');
   const latestAssessmentDate=latestAssessment?.assessmentDate||latestAssessment?.assessment_date||'';
 
   const conditionRows=conditionSortRows(conditionRowsForClient(c.id));
@@ -6783,7 +6810,7 @@ function renderPerfil(){
       <div class="profile-hub-grid profile-hub-tracking-grid">
         <button class="profile-hub-card tracking" onclick="openClientProfileModule('${c.id}','assessments')">
           <span class="profile-hub-arrow">›</span><span class="profile-hub-icon">${ICONS.eval}</span>
-          <span class="profile-hub-title">Pruebas</span>
+          <span class="profile-hub-title">Evaluaciones</span>
           <span class="profile-hub-value">${assessmentRows.length}</span>
           <span class="profile-hub-meta">${activeAssessments?activeAssessments+' en progreso':latestAssessment?'Última · '+formatDate(latestAssessmentDate):'Crear primera'}</span>
           ${activeAssessments?`<span class="profile-hub-badge">${activeAssessments}</span>`:''}
@@ -6793,6 +6820,15 @@ function renderPerfil(){
           <span class="profile-hub-title">Métricas</span>
           <span class="profile-hub-value ${metricRows.length?'':'text'}">${esc(metricValue)}</span>
           <span class="profile-hub-meta">${metricRows.length?metricRows.length+' registros'+(metricDate?' · '+formatDate(metricDate):''):'Registrar primera'}</span>
+        </button>
+        <button class="profile-hub-card tracking" onclick="openClientLoadsHistory('${c.id}')">
+          <span class="profile-hub-arrow">›</span>
+          <span class="profile-hub-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--sport)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+          </span>
+          <span class="profile-hub-title">Cargas</span>
+          <span class="profile-hub-value text" id="loads-count-${c.id}">—</span>
+          <span class="profile-hub-meta">Historial por ejercicio</span>
         </button>
       </div>
     </section>
@@ -6814,6 +6850,82 @@ function renderPerfil(){
     if(isAthlete){intelPanel.style.display='';intelPanel.innerHTML='<div class="intel-skeleton"></div>';loadAthleteSemaforo(c.id)}
     else{intelPanel.style.display='none';intelPanel.innerHTML=''}
   }
+}
+
+async function openClientLoadsHistory(clientId) {
+  const el = document.getElementById('perfil-content');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button class="btn btn-s btn-sm" onclick="renderPerfil()">← Perfil</button>
+      <div style="font-family:var(--font-d);font-size:1.2rem">Historial de cargas</div>
+    </div>
+    <div id="loads-history-content"><div style="display:flex;justify-content:center;padding:40px"><div class="spinner"></div></div></div>
+  `;
+
+  const { data, error } = await db
+    .from('client_exercise_loads')
+    .select('exercise_name, load_kg, reps, sets, notes, recorded_at')
+    .eq('client_id', clientId)
+    .order('recorded_at', { ascending: false })
+    .limit(100);
+
+  const box = document.getElementById('loads-history-content');
+  if (!box) return;
+
+  if (error || !data?.length) {
+    box.innerHTML = `<div style="color:var(--text-2);font-size:.85rem;padding:20px 0;text-align:center">Sin registros de carga todavía.</div>`;
+    return;
+  }
+
+  // Agrupar por ejercicio
+  const byExercise = {};
+  data.forEach(r => {
+    const name = r.exercise_name || 'Sin nombre';
+    if (!byExercise[name]) byExercise[name] = [];
+    byExercise[name].push(r);
+  });
+
+  let html = '';
+  Object.entries(byExercise).forEach(([exName, rows]) => {
+    const latest = rows[0];
+    const best = rows.reduce((max, r) => Number(r.load_kg||0) > Number(max.load_kg||0) ? r : max, rows[0]);
+    html += `
+      <div class="card" style="padding:12px 14px;margin-bottom:8px">
+        <div style="font-weight:700;font-size:.9rem;margin-bottom:8px">${esc(exName)}</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">
+          <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center">
+            <div style="font-family:var(--font-d);font-size:1.1rem;color:var(--sport)">${latest.load_kg||'—'}<span style="font-size:.6rem"> kg</span></div>
+            <div style="font-family:var(--font-m);font-size:.42rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)">Última</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center">
+            <div style="font-family:var(--font-d);font-size:1.1rem;color:var(--streak)">${best.load_kg||'—'}<span style="font-size:.6rem"> kg</span></div>
+            <div style="font-family:var(--font-m);font-size:.42rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)">Máximo</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center">
+            <div style="font-family:var(--font-d);font-size:1.1rem;color:var(--text)">${rows.length}</div>
+            <div style="font-family:var(--font-m);font-size:.42rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)">Registros</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          ${rows.slice(0,5).map(r => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--divider)">
+              <span style="font-size:.75rem;color:var(--text-2)">${formatDate(String(r.recorded_at||'').slice(0,10))}</span>
+              <span style="font-size:.8rem;font-weight:600">${r.load_kg||'—'} kg × ${r.reps||'—'} rep${r.sets?' × '+r.sets+' s':''}</span>
+            </div>
+          `).join('')}
+        </div>
+        ${rows.length > 5 ? `<div style="font-size:.72rem;color:var(--text-2);margin-top:6px;text-align:right">${rows.length - 5} registros más</div>` : ''}
+      </div>
+    `;
+  });
+
+  box.innerHTML = html;
+
+  // Actualizar contador en el hub card
+  const countEl = document.getElementById(`loads-count-${clientId}`);
+  if (countEl) countEl.textContent = data.length + ' reg.';
 }
 
 function switchPt(btn,id){
@@ -7388,7 +7500,7 @@ function renderMas(){
     {icon:ICONS.wa,label:'WhatsApp',badge:0,badgeKind:'info',action:`showScr('whatsapp')`},
     {icon:ICONS.train,label:'Entrenos',badge:activeAssign,badgeKind:'info',action:`showScr('entreno')`},
     {icon:ICONS.ath,label:'Atletas',badge:athleteCount,badgeKind:'info',action:`showScr('atletas')`},
-    {icon:ICONS.eval,label:'Pruebas',badge:0,badgeKind:'info',action:`showScr('eval')`},
+    {icon:ICONS.eval,label:'Evaluaciones',badge:0,badgeKind:'info',action:`showScr('eval')`},
     {icon:ICONS.new,label:'Nuevo cliente',badge:0,badgeKind:'info',action:`openModal('client')`}
   ];
 
@@ -8315,7 +8427,7 @@ function buildAthleteDashboardHTML(a){
             </div>
           </div>
         </details>`;
-    }).join('') : emptyState('Sin pruebas en este período','')}
+    }).join('') : emptyState('Sin evaluaciones en este período','')}
   `;
 }
 </script>
@@ -17348,7 +17460,7 @@ async function renderEvalRecommendation() {
 
 async function confirmEvalAssignment() {
   showToast(
-    'La recomendación automática se reconstruirá sobre el nuevo sistema de pruebas.',
+    'La recomendación automática se reconstruirá sobre el nuevo sistema de evaluaciones.',
     'ok'
   );
 }
