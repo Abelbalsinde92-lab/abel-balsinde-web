@@ -2763,7 +2763,7 @@ body.eval-modal-open {
 .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
 .more-card{position:relative;min-height:104px;padding:18px 15px;display:flex;align-items:center;gap:13px;text-align:left;margin:0;background:var(--card);border:1px solid var(--card-border);border-radius:var(--r)}
 .more-card:active{transform:scale(.985)}
-.more-card-label{font-size:.8rem;font-weight:750;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.more-card-label{font-size:.8rem;font-weight:750;line-height:1.25}
 .more-badge{position:absolute;top:9px;right:9px;min-width:20px;height:20px;border-radius:999px;padding:0 6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-m);font-size:.5rem;font-weight:700;border:1px solid transparent}
 .more-badge.info{background:rgba(0,200,232,.12);border-color:rgba(0,200,232,.25);color:var(--sport)}
 .more-badge.warn{background:rgba(255,179,64,.13);border-color:rgba(255,179,64,.28);color:var(--warn)}
@@ -2836,7 +2836,7 @@ body.eval-modal-open {
       <div class="scr-eye" id="hoy-eye">Operación de sala</div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%">
         <div class="scr-t" id="hoy-title">Hoy</div>
-        <img src="/icon-192.png" alt="" style="height:48px;width:auto;object-fit:contain;flex-shrink:0">
+        <img src="/icon-192.png" alt="AB" style="height:48px;width:auto;object-fit:contain;flex-shrink:0">
       </div>
     </div>
   </div>
@@ -2849,7 +2849,7 @@ body.eval-modal-open {
                 <div class="scr-eye">Base de datos</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%">
   <div class="scr-t">Clientes</div>
-  <img src="/icon-192.png" alt="" style="height:48px;width:auto">
+  <img src="/icon-192.png" alt="AB" style="height:48px;width:auto">
 </div>
       </div>
       <div class="search">
@@ -2865,12 +2865,13 @@ body.eval-modal-open {
                 <div class="scr-eye">Notificaciones</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%">
   <div class="scr-t" id="alertas-title">Alertas</div>
-  <img src="/icon-192.png" alt="" style="height:48px;width:auto;object-fit:contain;flex-shrink:0">
+  <img src="/icon-192.png" alt="AB" style="height:48px;width:auto;object-fit:contain;flex-shrink:0">
 </div>
       </div>
       <div class="mr" id="al-metrics"></div>
       <div class="fr" id="al-filters"></div>
       <div id="al-conditions"></div>
+      <div id="al-push-banner"></div>
       <div id="al-content"></div>
     </div>
 
@@ -3940,32 +3941,7 @@ function healthCheckinKind(ci){
   return key==='alerta'?'alerta':key==='revisar'?'revisar':'normal';
 }
 function healthCheckinDate(ci){return String(ci?.checkinDate||ci?.checkin_date||ci?.date||ci?.createdAt||ci?.created_at||'').slice(0,10)}
-function healthMetricType(m){
-  const raw = m?.type || m?.metricType || m?.metric_type || m?.name || '';
-  const key = String(raw).toLowerCase().trim();
-  const labels = {
-    'body_metrics': 'Métricas físicas',
-    'body metrics': 'Métricas físicas',
-    'peso': 'Peso',
-    'weight': 'Peso',
-    'altura': 'Altura',
-    'height': 'Altura',
-    'cintura': 'Cintura',
-    'waist': 'Cintura',
-    'cadera': 'Cadera',
-    'hip': 'Cadera',
-    'pecho': 'Pecho',
-    'chest': 'Pecho',
-    'brazo': 'Brazo',
-    'arm': 'Brazo',
-    'muslo': 'Muslo',
-    'thigh': 'Muslo',
-    'fc reposo': 'FC reposo',
-    'resting_hr': 'FC reposo',
-    'restinghr': 'FC reposo'
-  };
-  return labels[key] || raw || 'Métrica';
-}
+function healthMetricType(m){return m?.type||m?.metricType||m?.metric_type||m?.name||'Métrica'}
 function healthMetricValue(m){
   const value=m?.value??m?.metricValue??m?.metric_value??m?.result??'—';
   return `${value}${m?.unit?' '+m.unit:''}`;
@@ -7007,6 +6983,91 @@ function openHealthAlerts(){
   showScr('alertas');
 }
 
+function openPushMessageModal(prefillClientId = '') {
+  const title = document.getElementById('modal-title');
+  const form  = document.getElementById('modal-form');
+  if(!title || !form) return;
+
+  title.textContent = 'Enviar mensaje push';
+
+  const clientOpts = [
+    '<option value="all">Todos los clientes activos</option>',
+    ...state.clients
+      .filter(c => String(c.status || '').toLowerCase() === 'activo')
+      .map(c => `<option value="${c.id}" ${prefillClientId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`)
+  ].join('');
+
+  form.innerHTML = `
+    <div class="fld">
+      <label class="fld-l">Destinatario</label>
+      <select id="push-client-sel" class="fld-s">${clientOpts}</select>
+    </div>
+    <div class="fld">
+      <label class="fld-l">Título</label>
+      <input id="push-title" class="fld-i" placeholder="Ej: Recordatorio de sesión" maxlength="60">
+    </div>
+    <div class="fld">
+      <label class="fld-l">Mensaje</label>
+      <textarea id="push-body" class="fld-t" rows="3" placeholder="Ej: Mañana entrenamos a las 10:00. Confirma tu asistencia." maxlength="160"></textarea>
+    </div>
+    <div style="font-family:var(--font-m);font-size:.52rem;color:var(--text-2);margin-bottom:12px">
+      Solo llegará a clientes con notificaciones activadas en su dispositivo.
+    </div>
+    <div class="fld-acts">
+      <button type="button" class="btn btn-s" onclick="closeModal()">Cancelar</button>
+      <button type="button" class="btn btn-p" onclick="sendManualPush()">Enviar</button>
+    </div>
+  `;
+
+  form.onsubmit = null;
+  document.getElementById('modal-ov')?.classList.add('on');
+}
+
+async function sendManualPush() {
+  const clientSel = document.getElementById('push-client-sel')?.value;
+  const title     = document.getElementById('push-title')?.value?.trim();
+  const body      = document.getElementById('push-body')?.value?.trim();
+
+  if(!title || !body) { showToast('Escribe título y mensaje', 'err'); return; }
+
+  const btn = document.querySelector('#modal-form .btn-p');
+  if(btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+
+  const SUPA_URL  = 'https://icjuuptbcnkpwgsoyiuj.supabase.co';
+  const SUPA_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanV1cHRiY25rcHdnc295aXVqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODE1MjMyNCwiZXhwIjoyMDkzNzI4MzI0fQ.pq5V5sBjRRHa-IeVd5rKMDvDxqICBSoBcN6Cs6j1iS4';
+
+  try {
+    if(clientSel === 'all') {
+      // Enviar a todos los clientes activos con suscripción
+      const targets = state.clients.filter(c => String(c.status || '').toLowerCase() === 'activo');
+      let sent = 0;
+      await Promise.allSettled(targets.map(async c => {
+        const res = await fetch(`${SUPA_URL}/functions/v1/send-push-client`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_KEY },
+          body: JSON.stringify({ client_id: c.id, title, body, notif_type: 'coach_broadcast' })
+        });
+        const data = await res.json();
+        if(data.sent > 0) sent++;
+      }));
+      showToast(`Enviado a ${sent} cliente${sent !== 1 ? 's' : ''} ✓`, 'ok');
+    } else {
+      const res = await fetch(`${SUPA_URL}/functions/v1/send-push-client`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_KEY },
+        body: JSON.stringify({ client_id: clientSel, title, body, notif_type: 'coach_message' })
+      });
+      const data = await res.json();
+      showToast(data.sent > 0 ? 'Mensaje enviado ✓' : 'Cliente sin notificaciones activas', data.sent > 0 ? 'ok' : 'err');
+    }
+    closeModal();
+  } catch(err) {
+    console.error('sendManualPush error:', err);
+    showToast('Error enviando: ' + (err?.message || ''), 'err');
+    if(btn) { btn.disabled = false; btn.textContent = 'Enviar'; }
+  }
+}
+
 function renderAlertas(){
   const effectiveRows=getStandaloneCoachAlerts().filter(a=>!isFalsePositiveAlert(a)||filterAl==='leidas'||filterAl==='todas');
   const conditionRows=conditionSortRows(conditionRowsForAlertFilter(filterAl));
@@ -7066,6 +7127,20 @@ function renderAlertas(){
   if(metricsEl)metricsEl.innerHTML=metricsHTML;
   if(filtersEl)filtersEl.innerHTML=filtersHTML;
   if(conditionEl)conditionEl.innerHTML=conditionHTML;
+
+  // Banner de envío manual
+  const bannerEl = document.getElementById('al-push-banner');
+  if(bannerEl){
+    bannerEl.innerHTML = `
+      <div style="background:rgba(0,200,232,.06);border:1px solid rgba(0,200,232,.2);border-radius:var(--r);padding:14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div>
+          <div style="font-family:var(--font-m);font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sport);margin-bottom:3px">Mensaje directo</div>
+          <div style="font-size:.82rem;color:var(--text-2)">Envía una notificación push a uno o todos los clientes</div>
+        </div>
+        <button class="btn btn-p btn-sm" onclick="openPushMessageModal()">Enviar</button>
+      </div>`;
+  }
+
   if(contentEl)contentEl.innerHTML=alertsHTML;
 }
 
@@ -9640,6 +9715,7 @@ function getClientAvatarCandidates(c){
 function abAvatarFallback(img){
   try{
     const list = JSON.parse(img.dataset.altSrcs || '[]');
+
     if(list.length){
       const next = list.shift();
       img.dataset.altSrcs = JSON.stringify(list);
@@ -9648,19 +9724,11 @@ function abAvatarFallback(img){
     }
   }catch(e){}
 
-  // Siempre mostrar iniciales si la imagen falla
   const initialsText = img.dataset.initials || '?';
   const parent = img.parentElement;
+
   if(parent){
-    // Preservar clases del contenedor y mostrar iniciales centradas
-    img.style.display = 'none';
-    if(!parent.querySelector('.ab-avatar-initials')){
-      const span = document.createElement('span');
-      span.className = 'ab-avatar-initials';
-      span.textContent = initialsText;
-      span.style.cssText = 'display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-family:var(--font-d);font-size:1.05rem;color:var(--sport);letter-spacing:.04em;';
-      parent.appendChild(span);
-    }
+    parent.innerHTML = initialsText;
   }
 }
 
