@@ -16869,8 +16869,10 @@ async function getNotificationPermission() {
 }
 
 async function subscribeToNotifications() {
-  if (!clientData?.id || !clientData?.access_code) {
-    showClientNotice('No se pudo validar el cliente.', 'error');
+  const sessionToken = getClientSessionToken();
+
+  if (!sessionToken) {
+    showClientNotice('Tu sesión ha caducado. Inicia sesión nuevamente.', 'error');
     return false;
   }
 
@@ -16893,7 +16895,6 @@ async function subscribeToNotifications() {
     }
 
     const reg = await navigator.serviceWorker.ready;
-
     let sub = await reg.pushManager.getSubscription();
 
     if (!sub) {
@@ -16905,25 +16906,33 @@ async function subscribeToNotifications() {
 
     const subJSON = sub.toJSON();
 
-    if (!subJSON?.endpoint || !subJSON?.keys?.p256dh || !subJSON?.keys?.auth) {
+    if (
+      !subJSON?.endpoint ||
+      !subJSON?.keys?.p256dh ||
+      !subJSON?.keys?.auth
+    ) {
       throw new Error('Suscripción push incompleta.');
     }
 
-    const { data, error } = await db.rpc('ab_upsert_notification_subscription', {
-      p_client_id: clientData.id,
-      p_access_code: clientData.access_code,
-      p_endpoint: subJSON.endpoint,
-      p_p256dh: subJSON.keys.p256dh,
-      p_auth: subJSON.keys.auth,
-      p_user_agent: navigator.userAgent.slice(0, 200)
-    });
+    const { data, error } = await db.rpc(
+      'ab_upsert_notification_subscription',
+      {
+        p_session_token: sessionToken,
+        p_endpoint: subJSON.endpoint,
+        p_p256dh: subJSON.keys.p256dh,
+        p_auth: subJSON.keys.auth,
+        p_user_agent: navigator.userAgent.slice(0, 300)
+      }
+    );
 
     if (error) throw error;
 
     const result = Array.isArray(data) ? data[0] : data;
 
-    if (result && result.ok === false) {
-      throw new Error(result.error || 'No se pudo guardar la suscripción.');
+    if (result?.ok === false) {
+      throw new Error(
+        result.error || 'No se pudo guardar la suscripción.'
+      );
     }
 
     showClientNotice('Notificaciones activadas.', 'success');
@@ -16933,14 +16942,30 @@ async function subscribeToNotifications() {
 
   } catch (err) {
     console.error('Push subscribe error:', err);
-    showClientNotice(err?.message || 'Error al activar notificaciones.', 'error');
+
+    const message = String(err?.message || '');
+
+    if (message.includes('SESION_CLIENTE_INVALIDA')) {
+      showClientNotice(
+        'Tu sesión ha caducado. Inicia sesión nuevamente.',
+        'error'
+      );
+    } else {
+      showClientNotice(
+        message || 'Error al activar notificaciones.',
+        'error'
+      );
+    }
+
     return false;
   }
 }
 
 async function unsubscribeFromNotifications() {
-  if (!clientData?.id || !clientData?.access_code) {
-    showClientNotice('No se pudo validar el cliente.', 'error');
+  const sessionToken = getClientSessionToken();
+
+  if (!sessionToken) {
+    showClientNotice('Tu sesión ha caducado. Inicia sesión nuevamente.', 'error');
     return false;
   }
 
@@ -16954,18 +16979,22 @@ async function unsubscribeFromNotifications() {
     const sub = await reg.pushManager.getSubscription();
 
     if (sub) {
-      const { data, error } = await db.rpc('ab_delete_notification_subscription', {
-        p_client_id: clientData.id,
-        p_access_code: clientData.access_code,
-        p_endpoint: sub.endpoint
-      });
+      const { data, error } = await db.rpc(
+        'ab_delete_notification_subscription',
+        {
+          p_session_token: sessionToken,
+          p_endpoint: sub.endpoint
+        }
+      );
 
       if (error) throw error;
 
       const result = Array.isArray(data) ? data[0] : data;
 
-      if (result && result.ok === false) {
-        throw new Error(result.error || 'No se pudo eliminar la suscripción.');
+      if (result?.ok === false) {
+        throw new Error(
+          result.error || 'No se pudo eliminar la suscripción.'
+        );
       }
 
       await sub.unsubscribe();
@@ -16978,7 +17007,21 @@ async function unsubscribeFromNotifications() {
 
   } catch (err) {
     console.error('Unsubscribe error:', err);
-    showClientNotice(err?.message || 'Error al desactivar notificaciones.', 'error');
+
+    const message = String(err?.message || '');
+
+    if (message.includes('SESION_CLIENTE_INVALIDA')) {
+      showClientNotice(
+        'Tu sesión ha caducado. Inicia sesión nuevamente.',
+        'error'
+      );
+    } else {
+      showClientNotice(
+        message || 'Error al desactivar notificaciones.',
+        'error'
+      );
+    }
+
     return false;
   }
 }
