@@ -3,3226 +3,606 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>AB SYSTEM | Strukturiran trening, pravo praćenje i adaptacija u jednom sistemu</title>
-<meta name="description" content="AB SYSTEM povezuje planiranje, trening, check-in, rezervacije, zdravlje i napredak u jedan sistem. Tvoj kouč, tvoj plan, tvoj napredak.">
-<!-- Open Graph -->
-<meta property="og:type"               content="website">
-<meta property="og:url"                content="https://absystem.app/sr.html">
-<meta property="og:site_name"          content="AB SYSTEM">
-<meta property="og:title"              content="AB SYSTEM | Tvoj trening, tvoj napredak i tvoj kouč u jednom sistemu">
-<meta property="og:description"        content="AB SYSTEM povezuje planiranje, trening, check-in, rezervacije, zdravlje i napredak. Strukturiran trening sa stvarnim praćenjem. Beograd · Online.">
-<meta property="og:image"              content="https://absystem.app/cliente-2.png.jpg">
-<meta property="og:image:width"        content="1200">
-<meta property="og:image:height"       content="630">
-<meta property="og:image:alt"          content="AB SYSTEM — Panel de entrenamiento activo">
-<meta property="og:locale"             content="sr_RS">
-<meta property="og:locale:alternate"    content="es_ES">
-<meta property="og:locale:alternate"    content="en_GB">
-
-<!-- Twitter Card -->
-<meta name="twitter:card"              content="summary_large_image">
-<meta name="twitter:title"             content="AB SYSTEM | Tvoj trening, tvoj napredak i tvoj kouč u jednom sistemu">
-<meta name="twitter:description"       content="AB SYSTEM povezuje planiranje, trening, check-in, rezervacije, zdravlje i napredak. Strukturiran trening sa stvarnim praćenjem. Beograd · Online.">
-<meta name="twitter:image"             content="https://absystem.app/cliente-2.png.jpg">
-<meta name="twitter:image:alt"         content="AB SYSTEM — Panel de entrenamiento activo">
+<title>AB SYSTEM | Trening sa strukturom, praćenjem i pravim prilagođavanjem</title>
+<meta name="description" content="AB SYSTEM povezuje planiranje, trening, check-in, rezervacije, zdravlje i napredak u jedan sistem. Tvoj trener, tvoj plan, tvoj napredak.">
 <link rel="canonical" href="https://absystem.app/sr.html">
-<link rel="alternate" hreflang="sr" href="https://absystem.app/">
+<link rel="alternate" hreflang="es" href="https://absystem.app/">
 <link rel="alternate" hreflang="sr" href="https://absystem.app/sr.html">
 <link rel="alternate" hreflang="en" href="https://absystem.app/en.html">
 <link rel="alternate" hreflang="x-default" href="https://absystem.app/">
 <meta name="theme-color" content="#000000">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="image" href="/Imagen-3.PNG" fetchpriority="high">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-/* ═══════════════════════════════════════════════════════
-   TOKENS
-═══════════════════════════════════════════════════════ */
 :root {
-  --bg:       #020304;
-  --card:     #101216;
-  --card-2:   #15181D;
-  --stage:    #080D12;
-  --stage-2:  #0D151C;
-  --border:   rgba(255,255,255,.10);
-  --border-c: rgba(0,229,255,.30);
-
-  --text:     #FFFFFF;
-  --text-2:   #8F8F99;
-
-  --cyan:     #00E5FF;
-  --cyan-dim: rgba(0,229,255,.10);
-  --green:    #00E676;
-  --amber:    #FFB340;
-  --red:      #FF5A5A;
-
-  --font-main: 'Sora', system-ui, -apple-system, sans-serif;
-  --font-body: var(--font-main);
-  --font-display: var(--font-main);
-  --font-mono: var(--font-main);
-
-  --r: 12px;
-  --max: 1160px;
-}
-
-/* ═══ RESET ═══════════════════════════════════════════ */
-*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  font-family: var(--font-main);
-  background: var(--bg);
-  color: var(--text);
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-}
-a { color: inherit; text-decoration: none; }
-img { display: block; max-width: 100%; }
-button { cursor: pointer; border: 0; background: none; font-family: inherit; color: inherit; }
-
-/* ═══ SCROLLBAR ═══════════════════════════════════════ */
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--cyan); }
-
-/* ═══ LAYOUT ══════════════════════════════════════════ */
-.inner { max-width: var(--max); margin: 0 auto; }
-section { padding: clamp(4rem, 8vw, 6.5rem) clamp(1.25rem, 5vw, 3rem); }
-
-/* ═══ TYPOGRAPHY ══════════════════════════════════════ */
-.label-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-size: .68rem;
-  font-weight: 700;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--cyan);
-  margin-bottom: .85rem;
-}
-.label-tag::before {
-  content: '';
-  width: 22px;
-  height: 1px;
-  background: var(--cyan);
-  flex-shrink: 0;
-}
-
-.section-title {
-  font-size: clamp(2rem, 4.5vw, 3.4rem);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -1px;
-  color: var(--text);
-}
-.section-title .accent { color: var(--cyan); }
-
-/* ═══ BUTTONS ═════════════════════════════════════════ */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-family: var(--font-main);
-  font-size: .78rem;
-  font-weight: 700;
-  letter-spacing: .10em;
-  text-transform: uppercase;
-  padding: 14px 28px;
-  border-radius: 8px;
-  transition: all .18s;
-  white-space: nowrap;
-}
-.btn-primary {
-  background: var(--cyan);
-  color: #000;
-  border: 1px solid var(--cyan);
-}
-.btn-primary:hover { background: transparent; color: var(--cyan); }
-.btn-outline {
-  background: transparent;
-  color: var(--text-2);
-  border: 1px solid var(--border);
-}
-.btn-outline:hover { border-color: var(--cyan); color: var(--cyan); }
-.btn-wa {
-  background: rgba(0,230,118,.12);
-  color: var(--green);
-  border: 1px solid rgba(0,230,118,.35);
-}
-.btn-wa:hover { background: rgba(0,230,118,.2); }
-
-/* ═══ ANIMATIONS ══════════════════════════════════════ */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(-8px); }
-}
-@keyframes scanline {
-  from { transform: translateY(-100%); }
-  to   { transform: translateY(140vh); }
-}
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-
-.reveal { opacity: 0; }
-.reveal.visible { animation: fadeUp .65s ease forwards; }
-.d1 { animation-delay: .10s; }
-.d2 { animation-delay: .20s; }
-.d3 { animation-delay: .30s; }
-.d4 { animation-delay: .40s; }
-
-/* ═══════════════════════════════════════════════════════
-   HEADER
-═══════════════════════════════════════════════════════ */
-#header {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 900;
-  height: 64px;
-  padding: 0 clamp(1.25rem, 5vw, 3rem);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  background: rgba(0,0,0,.88);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  transition: border-color .3s;
-}
-#header.scrolled { border-color: rgba(0,229,255,.12); }
-
-.logo-mark {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.logo-letters {
-  font-size: 1.35rem;
-  font-weight: 800;
-  letter-spacing: -.02em;
-  color: var(--text);
-}
-.logo-letters .c { color: var(--cyan); }
-.logo-sub {
-  font-size: .5rem;
-  font-weight: 600;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--text-2);
-  border-left: 1px solid var(--border);
-  padding-left: 10px;
-  line-height: 1.4;
-}
-.logo-sub span { display: block; color: var(--cyan); }
-
-nav.desk {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-nav.desk a {
-  font-size: .65rem;
-  font-weight: 600;
-  letter-spacing: .10em;
-  text-transform: uppercase;
-  color: var(--text-2);
-  transition: color .15s;
-}
-nav.desk a:hover { color: var(--text); }
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-.lang-switch {
-  display: flex;
-  gap: .5rem;
-  align-items: center;
-}
-.lang-switch a, .lang-switch span {
-  font-size: .58rem;
-  font-weight: 600;
-  letter-spacing: .10em;
-  color: var(--text-2);
-  transition: color .15s;
-}
-.lang-switch a:hover, .lang-switch a.active { color: var(--cyan); }
-.lang-switch span { color: var(--border); }
-
-.ham {
-  display: none;
-  flex-direction: column;
-  gap: 5px;
-  padding: 6px;
-}
-.ham span {
-  display: block;
-  width: 20px;
-  height: 1.5px;
-  background: var(--text);
-  transition: all .25s;
-}
-.ham.open span:nth-child(1) { transform: rotate(45deg) translate(4.5px,4.5px); }
-.ham.open span:nth-child(2) { opacity: 0; }
-.ham.open span:nth-child(3) { transform: rotate(-45deg) translate(4.5px,-4.5px); }
-
-.mobile-menu {
-  display: none;
-  position: fixed;
-  top: 64px; left: 0; right: 0;
-  background: rgba(0,0,0,.97);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-c);
-  z-index: 899;
-  padding: 1.5rem clamp(1.25rem, 5vw, 3rem) 2rem;
-  flex-direction: column;
-  gap: .5rem;
-}
-.mobile-menu.open { display: flex; }
-.mobile-menu a {
-  font-size: .72rem;
-  font-weight: 600;
-  letter-spacing: .10em;
-  text-transform: uppercase;
-  color: var(--text-2);
-  padding: .85rem 0;
-  border-bottom: 1px solid var(--border);
-  transition: color .15s;
-}
-.mobile-menu a:hover { color: var(--text); }
-.mobile-menu .cta-m {
-  color: #000;
-  background: var(--cyan);
-  text-align: center;
-  border-radius: 8px;
-  margin-top: .75rem;
-  padding: 1rem;
-  border: 0;
-}
-.mobile-lang {
-  display: flex;
-  gap: 1rem;
-  padding-top: 1rem;
-}
-.mobile-lang a {
-  font-size: .62rem;
-  font-weight: 600;
-  letter-spacing: .12em;
-  color: var(--text-2);
-  border: 0;
-  padding: 0;
-}
-.mobile-lang a.active { color: var(--cyan); }
-
-/* ═══════════════════════════════════════════════════════
-   HERO — Sistema protagonista, mockups en HTML/CSS
-═══════════════════════════════════════════════════════ */
-#hero {
-  min-height: 100svh;
-  padding-top: 64px;
-  display: flex;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-/* Grid sutil de fondo */
-#hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image:
-    linear-gradient(rgba(0,229,255,.028) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,.028) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 70% 80% at 70% 50%, rgba(0,0,0,.7) 0%, transparent 70%);
-  pointer-events: none;
-}
-/* Glow radial detrás de mockups */
-#hero::after {
-  content: '';
-  position: absolute;
-  top: 20%; right: 5%;
-  width: 50vw; height: 60vw;
-  max-width: 700px; max-height: 700px;
-  background: radial-gradient(ellipse, rgba(0,229,255,.07) 0%, transparent 65%);
-  z-index: 0;
-  pointer-events: none;
-}
-
-.hero-scanline {
-  position: absolute;
-  left: 0; right: 0;
-  height: 1px;
-  z-index: 2;
-  background: linear-gradient(90deg, transparent, rgba(0,229,255,.18), transparent);
-  animation: scanline 9s linear infinite;
-  pointer-events: none;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 3;
-  width: 100%;
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: clamp(3rem, 6vw, 5rem) clamp(1.25rem, 5vw, 3rem);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  align-items: center;
-}
-
-.hero-left {}
-
-.hero-pretitle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 1.5rem;
-  animation: fadeUp .5s ease .05s both;
-}
-.hero-pretitle .line {
-  width: 24px; height: 1px;
-  background: var(--cyan);
-}
-.hero-pretitle span {
-  font-size: .62rem;
-  font-weight: 700;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--cyan);
-}
-
-.hero-h1 {
-  font-size: clamp(2.4rem, 4.8vw, 3.8rem);
-  font-weight: 800;
-  line-height: 1.08;
-  letter-spacing: -1.5px;
-  color: var(--text);
-  margin-bottom: 1.5rem;
-  animation: fadeUp .6s ease .15s both;
-}
-.hero-h1 .accent { color: var(--cyan); }
-
-.hero-sub {
-  font-size: clamp(.9rem, 1.4vw, 1.05rem);
-  font-weight: 400;
-  line-height: 1.7;
-  color: var(--text-2);
-  max-width: 500px;
-  margin-bottom: 2.2rem;
-  animation: fadeUp .6s ease .25s both;
-}
-
-.hero-ctas {
-  display: flex;
-  gap: .85rem;
-  flex-wrap: wrap;
-  animation: fadeUp .6s ease .35s both;
-}
-
-.hero-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
-  margin-top: 1.75rem;
-  animation: fadeUp .6s ease .45s both;
-}
-.hero-chip {
-  font-size: .58rem;
-  font-weight: 600;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--text-2);
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.025);
-  padding: .5rem .85rem;
-  border-radius: 6px;
-}
-
-/* Mockup CSS antiguo eliminado: el hero usa capturas reales de AB SYSTEM. */
-
-@media (max-width: 1100px) {
-  nav.desk,
-  .header-right {
-    display: none;
-  }
-
-  .ham {
-    display: flex;
-  }
-
-  #header {
-    height: 72px;
-    padding: 0 1.5rem;
-  }
-
-  .mobile-menu {
-    top: 72px;
-  }
-
-  .hero-content {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-    padding-top: 2rem;
-  }
-
-  .hero-right {
-    min-height: 540px;
-  }
-
-  .product-stage {
-    width: min(92vw, 390px);
-    height: 540px;
-  }
-
-  .phone-main {
-    width: min(76vw, 290px);
-    height: 500px;
-    left: 50%;
-    top: 24px;
-    transform: translateX(-50%);
-  }
-
-  .phone-back {
-    display: none;
-  }
-
-  .stage-badge {
-    left: 50%;
-    right: auto;
-    top: auto;
-    bottom: 22px;
-    transform: translateX(-50%);
-  }
-
-  .features-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .forwho-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .how-grid,
-  .coach-grid,
-  .apply-grid,
-  .faq-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .how-sticky {
-    position: static;
-  }
-
-  .diff-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 600px) {
-  #hero {
-    min-height: auto;
-    padding-top: 72px;
-  }
-
-  .hero-content {
-    padding: 2rem 1.25rem 3.5rem;
-  }
-
-  .hero-h1 {
-    font-size: clamp(2.05rem, 10vw, 2.75rem);
-  }
-
-  .hero-ctas {
-    flex-direction: column;
-  }
-
-  .hero-ctas .btn {
-    width: 100%;
-  }
-
-  .hero-right {
-    min-height: 500px;
-  }
-
-  .product-stage {
-    height: 500px;
-  }
-
-  .phone-main {
-    width: min(76vw, 270px);
-    height: 460px;
-    top: 20px;
-  }
-
-  .phone {
-    border-radius: 32px;
-    padding: 13px;
-  }
-
-  .exercise-row strong {
-    font-size: .58rem;
-  }
-
-  .exercise-row small {
-    font-size: .46rem;
-  }
-
-  .ticker {
-    display: none;
-  }
-
-  .features-grid,
-  .forwho-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .logo-sub {
-    display: none;
-  }
-}
-
-/* ═══ TICKER ══════════════════════════════════════════ */
-.ticker {
-  background: var(--cyan);
-  padding: .6rem 0;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.ticker-inner {
-  display: inline-flex;
-  gap: 2.5rem;
-  animation: marquee 22s linear infinite;
-}
-.ticker span {
-  font-size: .6rem;
-  font-weight: 800;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: #000;
-}
-.ticker .sep { color: rgba(0,0,0,.3); }
-
-/* ═══════════════════════════════════════════════════════
-   FEATURES — Šta radi AB SYSTEM
-═══════════════════════════════════════════════════════ */
-#features {
-  background: #080808;
-  border-top: 1px solid var(--border);
-}
-
-.features-header {
-  max-width: 560px;
-  margin-bottom: 3rem;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  overflow: hidden;
-}
-
-.feature-card {
-  background: var(--card);
-  padding: 2rem;
-  transition: background .2s;
-  position: relative;
-}
-.feature-card:hover { background: var(--card-2); }
-.feature-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--cyan);
-  transform: scaleX(0);
-  transition: transform .28s;
-}
-.feature-card:hover::before { transform: scaleX(1); }
-
-.feature-icon {
-  width: 40px; height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(0,229,255,.22);
-  border-radius: 10px;
-  background: var(--cyan-dim);
-  margin-bottom: 1.25rem;
-  flex-shrink: 0;
-}
-.feature-icon svg {
-  width: 20px; height: 20px;
-  stroke: var(--cyan);
-  fill: none;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.feature-title {
-  font-size: .88rem;
-  font-weight: 700;
-  letter-spacing: -.2px;
-  color: var(--text);
-  margin-bottom: .5rem;
-}
-.feature-desc {
-  font-size: .78rem;
-  font-weight: 400;
-  line-height: 1.65;
-  color: var(--text-2);
-}
-
-/* ═══════════════════════════════════════════════════════
-   HOW IT WORKS — Proceso paso a paso
-═══════════════════════════════════════════════════════ */
-#how {
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-}
-
-.how-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.6fr;
-  gap: 5rem;
-  align-items: start;
-}
-
-.how-sticky {
-  position: sticky;
-  top: 88px;
-}
-
-.steps {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  overflow: hidden;
-}
-
-.step {
-  display: flex;
-  gap: 1.25rem;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border);
-  position: relative;
-  transition: background .18s;
-  cursor: default;
-}
-.step:last-child { border-bottom: 0; }
-.step:hover { background: var(--card); }
-.step::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 2px;
-  background: var(--cyan);
-  transform: scaleY(0);
-  transition: transform .25s;
-}
-.step:hover::before { transform: scaleY(1); }
-
-.step-num {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: rgba(255,255,255,.07);
-  line-height: 1;
-  width: 36px;
-  flex-shrink: 0;
-  letter-spacing: -1px;
-  transition: color .2s;
-}
-.step:hover .step-num { color: rgba(0,229,255,.3); }
-
-.step-body strong {
-  display: block;
-  font-size: .88rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-.step-body p {
-  font-size: .78rem;
-  font-weight: 400;
-  line-height: 1.6;
-  color: var(--text-2);
-}
-
-/* ═══════════════════════════════════════════════════════
-   FOR WHO — Za koga es
-═══════════════════════════════════════════════════════ */
-#for-who {
-  background: #080808;
-  border-top: 1px solid var(--border);
-}
-
-.forwho-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  overflow: hidden;
-  margin-top: 3rem;
-}
-
-.forwho-card {
-  background: var(--card);
-  padding: 2rem;
-  min-height: 230px;
-  transition: background .2s;
-}
-.forwho-card:hover { background: var(--card-2); }
-
-.forwho-num {
-  font-size: .58rem;
-  font-weight: 700;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--cyan);
-  margin-bottom: 1rem;
-  display: block;
-}
-.forwho-card h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -.3px;
-  color: var(--text);
-  margin-bottom: .65rem;
-  line-height: 1.3;
-}
-.forwho-card p {
-  font-size: .78rem;
-  font-weight: 400;
-  line-height: 1.65;
-  color: var(--text-2);
-}
-
-.for-who-note {
-  margin-top: 2rem;
-  padding: 1.25rem 1.5rem;
-  background: var(--cyan-dim);
-  border: 1px solid rgba(0,229,255,.2);
-  border-radius: var(--r);
-  font-size: .88rem;
-  font-weight: 500;
-  color: var(--text);
-  line-height: 1.65;
-}
-.for-who-note strong { color: var(--cyan); }
-
-/* ═══════════════════════════════════════════════════════
-   DIFFERENTIATOR — No es jednom plantilla vacía
-═══════════════════════════════════════════════════════ */
-#differentiator {
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-}
-
-.diff-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  margin-top: 3rem;
-}
-
-.diff-col {
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  overflow: hidden;
-}
-
-.diff-col-header {
-  padding: .85rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.diff-col-header span {
-  font-size: .6rem;
-  font-weight: 700;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-}
-.diff-col.generic .diff-col-header { background: rgba(255,255,255,.02); }
-.diff-col.generic .diff-col-header span { color: var(--text-2); }
-.diff-col.system { border-color: rgba(0,229,255,.25); }
-.diff-col.system .diff-col-header { background: var(--cyan-dim); }
-.diff-col.system .diff-col-header span { color: var(--cyan); }
-.diff-col.system .diff-col-header::before {
-  content: '';
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--cyan);
-  flex-shrink: 0;
-}
-
-.diff-items { padding: 1rem 1.25rem; }
-.diff-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: .75rem 0;
-  border-bottom: 1px solid var(--border);
-  font-size: .8rem;
-  font-weight: 400;
-  line-height: 1.5;
-  color: var(--text-2);
-}
-.diff-item:last-child { border-bottom: 0; }
-.diff-item .icon {
-  width: 14px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-.diff-col.generic .icon { color: rgba(255,90,90,.6); }
-.diff-col.system .icon { color: var(--green); }
-.diff-col.system .diff-item { color: var(--text); }
-
-/* ═══════════════════════════════════════════════════════
-   COACH — Presencia humana controlada
-═══════════════════════════════════════════════════════ */
-#coach {
-  background: #080808;
-  border-top: 1px solid var(--border);
-}
-
-.coach-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 4rem;
-  align-items: start;
-}
-
-.coach-visual {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  aspect-ratio: 3/4;
-  max-height: 520px;
-  overflow: hidden;
-  position: relative;
-}
-.coach-visual img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  filter: grayscale(15%) contrast(1.08);
-}
-.coach-visual::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,.7) 100%);
-  pointer-events: none;
-}
-.coach-badge {
-  position: absolute;
-  bottom: 0; right: 0;
-  background: rgba(0,0,0,.9);
-  border-top: 1px solid rgba(0,229,255,.3);
-  border-left: 1px solid rgba(0,229,255,.3);
-  padding: .85rem 1.1rem;
-  z-index: 1;
-  border-top-left-radius: 8px;
-}
-.coach-badge strong {
-  display: block;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--cyan);
-  line-height: 1;
-  margin-bottom: 3px;
-}
-.coach-badge span {
-  font-size: .5rem;
-  font-weight: 700;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--text-2);
-}
-
-/* Si no hay foto, mostrar placeholder */
-.coach-placeholder {
-  width: 100%; height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: .75rem;
-}
-.coach-placeholder svg {
-  width: 64px; height: 64px;
-  stroke: rgba(255,255,255,.1);
-  fill: none;
-  stroke-width: 1;
-}
-.coach-placeholder span {
-  font-size: .6rem;
-  font-weight: 600;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--text-2);
-}
-
-.coach-right {}
-
-.coach-right p {
-  font-size: .9rem;
-  font-weight: 400;
-  line-height: 1.8;
-  color: var(--text-2);
-  margin: 1.25rem 0 2rem;
-  max-width: 480px;
-}
-
-.cred-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.cred {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  padding: 1.1rem 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  transition: border-color .18s, background .18s;
-}
-.cred:hover { border-color: var(--border-c); background: var(--card); }
-.cred-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--cyan);
-  flex-shrink: 0;
-  margin-top: 5px;
-}
-.cred strong {
-  display: block;
-  font-size: .75rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 2px;
-}
-.cred small {
-  font-size: .72rem;
-  font-weight: 400;
-  color: var(--text-2);
-  line-height: 1.5;
-}
-
-/* ═══════════════════════════════════════════════════════
-   APPLY — Formulario
-═══════════════════════════════════════════════════════ */
-#apply {
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-}
-
-.apply-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  align-items: start;
-}
-
-.apply-left p {
-  font-size: .9rem;
-  font-weight: 400;
-  line-height: 1.8;
-  color: var(--text-2);
-  max-width: 400px;
-  margin: 1.25rem 0 2rem;
-}
-
-.apply-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.apply-step {
-  display: flex;
-  gap: .85rem;
-  align-items: flex-start;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  transition: border-color .18s;
-}
-.apply-step:hover { border-color: var(--border-c); }
-.apply-step-num {
-  font-size: .6rem;
-  font-weight: 800;
-  letter-spacing: .1em;
-  color: var(--cyan);
-  width: 22px;
-  flex-shrink: 0;
-  padding-top: 2px;
-}
-.apply-step strong {
-  display: block;
-  font-size: .78rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 2px;
-}
-.apply-step p { font-size: .74rem; font-weight: 400; color: var(--text-2); line-height: 1.55; margin: 0; }
-
-.form-wrap {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 2rem;
-}
-.form-header {
-  font-size: .6rem;
-  font-weight: 700;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--cyan);
-  margin-bottom: 1.75rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.field { margin-bottom: 1.1rem; }
-.field label {
-  display: block;
-  font-size: .6rem;
-  font-weight: 700;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--text-2);
-  margin-bottom: 7px;
-}
-.field input, .field select {
-  width: 100%;
-  background: #0a0a0c;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text);
-  font-family: var(--font-main);
-  font-size: .88rem;
-  font-weight: 400;
-  padding: 12px 14px;
-  outline: none;
-  transition: border-color .18s;
-  appearance: none;
-}
-.field input::placeholder { color: var(--text-2); opacity: .5; }
-.field input:focus, .field select:focus { border-color: var(--cyan); }
-.select-wrap { position: relative; }
-.select-wrap::after {
-  content: '▾';
-  position: absolute;
-  right: 14px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--cyan);
-  pointer-events: none;
-  font-size: .75rem;
-}
-.field select option { background: var(--card); }
-
-.radio-group { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2px; }
-.radio-item { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.radio-item input[type="radio"] { display: none; }
-.radio-box {
-  width: 15px; height: 15px;
-  border: 1px solid var(--text-2);
-  border-radius: 3px;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  transition: border-color .15s;
-}
-.radio-item:has(input:checked) .radio-box { border-color: var(--cyan); }
-.radio-item:has(input:checked) .radio-box::after {
-  content: '';
-  width: 7px; height: 7px;
-  background: var(--cyan);
-  border-radius: 2px;
-}
-.radio-item span {
-  font-size: .7rem;
-  font-weight: 500;
-  color: var(--text-2);
-}
-
-.form-note {
-  font-size: .68rem;
-  font-weight: 400;
-  color: var(--text-2);
-  line-height: 1.6;
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--border);
-}
-
-.form-success {
-  display: none;
-  text-align: center;
-  padding: 2.5rem 1rem;
-  flex-direction: column;
-  align-items: center;
-  gap: .85rem;
-}
-.form-success.show { display: flex; }
-.success-icon { width: 48px; height: 48px; color: var(--cyan); }
-.success-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -.5px;
-}
-.success-sub { font-size: .82rem; font-weight: 400; color: var(--text-2); }
-
-/* ═══════════════════════════════════════════════════════
-   FAQ
-═══════════════════════════════════════════════════════ */
-#faq {
-  background: #080808;
-  border-top: 1px solid var(--border);
-}
-
-.faq-layout {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 5rem;
-  align-items: start;
-}
-
-.faq-list { max-width: 660px; }
-.faq-item { border-bottom: 1px solid var(--border); }
-.faq-q {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.35rem 0;
-  background: none;
-  border: 0;
-  cursor: pointer;
-  text-align: left;
-  color: var(--text);
-}
-.faq-q-text {
-  font-size: .9rem;
-  font-weight: 500;
-  color: var(--text);
-  transition: color .15s;
-  line-height: 1.45;
-}
-.faq-q:hover .faq-q-text { color: var(--cyan); }
-.faq-q-icon {
-  width: 24px; height: 24px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  color: var(--text-2);
-  font-size: 1rem;
-  transition: border-color .18s, color .18s, transform .28s;
-}
-.faq-item.open .faq-q-icon { border-color: var(--cyan); color: var(--cyan); transform: rotate(45deg); }
-.faq-a { max-height: 0; overflow: hidden; transition: max-height .32s ease; }
-.faq-a p {
-  padding-bottom: 1.35rem;
-  font-size: .82rem;
-  font-weight: 400;
-  color: var(--text-2);
-  line-height: 1.75;
-}
-
-/* ═══════════════════════════════════════════════════════
-   CTA FINAL
-═══════════════════════════════════════════════════════ */
-#cta-final {
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  padding: clamp(5rem, 10vw, 8rem) clamp(1.25rem, 5vw, 3rem);
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-#cta-final::before {
-  content: '';
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  width: 800px; height: 800px;
-  background: radial-gradient(ellipse, rgba(0,229,255,.055) 0%, transparent 65%);
-  pointer-events: none;
-}
-
-.cta-eyebrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-size: .6rem;
-  font-weight: 700;
-  letter-spacing: .20em;
-  text-transform: uppercase;
-  color: var(--text-2);
-  margin-bottom: 1.5rem;
-}
-.cta-eyebrow::before, .cta-eyebrow::after {
-  content: '';
-  width: 36px; height: 1px;
-  background: var(--border);
-}
-
-.cta-title {
-  font-size: clamp(2.4rem, 5.5vw, 4.2rem);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -2px;
-  color: var(--text);
-  max-width: 700px;
-  margin: 0 auto 1.25rem;
-}
-.cta-title .accent { color: var(--cyan); }
-
-.cta-sub {
-  font-size: clamp(.88rem, 1.3vw, 1rem);
-  font-weight: 400;
-  line-height: 1.7;
-  color: var(--text-2);
-  max-width: 480px;
-  margin: 0 auto 2.5rem;
+  --bg:#020304;
+  --card:#101216;
+  --card-2:#15181d;
+  --border:rgba(255,255,255,.10);
+  --border-c:rgba(0,229,255,.32);
+  --text:#fff;
+  --text-2:#92929c;
+  --cyan:#00e5ff;
+  --cyan-dim:rgba(0,229,255,.10);
+  --green:#00e676;
+  --amber:#ffb340;
+  --font:'Sora',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --max:1160px;
+  --header:64px;
+  --radius:16px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+section{padding:clamp(3.6rem,6vw,5.2rem) clamp(1.25rem,5vw,3rem)}
+.inner{width:min(100%,var(--max));margin:auto}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--cyan)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;min-height:48px;padding:.9rem 1.45rem;border-radius:9px;font-size:.72rem;font-weight:800;letter-spacing:.10em;text-transform:uppercase;transition:.2s ease;white-space:nowrap}
+.btn-primary{background:var(--cyan);border:1px solid var(--cyan);color:#001014}
+.btn-primary:hover{background:transparent;color:var(--cyan)}
+.btn-outline{border:1px solid var(--border);color:var(--text-2);background:rgba(255,255,255,.025)}
+.btn-outline:hover{border-color:var(--border-c);color:var(--cyan)}
+.btn-wa{border:1px solid rgba(0,230,118,.34);background:rgba(0,230,118,.10);color:var(--green)}
+.btn-wa:hover{background:rgba(0,230,118,.17)}
+
+.label-tag{display:inline-flex;align-items:center;gap:.65rem;margin-bottom:.9rem;color:var(--cyan);font-size:.66rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.label-tag::before{content:'';width:22px;height:1px;background:var(--cyan)}
+.section-title{font-size:clamp(2rem,4.5vw,3.45rem);line-height:1.06;letter-spacing:-.045em;font-weight:800}
+.section-title .accent{color:var(--cyan)}
+.section-lead{margin-top:1.15rem;max-width:570px;color:var(--text-2);font-size:.92rem;line-height:1.75}
+
+#header{position:fixed;z-index:1000;top:0;left:0;right:0;height:var(--header);padding:0 clamp(1.25rem,5vw,3rem);display:flex;align-items:center;justify-content:space-between;gap:1rem;background:rgba(0,0,0,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:border-color .25s}
+#header.scrolled{border-color:rgba(0,229,255,.18)}
+.logo-mark{display:flex;align-items:center;gap:.65rem}
+nav.desk{display:flex;align-items:center;gap:1.8rem}
+nav.desk a{font-size:.63rem;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--text-2);transition:.15s}
+nav.desk a:hover{color:var(--text)}
+.header-right{display:flex;align-items:center;gap:.7rem}
+.lang-switch{display:flex;align-items:center;gap:.45rem}
+.lang-switch a{font-size:.58rem;font-weight:700;letter-spacing:.10em;color:var(--text-2)}
+.lang-switch a.active{color:var(--cyan)}
+.lang-switch span{color:rgba(255,255,255,.16)}
+.ham{display:none;width:42px;height:42px;border:1px solid var(--border);border-radius:9px;align-items:center;justify-content:center;flex-direction:column;gap:5px}
+.ham span{width:17px;height:1px;background:var(--text);transition:.2s}
+.ham.open span:first-child{transform:translateY(3px) rotate(45deg)}
+.ham.open span:last-child{transform:translateY(-3px) rotate(-45deg)}
+.mobile-menu{position:fixed;z-index:990;top:var(--header);left:0;right:0;padding:1rem 1.25rem 1.35rem;background:rgba(0,0,0,.98);border-bottom:1px solid var(--border);transform:translateY(-120%);opacity:0;pointer-events:none;transition:.25s}
+.mobile-menu.open{transform:none;opacity:1;pointer-events:auto}
+.mobile-menu>a{display:block;padding:1rem 0;border-bottom:1px solid var(--border);font-size:.72rem;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--text-2)}
+.mobile-menu .cta-m{margin-top:1rem;padding:.95rem 1rem;border:0;border-radius:8px;background:var(--cyan);color:#001014;text-align:center}
+.mobile-lang{display:flex;gap:1.25rem;padding-top:1rem}
+.mobile-lang a{font-size:.62rem;font-weight:700;letter-spacing:.12em;color:var(--text-2)}
+.mobile-lang a.active{color:var(--cyan)}
+
+#hero{min-height:100svh;padding-top:var(--header);display:flex;align-items:center;position:relative;overflow:hidden;background:var(--bg)}
+#hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(0,229,255,.026) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.026) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 78% 88% at 72% 46%,#000 0%,transparent 72%);pointer-events:none}
+#hero::after{content:'';position:absolute;right:-8%;top:10%;width:min(70vw,780px);aspect-ratio:1;background:radial-gradient(circle,rgba(0,229,255,.09),transparent 65%);pointer-events:none}
+.hero-content{position:relative;z-index:2;width:min(100%,var(--max));margin:auto;padding:clamp(3rem,6vw,5rem) clamp(1.25rem,5vw,3rem);display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.82fr);gap:clamp(2.5rem,6vw,5.5rem);align-items:center}
+.hero-pretitle{display:flex;align-items:center;gap:.65rem;margin-bottom:1.35rem;color:var(--cyan);font-size:.63rem;font-weight:800;letter-spacing:.17em;text-transform:uppercase}
+.hero-pretitle::before{content:'';width:24px;height:1px;background:var(--cyan)}
+.hero-h1{max-width:660px;margin-bottom:1.35rem;font-size:clamp(2.55rem,5vw,4.35rem);line-height:1.04;letter-spacing:-.055em;font-weight:800}
+.hero-h1 .accent{color:var(--cyan)}
+.hero-sub{max-width:570px;margin-bottom:1.8rem;color:var(--text-2);font-size:clamp(.92rem,1.35vw,1.06rem);line-height:1.72}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:.75rem}
+.hero-trust{margin-top:1.15rem;color:#70717a;font-size:.62rem;line-height:1.7;letter-spacing:.08em;text-transform:uppercase}
+
+.product-carousel{width:min(100%,390px);margin-inline:auto;display:flex;flex-direction:column;align-items:center}
+.phone-shell{position:relative;width:min(76vw,330px);aspect-ratio:9/16;padding:8px;border-radius:49px;background:linear-gradient(155deg,#2c3036 0%,#090a0c 32%,#000 74%);border:1px solid rgba(255,255,255,.18);box-shadow:0 40px 110px rgba(0,0,0,.78),0 0 0 1px rgba(0,229,255,.09),inset 0 1px 0 rgba(255,255,255,.16);touch-action:pan-y;user-select:none;isolation:isolate}
+.phone-shell::before{content:'';position:absolute;inset:-24px;z-index:-1;border-radius:70px;background:radial-gradient(circle at 50% 45%,rgba(0,229,255,.15),transparent 65%);filter:blur(8px)}
+.phone-viewport{position:relative;width:100%;height:100%;overflow:hidden;border-radius:41px;background:#000;border:1px solid rgba(255,255,255,.08)}
+.phone-slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:0;transform:scale(1.015);transition:opacity .55s ease,transform .8s ease;pointer-events:none;-webkit-user-drag:none}
+.phone-slide.is-active{opacity:1;transform:scale(1)}
+.phone-glare{position:absolute;inset:0;z-index:3;border-radius:41px;background:linear-gradient(115deg,rgba(255,255,255,.08),transparent 23%,transparent 68%,rgba(255,255,255,.025));pointer-events:none;mix-blend-mode:screen}
+.carousel-meta{width:100%;min-height:82px;margin-top:.9rem;text-align:center}
+.carousel-kicker{color:var(--cyan);font-size:.58rem;font-weight:800;letter-spacing:.17em;text-transform:uppercase}
+.carousel-title{margin-top:.42rem;font-size:1rem;font-weight:750;letter-spacing:-.02em}
+.carousel-desc{margin:.42rem auto 0;max-width:340px;color:var(--text-2);font-size:.76rem;line-height:1.55}
+.carousel-dots{display:flex;justify-content:center;gap:.55rem;margin-top:.9rem}
+.carousel-dot{width:7px;height:7px;border-radius:50%;background:#3f4147;transition:.2s;position:relative}
+.carousel-dot::after{content:'';position:absolute;inset:-8px}
+.carousel-dot.is-active{width:22px;border-radius:999px;background:var(--cyan);box-shadow:0 0 18px rgba(0,229,255,.4)}
+
+#features{background:#08090b;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.section-head{max-width:680px;margin-bottom:1.9rem}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.feature-card{position:relative;min-height:238px;padding:1.7rem;background:var(--card);transition:.2s}
+.feature-card:hover{background:var(--card-2)}
+.feature-card::before{content:'';position:absolute;left:0;top:0;width:100%;height:2px;background:var(--cyan);transform:scaleX(.28);transform-origin:left;transition:.2s}
+.feature-card:hover::before{transform:scaleX(1)}
+.feature-icon{width:42px;height:42px;margin-bottom:1.15rem;border:1px solid var(--border-c);border-radius:10px;display:grid;place-items:center;background:var(--cyan-dim)}
+.feature-icon svg{width:21px;height:21px;fill:none;stroke:var(--cyan);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.feature-title{font-size:1.04rem;font-weight:750;letter-spacing:-.02em}
+.feature-desc{margin-top:.7rem;color:var(--text-2);font-size:.83rem;line-height:1.65}
+.feature-note{margin-top:1.25rem;color:#60616a;font-size:.62rem;line-height:1.6;letter-spacing:.08em;text-transform:uppercase}
+
+#how{background:var(--bg)}
+.how-grid{display:grid;grid-template-columns:.72fr 1fr;gap:clamp(2.5rem,7vw,7rem);align-items:start}
+.how-copy{position:sticky;top:110px}
+.steps{border-top:1px solid var(--border)}
+.step{display:grid;grid-template-columns:68px 1fr;gap:1.1rem;padding:1.65rem 0;border-bottom:1px solid var(--border)}
+.step-num{font-size:.65rem;font-weight:800;letter-spacing:.14em;color:var(--cyan)}
+.step strong{display:block;margin-bottom:.45rem;font-size:1rem}
+.step p{color:var(--text-2);font-size:.82rem;line-height:1.65}
+
+#coach{background:#08090b;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.coach-grid{display:grid;grid-template-columns:minmax(280px,.72fr) 1fr;gap:clamp(2.5rem,7vw,6rem);align-items:center}
+.coach-visual{position:relative;min-height:430px;border-radius:20px;overflow:hidden;border:1px solid var(--border);background:linear-gradient(145deg,#15181d,#07090b)}
+.coach-visual>img{width:100%;height:100%;min-height:430px;object-fit:cover;object-position:center top}
+.coach-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--text-2)}
+.coach-placeholder svg{width:120px;fill:none;stroke:#52545d}
+.coach-placeholder span{display:block;margin-top:-80px;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase}
+.coach-visual>img:not([style*="display: none"])~.coach-placeholder{display:none}
+.coach-badge{position:absolute;left:18px;bottom:18px;padding:.85rem 1rem;border-radius:10px;background:rgba(0,0,0,.78);border:1px solid var(--border-c);backdrop-filter:blur(12px)}
+.coach-badge strong{display:block;color:var(--cyan);font-size:.95rem}
+.coach-badge span{font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-2)}
+.coach-copy>p{margin:1.2rem 0 1.6rem;max-width:600px;color:var(--text-2);font-size:.9rem;line-height:1.75}
+.cred-list{display:grid;gap:.7rem}
+.cred{display:grid;grid-template-columns:8px 1fr;gap:.8rem;padding:.9rem 0;border-top:1px solid var(--border)}
+.cred-dot{width:7px;height:7px;margin-top:.35rem;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px rgba(0,229,255,.45)}
+.cred strong{display:block;font-size:.82rem}
+.cred small{display:block;margin-top:.25rem;color:var(--text-2);font-size:.68rem;line-height:1.55}
+
+#faq{background:var(--bg)}
+.faq-layout{display:grid;grid-template-columns:.45fr 1fr;gap:clamp(2.5rem,7vw,7rem);align-items:start}
+.faq-list{border-top:1px solid var(--border)}
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-q{width:100%;padding:1.35rem 0;display:flex;justify-content:space-between;align-items:center;gap:1.25rem;text-align:left}
+.faq-q-text{font-size:.9rem;font-weight:700;transition:.15s}
+.faq-q:hover .faq-q-text{color:var(--cyan)}
+.faq-q-icon{width:28px;height:28px;flex:0 0 auto;border:1px solid var(--border);border-radius:50%;display:grid;place-items:center;color:var(--text-2);transition:.25s}
+.faq-item.open .faq-q-icon{transform:rotate(45deg);color:var(--cyan);border-color:var(--border-c)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.faq-a p{padding:0 3.2rem 1.35rem 0;color:var(--text-2);font-size:.8rem;line-height:1.7}
+
+#cta-final{text-align:center;background:linear-gradient(180deg,#08090b,#020304);border-top:1px solid var(--border)}
+.cta-eyebrow{color:var(--cyan);font-size:.64rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+.cta-title{margin-top:.85rem;font-size:clamp(2.3rem,5vw,4.2rem);line-height:1.02;letter-spacing:-.055em;font-weight:800}
+.cta-title .accent{color:var(--cyan)}
+.cta-sub{max-width:610px;margin:1.15rem auto 0;color:var(--text-2);font-size:.9rem;line-height:1.75}
+.cta-actions{margin-top:1.7rem;display:flex;justify-content:center;flex-wrap:wrap;gap:.75rem}
+
+footer{padding:2.5rem clamp(1.25rem,5vw,3rem);border-top:1px solid var(--border);background:#000}
+.footer-inner{width:min(100%,var(--max));margin:auto}
+.footer-top{display:flex;justify-content:space-between;align-items:flex-start;gap:2rem}
+.footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem 1.4rem;max-width:520px}
+.footer-link{font-size:.58rem;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--text-2)}
+.footer-link:hover,.footer-link.c{color:var(--cyan)}
+.footer-side{display:flex;flex-direction:column;align-items:flex-end;gap:.75rem}
+.social-link{font-size:.62rem;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--green)}
+.footer-bottom{margin-top:2rem;padding-top:1.2rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:1.5rem}
+.footer-legal{color:#5c5d66;font-size:.55rem;line-height:1.6}
+
+.reveal{opacity:0;transform:translateY(18px)}
+.reveal.visible{opacity:1;transform:none;transition:opacity .6s ease,transform .6s ease}
+.d1{transition-delay:.08s!important}.d2{transition-delay:.16s!important}.d3{transition-delay:.24s!important}
+
+@media(max-width:1050px){
+  nav.desk,.header-right{display:none}.ham{display:flex}
+  :root{--header:68px}
+  .hero-content{grid-template-columns:1fr;max-width:760px;text-align:center;padding-top:2.5rem}
+  .hero-pretitle,.hero-ctas{justify-content:center}.hero-sub{margin-inline:auto}.hero-trust{max-width:570px;margin-inline:auto;margin-top:.9rem}
+  .product-carousel{margin-top:0}
+  .how-grid,.faq-layout{grid-template-columns:1fr;gap:1.7rem}.how-copy{position:static}
+  .coach-grid{grid-template-columns:.78fr 1fr;gap:2.2rem}
+}
+
+@media(max-width:720px){
+  section{padding:2.8rem 1.25rem}
+  .logo-sub{display:none}
+  .section-title{font-size:clamp(1.95rem,9.5vw,2.7rem)}
+  .section-lead{margin-top:.85rem;font-size:.84rem;line-height:1.62}
+  .section-head{margin-bottom:1.35rem}
+  #hero{min-height:auto}
+  .hero-content{padding:1.75rem 1.25rem 2.7rem;gap:1.7rem}
+  .hero-pretitle{margin-bottom:.9rem;font-size:.56rem;line-height:1.55}
+  .hero-h1{margin-bottom:.9rem;font-size:clamp(2.12rem,10.5vw,2.85rem);line-height:1.02}
+  .hero-sub{margin-bottom:1.25rem;font-size:.86rem;line-height:1.62}
+  .hero-ctas{flex-direction:column;gap:.6rem}.hero-ctas .btn{width:100%;min-height:46px}
+  .hero-trust{margin-top:.75rem;font-size:.54rem;line-height:1.55}
+  .phone-shell{width:min(72vw,300px);padding:7px;border-radius:43px}
+  .phone-viewport,.phone-glare{border-radius:36px}
+  .phone-shell::before{inset:-16px}
+  .carousel-meta{min-height:54px;margin-top:.72rem}
+  .carousel-kicker{font-size:.53rem}
+  .carousel-title{margin-top:.3rem;font-size:.86rem}
+  .carousel-desc{display:none}
+  .carousel-dots{margin-top:.62rem;gap:.48rem}
+  .features-grid{grid-template-columns:1fr}
+  .feature-card{min-height:auto;padding:1.1rem 1.05rem;display:grid;grid-template-columns:40px 1fr;column-gap:.9rem;align-items:start}
+  .feature-card::before{width:3px;height:100%;transform:scaleY(.34);transform-origin:top}
+  .feature-card:hover::before{transform:scaleY(1)}
+  .feature-icon{width:38px;height:38px;margin:0;grid-row:1 / span 2}
+  .feature-icon svg{width:19px;height:19px}
+  .feature-title{font-size:.94rem;line-height:1.35}
+  .feature-desc{margin-top:.35rem;font-size:.76rem;line-height:1.55}
+  .feature-note{display:none}
+  .step{grid-template-columns:48px 1fr;gap:.75rem;padding:1.1rem 0}
+  .step strong{font-size:.92rem}.step p{font-size:.76rem;line-height:1.55}
+  .coach-grid{grid-template-columns:1fr;gap:1.6rem}
+  .coach-visual{min-height:0;aspect-ratio:4/4.55;max-height:400px;border-radius:16px}
+  .coach-visual>img{min-height:0;height:100%;object-position:center 12%}
+  .coach-badge{left:14px;bottom:14px;padding:.7rem .85rem}
+  .coach-copy>p{margin:.9rem 0 1rem;font-size:.8rem;line-height:1.62}
+  .cred-list{gap:.35rem}.cred{padding:.72rem 0}.cred strong{font-size:.78rem}.cred small{font-size:.64rem}
+  .faq-q{padding:1.05rem 0}.faq-q-text{font-size:.82rem}.faq-a p{padding:0 2.8rem 1rem 0;font-size:.75rem}
+  .cta-title{font-size:clamp(2rem,10vw,2.8rem)}.cta-sub{font-size:.82rem;line-height:1.6}.cta-actions{margin-top:1.2rem;flex-direction:column}.cta-actions .btn{width:100%}
+  footer{padding:2rem 1.25rem}.footer-top,.footer-bottom{flex-direction:column;align-items:flex-start}.footer-links{justify-content:flex-start}.footer-side{align-items:flex-start}.footer-bottom{margin-top:1.4rem}
+}
+
+@media(max-width:390px){
+  .phone-shell{width:min(74vw,286px)}
+  .hero-h1{font-size:clamp(2rem,10.2vw,2.55rem)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
 }
-
-.cta-actions {
-  display: flex;
-  gap: .85rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-/* ═══════════════════════════════════════════════════════
-   FOOTER
-═══════════════════════════════════════════════════════ */
-footer {
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  padding: 2.5rem clamp(1.25rem, 5vw, 3rem);
-}
-
-.footer-inner {
-  max-width: var(--max);
-  margin: 0 auto;
-}
-.footer-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
-}
-.footer-links {
-  display: flex;
-  gap: 1.75rem;
-  flex-wrap: wrap;
-}
-.footer-link {
-  font-size: .6rem;
-  font-weight: 600;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--text-2);
-  transition: color .15s;
-}
-.footer-link:hover { color: var(--text); }
-.footer-link.c { color: rgba(0,229,255,.6); }
-.footer-link.c:hover { color: var(--cyan); }
-.footer-link.a { opacity: .25; }
-.footer-link.a:hover { opacity: 1; color: var(--red); }
-
-.footer-social { display: flex; gap: .75rem; }
-.social-link {
-  width: 32px; height: 32px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  display: grid;
-  place-items: center;
-  font-size: .55rem;
-  font-weight: 700;
-  letter-spacing: .05em;
-  color: var(--text-2);
-  transition: border-color .18s, color .18s;
-}
-.social-link:hover { border-color: var(--cyan); color: var(--cyan); }
-
-.footer-bottom {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  padding-top: 1.5rem;
-}
-.footer-legal {
-  font-size: .56rem;
-  font-weight: 500;
-  letter-spacing: .08em;
-  color: rgba(143,143,153,.5);
-}
-
-/* ═══════════════════════════════════════════════════════
-   MOBILE HERO FIX — AB SYSTEM
-═══════════════════════════════════════════════════════ */
-
-@media (max-width: 1100px) {
-  nav.desk,
-  .header-right {
-    display: none;
-  }
-
-  .ham {
-    display: flex;
-  }
-
-  #header {
-    height: 72px;
-    padding: 0 1.5rem;
-    background: rgba(0,0,0,.94);
-  }
-
-  .mobile-menu {
-    top: 72px;
-  }
-
-  #hero {
-    min-height: auto;
-    padding-top: 72px;
-    align-items: flex-start;
-  }
-
-  .hero-content {
-    grid-template-columns: 1fr;
-    gap: 1.8rem;
-    padding: 2.4rem 1.25rem 3rem;
-  }
-
-  .hero-pretitle {
-    margin-bottom: 1rem;
-  }
-
-  .hero-h1 {
-    font-size: clamp(2rem, 9vw, 2.75rem);
-    line-height: 1.08;
-    margin-bottom: 1rem;
-  }
-
-  .hero-sub {
-    font-size: .92rem;
-    line-height: 1.65;
-    margin-bottom: 1.5rem;
-  }
-
-  .hero-ctas {
-    flex-direction: column;
-    gap: .7rem;
-  }
-
-  .hero-ctas .btn {
-    width: 100%;
-  }
-
-  .hero-chips {
-    margin-top: 1.2rem;
-    gap: .45rem;
-  }
-
-  .hero-chip {
-    font-size: .54rem;
-    padding: .48rem .7rem;
-  }
-
-  .hero-right {
-    min-height: auto;
-    margin-top: .5rem;
-  }
-
-  .product-stage {
-    width: 100%;
-    max-width: 360px;
-    height: 390px;
-    margin: 0 auto;
-    border-radius: 28px;
-  }
-
-  .phone-main {
-    width: 250px;
-    height: 355px;
-    left: 50%;
-    top: 18px;
-    transform: translateX(-50%);
-    border-radius: 32px;
-    padding: 12px;
-  }
-
-  .phone-back {
-    display: none;
-  }
-
-  .phone-notch {
-    width: 74px;
-    height: 22px;
-  }
-
-  .app-top {
-    height: 38px;
-    margin-bottom: 8px;
-  }
-
-  .avatar-dot {
-    width: 24px;
-    height: 24px;
-  }
-
-  .app-status {
-    font-size: .43rem;
-    padding: 6px 8px;
-  }
-
-  .app-mini-label {
-    font-size: .46rem;
-    padding: 7px;
-    margin-bottom: 8px;
-  }
-
-  .load-tabs {
-    gap: 5px;
-    margin-bottom: 8px;
-  }
-
-  .load-tabs span {
-    font-size: .45rem;
-    padding: 6px 0;
-  }
-
-  .session-card {
-    padding: 10px;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-
-  .session-card strong {
-    font-size: .55rem;
-  }
-
-  .session-card small {
-    font-size: .45rem;
-    margin-top: 4px;
-  }
-
-  .timer-row {
-    padding: 8px;
-    margin-bottom: 8px;
-  }
-
-  .timer-row strong {
-    font-size: .78rem;
-  }
-
-  .timer-row span {
-    font-size: .42rem;
-  }
-
-  .timer-row button {
-    width: 25px;
-    height: 25px;
-  }
-
-  .exercise-row {
-    padding: 9px 8px;
-    gap: 8px;
-  }
-
-  .check {
-    width: 20px;
-    height: 20px;
-    border-radius: 5px;
-  }
-
-  .exercise-row strong {
-    font-size: .52rem;
-    line-height: 1.25;
-  }
-
-  .exercise-row small {
-    font-size: .42rem;
-  }
-
-  .phone-nav {
-    left: 12px;
-    right: 12px;
-    bottom: 10px;
-    height: 36px;
-  }
-
-  .phone-nav span {
-    font-size: .38rem;
-  }
-
-  .stage-badge {
-    bottom: 14px;
-    top: auto;
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-    font-size: .48rem;
-    padding: 7px 11px;
-  }
-
-  .features-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .forwho-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .how-grid,
-  .coach-grid,
-  .apply-grid,
-  .faq-layout,
-  .diff-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .how-sticky {
-    position: static;
-  }
-}
-
-@media (max-width: 600px) {
-  section {
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
-  }
-
-  .hero-content {
-    padding-top: 2rem;
-    padding-bottom: 2.7rem;
-  }
-
-  .product-stage {
-    max-width: 335px;
-    height: 360px;
-  }
-
-  .phone-main {
-    width: 232px;
-    height: 330px;
-    top: 15px;
-  }
-
-  .hero-chip {
-    font-size: .5rem;
-  }
-
-  .ticker {
-    display: none;
-  }
-
-  .features-grid,
-  .forwho-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .logo-sub {
-    display: none;
-  }
-}
-
-/* Móvil pequeño */
-@media (max-width: 390px) {
-  .hero-right {
-    min-height: 400px;
-  }
-
-  .hero-right::before {
-    height: 400px;
-  }
-
-  .screens-stack {
-    height: 400px;
-  }
-
-  .screen-main {
-    width: min(70vw, 225px);
-    top: 50px;
-  }
-
-  .screen-tag {
-    bottom: 22px;
-  }
-}
-
-
-/* ═══════════════════════════════════════════════════════
-   FINAL FIX — HERO SCREEN SHOWCASE WITH REAL AB IMAGES
-   Reemplaza visualmente el mockup dibujado por capturas reales.
-═══════════════════════════════════════════════════════ */
-
-#hero {
-  min-height: 100svh;
-}
-
-.hero-content {
-  align-items: center;
-}
-
-.hero-right {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 640px;
-  animation: fadeUp .7s ease .2s both;
-}
-
-.ab-showcase {
-  position: relative;
-  width: min(100%, 540px);
-  height: 640px;
-  border-radius: 34px;
-  background:
-    radial-gradient(circle at 68% 22%, rgba(0,229,255,.18), transparent 35%),
-    linear-gradient(145deg, #101923, #071015 68%, #030506);
-  border: 1px solid rgba(0,229,255,.18);
-  box-shadow:
-    0 44px 130px rgba(0,0,0,.82),
-    inset 0 1px 0 rgba(255,255,255,.05);
-  overflow: hidden;
-  isolation: isolate;
-}
-
-.ab-showcase::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(0,229,255,.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,.045) 1px, transparent 1px);
-  background-size: 56px 56px;
-  opacity: .58;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.ab-showcase::after {
-  content: '';
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 32%;
-  background: linear-gradient(180deg, transparent, rgba(0,0,0,.64));
-  pointer-events: none;
-  z-index: 1;
-}
-
-.ab-showcase-stage {
-  position: relative;
-  width: 100%;
-  height: 558px;
-  z-index: 2;
-}
-
-.ab-screen {
-  position: absolute;
-  display: block;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  border-radius: 30px;
-  overflow: hidden;
-  transition:
-    transform .45s ease,
-    opacity .35s ease,
-    filter .35s ease,
-    width .45s ease,
-    left .45s ease,
-    right .45s ease,
-    top .45s ease;
-}
-
-.ab-screen img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 30px;
-  box-shadow:
-    0 24px 70px rgba(0,0,0,.76),
-    0 0 0 1px rgba(255,255,255,.12);
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-.ab-screen.is-active {
-  width: 292px;
-  left: 56px;
-  top: 44px;
-  z-index: 4;
-  opacity: 1;
-  transform: translate3d(0,0,0) scale(1);
-  filter: none;
-}
-
-.ab-screen.is-next {
-  width: 238px;
-  right: 34px;
-  top: 112px;
-  z-index: 3;
-  opacity: .46;
-  transform: translate3d(0,0,0) scale(.96);
-  filter: brightness(.74) saturate(.82);
-}
-
-.ab-screen.is-next:hover {
-  opacity: .68;
-  filter: brightness(.9) saturate(1);
-}
-
-.ab-showcase-tabs {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 24px;
-  z-index: 8;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.ab-showcase-tabs button {
-  min-height: 46px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.45);
-  color: var(--text-2);
-  font-size: .58rem;
-  font-weight: 800;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  backdrop-filter: blur(12px);
-  transition: all .2s ease;
-}
-
-.ab-showcase-tabs button.is-active {
-  background: var(--cyan);
-  color: #000;
-  border-color: var(--cyan);
-  box-shadow: 0 10px 34px rgba(0,229,255,.28);
-}
-
-.ab-showcase-tabs button:not(.is-active):hover {
-  border-color: rgba(0,229,255,.32);
-  color: var(--text);
-}
-
-@media (max-width: 1180px) {
-  nav.desk,
-  .header-right {
-    display: none !important;
-  }
-
-  .ham {
-    display: flex !important;
-  }
-
-  #header {
-    height: 72px;
-    padding: 0 1.5rem;
-    background: rgba(0,0,0,.94);
-  }
-
-  .mobile-menu {
-    top: 72px;
-  }
-
-  #hero {
-    min-height: auto;
-    padding-top: 72px;
-    align-items: flex-start;
-  }
-
-  .hero-content {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    padding: 2.35rem 1.25rem 3.25rem;
-  }
-
-  .hero-pretitle {
-    margin-bottom: 1rem;
-  }
-
-  .hero-h1 {
-    font-size: clamp(2rem, 9vw, 2.75rem);
-    line-height: 1.08;
-    margin-bottom: 1rem;
-  }
-
-  .hero-sub {
-    font-size: .92rem;
-    line-height: 1.65;
-    margin-bottom: 1.5rem;
-  }
-
-  .hero-ctas {
-    flex-direction: column;
-    gap: .7rem;
-  }
-
-  .hero-ctas .btn {
-    width: 100%;
-  }
-
-  .hero-chips {
-    margin-top: 1.2rem;
-    gap: .45rem;
-  }
-
-  .hero-chip {
-    font-size: .54rem;
-    padding: .48rem .7rem;
-  }
-
-  .hero-right {
-    min-height: auto;
-    margin-top: .4rem;
-  }
-
-  .ab-showcase {
-    width: min(100%, 372px);
-    height: 540px;
-    border-radius: 28px;
-    margin: 0 auto;
-  }
-
-  .ab-showcase-stage {
-    height: 458px;
-  }
-
-  .ab-screen.is-active {
-    width: 252px;
-    left: 50%;
-    top: 24px;
-    transform: translateX(-50%) scale(1);
-    opacity: 1;
-    filter: none;
-    pointer-events: auto;
-  }
-
-  .ab-screen.is-next {
-    width: 252px;
-    left: 50%;
-    right: auto;
-    top: 24px;
-    transform: translateX(-50%) scale(.94);
-    opacity: 0;
-    filter: brightness(.7);
-    pointer-events: none;
-  }
-
-  .ab-showcase-tabs {
-    left: 18px;
-    right: 18px;
-    bottom: 18px;
-  }
-
-  .ticker {
-    display: none;
-  }
-}
-
-@media (max-width: 420px) {
-  .ab-showcase {
-    height: 510px;
-  }
-
-  .ab-showcase-stage {
-    height: 430px;
-  }
-
-  .ab-screen.is-active,
-  .ab-screen.is-next {
-    width: 232px;
-  }
-
-  .ab-showcase-tabs button {
-    font-size: .52rem;
-    min-height: 42px;
-    letter-spacing: .11em;
-  }
-}
-
-@media (max-width: 360px) {
-  .ab-screen.is-active,
-  .ab-screen.is-next {
-    width: 214px;
-  }
-}
-
-
-
-/* ═══════════════════════════════════════════════════════
-   AB POLISH — hero más claro, limpio y preparado para capturas reales
-═══════════════════════════════════════════════════════ */
-#hero {
-  background:
-    radial-gradient(circle at 78% 42%, rgba(0,229,255,.085), transparent 34%),
-    radial-gradient(circle at 18% 10%, rgba(255,255,255,.035), transparent 26%),
-    linear-gradient(180deg, #040608 0%, #020304 74%);
-}
-
-#hero::before {
-  opacity: .72;
-  mask-image: radial-gradient(ellipse 86% 82% at 72% 48%, rgba(0,0,0,.85) 0%, transparent 72%);
-}
-
-#hero::after {
-  top: 12%;
-  right: -2%;
-  width: 54vw;
-  height: 54vw;
-  background: radial-gradient(ellipse, rgba(0,229,255,.105) 0%, transparent 62%);
-}
-
-.hero-trust {
-  margin-top: 1.1rem;
-  font-size: .68rem;
-  font-weight: 600;
-  letter-spacing: .02em;
-  color: rgba(255,255,255,.72);
-  animation: fadeUp .6s ease .5s both;
-}
-
-.ab-showcase {
-  width: min(100%, 560px);
-  height: 650px;
-  background:
-    radial-gradient(circle at 70% 24%, rgba(0,229,255,.22), transparent 34%),
-    radial-gradient(circle at 18% 86%, rgba(255,255,255,.045), transparent 26%),
-    linear-gradient(145deg, #14202a 0%, #0c151c 54%, #05080a 100%);
-  border-color: rgba(0,229,255,.26);
-  box-shadow:
-    0 34px 96px rgba(0,0,0,.66),
-    0 0 0 1px rgba(255,255,255,.035),
-    inset 0 1px 0 rgba(255,255,255,.07);
-}
-
-.ab-showcase::before {
-  opacity: .44;
-}
-
-.ab-showcase::after {
-  height: 20%;
-  background: linear-gradient(180deg, transparent, rgba(0,0,0,.34));
-}
-
-.ab-screen img {
-  box-shadow:
-    0 18px 54px rgba(0,0,0,.58),
-    0 0 0 1px rgba(255,255,255,.15);
-}
-
-.ab-screen.is-active {
-  width: 306px;
-  left: 48px;
-  top: 34px;
-}
-
-.ab-screen.is-next {
-  width: 248px;
-  right: 30px;
-  top: 104px;
-  opacity: .66;
-  filter: brightness(.96) saturate(.98);
-}
-
-.ab-screen.is-next:hover {
-  opacity: .82;
-  filter: brightness(1.04) saturate(1.04);
-}
-
-.ab-screen.has-image-error {
-  width: 306px;
-  min-height: 530px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.025)),
-    #080b0e;
-  border: 1px solid rgba(255,255,255,.14);
-}
-
-.ab-screen.has-image-error img { display: none; }
-
-.ab-screen.has-image-error::before {
-  content: 'Sube esta imagen a Vercel con el mismo nombre';
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 1.5rem;
-  text-align: center;
-  color: rgba(255,255,255,.72);
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.ab-showcase-tabs button {
-  background: rgba(4,8,10,.68);
-}
-
-.footer-social .social-link {
-  min-width: 86px;
-}
-
-@media (max-width: 1180px) {
-  .ab-showcase {
-    width: min(100%, 382px);
-    height: 545px;
-  }
-
-  .ab-showcase-stage {
-    height: 462px;
-  }
-
-  .ab-screen.is-active,
-  .ab-screen.is-next {
-    width: 258px;
-    left: 50%;
-    top: 22px;
-  }
-
-  .ab-screen.has-image-error {
-    min-height: 452px;
-  }
-}
-
-@media (max-width: 420px) {
-  .ab-showcase {
-    height: 518px;
-  }
-
-  .ab-showcase-stage {
-    height: 438px;
-  }
-
-  .ab-screen.is-active,
-  .ab-screen.is-next {
-    width: 236px;
-  }
-
-  .hero-trust {
-    font-size: .64rem;
-    line-height: 1.55;
-  }
-}
-
-
-
-/* ═══════════════════════════════════════════════════════
-   AB FIX — iOS captura de página completa / fullscreen
-   Evita que Safari/iPhone pierda imágenes con absolute + transform
-   En móvil dejamos jednom captura estable y las pestañas cambian la imagen.
-═══════════════════════════════════════════════════════ */
-@media (max-width: 1180px) {
-  .hero-right {
-    display: block !important;
-    width: 100% !important;
-  }
-
-  .ab-showcase {
-    height: auto !important;
-    min-height: 0 !important;
-    padding: 18px 16px 16px !important;
-    overflow: visible !important;
-  }
-
-  .ab-showcase-stage {
-    position: relative !important;
-    display: block !important;
-    height: auto !important;
-    min-height: 0 !important;
-    z-index: 2 !important;
-  }
-
-  .ab-screen,
-  .ab-screen.is-active,
-  .ab-screen.is-next {
-    position: relative !important;
-    display: block !important;
-    inset: auto !important;
-    left: auto !important;
-    right: auto !important;
-    top: auto !important;
-    bottom: auto !important;
-    width: min(100%, 258px) !important;
-    margin: 0 auto !important;
-    transform: none !important;
-    opacity: 1 !important;
-    filter: none !important;
-    pointer-events: auto !important;
-    border-radius: 26px !important;
-  }
-
-  .ab-screen.is-next {
-    display: none !important;
-  }
-
-  .ab-screen.is-active {
-    display: block !important;
-  }
-
-  .ab-screen img {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-    opacity: 1 !important;
-    filter: none !important;
-    transform: none !important;
-  }
-
-  .ab-showcase-tabs {
-    position: relative !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    margin: 14px 0 0 !important;
-    z-index: 8 !important;
-  }
-}
-
-@media (max-width: 420px) {
-  .ab-showcase {
-    padding: 16px 14px 14px !important;
-  }
-
-  .ab-screen,
-  .ab-screen.is-active,
-  .ab-screen.is-next {
-    width: min(100%, 236px) !important;
-  }
-}
-
-/* Cuando iPhone genera PDF/captura de página completa suele usar un flujo parecido a impresión.
-   Aquí quitamos animaciones, filtros, capas absolutas y overlays para que las imágenes no desaparezcan. */
-@media print {
-  * {
-    animation: none !important;
-    transition: none !important;
-    filter: none !important;
-  }
-
-  body {
-    background: #000 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  #header {
-    position: static !important;
-  }
-
-  .ab-showcase {
-    height: auto !important;
-    overflow: visible !important;
-    page-break-inside: avoid !important;
-  }
-
-  .ab-showcase::before,
-  .ab-showcase::after {
-    display: none !important;
-  }
-
-  .ab-showcase-stage {
-    position: relative !important;
-    display: flex !important;
-    gap: 14px !important;
-    height: auto !important;
-    padding: 18px !important;
-  }
-
-  .ab-screen,
-  .ab-screen.is-active,
-  .ab-screen.is-next {
-    position: relative !important;
-    display: block !important;
-    inset: auto !important;
-    left: auto !important;
-    right: auto !important;
-    top: auto !important;
-    width: 47% !important;
-    margin: 0 !important;
-    transform: none !important;
-    opacity: 1 !important;
-    filter: none !important;
-  }
-
-  .ab-screen img {
-    display: block !important;
-    width: 100% !important;
-    height: auto !important;
-    opacity: 1 !important;
-    filter: none !important;
-    transform: none !important;
-  }
-
-  .ab-showcase-tabs,
-  .ticker,
-  .mobile-menu,
-  .ham {
-    display: none !important;
-  }
-}
-
-
-/* ═══════════════════════════════════════════════════════
-   AB POLISH 02 — lectura móvil más rápida y tarjetas compactas
-═══════════════════════════════════════════════════════ */
-.features-header { margin-bottom: 2.25rem; }
-.feature-card { min-height: auto; }
-.feature-icon { margin-bottom: .95rem; }
-.feature-title { margin-bottom: .38rem; }
-
-.step { padding: 1.25rem 1.35rem; }
-.step-num {
-  width: 34px;
-  color: rgba(0,229,255,.34);
-}
-.step:hover .step-num { color: rgba(0,229,255,.55); }
-
-.forwho-card { min-height: 205px; }
-.forwho-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  height: 22px;
-  padding: 0 .45rem;
-  margin-bottom: .85rem;
-  border: 1px solid rgba(0,229,255,.24);
-  border-radius: 999px;
-  background: rgba(0,229,255,.07);
-  letter-spacing: .04em;
-  line-height: 1;
-}
-
-.apply-left > p,
-.form-wrap > p {
-  max-width: 520px;
-}
-
-@media (max-width: 600px) {
-  section {
-    padding-top: 4.4rem;
-    padding-bottom: 4.4rem;
-  }
-
-  .section-title {
-    font-size: clamp(1.85rem, 9vw, 2.45rem);
-    line-height: 1.05;
-  }
-
-  .features-header {
-    margin-bottom: 1.7rem;
-  }
-
-  .feature-card,
-  .forwho-card {
-    padding: 1.25rem;
-    min-height: auto;
-  }
-
-  .feature-icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
-    margin-bottom: .8rem;
-  }
-
-  .feature-icon svg {
-    width: 17px;
-    height: 17px;
-  }
-
-  .feature-title,
-  .forwho-card h3 {
-    font-size: .92rem;
-  }
-
-  .feature-desc,
-  .forwho-card p,
-  .step-body p {
-    font-size: .76rem;
-    line-height: 1.52;
-  }
-
-  .how-sticky p {
-    max-width: none !important;
-    margin-top: .9rem !important;
-    line-height: 1.58 !important;
-  }
-
-  .steps {
-    border-radius: 14px;
-  }
-
-  .step {
-    padding: 1.05rem 1rem;
-    gap: .85rem;
-  }
-
-  .step-num {
-    width: 26px;
-    font-size: 1.15rem;
-    letter-spacing: 0;
-    color: rgba(0,229,255,.44);
-  }
-
-  .step-body strong {
-    font-size: .82rem;
-  }
-
-  .forwho-grid {
-    margin-top: 1.8rem;
-  }
-
-  .forwho-num {
-    min-width: 28px;
-    height: 20px;
-    font-size: .55rem;
-    margin-bottom: .7rem;
-  }
-
-  .for-who-note {
-    margin-top: 1.25rem;
-    padding: 1rem;
-    font-size: .8rem;
-    line-height: 1.55;
-  }
-
-  .diff-card {
-    padding: 1.25rem !important;
-  }
-
-  .apply-left > p,
-  .form-wrap > p {
-    font-size: .84rem !important;
-    line-height: 1.6 !important;
-  }
-
-  .apply-steps {
-    margin-top: 1.5rem;
-  }
-
-  .apply-step {
-    padding: 1rem 0;
-  }
-}
-
 </style>
 </head>
 <body>
 
-<!-- ═══ HEADER ════════════════════════════════════════ -->
 <header id="header">
   <a href="#hero" class="logo-mark" aria-label="AB SYSTEM">
-    <div class="logo-letters"><span class="c">[</span>AB<span class="c">]</span></div>
-    <div class="logo-sub">
-      <span>SYSTEM</span>
-      Health &amp; Performance
+    <div style="display:flex;flex-direction:column;align-items:flex-start;line-height:1;gap:0">
+      <div style="display:flex;align-items:baseline;gap:5px">
+        <span style="font-size:1.35rem;font-weight:800;letter-spacing:-.04em;color:#00e5ff">AB</span>
+        <span style="font-size:1.35rem;font-weight:400;letter-spacing:.06em;color:#fff">SYSTEM</span>
+      </div>
+      <div style="width:22px;height:2px;background:#00e5ff;margin-top:3px"></div>
     </div>
   </a>
 
-  <nav class="desk">
+  <nav class="desk" aria-label="Glavna navigacija">
     <a href="#features">Sistem</a>
     <a href="#how">Kako funkcioniše</a>
-    <a href="#for-who">Za koga</a>
-    <a href="#coach">Kouč</a>
-    <a href="#apply">Procena</a>
-    <a href="/cliente.html">Klijentska zona</a>
-   <a href="/admin-mobile.html" class="coach-access">Pristup kouča</a>
+    <a href="#coach">Trener</a>
+    <a href="#faq">Pitanja</a>
+    <a href="/cliente" style="color:rgba(0,229,255,.72)">Klijentski prostor</a>
+    <a class="coach-access" href="/coach?logout=1&v=coach-clean-01" style="color:rgba(0,229,255,.72)">Pristup trenera</a>
   </nav>
 
   <div class="header-right">
-    <div class="lang-switch">
-      <a href="/">ES</a>
-      <span>|</span>
-      <a class="active" href="/sr.html">SR</a>
-      <span>|</span>
-      <a href="/en.html">EN</a>
+    <div class="lang-switch" aria-label="Jezik">
+      <a href="/">ES</a><span>|</span><a class="active" href="/sr.html">SR</a><span>|</span><a href="/en.html">EN</a>
     </div>
-    <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20hacer%20jednom%20evaluaci%C3%B3n%20inicial%20con%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Prva nedelja besplatno</a>
+    <a href="https://wa.me/381638112348?text=Zdravo%20Abel%2C%20želim%20da%20zakažem%20inicijalnu%20procenu%20u%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Besplatna procena</a>
   </div>
 
-  <button class="ham" id="hamBtn" onclick="toggleMenu()" aria-label="Menú">
-    <span></span><span></span><span></span>
-  </button>
+  <button class="ham" id="hamBtn" type="button" onclick="toggleMenu()" aria-label="Otvori meni" aria-controls="mobileNav" aria-expanded="false"><span></span><span></span></button>
 </header>
 
-<!-- Mobile nav -->
 <div class="mobile-menu" id="mobileNav">
   <a href="#features" onclick="closeMenu()">Sistem</a>
   <a href="#how" onclick="closeMenu()">Kako funkcioniše</a>
-  <a href="#for-who" onclick="closeMenu()">Za koga</a>
-  <a href="#coach" onclick="closeMenu()">Kouč</a>
-  <a href="#apply" onclick="closeMenu()">Procena</a>
-  <a href="/cliente.html" onclick="closeMenu()">Klijentska zona</a>
-  <a href="/admin-mobile.html" class="coach-access-m" onclick="closeMenu()">Pristup kouča</a>
-  <a href="#apply" class="cta-m" onclick="closeMenu()">Procena inicial</a>
-  <div class="mobile-lang">
-    <a href="/">ES</a>
-    <a class="active" href="/sr.html">SR</a>
-    <a href="/en.html">EN</a>
-  </div>
+  <a href="#coach" onclick="closeMenu()">Trener</a>
+  <a href="#faq" onclick="closeMenu()">Pitanja</a>
+  <a href="/cliente" onclick="closeMenu()">Klijentski prostor</a>
+  <a class="coach-access-m" href="/coach?logout=1&v=coach-clean-01" onclick="closeMenu()">Pristup trenera</a>
+  <a href="https://wa.me/381638112348?text=Zdravo%20Abel%2C%20želim%20da%20zakažem%20inicijalnu%20procenu%20u%20AB%20SYSTEM." target="_blank" rel="noopener" class="cta-m" onclick="closeMenu()">Besplatna procena</a>
+  <div class="mobile-lang"><a href="/">ES</a><a class="active" href="/sr.html">SR</a><a href="/en.html">EN</a></div>
 </div>
 
-<!-- ═══ HERO ══════════════════════════════════════════ -->
+<main>
 <section id="hero">
-  <div class="hero-scanline" aria-hidden="true"></div>
-
   <div class="hero-content">
     <div class="hero-left">
-      <div class="hero-pretitle">
-        <div class="line"></div>
-        <span>Sistem treninga · Beograd · Online</span>
-      </div>
-
-      <h1 class="hero-h1">
-        Tvoj trening,<br>
-        tvoj napredak i tvoj<br>
-        kouč u <span class="accent">jednom sistemu.</span>
-      </h1>
-
-      <p class="hero-sub">
-        AB SYSTEM povezuje planiranje, trening, check-in, rezervacije, zdravlje i napredak kako bi trenirao sa strukturom i stvarnim praćenjem.
-      </p>
-
+      <div class="hero-pretitle">Sistem treninga · Beograd · Online</div>
+      <h1 class="hero-h1">Tvoj trening, tvoj napredak i tvoj trener u <span class="accent">jednom sistemu.</span></h1>
+      <p class="hero-sub">AB SYSTEM povezuje planiranje, trening, check-in, rezervacije, zdravlje i napredak da treniraš sa strukturom i pravim praćenjem.</p>
       <div class="hero-ctas">
-        <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20hacer%20jednom%20evaluaci%C3%B3n%20inicial%20con%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Prva nedelja besplatno</a>
-        <a href="#how" class="btn btn-outline">Vidi sistem u akciji</a>
+        <a href="https://wa.me/381638112348?text=Zdravo%20Abel%2C%20želim%20da%20zakažem%20inicijalnu%20procenu%20u%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Besplatna procena</a>
+        <a href="#how" class="btn btn-outline">Kako funkcioniše</a>
       </div>
-      
-      <p class="hero-trust">
-        UWW Nivo 2 · Funkcionalni trening sa rvačkom bazom · Beograd / online
-      </p>
-
-      <div class="hero-chips">
-  <a href="#features" class="hero-chip">Procena</a>
-  <a href="#features" class="hero-chip">Planiranje</a>
-  <a href="#how" class="hero-chip">Praćenje</a>
-  <a href="#how" class="hero-chip">Adaptacija</a>
-  <a href="#features" class="hero-chip">Dnevni check-in</a>
-</div>
+      <p class="hero-trust">UWW Level 2 · Funkcionalni trening sa osnovom rvanja · Beograd / online</p>
     </div>
 
-    <!-- Screenshots reales de la app -->
     <div class="hero-right">
-      <div class="ab-showcase" data-ab-showcase>
-
-        <div class="ab-showcase-stage">
-          <!-- HERO CON IMÁGENES REALES HQ -->
-<button class="ab-screen is-active" data-screen="0" type="button" aria-label="Ver sesión activa Bloque 3">
-  <img
-    src="/IMG_2394.jpeg"
-    onerror="this.parentElement.classList.add('has-image-error')"
-    alt="AB SYSTEM — Bloque 3 Circuito Clinch-Fitness con remo en postura de lucha, woodchop y pummeling"
-    loading="eager"
-    decoding="async"
-  >
-</button>
-
-<button class="ab-screen is-next" data-screen="1" type="button" aria-label="Ver perfil cliente activo">
-  <img
-    src="/IMG_2391.jpeg"
-    onerror="this.parentElement.classList.add('has-image-error')"
-    alt="AB SYSTEM — Perfil cliente ACTIVO con 100% adherencia, accesos rápidos y próxima sesión"
-    loading="eager"
-    decoding="async"
-  >
-</button>
+      <div class="product-carousel" data-product-carousel aria-roledescription="karusel" aria-label="Ekrani AB SYSTEM">
+        <div class="phone-shell" data-carousel-gesture tabindex="0" aria-label="Prevuci za promenu ekrana">
+          <div class="phone-viewport">
+            <img class="phone-slide is-active" src="/Imagen-3.PNG" alt="Početni ekran AB SYSTEM sa treningom, zdravljem i konstantnošću" width="864" height="1536" loading="eager" decoding="async" fetchpriority="high" data-slide="0">
+            <img class="phone-slide" src="/Imagen-5.PNG" alt="Vođeni trening sa tajmerom intervala" width="864" height="1536" loading="eager" decoding="async" data-slide="1">
+            <img class="phone-slide" src="/Imagen-2.PNG" alt="Detalji vežbi sa serijama, ponavljanjima i uputstvima" width="864" height="1536" loading="lazy" decoding="async" data-slide="2">
+            <img class="phone-slide" src="/Imagen-6.PNG" alt="Kalendar rezervacija i potvrđena sesija" width="941" height="1672" loading="lazy" decoding="async" data-slide="3">
+            <img class="phone-slide" src="/Imagen-4.PNG" alt="Napredak, istorijat i procene klijenta" width="864" height="1536" loading="lazy" decoding="async" data-slide="4">
+            <img class="phone-slide" src="/Imagen-1.PNG" alt="Dnevni check-in sna, energije i tegoba" width="864" height="1536" loading="lazy" decoding="async" data-slide="5">
+            <div class="phone-glare" aria-hidden="true"></div>
+          </div>
         </div>
-
-        <div class="ab-showcase-tabs" aria-label="Cambiar pantalla del sistema">
-          <button class="is-active" type="button" data-go-screen="0">Prilagođeni trening</button>
-<button type="button" data-go-screen="1">AKTIVAN klijent</button>
+        <div class="carousel-meta" aria-live="polite" aria-atomic="true">
+          <div class="carousel-kicker" data-carousel-kicker>Početak</div>
+          <div class="carousel-title" data-carousel-title>Tvoj dan i tvoj plan na jednom mestu.</div>
+          <p class="carousel-desc" data-carousel-desc>Pogledaj dostupni trening, svoje stanje i nedeljni napredak bez lutanja po ekranima.</p>
+          <div class="carousel-dots" role="tablist" aria-label="Izaberi ekran">
+            <button class="carousel-dot is-active" type="button" role="tab" aria-selected="true" aria-label="Početak" data-carousel-dot="0"></button>
+            <button class="carousel-dot" type="button" role="tab" aria-selected="false" aria-label="Trening" data-carousel-dot="1"></button>
+            <button class="carousel-dot" type="button" role="tab" aria-selected="false" aria-label="Vežbe" data-carousel-dot="2"></button>
+            <button class="carousel-dot" type="button" role="tab" aria-selected="false" aria-label="Rezervacije" data-carousel-dot="3"></button>
+            <button class="carousel-dot" type="button" role="tab" aria-selected="false" aria-label="Napredak" data-carousel-dot="4"></button>
+            <button class="carousel-dot" type="button" role="tab" aria-selected="false" aria-label="Zdravlje" data-carousel-dot="5"></button>
+          </div>
         </div>
-
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ TICKER ═════════════════════════════════════════ -->
-<div class="ticker" aria-hidden="true">
-  <div class="ticker-inner">
-    <span>Strukturiran trening</span><span class="sep">·</span>
-    <span>Dnevni check-in</span><span class="sep">·</span>
-    <span>Progreso real</span><span class="sep">·</span>
-    <span>Zdravlje i adaptacija</span><span class="sep">·</span>
-    <span>Rezervacije i komunikacija</span><span class="sep">·</span>
-    <span>Praćenje del coach</span><span class="sep">·</span>
-    <span>Procena inicial</span><span class="sep">·</span>
-    <span>Plan personalizado</span><span class="sep">·</span>
-    <span>Strukturiran trening</span><span class="sep">·</span>
-    <span>Dnevni check-in</span><span class="sep">·</span>
-    <span>Progreso real</span><span class="sep">·</span>
-    <span>Zdravlje i adaptacija</span><span class="sep">·</span>
-    <span>Rezervacije i komunikacija</span><span class="sep">·</span>
-    <span>Praćenje del coach</span><span class="sep">·</span>
-    <span>Procena inicial</span><span class="sep">·</span>
-    <span>Plan personalizado</span><span class="sep">·</span>
-  </div>
-</div>
-
-<!-- ═══ FEATURES — Šta radi AB SYSTEM ════════════════ -->
 <section id="features">
   <div class="inner">
-    <div class="features-header">
-      <div class="label-tag reveal">Šta radi AB SYSTEM</div>
-      <h2 class="section-title reveal d1">Sistem,<br>ne samo <span class="accent">lista vežbi.</span></h2>
+    <div class="section-head">
+      <div class="label-tag reveal">Šta ti donosi</div>
+      <h2 class="section-title reveal d1">Manje buke. Više <span class="accent">kontrole procesa.</span></h2>
+      <p class="section-lead reveal d2">Tri razlike koje drže ceo sistem.</p>
     </div>
-
     <div class="features-grid">
-      <div class="feature-card reveal d1">
-        <div class="feature-icon">
-          <!-- Dumbbell -->
-          <svg viewBox="0 0 24 24"><path d="M6.5 6.5h11"/><path d="M6.5 17.5h11"/><circle cx="4" cy="9" r="2"/><circle cx="4" cy="15" r="2"/><circle cx="20" cy="9" r="2"/><circle cx="20" cy="15" r="2"/><line x1="4" y1="9" x2="4" y2="15"/><line x1="20" y1="9" x2="20" y2="15"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
-        </div>
-        <div class="feature-title">Strukturiran trening</div>
-        <div class="feature-desc">Sesije po blokovima, ciljevima i nivou. Bez improvizacije.</div>
-        <img src="/IMG_2392.jpeg" alt="Ejemplo real Bloque 3" style="margin-top:1.2rem;border-radius:8px;border:1px solid var(--border);width:100%;opacity:.92" loading="lazy">
-      </div>
-
-      <div class="feature-card reveal d2">
-        <div class="feature-icon">
-          <!-- Check/clipboard -->
-          <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
-        </div>
-        <div class="feature-title">Dnevni check-in</div>
-        <div class="feature-desc">San, energija i osećaj pre treninga.</div>
-      </div>
-
-      <div class="feature-card reveal d3">
-        <div class="feature-icon">
-          <!-- Chart -->
-          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </div>
-        <div class="feature-title">Napredak i procene</div>
-        <div class="feature-desc">Procena inicial, métricas y evolución visible.</div>
-      </div>
-
-      <div class="feature-card reveal d1">
-        <div class="feature-icon">
-          <!-- Heart -->
-          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-        </div>
-        <div class="feature-title">Zdravlje i adaptacija</div>
-        <div class="feature-desc">Ako se pojavi tegoba, plan se prilagođava.</div>
-      </div>
-
-      <div class="feature-card reveal d2">
-        <div class="feature-icon">
-          <!-- Calendar -->
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </div>
-        <div class="feature-title">Rezervacije i komunikacija</div>
-        <div class="feature-desc">Zakazivanje, podsetnici i direktan kontakt sa kouče.</div>
-      </div>
-
-      <div class="feature-card reveal d3">
-        <div class="feature-icon">
-          <!-- User/coach -->
-          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>
-        <div class="feature-title">Praćenje del coach</div>
-        <div class="feature-desc">Kouč prati proces, prilagođava opterećenja i detektuje signale.</div>
-      </div>
+      <article class="feature-card reveal d1">
+        <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M4 19V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12"/><path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h6"/></svg></div>
+        <h3 class="feature-title">Plan prilagođen tvojoj polaznoj tački</h3>
+        <p class="feature-desc">Procena, nivo, cilj i raspoloživost pre dodele treninga.</p>
+        <div class="feature-note">Bez generičkih rutina</div>
+      </article>
+      <article class="feature-card reveal d2">
+        <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8Z"/><path d="M4 12h4l2-4 3 8 2-4h5"/></svg></div>
+        <h3 class="feature-title">Ljudsko praćenje između sesija</h3>
+        <p class="feature-desc">San, energija, tegobe, adherencija i napredak vidljivi za bolje odluke.</p>
+        <div class="feature-note">Trener vidi proces</div>
+      </article>
+      <article class="feature-card reveal d3">
+        <div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg></div>
+        <h3 class="feature-title">Sve povezano na jednom mestu</h3>
+        <p class="feature-desc">Trening, vežbe, rezervacije, zdravlje i napredak bez raštrkanih poruka.</p>
+        <div class="feature-note">Jedno kontinuirano iskustvo</div>
+      </article>
     </div>
   </div>
 </section>
 
-<!-- ═══ HOW IT WORKS ══════════════════════════════════ -->
 <section id="how">
   <div class="inner">
     <div class="how-grid">
-      <div class="how-sticky">
+      <div class="how-copy">
         <div class="label-tag reveal">Kako funkcioniše</div>
-        <h2 class="section-title reveal d1">Od procene<br>do napretka,<br><span class="accent">bez improvizacije.</span></h2>
-        <p class="reveal d2" style="font-size:.9rem;font-weight:400;line-height:1.75;color:var(--text-2);margin-top:1.25rem;max-width:340px;">
-          Jednostavan proces: procena, plan, trening, check-in i prilagođavanja kada je potrebno.
-        </p>
+        <h2 class="section-title reveal d1">Tri koraka.<br><span class="accent">Jedan jasan proces.</span></h2>
+        <p class="section-lead reveal d2">Platforma organizuje informacije; trener procenjuje, odlučuje i prilagođava.</p>
       </div>
-
       <div class="steps">
-        <div class="step reveal d1">
-          <div class="step-num">01</div>
-          <div class="step-body">
-            <strong>Procena inicial</strong>
-            <p>Nivo, pokretljivost, kondicija, ciljevi i ograničenja.</p>
-          </div>
-        </div>
-        <div class="step reveal d2">
-          <div class="step-num">02</div>
-          <div class="step-body">
-            <strong>Dodeljen plan</strong>
-            <p>Plan prema tvom profilu, cilju i polaznoj tački.</p>
-          </div>
-        </div>
-        <div class="step reveal d3">
-          <div class="step-num">03</div>
-          <div class="step-body">
-            <strong>Vođeni trening</strong>
-            <p>Blokovi, vežbe, opterećenja i jasni ciljevi.</p>
-          </div>
-        </div>
-        <div class="step reveal d4">
-          <div class="step-num">04</div>
-          <div class="step-body">
-            <strong>Check-in i osećaji</strong>
-            <p>San, energija i osećaji za bolje prilagođavanje.</p>
-          </div>
-        </div>
-        <div class="step reveal d4">
-          <div class="step-num">05</div>
-          <div class="step-body">
-            <strong>Korekcije kouča</strong>
-            <p>Tegobe, umor ili promena cilja: plan se menja sa kriterijumom.</p>
-          </div>
-        </div>
+        <article class="step reveal d1"><div class="step-num">01</div><div><strong>Procenjujemo tvoju polaznu tačku</strong><p>Cilj, nivo, mobilnost, fizičko stanje, raspoloživo vreme i sve relevantne ograničenja.</p></div></article>
+        <article class="step reveal d2"><div class="step-num">02</div><div><strong>Treniraš sa konkretnim vodičem</strong><p>Sesije po blokovima, objašnjene vežbe, tajmer, rezervacije i evidencija urađenog rada.</p></div></article>
+        <article class="step reveal d3"><div class="step-num">03</div><div><strong>Pratimo i prilagođavamo</strong><p>Check-in, osećaji i napredak omogućavaju prilagođavanje opterećenja, vežbi ili prioriteta sa kriterijumom.</p></div></article>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ FOR WHO ════════════════════════════════════════ -->
-<section id="for-who">
-  <div class="inner">
-    <div class="reveal"><div class="label-tag">Za koga es</div></div>
-    <h2 class="section-title reveal d1">Za one koji žele<br><span class="accent">da treniraju sa kontrolom.</span></h2>
-
-    <div class="forwho-grid">
-      <div class="forwho-card reveal d1">
-        <span class="forwho-num">01</span>
-        <h3>Klijenti koji žele da se dovuku u formu</h3>
-        <p>Poboljšaj telo, energiju i doslednost bez nasumičnih rutina.</p>
-      </div>
-      <div class="forwho-card reveal d2">
-        <span class="forwho-num">02</span>
-        <h3>Osobe koje žele da se bolje kreću</h3>
-        <p>Pokretljivost, držanje i telesna kontrola za bolji trening.</p>
-      </div>
-      <div class="forwho-card reveal d3">
-        <span class="forwho-num">03</span>
-        <h3>Sportisti ili profili visokih performansi</h3>
-        <p>Planiranje, control de carga y evaluaciones reales.</p>
-      </div>
-      <div class="forwho-card reveal d4">
-        <span class="forwho-num">04</span>
-        <h3>Funkcionalni trening sa rvačkom bazom</h3>
-        <p>Snaga, koordinacija, hvat i tehnika bez udara.</p>
-      </div>
-    </div>
-
-    <div class="for-who-note reveal">
-      <strong>Bez prethodnih uslova.</strong><br>
-      Prilagođava se tvoj polaznoj tački: nivo, pokretljivost, vreme i cilj.
-    </div>
-  </div>
-</section>
-
-<!-- ═══ DIFFERENTIATOR ════════════════════════════════ -->
-<section id="differentiator">
-  <div class="inner">
-    <div class="reveal"><div class="label-tag">Zašto AB SYSTEM</div></div>
-    <h2 class="section-title reveal d1">Nije prazna šablona.<br><span class="accent">To je pravi sistem.</span></h2>
-
-    <div class="diff-grid">
-      <div class="diff-col generic reveal d1">
-        <div class="diff-col-header">
-          <span>Generički plan</span>
-        </div>
-        <div class="diff-items">
-          <div class="diff-item">
-            <span class="icon">✗</span>
-            Ista rutina za sve
-          </div>
-          <div class="diff-item">
-            <span class="icon">✗</span>
-            Bez inicijalne procene
-          </div>
-          <div class="diff-item">
-            <span class="icon">✗</span>
-            Bez stvarnog praćenja između sesija
-          </div>
-          <div class="diff-item">
-            <span class="icon">✗</span>
-            Bez adaptacije na tegobe ili promene
-          </div>
-          <div class="diff-item">
-            <span class="icon">✗</span>
-            Sin visibilidad del kouč u tiempo real
-          </div>
-          <div class="diff-item">
-            <span class="icon">✗</span>
-            Bez podataka o napretku i opterećenju
-          </div>
-        </div>
-      </div>
-
-      <div class="diff-col system reveal d2">
-        <div class="diff-col-header">
-          <span>AB SYSTEM</span>
-        </div>
-        <div class="diff-items">
-          <div class="diff-item">
-            <span class="icon">✓</span>
-            Personalizovan plan od inicijalne procene
-          </div>
-          <div class="diff-item">
-            <span class="icon">✓</span>
-            Procena real antes de asignar nada
-          </div>
-          <div class="diff-item">
-            <span class="icon">✓</span>
-            Dnevni check-in, sensaciones y alertas
-          </div>
-          <div class="diff-item">
-            <span class="icon">✓</span>
-            Adaptacija automática y manual del plan
-          </div>
-          <div class="diff-item">
-            <span class="icon">✓</span>
-            Kouč vidi stanje svakog klijenta u sali
-          </div>
-          <div class="diff-item">
-            <span class="icon">✓</span>
-            Metrike napretka, opterećenja i adherencije
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ COACH ══════════════════════════════════════════ -->
 <section id="coach">
   <div class="inner">
     <div class="coach-grid">
       <div class="coach-visual reveal">
-        <img
-          src="/abel-coach.jpg"
-          alt="Abel Balsinde — UWW Nivo 2 Trener, Beograd"
-          loading="lazy"
-          onerror="this.style.display='none'"
-        >
-        <!-- Placeholder si no carga la imagen -->
-        <div class="coach-placeholder" aria-hidden="true">
-          <svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="32" r="22" stroke-width="1.5"/>
-            <path d="M10 140 C10 90 90 90 90 140" stroke-width="1.5"/>
-          </svg>
-          <span>Abel Balsinde</span>
-        </div>
-        <div class="coach-badge">
-          <strong>UWW</strong>
-          <span>Level 2 Certified</span>
-        </div>
+        <img src="/abel-coach.jpg" alt="Abel Balsinde, trener UWW Level 2 u Beogradu" loading="lazy" onerror="this.style.display='none'">
+        <div class="coach-placeholder" aria-hidden="true"><div><svg viewBox="0 0 100 140"><circle cx="50" cy="32" r="22" stroke-width="1.5"/><path d="M10 140C10 90 90 90 90 140" stroke-width="1.5"/></svg><span>Abel Balsinde</span></div></div>
+        <div class="coach-badge"><strong>UWW</strong><span>Level 2 Certified</span></div>
       </div>
-
-      <div class="coach-right">
-        <div class="label-tag reveal">Izgrađeno iz stvarnog iskustva</div>
-        <h2 class="section-title reveal d1">Iza sistema<br>stoji pravi <span class="accent">kouč.</span></h2>
-
-        <p class="reveal d2">
-          AB SYSTEM nace del trabajo diario con clientes, atletas y sesiones reales en sala. La plataforma organiza el proceso, pero el seguimiento, las decisiones y los ajustes vienen de jednom mirada profesional. Iza sistema stoji pravi que evalúa, ajusta y acompaña.
-        </p>
-
+      <div class="coach-copy">
+        <div class="label-tag reveal">Ljudska strana</div>
+        <h2 class="section-title reveal d1">Sistem organizuje.<br>Trener <span class="accent">odlučuje.</span></h2>
+        <p class="reveal d2">AB SYSTEM nastaje iz svakodnevnog rada sa klijentima i sportistima. Platforma sprečava gubljenje podataka i omogućava praćenje procesa, ali odluke i dalje imaju iza sebe pravo iskustvo, posmatranje i direktnu komunikaciju.</p>
         <div class="cred-list">
-          <div class="cred reveal d1">
-            <div class="cred-dot"></div>
-            <div>
-              <strong>Kubanska škola rvanja i olimpijskog sporta</strong>
-              <small>Sportska škola, priprema visokog nivoa i metodologija performansi</small>
-            </div>
-          </div>
-          <div class="cred reveal d2">
-            <div class="cred-dot"></div>
-            <div>
-              <strong>UWW Level 2 Koučing</strong>
-              <small>Međjednomrodna trenerska sertifikacija — United World Wrestling</small>
-            </div>
-          </div>
-          <div class="cred reveal d2">
-            <div class="cred-dot"></div>
-            <div>
-              <strong>Savezna diploma trenera</strong>
-              <small>Španski savez rvanja — elitna tehnička obuka</small>
-            </div>
-          </div>
-          <div class="cred reveal d3">
-            <div class="cred-dot"></div>
-            <div>
-              <strong>Rvački klub Partizan, Beograd</strong>
-              <small>Trener u jednom od vodećih rvačkih klubova Srbije</small>
-            </div>
-          </div>
-          <div class="cred reveal d3">
-            <div class="cred-dot"></div>
-            <div>
-              <strong>Club de Lluita Camp de Morvedre</strong>
-              <small>Iskustvo sa sportistima i nesportistima u Španiji</small>
-            </div>
-          </div>
+          <div class="cred reveal d1"><div class="cred-dot"></div><div><strong>United World Wrestling — Level 2</strong><small>Međunarodna trenerska sertifikacija.</small></div></div>
+          <div class="cred reveal d2"><div class="cred-dot"></div><div><strong>Iskustvo na Kubi, u Španiji i Srbiji</strong><small>Fizička priprema, olimpijsko rvanje i trening opštih klijenata.</small></div></div>
+          <div class="cred reveal d3"><div class="cred-dot"></div><div><strong>Praćenje uživo i online</strong><small>Beograd i podrška na daljinu iz istog sistema.</small></div></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ APPLY ═════════════════════════════════════════ -->
-<section id="apply">
-  <div class="inner">
-    <div class="apply-grid">
-      <div class="apply-left">
-        <div class="label-tag reveal">Prvi korak</div>
-        <h2 class="section-title reveal d1">Počni sa<br>jednom <span class="accent">procenom.</span></h2>
-        <p class="reveal d2">
-          Pre nego što ti dodelimo plan, procenjujemo tvoju polaznu tačku. Tako znaš šta treba poboljšati i kako ćemo to raditi.
-        </p>
-      
-              <img src="/IMG_2391.jpeg" alt="Perfil prospecto día 1" style="margin-top:1.5rem;border-radius:10px;border:1px solid var(--border);max-width:340px;width:100%" loading="lazy">
-        <p style="font-size:.7rem;color:var(--text-2);margin-top:.5rem">Ovako izgleda tvoj profil prvog dana: PROSPEKT, još bez check-ina.</p>
-
-        <div class="apply-steps">
-          <div class="apply-step reveal d2">
-            <div class="apply-step-num">01</div>
-            <div>
-              <strong>Profil i cilj</strong>
-              <p>Nivo, cilj i polazna tačka pre dodeljivanja bilo čega</p>
-            </div>
-          </div>
-          <div class="apply-step reveal d3">
-            <div class="apply-step-num">02</div>
-            <div>
-              <strong>Direktan odgovor</strong>
-              <p>Respuesta por WhatsApp con jednom propuesta concreta</p>
-            </div>
-          </div>
-          <div class="apply-step reveal d3">
-            <div class="apply-step-num">03</div>
-            <div>
-              <strong>Početak procesa</strong>
-              <p>Procena inicial y plan adaptado a tu perfil</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-wrap reveal d2">
-        <div class="form-header">Prvi korak — sin formularios</div>
-
-        <p style="font-size:.9rem;font-weight:400;line-height:1.75;color:var(--text-2);margin-bottom:1rem;">
-          Escribe por WhatsApp. Recibes jednom respuesta directa con el siguiente paso según tu objetivo y punto de partida.
-        </p>
-
-        <div style="background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.18);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
-          <div style="font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:.5rem;">Prva nedelja besplatno</div>
-          <div style="font-size:.82rem;font-weight:400;line-height:1.6;color:var(--text-2);">Belgrado presencial desde 120€/mes · Online desde 90€/mes. Procena inicial incluida. Sin permanencia.</div>
-        </div>
-
-        <a
-          href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20hacer%20jednom%20evaluaci%C3%B3n%20inicial%20con%20AB%20SYSTEM.%20Me%20gustar%C3%ADa%20hacer%20jednom%20evaluaci%C3%B3n%20inicial."
-          target="_blank"
-          rel="noopener"
-          class="btn btn-wa"
-          style="width:100%;justify-content:center;font-size:.8rem;padding:18px;border-radius:10px;margin-bottom:.75rem;"
-        >
-          <svg style="width:18px;height:18px;fill:currentColor;flex-shrink:0" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.122 1.526 5.854L0 24l6.335-1.524A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-4.988-1.362l-.358-.213-3.76.904.969-3.674-.233-.374A9.793 9.793 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182c5.421 0 9.818 4.396 9.818 9.818 0 5.421-4.397 9.818-9.818 9.818z"/></svg>
-          Piši na WhatsApp
-        </a>
-
-        <div class="form-note">
-          Bez dugih formulara. Direktan razgovor sa kouče.
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ FAQ ════════════════════════════════════════════ -->
 <section id="faq">
   <div class="inner">
     <div class="faq-layout">
       <div>
-        <div class="label-tag reveal">Često postavljana pitanja</div>
-        <h2 class="section-title reveal d1">Ključna<br><span class="accent">pitanja.</span></h2>
-        <p class="reveal d2" style="font-size:.85rem;font-weight:400;line-height:1.75;color:var(--text-2);margin-top:1.25rem;max-width:280px;">
-          Ono što treba da znaš pre prvog koraka.
-        </p>
+        <div class="label-tag reveal">Česta pitanja</div>
+        <h2 class="section-title reveal d1">Bitno<br><span class="accent">pre početka.</span></h2>
+        <p class="section-lead reveal d2">Četiri odgovora pre početka.</p>
       </div>
-
       <div class="faq-list">
         <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Da li moram da znam rvanje da bih počeo?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>No. Sistem está diseñado para personas no atletas. La lucha es la base metodológica —disciplina, control corporal, progresión real— pero el entrenamiento se adapta completamente a tu nivel actual.</p></div>
+          <button class="faq-q" type="button" onclick="toggleFaq(this)" aria-expanded="false"><span class="faq-q-text">Da li moram da znam rvanje da bih počeo?</span><span class="faq-q-icon">+</span></button>
+          <div class="faq-a"><p>Ne. Rvanje donosi principe kontrole tela, koordinacije i progresije, ali trening se potpuno prilagođava tvom nivou i cilju.</p></div>
         </div>
         <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Da li je samo za gubitak masti ili dobijanje mišića?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>No. Sistem trabaja fuerza, movilidad, resistencia y condición física integral. El objetivo se define en la evaluación inicial según tu caso. La recomposición corporal puede ser uno de los resultados, pero no el único.</p></div>
+          <button class="faq-q" type="button" onclick="toggleFaq(this)" aria-expanded="false"><span class="faq-q-text">Mogu li da treniram online bez dolaska u Beograd?</span><span class="faq-q-icon">+</span></button>
+          <div class="faq-a"><p>Da. Plan, check-ini, istorijat i prilagođavanja se upravljaju unutar sistema, uz direktnu komunikaciju za pregled procesa.</p></div>
         </div>
         <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Postoji li stvarno praćenje između sesija?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>Da. Praćenje je centralni deo sistema. Beleže se metrike, periodični check-ini i plan se prilagođava prema stvarnim rezultatima, ne prema generičkim šablonama.</p></div>
+          <button class="faq-q" type="button" onclick="toggleFaq(this)" aria-expanded="false"><span class="faq-q-text">Koliko košta i šta uključuje?</span><span class="faq-q-icon">+</span></button>
+          <div class="faq-a"><p>Beograd uživo od 120 €/mes i online od 90 €/mes. Uključuje inicijalnu procenu, personalizovani plan, praćenje i prilagođavanja. Bez vezivanja.</p></div>
         </div>
         <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Mogu li trenirati online bez boravka u Beogradu?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>Da. Online plan je dizajniran za praćenje na daljinu: personalizovan plan, periodični pregled, prilagođavanja prema rezultatima i direktna komunikacija. Isti standard, različita modalnost.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Koji je prvi korak za početak?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a">
-  <p>El primer paso es escribir por WhatsApp. Abel revisa tu caso, te pregunta lo necesario y te propone jednom evaluación inicial para definir tu punto de partida y el plan adecuado.</p>
-</div>
-        </div>
-      
-              <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Koliko košta i šta uključuje?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>Belgrado presencial desde 120€/mes. Online desde 90€/mes. Incluye evaluación, plan personalizado, seguimiento diario y ajustes del coach. Prva nedelja besplatno.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Mogu li otkazati kada hoću?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>Da. Bez obaveze. Obavestiš pre sledećeg meseca.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">
-            <span class="faq-q-text">Da li mi treba oprema ili teretana?</span>
-            <span class="faq-q-icon">+</span>
-          </button>
-          <div class="faq-a"><p>Ne. Plan se prilagođava onome što imaš: kuća sa elastičnim trakama, sala ili težina tela.</p></div>
+          <button class="faq-q" type="button" onclick="toggleFaq(this)" aria-expanded="false"><span class="faq-q-text">Koji je prvi korak?</span><span class="faq-q-icon">+</span></button>
+          <div class="faq-a"><p>Piši na WhatsApp. Pregledamo tvoj slučaj i organizujemo inicijalnu procenu da definišemo polaznu tačku i odgovarajući modalitet.</p></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ CTA FINAL ══════════════════════════════════════ -->
 <section id="cta-final">
-  <div class="cta-eyebrow reveal">Počni sa estructura</div>
-  <h2 class="cta-title reveal d1">Treniraj sa<br><span class="accent">seguimiento kouč.</span></h2>
-  <p class="cta-sub reveal d2">
-    Fuerza, condición física y movilidad con un sistema que evalúa, planifica, sigue y adapta. El primer paso es jednom procenom.
-  </p>
+  <div class="cta-eyebrow reveal">Počni sa strukturom</div>
+  <h2 class="cta-title reveal d1">Trenaj sa<br><span class="accent">pravim praćenjem.</span></h2>
+  <p class="cta-sub reveal d2">Snaga, fizička kondicija i mobilnost unutar procesa koji procenjuje, planira, prati i prilagođava.</p>
   <div class="cta-actions reveal d3">
-    <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20hacer%20jednom%20evaluaci%C3%B3n%20inicial%20con%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Prva nedelja besplatno</a>
-    <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20información%20sobre%20AB%20SYSTEM." class="btn btn-wa" target="_blank" rel="noopener">
-      <svg class="wa-icon" viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.122 1.526 5.854L0 24l6.335-1.524A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-4.988-1.362l-.358-.213-3.76.904.969-3.674-.233-.374A9.793 9.793 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182c5.421 0 9.818 4.396 9.818 9.818 0 5.421-4.397 9.818-9.818 9.818z"/></svg>
-      Razgovaraj na WhatsApp
-    </a>
+    <a href="https://wa.me/381638112348?text=Zdravo%20Abel%2C%20želim%20da%20zakažem%20inicijalnu%20procenu%20u%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-primary">Besplatna procena</a>
+    <a href="https://wa.me/381638112348?text=Zdravo%20Abel%2C%20želim%20informacije%20o%20AB%20SYSTEM." target="_blank" rel="noopener" class="btn btn-wa">Piši na WhatsApp</a>
   </div>
 </section>
+</main>
 
-<!-- ═══ FOOTER ════════════════════════════════════════ -->
 <footer>
   <div class="footer-inner">
     <div class="footer-top">
       <a href="#hero" class="logo-mark" aria-label="AB SYSTEM">
-        <div class="logo-letters" style="font-size:1.15rem;"><span class="c">[</span>AB<span class="c">]</span></div>
-        <div class="logo-sub">
-          <span>SYSTEM</span>
-          Health &amp; Performance · Beograd
+        <div style="display:flex;flex-direction:column;align-items:flex-start;line-height:1;gap:0">
+          <div style="display:flex;align-items:baseline;gap:4px">
+            <span style="font-size:1.1rem;font-weight:800;letter-spacing:-.04em;color:#00e5ff">AB</span>
+            <span style="font-size:1.1rem;font-weight:400;letter-spacing:.06em;color:#fff">SYSTEM</span>
+          </div>
+          <div style="width:18px;height:2px;background:#00e5ff;margin-top:3px"></div>
         </div>
       </a>
-
       <div class="footer-links">
         <a href="#features" class="footer-link">Sistem</a>
         <a href="#how" class="footer-link">Kako funkcioniše</a>
-        <a href="#for-who" class="footer-link">Za koga</a>
-        <a href="#coach" class="footer-link">Kouč</a>
-        <a href="#apply" class="footer-link">Procena</a>
-        <a href="#faq" class="footer-link">FAQ</a>
-        <a href="/cliente.html" class="footer-link c">Klijentska zona</a>
-        <a href="/admin-mobile.html" class="footer-link">Pristup kouča</a>
+        <a href="#coach" class="footer-link">Trener</a>
+        <a href="#faq" class="footer-link">Pitanja</a>
+        <a href="/cliente" class="footer-link c">Klijentski prostor</a>
+        <a href="/coach?logout=1&v=coach-clean-01" class="footer-link c coach-access">Pristup trenera</a>
       </div>
-
-      <div style="display:flex;flex-direction:column;gap:.75rem;align-items:flex-end;">
-        <div class="footer-social">
-          <a href="https://wa.me/381638112348?text=Hola%20Abel%2C%20quiero%20informaci%C3%B3n%20sobre%20AB%20SYSTEM." class="social-link" aria-label="WhatsApp" target="_blank" rel="noopener">WhatsApp</a>
-        </div>
-        <div class="lang-switch" style="display:flex;">
-          <a href="/" style="font-size:.58rem;font-weight:600;letter-spacing:.10em;color:var(--cyan);">ES</a>
-          <span style="font-size:.58rem;color:var(--border);">|</span>
-          <a href="/sr.html" style="font-size:.58rem;font-weight:600;letter-spacing:.10em;color:var(--text-2);">SR</a>
-          <span style="font-size:.58rem;color:var(--border);">|</span>
-          <a href="/en.html" style="font-size:.58rem;font-weight:600;letter-spacing:.10em;color:var(--text-2);">EN</a>
-        </div>
+      <div class="footer-side">
+        <a href="https://wa.me/381638112348" class="social-link" target="_blank" rel="noopener">WhatsApp</a>
+        <div class="lang-switch"><a href="/">ES</a><span>|</span><a class="active" href="/sr.html">SR</a><span>|</span><a href="/en.html">EN</a></div>
       </div>
     </div>
-
     <div class="footer-bottom">
       <span class="footer-legal">© 2026 AB SYSTEM. Sva prava zadržana.</span>
-      <span class="footer-legal">Opšte sportske smernice. Ne zamenjuje profesionalni medicinski ili nutricionistički savet.</span>
+      <span class="footer-legal">Opšte sportske smernice. Ne zamenjuje medicinski ili nutricionistički savet.</span>
     </div>
   </div>
 </footer>
 
-<!-- ═══ SCRIPTS ════════════════════════════════════════ -->
 <script>
-// WhatsApp
-function openWA(ctx, msg) {
-  window.open('https://wa.me/381638112348?text=' + encodeURIComponent(msg), '_blank', 'noopener');
-}
-
-// Header scroll
-window.addEventListener('scroll', () => {
-  document.getElementById('header').classList.toggle('scrolled', window.scrollY > 20);
+window.addEventListener('scroll', function () {
+  var header = document.getElementById('header');
+  if (header) header.classList.toggle('scrolled', window.scrollY > 20);
 }, { passive: true });
 
-// Mobile menu
 function toggleMenu() {
-  const nav = document.getElementById('mobileNav');
-  const btn = document.getElementById('hamBtn');
-  const isOpen = nav.classList.toggle('open');
+  var nav = document.getElementById('mobileNav');
+  var btn = document.getElementById('hamBtn');
+  if (!nav || !btn) return;
+  var isOpen = nav.classList.toggle('open');
   btn.classList.toggle('open', isOpen);
+  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 }
+
 function closeMenu() {
-  document.getElementById('mobileNav').classList.remove('open');
-  document.getElementById('hamBtn').classList.remove('open');
+  var nav = document.getElementById('mobileNav');
+  var btn = document.getElementById('hamBtn');
+  if (nav) nav.classList.remove('open');
+  if (btn) { btn.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
 }
 
-// FAQ accordion
 function toggleFaq(btn) {
-  const item = btn.closest('.faq-item');
-  const answer = item.querySelector('.faq-a');
-  const isOpen = item.classList.contains('open');
-
-  document.querySelectorAll('.faq-item').forEach(i => {
-    i.classList.remove('open');
-    i.querySelector('.faq-a').style.maxHeight = '0';
+  var item = btn.closest('.faq-item');
+  var answer = item ? item.querySelector('.faq-a') : null;
+  if (!item || !answer) return;
+  var wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(function (row) {
+    row.classList.remove('open');
+    var rowBtn = row.querySelector('.faq-q');
+    var rowAnswer = row.querySelector('.faq-a');
+    if (rowBtn) rowBtn.setAttribute('aria-expanded', 'false');
+    if (rowAnswer) rowAnswer.style.maxHeight = '0px';
   });
-
-  if (!isOpen) {
+  if (!wasOpen) {
     item.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
     answer.style.maxHeight = answer.scrollHeight + 'px';
   }
 }
 
-// Scroll reveal
-if ('IntersectionObserver' in window) {
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: .08 });
+(function initReveal() {
+  var elements = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) { elements.forEach(function (el) { el.classList.add('visible'); }); return; }
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); } });
+  }, { threshold: 0.08 });
+  elements.forEach(function (el) { observer.observe(el); });
+})();
 
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-} else {
-  document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
-}
-
-
-// Hero real screens switcher
-function initABShowcase() {
-  const root = document.querySelector('[data-ab-showcase]');
+(function initProductCarousel() {
+  var root = document.querySelector('[data-product-carousel]');
   if (!root) return;
+  var slides = Array.from(root.querySelectorAll('.phone-slide'));
+  var dots = Array.from(root.querySelectorAll('[data-carousel-dot]'));
+  var gesture = root.querySelector('[data-carousel-gesture]');
+  var kicker = root.querySelector('[data-carousel-kicker]');
+  var title = root.querySelector('[data-carousel-title]');
+  var desc = root.querySelector('[data-carousel-desc]');
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var current = 0;
+  var timer = null;
+  var resumeTimer = null;
+  var startX = null;
+  var failed = new Set();
 
-  const screens = Array.from(root.querySelectorAll('[data-screen]'));
-  const tabs = Array.from(root.querySelectorAll('[data-go-screen]'));
+  var copy = [
+    { kicker: 'Početak', title: 'Tvoj dan i tvoj plan na jednom mestu.', desc: 'Pogledaj dostupni trening, svoje stanje i nedeljni napredak bez lutanja po ekranima.' },
+    { kicker: 'Trening', title: 'Blokovi i tajmer unutar sesije.', desc: 'Prati rad korak po korak i kontroliši vreme, runde i odmore iz istog prostora.' },
+    { kicker: 'Vežbe', title: 'Svaka vežba jasno objašnjena.', desc: 'Serije, ponavljanja, odmor i tehnička uputstva da znaš šta i kako da uradiš.' },
+    { kicker: 'Rezervacije', title: 'Zakaži sesiju bez lanaca poruka.', desc: 'Proveri dostupnost, preglej svoju rezervaciju i održavaj direktan kontakt sa trenerom.' },
+    { kicker: 'Napredak', title: 'Pravi istorijat, ne izolovani osećaj.', desc: 'Proveri završene sesije, napredak plana, beleške i naredne procene.' },
+    { kicker: 'Zdravlje', title: 'San, energija i tegobe su važni.', desc: 'Dnevni check-in daje kontekst za prilagođavanje treninga kada je potrebno.' }
+  ];
 
-  function setActive(index) {
-    screens.forEach((screen, i) => {
-      screen.classList.toggle('is-active', i === index);
-      screen.classList.toggle('is-next', i !== index);
-      screen.setAttribute('aria-pressed', i === index ? 'true' : 'false');
-    });
-
-    tabs.forEach((tab, i) => {
-      tab.classList.toggle('is-active', i === index);
-      tab.setAttribute('aria-pressed', i === index ? 'true' : 'false');
-    });
+  function resolveIndex(index, direction) {
+    if (!slides.length) return 0;
+    var step = direction < 0 ? -1 : 1;
+    var candidate = (index + slides.length) % slides.length;
+    for (var tries = 0; tries < slides.length; tries += 1) {
+      if (!failed.has(candidate)) return candidate;
+      candidate = (candidate + step + slides.length) % slides.length;
+    }
+    return current;
   }
 
-  screens.forEach(screen => {
-    screen.addEventListener('click', () => {
-      const index = Number(screen.dataset.screen || 0);
-      setActive(index);
-    });
+  function setSlide(index, userInitiated, direction) {
+    current = resolveIndex(index, direction || 1);
+    slides.forEach(function (slide, i) { slide.classList.toggle('is-active', i === current); slide.setAttribute('aria-hidden', i === current ? 'false' : 'true'); });
+    dots.forEach(function (dot, i) { var active = i === current; dot.classList.toggle('is-active', active); dot.setAttribute('aria-selected', active ? 'true' : 'false'); dot.tabIndex = active ? 0 : -1; });
+    var item = copy[current];
+    if (item) { kicker.textContent = item.kicker; title.textContent = item.title; desc.textContent = item.desc; }
+    if (userInitiated) scheduleResume();
+  }
+
+  function stop() { if (timer) window.clearInterval(timer); timer = null; }
+  function start() { stop(); if (reduceMotion || document.hidden) return; timer = window.setInterval(function () { setSlide(current + 1, false, 1); }, 3500); }
+  function scheduleResume() { stop(); if (resumeTimer) window.clearTimeout(resumeTimer); resumeTimer = window.setTimeout(start, 6500); }
+
+  dots.forEach(function (dot) { dot.addEventListener('click', function () { setSlide(Number(dot.dataset.carouselDot || 0), true, 1); }); });
+
+  if (gesture) {
+    gesture.addEventListener('pointerdown', function (event) { startX = event.clientX; stop(); if (gesture.setPointerCapture) gesture.setPointerCapture(event.pointerId); });
+    gesture.addEventListener('pointerup', function (event) { if (startX === null) return; var delta = event.clientX - startX; startX = null; if (Math.abs(delta) > 42) setSlide(current + (delta < 0 ? 1 : -1), true, delta < 0 ? 1 : -1); else scheduleResume(); });
+    gesture.addEventListener('pointercancel', function () { startX = null; scheduleResume(); });
+    gesture.addEventListener('mouseenter', stop);
+    gesture.addEventListener('mouseleave', start);
+    gesture.addEventListener('focusin', stop);
+    gesture.addEventListener('focusout', start);
+    gesture.addEventListener('keydown', function (event) { if (event.key === 'ArrowRight') { event.preventDefault(); setSlide(current + 1, true, 1); } if (event.key === 'ArrowLeft') { event.preventDefault(); setSlide(current - 1, true, -1); } });
+  }
+
+  slides.forEach(function (slide, index) {
+    function markFailed() { if (failed.has(index)) return; failed.add(index); slide.classList.remove('is-active'); slide.style.display = 'none'; if (dots[index]) dots[index].style.display = 'none'; if (index === current) setSlide(current + 1, false, 1); }
+    slide.addEventListener('error', markFailed);
+    if (slide.complete && slide.naturalWidth === 0) markFailed();
   });
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      const index = Number(tab.dataset.goScreen || 0);
-      setActive(index);
-    });
-  });
-
-  setActive(0);
-}
-
-initABShowcase();
-
-</script>
-
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  });
-}
+  document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
+  setSlide(0, false, 1);
+  start();
+})();
 </script>
 </body>
 </html>
