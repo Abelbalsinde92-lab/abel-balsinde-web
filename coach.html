@@ -2843,6 +2843,99 @@
      }
    }
    
+   /* ── CAMBIO DE FASE · CRONÓMETRO COACH ── */
+
+.workout-phase-flash{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:24px;
+
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+
+  transform:scale(.97);
+  transition:
+    opacity .18s ease,
+    transform .22s ease,
+    visibility 0s linear .22s;
+
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
+}
+
+.workout-phase-flash.is-visible{
+  opacity:1;
+  visibility:visible;
+  transform:scale(1);
+
+  transition:
+    opacity .18s ease,
+    transform .22s ease,
+    visibility 0s;
+}
+
+.workout-phase-flash.phase-work{
+  background:rgba(15, 115, 75, .94);
+}
+
+.workout-phase-flash.phase-rest{
+  background:rgba(166, 103, 5, .94);
+}
+
+.workout-phase-flash.phase-done{
+  background:rgba(0, 145, 175, .94);
+}
+
+.workout-phase-flash__content{
+  width:min(100%, 620px);
+  text-align:center;
+}
+
+.workout-phase-flash__round{
+  margin-bottom:10px;
+
+  color:rgba(255,255,255,.82);
+  font-size:.8rem;
+  font-weight:800;
+  letter-spacing:.18em;
+}
+
+.workout-phase-flash__title{
+  color:#fff;
+
+  font-family:'Bebas Neue', sans-serif;
+  font-size:clamp(4.5rem, 18vw, 9rem);
+  font-weight:700;
+  line-height:.88;
+  letter-spacing:.03em;
+
+  text-shadow:0 6px 30px rgba(0,0,0,.28);
+}
+
+.workout-phase-flash__subtitle{
+  margin-top:18px;
+
+  color:rgba(255,255,255,.9);
+  font-size:clamp(.95rem, 4vw, 1.25rem);
+  font-weight:700;
+  letter-spacing:.03em;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .workout-phase-flash,
+  .workout-phase-flash.is-visible{
+    transform:none;
+    transition:opacity .12s linear;
+  }
+}
+   
    </style>
    <!-- AB SYSTEM · RPC 19 ADAPTATION ENGINE FIX -->
    </head>
@@ -11036,14 +11129,106 @@ function orderWorkoutBlocksForFlow(blocks){
      try{if(navigator.vibrate)navigator.vibrate([100,50,100,50,300])}catch(e){}
      flashPhase('done');
    }
-   function flashPhase(type){
-     const el=document.getElementById('wt-phase');
-     if(!el)return;
-     el.style.transition='none';
-     el.style.transform='scale(1.15)';
-     el.style.opacity='1';
-     setTimeout(()=>{el.style.transition='transform .3s,opacity .3s';el.style.transform='scale(1)'},200);
-   }
+   let workoutPhaseFlashTimer = null;
+
+function flashPhase(type){
+  const phases = {
+    work: {
+      title: 'TRABAJO',
+      subtitle: 'Mantén el ritmo y la técnica'
+    },
+    rest: {
+      title: 'DESCANSO',
+      subtitle: 'Respira y prepárate'
+    },
+    done: {
+      title: 'COMPLETADO',
+      subtitle: 'Intervalos finalizados'
+    }
+  };
+
+  const phase = phases[type];
+  if(!phase) return;
+
+  // Mantener también el pequeño pulso del indicador interno
+  const phaseLabel = document.getElementById('wt-phase');
+
+  if(phaseLabel){
+    phaseLabel.style.transition = 'none';
+    phaseLabel.style.transform = 'scale(1.15)';
+    phaseLabel.style.opacity = '1';
+
+    setTimeout(() => {
+      phaseLabel.style.transition = 'transform .3s, opacity .3s';
+      phaseLabel.style.transform = 'scale(1)';
+    }, 200);
+  }
+
+  // Crear el pantallazo una sola vez
+  let overlay = document.getElementById('workout-phase-flash');
+
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'workout-phase-flash';
+    overlay.className = 'workout-phase-flash';
+    overlay.setAttribute('aria-live', 'assertive');
+    overlay.setAttribute('aria-atomic', 'true');
+
+    overlay.innerHTML = `
+      <div class="workout-phase-flash__content">
+        <div
+          class="workout-phase-flash__round"
+          id="workout-phase-flash-round"
+        ></div>
+
+        <div
+          class="workout-phase-flash__title"
+          id="workout-phase-flash-title"
+        ></div>
+
+        <div
+          class="workout-phase-flash__subtitle"
+          id="workout-phase-flash-subtitle"
+        ></div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+  }
+
+  const iv = state?.workoutIntervals || {};
+  const currentRound = Number(iv.currentRound || 1);
+  const totalRounds = Number(iv.totalRounds || 1);
+
+  const roundEl = document.getElementById('workout-phase-flash-round');
+  const titleEl = document.getElementById('workout-phase-flash-title');
+  const subtitleEl = document.getElementById('workout-phase-flash-subtitle');
+
+  if(roundEl){
+    roundEl.textContent =
+      type === 'done'
+        ? 'ENTRENAMIENTO'
+        : `RONDA ${currentRound} / ${totalRounds}`;
+  }
+
+  if(titleEl) titleEl.textContent = phase.title;
+  if(subtitleEl) subtitleEl.textContent = phase.subtitle;
+
+  clearTimeout(workoutPhaseFlashTimer);
+
+  overlay.className = `workout-phase-flash phase-${type}`;
+
+  // Reiniciar correctamente la animación aunque se active varias veces
+  void overlay.offsetWidth;
+
+  overlay.classList.add('is-visible');
+
+  const visibleTime = type === 'done' ? 1400 : 950;
+
+  workoutPhaseFlashTimer = setTimeout(() => {
+    overlay.classList.remove('is-visible');
+  }, visibleTime);
+}
    
    function setIntervalMode(enabled){state.workoutIntervals.enabled=!!enabled;pauseWorkoutTimer();resetIntervalState();renderWorkout()}
    function resetIntervalState(){const iv=state.workoutIntervals;iv.phase='idle';iv.currentRound=1;iv.phaseSecsLeft=0}
