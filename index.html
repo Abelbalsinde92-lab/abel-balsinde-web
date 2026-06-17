@@ -13,7 +13,7 @@
 <meta name="theme-color" content="#000000">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="image" href="/Imagen-3.jpeg" fetchpriority="high">
+<link rel="preload" as="image" href="/Imagen-3.PNG" fetchpriority="high">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
@@ -41,7 +41,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:h
 a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
-section{padding:clamp(4rem,7vw,6rem) clamp(1.25rem,5vw,3rem)}
+section{padding:clamp(3.6rem,6vw,5.2rem) clamp(1.25rem,5vw,3rem)}
 .inner{width:min(100%,var(--max));margin:auto}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-track{background:var(--bg)}
@@ -101,13 +101,13 @@ nav.desk a:hover{color:var(--text)}
 .hero-trust{margin-top:1.15rem;color:#70717a;font-size:.62rem;line-height:1.7;letter-spacing:.08em;text-transform:uppercase}
 
 .product-carousel{width:min(100%,390px);margin-inline:auto;display:flex;flex-direction:column;align-items:center}
-.phone-shell{position:relative;width:min(78vw,348px);padding:8px;border-radius:49px;background:linear-gradient(155deg,#2c3036 0%,#090a0c 32%,#000 74%);border:1px solid rgba(255,255,255,.18);box-shadow:0 40px 110px rgba(0,0,0,.78),0 0 0 1px rgba(0,229,255,.09),inset 0 1px 0 rgba(255,255,255,.16);touch-action:pan-y;user-select:none;isolation:isolate}
+.phone-shell{position:relative;width:min(76vw,330px);aspect-ratio:9/16;padding:8px;border-radius:49px;background:linear-gradient(155deg,#2c3036 0%,#090a0c 32%,#000 74%);border:1px solid rgba(255,255,255,.18);box-shadow:0 40px 110px rgba(0,0,0,.78),0 0 0 1px rgba(0,229,255,.09),inset 0 1px 0 rgba(255,255,255,.16);touch-action:pan-y;user-select:none;isolation:isolate}
 .phone-shell::before{content:'';position:absolute;inset:-24px;z-index:-1;border-radius:70px;background:radial-gradient(circle at 50% 45%,rgba(0,229,255,.15),transparent 65%);filter:blur(8px)}
-.phone-viewport{position:relative;width:100%;aspect-ratio:9/16;overflow:hidden;border-radius:41px;background:#000;border:1px solid rgba(255,255,255,.08)}
+.phone-viewport{position:relative;width:100%;height:100%;overflow:hidden;border-radius:41px;background:#000;border:1px solid rgba(255,255,255,.08)}
 .phone-slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:0;transform:scale(1.015);transition:opacity .55s ease,transform .8s ease;pointer-events:none;-webkit-user-drag:none}
 .phone-slide.is-active{opacity:1;transform:scale(1)}
 .phone-glare{position:absolute;inset:0;z-index:3;border-radius:41px;background:linear-gradient(115deg,rgba(255,255,255,.08),transparent 23%,transparent 68%,rgba(255,255,255,.025));pointer-events:none;mix-blend-mode:screen}
-.carousel-meta{width:100%;min-height:92px;margin-top:1.15rem;text-align:center}
+.carousel-meta{width:100%;min-height:82px;margin-top:.9rem;text-align:center}
 .carousel-kicker{color:var(--cyan);font-size:.58rem;font-weight:800;letter-spacing:.17em;text-transform:uppercase}
 .carousel-title{margin-top:.42rem;font-size:1rem;font-weight:750;letter-spacing:-.02em}
 .carousel-desc{margin:.42rem auto 0;max-width:340px;color:var(--text-2);font-size:.76rem;line-height:1.55}
@@ -117,13 +117,13 @@ nav.desk a:hover{color:var(--text)}
 .carousel-dot.is-active{width:22px;border-radius:999px;background:var(--cyan);box-shadow:0 0 18px rgba(0,229,255,.4)}
 
 #features{background:#08090b;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.section-head{max-width:680px;margin-bottom:2.4rem}
+.section-head{max-width:680px;margin-bottom:1.9rem}
 .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-.feature-card{position:relative;min-height:270px;padding:2rem;background:var(--card);transition:.2s}
+.feature-card{position:relative;min-height:238px;padding:1.7rem;background:var(--card);transition:.2s}
 .feature-card:hover{background:var(--card-2)}
 .feature-card::before{content:'';position:absolute;left:0;top:0;width:100%;height:2px;background:var(--cyan);transform:scaleX(.28);transform-origin:left;transition:.2s}
 .feature-card:hover::before{transform:scaleX(1)}
-.feature-icon{width:44px;height:44px;margin-bottom:1.45rem;border:1px solid var(--border-c);border-radius:10px;display:grid;place-items:center;background:var(--cyan-dim)}
+.feature-icon{width:42px;height:42px;margin-bottom:1.15rem;border:1px solid var(--border-c);border-radius:10px;display:grid;place-items:center;background:var(--cyan-dim)}
 .feature-icon svg{width:21px;height:21px;fill:none;stroke:var(--cyan);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .feature-title{font-size:1.04rem;font-weight:750;letter-spacing:-.02em}
 .feature-desc{margin-top:.7rem;color:var(--text-2);font-size:.83rem;line-height:1.65}
@@ -140,8 +140,8 @@ nav.desk a:hover{color:var(--text)}
 
 #coach{background:#08090b;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 .coach-grid{display:grid;grid-template-columns:minmax(280px,.72fr) 1fr;gap:clamp(2.5rem,7vw,6rem);align-items:center}
-.coach-visual{position:relative;min-height:480px;border-radius:20px;overflow:hidden;border:1px solid var(--border);background:linear-gradient(145deg,#15181d,#07090b)}
-.coach-visual>img{width:100%;height:100%;min-height:480px;object-fit:cover;object-position:center top}
+.coach-visual{position:relative;min-height:430px;border-radius:20px;overflow:hidden;border:1px solid var(--border);background:linear-gradient(145deg,#15181d,#07090b)}
+.coach-visual>img{width:100%;height:100%;min-height:430px;object-fit:cover;object-position:center top}
 .coach-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--text-2)}
 .coach-placeholder svg{width:120px;fill:none;stroke:#52545d}
 .coach-placeholder span{display:block;margin-top:-80px;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase}
@@ -192,31 +192,60 @@ footer{padding:2.5rem clamp(1.25rem,5vw,3rem);border-top:1px solid var(--border)
 
 @media(max-width:1050px){
   nav.desk,.header-right{display:none}.ham{display:flex}
-  :root{--header:72px}
-  .hero-content{grid-template-columns:1fr;max-width:760px;text-align:center;padding-top:3.2rem}
-  .hero-pretitle,.hero-ctas{justify-content:center}.hero-sub{margin-inline:auto}.hero-trust{max-width:570px;margin-inline:auto;margin-top:1.15rem}
-  .product-carousel{margin-top:.25rem}
-  .how-grid,.faq-layout{grid-template-columns:1fr;gap:2.2rem}.how-copy{position:static}
-  .coach-grid{grid-template-columns:.78fr 1fr;gap:2.6rem}
+  :root{--header:68px}
+  .hero-content{grid-template-columns:1fr;max-width:760px;text-align:center;padding-top:2.5rem}
+  .hero-pretitle,.hero-ctas{justify-content:center}.hero-sub{margin-inline:auto}.hero-trust{max-width:570px;margin-inline:auto;margin-top:.9rem}
+  .product-carousel{margin-top:0}
+  .how-grid,.faq-layout{grid-template-columns:1fr;gap:1.7rem}.how-copy{position:static}
+  .coach-grid{grid-template-columns:.78fr 1fr;gap:2.2rem}
 }
 
 @media(max-width:720px){
-  section{padding:3.7rem 1.25rem}
+  section{padding:2.8rem 1.25rem}
   .logo-sub{display:none}
+  .section-title{font-size:clamp(1.95rem,9.5vw,2.7rem)}
+  .section-lead{margin-top:.85rem;font-size:.84rem;line-height:1.62}
+  .section-head{margin-bottom:1.35rem}
   #hero{min-height:auto}
-  .hero-content{padding:2.6rem 1.25rem 3.6rem;gap:2.7rem}
-  .hero-h1{font-size:clamp(2.25rem,11vw,3.2rem)}
-  .hero-ctas{flex-direction:column}.hero-ctas .btn{width:100%}
-  .phone-shell{width:min(82vw,330px)}
-  .carousel-meta{min-height:104px}
-  .features-grid{grid-template-columns:1fr}.feature-card{min-height:auto}
-  .coach-grid{grid-template-columns:1fr}.coach-visual,.coach-visual>img{min-height:430px}
-  .footer-top,.footer-bottom{flex-direction:column;align-items:flex-start}.footer-links{justify-content:flex-start}.footer-side{align-items:flex-start}
+  .hero-content{padding:1.75rem 1.25rem 2.7rem;gap:1.7rem}
+  .hero-pretitle{margin-bottom:.9rem;font-size:.56rem;line-height:1.55}
+  .hero-h1{margin-bottom:.9rem;font-size:clamp(2.12rem,10.5vw,2.85rem);line-height:1.02}
+  .hero-sub{margin-bottom:1.25rem;font-size:.86rem;line-height:1.62}
+  .hero-ctas{flex-direction:column;gap:.6rem}.hero-ctas .btn{width:100%;min-height:46px}
+  .hero-trust{margin-top:.75rem;font-size:.54rem;line-height:1.55}
+  .phone-shell{width:min(72vw,300px);padding:7px;border-radius:43px}
+  .phone-viewport,.phone-glare{border-radius:36px}
+  .phone-shell::before{inset:-16px}
+  .carousel-meta{min-height:54px;margin-top:.72rem}
+  .carousel-kicker{font-size:.53rem}
+  .carousel-title{margin-top:.3rem;font-size:.86rem}
+  .carousel-desc{display:none}
+  .carousel-dots{margin-top:.62rem;gap:.48rem}
+  .features-grid{grid-template-columns:1fr}
+  .feature-card{min-height:auto;padding:1.1rem 1.05rem;display:grid;grid-template-columns:40px 1fr;column-gap:.9rem;align-items:start}
+  .feature-card::before{width:3px;height:100%;transform:scaleY(.34);transform-origin:top}
+  .feature-card:hover::before{transform:scaleY(1)}
+  .feature-icon{width:38px;height:38px;margin:0;grid-row:1 / span 2}
+  .feature-icon svg{width:19px;height:19px}
+  .feature-title{font-size:.94rem;line-height:1.35}
+  .feature-desc{margin-top:.35rem;font-size:.76rem;line-height:1.55}
+  .feature-note{display:none}
+  .step{grid-template-columns:48px 1fr;gap:.75rem;padding:1.1rem 0}
+  .step strong{font-size:.92rem}.step p{font-size:.76rem;line-height:1.55}
+  .coach-grid{grid-template-columns:1fr;gap:1.6rem}
+  .coach-visual{min-height:0;aspect-ratio:4/4.55;max-height:400px;border-radius:16px}
+  .coach-visual>img{min-height:0;height:100%;object-position:center 12%}
+  .coach-badge{left:14px;bottom:14px;padding:.7rem .85rem}
+  .coach-copy>p{margin:.9rem 0 1rem;font-size:.8rem;line-height:1.62}
+  .cred-list{gap:.35rem}.cred{padding:.72rem 0}.cred strong{font-size:.78rem}.cred small{font-size:.64rem}
+  .faq-q{padding:1.05rem 0}.faq-q-text{font-size:.82rem}.faq-a p{padding:0 2.8rem 1rem 0;font-size:.75rem}
+  .cta-title{font-size:clamp(2rem,10vw,2.8rem)}.cta-sub{font-size:.82rem;line-height:1.6}.cta-actions{margin-top:1.2rem;flex-direction:column}.cta-actions .btn{width:100%}
+  footer{padding:2rem 1.25rem}.footer-top,.footer-bottom{flex-direction:column;align-items:flex-start}.footer-links{justify-content:flex-start}.footer-side{align-items:flex-start}.footer-bottom{margin-top:1.4rem}
 }
 
 @media(max-width:390px){
-  .phone-shell{width:86vw;border-radius:43px;padding:7px}.phone-viewport,.phone-glare{border-radius:36px}
-  .hero-trust{font-size:.56rem}.carousel-desc{font-size:.7rem}
+  .phone-shell{width:min(74vw,286px)}
+  .hero-h1{font-size:clamp(2rem,10.2vw,2.55rem)}
 }
 
 @media(prefers-reduced-motion:reduce){
@@ -282,17 +311,17 @@ footer{padding:2.5rem clamp(1.25rem,5vw,3rem);border-top:1px solid var(--border)
       <div class="product-carousel" data-product-carousel aria-roledescription="carrusel" aria-label="Pantallas de AB SYSTEM">
         <div class="phone-shell" data-carousel-gesture tabindex="0" aria-label="Desliza para cambiar de pantalla">
           <div class="phone-viewport">
-            <img class="phone-slide is-active" src="/Imagen-3.jpeg" alt="Inicio de AB SYSTEM con entrenamiento principal, salud y constancia" width="864" height="1536" loading="eager" decoding="async" fetchpriority="high" data-slide="0">
-            <img class="phone-slide" src="/Imagen-5.jpeg" alt="Entrenamiento guiado con cronómetro por intervalos" width="864" height="1536" loading="eager" decoding="async" data-slide="1">
-            <img class="phone-slide" src="/Imagen-2.jpeg" alt="Detalle de ejercicios con series, repeticiones e indicaciones" width="864" height="1536" loading="lazy" decoding="async" data-slide="2">
+            <img class="phone-slide is-active" src="/Imagen-3.PNG" alt="Inicio de AB SYSTEM con entrenamiento principal, salud y constancia" width="864" height="1536" loading="eager" decoding="async" fetchpriority="high" data-slide="0">
+            <img class="phone-slide" src="/Imagen-5.PNG" alt="Entrenamiento guiado con cronómetro por intervalos" width="864" height="1536" loading="eager" decoding="async" data-slide="1">
+            <img class="phone-slide" src="/Imagen-2.PNG" alt="Detalle de ejercicios con series, repeticiones e indicaciones" width="864" height="1536" loading="lazy" decoding="async" data-slide="2">
             <img class="phone-slide" src="/Imagen-6.PNG" alt="Calendario de reservas y sesión confirmada" width="941" height="1672" loading="lazy" decoding="async" data-slide="3">
-            <img class="phone-slide" src="/Imagen-4.jpeg" alt="Progreso, historial y evaluaciones del cliente" width="864" height="1536" loading="lazy" decoding="async" data-slide="4">
-            <img class="phone-slide" src="/Imagen-1.jpeg" alt="Check-in diario de sueño, energía y molestias" width="864" height="1536" loading="lazy" decoding="async" data-slide="5">
+            <img class="phone-slide" src="/Imagen-4.PNG" alt="Progreso, historial y evaluaciones del cliente" width="864" height="1536" loading="lazy" decoding="async" data-slide="4">
+            <img class="phone-slide" src="/Imagen-1.PNG" alt="Check-in diario de sueño, energía y molestias" width="864" height="1536" loading="lazy" decoding="async" data-slide="5">
             <div class="phone-glare" aria-hidden="true"></div>
           </div>
         </div>
 
-        <div class="carousel-meta">
+        <div class="carousel-meta" aria-live="polite" aria-atomic="true">
           <div class="carousel-kicker" data-carousel-kicker>Inicio</div>
           <div class="carousel-title" data-carousel-title>Tu día y tu plan en un solo lugar.</div>
           <p class="carousel-desc" data-carousel-desc>Consulta el entrenamiento disponible, tu estado y el avance semanal sin perderte entre pantallas.</p>
@@ -315,7 +344,7 @@ footer{padding:2.5rem clamp(1.25rem,5vw,3rem);border-top:1px solid var(--border)
     <div class="section-head">
       <div class="label-tag reveal">Qué te aporta</div>
       <h2 class="section-title reveal d1">Menos ruido. Más <span class="accent">control del proceso.</span></h2>
-      <p class="section-lead reveal d2">El teléfono ya te muestra cómo funciona. Estas son las tres diferencias que sostienen todo el sistema.</p>
+      <p class="section-lead reveal d2">Tres diferencias sostienen todo el sistema.</p>
     </div>
 
     <div class="features-grid">
@@ -390,7 +419,7 @@ footer{padding:2.5rem clamp(1.25rem,5vw,3rem);border-top:1px solid var(--border)
       <div>
         <div class="label-tag reveal">Preguntas frecuentes</div>
         <h2 class="section-title reveal d1">Lo esencial<br><span class="accent">antes de empezar.</span></h2>
-        <p class="section-lead reveal d2">Cuatro respuestas, sin repetir toda la página.</p>
+        <p class="section-lead reveal d2">Cuatro respuestas antes de empezar.</p>
       </div>
 
       <div class="faq-list">
@@ -517,6 +546,7 @@ function toggleFaq(btn) {
   var timer = null;
   var resumeTimer = null;
   var startX = null;
+  var failed = new Set();
 
   var copy = [
     { kicker: 'Inicio', title: 'Tu día y tu plan en un solo lugar.', desc: 'Consulta el entrenamiento disponible, tu estado y el avance semanal sin perderte entre pantallas.' },
@@ -527,15 +557,27 @@ function toggleFaq(btn) {
     { kicker: 'Salud', title: 'Sueño, energía y molestias también cuentan.', desc: 'El check-in diario aporta contexto para ajustar el entrenamiento cuando hace falta.' }
   ];
 
+  function resolveIndex(index, direction) {
+    if (!slides.length) return 0;
+    var step = direction < 0 ? -1 : 1;
+    var candidate = (index + slides.length) % slides.length;
+    for (var tries = 0; tries < slides.length; tries += 1) {
+      if (!failed.has(candidate)) return candidate;
+      candidate = (candidate + step + slides.length) % slides.length;
+    }
+    return current;
+  }
+
   function preloadNext(index) {
-    var next = slides[(index + 1) % slides.length];
-    if (!next) return;
+    var nextIndex = resolveIndex(index + 1, 1);
+    var next = slides[nextIndex];
+    if (!next || failed.has(nextIndex)) return;
     var img = new Image();
     img.src = next.currentSrc || next.src;
   }
 
-  function setSlide(index, userInitiated) {
-    current = (index + slides.length) % slides.length;
+  function setSlide(index, userInitiated, direction) {
+    current = resolveIndex(index, direction || 1);
     slides.forEach(function (slide, i) {
       slide.classList.toggle('is-active', i === current);
       slide.setAttribute('aria-hidden', i === current ? 'false' : 'true');
@@ -564,7 +606,7 @@ function toggleFaq(btn) {
   function start() {
     stop();
     if (reduceMotion || document.hidden) return;
-    timer = window.setInterval(function () { setSlide(current + 1, false); }, 4000);
+    timer = window.setInterval(function () { setSlide(current + 1, false, 1); }, 3500);
   }
 
   function scheduleResume() {
@@ -574,7 +616,7 @@ function toggleFaq(btn) {
   }
 
   dots.forEach(function (dot) {
-    dot.addEventListener('click', function () { setSlide(Number(dot.dataset.carouselDot || 0), true); });
+    dot.addEventListener('click', function () { setSlide(Number(dot.dataset.carouselDot || 0), true, 1); });
   });
 
   if (gesture) {
@@ -587,7 +629,7 @@ function toggleFaq(btn) {
       if (startX === null) return;
       var delta = event.clientX - startX;
       startX = null;
-      if (Math.abs(delta) > 42) setSlide(current + (delta < 0 ? 1 : -1), true);
+      if (Math.abs(delta) > 42) setSlide(current + (delta < 0 ? 1 : -1), true, delta < 0 ? 1 : -1);
       else scheduleResume();
     });
     gesture.addEventListener('pointercancel', function () { startX = null; scheduleResume(); });
@@ -596,13 +638,26 @@ function toggleFaq(btn) {
     gesture.addEventListener('focusin', stop);
     gesture.addEventListener('focusout', start);
     gesture.addEventListener('keydown', function (event) {
-      if (event.key === 'ArrowRight') { event.preventDefault(); setSlide(current + 1, true); }
-      if (event.key === 'ArrowLeft') { event.preventDefault(); setSlide(current - 1, true); }
+      if (event.key === 'ArrowRight') { event.preventDefault(); setSlide(current + 1, true, 1); }
+      if (event.key === 'ArrowLeft') { event.preventDefault(); setSlide(current - 1, true, -1); }
     });
   }
 
+  slides.forEach(function (slide, index) {
+    function markFailed() {
+      if (failed.has(index)) return;
+      failed.add(index);
+      slide.classList.remove('is-active');
+      slide.style.display = 'none';
+      if (dots[index]) dots[index].style.display = 'none';
+      if (index === current) setSlide(current + 1, false, 1);
+    }
+    slide.addEventListener('error', markFailed);
+    if (slide.complete && slide.naturalWidth === 0) markFailed();
+  });
+
   document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
-  setSlide(0, false);
+  setSlide(0, false, 1);
   start();
 })();
 
