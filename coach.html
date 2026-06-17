@@ -2895,6 +2895,7 @@
        </div>
      </div>
      <div class="mr" id="hoy-metrics"></div>
+   <div id="hoy-bar" style="padding:6px 0 2px"></div>
      <div id="hoy-content"></div>
    </div>
    
@@ -5761,9 +5762,10 @@
        <div class="mc y"><span class="mc-n">${pendingRequests.length}</span><span class="mc-l">Solicitudes</span></div>
        <div class="mc g"><span class="mc-n">${state.todayCheckins.length}</span><span class="mc-l">Check-ins</span></div>
        <div class="mc r"><span class="mc-n">${pendingAlerts+pendingConditions}</span><span class="mc-l">Alertas / salud</span></div>
-       <div style="grid-column:1/-1;padding:2px 0">${barHTML}</div>
      `;
-   
+const barEl = document.getElementById('hoy-bar');
+if (barEl) barEl.innerHTML = barHTML;
+
      const requestsHTML = pendingRequests.length ? `
        <div style="margin-bottom:18px">
          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px">
