@@ -12687,7 +12687,19 @@ function buildProgressTrainingSummary() {
 
 /* ══ EVALUACIONES ══ */
 function buildMiniChart(pts){if(!pts||pts.length<2)return null;const vals=pts.map(d=>d.value),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;const W=260,H=50,P=6;const mapped=pts.map((d,i)=>({x:P+(i/(pts.length-1))*(W-P*2),y:P+(H-P*2)-((d.value-min)/range)*(H-P*2),date:d.date,value:d.value}));const line=mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');const area=[mapped[0].x.toFixed(1)+','+(H-P).toFixed(1)].concat(mapped.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1))).concat([mapped[mapped.length-1].x.toFixed(1)+','+(H-P).toFixed(1)]).join(' ');const dots=mapped.map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="var(--sport)" stroke="var(--card)" stroke-width="1.5"/>').join('');const labs=mapped.map(p=>'<span class="mini-chart-label">'+String(p.date||'').slice(5)+'<br>'+p.value+'</span>').join('');return'<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="display:block"><polygon points="'+area+'" fill="rgba(0,229,255,0.06)"/><polyline points="'+line+'" fill="none" stroke="var(--sport)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div class="mini-chart-labels">'+labs+'</div>';}
-function buildExerciseHistory(exerciseName){return clientAssessmentResults.filter(r=>(r.exercise_name||'').trim().toLowerCase()===(exerciseName||'').trim().toLowerCase()).map(r=>{const a=clientAssessments.find(x=>x.id===r.assessment_id);return{date:a?.assessment_date||'',value:r.result_value,numValue:parseFloat(String(r.result_value||'').replace(',','.'))}}).filter(d=>d.date).sort((a,b)=>String(a.date).localeCompare(String(b.date)));}
+function buildExerciseHistory(exerciseName){
+  return clientAssessmentResults
+    .filter(r => (r.exercise_name||'').trim().toLowerCase() === (exerciseName||'').trim().toLowerCase())
+    .map(r => {
+      const a = clientAssessments.find(x => x.id === r.assessment_id);
+      // Leer el primer campo disponible con valor numérico
+      const raw = r.value_numeric ?? r.load_kg ?? r.reps ?? r.time_seconds ?? r.distance_meters ?? r.result_value;
+      const num = parseFloat(String(raw||'').replace(',','.'));
+      return { date: a?.assessment_date||'', value: Number.isFinite(num) ? num : null };
+    })
+    .filter(d => d.date && d.value !== null)
+    .sort((a,b) => String(a.date).localeCompare(String(b.date)));
+}
 function dLabel(d){
   if(d === 'higher_better') return uiText('higherBetter');
   if(d === 'lower_better') return uiText('lowerBetter');
@@ -15839,6 +15851,82 @@ function getSorenessOptions() {
       ];
 }
 
+function buildCheckinTrendChart() {
+  const days = 14;
+  const today = new Date();
+  const pts = [];
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0, 10);
+    const ci = (clientDailyCheckins || []).find(c => {
+      const cd = String(c.checkin_date || c.date || c.created_at || '').slice(0, 10);
+      return cd === dateStr;
+    });
+    pts.push({
+      date: dateStr,
+      energy: ci ? Number(ci.energy_level ?? ci.energyLevel ?? 0) : null,
+      sleep: ci ? Number(ci.sleep_quality ?? ci.sleepQuality ?? 0) : null,
+    });
+  }
+
+  const hasSomeData = pts.some(p => p.energy !== null);
+  if (!hasSomeData) return '';
+
+  const W = 280, H = 54, P = 6;
+  const filled = pts.filter(p => p.energy !== null);
+
+  function toSVGCoords(arr, key) {
+    const vals = arr.map(p => p[key]).filter(v => v !== null);
+    const min = 0, max = 5, range = max - min || 1;
+    return arr.map((p, i) => ({
+      x: P + (i / (arr.length - 1)) * (W - P * 2),
+      y: p[key] !== null
+        ? H - P - ((p[key] - min) / range) * (H - P * 2)
+        : null,
+      val: p[key],
+      date: p.date
+    }));
+  }
+
+  function buildLine(coords, color) {
+    const valid = coords.filter(c => c.y !== null);
+    if (valid.length < 2) return '';
+    const path = valid.map((c, i) => (i === 0 ? `M${c.x.toFixed(1)},${c.y.toFixed(1)}` : `L${c.x.toFixed(1)},${c.y.toFixed(1)}`)).join(' ');
+    const dots = valid.map(c => `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="2.5" fill="${color}" opacity=".85"/>`).join('');
+    return `<path d="${path}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>${dots}`;
+  }
+
+  const energyCoords = toSVGCoords(pts, 'energy');
+  const sleepCoords  = toSVGCoords(pts, 'sleep');
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:4px 0 2px">
+    ${buildLine(energyCoords, 'var(--sport)')}
+    ${buildLine(sleepCoords, 'var(--warn)')}
+  </svg>`;
+
+  const lastDate = pts[pts.length - 1].date.slice(5);
+  const firstDate = pts[0].date.slice(5);
+
+  return (
+    '<div style="background:var(--bg);border:1px solid var(--card-border);border-radius:10px;padding:10px 12px;margin-top:8px;">' +
+      '<div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--text-secondary);margin-bottom:6px;">' +
+        (getLang() === 'sr' ? 'Trend 14 dana' : 'Tendencia 14 días') +
+      '</div>' +
+      svg +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">' +
+        '<span style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary)">' + firstDate + '</span>' +
+        '<div style="display:flex;gap:10px;">' +
+          '<span style="font-family:var(--font-mono);font-size:9px;color:var(--sport)">● ' + (getLang() === 'sr' ? 'Energija' : 'Energía') + '</span>' +
+          '<span style="font-family:var(--font-mono);font-size:9px;color:var(--warn)">● ' + (getLang() === 'sr' ? 'Spavanje' : 'Sueño') + '</span>' +
+        '</div>' +
+        '<span style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary)">' + lastDate + '</span>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
 function buildDailyCheckinHTML() {
   const saved = getTodayCheckin();
 
@@ -15861,7 +15949,8 @@ function buildDailyCheckinHTML() {
         '<button class="client-action-btn" style="margin-top:14px;background:transparent;border:1px solid var(--card-border);color:var(--text-secondary);" onclick="mostrarFormCheckin()">' +
           (getLang() === 'sr' ? 'Izmeni check-in' : 'Editar check-in') +
         '</button>' +
-      '</div>'
+      '</div>' +
+      buildCheckinTrendChart()
     );
   }
 
