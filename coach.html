@@ -7306,49 +7306,122 @@ if (barEl) barEl.innerHTML = barHTML;
    }
    
    async function sendManualPush() {
-     const clientSel = document.getElementById('push-client-sel')?.value;
-     const title     = document.getElementById('push-title')?.value?.trim();
-     const body      = document.getElementById('push-body')?.value?.trim();
-   
-     if(!title || !body) { showToast('Escribe título y mensaje', 'err'); return; }
-   
-     const btn = document.querySelector('#modal-form .btn-p');
-     if(btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
-   
-     const SUPA_URL  = 'https://icjuuptbcnkpwgsoyiuj.supabase.co';
-     const SUPA_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanV1cHRiY25rcHdnc295aXVqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODE1MjMyNCwiZXhwIjoyMDkzNzI4MzI0fQ.pq5V5sBjRRHa-IeVd5rKMDvDxqICBSoBcN6Cs6j1iS4';
-   
-     try {
-       if(clientSel === 'all') {
-         // Enviar a todos los clientes activos con suscripción
-         const targets = state.clients.filter(c => String(c.status || '').toLowerCase() === 'activo');
-         let sent = 0;
-         await Promise.allSettled(targets.map(async c => {
-           const res = await fetch(`${SUPA_URL}/functions/v1/send-push-client`, {
-             method: 'POST',
-             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_KEY },
-             body: JSON.stringify({ client_id: c.id, title, body, notif_type: 'coach_broadcast' })
-           });
-           const data = await res.json();
-           if(data.sent > 0) sent++;
-         }));
-         showToast(`Enviado a ${sent} cliente${sent !== 1 ? 's' : ''} ✓`, 'ok');
-       } else {
-         const res = await fetch(`${SUPA_URL}/functions/v1/send-push-client`, {
-           method: 'POST',
-           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPA_KEY },
-           body: JSON.stringify({ client_id: clientSel, title, body, notif_type: 'coach_message' })
-         });
-         const data = await res.json();
-         showToast(data.sent > 0 ? 'Mensaje enviado ✓' : 'Cliente sin notificaciones activas', data.sent > 0 ? 'ok' : 'err');
-       }
-       closeModal();
-     } catch(err) {
-       console.error('sendManualPush error:', err);
-       showToast('Error enviando: ' + (err?.message || ''), 'err');
-       if(btn) { btn.disabled = false; btn.textContent = 'Enviar'; }
-     }
-   }
+  const clientSel = document.getElementById('push-client-sel')?.value;
+  const title = document.getElementById('push-title')?.value?.trim();
+  const body = document.getElementById('push-body')?.value?.trim();
+  const sessionToken = getCoachSessionTokenSafe();
+
+  if (!title || !body) {
+    showToast('Escribe título y mensaje', 'err');
+    return;
+  }
+
+  if (!sessionToken) {
+    showToast('La sesión del coach ha caducado', 'err');
+    return;
+  }
+
+  const btn = document.querySelector('#modal-form .btn-p');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+  }
+
+  async function sendToClient(clientId, notifType) {
+    const res = await fetch(`${SUPA_URL}/functions/v1/send-push-client`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY
+      },
+      body: JSON.stringify({
+        session_token: sessionToken,
+        client_id: clientId,
+        title,
+        body,
+        notif_type: notifType
+      })
+    });
+
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (_err) {
+      data = {};
+    }
+
+    if (!res.ok || data?.ok === false) {
+      throw new Error(
+        data?.error ||
+        `La función respondió con HTTP ${res.status}`
+      );
+    }
+
+    return data;
+  }
+
+  try {
+    if (clientSel === 'all') {
+      const targets = state.clients.filter(
+        c => String(c.status || '').toLowerCase() === 'activo'
+      );
+
+      const settled = await Promise.allSettled(
+        targets.map(c => sendToClient(c.id, 'coach_broadcast'))
+      );
+
+      let clientsSent = 0;
+      let devicesSent = 0;
+      let failures = 0;
+
+      settled.forEach(result => {
+        if (result.status === 'fulfilled') {
+          const count = Number(result.value?.sent || 0);
+          if (count > 0) clientsSent++;
+          devicesSent += count;
+          failures += Number(result.value?.failed || 0);
+        } else {
+          failures++;
+          console.error('Push broadcast error:', result.reason);
+        }
+      });
+
+      if (clientsSent > 0) {
+        showToast(
+          `Enviado a ${clientsSent} cliente${clientsSent !== 1 ? 's' : ''} · ${devicesSent} dispositivo${devicesSent !== 1 ? 's' : ''}`,
+          failures > 0 ? 'err' : 'ok'
+        );
+        closeModal();
+      } else {
+        showToast(
+          failures > 0
+            ? 'No se pudo enviar la notificación'
+            : 'Ningún cliente tiene notificaciones activas',
+          'err'
+        );
+      }
+    } else {
+      const data = await sendToClient(clientSel, 'coach_message');
+
+      if (Number(data?.sent || 0) > 0) {
+        showToast('Mensaje enviado ✓', 'ok');
+        closeModal();
+      } else {
+        showToast('Cliente sin notificaciones activas', 'err');
+      }
+    }
+  } catch (err) {
+    console.error('sendManualPush error:', err);
+    showToast('Error enviando: ' + (err?.message || ''), 'err');
+  } finally {
+    if (btn && document.body.contains(btn)) {
+      btn.disabled = false;
+      btn.textContent = 'Enviar';
+    }
+  }
+}
+
    
    function renderAlertas(){
      const effectiveRows=getStandaloneCoachAlerts().filter(a=>!isFalsePositiveAlert(a)||filterAl==='leidas'||filterAl==='todas');
