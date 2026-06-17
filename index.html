@@ -2437,76 +2437,7 @@ footer {
   }
 }
 
-
-/* ═══════════════════════════════════════════════════════
-   AB SHOWCASE V2 — Imagen fija + chips de sección
-═══════════════════════════════════════════════════════ */
-.ab-showcase-v2 {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  width: min(100%, 320px);
-}
-
-.ab-main-screen {
-  width: 100%;
-  border-radius: 32px;
-  overflow: hidden;
-  border: 1px solid rgba(0,229,255,.22);
-  box-shadow: 0 40px 100px rgba(0,0,0,.72), 0 0 0 1px rgba(255,255,255,.06);
-  background: #080b0e;
-}
-
-.ab-main-screen img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 32px;
-  transition: opacity .22s ease;
-}
-
-.ab-main-screen img.fading { opacity: 0; }
-
-.ab-screen-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-}
-
-.ab-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Sora', sans-serif;
-  font-size: .6rem;
-  font-weight: 700;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--text-2);
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 999px;
-  padding: .45rem .85rem;
-  cursor: pointer;
-  transition: all .18s;
-}
-.ab-chip:hover { border-color: rgba(0,229,255,.35); color: var(--text); }
-.ab-chip.active { background: rgba(0,229,255,.10); border-color: rgba(0,229,255,.45); color: var(--cyan); }
-.ab-chip-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; opacity: .6; }
-
-@media (max-width: 1180px) {
-  .hero-right { display: flex !important; justify-content: center; }
-  .ab-showcase-v2 { width: min(100%, 280px); }
-}
-@media (max-width: 480px) {
-  .ab-showcase-v2 { width: min(100%, 260px); }
-  .ab-chip { font-size: .55rem; padding: .4rem .7rem; }
-}
-
 </style>
-
 <!-- AB SYSTEM: index limpio coach access /coach?logout=1 vcoach-clean-01 -->
 <!-- BUILD: INDEX COACH ROUTE CLEAN 01 -->
 </head>
@@ -2514,13 +2445,11 @@ footer {
 
 <!-- ═══ HEADER ════════════════════════════════════════ -->
 <header id="header">
-  <a href="#hero" class="logo-mark" aria-label="AB SYSTEM" style="gap:0;align-items:baseline;">
-    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:0;line-height:1;">
-      <div style="display:flex;align-items:baseline;gap:6px;">
-        <span style="font-family:'Sora',sans-serif;font-size:1.35rem;font-weight:800;letter-spacing:-.03em;color:#00E5FF;">AB</span>
-        <span style="font-family:'Sora',sans-serif;font-size:1.35rem;font-weight:400;letter-spacing:.08em;color:#FFFFFF;">SYSTEM</span>
-      </div>
-      <div style="width:24px;height:2px;background:#00E5FF;margin-top:3px;"></div>
+  <a href="#hero" class="logo-mark" aria-label="AB SYSTEM">
+    <div class="logo-letters"><span class="c">[</span>AB<span class="c">]</span></div>
+    <div class="logo-sub">
+      <span>SYSTEM</span>
+      Health &amp; Performance
     </div>
   </a>
 
@@ -2596,46 +2525,44 @@ footer {
       </p>
 
       <div class="hero-chips">
-  <a href="#features" class="hero-chip">Evaluación inicial</a>
-  <a href="#features" class="hero-chip">Plan personalizado</a>
-  <a href="#how" class="hero-chip">Seguimiento real</a>
+  <a href="#features" class="hero-chip">Evaluación</a>
+  <a href="#features" class="hero-chip">Planificación</a>
+  <a href="#how" class="hero-chip">Seguimiento</a>
   <a href="#how" class="hero-chip">Adaptación</a>
-  <a href="#for-who" class="hero-chip">Sin nivel previo</a>
+  <a href="#features" class="hero-chip">Check-in diario</a>
 </div>
     </div>
 
     <!-- Screenshots reales de la app -->
-    <div class="hero-right" style="display:flex;justify-content:center;align-items:flex-start;">
-      <div class="ab-showcase-v2">
+    <div class="hero-right">
+      <div class="ab-showcase" data-ab-showcase>
 
-        <!-- Imagen principal -->
-        <div class="ab-main-screen">
-          <img
-            id="ab-hero-img"
-            src="/IMG_2599.png"
-            alt="AB SYSTEM — Cronómetro de intervalos en sesión activa"
-            loading="eager"
-            decoding="async"
-          >
+        <div class="ab-showcase-stage">
+          <!-- HERO CON IMÁGENES REALES HQ -->
+<button class="ab-screen is-active" data-screen="0" type="button" aria-label="Ver sesión activa Bloque 3">
+  <img
+    src="/IMG_2394.jpeg"
+    onerror="this.parentElement.classList.add('has-image-error')"
+    alt="AB SYSTEM — Bloque 3 Circuito Clinch-Fitness con remo en postura de lucha, woodchop y pummeling"
+    loading="eager"
+    decoding="async"
+  >
+</button>
+
+<button class="ab-screen is-next" data-screen="1" type="button" aria-label="Ver perfil cliente activo">
+  <img
+    src="/IMG_2391.jpeg"
+    onerror="this.parentElement.classList.add('has-image-error')"
+    alt="AB SYSTEM — Perfil cliente ACTIVO con 100% adherencia, accesos rápidos y próxima sesión"
+    loading="eager"
+    decoding="async"
+  >
+</button>
         </div>
 
-        <!-- Chips de sección -->
-        <div class="ab-screen-chips">
-          <button class="ab-chip" data-img="/IMG_2599.png" data-label="Timer · Intervalos" onclick="switchHeroImg(this)">
-            <span class="ab-chip-dot"></span>Entrena
-          </button>
-          <button class="ab-chip" data-img="/IMG_2624.jpeg" data-label="Inicio · Tu día" onclick="switchHeroImg(this)">
-            <span class="ab-chip-dot"></span>Inicio
-          </button>
-          <button class="ab-chip" data-img="/IMG_2622.jpeg" data-label="Progreso · Tests" onclick="switchHeroImg(this)">
-            <span class="ab-chip-dot"></span>Progreso
-          </button>
-          <button class="ab-chip" data-img="/IMG_2626.jpeg" data-label="Salud · Métricas" onclick="switchHeroImg(this)">
-            <span class="ab-chip-dot"></span>Salud
-          </button>
-          <button class="ab-chip" data-img="/IMG_2611.jpeg" data-label="Reservas · Agenda" onclick="switchHeroImg(this)">
-            <span class="ab-chip-dot"></span>Reservas
-          </button>
+        <div class="ab-showcase-tabs" aria-label="Cambiar pantalla del sistema">
+          <button class="is-active" type="button" data-go-screen="0">Entrenamiento adaptado</button>
+<button type="button" data-go-screen="1">Cliente ACTIVO</button>
         </div>
 
       </div>
@@ -2691,7 +2618,6 @@ footer {
         </div>
         <div class="feature-title">Check-in diario</div>
         <div class="feature-desc">Sueño, energía y sensaciones antes de entrenar.</div>
-        <img src="/IMG_2614.jpeg" alt="Check-in diario AB SYSTEM" style="margin-top:1.2rem;border-radius:8px;border:1px solid var(--border);width:100%;opacity:.92" loading="lazy">
       </div>
 
       <div class="feature-card reveal d3">
@@ -2701,7 +2627,6 @@ footer {
         </div>
         <div class="feature-title">Progreso y evaluaciones</div>
         <div class="feature-desc">Evaluación inicial, métricas y evolución visible.</div>
-        <img src="/IMG_2622.jpeg" alt="Progreso y evaluaciones AB SYSTEM" style="margin-top:1.2rem;border-radius:8px;border:1px solid var(--border);width:100%;opacity:.92" loading="lazy">
       </div>
 
       <div class="feature-card reveal d1">
@@ -2711,7 +2636,6 @@ footer {
         </div>
         <div class="feature-title">Salud y adaptación</div>
         <div class="feature-desc">Si aparece una molestia, el plan se ajusta.</div>
-        <img src="/IMG_2618.jpeg" alt="Salud y molestias AB SYSTEM" style="margin-top:1.2rem;border-radius:8px;border:1px solid var(--border);width:100%;opacity:.92" loading="lazy">
       </div>
 
       <div class="feature-card reveal d2">
@@ -2721,7 +2645,6 @@ footer {
         </div>
         <div class="feature-title">Reservas y comunicación</div>
         <div class="feature-desc">Agenda, recordatorios y contacto directo con el coach.</div>
-        <img src="/IMG_2611.jpeg" alt="Reservas AB SYSTEM" style="margin-top:1.2rem;border-radius:8px;border:1px solid var(--border);width:100%;opacity:.92" loading="lazy">
       </div>
 
       <div class="feature-card reveal d3">
@@ -2731,7 +2654,6 @@ footer {
         </div>
         <div class="feature-title">Seguimiento del coach</div>
         <div class="feature-desc">El coach ve el proceso, ajusta cargas y detecta señales.</div>
-        <img src="/IMG_2620.jpeg" alt="Panel HOY del coach AB SYSTEM" style="margin-top:1.2rem;border-radius:8px;border:1px solid var(--border);width:100%;opacity:.92" loading="lazy">
       </div>
     </div>
   </div>
@@ -2909,7 +2831,7 @@ footer {
           src="/abel-coach.jpg"
           alt="Abel Balsinde — Entrenador UWW Level 2, Belgrado"
           loading="lazy"
-          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+          onerror="this.style.display='none'"
         >
         <!-- Placeholder si no carga la imagen -->
         <div class="coach-placeholder" aria-hidden="true">
@@ -3142,13 +3064,11 @@ footer {
 <footer>
   <div class="footer-inner">
     <div class="footer-top">
-      <a href="#hero" class="logo-mark" aria-label="AB SYSTEM" style="gap:0;align-items:baseline;">
-        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:0;line-height:1;">
-          <div style="display:flex;align-items:baseline;gap:5px;">
-            <span style="font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:800;letter-spacing:-.03em;color:#00E5FF;">AB</span>
-            <span style="font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:400;letter-spacing:.08em;color:#FFFFFF;">SYSTEM</span>
-          </div>
-          <div style="width:20px;height:2px;background:#00E5FF;margin-top:3px;"></div>
+      <a href="#hero" class="logo-mark" aria-label="AB SYSTEM">
+        <div class="logo-letters" style="font-size:1.15rem;"><span class="c">[</span>AB<span class="c">]</span></div>
+        <div class="logo-sub">
+          <span>SYSTEM</span>
+          Health &amp; Performance · Belgrado
         </div>
       </a>
 
@@ -3241,31 +3161,7 @@ if ('IntersectionObserver' in window) {
 }
 
 
-// Hero image switcher
-function switchHeroImg(btn) {
-  const img = document.getElementById('ab-hero-img');
-  if (!img) return;
-
-  // Activar chip
-  document.querySelectorAll('.ab-chip').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-
-  // Fade out → cambiar src → fade in
-  img.classList.add('fading');
-  setTimeout(() => {
-    img.src = btn.dataset.img;
-    img.alt = 'AB SYSTEM — ' + (btn.dataset.label || '');
-    img.classList.remove('fading');
-  }, 220);
-}
-
-// Activar primer chip al cargar
-document.addEventListener('DOMContentLoaded', () => {
-  const first = document.querySelector('.ab-chip');
-  if (first) first.classList.add('active');
-});
-
-// Hero real screens switcher (legacy — kept for safety)
+// Hero real screens switcher
 function initABShowcase() {
   const root = document.querySelector('[data-ab-showcase]');
   if (!root) return;
