@@ -10148,116 +10148,147 @@ if (barEl) barEl.innerHTML = barHTML;
    }
    
    /* ── ORDEN LÓGICO DE BLOQUES · AB SYSTEM ── */
-   function getBlockSemanticRank(blockOrName){
-     let text = '';
-   
-     if(typeof blockOrName === 'string'){
-       text = blockOrName;
-     }else{
-       text = [
-         getBlockName(blockOrName),
-         getBlockType(blockOrName),
-         getBlockDescription(blockOrName),
-         blockOrName?.sessionTitle,
-         blockOrName?.session_title
-       ].filter(Boolean).join(' ');
-     }
-   
-     const txt = cleanTxt(text);
-   
-     // 1. Inicio de sesión
-     if(
-       txt.includes('calentamiento') ||
-       txt.includes('warm up') ||
-       txt.includes('warmup') ||
-       txt.includes('activacion') ||
-       txt.includes('activación')
-     ){
-       return 10;
-     }
-   
-     // 2. Movilidad inicial / preparación
-     if(
-       txt.includes('movilidad') &&
-       !txt.includes('final') &&
-       !txt.includes('vuelta')
-     ){
-       return 20;
-     }
-   
-     // 3. Técnica / fuerza / trabajo principal
-     if(
-       txt.includes('tecnica') ||
-       txt.includes('técnica') ||
-       txt.includes('fuerza') ||
-       txt.includes('principal') ||
-       txt.includes('full body') ||
-       txt.includes('circuito') ||
-       txt.includes('trabajo')
-     ){
-       return 40;
-     }
-   
-     // 4. Core
-     if(
-       txt.includes('core') ||
-       txt.includes('abdomen') ||
-       txt.includes('abdominal') ||
-       txt.includes('plancha')
-     ){
-       return 60;
-     }
-   
-     // 5. Finisher / metabólico antes del estiramiento
-     if(
-       txt.includes('finisher') ||
-       txt.includes('emom') ||
-       txt.includes('amrap') ||
-       txt.includes('metabolico') ||
-       txt.includes('metabólico') ||
-       txt.includes('conditioning') ||
-       txt.includes('acondicionamiento')
-     ){
-       return 90;
-     }
-   
-     // 6. Siempre al final
-     if(
-       txt.includes('estiramiento') ||
-       txt.includes('stretch') ||
-       txt.includes('stretching') ||
-       txt.includes('vuelta a la calma') ||
-       txt.includes('vuelta calma') ||
-       txt.includes('cooldown') ||
-       txt.includes('cool down')
-     ){
-       return 100;
-     }
-   
-     return 50;
-   }
-   
-   function getBlockOriginalOrder(block){
-     return Number(
-       block?.orden_bloque ||
-       block?.blockOrder ||
-       block?.block_order ||
-       block?.orderIndex ||
-       block?.order_index ||
-       0
-     );
-   }
-   
-   function orderWorkoutBlocksForFlow(blocks){
-     return [...(blocks || [])].sort((a,b)=>{
-       const ra = getBlockSemanticRank(a);
-       const rb = getBlockSemanticRank(b);
-   
-       if(ra !== rb) return ra - rb;
-   
-       return getBlockOriginalOrder(a) - getBlockOriginalOrder(b);
-     });
-   }
+function getBlockSemanticRank(blockOrName){
+  let text = '';
+
+  if(typeof blockOrName === 'string'){
+    text = blockOrName;
+  }else{
+    text = [
+      getBlockName(blockOrName),
+      getBlockType(blockOrName),
+      getBlockDescription(blockOrName),
+      blockOrName?.sessionTitle,
+      blockOrName?.session_title
+    ].filter(Boolean).join(' ');
+  }
+
+  const txt = cleanTxt(text);
+
+  // Siempre al final: comprobar antes de "movilidad"
+  if(
+    txt.includes('recuperacion') ||
+    txt.includes('recuperación') ||
+    txt.includes('movilidad final') ||
+    txt.includes('respiracion') ||
+    txt.includes('respiración') ||
+    txt.includes('estiramiento') ||
+    txt.includes('stretch') ||
+    txt.includes('stretching') ||
+    txt.includes('vuelta a la calma') ||
+    txt.includes('vuelta calma') ||
+    txt.includes('cooldown') ||
+    txt.includes('cool down')
+  ){
+    return 100;
+  }
+
+  // Inicio de sesión
+  if(
+    txt.includes('calentamiento') ||
+    txt.includes('warm up') ||
+    txt.includes('warmup') ||
+    txt.includes('activacion') ||
+    txt.includes('activación')
+  ){
+    return 10;
+  }
+
+  // Movilidad inicial / preparación
+  if(txt.includes('movilidad')){
+    return 20;
+  }
+
+  // Técnica / fuerza / trabajo principal
+  if(
+    txt.includes('tecnica') ||
+    txt.includes('técnica') ||
+    txt.includes('fuerza') ||
+    txt.includes('principal') ||
+    txt.includes('full body') ||
+    txt.includes('circuito') ||
+    txt.includes('trabajo')
+  ){
+    return 40;
+  }
+
+  // Core
+  if(
+    txt.includes('core') ||
+    txt.includes('abdomen') ||
+    txt.includes('abdominal') ||
+    txt.includes('plancha')
+  ){
+    return 60;
+  }
+
+  // Finisher / metabólico
+  if(
+    txt.includes('finisher') ||
+    txt.includes('emom') ||
+    txt.includes('amrap') ||
+    txt.includes('metabolico') ||
+    txt.includes('metabólico') ||
+    txt.includes('conditioning') ||
+    txt.includes('acondicionamiento')
+  ){
+    return 90;
+  }
+
+  return 50;
+}
+
+function getBlockOriginalOrder(block){
+  const rawOrder =
+    block?.orden_bloque ??
+    block?.blockOrder ??
+    block?.block_order ??
+    block?.orderIndex ??
+    block?.order_index;
+
+  if(
+    rawOrder === null ||
+    rawOrder === undefined ||
+    rawOrder === ''
+  ){
+    return null;
+  }
+
+  const order = Number(rawOrder);
+  return Number.isFinite(order) ? order : null;
+}
+
+function orderWorkoutBlocksForFlow(blocks){
+  return [...(blocks || [])]
+    .map((block, originalIndex) => ({
+      block,
+      originalIndex,
+      order: getBlockOriginalOrder(block),
+      semanticRank: getBlockSemanticRank(block)
+    }))
+    .sort((a, b) => {
+      const aHasOrder = a.order !== null;
+      const bHasOrder = b.order !== null;
+
+      // Si ambos tienen block_order, manda la base de datos
+      if(aHasOrder && bHasOrder && a.order !== b.order){
+        return a.order - b.order;
+      }
+
+      // Los bloques con orden explícito van antes
+      if(aHasOrder !== bHasOrder){
+        return aHasOrder ? -1 : 1;
+      }
+
+      // Solo como respaldo para bloques antiguos sin orden
+      if(a.semanticRank !== b.semanticRank){
+        return a.semanticRank - b.semanticRank;
+      }
+
+      return a.originalIndex - b.originalIndex;
+    })
+    .map(item => item.block);
+}
    
    function getWorkoutPlanForClient(c){
      const assignment = getClientActiveAssignment(c.id);
