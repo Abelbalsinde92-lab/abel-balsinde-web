@@ -2438,6 +2438,75 @@ footer {
 }
 
 </style>
+/* ═══════════════════════════════════════════════════════
+   AB SHOWCASE V2 — Imagen fija + chips de sección
+═══════════════════════════════════════════════════════ */
+.ab-showcase-v2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: min(100%, 320px);
+}
+
+.ab-main-screen {
+  width: 100%;
+  border-radius: 32px;
+  overflow: hidden;
+  border: 1px solid rgba(0,229,255,.22);
+  box-shadow: 0 40px 100px rgba(0,0,0,.72), 0 0 0 1px rgba(255,255,255,.06);
+  background: #080b0e;
+}
+
+.ab-main-screen img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 32px;
+  transition: opacity .22s ease;
+}
+
+.ab-main-screen img.fading { opacity: 0; }
+
+.ab-screen-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.ab-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Sora', sans-serif;
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 999px;
+  padding: .45rem .85rem;
+  cursor: pointer;
+  transition: all .18s;
+}
+.ab-chip:hover { border-color: rgba(0,229,255,.35); color: var(--text); }
+.ab-chip.active { background: rgba(0,229,255,.10); border-color: rgba(0,229,255,.45); color: var(--cyan); }
+.ab-chip-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; opacity: .6; }
+
+@media (max-width: 1180px) {
+  .hero-right { display: flex !important; justify-content: center; }
+  .ab-showcase-v2 { width: min(100%, 280px); }
+}
+@media (max-width: 480px) {
+  .ab-showcase-v2 { width: min(100%, 260px); }
+  .ab-chip { font-size: .55rem; padding: .4rem .7rem; }
+}
+
+</style>
+
 <!-- AB SYSTEM: index limpio coach access /coach?logout=1 vcoach-clean-01 -->
 <!-- BUILD: INDEX COACH ROUTE CLEAN 01 -->
 </head>
@@ -2445,11 +2514,13 @@ footer {
 
 <!-- ═══ HEADER ════════════════════════════════════════ -->
 <header id="header">
-  <a href="#hero" class="logo-mark" aria-label="AB SYSTEM">
-    <div class="logo-letters"><span class="c">AB</span></div>
-    <div class="logo-sub">
-      <span>SYSTEM</span>
-      Health &amp; Performance
+  <a href="#hero" class="logo-mark" aria-label="AB SYSTEM" style="gap:0;align-items:baseline;">
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:0;line-height:1;">
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <span style="font-family:'Sora',sans-serif;font-size:1.35rem;font-weight:800;letter-spacing:-.03em;color:#00E5FF;">AB</span>
+        <span style="font-family:'Sora',sans-serif;font-size:1.35rem;font-weight:400;letter-spacing:.08em;color:#FFFFFF;">SYSTEM</span>
+      </div>
+      <div style="width:24px;height:2px;background:#00E5FF;margin-top:3px;"></div>
     </div>
   </a>
 
@@ -2534,33 +2605,37 @@ footer {
     </div>
 
     <!-- Screenshots reales de la app -->
-    <div class="hero-right">
-      <div class="ab-showcase" data-ab-showcase>
+    <div class="hero-right" style="display:flex;justify-content:center;align-items:flex-start;">
+      <div class="ab-showcase-v2">
 
-        <div class="ab-showcase-stage">
-          <button class="ab-screen is-active" data-screen="0" type="button" aria-label="Inicio — tu plan del día">
-            <img src="/IMG_2624.jpeg" onerror="this.parentElement.classList.add('has-image-error')" alt="AB SYSTEM — Inicio, plan del día y métricas de rendimiento" loading="eager" decoding="async">
-          </button>
-          <button class="ab-screen is-next" data-screen="1" type="button" aria-label="Sesión de entrenamiento activa">
-            <img src="/IMG_2608.jpeg" onerror="this.parentElement.classList.add('has-image-error')" alt="AB SYSTEM — Sesión activa con bloques y cronómetro" loading="eager" decoding="async">
-          </button>
-          <button class="ab-screen is-next" data-screen="2" type="button" aria-label="Cronómetro de intervalos">
-            <img src="/IMG_2599.png" onerror="this.parentElement.classList.add('has-image-error')" alt="AB SYSTEM — Cronómetro de intervalos TRABAJO 40s / DESCANSO 20s" loading="eager" decoding="async">
-          </button>
-          <button class="ab-screen is-next" data-screen="3" type="button" aria-label="Progreso y evaluaciones">
-            <img src="/IMG_2622.jpeg" onerror="this.parentElement.classList.add('has-image-error')" alt="AB SYSTEM — Progreso con tests y avance del plan" loading="eager" decoding="async">
-          </button>
-          <button class="ab-screen is-next" data-screen="4" type="button" aria-label="Métricas de rendimiento">
-            <img src="/IMG_2626.jpeg" onerror="this.parentElement.classList.add('has-image-error')" alt="AB SYSTEM — Métricas de combate: CK, cortisol, recuperación cardíaca" loading="eager" decoding="async">
-          </button>
+        <!-- Imagen principal -->
+        <div class="ab-main-screen">
+          <img
+            id="ab-hero-img"
+            src="/IMG_2599.png"
+            alt="AB SYSTEM — Cronómetro de intervalos en sesión activa"
+            loading="eager"
+            decoding="async"
+          >
         </div>
 
-        <div class="ab-showcase-tabs" aria-label="Cambiar pantalla del sistema" style="grid-template-columns:repeat(5,1fr);gap:6px;">
-          <button class="is-active" type="button" data-go-screen="0">Inicio</button>
-          <button type="button" data-go-screen="1">Entrena</button>
-          <button type="button" data-go-screen="2">Timer</button>
-          <button type="button" data-go-screen="3">Progreso</button>
-          <button type="button" data-go-screen="4">Salud</button>
+        <!-- Chips de sección -->
+        <div class="ab-screen-chips">
+          <button class="ab-chip" data-img="/IMG_2599.png" data-label="Timer · Intervalos" onclick="switchHeroImg(this)">
+            <span class="ab-chip-dot"></span>Entrena
+          </button>
+          <button class="ab-chip" data-img="/IMG_2624.jpeg" data-label="Inicio · Tu día" onclick="switchHeroImg(this)">
+            <span class="ab-chip-dot"></span>Inicio
+          </button>
+          <button class="ab-chip" data-img="/IMG_2622.jpeg" data-label="Progreso · Tests" onclick="switchHeroImg(this)">
+            <span class="ab-chip-dot"></span>Progreso
+          </button>
+          <button class="ab-chip" data-img="/IMG_2626.jpeg" data-label="Salud · Métricas" onclick="switchHeroImg(this)">
+            <span class="ab-chip-dot"></span>Salud
+          </button>
+          <button class="ab-chip" data-img="/IMG_2611.jpeg" data-label="Reservas · Agenda" onclick="switchHeroImg(this)">
+            <span class="ab-chip-dot"></span>Reservas
+          </button>
         </div>
 
       </div>
@@ -3067,11 +3142,13 @@ footer {
 <footer>
   <div class="footer-inner">
     <div class="footer-top">
-      <a href="#hero" class="logo-mark" aria-label="AB SYSTEM">
-        <div class="logo-letters" style="font-size:1.15rem;"><span class="c">AB</span></div>
-        <div class="logo-sub">
-          <span>SYSTEM</span>
-          Health &amp; Performance · Belgrado
+      <a href="#hero" class="logo-mark" aria-label="AB SYSTEM" style="gap:0;align-items:baseline;">
+        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:0;line-height:1;">
+          <div style="display:flex;align-items:baseline;gap:5px;">
+            <span style="font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:800;letter-spacing:-.03em;color:#00E5FF;">AB</span>
+            <span style="font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:400;letter-spacing:.08em;color:#FFFFFF;">SYSTEM</span>
+          </div>
+          <div style="width:20px;height:2px;background:#00E5FF;margin-top:3px;"></div>
         </div>
       </a>
 
@@ -3164,7 +3241,31 @@ if ('IntersectionObserver' in window) {
 }
 
 
-// Hero real screens switcher
+// Hero image switcher
+function switchHeroImg(btn) {
+  const img = document.getElementById('ab-hero-img');
+  if (!img) return;
+
+  // Activar chip
+  document.querySelectorAll('.ab-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+
+  // Fade out → cambiar src → fade in
+  img.classList.add('fading');
+  setTimeout(() => {
+    img.src = btn.dataset.img;
+    img.alt = 'AB SYSTEM — ' + (btn.dataset.label || '');
+    img.classList.remove('fading');
+  }, 220);
+}
+
+// Activar primer chip al cargar
+document.addEventListener('DOMContentLoaded', () => {
+  const first = document.querySelector('.ab-chip');
+  if (first) first.classList.add('active');
+});
+
+// Hero real screens switcher (legacy — kept for safety)
 function initABShowcase() {
   const root = document.querySelector('[data-ab-showcase]');
   if (!root) return;
