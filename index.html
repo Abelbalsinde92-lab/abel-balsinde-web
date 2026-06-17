@@ -64,6 +64,13 @@ section{padding:clamp(3.6rem,6vw,5.2rem) clamp(1.25rem,5vw,3rem)}
 #header{position:fixed;z-index:1000;top:0;left:0;right:0;height:var(--header);padding:0 clamp(1.25rem,5vw,3rem);display:flex;align-items:center;justify-content:space-between;gap:1rem;background:rgba(0,0,0,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:border-color .25s}
 #header.scrolled{border-color:rgba(0,229,255,.18)}
 .logo-mark{display:flex;align-items:center;gap:.65rem}
+.logo-img{
+  display:block;
+  width:auto;
+  height:38px;
+  max-width:190px;
+  object-fit:contain;
+}
 .logo-letters{font-size:1.35rem;font-weight:800;letter-spacing:-.04em}
 .logo-letters .c{color:var(--cyan)}
 .logo-sub{padding-left:.65rem;border-left:1px solid var(--border);font-size:.49rem;line-height:1.45;letter-spacing:.17em;text-transform:uppercase;color:var(--text-2)}
@@ -240,6 +247,10 @@ footer{padding:2.5rem clamp(1.25rem,5vw,3rem);border-top:1px solid var(--border)
   .cred-list{gap:.35rem}.cred{padding:.72rem 0}.cred strong{font-size:.78rem}.cred small{font-size:.64rem}
   .faq-q{padding:1.05rem 0}.faq-q-text{font-size:.82rem}.faq-a p{padding:0 2.8rem 1rem 0;font-size:.75rem}
   .cta-title{font-size:clamp(2rem,10vw,2.8rem)}.cta-sub{font-size:.82rem;line-height:1.6}.cta-actions{margin-top:1.2rem;flex-direction:column}.cta-actions .btn{width:100%}
+  .logo-img{
+  height:32px;
+  max-width:145px;
+}
   footer{padding:2rem 1.25rem}.footer-top,.footer-bottom{flex-direction:column;align-items:flex-start}.footer-links{justify-content:flex-start}.footer-side{align-items:flex-start}.footer-bottom{margin-top:1.4rem}
 }
 
@@ -259,9 +270,15 @@ footer{padding:2.5rem clamp(1.25rem,5vw,3rem);border-top:1px solid var(--border)
 
 <header id="header">
   <a href="#hero" class="logo-mark" aria-label="AB SYSTEM">
-    <div class="logo-letters"><span class="c">[</span>AB<span class="c">]</span></div>
-    <div class="logo-sub"><span>SYSTEM</span>Health &amp; Performance</div>
-  </a>
+  <img
+    src="/ab-logo.png.WEBP"
+    alt="AB SYSTEM"
+    class="logo-img"
+    width="180"
+    height="42"
+    decoding="async"
+  >
+</a>
 
   <nav class="desk" aria-label="Navegación principal">
     <a href="#features">El sistema</a>
