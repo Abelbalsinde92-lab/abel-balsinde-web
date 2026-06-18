@@ -6721,30 +6721,6 @@ function getFinishedTrainingLogsAllProgram() {
     });
 }
 
-/*
- * Historial total del cliente.
- * Incluye todos los programas y asignaciones.
- * Elimina posibles registros duplicados por ID.
- */
-function getFinishedTrainingLogsGeneral() {
-  const uniqueLogs = new Map();
-
-  (clientSessionLogs || []).forEach(log => {
-    if (!log?.id) return;
-    if (!log?.program_id) return;
-    if (!log?.session_id) return;
-    if (!isTrainingLogFinished(log)) return;
-
-    uniqueLogs.set(String(log.id), log);
-  });
-
-  return Array.from(uniqueLogs.values()).sort((a, b) =>
-    String(getTrainingLogComparableDate(b))
-      .localeCompare(String(getTrainingLogComparableDate(a)))
-  );
-}
-
-/*
  * Historial perteneciente solamente a la asignación activa.
  */
 function getFinishedTrainingLogsCurrentAssignment() {
