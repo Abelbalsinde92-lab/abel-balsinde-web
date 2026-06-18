@@ -10755,6 +10755,283 @@ function orderWorkoutBlocksForFlow(blocks){
      return normalized;
    }
    
+   /* ============================================================
+   AB SYSTEM · COACH
+   RESOLUCIÓN DE BIBLIOTECA N1–N4 EN LA SESIÓN ACTIVA
+   ============================================================ */
+function mergeCoachLibraryVariantRows(rows){
+  const resolvedByExerciseId = new Map();
+  (rows || []).forEach(row => {
+    const exerciseId = String(
+      row?.training_exercise_id ||
+      row?.trainingExerciseId ||
+      ''
+    );
+    const resolved =
+      row?.resolved_data ||
+      row?.resolvedData ||
+      null;
+    if(exerciseId && resolved){
+      resolvedByExerciseId.set(exerciseId, {
+        assignedLevel:
+          row?.assigned_level ||
+          row?.assignedLevel ||
+          resolved?.level ||
+          'N1',
+        resolved
+      });
+    }
+  });
+  if(!resolvedByExerciseId.size) return [];
+  state.trainingExercises = (state.trainingExercises || []).map(ex => {
+    const exerciseId = String(
+      ex?.id ||
+      ex?.exerciseId ||
+      ex?.exercise_id ||
+      ''
+    );
+    const match = resolvedByExerciseId.get(exerciseId);
+    if(!match) return ex;
+    const data = match.resolved || {};
+    const source = String(data.source || '');
+    if(![
+      'library_variant',
+      'library_base_fallback'
+    ].includes(source)){
+      return ex;
+    }
+    const originalName =
+      ex.originalName ||
+      ex.original_name ||
+      data.original_name ||
+      ex.name ||
+      ex.title ||
+      'Ejercicio';
+    const resolvedName =
+      data.resolved_name ||
+      originalName;
+    const resolvedDuration =
+      data.resolved_duration ||
+      ex.duration ||
+      ex.time ||
+      null;
+    const resolvedInstructions =
+      data.resolved_instructions ||
+      ex.instructions ||
+      '';
+    return {
+      ...ex,
+      // Identidad y trazabilidad
+      originalName,
+      original_name: originalName,
+      baseExerciseName:
+        data.base_exercise_name || '',
+      base_exercise_name:
+        data.base_exercise_name || '',
+      libraryExerciseId:
+        data.library_exercise_id ||
+        ex.libraryExerciseId ||
+        ex.library_exercise_id ||
+        null,
+      library_exercise_id:
+        data.library_exercise_id ||
+        ex.library_exercise_id ||
+        ex.libraryExerciseId ||
+        null,
+      libraryVariantId:
+        data.library_variant_id ||
+        null,
+      library_variant_id:
+        data.library_variant_id ||
+        null,
+      variantSource: source,
+      variant_source: source,
+      assignedLevel:
+        match.assignedLevel,
+      assigned_level:
+        match.assignedLevel,
+      // Contenido visible en Coach
+      name: resolvedName,
+      title: resolvedName,
+      description:
+        data.resolved_description ||
+        ex.description ||
+        '',
+      instructions:
+        resolvedInstructions,
+      selectedVariant:
+        resolvedInstructions,
+      selected_variant:
+        resolvedInstructions,
+      technicalPoints:
+        resolvedInstructions ||
+        ex.technicalPoints ||
+        ex.technical_points ||
+        '',
+      technical_points:
+        resolvedInstructions ||
+        ex.technical_points ||
+        ex.technicalPoints ||
+        '',
+      coachingNotes:
+        resolvedInstructions ||
+        ex.coachingNotes ||
+        ex.coaching_notes ||
+        '',
+      coaching_notes:
+        resolvedInstructions ||
+        ex.coaching_notes ||
+        ex.coachingNotes ||
+        '',
+      purpose:
+        data.resolved_description ||
+        ex.purpose ||
+        ex.description ||
+        '',
+      // Dosificación resuelta
+      sets:
+        data.resolved_sets ||
+        ex.sets ||
+        null,
+      reps:
+        data.resolved_reps ||
+        ex.reps ||
+        null,
+      duration:
+        resolvedDuration,
+      time:
+        resolvedDuration,
+      rest:
+        data.resolved_rest ||
+        ex.rest ||
+        null,
+      tempo:
+        data.resolved_tempo ||
+        ex.tempo ||
+        null,
+      intensity:
+        data.resolved_intensity ||
+        ex.intensity ||
+        null,
+      // Información operativa
+      equipmentRequired:
+        data.resolved_equipment ||
+        ex.equipmentRequired ||
+        ex.equipment_required ||
+        '',
+      equipment_required:
+        data.resolved_equipment ||
+        ex.equipment_required ||
+        ex.equipmentRequired ||
+        '',
+      progressionCriterion:
+        data.progression_criterion ||
+        '',
+      progression_criterion:
+        data.progression_criterion ||
+        '',
+      commonErrors:
+        data.common_errors ||
+        ex.commonErrors ||
+        ex.common_errors ||
+        '',
+      common_errors:
+        data.common_errors ||
+        ex.common_errors ||
+        ex.commonErrors ||
+        '',
+      videoUrl:
+        data.video_url ||
+        ex.videoUrl ||
+        ex.video_url ||
+        '',
+      video_url:
+        data.video_url ||
+        ex.video_url ||
+        ex.videoUrl ||
+        '',
+      imageUrl:
+        data.image_url ||
+        ex.imageUrl ||
+        ex.image_url ||
+        '',
+      image_url:
+        data.image_url ||
+        ex.image_url ||
+        ex.imageUrl ||
+        '',
+      _libraryResolved: true
+    };
+  });
+  return rows || [];
+}
+async function ensureCoachLibraryVariantsLoaded(
+  c,
+  plan,
+  { force = false } = {}
+){
+  if(!c || !plan || !db) return [];
+  const token =
+    getCoachSessionTokenSafe();
+  const sessionId =
+    getActiveWorkoutSessionIdFromPlan(plan);
+  const assignment =
+    plan.assignment ||
+    getClientActiveAssignment(c.id);
+  const assignedLevel = String(
+    assignment?.assignedLevel ||
+    assignment?.assigned_level ||
+    'N1'
+  ).toUpperCase();
+  if(!token || !sessionId) return [];
+  if(!state.coachLibraryVariantCache){
+    state.coachLibraryVariantCache = {};
+  }
+  const cacheKey = [
+    c.id,
+    sessionId,
+    assignment?.id || '',
+    assignedLevel
+  ].join('__');
+  if(
+    !force &&
+    Array.isArray(
+      state.coachLibraryVariantCache[cacheKey]
+    )
+  ){
+    return mergeCoachLibraryVariantRows(
+      state.coachLibraryVariantCache[cacheKey]
+    );
+  }
+  try{
+    const { data, error } = await db.rpc(
+      'ab_coach_session_get_resolved_training_exercises',
+      {
+        p_session_token: token,
+        p_client_id: c.id,
+        p_session_id: sessionId
+      }
+    );
+    if(error){
+      console.warn(
+        'ab_coach_session_get_resolved_training_exercises error:',
+        error
+      );
+      return [];
+    }
+    const rows = data || [];
+    state.coachLibraryVariantCache[cacheKey] =
+      rows;
+    return mergeCoachLibraryVariantRows(rows);
+  }catch(err){
+    console.warn(
+      'No se pudieron resolver variantes N1–N4 en Coach:',
+      err
+    );
+    return [];
+  }
+}
+   
    async function ensureSessionLoadPrescriptionLoaded(c, plan){
      if(!c || !db) return [];
    
@@ -14794,9 +15071,19 @@ function flashPhase(type){
      await ensureWorkoutSessionExercisesLoaded(basePlan);
      if(renderGeneration!==workoutRenderGeneration||currentScr!=='workout'||String(state.activeTrainingClientId||state.selectedClientId)!==String(c.id))return;
    
-     const hydratedPlan = getWorkoutPlanForClient(c);
-     await loadPersistedWorkoutProgress(c, hydratedPlan);
-     await ensureSessionLoadPrescriptionLoaded(c, hydratedPlan);
+     let hydratedPlan = getWorkoutPlanForClient(c);
+
+/*
+  Resolver primero las variantes N1–N4 para Coach.
+  Mantiene los mismos IDs, bloques y orden del plan.
+*/
+await ensureCoachLibraryVariantsLoaded(c, hydratedPlan);
+
+// Reconstruir el plan para que utilice los ejercicios ya resueltos.
+hydratedPlan = getWorkoutPlanForClient(c);
+
+await loadPersistedWorkoutProgress(c, hydratedPlan);
+await ensureSessionLoadPrescriptionLoaded(c, hydratedPlan);
      if(renderGeneration!==workoutRenderGeneration||currentScr!=='workout')return;
    
      const adapted = await getAdaptedRowsForClient(c);
