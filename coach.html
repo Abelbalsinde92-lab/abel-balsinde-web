@@ -8658,15 +8658,26 @@ if (barEl) barEl.innerHTML = barHTML;
      const item=snakeToCamel(saved);state[stateKey].push(item);return item;
    }
    
-   function updateAssignmentScopeFields(scope){
-     const sfMonth = document.getElementById('sf-month');
-     const sfWeek  = document.getElementById('sf-week');
-     const sfDay   = document.getElementById('sf-day');
-     if(!sfMonth) return;
-     sfMonth.style.display = scope === 'month' ? '' : 'none';
-     sfWeek.style.display  = scope === 'week'  ? '' : 'none';
-     sfDay.style.display   = scope === 'day'   ? '' : 'none';
-   }
+function updateAssignmentScopeFields(scope){
+  const sections = {
+    month: document.getElementById('sf-month'),
+    week: document.getElementById('sf-week'),
+    day: document.getElementById('sf-day')
+  };
+
+  Object.entries(sections).forEach(([sectionScope, section]) => {
+    if(!section) return;
+
+    const isActive = scope === sectionScope;
+
+    section.style.display = isActive ? '' : 'none';
+
+    // Los campos ocultos no deben enviarse con FormData.
+    section.querySelectorAll('input, select, textarea').forEach(control => {
+      control.disabled = !isActive;
+    });
+  });
+}
    
    function openModal(type,id=null,prefill={}){
      activeModal={type,id};
@@ -9378,6 +9389,39 @@ if (barEl) barEl.innerHTML = barHTML;
          const closeOld=data.closeOld==='yes';delete data.closeOld;
          data.status='activo';data.currentWeek=Number(data.currentWeek||1);
          data.assignmentScope = data.assignmentScope || 'week';
+         
+         const assignmentForm = e.target;
+
+if(data.assignmentScope === 'week'){
+  data.assignedWeek = Number(
+    assignmentForm.querySelector(
+      '#sf-week input[name="assignedWeek"]'
+    )?.value || data.currentWeek || 1
+  );
+}
+
+if(data.assignmentScope === 'day'){
+  data.assignedWeek = Number(
+    assignmentForm.querySelector(
+      '#sf-day input[name="assignedWeek"]'
+    )?.value || data.currentWeek || 1
+  );
+
+  data.assignedSessionNumber = Number(
+    assignmentForm.querySelector(
+      '#sf-day input[name="assignedSessionNumber"]'
+    )?.value || 1
+  );
+}
+
+if(data.assignmentScope === 'month'){
+  data.assignedMonth = Number(
+    assignmentForm.querySelector(
+      '#sf-month input[name="assignedMonth"]'
+    )?.value || 1
+  );
+}
+
          data.currentWeek = Number(data.assignedWeek || data.currentWeek || 1);
          data.assignedWeek = data.currentWeek;
          data.assignedMonth = data.assignedMonth ? Number(data.assignedMonth) : null;
