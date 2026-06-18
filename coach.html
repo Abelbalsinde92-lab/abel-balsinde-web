@@ -3,8 +3,8 @@
    <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-   <title>AB SYSTEM — Coach Panel · RPC 27 MODULE CLEANUP</title>
-   <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 26 FIELD VISUAL POLISH -->
+   <title>AB SYSTEM — Coach Panel · RPC 28 PROFILE + SESSION SYNC</title>
+   <!-- AB SYSTEM Coach Panel · BUILD COACH RPC 28 PROFILE + SESSION SYNC -->
    <meta name="robots" content="noindex, nofollow">
    <meta name="theme-color" content="#000000">
    <meta name="mobile-web-app-capable" content="yes">
@@ -2936,6 +2936,111 @@
   }
 }
    
+
+
+/* ================================================================
+   AB SYSTEM · RPC 28 · CLIENT PROFILE REDESIGN
+   Referencia visual: perfil premium, jerarquía clara y lectura móvil
+   ================================================================ */
+body.profile-focus .top{display:none}
+body.profile-focus .wrap{padding-top:var(--safe-t)}
+body.profile-focus #s-perfil{padding:0 18px 26px;max-width:940px;margin:0 auto}
+body.profile-focus #s-perfil>.scr-back{display:none}
+.profile28-shell{padding-top:8px;padding-bottom:18px}
+.profile28-nav{height:58px;display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;margin-bottom:12px}
+.profile28-nav-btn{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:1.35rem;background:transparent}
+.profile28-nav-btn:active{background:rgba(255,255,255,.06)}
+.profile28-brand{text-align:center;line-height:.9;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.profile28-brand strong{font-family:var(--font-d);font-size:1.62rem;letter-spacing:.05em;color:var(--text)}
+.profile28-brand span{font-family:var(--font-m);font-size:.63rem;letter-spacing:.1em;color:var(--sport);font-weight:800;margin-top:4px}
+.profile28-hero{position:relative;display:grid;grid-template-columns:94px minmax(0,1fr) auto;align-items:center;gap:16px;padding:22px 20px;background:linear-gradient(145deg,#151518,#101012);border:1px solid #303036;border-radius:25px;margin-bottom:14px;overflow:hidden}
+.profile28-hero::after{content:'';position:absolute;inset:auto -60px -80px auto;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(0,200,232,.07),transparent 70%);pointer-events:none}
+.profile28-avatar{position:relative;width:94px;height:94px}
+.profile28-avatar .client-photo{width:94px;height:94px;border-width:2px;border-color:var(--sport);font-size:1.65rem}
+.profile28-avatar-edit{position:absolute;right:-2px;bottom:2px;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#050607;border:1.5px solid var(--sport);color:var(--sport);font-size:1rem;z-index:2}
+.profile28-hero-main{min-width:0;align-self:center}
+.profile28-name{font-weight:800;font-size:clamp(1.22rem,5vw,1.75rem);line-height:1.08;letter-spacing:-.035em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile28-status{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:7px 12px;border-radius:10px;background:rgba(0,230,118,.09);color:var(--streak);font-family:var(--font-m);font-size:.63rem;letter-spacing:.11em;text-transform:uppercase;font-weight:800}
+.profile28-status::before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 12px currentColor}
+.profile28-next{display:flex;align-items:flex-start;gap:9px;margin-top:12px;color:var(--text-2)}
+.profile28-next svg{width:18px;height:18px;flex:0 0 auto;margin-top:1px}
+.profile28-next-label{font-size:.74rem;line-height:1.2}
+.profile28-next-value{display:block;color:var(--text);font-size:.84rem;font-weight:750;margin-top:4px;white-space:nowrap}
+.profile28-ci{align-self:center;padding:9px 15px;border:1px solid rgba(255,179,64,.65);border-radius:999px;background:rgba(255,179,64,.08);color:var(--warn);font-family:var(--font-m);font-size:.61rem;letter-spacing:.11em;text-transform:uppercase;font-weight:800;white-space:nowrap;z-index:1}
+.profile28-primary{width:100%;min-height:64px;border-radius:17px;background:linear-gradient(135deg,#20d4ec,#00bdd9);color:#001014;display:flex;align-items:center;justify-content:center;gap:13px;padding:0 18px;font-family:var(--font-m);font-size:.73rem;letter-spacing:.1em;text-transform:uppercase;font-weight:900;margin-bottom:10px;box-shadow:0 10px 30px rgba(0,200,232,.12)}
+.profile28-primary:active{transform:scale(.99);filter:brightness(.93)}
+.profile28-primary-icon{width:30px;height:30px;border:2px solid currentColor;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;flex:0 0 auto}
+.profile28-primary-arrow{font-size:1.15rem;margin-left:4px}
+.profile28-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.profile28-action{min-height:58px;padding:8px 10px;border:1px solid #303036;border-radius:14px;background:#121214;color:var(--text);display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-m);font-size:.56rem;letter-spacing:.065em;text-transform:uppercase;font-weight:800;white-space:nowrap}
+.profile28-action svg{width:19px;height:19px;stroke:var(--sport);flex:0 0 auto}
+.profile28-action.send{border-color:rgba(0,230,118,.42);color:#d7ffe7}
+.profile28-action.send svg{stroke:var(--streak)}
+.profile28-action:disabled{opacity:.35}
+.profile28-action:active:not(:disabled){transform:scale(.985);background:#18181b}
+.profile28-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:22px}
+.profile28-stat{min-width:0;min-height:126px;padding:14px 12px;border:1px solid #2b2b31;border-radius:18px;background:linear-gradient(155deg,#151518,#101012);display:flex;flex-direction:column;justify-content:space-between}
+.profile28-stat-label{font-family:var(--font-m);font-size:.48rem;letter-spacing:.1em;text-transform:uppercase;color:#aaaab1;line-height:1.35}
+.profile28-stat-body{display:flex;align-items:center;gap:9px;margin-top:12px;min-width:0}
+.profile28-stat-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(0,200,232,.07);border:1px solid rgba(0,200,232,.25);color:var(--sport);flex:0 0 auto}
+.profile28-stat-icon svg{width:22px;height:22px}
+.profile28-stat-copy{min-width:0}
+.profile28-stat-value{font-family:var(--font-d);font-size:1.42rem;line-height:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile28-stat-meta{font-size:.62rem;color:var(--text-2);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile28-stat-meta.good{color:var(--streak)}
+.profile28-stat-meta.warn{color:var(--warn)}
+.profile28-stat-meta.bad{color:var(--medical)}
+.profile28-kicker{font-family:var(--font-m);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:#a4a4aa;margin:0 0 10px}
+.profile28-section{margin-bottom:20px}
+.profile28-stack{display:grid;gap:9px}
+.profile28-feature{position:relative;width:100%;min-height:104px;padding:16px 48px 16px 16px;border:1px solid #2c2c31;border-radius:21px;background:linear-gradient(120deg,rgba(0,200,232,.055),#121214 48%);color:var(--text);display:grid;grid-template-columns:58px minmax(0,1fr);align-items:center;gap:14px;text-align:left}
+.profile28-feature.training{border-color:rgba(0,200,232,.42)}
+.profile28-feature.attention{border-color:rgba(255,179,64,.44);background:linear-gradient(120deg,rgba(255,179,64,.06),#121214 48%)}
+.profile28-icon{width:58px;height:58px;border-radius:17px;display:flex;align-items:center;justify-content:center;background:rgba(0,200,232,.075);border:1px solid rgba(0,200,232,.28);color:var(--sport);flex:0 0 auto}
+.profile28-icon svg{width:29px;height:29px}
+.profile28-feature-copy{min-width:0;display:flex;flex-direction:column;gap:4px}
+.profile28-feature-label{font-family:var(--font-m);font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sport)}
+.profile28-feature-value{font-weight:800;font-size:1rem;line-height:1.16;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.profile28-feature-meta{font-size:.68rem;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile28-chevron{position:absolute;right:18px;top:50%;transform:translateY(-50%);color:var(--sport);font-size:1.5rem;line-height:1}
+.profile28-track-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:9px}
+.profile28-track{position:relative;min-width:0;min-height:138px;padding:14px 12px;border:1px solid #2b2b31;border-radius:19px;background:#121214;color:var(--text);display:flex;flex-direction:column;align-items:flex-start;text-align:left;overflow:hidden}
+.profile28-track .profile28-icon{width:43px;height:43px;border-radius:13px;margin-bottom:10px}
+.profile28-track .profile28-icon svg{width:23px;height:23px}
+.profile28-track-label{font-family:var(--font-m);font-size:.48rem;letter-spacing:.08em;text-transform:uppercase;color:var(--sport);width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile28-track-value{font-family:var(--font-d);font-size:1.55rem;line-height:1;margin-top:7px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile28-track-meta{font-size:.58rem;color:var(--text-2);line-height:1.35;margin-top:auto;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.profile28-track-arrow{position:absolute;right:11px;top:12px;color:var(--sport);font-size:1.2rem}
+.profile28-manage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.profile28-manage{position:relative;min-width:0;min-height:86px;padding:13px 34px 13px 13px;border:1px solid #2b2b31;border-radius:18px;background:#121214;color:var(--text);display:grid;grid-template-columns:45px minmax(0,1fr);align-items:center;gap:11px;text-align:left}
+.profile28-manage .profile28-icon{width:45px;height:45px;border-radius:14px}
+.profile28-manage .profile28-icon svg{width:23px;height:23px}
+.profile28-manage-copy{min-width:0}
+.profile28-manage-title{font-weight:800;font-size:.84rem;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile28-manage-meta{font-size:.58rem;color:var(--text-2);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile28-manage-arrow{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--sport);font-size:1.2rem}
+@media(max-width:390px){
+  body.profile-focus #s-perfil{padding-left:14px;padding-right:14px}
+  .profile28-hero{grid-template-columns:82px minmax(0,1fr);padding:18px 16px;gap:13px}
+  .profile28-avatar,.profile28-avatar .client-photo{width:82px;height:82px}
+  .profile28-ci{grid-column:2;justify-self:start;margin-top:-6px;padding:7px 12px}
+  .profile28-name{font-size:1.2rem}
+  .profile28-actions{gap:6px}
+  .profile28-action{font-size:.49rem;padding:7px 6px;gap:5px}
+  .profile28-stat{padding:12px 9px;min-height:118px}
+  .profile28-stat-body{gap:6px}
+  .profile28-stat-icon{width:34px;height:34px}
+  .profile28-stat-icon svg{width:19px;height:19px}
+  .profile28-stat-value{font-size:1.22rem}
+  .profile28-track{padding:12px 10px;min-height:132px}
+}
+@media(max-width:350px){
+  .profile28-stats{grid-template-columns:1fr}
+  .profile28-stat{min-height:90px}
+  .profile28-track-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .profile28-track:last-child{grid-column:1/-1}
+}
+
    </style>
    <!-- AB SYSTEM · RPC 19 ADAPTATION ENGINE FIX -->
    </head>
@@ -4625,6 +4730,7 @@
    /* ── NAV ── */
    function showScr(id){
      currentScr=id;
+     document.body.classList.toggle('profile-focus', id==='perfil');
    
      document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
    
@@ -5549,6 +5655,88 @@
      return row ? snakeToCamel(row) : null;
    }
    
+
+
+   async function loadCoachTrainingLogs(clientId = null, limit = 300){
+     const token = getCoachSessionTokenSafe();
+
+     if(!token){
+       throw new Error('SESION_COACH_INVALIDA');
+     }
+
+     const {data,error} = await db.rpc(
+       'ab_coach_session_get_training_logs',
+       {
+         p_session_token: token,
+         p_client_id: clientId || null,
+         p_limit: Math.max(1, Math.min(Number(limit || 300), 1000))
+       }
+     );
+
+     if(error){
+       console.error('ab_coach_session_get_training_logs error:', {
+         clientId,
+         message:error?.message,
+         details:error?.details,
+         hint:error?.hint,
+         code:error?.code,
+         raw:error
+       });
+       throw error;
+     }
+
+     return {data: Array.isArray(data) ? data : []};
+   }
+
+   function coachSessionLogSortValue(log){
+     return String(
+       log?.trainingDate ||
+       log?.training_date ||
+       log?.finishedAt ||
+       log?.finished_at ||
+       log?.completedAt ||
+       log?.completed_at ||
+       log?.updatedAt ||
+       log?.updated_at ||
+       log?.createdAt ||
+       log?.created_at ||
+       ''
+     );
+   }
+
+   function mergeCoachSessionLogs(rows, clientId = null){
+     const mapped = mapArr(Array.isArray(rows) ? rows : []);
+     const targetId = clientId ? String(clientId) : null;
+
+     if(targetId){
+       state.sessionLogs = (state.sessionLogs || []).filter(log =>
+         String(log?.clientId || log?.client_id || '') !== targetId
+       );
+     }else{
+       state.sessionLogs = [];
+     }
+
+     const byId = new Map();
+     [...mapped, ...(state.sessionLogs || [])].forEach(log => {
+       const key = String(
+         log?.id ||
+         [
+           log?.clientId || log?.client_id || '',
+           log?.assignmentId || log?.assignment_id || '',
+           log?.sessionId || log?.session_id || '',
+           log?.trainingDate || log?.training_date || ''
+         ].join('__')
+       );
+       if(key && !byId.has(key)) byId.set(key,log);
+     });
+
+     state.sessionLogs = [...byId.values()].sort((a,b) =>
+       coachSessionLogSortValue(b).localeCompare(coachSessionLogSortValue(a))
+     );
+
+     return mapped;
+   }
+
    let coachSecondaryLoadPromise=Promise.resolve();
    window.AB_COACH_LOAD_STATE={primary:'idle',secondary:'idle',generation:0,startedAt:null,primaryReadyAt:null,secondaryReadyAt:null};
    
@@ -5580,7 +5768,7 @@
      const settled=await Promise.allSettled([
        loadCoachCheckinsByScope('recent',today,80),
        db.from('exercise_video_library').select('*').order('priority'),
-       db.from('client_session_logs').select('*').order('updated_at',{ascending:false}).limit(200),
+       loadCoachTrainingLogs(null,300),
        loadCoachAssessments(100),
        loadCoachMetrics(150),
        db.rpc('get_admin_athlete_list')
@@ -6211,7 +6399,24 @@ if (barEl) barEl.innerHTML = barHTML;
        </button>`;
    }
    
-   function openProfile(id){state.selectedClientId=id;showScr('perfil')}
+   async function openProfile(id){
+     state.selectedClientId=id;
+     showScr('perfil');
+
+     try{
+       const result = await loadCoachTrainingLogs(id,250);
+       mergeCoachSessionLogs(result?.data || [], id);
+
+       if(
+         currentScr === 'perfil' &&
+         String(state.selectedClientId) === String(id)
+       ){
+         renderPerfil();
+       }
+     }catch(error){
+       console.warn('No se pudo actualizar el historial del perfil:', error);
+     }
+   }
    </script>
    
    <script>
@@ -6790,11 +6995,103 @@ if (barEl) barEl.innerHTML = barHTML;
      content.innerHTML=buildClientMetricsCard(c);
    }
    
+
+
+   function getSessionLogDateValue(log){
+     return String(
+       log?.trainingDate ||
+       log?.training_date ||
+       log?.finishedAt ||
+       log?.finished_at ||
+       log?.completedAt ||
+       log?.completed_at ||
+       log?.updatedAt ||
+       log?.updated_at ||
+       log?.createdAt ||
+       log?.created_at ||
+       ''
+     ).slice(0,10);
+   }
+
+   function isCompletedSessionLog(log){
+     const status = cleanTxt(log?.status || '');
+     return [
+       'realizada',
+       'realizado',
+       'completed',
+       'completada',
+       'completado',
+       'finished',
+       'finalizada',
+       'finalizado',
+       'done'
+     ].includes(status) ||
+       log?.isFinished === true ||
+       log?.is_finished === true ||
+       Boolean(log?.finishedAt || log?.finished_at || log?.completedAt || log?.completed_at);
+   }
+
+   function getCompletedClientSessionLogs(clientId){
+     const seen = new Set();
+
+     return (state.sessionLogs || [])
+       .filter(log =>
+         String(log?.clientId || log?.client_id || '') === String(clientId) &&
+         isCompletedSessionLog(log)
+       )
+       .sort((a,b) => getSessionLogDateValue(b).localeCompare(getSessionLogDateValue(a)))
+       .filter(log => {
+         const key = String(
+           log?.id ||
+           [
+             getSessionLogDateValue(log),
+             log?.assignmentId || log?.assignment_id || '',
+             log?.sessionId || log?.session_id || '',
+             log?.sessionNumber || log?.session_number || ''
+           ].join('__')
+         );
+         if(seen.has(key)) return false;
+         seen.add(key);
+         return true;
+       });
+   }
+
+   function getAdherenceMeta(adherence, hasLogs){
+     if(!hasLogs) return {label:'Sin datos', cls:''};
+     if(adherence >= 85) return {label:'excelente', cls:'good'};
+     if(adherence >= 70) return {label:'buena', cls:'good'};
+     if(adherence >= 50) return {label:'media', cls:'warn'};
+     return {label:'baja', cls:'bad'};
+   }
+
+   async function hydrateClientProfileLoadCount(clientId){
+     if(!clientId || !db) return;
+     if(!state.clientLoadCounts) state.clientLoadCounts={};
+
+     try{
+       const {count,error} = await db
+         .from('client_exercise_loads')
+         .select('id',{count:'exact',head:true})
+         .eq('client_id',clientId);
+
+       if(error) return;
+       state.clientLoadCounts[clientId] = Number(count || 0);
+
+       const el = document.getElementById(`loads-count-${clientId}`);
+       if(el) el.textContent = String(Number(count || 0));
+
+       const meta = document.getElementById(`loads-meta-${clientId}`);
+       if(meta) meta.textContent = Number(count || 0) ? 'registros de carga' : 'Sin registros todavía';
+     }catch(error){
+       console.warn('No se pudo cargar el contador de cargas:',error);
+     }
+   }
+
    function renderPerfil(){
      const el=document.getElementById('perfil-content');
      const c=clientById(state.selectedClientId);
      if(!c){el.innerHTML=emptyState('Sin cliente','Vuelve a la lista de clientes.');return}
-   
+
      const todayCI=getClientTodayCheckin(c.id);
      const ciStatus=todayCI?getCheckinStatus(todayCI):null;
      const assign=getClientActiveAssignment(c.id);
@@ -6807,43 +7104,49 @@ if (barEl) barEl.innerHTML = barHTML;
          !['cancelada'].includes(String(r.status || '').toLowerCase())
        )
        .sort((a,b)=>String((a.date || '') + (a.time || '')).localeCompare(String((b.date || '') + (b.time || ''))))[0] || null;
-   
-     const clientLogs=state.sessionLogs.filter(l=>{
-       const cid=String(l.clientId||l.client_id||'');
-       const done=l.status==='realizada'||l.isFinished||l.is_finished||l.finishedAt||l.finished_at;
-       return cid===String(c.id)&&done;
-     }).sort((a,b)=>String(b.trainingDate||b.training_date||b.completedAt||b.completed_at||b.updatedAt||b.updated_at||'').localeCompare(String(a.trainingDate||a.training_date||a.completedAt||a.completed_at||a.updatedAt||a.updated_at||'')));
-   
-     const lastLog=clientLogs[0];
-     const lastDateStr=lastLog?String(lastLog.trainingDate||lastLog.training_date||lastLog.completedAt||lastLog.completed_at||'').slice(0,10):'';
+
+     const clientLogs=getCompletedClientSessionLogs(c.id);
+     const lastLog=clientLogs[0]||null;
+     const lastDateStr=getSessionLogDateValue(lastLog);
      const monday=thisWeekStart();
-     const thisWeekCount=clientLogs.filter(l=>String(l.trainingDate||l.training_date||l.completedAt||l.completed_at||'').slice(0,10)>=monday).length;
-     const d28=new Date();d28.setDate(d28.getDate()-28);
-     const last28=clientLogs.filter(l=>String(l.trainingDate||l.training_date||l.completedAt||l.completed_at||'').slice(0,10)>=d28.toISOString().slice(0,10)).length;
-     const adherence=Math.min(100,Math.round((last28/12)*100));
-     const d14=new Date();d14.setDate(d14.getDate()-14);
-     const last14=clientLogs.filter(l=>String(l.trainingDate||l.training_date||l.completedAt||l.completed_at||'').slice(0,10)>=d14.toISOString().slice(0,10)).length;
-     const trend=last14-(last28-last14);
+     const thisWeekCount=clientLogs.filter(log=>getSessionLogDateValue(log)>=monday).length;
+
      const _weekSessions = assign ? (() => {
        const pos = getVisibleSessionPositions(assign);
        const currentWeek = getAssignmentWeek(assign);
        return pos.filter(p => Number(p.weekNumber) === Number(currentWeek)).length || 0;
      })() : 0;
      const weekTarget = Math.min(Math.max(_weekSessions || 3, 1), 7);
-     const dotsHTML=Array(weekTarget).fill(0).map((_,i)=>`<span style="flex:1;height:3px;border-radius:2px;background:${i<thisWeekCount?'var(--sport)':'var(--divider)'}"></span>`).join('');
-   
-     const ico=d=>`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--sport)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+
+     const today=new Date();
+     const d28=new Date(today);d28.setDate(d28.getDate()-28);
+     const assignmentStartRaw=assign?.startDate||assign?.start_date||'';
+     const assignmentStart=assignmentStartRaw?new Date(String(assignmentStartRaw).slice(0,10)+'T00:00:00'):d28;
+     const windowStart=assignmentStart>d28?assignmentStart:d28;
+     const windowStartISO=windowStart.toISOString().slice(0,10);
+     const recentLogs=clientLogs.filter(log=>getSessionLogDateValue(log)>=windowStartISO);
+     const elapsedDays=Math.max(1,Math.ceil((today-windowStart)/(1000*60*60*24))+1);
+     const expectedWeeks=Math.max(1,Math.min(4,Math.ceil(elapsedDays/7)));
+     const expectedSessions=Math.max(1,weekTarget*expectedWeeks);
+     const adherence=Math.min(100,Math.round((recentLogs.length/expectedSessions)*100));
+     const adherenceMeta=getAdherenceMeta(adherence,clientLogs.length>0);
+
+     const ico=d=>`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
      const ICONS={
        training:ico('<path d="M6 5v14M18 5v14M3 8v8M21 8v8M6 12h12"/>'),
        eval:ico('<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>'),
        metric:ico('<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'),
        notes:ico('<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'),
        stretch:ico('<circle cx="12" cy="5" r="2"/><path d="M12 7v5l-3 5M12 12l3 5M9 11l-3-1M15 11l3-1"/>'),
-       pay:ico('<circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>'),
+       pay:ico('<circle cx="12" cy="12" r="9"/><path d="M15 8.5c-.7-.5-1.6-.8-2.6-.8-1.5 0-2.6.8-2.6 1.9 0 1.2 1 1.7 2.8 2.1 1.8.4 2.7.9 2.7 2.1 0 1.3-1.2 2.2-2.9 2.2-1.2 0-2.3-.4-3.2-1.1M12.4 6v12"/>'),
        plan:ico('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'),
-       health:ico('<path d="M8 3v5l-3 3 3 3v7"/><path d="M16 3v5l3 3-3 3v7"/><path d="M8 8h8M8 14h8"/>')
+       health:ico('<path d="M8 3v5l-3 3 3 3v7"/><path d="M16 3v5l3 3-3 3v7"/><path d="M8 8h8M8 14h8"/>'),
+       loads:ico('<path d="M6 20v-5M12 20V9M18 20V4"/>'),
+       last:ico('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="M8 15l2 2 5-5"/>'),
+       week:ico('<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 019 9"/>'),
+       adherence:ico('<path d="M8 21h8M12 17v4"/><path d="M7 4h10v4a5 5 0 01-10 0V4z"/><path d="M7 6H4v2a4 4 0 004 4M17 6h3v2a4 4 0 01-4 4"/>')
      };
-   
+
      const metricRows=getClientGeneralMetrics(c.id);
      const latestWeight=getLatestMetricValue(metricRows,'weight','weight');
      const latestMetric=metricRows[0]||null;
@@ -6854,133 +7157,161 @@ if (barEl) barEl.innerHTML = barHTML;
          ? `${latestMetricValues[0].value}${latestMetricValues[0].unit?' '+latestMetricValues[0].unit:''}`
          : 'Sin datos';
      const metricDate=(latestWeight?.date||metricDateValue(latestMetric||{}));
-   
+
      const assessmentRows=getClientAssessmentsForResults(c.id);
      const activeAssessments=assessmentRows.filter(row=>!['completado','completed'].includes(String(row.status||'').toLowerCase())).length;
      const latestAssessment=assessmentRows[0]||null;
-     const latestAssessmentName=String(latestAssessment?.assessmentName||latestAssessment?.assessment_name||'Sin evaluaciones');
      const latestAssessmentDate=latestAssessment?.assessmentDate||latestAssessment?.assessment_date||'';
-   
+
      const conditionRows=conditionSortRows(conditionRowsForClient(c.id));
      const healthAttention=conditionRows.filter(conditionNeedsCoachAttention).length;
      const healthActive=conditionRows.filter(row=>normalizeCoachConditionStatus(row.status)==='active').length;
      const healthResolved=conditionRows.filter(row=>normalizeCoachConditionStatus(row.status)==='resolved').length;
-     const latestCondition=conditionRows[0]||null;
-   
+
      const programName=String(program?.name||program?.title||program?.programName||program?.program_name||assign?.commercialLabel||assign?.commercial_label||'Sin plan asignado');
      const currentWeek=assign?getAssignmentWeek(assign):null;
+     const visibleSessions=assign?getAssignmentVisibleSessions(assign).length:0;
      const planMeta=assign
-       ? `${currentWeek?'Semana '+currentWeek+' · ':''}${getAssignmentVisibleSessions(assign).length} sesiones visibles`
+       ? `${currentWeek?'Semana '+currentWeek+' · ':''}${visibleSessions} sesiones visibles`
        : 'Asigna un plan para comenzar';
      const sessionActionLabel=nextSession?'INICIAR SESIÓN PROGRAMADA':'INICIAR SESIÓN MANUAL';
      const sessionActionCall=nextSession
        ? `openWorkout('${c.id}','${nextSession.id}')`
        : `openWorkout('${c.id}')`;
-   
+     const ciLabel=todayCI?`CI ${String(ciStatus||'normal').toUpperCase()}`:'SIN CI';
+     const loadCount=state.clientLoadCounts?.[c.id];
+
      el.innerHTML=`
-       <div class="card" style="padding:14px;margin-bottom:10px">
-         <div style="display:flex;align-items:center;gap:12px">
-           ${getClientPhotoHTML(c,'')}
-           <div style="flex:1;min-width:0">
-             <div style="font-weight:800;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</div>
-             <div style="font-family:var(--font-m);font-size:.58rem;color:var(--text-2);letter-spacing:.06em;margin-top:2px">Próx. sesión</div>
-             <div style="font-weight:700;font-size:.82rem;color:var(--text);margin-top:1px">${nextSession ? `${formatDate(nextSession.date)} ${formatTime(nextSession.time)}` : 'Sin sesión programada'}</div>
+       <div class="profile28-shell">
+         <div class="profile28-nav">
+           <button class="profile28-nav-btn" onclick="showScr('clientes')" aria-label="Volver a clientes">‹</button>
+           <div class="profile28-brand"><strong>AB</strong><span>SYSTEM</span></div>
+           <button class="profile28-nav-btn" onclick="openModal('client','${c.id}')" aria-label="Editar cliente">•••</button>
+         </div>
+
+         <section class="profile28-hero">
+           <div class="profile28-avatar">
+             ${getClientPhotoHTML(c,'')}
+             <button class="profile28-avatar-edit" onclick="openModal('client','${c.id}')" aria-label="Editar cliente">✎</button>
            </div>
-           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
-             ${badge(c.status || 'prospecto', c.status || 'prospecto')}
-             ${todayCI ? badge(ciStatus || 'normal', ciStatus || 'normal') : `<span class="b" style="background:rgba(255,179,64,.12);color:var(--warn);border:1px solid rgba(255,179,64,.3)">Sin CI</span>`}
+           <div class="profile28-hero-main">
+             <div class="profile28-name">${esc(c.name)}</div>
+             <span class="profile28-status">${esc(c.status||'activo')}</span>
+             <div class="profile28-next">
+               ${ico('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>')}
+               <div>
+                 <span class="profile28-next-label">Próx. sesión</span>
+                 <span class="profile28-next-value">${nextSession?`${formatDate(nextSession.date)} · ${formatTime(nextSession.time)}`:'Sin sesión programada'}</span>
+               </div>
+             </div>
+           </div>
+           <span class="profile28-ci">${esc(ciLabel)}</span>
+         </section>
+
+         <button class="profile28-primary" onclick="${sessionActionCall}">
+           <span class="profile28-primary-icon">▶</span>
+           <span>${sessionActionLabel}</span>
+           <span class="profile28-primary-arrow">›</span>
+         </button>
+
+         <div class="profile28-actions">
+           <button class="profile28-action" onclick="openModal('client','${c.id}')">${ico('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>')}<span>Editar</span></button>
+           <button class="profile28-action" ${c.phone?'':'disabled'} onclick="copyClientLink('${c.id}')">${ico('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>')}<span>Copiar acceso</span></button>
+           <button class="profile28-action send" ${c.phone?'':'disabled'} onclick="sendClientAccessWA('${c.id}')">${ico('<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>')}<span>Enviar acceso</span></button>
+         </div>
+
+         <div class="profile28-stats">
+           <div class="profile28-stat">
+             <div class="profile28-stat-label">Última sesión</div>
+             <div class="profile28-stat-body">
+               <span class="profile28-stat-icon">${ICONS.last}</span>
+               <div class="profile28-stat-copy">
+                 <div class="profile28-stat-value">${lastDateStr?formatDate(lastDateStr):'—'}</div>
+                 <div class="profile28-stat-meta ${lastDateStr?'good':''}">${lastDateStr?'completada':'Sin registros'}</div>
+               </div>
+             </div>
+           </div>
+           <div class="profile28-stat">
+             <div class="profile28-stat-label">Esta semana</div>
+             <div class="profile28-stat-body">
+               <span class="profile28-stat-icon">${ICONS.week}</span>
+               <div class="profile28-stat-copy">
+                 <div class="profile28-stat-value">${thisWeekCount} / ${weekTarget}</div>
+                 <div class="profile28-stat-meta">sesiones</div>
+               </div>
+             </div>
+           </div>
+           <div class="profile28-stat">
+             <div class="profile28-stat-label">Adherencia</div>
+             <div class="profile28-stat-body">
+               <span class="profile28-stat-icon">${ICONS.adherence}</span>
+               <div class="profile28-stat-copy">
+                 <div class="profile28-stat-value">${clientLogs.length?adherence+'%':'—'}</div>
+                 <div class="profile28-stat-meta ${adherenceMeta.cls}">${adherenceMeta.label}</div>
+               </div>
+             </div>
            </div>
          </div>
+
+         <section class="profile28-section">
+           <div class="profile28-kicker">Accesos principales</div>
+           <div class="profile28-stack">
+             <button class="profile28-feature training" onclick="openWorkout('${c.id}')">
+               <span class="profile28-icon">${ICONS.training}</span>
+               <span class="profile28-feature-copy">
+                 <span class="profile28-feature-label">Entrenamiento</span>
+                 <span class="profile28-feature-value">${esc(programName)}</span>
+                 <span class="profile28-feature-meta">${esc(planMeta)}</span>
+               </span>
+               <span class="profile28-chevron">›</span>
+             </button>
+             <button class="profile28-feature ${healthAttention?'attention':''}" onclick="openClientHealth('${c.id}','summary')">
+               <span class="profile28-icon">${ICONS.health}</span>
+               <span class="profile28-feature-copy">
+                 <span class="profile28-feature-label">Salud</span>
+                 <span class="profile28-feature-value">${healthAttention?healthAttention+' por revisar':healthActive?healthActive+' activa'+(healthActive===1?'':'s'):'Sin condiciones activas'}</span>
+                 <span class="profile28-feature-meta">${conditionRows.length?conditionRows.length+' registro'+(conditionRows.length===1?'':'s')+' en historial':'Sin registros de salud'}</span>
+               </span>
+               <span class="profile28-chevron">›</span>
+             </button>
+           </div>
+
+           <div class="profile28-track-grid">
+             <button class="profile28-track" onclick="openClientProfileModule('${c.id}','assessments')">
+               <span class="profile28-track-arrow">›</span><span class="profile28-icon">${ICONS.eval}</span>
+               <span class="profile28-track-label">Evaluaciones</span>
+               <span class="profile28-track-value">${assessmentRows.length}</span>
+               <span class="profile28-track-meta">${activeAssessments?activeAssessments+' en progreso':latestAssessment?'Última · '+formatDate(latestAssessmentDate):'Crear primera'}</span>
+             </button>
+             <button class="profile28-track" onclick="openClientProfileModule('${c.id}','metrics')">
+               <span class="profile28-track-arrow">›</span><span class="profile28-icon">${ICONS.metric}</span>
+               <span class="profile28-track-label">Métricas</span>
+               <span class="profile28-track-value">${esc(metricValue)}</span>
+               <span class="profile28-track-meta">${metricRows.length?metricRows.length+' registros'+(metricDate?' · '+formatDate(metricDate):''):'Registrar primera'}</span>
+             </button>
+             <button class="profile28-track" onclick="openClientLoadsHistory('${c.id}')">
+               <span class="profile28-track-arrow">›</span><span class="profile28-icon">${ICONS.loads}</span>
+               <span class="profile28-track-label">Cargas</span>
+               <span class="profile28-track-value" id="loads-count-${c.id}">${loadCount===undefined?'—':loadCount}</span>
+               <span class="profile28-track-meta" id="loads-meta-${c.id}">${loadCount?'registros de carga':'Historial por ejercicio'}</span>
+             </button>
+           </div>
+         </section>
+
+         <section class="profile28-section">
+           <div class="profile28-kicker">Gestión</div>
+           <div class="profile28-manage-grid">
+             <button class="profile28-manage" onclick="openModal('note',null,{clientId:'${c.id}'})"><span class="profile28-icon">${ICONS.notes}</span><span class="profile28-manage-copy"><span class="profile28-manage-title">Notas</span><span class="profile28-manage-meta">Observaciones</span></span><span class="profile28-manage-arrow">›</span></button>
+             <button class="profile28-manage" onclick="openStretchingAssisted('${c.id}','${jsArg(c.name)}')"><span class="profile28-icon">${ICONS.stretch}</span><span class="profile28-manage-copy"><span class="profile28-manage-title">Asistidos</span><span class="profile28-manage-meta">16 técnicas disponibles</span></span><span class="profile28-manage-arrow">›</span></button>
+             <button class="profile28-manage" onclick="openModal('payment',null,{clientId:'${c.id}'})"><span class="profile28-icon">${ICONS.pay}</span><span class="profile28-manage-copy"><span class="profile28-manage-title">Pagos</span><span class="profile28-manage-meta">${pendPay.length?pendPay.length+' pendiente'+(pendPay.length===1?'':'s'):'Al día'}</span></span><span class="profile28-manage-arrow">›</span></button>
+             <button class="profile28-manage" onclick="openModal('assignment',null,{clientId:'${c.id}'})"><span class="profile28-icon">${ICONS.plan}</span><span class="profile28-manage-copy"><span class="profile28-manage-title">Plan</span><span class="profile28-manage-meta">Asignar o cambiar</span></span><span class="profile28-manage-arrow">›</span></button>
+           </div>
+         </section>
        </div>
-   
-       <button class="btn btn-cyan btn-wide" style="margin-bottom:8px;height:50px;border-radius:12px;font-size:.7rem;letter-spacing:.12em;gap:8px" onclick="${sessionActionCall}">
-         ${sessionActionLabel} <span style="font-size:1rem">→</span>
-       </button>
-       <div style="display:flex;gap:6px;margin-bottom:14px">
-         <button class="btn btn-s btn-sm" style="flex:1" onclick="openModal('client','${c.id}')">Editar</button>
-         ${c.phone?`<button class="btn btn-s btn-sm" style="flex:1" onclick="copyClientLink('${c.id}')">Copiar acceso</button>`:''}
-         ${c.phone?`<button class="btn btn-wa btn-sm" style="flex:1" onclick="sendClientAccessWA('${c.id}')">Enviar acceso</button>`:''}
-       </div>
-   
-       <div class="card" style="padding:0;margin-bottom:16px;overflow:hidden">
-         <div style="display:grid;grid-template-columns:repeat(3,1fr)">
-           <div style="padding:12px 10px;border-right:1px solid var(--divider)">
-             <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">Última sesión</div>
-             ${lastDateStr?`<div style="font-weight:700;font-size:.82rem;line-height:1.2">${formatDate(lastDateStr)}</div><div style="font-size:.6rem;color:var(--text-2);margin-top:2px">${daysAgo(lastDateStr)||''}</div>`:`<div style="font-size:.8rem;color:var(--text-2)">—</div>`}
-           </div>
-           <div style="padding:12px 10px;border-right:1px solid var(--divider)">
-             <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">Esta semana</div>
-             <div style="font-weight:700;font-size:.82rem">${thisWeekCount} / ${weekTarget}</div>
-             <div style="display:flex;gap:3px;margin-top:5px">${dotsHTML}</div>
-           </div>
-           <div style="padding:12px 10px">
-             <div style="font-family:var(--font-m);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:4px">Adherencia</div>
-             <div style="font-weight:700;font-size:.82rem;color:${adherence>=80?'var(--streak)':adherence>=60?'var(--warn)':'var(--medical)'}">${clientLogs.length?adherence+'%':'—'}</div>
-             ${clientLogs.length&&trend!==0?`<div style="font-size:.6rem;color:${trend>0?'var(--streak)':'var(--medical)'};margin-top:2px">${trend>0?'↗':'↘'} ${Math.abs(trend)} ses.</div>`:''}
-           </div>
-         </div>
-       </div>
-   
-       <section class="profile-hub-section">
-         <div class="profile-hub-kicker">Accesos principales</div>
-         <div class="profile-hub-stack">
-           <button class="profile-hub-feature training" onclick="openWorkout('${c.id}')">
-             <span class="profile-hub-icon">${ICONS.training}</span>
-             <span class="profile-hub-feature-copy">
-               <span class="profile-hub-feature-title">Entrenamiento</span>
-               <span class="profile-hub-feature-value">${esc(programName)}</span>
-               <span class="profile-hub-feature-meta">${esc(planMeta)}</span>
-             </span>
-             <span class="profile-hub-feature-chevron">›</span>
-           </button>
-           <button class="profile-hub-feature health ${healthAttention?'attention':''}" onclick="openClientHealth('${c.id}','summary')">
-             <span class="profile-hub-icon">${ICONS.health}</span>
-             <span class="profile-hub-feature-copy">
-               <span class="profile-hub-feature-title">Salud</span>
-               <span class="profile-hub-feature-value">${healthAttention?healthAttention+' por revisar':healthActive?healthActive+' activa'+(healthActive===1?'':'s'):'Sin condiciones activas'}</span>
-               <span class="profile-hub-feature-meta">${healthResolved?healthResolved+' registro'+(healthResolved===1?'':'s')+' en historial':'Check-ins, molestias y lesiones'}</span>
-             </span>
-             ${healthAttention?`<span class="profile-hub-feature-badge">${healthAttention}</span>`:''}
-             <span class="profile-hub-feature-chevron">›</span>
-           </button>
-         </div>
-         <div class="profile-hub-grid profile-hub-tracking-grid">
-           <button class="profile-hub-card tracking" onclick="openClientProfileModule('${c.id}','assessments')">
-             <span class="profile-hub-arrow">›</span><span class="profile-hub-icon">${ICONS.eval}</span>
-             <span class="profile-hub-title">Evaluaciones</span>
-             <span class="profile-hub-value">${assessmentRows.length}</span>
-             <span class="profile-hub-meta">${activeAssessments?activeAssessments+' en progreso':latestAssessment?'Última · '+formatDate(latestAssessmentDate):'Crear primera'}</span>
-             ${activeAssessments?`<span class="profile-hub-badge">${activeAssessments}</span>`:''}
-           </button>
-           <button class="profile-hub-card tracking" onclick="openClientProfileModule('${c.id}','metrics')">
-             <span class="profile-hub-arrow">›</span><span class="profile-hub-icon">${ICONS.metric}</span>
-             <span class="profile-hub-title">Métricas</span>
-             <span class="profile-hub-value ${metricRows.length?'':'text'}">${esc(metricValue)}</span>
-             <span class="profile-hub-meta">${metricRows.length?metricRows.length+' registros'+(metricDate?' · '+formatDate(metricDate):''):'Registrar primera'}</span>
-           </button>
-           <button class="profile-hub-card tracking" onclick="openClientLoadsHistory('${c.id}')">
-             <span class="profile-hub-arrow">›</span>
-             <span class="profile-hub-icon">
-               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--sport)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-             </span>
-             <span class="profile-hub-title">Cargas</span>
-             <span class="profile-hub-value text" id="loads-count-${c.id}">—</span>
-             <span class="profile-hub-meta">Historial por ejercicio</span>
-           </button>
-         </div>
-       </section>
-   
-       <section class="profile-hub-section">
-         <div class="profile-hub-kicker">Gestión</div>
-         <div class="profile-hub-grid">
-           <button class="profile-hub-manage" onclick="openModal('note',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.notes}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Notas</span><span class="profile-hub-manage-meta">Observaciones</span></span><span class="profile-hub-chevron">›</span></button>
-           <button class="profile-hub-manage" onclick="openStretchingAssisted('${c.id}','${jsArg(c.name)}')"><span class="profile-hub-icon">${ICONS.stretch}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Asistidos</span><span class="profile-hub-manage-meta">16 técnicas disponibles</span></span><span class="profile-hub-chevron">›</span></button>
-           <button class="profile-hub-manage" onclick="openModal('payment',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.pay}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Pagos</span><span class="profile-hub-manage-meta">${pendPay.length?pendPay.length+' pendiente'+(pendPay.length===1?'':'s'):'Al día'}</span></span><span class="profile-hub-chevron">›</span></button>
-           <button class="profile-hub-manage" onclick="openModal('assignment',null,{clientId:'${c.id}'})"><span class="profile-hub-icon">${ICONS.plan}</span><span class="profile-hub-manage-copy"><span class="profile-hub-manage-title">Plan</span><span class="profile-hub-manage-meta">Asignar o cambiar</span></span><span class="profile-hub-chevron">›</span></button>
-         </div>
-       </section>
      `;
-   
+
+     hydrateClientProfileLoadCount(c.id);
+
      const intelPanel=document.getElementById('intel-panel');
      if(intelPanel){
        const isAthlete=c.athleteProfile&&c.athleteProfile!=='general';
@@ -6988,7 +7319,8 @@ if (barEl) barEl.innerHTML = barHTML;
        else{intelPanel.style.display='none';intelPanel.innerHTML=''}
      }
    }
-   
+
+
    async function openClientLoadsHistory(clientId) {
      const el = document.getElementById('perfil-content');
      if (!el) return;
@@ -15117,10 +15449,61 @@ await ensureSessionLoadPrescriptionLoaded(c, hydratedPlan);
      return out;
    }
    
+   function upsertLocalSessionLog(savedLog){
+     if(!savedLog) return;
+     const normalized = snakeToCamel(savedLog);
+     const idx = (state.sessionLogs || []).findIndex(log =>
+       String(log?.id || '') === String(normalized?.id || '')
+     );
+
+     if(idx >= 0){
+       state.sessionLogs[idx] = {...state.sessionLogs[idx],...normalized};
+     }else{
+       state.sessionLogs.unshift(normalized);
+     }
+
+     state.sessionLogs.sort((a,b) =>
+       coachSessionLogSortValue(b).localeCompare(coachSessionLogSortValue(a))
+     );
+   }
+
    async function insertSessionLogSafe(payload){
+     const token = getCoachSessionTokenSafe();
+
+     if(token){
+       try{
+         const {data,error} = await db.rpc(
+           'ab_coach_session_complete_training',
+           {
+             p_session_token: token,
+             p_client_id: payload.client_id,
+             p_assignment_id: payload.assignment_id,
+             p_session_id: payload.session_id,
+             p_training_date: payload.training_date || todayISO(),
+             p_coach_note: payload.coach_note || null
+           }
+         );
+
+         if(error) throw error;
+
+         const saved = normalizeRpcJsonRow(data);
+         if(saved?.id) return saved;
+
+         throw new Error('La RPC de cierre no devolvió un registro válido.');
+       }catch(error){
+         console.warn('ab_coach_session_complete_training fallback:', {
+           message:error?.message,
+           details:error?.details,
+           hint:error?.hint,
+           code:error?.code,
+           raw:error
+         });
+       }
+     }
+
      const attempts=[
        payload,
-   
+
        pickPayload(payload,[
          'id',
          'client_id',
@@ -15133,7 +15516,7 @@ await ensureSessionLoadPrescriptionLoaded(c, hydratedPlan);
          'coach_note',
          'updated_at'
        ]),
-   
+
        pickPayload(payload,[
          'id',
          'client_id',
@@ -15143,7 +15526,7 @@ await ensureSessionLoadPrescriptionLoaded(c, hydratedPlan);
          'training_date',
          'coach_note'
        ]),
-   
+
        pickPayload(payload,[
          'id',
          'client_id',
@@ -15151,29 +15534,32 @@ await ensureSessionLoadPrescriptionLoaded(c, hydratedPlan);
          'coach_note'
        ])
      ];
-   
+
      let lastError=null;
-   
+
      for(const p of attempts){
        try{
-         const {error}=await db
+         const {data,error}=await db
            .from('client_session_logs')
-           .insert(p);
-   
-         if(!error)return snakeToCamel(p);
-   
+           .insert(p)
+           .select()
+           .single();
+
+         if(!error) return snakeToCamel(data || p);
+
          lastError=error;
          console.warn('Intento client_session_logs fallido:',error,p);
-   
+
        }catch(e){
          lastError=e;
          console.warn('Intento client_session_logs exception:',e,p);
        }
      }
-   
+
      throw lastError;
    }
-   
+
+
    function getMaxSessionNumberForCurrentWeek(plan){
      const sessions = plan?.weekSessions || plan?.sessions || [];
    
@@ -15700,7 +16086,7 @@ await ensureSessionLoadPrescriptionLoaded(c, hydratedPlan);
        };
    
        const savedLog=await insertSessionLogSafe(payload);
-       state.sessionLogs.unshift(savedLog);
+       upsertLocalSessionLog(savedLog);
        savedInLogs=true;
    
        showToast('Sesión guardada ✓','ok');
