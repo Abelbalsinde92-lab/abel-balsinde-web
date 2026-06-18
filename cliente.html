@@ -7562,49 +7562,206 @@ function abRpc22BuildServerSignature(assignment, planJson, conditions) {
 async function abRpc22SyncClientTraining({ force = false, notify = true } = {}) {
   if (abRpc22SyncBusy) return false;
   if (document.visibilityState === 'hidden') return false;
-  if (workoutTimer?.running || currentTrainingLog) return false;
+
+  /*
+   * Solo bloqueamos mientras el temporizador del propio cliente
+   * está corriendo. currentTrainingLog ya no bloquea la consulta,
+   * porque Coach puede haber terminado esa misma sesión.
+   */
+  if (workoutTimer?.running) return false;
 
   const token = getClientSessionToken();
   if (!token || !clientData?.id) return false;
 
+  const currentSessionIdBeforeSync =
+    getCurrentVisibleSessionId?.() ||
+    currentTrainingLog?.session_id ||
+    null;
+
+  const assignmentIdBeforeSync =
+    clientTrainingAssignment?.assignment_id ||
+    clientTrainingAssignment?.id ||
+    null;
+
+  const wasCurrentSessionFinished =
+    Boolean(
+      currentSessionIdBeforeSync &&
+      (clientSessionLogs || []).some(log =>
+        String(log.assignment_id || '') ===
+          String(assignmentIdBeforeSync || '') &&
+
+        String(log.session_id || '') ===
+          String(currentSessionIdBeforeSync) &&
+
+        isTrainingLogFinished(log)
+      )
+    );
+
   abRpc22SyncBusy = true;
+
   try {
-    const [assignmentsResult, planResult, conditionsResult] = await Promise.all([
-      db.rpc('ab_client_get_assignments', { p_session_token: token }),
-      db.rpc('ab_client_get_active_training_plan', { p_session_token: token }),
-      db.rpc('ab_client_session_get_conditions', { p_session_token: token, p_limit: 100 })
+    const [
+      assignmentsResult,
+      planResult,
+      conditionsResult,
+      trainingLogsResult
+    ] = await Promise.all([
+      db.rpc('ab_client_get_assignments', {
+        p_session_token: token
+      }),
+
+      db.rpc('ab_client_get_active_training_plan', {
+        p_session_token: token
+      }),
+
+      db.rpc('ab_client_session_get_conditions', {
+        p_session_token: token,
+        p_limit: 100
+      }),
+
+      db.rpc('ab_client_session_get_training_logs', {
+        p_session_token: token,
+        p_limit: 200
+      })
     ]);
 
     if (assignmentsResult.error) throw assignmentsResult.error;
     if (planResult.error) throw planResult.error;
     if (conditionsResult.error) throw conditionsResult.error;
+    if (trainingLogsResult.error) throw trainingLogsResult.error;
 
-    const canonical = abRpc22ChooseCanonicalAssignment(assignmentsResult.data);
-    const planJson = abRpc22AsObject(planResult.data) || {};
-    const conditions = abRpc22AsArray(conditionsResult.data);
-    const signature = abRpc22BuildServerSignature(canonical.active, planJson, conditions);
+    const canonical =
+      abRpc22ChooseCanonicalAssignment(assignmentsResult.data);
 
-    if (!force && signature === abRpc22LastServerSignature) return false;
+    const planJson =
+      abRpc22AsObject(planResult.data) || {};
 
-    const oldAssignmentId = clientTrainingAssignment?.assignment_id || clientTrainingAssignment?.id || null;
+    const conditions =
+      abRpc22AsArray(conditionsResult.data);
+
+    const freshTrainingLogs =
+      parseClientTrainingLogs(trainingLogsResult.data);
+
+    const activeAssignmentId =
+      canonical.active?.assignment_id ||
+      canonical.active?.id ||
+      assignmentIdBeforeSync ||
+      null;
+
+    /*
+     * Buscar si Coach finalizó exactamente la sesión
+     * que Cliente tenía abierta.
+     */
+    const finishedCurrentLog =
+      currentSessionIdBeforeSync
+        ? freshTrainingLogs.find(log =>
+            String(log.assignment_id || '') ===
+              String(activeAssignmentId || '') &&
+
+            String(log.session_id || '') ===
+              String(currentSessionIdBeforeSync) &&
+
+            isTrainingLogFinished(log)
+          ) || null
+        : null;
+
+    /*
+     * El historial forma parte de la firma.
+     * Así una sesión finalizada también provoca actualización,
+     * aunque el plan y la asignación no hayan cambiado.
+     */
+    const logsSignature = freshTrainingLogs
+      .map(log => [
+        log.id || '',
+        log.assignment_id || '',
+        log.session_id || '',
+        log.status || '',
+        log.is_finished === true ? '1' : '0',
+        log.finished_at || '',
+        log.completed_at || '',
+        log.updated_at || ''
+      ].join(':'))
+      .sort()
+      .join('|');
+
+    const signature = JSON.stringify({
+      training: abRpc22BuildServerSignature(
+        canonical.active,
+        planJson,
+        conditions
+      ),
+      logs: logsSignature
+    });
+
+    /*
+     * Actualizar siempre el historial local antes de comparar
+     * la firma del servidor.
+     */
+    clientSessionLogs = freshTrainingLogs;
+
+    /*
+     * Si Coach la terminó, sustituimos el registro local
+     * iniciado por el registro final confirmado por Supabase.
+     */
+    if (finishedCurrentLog) {
+      currentTrainingLog = {
+        ...(currentTrainingLog || {}),
+        ...finishedCurrentLog
+      };
+    }
+
+    if (
+      !force &&
+      signature === abRpc22LastServerSignature
+    ) {
+      return false;
+    }
+
+    const oldAssignmentId =
+      clientTrainingAssignment?.assignment_id ||
+      clientTrainingAssignment?.id ||
+      null;
 
     clientProgramAssignmentsHistory = canonical.history;
-    clientTrainingAssignment = canonical.active ? {
-      ...canonical.active,
-      id: canonical.active.assignment_id || canonical.active.id,
-      assignment_id: canonical.active.assignment_id || canonical.active.id,
-      client_id: canonical.active.client_id || clientData.id
-    } : null;
+
+    clientTrainingAssignment = canonical.active
+      ? {
+          ...canonical.active,
+          id:
+            canonical.active.assignment_id ||
+            canonical.active.id,
+
+          assignment_id:
+            canonical.active.assignment_id ||
+            canonical.active.id,
+
+          client_id:
+            canonical.active.client_id ||
+            clientData.id
+        }
+      : null;
 
     hydrateTrainingFromRpcPlan(planJson);
+
     clientConditions = conditions;
+
     await abRpc22LoadCurrentAdaptations(token);
+
     abRpc22LastServerSignature = signature;
 
     await renderDashboard();
 
-    const newAssignmentId = clientTrainingAssignment?.assignment_id || clientTrainingAssignment?.id || null;
-    if (notify && oldAssignmentId && newAssignmentId && String(oldAssignmentId) !== String(newAssignmentId)) {
+    const newAssignmentId =
+      clientTrainingAssignment?.assignment_id ||
+      clientTrainingAssignment?.id ||
+      null;
+
+    if (
+      notify &&
+      oldAssignmentId &&
+      newAssignmentId &&
+      String(oldAssignmentId) !== String(newAssignmentId)
+    ) {
       showClientNotice(
         getLang() === 'sr'
           ? 'Trener je ažurirao tvoj plan treninga.'
@@ -7615,14 +7772,40 @@ async function abRpc22SyncClientTraining({ force = false, notify = true } = {}) 
       );
     }
 
+    /*
+     * Avisar solamente en el momento en que Cliente
+     * descubre que Coach terminó la sesión.
+     */
+    if (
+      notify &&
+      finishedCurrentLog &&
+      !wasCurrentSessionFinished
+    ) {
+      showClientNotice(
+        getLang() === 'sr'
+          ? 'Trening je završen sa trenerom.'
+          : getLang() === 'en'
+            ? 'Your coach marked this training session as completed.'
+            : 'Tu coach marcó este entrenamiento como completado.',
+        'success'
+      );
+    }
+
     return true;
+
   } catch (error) {
-    console.error('RPC 22 · sincronización cliente:', error);
+    console.error(
+      'RPC 22 · sincronización cliente:',
+      error
+    );
+
     window.AB_RPC22_LAST_ERROR = {
       at: new Date().toISOString(),
       message: error?.message || String(error)
     };
+
     return false;
+
   } finally {
     abRpc22SyncBusy = false;
   }
