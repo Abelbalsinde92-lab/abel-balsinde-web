@@ -6609,16 +6609,24 @@ function getFinishedTrainingLogsGeneral() {
   const uniqueLogs = new Map();
 
   (clientSessionLogs || []).forEach(log => {
-    if (!log?.id || !isTrainingLogFinished(log)) return;
+    if (!log?.id) return;
+    if (!log?.session_id) return;
+
+    /*
+     * Una sesión puede venir relacionada mediante assignment_id
+     * aunque la RPC no incluya program_id.
+     */
+    if (!log?.assignment_id && !log?.program_id) return;
+
+    if (!isTrainingLogFinished(log)) return;
 
     uniqueLogs.set(String(log.id), log);
   });
 
-  return Array.from(uniqueLogs.values())
-    .sort((a, b) =>
-      String(getTrainingLogComparableDate(b))
-        .localeCompare(String(getTrainingLogComparableDate(a)))
-    );
+  return Array.from(uniqueLogs.values()).sort((a, b) =>
+    String(getTrainingLogComparableDate(b))
+      .localeCompare(String(getTrainingLogComparableDate(a)))
+  );
 }
 
 /*
