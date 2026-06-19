@@ -10725,7 +10725,7 @@ if(data.assignmentScope === 'month'){
        .from('training_exercises')
        .select('*')
        .eq('block_id', blockId)
-       .or('status.eq.activo,status.is.null')
+       .or('status.eq.activo,status.eq.active,status.is.null')
        .order('exercise_order', { ascending:true });
    
      if(error){
@@ -10777,7 +10777,7 @@ if(data.assignmentScope === 'month'){
        .from('training_exercises')
        .select('*')
        .in('block_id', blockIds)
-       .or('status.eq.activo,status.is.null')
+       .or('status.eq.activo,status.eq.active,status.is.null')
        .order('exercise_order', { ascending:true });
    
      if(error){
