@@ -9909,7 +9909,7 @@ if(data.assignmentScope === 'month'){
          }else{
            // Edición de asignaciones existentes: se mantiene directa hasta crear ab_coach_update_assignment.
            if(closeOld&&!id){
-             let closeQ = db.from('client_program_assignments').update({status:'finalizado'}).eq('client_id',data.clientId).or('status.eq.activo,status.is.null');
+             let closeQ = db.from('client_program_assignments').update({status:'finalizado'}).eq('client_id',data.clientId).or('status.eq.activo,status.eq.active,status.is.null')
              if(data.coachId) closeQ = closeQ.eq('coach_id', data.coachId);
              const{error:closeErr}=await closeQ;
              if(closeErr)console.warn('No se pudieron cerrar asignaciones anteriores:',closeErr);
