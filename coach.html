@@ -10396,6 +10396,12 @@ if(data.assignmentScope === 'month'){
    
    function buildWorkoutSessionControls(plan,c){
      if(!plan||!c)return'';
+
+     const assignedLevel = String(
+       plan?.assignment?.assignedLevel ||
+       plan?.assignment?.assigned_level ||
+       'N1'
+     ).toUpperCase();
    
      const weekSessions=plan.weekSessions||plan.sessions||[];
      const activeN=Number(state.activeWorkoutSessionNumber||1);
@@ -10418,12 +10424,12 @@ if(data.assignmentScope === 'month'){
          <summary>
            <span class="workout-config-cell"><span class="workout-config-label">Sesión</span><span class="workout-config-value">Día ${String.fromCharCode(64+activeN)}</span></span>
            <span class="workout-config-cell"><span class="workout-config-label">Adaptación</span><span class="workout-config-value">${esc(adaptationLabel)}</span></span>
-           <span class="workout-config-cell"><span class="workout-config-label">Carga</span><span class="workout-config-value">${loadValue}%</span></span>
+           <span class="workout-config-cell"><span class="workout-config-label">Carga principal</span><span class="workout-config-value">${loadValue}% 1RM</span></span>
          </summary>
          <div class="workout-config-body">
            <div class="workout-config-section"><div class="workout-config-section-title">Día de trabajo</div><div class="fr">${sessionButtons}</div></div>
            <div class="workout-config-section"><div class="workout-config-section-title">Adaptación</div><div class="fr">${renderPathologyPills(c)}</div></div>
-           <div class="workout-config-section"><div class="workout-config-section-title">Carga de referencia</div>${buildWorkoutLoadPercentagePills(plan)}</div>
+           <div class="workout-config-section"><div class="workout-config-section-title">Carga principal · %1RM</div>${buildWorkoutLoadPercentagePills(plan)}</div>
          </div>
        </details>`;
    }
@@ -11553,7 +11559,7 @@ async function ensureCoachLibraryVariantsLoaded(
    
      return `
        <div class="fr" style="margin-bottom:12px">
-         <span class="fp" style="pointer-events:none;opacity:.78">Carga</span>
+         <span class="fp" style="pointer-events:none;opacity:.78">%1RM</span>
          ${options.map(p => `
            <button class="fp ${active === p ? 'on' : ''}" onclick="setWorkoutLoadPercentage(${p})">${p}%</button>
          `).join('')}
@@ -12350,6 +12356,11 @@ function flashPhase(type){
    
    /* ── v1.1: buildWorkoutBlockListScreen CON estado vacío accionable ── */
    function buildWorkoutBlockListScreen(c,plan,ci,ciStatus,doneCount,totalCount,note){
+     const assignedLevel = String(
+       plan?.assignment?.assignedLevel ||
+       plan?.assignment?.assigned_level ||
+       'N1'
+     ).toUpperCase();
    
      /* === Sin programa asignado === */
      if(!plan.program){
@@ -12433,7 +12444,7 @@ function flashPhase(type){
            <div style="flex:1;min-width:0">
              <div class="wt-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.98rem">${esc(c.name)}</div>
              ${(()=>{ const da=detectAllPathologiesForClient(c); const pl=da.physical?getPathologyLabel(da.physical):da.hasFatiga?'Fatiga alta':''; return pl ? `<div class="wt-program" style="color:var(--warn);font-size:.58rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(pl)} · adaptación activa</div>` : `<div class="wt-program" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.6rem">${esc(compactPlanLabel(plan.program.name||plan.program.nameEs||'Programa activo'))}</div>`; })()}
-             <div class="wt-meta" style="font-size:.7rem;margin-top:1px">${esc(workoutStepLabel(getAssignmentWeek(plan.assignment),getAssignmentSessionNumber(plan.assignment)))} · ${doneCount}/${totalCount||0} ej.</div>
+             <div class="wt-meta" style="font-size:.7rem;margin-top:1px">${esc(workoutStepLabel(getAssignmentWeek(plan.assignment),getAssignmentSessionNumber(plan.assignment)))} · ${esc(assignedLevel)} · ${doneCount}/${totalCount||0} ej.</div>
            </div>
            ${badge(c.status||'activo',c.status||'activo')}
          </div>
@@ -13008,7 +13019,8 @@ function flashPhase(type){
      const done = isExerciseDone(clientId, exId);
      const isDetail = state.activeExerciseDetailId === exId;
      const meta = buildClMeta(ex);
-     const loadText = buildClLoadText(ex);
+     const primaryLoadBlock = isPrimaryLoadBlock(block);
+     const loadText = primaryLoadBlock ? buildClLoadText(ex) : '';
      const videoUrl = getExerciseVideoUrl(ex);
      const blockId = block?.id || '';
    
@@ -13024,7 +13036,7 @@ function flashPhase(type){
            ${meta.main ? `<div class="cl-meta" style="font-weight:600;color:var(--text)">${esc(meta.main)}</div>` : ''}
            ${meta.note ? `<div class="cl-meta" style="color:var(--text-2);font-size:.54rem">${esc(meta.note)}</div>` : ''}
            ${loadText ? `<div class="cl-load">${esc(loadText)}</div>` : ''}
-           ${hasSuggestedLoad(ex) ? buildClLoadInput(ex, exId) : ''}
+           ${primaryLoadBlock && hasSuggestedLoad(ex) ? buildClLoadInput(ex, exId) : ''}
            ${buildClStrengthRef(ex, clientId)}
            ${isDetail ? buildClExerciseDetail(ex, exId, clientId, videoUrl, blockId) : ''}
          </div>
@@ -13067,6 +13079,37 @@ function flashPhase(type){
      renderWorkout();
    }
    
+   function isPrimaryLoadBlock(block){
+     if(!block) return false;
+
+     const explicit =
+       block.loadSelectorEnabled ??
+       block.load_selector_enabled ??
+       block.usesPercentageLoad ??
+       block.uses_percentage_load;
+
+     if(explicit === true) return true;
+     if(explicit === false) return false;
+
+     const txt = cleanTxt([
+       getBlockName(block),
+       getBlockType(block),
+       block.title,
+       block.titleEs,
+       block.title_es,
+       block.name,
+       block.nameEs,
+       block.name_es
+     ].filter(Boolean).join(' '));
+
+     return [
+       'levantamiento principal',
+       'fuerza principal',
+       'main lift',
+       'primary lift'
+     ].some(term => txt.includes(term));
+   }
+
    /* ════════════════════════════════════════════════════
       buildBlockChecklistScreen — PANTALLA PRINCIPAL BLOQUE
       Reemplaza buildActiveSingleExerciseScreen y buildActiveCircuitScreen
@@ -13119,7 +13162,7 @@ function flashPhase(type){
      return `
        <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">← Bloques</button>
    
-       ${buildWorkoutLoadPercentagePills(plan)}
+       ${isPrimaryLoadBlock(block) ? buildWorkoutLoadPercentagePills(plan) : ''}
    
        <!-- Header bloque -->
        <div class="wt2-block-header" style="margin-bottom:10px">
@@ -13560,7 +13603,7 @@ function flashPhase(type){
      return `
        <button class="btn btn-s btn-sm btn-wide" style="margin-bottom:10px" onclick="backToWorkoutBlocks()">← Bloques</button>
    
-       ${buildWorkoutLoadPercentagePills(plan)}
+       ${isPrimaryLoadBlock(block) ? buildWorkoutLoadPercentagePills(plan) : ''}
        ${buildBlockInstructionSummary(block)}
    
        <div class="wt2-block-header">
